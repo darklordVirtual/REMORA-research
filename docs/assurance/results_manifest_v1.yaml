@@ -38,7 +38,7 @@ results:
 - path: results/aromer_cross_domain_transfer_v1.json
   class: regenerable
   generator: python scripts/run_cross_domain_transfer.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/benchmark_mock.json
   class: frozen
   reason: no generator in the tracked code; the file cannot be regenerated
@@ -54,7 +54,7 @@ results:
 - path: results/bootstrap_trust_curve_results.json
   class: regenerable
   generator: python experiments/bootstrap_trust_curve.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/calibration_result.json
   class: regenerable
   generator: python experiments/toolcall_v2_calibration_blind.py
@@ -68,7 +68,7 @@ results:
 - path: results/chi_iteration_utility_results.json
   class: regenerable
   generator: python experiments/chi_iteration_utility.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
   volatile:
   - .meta.ablation_artifact
   - .meta.thermo_artifact
@@ -79,23 +79,23 @@ results:
 - path: results/claim_consistency_audit.json
   class: regenerable
   generator: python experiments/claim_consistency_audit.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/conformal_guardrail_holdout.json
   class: regenerable
   generator: python experiments/conformal_phase_guardrail.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/conformal_repeated_splits.json
   class: regenerable
   generator: python experiments/conformal_repeated_splits.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/critical_trust_split_v1.json
   class: regenerable
   generator: python scripts/compute_critical_trust_split.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/empirical_susceptibility_results.json
   class: regenerable
   generator: python experiments/empirical_susceptibility.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/end_to_end_n500_v2.json
   class: unverified
   generator: python experiments/end_to_end_n500_v2.py
@@ -137,23 +137,23 @@ results:
 - path: results/fleetops_degradation_results.json
   class: regenerable
   generator: python scripts/run_fleetops_degradation.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
   volatile:
   - .run_at_commit
 - path: results/fleetops_validator_study_results.json
   class: regenerable
   generator: python scripts/run_fleetops_validator_study.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
   volatile:
   - .run_at_commit
 - path: results/full_coverage_bound_results.json
   class: regenerable
   generator: python experiments/full_coverage_bound.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/gainability_routing.json
   class: regenerable
   generator: python experiments/gainability_routing.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/gainability_routing_v2.json
   class: unverified
   generator: python experiments/gainability_routing.py
@@ -165,33 +165,38 @@ results:
 - path: results/knowledge_domains/cost_routing.json
   class: regenerable
   generator: python scripts/gen_knowledge_domains.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
   volatile:
   - .provenance.commit_hash
+  - .provenance.generated_at
 - path: results/knowledge_domains/eval_harness.json
   class: regenerable
   generator: python scripts/gen_knowledge_domains.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
   volatile:
   - .provenance.commit_hash
+  - .provenance.generated_at
 - path: results/knowledge_domains/evidence_graph.json
   class: regenerable
   generator: python scripts/gen_knowledge_domains.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
   volatile:
   - .provenance.commit_hash
+  - .provenance.generated_at
 - path: results/knowledge_domains/multitenant.json
   class: regenerable
   generator: python scripts/gen_knowledge_domains.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
   volatile:
   - .provenance.commit_hash
+  - .provenance.generated_at
 - path: results/knowledge_domains/ontology.json
   class: regenerable
   generator: python scripts/gen_knowledge_domains.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
   volatile:
   - .provenance.commit_hash
+  - .provenance.generated_at
 - path: results/longitudinal_stability_v1.json
   class: unverified
   generator: python scripts/compute_far_confidence_sequence.py
@@ -199,15 +204,15 @@ results:
 - path: results/lyapunov_aggregate_results.json
   class: regenerable
   generator: python experiments/lyapunov_aggregate.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/m1_flag_coverage.json
   class: regenerable
   generator: python experiments/_m1_flag_coverage.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/mondrian_repeated_splits_results.json
   class: regenerable
   generator: python experiments/mondrian_repeated_splits.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/mondrian_v2_repeated_splits.json
   class: unverified
   generator: python experiments/build_critical_phase_dataset_v2.py
@@ -219,15 +224,15 @@ results:
 - path: results/phase_aware_guardrail_n544_results.json
   class: regenerable
   generator: python experiments/evaluate_phase_aware_guardrail.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/phase_aware_routing_results.json
   class: regenerable
   generator: python experiments/phase_aware_routing.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/phase_stability_results.json
   class: regenerable
   generator: python experiments/phase_stability.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/phase_transition_study_n500_calibrated_results.json
   class: frozen
   reason: no generator in the tracked code; the file cannot be regenerated
@@ -308,22 +313,22 @@ results:
 - path: results/selective_n500_holdout_results.json
   class: regenerable
   generator: python scripts/selective_n500_holdout.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/selective_n500_holdout_results.provenance.json
   class: sidecar
   of: results/selective_n500_holdout_results.json
 - path: results/selective_n500_results.json
   class: regenerable
   generator: python experiments/selective_n500.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/selective_trust_curve_results.json
   class: regenerable
   generator: python experiments/selective_trust_curve.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/stat_tests.json
   class: regenerable
   generator: python scripts/statistical_tests.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/superseded_groq_live_2026-07-27/ablation_v2_n500_results.json
   class: frozen
   reason: archived superseded live round; kept as the record of what it measured
@@ -370,7 +375,7 @@ results:
 - path: results/susceptibility_validation_results.json
   class: regenerable
   generator: python experiments/susceptibility_validation.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
   volatile:
   - .meta.source
 - path: results/system_demonstration_v1.json
@@ -427,7 +432,7 @@ results:
 - path: results/toolcall_ablation_results.json
   class: regenerable
   generator: python experiments/toolcall_ablation.py
-  verified_by: regenerated 2026-09-28 at cd94825 and byte-stable on rerun (Q1.3); CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/toolcall_ablation_v2_results.json
   class: regenerable
   generator: python experiments/toolcall_ablation_v2.py
@@ -435,7 +440,7 @@ results:
 - path: results/toolcall_benchmark_v1_results.json
   class: regenerable
   generator: python experiments/evaluate_toolcall_benchmark.py
-  verified_by: regenerated 2026-09-28 at cd94825 and byte-stable on rerun (Q1.3); CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/toolcall_benchmark_v2_ablation.json
   class: regenerable
   generator: python experiments/toolcall_ablation_v2.py
@@ -471,11 +476,15 @@ results:
 - path: results/toolcall_benchmark_v2_live_exec_results.json
   class: regenerable
   generator: python experiments/evaluate_toolcall_benchmark_v2_live_exec.py
-  verified_by: regenerated 2026-09-28 at cd94825 and byte-stable on rerun (Q1.3); CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
+  volatile:
+  - .cache_path
 - path: results/toolcall_benchmark_v2_live_results.json
   class: regenerable
   generator: python experiments/evaluate_toolcall_benchmark_v2_live.py --mode replay
-  verified_by: regenerated 2026-09-28 at cd94825 and byte-stable on rerun (Q1.3); CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
+  volatile:
+  - .cache_path
 - path: results/toolcall_benchmark_v2_results.json
   class: regenerable
   generator: python experiments/evaluate_toolcall_benchmark_v2.py
@@ -503,15 +512,18 @@ results:
 - path: results/toolcall_m1_clean_signal.json
   class: regenerable
   generator: python experiments/m1_clean_signal_eval.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
+  volatile:
+  - .timestamp
 - path: results/toolcall_stress_replay_10000.json
   class: regenerable
   generator: python experiments/toolcall_stress_replay.py
-  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
   volatile:
   - .baselines.*.performance.decisions_per_second
+  - .baselines.*.performance.elapsed_seconds
   - .baselines.*.performance.mean_decision_ms
 - path: results/trust_calibration_report.json
   class: regenerable
   generator: python experiments/nested_trust_calibration.py
-  verified_by: regenerated 2026-09-28 at cd94825 and byte-stable on rerun (Q1.3); CI check pending (Q1.2)
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'

@@ -213,3 +213,10 @@ Four were tool-call artifacts that predated the label-leakage fixes
 an older temperature ceiling. No claim status changed; the wording of three
 claim-ledger entries now cites the regenerated numbers.
 
+**2026-09-28, Q1.2.** `scripts/reproduce_results.py` runs at the end of the
+CI deterministic reproduction job. It regenerates the 35 regenerable results
+the 2026-07 round does not cover, with 31 generators in about 40 seconds.
+Only fields an entry declares volatile are ignored. The 11 round outputs stay
+byte-compared by the round itself, so all 46 regenerable results are now
+checked on every CI run.
+
