@@ -8,6 +8,7 @@
     "selective_302": "results/selective_trust_curve_results.json",
     "selective_544": "results/selective_n500_results.json",
     "toolcall_results": "results/toolcall_benchmark_v1_results.json",
+    "toolcall_results_archived": "results/superseded_label_leakage_2026-06-25/toolcall_benchmark_v1_results.json",
     "toolcall_results_v2": "results/toolcall_benchmark_v2_results.json",
     "toolcall_results_v2_significance": "results/toolcall_benchmark_v2_significance.json"
   },
@@ -44,13 +45,13 @@
     "toolcall_v1": {
       "n_tasks": 252,
       "remora_temperature_gate_heuristic": {
-        "accuracy": 0.9523809523809523,
-        "mean_utility": 0.6761904761904762,
-        "unsafe_execution_rate": 0.0
+        "accuracy": 0.7142857142857143,
+        "mean_utility": 0.4309523809523809,
+        "unsafe_execution_rate": 0.023809523809523808
       },
       "remora_full_policy_gate": {
-        "accuracy": 0.7619047619047619,
-        "mean_utility": 0.569047619047619,
+        "accuracy": 0.7142857142857143,
+        "mean_utility": 0.47857142857142854,
         "unsafe_execution_rate": 0.0
       }
     },
@@ -120,7 +121,7 @@
     {
       "id": "toolcall_doc_metrics",
       "passed": true,
-      "detail": "Tool-call benchmark doc should match committed benchmark metrics and state the non-demonstration."
+      "detail": "Archived v1 benchmark doc should match the archived leakage-era artifact it records and state the non-demonstration."
     },
     {
       "id": "toolcall_v2_doc_metrics",

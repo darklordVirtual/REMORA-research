@@ -1,7 +1,7 @@
 # REMORA Artifact Manifest v1
 
 **Generated:** 2026-06-30
-**Revised:** 2026-07-02, 2026-07-20, 2026-07-27, 2026-07-30, 2026-07-31 (see Revision/Addition Notes below)
+**Revised:** 2026-07-02, 2026-07-20, 2026-07-27, 2026-07-30, 2026-07-31, 2026-09-28 (see Revision/Addition Notes below)
 **Repository commit:** `2cd573d6a7c98e87c1781fd599469d9d46e132e2` (original), revised at working tree of 2026-07-02
 **Checksum encoding:** SHA-256, lowercase hex, computed over committed (LF) file bytes
 
@@ -128,6 +128,19 @@ records (both superseded by CLAIM-018, which is in turn superseded by CLAIM-019)
 
 ---
 
+## Revision Note (2026-09-28)
+
+`results/trust_calibration_report.json` is re-issued (quality program Q1.3).
+The committed file was produced on 2026-05-31 with a temperature search
+ceiling of 4.0. `remora/calibration/trust_calibrator.py` searches up to 8.0,
+so the committed generator could no longer reproduce it. Regenerated at
+`cd94825`, byte-stable on rerun; the pre-calibration metrics are unchanged,
+which confirms the same input. The fitted temperature is 8.0, again at the
+search ceiling. The previous file is kept in
+`results/superseded_t_max_4_2026-05-31/`.
+
+---
+
 ## Primary Safety Gate Artifacts
 
 These are the two hard P0 release-blocker artifacts (REM-014, REM-019). Checksums
@@ -160,7 +173,7 @@ must not change unless the benchmark is re-run under a documented protocol.
 | `results/m1_flag_coverage.json` | `b8c57f5b8e02ca39107695396d38bff4733eb469c058b90549d50bc3bf4e7c6d` | 544 | 2026-06-28T22:45:40 | M1 structural/keyword flag coverage on toolcall_blind_v3 |
 | `results/toolcall_m1_clean_signal.json` | `62a497f3483f7375e08ad6fa9f6929c5d0ea7c2556d3f5dd541f76cda533f663` | 2663 | 2026-07-20 | M1 leakage clean-signal evaluation (REM-001; re-issued 2026-07-20, REM-038) |
 | `results/ablation_report.txt` | `60c3514bde738affbc65448485812e3b2bcfd2262928d33f6c2f8ac331f9a3c2` | 9217 | 2026-06-08T01:48:02 | Ablation study report |
-| `results/trust_calibration_report.json` | `83a5cb4190a6446f6fcb462c0e62226cdc0f52b75ca8569e12e87c305e83acc1` | 9579 | 2026-05-31T22:38:13 | Trust calibration report |
+| `results/trust_calibration_report.json` | `3576237928228499d79b3161bf3e11e58ed427f05b349b72c89cba6b376f1107` | 9509 | 2026-09-28 | Trust calibration report (re-issued 2026-09-28, see Revision Note) |
 | `results/gainability_routing.json` | `7d5245f410ed360362abed0720aabed2c959a2383951f6cdc35be68536a611e7` | 291 | 2026-06-09T22:51:30 | Gainability routing result |
 | `results/evidence_v2_n500.json` | `322a4f8a90bd111e98a48a9ae6f58442395986f86d999afb799467b473d18b1e` | 406 | 2026-06-09T22:51:30 | Evidence routing N=500 |
 | `results/se_backend_parity_smoke.json` | `3842257f833aebb0e6c7d808fa4a60a6bfb3d248710417b5d652790a186492bb` | 9334 | 2026-07-30 | NLI vs TokenFingerprint SE-backend parity smoke (RF-06): 24-item fixture corpus, 12/24 cluster-count disagreements; fixture-scope only, provenance sidecar v3 (added 2026-07-30) |

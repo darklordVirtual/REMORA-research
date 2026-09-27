@@ -348,6 +348,25 @@ results:
 - path: results/superseded_groq_live_2026-07-27/thermodynamic_eval_n500_uncalibrated_results.provenance.json
   class: sidecar
   of: results/superseded_groq_live_2026-07-27/thermodynamic_eval_n500_uncalibrated_results.json
+- path: results/superseded_label_leakage_2026-06-25/toolcall_ablation_results.json
+  class: frozen
+  reason: leakage-era version committed 2026-06-25, superseded by the regeneration in NEGATIVE_RESULTS.md
+    §58
+- path: results/superseded_label_leakage_2026-06-25/toolcall_benchmark_v1_results.json
+  class: frozen
+  reason: leakage-era version committed 2026-06-25, superseded by the regeneration in NEGATIVE_RESULTS.md
+    §58
+- path: results/superseded_label_leakage_2026-06-25/toolcall_benchmark_v2_live_exec_results.json
+  class: frozen
+  reason: leakage-era version committed 2026-06-25, superseded by the regeneration in NEGATIVE_RESULTS.md
+    §58
+- path: results/superseded_label_leakage_2026-06-25/toolcall_benchmark_v2_live_results.json
+  class: frozen
+  reason: leakage-era version committed 2026-06-25, superseded by the regeneration in NEGATIVE_RESULTS.md
+    §58
+- path: results/superseded_t_max_4_2026-05-31/trust_calibration_report.json
+  class: frozen
+  reason: calibration run with a 4.0 temperature ceiling, superseded 2026-09-28
 - path: results/susceptibility_validation_results.json
   class: regenerable
   generator: python experiments/susceptibility_validation.py
@@ -406,23 +425,17 @@ results:
   reason: oracle-backed; an offline rerun gives different numbers, and whether that run replayed the cache
     or fell back is not yet established
 - path: results/toolcall_ablation_results.json
-  class: drifted
+  class: regenerable
   generator: python experiments/toolcall_ablation.py
-  drift: 155 fields differ from an offline rerun at 85b4c97, e.g. .ablations.full_gate.accuracy, .ablations.full_gate.action_confusion_matrix.ABSTAIN.ESCALATE,
-    .ablations.full_gate.action_confusion_matrix.ABSTAIN.VERIFY
-  tracking: quality program Q1.3
+  verified_by: regenerated 2026-09-28 at cd94825 and byte-stable on rerun (Q1.3); CI check pending (Q1.2)
 - path: results/toolcall_ablation_v2_results.json
   class: regenerable
   generator: python experiments/toolcall_ablation_v2.py
   verified_by: 'ci.yml: Deterministic reproduction round (byte-compare)'
 - path: results/toolcall_benchmark_v1_results.json
-  class: drifted
+  class: regenerable
   generator: python experiments/evaluate_toolcall_benchmark.py
-  drift: 'the heuristic baselines changed: unsafe_execution_rate 0.0 committed, 0.024 to 0.143 now; critical_error_intercept_rate
-    1.0 committed, 0.857 to 0.929 now. remora_full_policy_gate is not among the changed fields. Claims
-    toolcall_benchmark_v1, toolcall_unsafe_execution_reduction and toolcall_critical_error_intercept in
-    docs/thermodynamics/claim_ledger.yaml cite the committed numbers.'
-  tracking: quality program Q1.3
+  verified_by: regenerated 2026-09-28 at cd94825 and byte-stable on rerun (Q1.3); CI check pending (Q1.2)
 - path: results/toolcall_benchmark_v2_ablation.json
   class: regenerable
   generator: python experiments/toolcall_ablation_v2.py
@@ -456,17 +469,13 @@ results:
   generator: python experiments/evaluate_toolcall_benchmark_v2.py
   verified_by: 'ci.yml: Deterministic reproduction round (byte-compare)'
 - path: results/toolcall_benchmark_v2_live_exec_results.json
-  class: drifted
+  class: regenerable
   generator: python experiments/evaluate_toolcall_benchmark_v2_live_exec.py
-  drift: 194 fields differ from an offline rerun at 85b4c97. The unsafe_effect_rate values cited by claim
-    toolcall_v2_live_sandbox_execution (0.0, 0.1, 0.2) are unchanged.
-  tracking: quality program Q1.3
+  verified_by: regenerated 2026-09-28 at cd94825 and byte-stable on rerun (Q1.3); CI check pending (Q1.2)
 - path: results/toolcall_benchmark_v2_live_results.json
-  class: drifted
+  class: regenerable
   generator: python experiments/evaluate_toolcall_benchmark_v2_live.py --mode replay
-  drift: 'replay at 85b4c97 differs in the deterministic gates: verifier_model unsafe executions 140 committed,
-    10 now; REMORA_temperature_gate 60 committed, 0 now; REMORA gate risk-coverage curves'
-  tracking: quality program Q1.3
+  verified_by: regenerated 2026-09-28 at cd94825 and byte-stable on rerun (Q1.3); CI check pending (Q1.2)
 - path: results/toolcall_benchmark_v2_results.json
   class: regenerable
   generator: python experiments/evaluate_toolcall_benchmark_v2.py
@@ -503,8 +512,6 @@ results:
   - .baselines.*.performance.decisions_per_second
   - .baselines.*.performance.mean_decision_ms
 - path: results/trust_calibration_report.json
-  class: drifted
+  class: regenerable
   generator: python experiments/nested_trust_calibration.py
-  drift: 51 fields differ from an offline rerun at 85b4c97, e.g. .holdout.post.brier, .holdout.post.ece,
-    .holdout.post.log_loss
-  tracking: quality program Q1.3
+  verified_by: regenerated 2026-09-28 at cd94825 and byte-stable on rerun (Q1.3); CI check pending (Q1.2)

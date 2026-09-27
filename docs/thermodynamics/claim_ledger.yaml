@@ -242,12 +242,16 @@ claims:
       score on held-out data. The first calibration run on a thermodynamic eval
       artifact (N≈300) found best_temperature=4.0 (hitting the t_max=4.0 ceiling
       of the search range), which indicates structural overconfidence in raw trust
-      scores. After extending t_max to 8.0, a valid temperature needs to be
-      re-measured on a larger calibration set.
+      scores. Re-measured 2026-09-28 with t_max=8.0 on the same input: the
+      fitted temperature is 8.0, again at the ceiling. Holdout Brier falls
+      from 0.641 to 0.317 and ECE from 0.685 to 0.408, so scaling helps but
+      does not find an interior optimum. A valid temperature still needs a
+      larger calibration set or a different calibrator.
     artifact: results/trust_calibration_report.json
     test: tests/test_trust_calibrator.py
     limitations: |
-      - First calibration run hit t_max ceiling (temperature=4.0).
+      - Both calibration runs hit the search ceiling (4.0, then 8.0); the
+        4.0 run is archived in results/superseded_t_max_4_2026-05-31/.
         Trust scores appear bimodal (near 0 or 1) while most items are simply
         correct, making temperature scaling alone insufficient.
       - Calibration holdout set is small (N≈60). Reliable ECE measurement
