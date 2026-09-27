@@ -497,7 +497,8 @@ TOOLS = [
             "Sends the text to 3 independent AI models (Groq LLaMA 8B, 70B, OpenRouter Mistral) "
             "and returns a consensus verdict with confidence score and supporting claim. "
             "Use this to get a calibrated, multi-source assessment of any text. "
-            "The domain parameter focuses the analysis: 'legal', 'science', 'general', 'specialised'."
+            "Only the first 3000 characters of the text are analyzed. The analysis always runs "
+            "with the general use case; domain is reported back but does not change the analysis."
         ),
         "inputSchema": {
             "type": "object",
@@ -512,7 +513,7 @@ TOOLS = [
                 },
                 "domain": {
                     "type": "string",
-                    "description": "Analysis domain: 'legal', 'science', 'general', 'specialised'. Default: 'general'",
+                    "description": "Label echoed in the result: 'legal', 'science', 'general', 'specialised'. Not sent to the analysis. Default: 'general'",
                     "enum": ["legal", "science", "general", "specialised"]
                 },
             },
@@ -627,14 +628,15 @@ TOOLS = [
     {
         "name": "remora_verify_legal_citations",
         "description": (
-            "KRITISK SJEKK: Verifiser alle juridiske referanser (dommer, lover) i et dokument. "
+            "Verifiser alle juridiske referanser (dommer, lover) i et dokument. "
             "Oppdager hallusinerte (falske) Høyesterettsdommer og lovhenvisninger. "
             "Sjekker tre ting for hvert sitat: "
             "(1) Finnes dommen i DCE sin database over norske dommer og lover? "
             "(2) Stemmer det juridiske prinsippet som tilskrives dommen med norsk rett? "
             "(3) Er det konsensus mellom uavhengige orakler om dommens innhold? "
             "Returnerer: VERIFISERT / MISTENKELIG / SANNSYNLIG_HALLUSINERT / KAN_IKKE_VERIFISERES "
-            "for hvert sitat. Bruk alltid dette verktøyet ved juridiske brev, kontrakter og krav."
+            "for hvert sitat. Bruk dette verktøyet når et dokument siterer norske dommer eller lover "
+            "og sitatene må kontrolleres."
         ),
         "inputSchema": {
             "type": "object",
@@ -681,7 +683,8 @@ TOOLS = [
         "description": (
             "Stiller et faktaspørsmål mot REMORA kunnskapsbase med full syntese og reranking. "
             "Kunnskapsbasen inneholder: GDPR-regelverk, WHO-retningslinjer, ISO/IEC-standarder "
-            "og vitenskapelig konsensus. Svaret er alltid forankret i databasen — ikke modellens prior. "
+            "og vitenskapelig konsensus. Syntesemodellen instrueres til å svare bare ut fra de hentede "
+            "dokumentene og returnere answer=null ved for lite evidens; dette håndheves ikke i kode. "
             "Bruk domain=specialised for GDPR/ISO, domain=science for helse/vitenskap. "
             "Sett use_case=legal for juridiske spørsmål (aktiverer dual_consensus + 70B automatisk). "
             "Sett dual_consensus=true eksplisitt for høyrisiko-spørsmål."

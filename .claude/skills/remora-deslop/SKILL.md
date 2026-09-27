@@ -67,7 +67,7 @@ neither source has.
 - No "soul", opinions, first person or deliberate mess. Assurance documents
   are read by reviewers looking for claims; voice is not the goal.
 
-## Lessons from the 2026-08-26 pass (six layers, 1160 -> 298 em dashes)
+## Lessons from earlier passes
 
 - Never touch headings. The scanner skips them and tests key on heading
   text (`## RF-10 ` in docs/13 broke `test_research_shelf`). Restore any
