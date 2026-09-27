@@ -189,8 +189,15 @@ def test_verify_callable_still_has_no_non_test_caller():
     leave the check unreachable rather than approximating it. If this test
     starts failing, a digest producer exists and the claim it supports has to
     be written down with it.
+
+    2026-09-27 (RES-013): the opt-in reference runtime is the one allowed
+    caller. It produces the digest with ``source_digest`` (a hash of the
+    callable's source span) and its bundle signs that same digest, so the
+    comparison can fail. What it measures is recorded with it: source text
+    only, not closure state, imported dependencies or host integrity. No
+    other path, including the REST dispatch, calls it.
     """
-    _assert_no_production_caller("verify_callable")
+    _assert_no_production_caller("verify_callable", allowed=_REFERENCE_RUNTIME)
 
 
 def test_verify_credential_scope_still_has_no_non_test_caller():
@@ -200,11 +207,21 @@ def test_verify_credential_scope_still_has_no_non_test_caller():
     the callables close over their own credentials and do not declare what they
     reach for. Comparing the declaration against itself would be a check that
     cannot fail.
+
+    2026-09-27 (RES-013): the opt-in reference runtime compares the scope a
+    deployment provider observes for the tool against the signed spec at
+    registration, and refuses a wider one. That is still a provider
+    assertion, not the scope dispatch is about to use, which nothing tracks
+    yet. The narrow exemption is the reference module only.
     """
-    _assert_no_production_caller("verify_credential_scope")
+    _assert_no_production_caller("verify_credential_scope", allowed=_REFERENCE_RUNTIME)
 
 
-def _assert_no_production_caller(name: str) -> None:
+#: The only production module allowed to call the two checks above.
+_REFERENCE_RUNTIME = ("remora/toolcall/signed_surface_runtime.py",)
+
+
+def _assert_no_production_caller(name: str, *, allowed: tuple[str, ...] = ()) -> None:
     import subprocess
 
     root = Path(__file__).resolve().parents[1]
@@ -213,7 +230,8 @@ def _assert_no_production_caller(name: str) -> None:
         cwd=root, capture_output=True, text=True).stdout.split()
     callers = [f for f in out
                if not f.startswith(("tests/", "examples/", "scripts/"))
-               and not f.endswith("toolcall/toolspec.py")]
+               and not f.endswith("toolcall/toolspec.py")
+               and f not in allowed]
     assert not callers, (
         f"{name} now has a production caller ({callers}); the input it needs "
         "must exist, and the claim it supports must be recorded")

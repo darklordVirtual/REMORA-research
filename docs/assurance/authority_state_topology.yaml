@@ -58,7 +58,7 @@
 # the durable store closes.
 
 schema_version: "1"
-updated: "2026-09-03"
+updated: "2026-09-27"
 
 state:
   - id: AST-001
@@ -155,6 +155,35 @@ state:
       Same disposition as AST-008. The log takes an optional sink, so a
       deployment can forward events to durable storage, but the chain itself
       is per-process and this file does not claim otherwise.
+
+  - id: AST-010
+    symbol: "remora/enforcement/lease.py::GovernedToolDispatcher"
+    gates: "Which callable executes a leased tool name, and the process-local registration generation of each name."
+    on_loss: loses_evidence
+    durable_adapter: none
+    tracking: REM-025
+    note: >-
+      Configuration and replacement evidence, not authority. Losing the
+      registry unregisters every callable, so dispatch refuses until host
+      code registers again; single-use execution rests on the lease nonce
+      (AST-002). Generations reset together with the SignedSurfaceRuntime
+      bindings that compare against them, so a restart cannot make an
+      unverified replacement look bound. What is lost is the in-process
+      record of earlier replacements (RES-013).
+
+  - id: AST-011
+    symbol: "remora/toolcall/surface_runtime.py::SurfaceRuntime"
+    gates: "One-use assessment handles, retained postcondition contracts, execution events, effect evidence and the in-memory tenant chain of the opt-in reference runtime."
+    on_loss: loses_evidence
+    durable_adapter: none
+    tracking: REM-025
+    note: >-
+      Losing a pending assessment makes dispatch refuse (assessment_not_found);
+      it never makes a refused call executable, and the lease nonce still
+      bounds execution to one use. Losing executions and effects destroys the
+      surface, continuity and effect record; record_effect then refuses with
+      execution_not_found. audit_entries() exports detached evidence, but the
+      runtime claims no durable retention (RES-013 scope boundary).
 
 # THE SWITCHES
 #

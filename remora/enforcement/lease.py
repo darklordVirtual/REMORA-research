@@ -49,7 +49,7 @@ import threading
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Any, Callable
+from typing import Any, Callable, ContextManager
 
 from remora.enforcement import lease_signing as _signing
 from remora.enforcement.nonce_store import NonceStore, NonceStoreUnavailable
@@ -581,6 +581,8 @@ class GovernedToolDispatcher:
         if not expected_policy_bundle_hash:
             raise ValueError("expected_policy_bundle_hash is mandatory to prevent stale policy execution")
         self._tools: dict[str, Callable[[Any], Any]] = {}
+        self._registry_lock = threading.RLock()
+        self._registry_versions: dict[str, int] = {}
         self._expected_bundle = expected_policy_bundle_hash
         self._ledger = ledger or NonceLedger()
         self._nonce_store = nonce_store
@@ -606,6 +608,20 @@ class GovernedToolDispatcher:
         """
         self._spec_identity = resolver
 
+    def registered_tool_names(self) -> tuple[str, ...]:
+        """A detached view of this executor's registry, not agent visibility."""
+        with self._registry_lock:
+            return tuple(sorted(self._tools))
+
+    def registry_guard(self) -> ContextManager[bool]:
+        """Serialize a local observation/dispatch transaction with registration."""
+        return self._registry_lock
+
+    def registration_versions(self) -> dict[str, int]:
+        """Process-local generations detect replacement, including the same name."""
+        with self._registry_lock:
+            return dict(self._registry_versions)
+
     def register(self, tool_name: str, fn: Callable[[Any], Any]) -> None:
         """Register the callable that actually executes ``tool_name``.
 
@@ -618,7 +634,9 @@ class GovernedToolDispatcher:
         from remora.enforcement.custody import assert_may_hold_tool_callables
 
         assert_may_hold_tool_callables()
-        self._tools[tool_name] = fn
+        with self._registry_lock:
+            self._tools[tool_name] = fn
+            self._registry_versions[tool_name] = self._registry_versions.get(tool_name, 0) + 1
 
     @staticmethod
     def _runtime_refusal(lease: ExecutionLease) -> str | None:
