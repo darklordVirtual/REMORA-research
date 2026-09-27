@@ -22,10 +22,9 @@ results:
   class: live
   generator: python experiments/ablation.py
 - path: results/ablation_v2_canonical_results.json
-  class: unverified
-  generator: python experiments/phase_stability.py
-  reason: the candidate generator did not write this file in the offline probe; the real writer is not
-    yet identified
+  class: frozen
+  reason: no generator in the repository writes this file; it is read as an input by bootstrap_trust_curve.py
+    and chi_iteration_utility.py
 - path: results/ablation_v2_n500_results.json
   class: live
   generator: python scripts/run_live_round_2026_07.py
@@ -43,10 +42,9 @@ results:
   class: frozen
   reason: no generator in the tracked code; the file cannot be regenerated
 - path: results/benchmark_v2_critical_augmented.json
-  class: unverified
+  class: live
   generator: python experiments/build_critical_phase_dataset_v2.py
-  reason: needs the Hugging Face datasets package, absent from the CI install set; the offline run fell
-    back and produced a different item set
+  needs: network access to Hugging Face datasets and the datasets/analysis extras
 - path: results/blind_test_result.json
   class: regenerable
   generator: python experiments/toolcall_v2_calibration_blind.py
@@ -73,9 +71,8 @@ results:
   - .meta.ablation_artifact
   - .meta.thermo_artifact
 - path: results/chi_perturbation_study_results.json
-  class: unverified
+  class: live
   generator: python experiments/chi_perturbation_study.py
-  reason: 'generator is broken: ImportError, load_benchmark_module no longer exists in experiments.thermodynamic_eval'
 - path: results/claim_consistency_audit.json
   class: regenerable
   generator: python experiments/claim_consistency_audit.py
@@ -114,10 +111,9 @@ results:
   generator: python experiments/evidence_v2_n500.py
   reason: needs --input; no documented invocation
 - path: results/external_benchmark_agentharm_v1.json
-  class: unverified
-  generator: python experiments/agentharm/rescore_with_protocols.py
-  reason: the candidate generator did not write this file in the offline probe; the real writer is not
-    yet identified
+  class: frozen
+  reason: live AgentHarm run against the AROMER worker (P0 safety artifact, REM-014); no generator for
+    this file in the repository, checksum held in artifact_manifest_v1.md
 - path: results/external_benchmark_agentharm_v1.provenance.json
   class: sidecar
   of: results/external_benchmark_agentharm_v1.json
@@ -128,9 +124,11 @@ results:
   class: sidecar
   of: results/false_accept_regression_v1.json
 - path: results/far_confidence_sequence_v1.json
-  class: unverified
+  class: regenerable
   generator: python scripts/compute_far_confidence_sequence.py
-  reason: 'generator is broken: KeyError n_cycles_analyzed, its input format changed'
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
+  volatile:
+  - .provenance.git_commit
 - path: results/fleetops_admission.json
   class: frozen
   reason: no generator in the tracked code; the file cannot be regenerated
@@ -155,10 +153,9 @@ results:
   generator: python experiments/gainability_routing.py
   verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/gainability_routing_v2.json
-  class: unverified
-  generator: python experiments/gainability_routing.py
-  reason: the candidate generator did not write this file in the offline probe; the real writer is not
-    yet identified
+  class: regenerable
+  generator: python experiments/gainability_routing.py --v2
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/grounding_holdout_v1_results.json
   class: frozen
   reason: sealed one-shot holdout; its lock/run protocol forbids a second run
@@ -198,9 +195,9 @@ results:
   - .provenance.commit_hash
   - .provenance.generated_at
 - path: results/longitudinal_stability_v1.json
-  class: unverified
-  generator: python scripts/compute_far_confidence_sequence.py
-  reason: 'generator is broken: KeyError n_cycles_analyzed, its input format changed'
+  class: frozen
+  reason: REM-020 closure record, self-reported by the live AROMER endpoint on 2026-07-17; no generator
+    in the repository
 - path: results/lyapunov_aggregate_results.json
   class: regenerable
   generator: python experiments/lyapunov_aggregate.py
@@ -214,10 +211,9 @@ results:
   generator: python experiments/mondrian_repeated_splits.py
   verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/mondrian_v2_repeated_splits.json
-  class: unverified
+  class: live
   generator: python experiments/build_critical_phase_dataset_v2.py
-  reason: needs the Hugging Face datasets package, absent from the CI install set; the offline run fell
-    back and produced a different item set
+  needs: network access to Hugging Face datasets and the datasets/analysis extras
 - path: results/norwegian_law_eval.json
   class: live
   generator: python scripts/demo_norwegian_law.py
@@ -248,9 +244,9 @@ results:
   class: live
   generator: python scripts/build_rag_adversarial.py
 - path: results/rag_critical_router_v1_results.json
-  class: unverified
+  class: live
   generator: python experiments/rag_critical_router_v1.py
-  reason: needs numpy, absent from the CI install set
+  needs: network access to Hugging Face datasets and the datasets/analysis extras
 - path: results/routing_bench_bfcl_results.json
   class: frozen
   reason: sealed one-shot holdout; its lock/run protocol forbids a second run
@@ -369,6 +365,9 @@ results:
   class: frozen
   reason: leakage-era version committed 2026-06-25, superseded by the regeneration in NEGATIVE_RESULTS.md
     §58
+- path: results/superseded_rem020_cycle_window_2026-06-30/longitudinal_stability_v1.json
+  class: frozen
+  reason: the cycle-level REM-020 window CLAIM-011 was computed from; the input of compute_far_confidence_sequence.py
 - path: results/superseded_t_max_4_2026-05-31/trust_calibration_report.json
   class: frozen
   reason: calibration run with a 4.0 temperature ceiling, superseded 2026-09-28
@@ -387,19 +386,18 @@ results:
   reason: needs --phase-study; no documented invocation
 - path: results/thermodynamic_eval_n500_calibrated_results.json
   class: unverified
-  generator: python scripts/phase_frontier.py
-  reason: needs numpy, absent from the CI install set
+  generator: python experiments/thermodynamic_eval.py
+  reason: live oracle run; the exact invocation that produced this file is not recorded in the repository
 - path: results/thermodynamic_eval_n500_uncalibrated_results.json
-  class: unverified
-  generator: python experiments/selection_signal_shootout_2026_07.py
-  reason: 'refuses: 544 items missing from the oracle cache'
+  class: live
+  generator: python experiments/thermodynamic_eval.py --benchmark-module remora.benchmarks.extended_v2_n500
+    --results results/ablation_v2_n500_results.json --output results/thermodynamic_eval_n500_uncalibrated_results.json
 - path: results/thermodynamic_eval_n500_uncalibrated_results.provenance.json
   class: sidecar
   of: results/thermodynamic_eval_n500_uncalibrated_results.json
 - path: results/thermodynamic_eval_results.json
-  class: unverified
-  generator: python experiments/chi_perturbation_study.py
-  reason: 'generator is broken: ImportError, load_benchmark_module no longer exists in experiments.thermodynamic_eval'
+  class: live
+  generator: python experiments/thermodynamic_eval.py
 - path: results/thermodynamic_router_eval_n500_calibrated_fixed_results.json
   class: frozen
   reason: no generator in the tracked code; the file cannot be regenerated
@@ -411,19 +409,16 @@ results:
   reason: no generator in the tracked code; the file cannot be regenerated
 - path: results/thermodynamic_router_eval_n500_calibrated_results.json
   class: unverified
-  generator: python scripts/regen_phase_fields.py
-  reason: the candidate generator did not write this file in the offline probe; the real writer is not
-    yet identified
+  generator: python experiments/thermodynamic_router_eval.py
+  reason: live oracle run; the exact invocation that produced this file is not recorded in the repository
 - path: results/thermodynamic_router_eval_n500_evidence_results.json
   class: unverified
-  generator: python experiments/verify_thermo_claims.py
-  reason: the candidate generator did not write this file in the offline probe; the real writer is not
-    yet identified
+  generator: python experiments/thermodynamic_router_eval.py
+  reason: live oracle run; the exact invocation that produced this file is not recorded in the repository
 - path: results/thermodynamic_router_eval_n500_final_results.json
   class: unverified
-  generator: python experiments/end_to_end_n500_v2.py
-  reason: the candidate generator did not write this file in the offline probe; the real writer is not
-    yet identified
+  generator: python experiments/thermodynamic_router_eval.py
+  reason: live oracle run; the exact invocation that produced this file is not recorded in the repository
 - path: results/thermodynamic_router_eval_results.json
   class: unverified
   generator: python experiments/thermodynamic_router_eval.py

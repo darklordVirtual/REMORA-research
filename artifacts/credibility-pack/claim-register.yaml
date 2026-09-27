@@ -427,9 +427,9 @@ claims:
     status: active
     artifact:
       - "results/far_confidence_sequence_v1.json"
-      - "results/longitudinal_stability_v1.json"
+      - "results/superseded_rem020_cycle_window_2026-06-30/longitudinal_stability_v1.json"
     n: 168
-    n_detail: "168 adapt cycles from the REM-020 window (longitudinal_stability_v1)"
+    n_detail: "168 adapt cycles from the REM-020 window (longitudinal_stability_v1 as of 2026-06-30, archived when the live record moved to the 7-day criterion on 2026-07-17)"
     metrics:
       upper_bound_pct: 4.72
     metric_bindings:
