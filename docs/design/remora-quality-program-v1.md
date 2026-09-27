@@ -30,10 +30,10 @@ Verified on `master` at `85b4c97` on 2026-09-27.
 |---|---|---|
 | Capabilities | 7 `WIRED_API_PATH`, 3 `WIRED_REFERENCE_PATH`, 1 `PERSISTED_ATOMIC`, 7 `IMPLEMENTED_LIBRARY`; deployment `SHADOW_ONLY` | `docs/assurance/capability_register_v1.yaml` |
 | Remediation | 32 `DONE`, 6 `IN_PROGRESS`, 9 `NOT_STARTED` (among them REM-021, REM-025, REM-026, REM-027, REM-030) | `docs/assurance/remediation_register.yaml` |
-| Committed results | 126 files under `results/*.json`; 45 are named by a test, check script or workflow. Being named does not mean being regenerated. | `git ls-files`, `git grep` |
+| Committed results | 126 files under `results/*.json`; 45 are named by a test, check script or workflow. The CI job "Deterministic reproduction round" byte-compares the 11 files the 2026-07 round writes; nothing checks the rest. | `git ls-files`, `.github/workflows/ci.yml` |
 | Known drift | `results/toolcall_benchmark_v2_live_results.json` (2026-06-25) no longer matches replay at `HEAD`. Unsafe executions: `verifier_model` 140 committed, 10 today; `REMORA_temperature_gate` 60 committed, 0 today. | PR #583 description |
 | Multi-model baselines | All 700 `single_model_*` decisions per model in `artifacts/toolcall_live_cache_v1.json` are heuristic replay seeds; no live model answered them | cache `raw.source` |
-| Harmful sample | Safety replay arena: 93 episodes, 48 harmful. The safety gate warns that 48 is below the 299 its own rule needs for a production FAR claim. | `make replay`, `scripts/check_safety_gate.py` |
+| Harmful sample | Safety replay arena: 93 episodes, 48 harmful; the safety gate warns that 48 is below the 299 its own rule needs. The external AgentHarm run holds 208 harmful items, also below 299. | `make replay`, `scripts/check_safety_gate.py`, `results/external_benchmark_agentharm_v1.json` |
 | Runtime surface | Completeness of the agent's callable tool surface is `NOT_ESTABLISHED`; RES-013 covers only REMORA's own opt-in reference runtime | capability register `unestablished_properties` |
 | Package breadth | 57 top-level packages under `remora/`, classified CORE or EXPERIMENTAL in the Module Stability Index | `ARCHITECTURE.md` |
 | Dated research instruments | `build_mixed_swarm` and `experiments/ablation.py` name `anthropic/claude-3.5-sonnet`, retired 2025-10-28 | PR #582 |
@@ -125,8 +125,12 @@ class, generator command, and for `live` the provenance sidecar. The check
 script reads the manifest and the tracked files and reports both directions:
 files without an entry and entries without a file. Generators gain a
 `--check` mode that renders to memory and compares with the committed file,
-the same shape `scripts/evaluate_runtime_surface.py` already uses. Classing
-starts with the 45 files already referenced, then the rest in batches.
+the same shape `scripts/evaluate_runtime_surface.py` already uses. The CI
+deterministic round already byte-compares its own outputs; Q1.2 extends that
+job to every other `regenerable` file instead of adding a second mechanism.
+The manifest complements the provenance sidecars of
+`artifact_provenance_spec_v1.md`: a sidecar records how one run was
+produced, the manifest records how the file can be reproduced now.
 
 **Decision source (Q1.4).** The benchmark writes `decision_source` beside each
 baseline's metrics. The value comes from the cache entry's `raw.source` and
@@ -172,7 +176,7 @@ A requirement that misses its acceptance criterion is recorded in
 |---|---|---|
 | Results with a reproduction class | 0 of 126 | 126 of 126 |
 | `regenerable` results verified in CI | none systematically | all |
-| Labelled harmful episodes | 48 | at least 299 |
+| Labelled harmful episodes | 48 (replay arena), 208 (AgentHarm) | at least 299 in the set a FAR claim cites |
 | Model families in a live tool-call run | 0 | at least 3 |
 | Runtime-surface requirements Q3.1 to Q3.3 met on a deployment | 0 of 3 | 3 of 3 |
 | P3 remediation items `DONE` among REM-021, REM-025, REM-026, REM-027, REM-030 | 0 of 5 | 5 of 5 |
@@ -194,3 +198,11 @@ A requirement that misses its acceptance criterion is recorded in
 2. The budget for the live run in Q2.2 and which three model families it uses.
 3. Whether the `core` install set in Q5.1 becomes the default distribution.
 4. Who performs the independent review for REM-021 and labels the Q2.3 set.
+
+## Resolution notes
+
+**2026-09-28, Q1.1, Q5.3, Q5.4, Q5.5 (PR #585).** The results manifest is
+measured: every generator was run offline in a clean worktree of `85b4c97`.
+Outcome: 41 regenerable, 5 drifted, 12 live, 25 unverified, 22 frozen,
+21 sidecars. `toolcall_benchmark_v1_results.json` no longer reproduces the
+baseline numbers three claim-ledger entries cite; that review is Q1.3.
