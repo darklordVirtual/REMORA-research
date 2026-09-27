@@ -115,7 +115,7 @@ def build_recommended_swarm() -> list[Oracle]:
     Pool composition
     ----------------
     - Groq  : Meta LLaMA 3.3 70B  (fast, strong general reasoning)
-    - OpenRouter : Anthropic Claude 3.5 Haiku  (RLHF-aligned, different failure modes)
+    - OpenRouter : Anthropic Claude Haiku 4.5  (RLHF-aligned, different failure modes)
     - OpenRouter : Google Gemma 3 27B  (open-weights, distinct architecture)
 
     Using three distinct base-model families maximises the inter-oracle
@@ -124,7 +124,7 @@ def build_recommended_swarm() -> list[Oracle]:
     """
     from remora.oracles.families import validate_cross_family
 
-    models = ["llama-3.3-70b-versatile", "anthropic/claude-3.5-haiku", "google/gemma-3-27b-it"]
+    models = ["llama-3.3-70b-versatile", "anthropic/claude-haiku-4.5", "google/gemma-3-27b-it"]
     validate_cross_family(models)
     return [
         GroqOracle(models[0]),

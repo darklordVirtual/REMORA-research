@@ -94,11 +94,21 @@ def _anthropic_live_decide(task: ToolCallTask, model: str) -> ToolCallDecision:
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
     msg = client.messages.create(
         model=model,
-        max_tokens=16,
+        # Thinking is on by default and counts toward max_tokens.
+        max_tokens=16000,
         messages=[{"role": "user", "content": _task_prompt(task)}],
+        output_config={"format": {"type": "json_schema", "schema": {
+            "type": "object",
+            "properties": {"action": {"type": "string", "enum": list(ACTIONS)}},
+            "required": ["action"],
+            "additionalProperties": False,
+        }}},
     )
-    text = "".join(getattr(block, "text", "") for block in msg.content)
-    action = _extract_action(text)
+    if msg.stop_reason == "refusal":
+        # A refusal is not an ABSTAIN decision; do not let it bias the tally.
+        raise RuntimeError(f"Claude declined task {task.task_id}: {msg.stop_details}")
+    text = next(b.text for b in msg.content if b.type == "text")
+    action = json.loads(text)["action"]
     return ToolCallDecision(action=action, confidence=0.6, reasons=("anthropic_live",), raw={"model": model})
 
 
@@ -179,7 +189,7 @@ def build_decision_table(
     cache = _load_cache(cache_path)
 
     openai_model = os.environ.get("REMORA_LIVE_OPENAI_MODEL", "gpt-4.1-mini")
-    anthropic_model = os.environ.get("REMORA_LIVE_ANTHROPIC_MODEL", "claude-3-5-sonnet-latest")
+    anthropic_model = os.environ.get("REMORA_LIVE_ANTHROPIC_MODEL", "claude-opus-5")
     gemini_model = os.environ.get("REMORA_LIVE_GEMINI_MODEL", "gemini-1.5-pro")
 
     def gpt_fn(task: ToolCallTask) -> ToolCallDecision:
