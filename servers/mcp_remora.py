@@ -494,8 +494,8 @@ TOOLS = [
         "name": "remora_analyze_document",
         "description": (
             "Analyze a text document, letter, or passage using REMORA multi-oracle consensus. "
-            "Sends the text to 3 independent AI models (Groq LLaMA 8B, 70B, OpenRouter Mistral) "
-            "and returns a consensus verdict with confidence score and supporting claim. "
+            "Sends the text to the REMORA worker's /assess endpoint and returns its consensus "
+            "verdict with confidence score and supporting claim. "
             "Use this to get a calibrated, multi-source assessment of any text. "
             "Only the first 3000 characters of the text are analyzed. The analysis always runs "
             "with the general use case; domain is reported back but does not change the analysis."
@@ -526,7 +526,9 @@ TOOLS = [
             "Verify a single specific factual or legal claim using REMORA consensus. "
             "Returns: verdict (true/false/uncertain), confidence score, supporting claim text, "
             "and whether the answer is reliably grounded (ETR). "
-            "Best for yes/no questions about facts, regulations, or legal requirements."
+            "Best for yes/no questions about facts, regulations, or legal requirements. "
+            "The claim always runs with the general use case; domain is reported back but "
+            "does not change the verification."
         ),
         "inputSchema": {
             "type": "object",
@@ -541,7 +543,7 @@ TOOLS = [
                 },
                 "domain": {
                     "type": "string",
-                    "description": "Knowledge domain: 'legal', 'science', 'general', 'specialised'",
+                    "description": "Label echoed in the result: 'legal', 'science', 'general', 'specialised'. Not sent to the verification.",
                     "enum": ["legal", "science", "general", "specialised"]
                 },
             },
@@ -867,6 +869,10 @@ TOOLS = [
 
 # ── Tool handlers ──────────────────────────────────────────────────────────────
 
+#: remora_analyze_document sends at most this many characters of the input.
+_ANALYZE_MAX_CHARS = 3000
+
+
 def handle_remora_analyze_document(args: dict) -> str:
     text     = args.get("text", "").strip()
     question = args.get("question", "").strip()
@@ -876,8 +882,9 @@ def handle_remora_analyze_document(args: dict) -> str:
         return "Error: both 'text' and 'question' are required."
 
     # Build the prompt: inject document as context
+    truncated = len(text) > _ANALYZE_MAX_CHARS
     context_prompt = (
-        f"Document/text:\n---\n{text[:3000]}\n---\n\n"
+        f"Document/text:\n---\n{text[:_ANALYZE_MAX_CHARS]}\n---\n\n"
         f"Question about this document: {question}"
     )
 
@@ -915,13 +922,15 @@ def handle_remora_analyze_document(args: dict) -> str:
         f"**Supporting claim:** {claim}",
         "",
         "**How it was determined:**",
-        f"- {oracle_calls} oracle calls across 3 independent AI models",
+        f"- {oracle_calls} oracle calls",
         f"- {'Fast-path consensus (oracles agreed immediately)' if routed else 'Full Lyapunov iteration (required deeper analysis)'}",
     ]
 
     if dual:
         agreed_txt = "agreed" if models_ok else "disagreed"
         lines.append(f"- Dual consensus: 8B + 70B models {agreed_txt}")
+    if truncated:
+        lines.append(f"- Only the first {_ANALYZE_MAX_CHARS} of {len(text)} characters were analyzed")
 
     lines += [
         "",
@@ -982,7 +991,7 @@ def handle_remora_verify_claim(args: dict) -> str:
         agreed_txt = "agreed" if models_ok else "disagreed"
         lines += [f"*Dual consensus: 8B + 70B models {agreed_txt}*", ""]
 
-    lines.append(f"*(Consensus from 3 independent AI oracles — {summary})*")
+    lines.append(f"*(REMORA consensus — {summary})*")
     return "\n".join(lines)
 
 
