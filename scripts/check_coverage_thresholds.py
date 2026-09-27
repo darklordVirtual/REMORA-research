@@ -106,6 +106,14 @@ FILE_THRESHOLDS: dict[str, float] = {
     # tests/test_runtime_trust_base_binding.py; a gap here means a runtime
     # the binding no longer distinguishes.
     "remora/enforcement/runtime_identity.py": 98.0,
+    # RES-013 runtime surface (quality program Q5.3). Measured 2026-09-28 on
+    # the full local suite; floors sit half a point under the measurement.
+    "remora/toolcall/runtime_surface.py": 92.5,  # 92.98
+    "remora/toolcall/signed_surface_runtime.py": 93.5,  # 94.12
+    "remora/toolcall/surface_authority.py": 92.0,  # 92.55
+    "remora/toolcall/surface_effect_evidence.py": 91.5,  # 92.06
+    "remora/toolcall/surface_evaluation.py": 99.0,  # 100.00
+    "remora/toolcall/surface_runtime.py": 90.5,  # 91.30
 }
 
 #: Global floor over everything measured, including branches.

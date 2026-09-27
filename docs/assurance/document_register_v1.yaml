@@ -2486,6 +2486,17 @@ documents:
   - maintainers
   - evaluators
   - integrators
+- id: DOC-341
+  path: docs/assurance/results_manifest_v1.yaml
+  status: canonical
+  topic: docs_assurance_results_manifest_v1_yaml
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-09-28'
+  last_reviewed: '2026-09-28'
+  audience:
+  - maintainers
+  - evaluators
 topics:
 - docs_integrations_jev_decision_provider_md
 - docs_integrations_mcp-gateway_md
@@ -2759,3 +2770,4 @@ topics:
 - docs_assurance_credential_topology_yaml
 - docs_assurance_authority_state_topology_yaml
 - docs_design_remora-quality-program-v1_md
+- docs_assurance_results_manifest_v1_yaml

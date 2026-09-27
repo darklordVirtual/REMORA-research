@@ -1,0 +1,510 @@
+# Results reproduction manifest v1 (quality program Q1.1)
+#
+# One entry per committed results/**/*.json. The class is measured, not
+# declared: each generator was run offline (no API keys, network blocked) in a
+# clean worktree of 85b4c97 on 2026-09-28 and its output compared with the
+# committed file, ignoring only the fields listed under `volatile`.
+# Classes and required fields: scripts/check_results_manifest.py.
+#
+# A `drifted` entry means the committed numbers are not what the current code
+# produces. Such a file is not current evidence until Q1.3 resolves it.
+schema_version: '1'
+measured_at: '2026-09-28'
+measured_on: 85b4c97
+results:
+- path: results/ablation_cloudflare_smoke_results.json
+  class: frozen
+  reason: no generator in the tracked code; the file cannot be regenerated
+- path: results/ablation_matrix_results.json
+  class: live
+  generator: python experiments/ablation_matrix.py
+- path: results/ablation_results.json
+  class: live
+  generator: python experiments/ablation.py
+- path: results/ablation_v2_canonical_results.json
+  class: unverified
+  generator: python experiments/phase_stability.py
+  reason: the candidate generator did not write this file in the offline probe; the real writer is not
+    yet identified
+- path: results/ablation_v2_n500_results.json
+  class: live
+  generator: python scripts/run_live_round_2026_07.py
+- path: results/ablation_v2_n500_results.provenance.json
+  class: sidecar
+  of: results/ablation_v2_n500_results.json
+- path: results/ablation_v2_results.json
+  class: live
+  generator: python experiments/phase_aware_routing.py
+- path: results/aromer_cross_domain_transfer_v1.json
+  class: regenerable
+  generator: python scripts/run_cross_domain_transfer.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+- path: results/benchmark_mock.json
+  class: frozen
+  reason: no generator in the tracked code; the file cannot be regenerated
+- path: results/benchmark_v2_critical_augmented.json
+  class: unverified
+  generator: python experiments/build_critical_phase_dataset_v2.py
+  reason: needs the Hugging Face datasets package, absent from the CI install set; the offline run fell
+    back and produced a different item set
+- path: results/blind_test_result.json
+  class: regenerable
+  generator: python experiments/toolcall_v2_calibration_blind.py
+  verified_by: 'ci.yml: Deterministic reproduction round (byte-compare)'
+- path: results/bootstrap_trust_curve_results.json
+  class: regenerable
+  generator: python experiments/bootstrap_trust_curve.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+- path: results/calibration_result.json
+  class: regenerable
+  generator: python experiments/toolcall_v2_calibration_blind.py
+  verified_by: 'ci.yml: Deterministic reproduction round (byte-compare)'
+- path: results/calibration_results.json
+  class: live
+  generator: python experiments/calibration.py
+- path: results/cascade_benchmark_results.json
+  class: live
+  generator: python experiments/cascade_benchmark.py
+- path: results/chi_iteration_utility_results.json
+  class: regenerable
+  generator: python experiments/chi_iteration_utility.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  volatile:
+  - .meta.ablation_artifact
+  - .meta.thermo_artifact
+- path: results/chi_perturbation_study_results.json
+  class: unverified
+  generator: python experiments/chi_perturbation_study.py
+  reason: 'generator is broken: ImportError, load_benchmark_module no longer exists in experiments.thermodynamic_eval'
+- path: results/claim_consistency_audit.json
+  class: regenerable
+  generator: python experiments/claim_consistency_audit.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+- path: results/conformal_guardrail_holdout.json
+  class: regenerable
+  generator: python experiments/conformal_phase_guardrail.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+- path: results/conformal_repeated_splits.json
+  class: regenerable
+  generator: python experiments/conformal_repeated_splits.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+- path: results/critical_trust_split_v1.json
+  class: regenerable
+  generator: python scripts/compute_critical_trust_split.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+- path: results/empirical_susceptibility_results.json
+  class: regenerable
+  generator: python experiments/empirical_susceptibility.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+- path: results/end_to_end_n500_v2.json
+  class: unverified
+  generator: python experiments/end_to_end_n500_v2.py
+  reason: oracle-backed; an offline rerun gives different numbers, and whether that run replayed the cache
+    or fell back is not yet established
+- path: results/end_to_end_n500_v3.json
+  class: unverified
+  generator: python experiments/end_to_end_n500_v3.py
+  reason: oracle-backed; an offline rerun gives different numbers, and whether that run replayed the cache
+    or fell back is not yet established
+- path: results/end_to_end_n500_v3.provenance.json
+  class: sidecar
+  of: results/end_to_end_n500_v3.json
+- path: results/evidence_v2_n500.json
+  class: unverified
+  generator: python experiments/evidence_v2_n500.py
+  reason: needs --input; no documented invocation
+- path: results/external_benchmark_agentharm_v1.json
+  class: unverified
+  generator: python experiments/agentharm/rescore_with_protocols.py
+  reason: the candidate generator did not write this file in the offline probe; the real writer is not
+    yet identified
+- path: results/external_benchmark_agentharm_v1.provenance.json
+  class: sidecar
+  of: results/external_benchmark_agentharm_v1.json
+- path: results/false_accept_regression_v1.json
+  class: frozen
+  reason: no generator in the tracked code; the file cannot be regenerated
+- path: results/false_accept_regression_v1.provenance.json
+  class: sidecar
+  of: results/false_accept_regression_v1.json
+- path: results/far_confidence_sequence_v1.json
+  class: unverified
+  generator: python scripts/compute_far_confidence_sequence.py
+  reason: 'generator is broken: KeyError n_cycles_analyzed, its input format changed'
+- path: results/fleetops_admission.json
+  class: frozen
+  reason: no generator in the tracked code; the file cannot be regenerated
+- path: results/fleetops_degradation_results.json
+  class: regenerable
+  generator: python scripts/run_fleetops_degradation.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  volatile:
+  - .run_at_commit
+- path: results/fleetops_validator_study_results.json
+  class: regenerable
+  generator: python scripts/run_fleetops_validator_study.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  volatile:
+  - .run_at_commit
+- path: results/full_coverage_bound_results.json
+  class: regenerable
+  generator: python experiments/full_coverage_bound.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+- path: results/gainability_routing.json
+  class: regenerable
+  generator: python experiments/gainability_routing.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+- path: results/gainability_routing_v2.json
+  class: unverified
+  generator: python experiments/gainability_routing.py
+  reason: the candidate generator did not write this file in the offline probe; the real writer is not
+    yet identified
+- path: results/grounding_holdout_v1_results.json
+  class: frozen
+  reason: sealed one-shot holdout; its lock/run protocol forbids a second run
+- path: results/knowledge_domains/cost_routing.json
+  class: regenerable
+  generator: python scripts/gen_knowledge_domains.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  volatile:
+  - .provenance.commit_hash
+- path: results/knowledge_domains/eval_harness.json
+  class: regenerable
+  generator: python scripts/gen_knowledge_domains.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  volatile:
+  - .provenance.commit_hash
+- path: results/knowledge_domains/evidence_graph.json
+  class: regenerable
+  generator: python scripts/gen_knowledge_domains.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  volatile:
+  - .provenance.commit_hash
+- path: results/knowledge_domains/multitenant.json
+  class: regenerable
+  generator: python scripts/gen_knowledge_domains.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  volatile:
+  - .provenance.commit_hash
+- path: results/knowledge_domains/ontology.json
+  class: regenerable
+  generator: python scripts/gen_knowledge_domains.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  volatile:
+  - .provenance.commit_hash
+- path: results/longitudinal_stability_v1.json
+  class: unverified
+  generator: python scripts/compute_far_confidence_sequence.py
+  reason: 'generator is broken: KeyError n_cycles_analyzed, its input format changed'
+- path: results/lyapunov_aggregate_results.json
+  class: regenerable
+  generator: python experiments/lyapunov_aggregate.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+- path: results/m1_flag_coverage.json
+  class: regenerable
+  generator: python experiments/_m1_flag_coverage.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+- path: results/mondrian_repeated_splits_results.json
+  class: regenerable
+  generator: python experiments/mondrian_repeated_splits.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+- path: results/mondrian_v2_repeated_splits.json
+  class: unverified
+  generator: python experiments/build_critical_phase_dataset_v2.py
+  reason: needs the Hugging Face datasets package, absent from the CI install set; the offline run fell
+    back and produced a different item set
+- path: results/norwegian_law_eval.json
+  class: live
+  generator: python scripts/demo_norwegian_law.py
+- path: results/phase_aware_guardrail_n544_results.json
+  class: regenerable
+  generator: python experiments/evaluate_phase_aware_guardrail.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+- path: results/phase_aware_routing_results.json
+  class: regenerable
+  generator: python experiments/phase_aware_routing.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+- path: results/phase_stability_results.json
+  class: regenerable
+  generator: python experiments/phase_stability.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+- path: results/phase_transition_study_n500_calibrated_results.json
+  class: frozen
+  reason: no generator in the tracked code; the file cannot be regenerated
+- path: results/phase_transition_study_n500_results.json
+  class: frozen
+  reason: no generator in the tracked code; the file cannot be regenerated
+- path: results/phase_transition_study_results.json
+  class: unverified
+  generator: python experiments/phase_transition_study.py
+  reason: oracle-backed; an offline rerun gives different numbers, and whether that run replayed the cache
+    or fell back is not yet established
+- path: results/rag_adversarial_results.json
+  class: live
+  generator: python scripts/build_rag_adversarial.py
+- path: results/rag_critical_router_v1_results.json
+  class: unverified
+  generator: python experiments/rag_critical_router_v1.py
+  reason: needs numpy, absent from the CI install set
+- path: results/routing_bench_bfcl_results.json
+  class: frozen
+  reason: sealed one-shot holdout; its lock/run protocol forbids a second run
+- path: results/routing_bench_bfcl_v4_cext3_results.json
+  class: frozen
+  reason: sealed one-shot holdout; its lock/run protocol forbids a second run
+- path: results/routing_bench_bfcl_v4_results.json
+  class: frozen
+  reason: sealed one-shot holdout; its lock/run protocol forbids a second run
+- path: results/routing_bench_holdout_a_results.json
+  class: frozen
+  reason: sealed one-shot holdout; its lock/run protocol forbids a second run
+- path: results/routing_bench_holdout_b_results.json
+  class: frozen
+  reason: sealed one-shot holdout; its lock/run protocol forbids a second run
+- path: results/routing_bench_holdout_c_results.json
+  class: frozen
+  reason: sealed one-shot holdout; its lock/run protocol forbids a second run
+- path: results/routing_bench_holdout_results.json
+  class: frozen
+  reason: sealed one-shot holdout; its lock/run protocol forbids a second run
+- path: results/routing_bench_trackA2_results.json
+  class: frozen
+  reason: sealed one-shot holdout; its lock/run protocol forbids a second run
+- path: results/routing_bench_v1_results.json
+  class: unverified
+  generator: python scripts/run_routing_bench.py
+  reason: oracle-backed; an offline rerun gives different numbers, and whether that run replayed the cache
+    or fell back is not yet established
+- path: results/sap_v3_collection.json
+  class: unverified
+  generator: python experiments/sap_v3_round.py
+  reason: needs collect|analyze and live collection
+- path: results/sap_v3_collection.provenance.json
+  class: sidecar
+  of: results/sap_v3_collection.json
+- path: results/sap_v3_round_results.json
+  class: unverified
+  generator: python experiments/sap_v3_round.py
+  reason: needs collect|analyze and live collection
+- path: results/sap_v3_round_results.provenance.json
+  class: sidecar
+  of: results/sap_v3_round_results.json
+- path: results/se_backend_parity_smoke.json
+  class: live
+  generator: python scripts/se_backend_parity_smoke.py
+- path: results/se_backend_parity_smoke.provenance.json
+  class: sidecar
+  of: results/se_backend_parity_smoke.json
+- path: results/selection_signal_shootout_2026_07.json
+  class: unverified
+  generator: python experiments/selection_signal_shootout_2026_07.py
+  reason: 'refuses: 544 items missing from the oracle cache'
+- path: results/selection_signal_shootout_2026_07.provenance.json
+  class: sidecar
+  of: results/selection_signal_shootout_2026_07.json
+- path: results/selective_n1000_results.json
+  class: live
+  generator: python experiments/selective_n1000.py
+- path: results/selective_n500_holdout_results.json
+  class: regenerable
+  generator: python scripts/selective_n500_holdout.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+- path: results/selective_n500_holdout_results.provenance.json
+  class: sidecar
+  of: results/selective_n500_holdout_results.json
+- path: results/selective_n500_results.json
+  class: regenerable
+  generator: python experiments/selective_n500.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+- path: results/selective_trust_curve_results.json
+  class: regenerable
+  generator: python experiments/selective_trust_curve.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+- path: results/stat_tests.json
+  class: regenerable
+  generator: python scripts/statistical_tests.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+- path: results/superseded_groq_live_2026-07-27/ablation_v2_n500_results.json
+  class: frozen
+  reason: archived superseded live round; kept as the record of what it measured
+- path: results/superseded_groq_live_2026-07-27/ablation_v2_n500_results.provenance.json
+  class: sidecar
+  of: results/superseded_groq_live_2026-07-27/ablation_v2_n500_results.json
+- path: results/superseded_groq_live_2026-07-27/end_to_end_n500_v3.json
+  class: frozen
+  reason: archived superseded live round; kept as the record of what it measured
+- path: results/superseded_groq_live_2026-07-27/end_to_end_n500_v3.provenance.json
+  class: sidecar
+  of: results/superseded_groq_live_2026-07-27/end_to_end_n500_v3.json
+- path: results/superseded_groq_live_2026-07-27/selective_n500_holdout_results.json
+  class: frozen
+  reason: archived superseded live round; kept as the record of what it measured
+- path: results/superseded_groq_live_2026-07-27/selective_n500_holdout_results.provenance.json
+  class: sidecar
+  of: results/superseded_groq_live_2026-07-27/selective_n500_holdout_results.json
+- path: results/superseded_groq_live_2026-07-27/thermodynamic_eval_n500_uncalibrated_results.json
+  class: frozen
+  reason: archived superseded live round; kept as the record of what it measured
+- path: results/superseded_groq_live_2026-07-27/thermodynamic_eval_n500_uncalibrated_results.provenance.json
+  class: sidecar
+  of: results/superseded_groq_live_2026-07-27/thermodynamic_eval_n500_uncalibrated_results.json
+- path: results/susceptibility_validation_results.json
+  class: regenerable
+  generator: python experiments/susceptibility_validation.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  volatile:
+  - .meta.source
+- path: results/system_demonstration_v1.json
+  class: live
+  generator: python scripts/run_system_demonstration.py
+- path: results/thermodynamic_calibration_n500.json
+  class: unverified
+  generator: python experiments/calibrate_thermodynamics.py
+  reason: needs --phase-study; no documented invocation
+- path: results/thermodynamic_eval_n500_calibrated_results.json
+  class: unverified
+  generator: python scripts/phase_frontier.py
+  reason: needs numpy, absent from the CI install set
+- path: results/thermodynamic_eval_n500_uncalibrated_results.json
+  class: unverified
+  generator: python experiments/selection_signal_shootout_2026_07.py
+  reason: 'refuses: 544 items missing from the oracle cache'
+- path: results/thermodynamic_eval_n500_uncalibrated_results.provenance.json
+  class: sidecar
+  of: results/thermodynamic_eval_n500_uncalibrated_results.json
+- path: results/thermodynamic_eval_results.json
+  class: unverified
+  generator: python experiments/chi_perturbation_study.py
+  reason: 'generator is broken: ImportError, load_benchmark_module no longer exists in experiments.thermodynamic_eval'
+- path: results/thermodynamic_router_eval_n500_calibrated_fixed_results.json
+  class: frozen
+  reason: no generator in the tracked code; the file cannot be regenerated
+- path: results/thermodynamic_router_eval_n500_calibrated_groq_results.json
+  class: frozen
+  reason: no generator in the tracked code; the file cannot be regenerated
+- path: results/thermodynamic_router_eval_n500_calibrated_lambda04_results.json
+  class: frozen
+  reason: no generator in the tracked code; the file cannot be regenerated
+- path: results/thermodynamic_router_eval_n500_calibrated_results.json
+  class: unverified
+  generator: python scripts/regen_phase_fields.py
+  reason: the candidate generator did not write this file in the offline probe; the real writer is not
+    yet identified
+- path: results/thermodynamic_router_eval_n500_evidence_results.json
+  class: unverified
+  generator: python experiments/verify_thermo_claims.py
+  reason: the candidate generator did not write this file in the offline probe; the real writer is not
+    yet identified
+- path: results/thermodynamic_router_eval_n500_final_results.json
+  class: unverified
+  generator: python experiments/end_to_end_n500_v2.py
+  reason: the candidate generator did not write this file in the offline probe; the real writer is not
+    yet identified
+- path: results/thermodynamic_router_eval_results.json
+  class: unverified
+  generator: python experiments/thermodynamic_router_eval.py
+  reason: oracle-backed; an offline rerun gives different numbers, and whether that run replayed the cache
+    or fell back is not yet established
+- path: results/toolcall_ablation_results.json
+  class: drifted
+  generator: python experiments/toolcall_ablation.py
+  drift: 155 fields differ from an offline rerun at 85b4c97, e.g. .ablations.full_gate.accuracy, .ablations.full_gate.action_confusion_matrix.ABSTAIN.ESCALATE,
+    .ablations.full_gate.action_confusion_matrix.ABSTAIN.VERIFY
+  tracking: quality program Q1.3
+- path: results/toolcall_ablation_v2_results.json
+  class: regenerable
+  generator: python experiments/toolcall_ablation_v2.py
+  verified_by: 'ci.yml: Deterministic reproduction round (byte-compare)'
+- path: results/toolcall_benchmark_v1_results.json
+  class: drifted
+  generator: python experiments/evaluate_toolcall_benchmark.py
+  drift: 'the heuristic baselines changed: unsafe_execution_rate 0.0 committed, 0.024 to 0.143 now; critical_error_intercept_rate
+    1.0 committed, 0.857 to 0.929 now. remora_full_policy_gate is not among the changed fields. Claims
+    toolcall_benchmark_v1, toolcall_unsafe_execution_reduction and toolcall_critical_error_intercept in
+    docs/thermodynamics/claim_ledger.yaml cite the committed numbers.'
+  tracking: quality program Q1.3
+- path: results/toolcall_benchmark_v2_ablation.json
+  class: regenerable
+  generator: python experiments/toolcall_ablation_v2.py
+  verified_by: 'ci.yml: Deterministic reproduction round (byte-compare)'
+- path: results/toolcall_benchmark_v2_ablation.provenance.json
+  class: sidecar
+  of: results/toolcall_benchmark_v2_ablation.json
+- path: results/toolcall_benchmark_v2_blind_test.json
+  class: regenerable
+  generator: python experiments/toolcall_v2_calibration_blind.py
+  verified_by: 'ci.yml: Deterministic reproduction round (byte-compare)'
+- path: results/toolcall_benchmark_v2_blind_test.provenance.json
+  class: sidecar
+  of: results/toolcall_benchmark_v2_blind_test.json
+- path: results/toolcall_benchmark_v2_calibration.json
+  class: regenerable
+  generator: python experiments/toolcall_v2_calibration_blind.py
+  verified_by: 'ci.yml: Deterministic reproduction round (byte-compare)'
+- path: results/toolcall_benchmark_v2_calibration.provenance.json
+  class: sidecar
+  of: results/toolcall_benchmark_v2_calibration.json
+- path: results/toolcall_benchmark_v2_failures.json
+  class: regenerable
+  generator: python experiments/toolcall_v2_failure_analysis.py
+  verified_by: 'ci.yml: Deterministic reproduction round (byte-compare)'
+- path: results/toolcall_benchmark_v2_failures.provenance.json
+  class: sidecar
+  of: results/toolcall_benchmark_v2_failures.json
+- path: results/toolcall_benchmark_v2_heuristic_results.json
+  class: regenerable
+  generator: python experiments/evaluate_toolcall_benchmark_v2.py
+  verified_by: 'ci.yml: Deterministic reproduction round (byte-compare)'
+- path: results/toolcall_benchmark_v2_live_exec_results.json
+  class: drifted
+  generator: python experiments/evaluate_toolcall_benchmark_v2_live_exec.py
+  drift: 194 fields differ from an offline rerun at 85b4c97. The unsafe_effect_rate values cited by claim
+    toolcall_v2_live_sandbox_execution (0.0, 0.1, 0.2) are unchanged.
+  tracking: quality program Q1.3
+- path: results/toolcall_benchmark_v2_live_results.json
+  class: drifted
+  generator: python experiments/evaluate_toolcall_benchmark_v2_live.py --mode replay
+  drift: 'replay at 85b4c97 differs in the deterministic gates: verifier_model unsafe executions 140 committed,
+    10 now; REMORA_temperature_gate 60 committed, 0 now; REMORA gate risk-coverage curves'
+  tracking: quality program Q1.3
+- path: results/toolcall_benchmark_v2_results.json
+  class: regenerable
+  generator: python experiments/evaluate_toolcall_benchmark_v2.py
+  verified_by: 'ci.yml: Deterministic reproduction round (byte-compare)'
+- path: results/toolcall_benchmark_v2_results.provenance.json
+  class: sidecar
+  of: results/toolcall_benchmark_v2_results.json
+- path: results/toolcall_benchmark_v2_significance.json
+  class: regenerable
+  generator: python experiments/toolcall_v2_significance.py
+  verified_by: 'ci.yml: Deterministic reproduction round (byte-compare)'
+- path: results/toolcall_benchmark_v2_significance.provenance.json
+  class: sidecar
+  of: results/toolcall_benchmark_v2_significance.json
+- path: results/toolcall_blind_v3_results.json
+  class: regenerable
+  generator: python experiments/toolcall_blind_v3_eval.py
+  verified_by: 'ci.yml: Deterministic reproduction round (byte-compare)'
+- path: results/toolcall_blind_v3_results.provenance.json
+  class: sidecar
+  of: results/toolcall_blind_v3_results.json
+- path: results/toolcall_llm_baselines_pilot_n100.json
+  class: live
+  generator: python scripts/run_llm_baselines_v3.py
+- path: results/toolcall_m1_clean_signal.json
+  class: regenerable
+  generator: python experiments/m1_clean_signal_eval.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+- path: results/toolcall_stress_replay_10000.json
+  class: regenerable
+  generator: python experiments/toolcall_stress_replay.py
+  verified_by: offline probe 2026-09-28 at 85b4c97; CI check pending (Q1.2)
+  volatile:
+  - .baselines.*.performance.decisions_per_second
+  - .baselines.*.performance.mean_decision_ms
+- path: results/trust_calibration_report.json
+  class: drifted
+  generator: python experiments/nested_trust_calibration.py
+  drift: 51 fields differ from an offline rerun at 85b4c97, e.g. .holdout.post.brier, .holdout.post.ece,
+    .holdout.post.log_loss
+  tracking: quality program Q1.3

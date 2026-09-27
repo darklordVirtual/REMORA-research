@@ -82,6 +82,10 @@ audit: meta-audit lint test render-claims  ## Full quality gate: lint + tests + 
 	$(PYTHON) scripts/check_script_hygiene.py
 	@echo "\n-- Internal README link integrity --"
 	$(PYTHON) scripts/_check_links.py
+	@echo "\n-- Retired model identifiers (quality program Q5.4) --"
+	$(PYTHON) scripts/check_retired_models.py
+	@echo "\n-- Results reproduction manifest (quality program Q1.1) --"
+	$(PYTHON) scripts/check_results_manifest.py
 	@echo "\n-- Core module import integrity --"
 	$(PYTHON) scripts/_check_imports.py
 	@echo "\n-- Evaluator leakage gate (M1 assurance) --"
