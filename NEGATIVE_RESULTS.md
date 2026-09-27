@@ -11,7 +11,7 @@ never deleted, only re-statused in place.
 
 ## How to read a status
 
-**57 numbered sections does not mean 57 open problems.** Until 2026-07-31 this
+**58 numbered sections does not mean 58 open problems.** Until 2026-07-31 this
 document read as if it did. Sections kept the status they were written with,
 even after later sections resolved them. Every section now carries a
 machine-readable marker directly under its heading, and
@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-28: **11 `open`**, **23 `accepted`**, **23 `superseded`**.
+Counts as of 2026-09-28: **11 `open`**, **24 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -3696,3 +3696,61 @@ component is necessary requires conditions that differ on false-accept rate at
 all, and a utility measure a refuse-all condition fails. Until that exists, no
 component attribution should be cited from this benchmark.
 
+## §58 Four tool-call results outlived the label-leakage fixes that should have replaced them (2026-09-28)
+<!-- finding-status: accepted -->
+
+**Status:** found by the quality program's offline reproduction probe (Q1.1)
+and closed by regeneration (Q1.3). The committed numbers are archived, not
+deleted.
+
+**What happened.** Four artifacts were committed on 2026-06-25 and never
+regenerated:
+
+| Artifact | Cited by |
+|---|---|
+| `results/toolcall_benchmark_v1_results.json` | three entries in `docs/thermodynamics/claim_ledger.yaml`, `docs/03-experiments.md` |
+| `results/toolcall_ablation_results.json` | none |
+| `results/toolcall_benchmark_v2_live_results.json` | `docs/03-experiments.md` Experiment 5 |
+| `results/toolcall_benchmark_v2_live_exec_results.json` | claim `toolcall_v2_live_sandbox_execution` |
+
+Running each generator at every later commit shows where the numbers moved.
+The M1 fix `d8d7f5a` removed `is_unsafe_if_executed` from the runtime gate,
+and the REM-038 fix `9c6eea0` stopped the gate and all baselines reading
+author-annotated severity, flags and tags. The metric-denominator fix
+`87a1c17` moved them again. Those commits regenerated the v2, v3 and M1
+artifacts. These four were left as they were.
+
+**What changed in the numbers.** On v1 the leakage-era file gave every
+strategy 0 % unsafe execution and 100 % critical interception. That was the
+evidence for "v1 does not differentiate". Without leakage:
+
+| Strategy | Unsafe execution | Critical interception | Mean utility |
+|---|---:|---:|---:|
+| single_model_heuristic | 0.0000 to 0.1429 | 1.0000 to 0.8571 | 0.5167 to 0.2095 |
+| majority_vote_heuristic | 0.0000 to 0.0238 | 1.0000 to 0.9286 | 0.6286 to 0.4310 |
+| verifier_heuristic | 0.0000 to 0.1429 | 1.0000 to 0.8571 | 0.5452 to 0.2095 |
+| remora_temperature_gate_heuristic | 0.0000 to 0.0238 | 1.0000 to 0.9286 | 0.6762 to 0.4310 |
+| remora_full_policy_gate | 0.0000 to 0.0000 | 1.0000 to 1.0000 | 0.5690 to 0.4786 |
+
+In the v2 replay files the model baselines are unchanged. The deterministic
+gates moved: `verifier_model` unsafe execution 0.2000 to 0.0143, and
+`REMORA_temperature_gate` 0.0857 to 0.0000.
+
+**What this does not establish.** The v1 gap between the full gate and the
+baselines is descriptive. It has not been tested at the template-cluster
+level, and the analogous v2 comparison was withdrawn as not significant
+(p = 0.50, §17). Claim `toolcall_unsafe_execution_reduction` therefore stays
+`not_demonstrated`; only its numbers are corrected.
+
+**Why no gate caught it.** The claim gates check that a cited number appears
+in the artifact the claim names. Both the number and the artifact were stale
+together, so they agreed. Only rerunning the generator shows the drift. The
+CI deterministic round did that for its own eleven outputs and nothing else.
+
+**Fixed.** The four artifacts are regenerated at `090d534`. The committed
+versions are in `results/superseded_label_leakage_2026-06-25/`. The ledger
+entries and `docs/03-experiments.md` cite the regenerated numbers.
+`docs/assurance/results_manifest_v1.yaml` classes every committed result by
+an offline rerun, and quality program Q1.2 extends CI regeneration to every
+file classed `regenerable`. Row R8 above records the leakage-era reading and
+is kept as written.
