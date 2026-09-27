@@ -341,3 +341,40 @@ class TestRagQuery:
     def test_requires_query(self):
         result = mcp_remora.handle_remora_rag_query({})
         assert "Error" in result
+
+
+class TestAnalyzeAndVerifyContracts:
+    """The tool results must not claim more than the handler did."""
+
+    def _run(self, handler, args):
+        sent = []
+        with mock.patch.object(mcp_remora, "_post",
+                               lambda u, p, **k: (sent.append(p), _remora_verdict())[1]):
+            return handler(args), sent
+
+    def test_long_document_says_it_was_truncated(self):
+        text = "x" * (mcp_remora._ANALYZE_MAX_CHARS + 500)
+        out, sent = self._run(mcp_remora.handle_remora_analyze_document,
+                              {"text": text, "question": "Valid?"})
+        assert f"Only the first {mcp_remora._ANALYZE_MAX_CHARS} of {len(text)} characters" in out
+        assert "x" * (mcp_remora._ANALYZE_MAX_CHARS + 1) not in sent[0]["question"]
+
+    def test_short_document_has_no_truncation_note(self):
+        out, _ = self._run(mcp_remora.handle_remora_analyze_document,
+                           {"text": "short", "question": "Valid?"})
+        assert "Only the first" not in out
+
+    def test_domain_is_echoed_not_sent(self):
+        for handler, args in ((mcp_remora.handle_remora_analyze_document,
+                               {"text": "t", "question": "q", "domain": "legal"}),
+                              (mcp_remora.handle_remora_verify_claim,
+                               {"claim": "c", "domain": "legal"})):
+            out, sent = self._run(handler, args)
+            assert "**Domain:** legal" in out
+            assert "domain" not in sent[0] and sent[0]["use_case"] == "general"
+
+    def test_no_fixed_model_count_is_claimed(self):
+        for handler, args in ((mcp_remora.handle_remora_analyze_document, {"text": "t", "question": "q"}),
+                              (mcp_remora.handle_remora_verify_claim, {"claim": "c"})):
+            out, _ = self._run(handler, args)
+            assert "3 independent" not in out

@@ -21,6 +21,17 @@ CACHE_PATH = REPO_ROOT / "artifacts" / "toolcall_live_cache_v1.json"
 
 ACTIONS = ("EXECUTE", "VERIFY", "ABSTAIN", "ESCALATE")
 
+DEFAULT_OPENAI_MODEL = "gpt-4.1-mini"
+DEFAULT_ANTHROPIC_MODEL = "claude-opus-5"
+DEFAULT_GEMINI_MODEL = "gemini-1.5-pro"
+
+_ACTION_SCHEMA = {
+    "type": "object",
+    "properties": {"action": {"type": "string", "enum": list(ACTIONS)}},
+    "required": ["action"],
+    "additionalProperties": False,
+}
+
 
 def _task_prompt(task: ToolCallTask) -> str:
     return (
@@ -88,28 +99,42 @@ def _openai_live_decide(task: ToolCallTask, model: str) -> ToolCallDecision:
     return ToolCallDecision(action=action, confidence=0.6, reasons=("openai_live",), raw={"model": model})
 
 
-def _anthropic_live_decide(task: ToolCallTask, model: str) -> ToolCallDecision:
+def _new_anthropic_client() -> Any:
     import anthropic  # type: ignore[import-not-found]
 
-    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    return anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+
+
+def _anthropic_live_decide(task: ToolCallTask, model: str, client: Any = None) -> ToolCallDecision:
+    """Ask Claude for one action; a refusal or unusable reply is a recorded non-answer.
+
+    A non-answer is scored as ABSTAIN so every task keeps a decision, and it is
+    marked in ``raw["non_answer"]`` so the run reports how many there were.
+    """
+    if client is None:
+        client = _new_anthropic_client()
     msg = client.messages.create(
         model=model,
         # Thinking is on by default and counts toward max_tokens.
         max_tokens=16000,
         messages=[{"role": "user", "content": _task_prompt(task)}],
-        output_config={"format": {"type": "json_schema", "schema": {
-            "type": "object",
-            "properties": {"action": {"type": "string", "enum": list(ACTIONS)}},
-            "required": ["action"],
-            "additionalProperties": False,
-        }}},
+        output_config={"effort": "low", "format": {"type": "json_schema", "schema": _ACTION_SCHEMA}},
     )
+    raw: dict[str, Any] = {"model": model, "stop_reason": msg.stop_reason}
+    text = next((b.text for b in msg.content if b.type == "text"), None)
     if msg.stop_reason == "refusal":
-        # A refusal is not an ABSTAIN decision; do not let it bias the tally.
-        raise RuntimeError(f"Claude declined task {task.task_id}: {msg.stop_details}")
-    text = next(b.text for b in msg.content if b.type == "text")
-    action = json.loads(text)["action"]
-    return ToolCallDecision(action=action, confidence=0.6, reasons=("anthropic_live",), raw={"model": model})
+        raw.update(non_answer="refusal", category=getattr(msg.stop_details, "category", None))
+    elif msg.stop_reason == "max_tokens" or text is None:
+        raw["non_answer"] = "max_tokens" if msg.stop_reason == "max_tokens" else "no_text"
+    else:
+        try:
+            action = json.loads(text)["action"]
+        except (json.JSONDecodeError, KeyError, TypeError):
+            action = None
+        if action in ACTIONS:
+            return ToolCallDecision(action=action, confidence=0.6, reasons=("anthropic_live",), raw=raw)
+        raw["non_answer"] = "invalid_output"
+    return ToolCallDecision(action="ABSTAIN", confidence=0.0, reasons=("anthropic_non_answer",), raw=raw)
 
 
 def _gemini_live_decide(task: ToolCallTask, model: str) -> ToolCallDecision:
@@ -156,6 +181,11 @@ def _decision_from_cache(item: dict[str, Any]) -> ToolCallDecision:
     )
 
 
+def _live_key(baseline_name: str, model: str) -> str:
+    """Live answers are cached per model, apart from the replay seeds."""
+    return f"{baseline_name}@{model}"
+
+
 def _decide_single_model(
     task: ToolCallTask,
     *,
@@ -164,17 +194,22 @@ def _decide_single_model(
     cache: dict[str, Any],
     seed_variant: int,
     live_fn: Callable[[ToolCallTask], ToolCallDecision] | None,
+    model: str | None = None,
 ) -> ToolCallDecision:
+    if mode == "live":
+        if live_fn is None or model is None:
+            raise RuntimeError(f"live mode requested for {baseline_name}, but no live client is configured")
+        key = _live_key(baseline_name, model)
+        cached = _cache_get(cache, key, task.task_id)
+        if cached is not None:
+            return _decision_from_cache(cached)
+        decision = live_fn(task)
+        _cache_put(cache, key, task.task_id, decision, source="live")
+        return decision
+
     cached = _cache_get(cache, baseline_name, task.task_id)
     if cached is not None:
         return _decision_from_cache(cached)
-
-    if mode == "live":
-        if live_fn is None:
-            raise RuntimeError(f"live mode requested for {baseline_name}, but no live client is configured")
-        decision = live_fn(task)
-        _cache_put(cache, baseline_name, task.task_id, decision, source="live")
-        return decision
 
     decision = _heuristic_seed_decision(task, variant=seed_variant)
     _cache_put(cache, baseline_name, task.task_id, decision, source="replay_seed")
@@ -188,51 +223,61 @@ def build_decision_table(
     tasks = load_benchmark_v2()
     cache = _load_cache(cache_path)
 
-    openai_model = os.environ.get("REMORA_LIVE_OPENAI_MODEL", "gpt-4.1-mini")
-    anthropic_model = os.environ.get("REMORA_LIVE_ANTHROPIC_MODEL", "claude-opus-5")
-    gemini_model = os.environ.get("REMORA_LIVE_GEMINI_MODEL", "gemini-1.5-pro")
+    openai_model = os.environ.get("REMORA_LIVE_OPENAI_MODEL", DEFAULT_OPENAI_MODEL)
+    anthropic_model = os.environ.get("REMORA_LIVE_ANTHROPIC_MODEL", DEFAULT_ANTHROPIC_MODEL)
+    gemini_model = os.environ.get("REMORA_LIVE_GEMINI_MODEL", DEFAULT_GEMINI_MODEL)
+    claude_client: list[Any] = []  # built once, on the first live Claude call
 
     def gpt_fn(task: ToolCallTask) -> ToolCallDecision:
         return _openai_live_decide(task, openai_model)
 
     def claude_fn(task: ToolCallTask) -> ToolCallDecision:
-        return _anthropic_live_decide(task, anthropic_model)
+        if not claude_client:
+            claude_client.append(_new_anthropic_client())
+        return _anthropic_live_decide(task, anthropic_model, claude_client[0])
 
     def gemini_fn(task: ToolCallTask) -> ToolCallDecision:
         return _gemini_live_decide(task, gemini_model)
 
     singles: dict[str, list[ToolCallDecision]] = {k: [] for k in ("single_model_gpt", "single_model_claude", "single_model_gemini")}
-    for task in tasks:
-        singles["single_model_gpt"].append(
-            _decide_single_model(
-                task,
-                baseline_name="single_model_gpt",
-                mode=mode,
-                cache=cache,
-                seed_variant=0,
-                live_fn=gpt_fn if mode == "live" else None,
+    # Save whatever was paid for, even when a provider call aborts the run.
+    try:
+        for task in tasks:
+            singles["single_model_gpt"].append(
+                _decide_single_model(
+                    task,
+                    baseline_name="single_model_gpt",
+                    mode=mode,
+                    cache=cache,
+                    seed_variant=0,
+                    live_fn=gpt_fn if mode == "live" else None,
+                    model=openai_model,
+                )
             )
-        )
-        singles["single_model_claude"].append(
-            _decide_single_model(
-                task,
-                baseline_name="single_model_claude",
-                mode=mode,
-                cache=cache,
-                seed_variant=1,
-                live_fn=claude_fn if mode == "live" else None,
+            singles["single_model_claude"].append(
+                _decide_single_model(
+                    task,
+                    baseline_name="single_model_claude",
+                    mode=mode,
+                    cache=cache,
+                    seed_variant=1,
+                    live_fn=claude_fn if mode == "live" else None,
+                    model=anthropic_model,
+                )
             )
-        )
-        singles["single_model_gemini"].append(
-            _decide_single_model(
-                task,
-                baseline_name="single_model_gemini",
-                mode=mode,
-                cache=cache,
-                seed_variant=2,
-                live_fn=gemini_fn if mode == "live" else None,
+            singles["single_model_gemini"].append(
+                _decide_single_model(
+                    task,
+                    baseline_name="single_model_gemini",
+                    mode=mode,
+                    cache=cache,
+                    seed_variant=2,
+                    live_fn=gemini_fn if mode == "live" else None,
+                    model=gemini_model,
+                )
             )
-        )
+    finally:
+        _save_cache(cache_path, cache)
 
     verifier = VerifierBaseline()
     remora_temp = RemoraToolCallGate(use_context_overrides=False, use_hard_blocks=False)
@@ -272,7 +317,6 @@ def build_decision_table(
         for name, decision in decisions.items():
             decisions_by_name[name].append(decision)
 
-    _save_cache(cache_path, cache)
     return tasks, dict(decisions_by_name)
 
 
@@ -307,6 +351,12 @@ def run(mode: str = "replay", cache_path: Path = CACHE_PATH) -> dict[str, Any]:
             "No production tool calls are executed; all scoring is dry-run simulation.",
         ],
     }
+    if mode == "live":
+        # Refusals and unusable replies are scored as ABSTAIN; say how many there were.
+        result["live_non_answers"] = {
+            name: dict(Counter(d.raw["non_answer"] for d in decisions_by_name[name] if d.raw.get("non_answer")))
+            for name in ("single_model_gpt", "single_model_claude", "single_model_gemini")
+        }
     return result
 
 
