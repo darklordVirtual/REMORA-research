@@ -29,13 +29,13 @@ Typical usage
     tracker = OracleDiversityTracker()
 
     # After each benchmark item, record which oracles agreed:
-    tracker.observe("llama-3.3-70b", "claude-3.5-haiku", agreed=True)
+    tracker.observe("llama-3.3-70b", "claude-haiku-4.5", agreed=True)
     tracker.observe("llama-3.3-70b", "gemma-3-27b", agreed=False)
 
-    print(tracker.rho("llama-3.3-70b", "claude-3.5-haiku"))  # 0.67 after 3 obs
+    print(tracker.rho("llama-3.3-70b", "claude-haiku-4.5"))  # 0.67 after 3 obs
 
     # At swarm-selection time:
-    candidates = ["llama-3.3-70b", "llama-3.1-8b", "claude-3.5-haiku",
+    candidates = ["llama-3.3-70b", "llama-3.1-8b", "claude-haiku-4.5",
                   "gemma-3-27b", "mistral-7b"]
     best = select_diverse_swarm(candidates, tracker, k=3)
     # → picks the three with lowest mean pairwise ρ̄

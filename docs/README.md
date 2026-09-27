@@ -154,6 +154,7 @@ Several topics have more than one document. This table says which to open.
 | [capability_register_v1.yaml](assurance/capability_register_v1.yaml) | Capability wiring status |
 | [credential_topology.yaml](assurance/credential_topology.yaml) | Credential custody and agent-zone reachability (Agent Authority property E) |
 | [authority_state_topology.yaml](assurance/authority_state_topology.yaml) | Every in-process store whose loss changes an authority decision, and whether losing it re-authorizes or only loses evidence |
+| [results_manifest_v1.yaml](assurance/results_manifest_v1.yaml) | Measured reproduction class of every committed result (regenerable, drifted, live, unverified, frozen), from an offline rerun of each generator |
 | [fasttrack_register_v1.yaml](assurance/fasttrack_register_v1.yaml) | Fast-track work-package status |
 | [release_profiles_v1.yaml](assurance/release_profiles_v1.yaml) | Deployment maturity profiles |
 | [release_gates.md](assurance/release_gates.md) | Profile gate status |

@@ -356,6 +356,10 @@ jobs:
           python scripts/check_claim_sync.py
           python scripts/check_no_overclaims.py
           python scripts/_check_links.py
+          # Quality program Q5.4: no retired model identifier as a live default.
+          python scripts/check_retired_models.py
+          # Q1.1: every committed result carries a measured reproduction class.
+          python scripts/check_results_manifest.py
 
       - name: Source hygiene (script metadata, SPDX headers)
         run: python scripts/check_script_hygiene.py
