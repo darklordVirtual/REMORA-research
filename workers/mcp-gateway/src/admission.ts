@@ -44,7 +44,15 @@ const JWKS_TTL_SECONDS = 600;
 const sharedJwksCache: JwksCache = new Map();
 
 function normaliseTeam(teamDomain: string): string {
-  return teamDomain.trim().replace(/^https?:\/\//, "").replace(/\/+$/, "");
+  let team = teamDomain.trim();
+  for (const scheme of ["https://", "http://"]) {
+    if (team.startsWith(scheme)) team = team.slice(scheme.length);
+  }
+  // A loop, not /\/+$/: CodeQL flags the anchored quantifier as polynomial on
+  // long runs of "/", and this value is configuration read on every request.
+  let end = team.length;
+  while (end > 0 && team[end - 1] === "/") end--;
+  return team.slice(0, end);
 }
 
 function b64urlDecode(part: string): Uint8Array {
