@@ -67,6 +67,7 @@ from remora.errors import RemoraError
 
 __all__ = [
     "TaskIdentity",
+    "agreeing_task",
     "TaskIdentityMismatch",
     "merge_task_fields",
     "task_fields",
@@ -181,3 +182,25 @@ def merge_task_fields(payload: dict[str, Any],
                 f"refusing to rebind it to {value!r}"
             )
     return {**payload, **fields}
+
+
+def agreeing_task(*identities: "TaskIdentity | None") -> "TaskIdentity | None":
+    """The one task every bound structure names, or None when none is bound.
+
+    The token context, the lease and the A2A envelope each carry a task
+    identity; the design requires that they agree. An unbound structure is
+    skipped here, because whether a binding is mandatory is the caller's
+    policy (``require_task_identity``), not a property of the comparison.
+    Two bound structures naming different tasks raise.
+    """
+    bound = [identity for identity in identities if identity is not None]
+    if not bound:
+        return None
+    first = bound[0]
+    for other in bound[1:]:
+        if not first.matches(other):
+            raise TaskIdentityMismatch(
+                "task identities disagree on "
+                + ", ".join(first.differences(other))
+            )
+    return first

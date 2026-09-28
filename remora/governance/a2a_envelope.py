@@ -36,6 +36,10 @@ alongside any A2A request:
   replay guard, and an optional ``tool_call_hash`` binding the envelope to
   the exact action arguments (same canonical hash the enforcement gate
   recomputes before execution).
+- **Task binding** (quality program Q7.2) — optional ``context_id`` and
+  ``task_id`` naming the task the request was delegated under
+  (:mod:`remora.governance.task_identity`). They enter the signed payload only
+  when set, so an envelope without them signs the same bytes as before.
 
 Scope strings are opaque capability names (e.g. ``"workorder:read"``,
 ``"workorder:propose_change"``). Hierarchical wildcard matching is
@@ -67,6 +71,10 @@ from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from dataclasses import replace as dataclass_replace
 from datetime import UTC, datetime
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from remora.governance.task_identity import TaskIdentity
 
 PROTOCOL_VERSION = "remora-a2a-governance/v1"
 _ENV_KEY = "REMORA_A2A_SIGNING_KEY"
@@ -173,6 +181,11 @@ class A2AGovernanceEnvelope:
     # (remora.policy.observation.canonical_tool_call_hash). Binds delegation
     # to arguments: the same envelope cannot authorise a different payload.
     tool_call_hash: str | None = None
+    # The task this request was delegated under. None-valued fields are left
+    # out of the signed payload and the JSON form, so every envelope issued
+    # before they existed keeps its bytes and its signature.
+    context_id: str | None = None
+    task_id: str | None = None
     signature: str = ""
     is_signed: bool = False
     # Non-signed convenience metadata (display only; never trusted).
@@ -187,7 +200,15 @@ class A2AGovernanceEnvelope:
         data.pop("signature", None)
         data.pop("is_signed", None)
         data.pop("display_name", None)
+        _drop_absent_task(data)
         return json.dumps(data, sort_keys=True, separators=(",", ":"), default=str).encode()
+
+    def task_identity(self) -> "TaskIdentity | None":
+        """The bound task, or None. Raises ValueError when only one half is set."""
+        from remora.governance.task_identity import TaskIdentity
+
+        return TaskIdentity.from_fields(
+            {"context_id": self.context_id, "task_id": self.task_id})
 
     @classmethod
     def issue(
@@ -203,6 +224,7 @@ class A2AGovernanceEnvelope:
         tool_call_hash: str | None = None,
         expires_at: str | None = None,
         signing_key: bytes | None = None,
+        task_identity: "TaskIdentity | None" = None,
     ) -> A2AGovernanceEnvelope:
         """Create an envelope, signed when a key is available.
 
@@ -224,6 +246,8 @@ class A2AGovernanceEnvelope:
             audience=audience,
             nonce=str(uuid.uuid4()),
             tool_call_hash=tool_call_hash,
+            context_id=task_identity.context_id if task_identity else None,
+            task_id=task_identity.task_id if task_identity else None,
         )
         key = signing_key if signing_key is not None else _get_signing_key()
         if key is None:
@@ -248,6 +272,7 @@ class A2AGovernanceEnvelope:
         link_keys: dict[str, RegisteredKey] | None = None,
         replay_guard: Callable[[str], bool] | None = None,
         strict: bool = True,
+        expected_task_identity: "TaskIdentity | None" = None,
     ) -> VerificationResult:
         """Verify integrity, accountability, and delegation attenuation.
 
@@ -284,6 +309,12 @@ class A2AGovernanceEnvelope:
         replay_guard:
             Callable returning True if this nonce has been seen before.
             The caller owns nonce persistence (REMORA is stateless).
+        expected_task_identity:
+            The task the receiving side is executing. When given, the envelope
+            must have been issued under exactly that task: ``task_unbound``
+            when it names none, ``task_mismatch`` when it names another. Not
+            part of ``strict``, because no caller supplies a task identity
+            yet; a malformed identity (one half only) fails regardless.
         """
         failures: list[str] = []
 
@@ -360,6 +391,18 @@ class A2AGovernanceEnvelope:
                 failures.append("missing_tool_call_binding")
             elif not hmac.compare_digest(self.tool_call_hash, expected_tool_call_hash):
                 failures.append("tool_call_binding_mismatch")
+
+        # 7b. Task binding.
+        try:
+            bound_task = self.task_identity()
+        except (TypeError, ValueError):
+            failures.append("malformed_task_identity")
+        else:
+            if expected_task_identity is not None:
+                if bound_task is None:
+                    failures.append("task_unbound")
+                elif not expected_task_identity.matches(bound_task):
+                    failures.append("task_mismatch")
 
         # 8. Delegation chain attenuation (+ per-link signatures if registry given).
         failures.extend(self._verify_delegation_chain(link_keys))
@@ -477,7 +520,9 @@ class A2AGovernanceEnvelope:
     # ------------------------------------------------------------------
 
     def to_json(self) -> str:
-        return json.dumps(asdict(self), sort_keys=True, separators=(",", ":"), default=str)
+        data = asdict(self)
+        _drop_absent_task(data)
+        return json.dumps(data, sort_keys=True, separators=(",", ":"), default=str)
 
     @classmethod
     def from_json(cls, raw: str) -> A2AGovernanceEnvelope:
@@ -545,7 +590,7 @@ class A2AGovernanceEnvelope:
                 if key in data and not isinstance(data[key], str):
                     raise TypeError(f"{key} must be a string")
             for key in ("expires_at", "decision_ref", "tool_call_hash",
-                        "display_name"):
+                        "display_name", "context_id", "task_id"):
                 if key in data and data[key] is not None and not isinstance(data[key], str):
                     raise TypeError(f"{key} must be a string or null")
             if "is_signed" in data and not isinstance(data["is_signed"], bool):
@@ -553,6 +598,13 @@ class A2AGovernanceEnvelope:
             return cls(identity=identity, delegation_chain=chain, **data)
         except (TypeError, KeyError, AttributeError, json.JSONDecodeError) as exc:
             raise ValueError(f"malformed_envelope:{exc}") from exc
+
+
+def _drop_absent_task(data: dict) -> None:
+    """Remove None-valued task fields in place (see ``context_id``)."""
+    for key in ("context_id", "task_id"):
+        if data.get(key) is None:
+            data.pop(key, None)
 
 
 def _parse_iso_or_none(value: str) -> datetime | None:
