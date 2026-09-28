@@ -247,3 +247,12 @@ a field the artifact never had. It now binds all three numbers in that row
 to their artifacts, and meta-tests seed a drift in each. Q1.5 records the
 remaining gap the review found: no gate reads the thermodynamics claim ledger.
 
+**2026-09-28, Q1.5.** `scripts/check_ledger_bindings.py` binds every
+percentage and decimal in a thermodynamics-ledger entry to its artifacts, at
+the precision it is written. Entries declare `also_cites`, `parameters` and
+`retired_values` where needed. Landing it found four stale texts, now
+corrected: the three N500 policy entries, a utility figure from before
+REM-038, and a conformal entry that understated upper-bound failures. One
+number stays baselined with its reason. Integer ratios such as "7/20" are
+not yet checked.
+
