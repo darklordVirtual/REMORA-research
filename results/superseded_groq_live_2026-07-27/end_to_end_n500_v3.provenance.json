@@ -12,5 +12,10 @@
   "command": "python experiments/end_to_end_n500_v3.py",
   "generated_at": "2026-07-27T10:43:56.221487+00:00",
   "artifact": "end_to_end_n500_v3.json",
-  "artifact_sha256": "900b0337d6c2cef55f27f24ec978fa63ea6ba31950696f977899480717c5de23"
+  "artifact_sha256": "a2aa9f93bdc697d2df7e207265cef04d19550ff6bb8351ca12485bf4ddfe18ef",
+  "artifact_sha256_correction": {
+    "date": "2026-09-28",
+    "previous_value": "900b0337d6c2cef55f27f24ec978fa63ea6ba31950696f977899480717c5de23",
+    "reason": "previous value hashed CRLF bytes; the result file is unchanged and this is its LF hash per docs/assurance/artifact_manifest_v1.md. Detected by the sidecar hash check in scripts/check_results_manifest.py."
+  }
 }
