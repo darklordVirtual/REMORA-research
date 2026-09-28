@@ -161,6 +161,20 @@ with their artifacts:
 | CLAIM-018 | **Superseded by CLAIM-019.** Disjoint sealed BFCL v4 (C-ext2): all five pre-registered targets met, wrong-call ACCEPT 28/258 = 10.9%. Retained permanently as the degraded-authority baseline — that track ran with `contracts=None, intent=None`, so the semantic gates never fired | externally_benchmarked | `results/routing_bench_bfcl_v4_results.json` |
 | CLAIM-019 | Sealed BFCL v4 C-ext3 with declared semantic authority: native wrong-call ACCEPT **0/500 = 0.0%** (Wilson 95% upper 0.76%), irrelevance 300/300, required-unknown 0/398. **Four of seven targets MISSED** and published as measured — read autonomy 25/94 = 26.6% against a 75% bar, obtainable VERIFY 46.7%, unobtainable ABSTAIN 63.3%, constructed wrong-tool 2/199 = 1.005% (`NEGATIVE_RESULTS.md` §39) | externally_benchmarked | `results/routing_bench_bfcl_v4_cext3_results.json` |
 
+### Utility floors
+
+A false-accept rate of zero costs nothing to a gate that refuses every call.
+Each active safety claim in the register therefore also states its utility
+cost. It lists the pre-registered utility bars it was measured against
+(`utility_floors`), or gives the reason none applies (`utility_floor_exempt`).
+`scripts/check_claim_utility_floors.py` recomputes each floor's status from the
+bound metric and fails when the register says otherwise. Four of the five
+floors are missed and stay published as missed. One is the AgentHarm benign
+false-block rate (CLAIM-002, 100% against a 40% ceiling). The other three are
+BFCL C-ext3 routing targets (CLAIM-019). CLAIM-014's read-completion target is met.
+CLAIM-001, CLAIM-003 and CLAIM-020 carry exemptions, because no utility bar was
+fixed for them before they ran.
+
 Baseline context for the selective-prediction numbers: the calibration benchmark
 is N=302 items, where one model alone scores 57.0% and plain vote-counting
 82.8%. REMORA's contribution is knowing *which* decisions to trust, not raising
