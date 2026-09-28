@@ -98,8 +98,8 @@ documents:
   topic: EVIDENCE_OF_CAPABILITY_md
   code_synced: verified
   verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  last_audited: '2026-09-28'
+  last_reviewed: '2026-09-28'
   audience:
   - researchers
 - id: DOC-017
