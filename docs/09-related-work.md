@@ -198,7 +198,7 @@ Microsoft AGT is broader in surface. REMORA does not claim trajectory-level
 enforcement; the extension from single-call to path-level enforcement is an open direction
 (see Open Research Gaps), not an implemented capability.
 
-**Internal runtime-surface implementation (RES-013 / RF-12).** Per-call
+**Internal runtime-surface implementation (RES-013 / RF-13).** Per-call
 binding does not establish that the serving agent process has no additional
 callable tools. REMORA's opt-in local reference runtime now observes its own
 served list and dispatcher, compares assessment/dispatch identities, checks a

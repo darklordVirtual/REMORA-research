@@ -218,7 +218,7 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 ## RES-013; Observed runtime surface, authority paths and recheckable effect evidence
 
 - Source: REMORA internal research question (2026-09-27): discussion-derived requirements, not an adopted external publication. (idea family / generic construct; attributed via docs/09-related-work.md, not cited in code)
-  - docs/13-research-frontier-roadmap.md RF-12
+  - docs/13-research-frontier-roadmap.md RF-13
   - artifacts/runtime_surface/negative_cases_v1.json
   - artifacts/runtime_surface/reference_runtime_v1.json
 - Concepts: runtime_tool_surface, serving_process_observation, evidence_sufficiency, authority_effect_separation, content_addressed_evidence
