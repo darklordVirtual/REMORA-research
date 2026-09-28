@@ -119,6 +119,40 @@ This program fixes only the order and the dependency.
 | Q6.1 | Every MCP tool parameter either changes what the handler sends or is described as echo-only. | A contract test per tool calls the handler with each parameter varied and compares the outgoing payload. PR #583 contains the first two. | contract tests | `tests/test_mcp_remora.py` |
 | Q6.2 | Tool descriptions name no backend composition the handler cannot show. | The descriptions contain no fixed model names or counts unless the handler reads them from the response. | test on `TOOLS` | same |
 
+### WS7. From authority to effect (P1)
+
+Added 2026-09-28 from an owner-supplied research review of the
+August–September research thread. The review's direction is adopted:
+REMORA does not need more agent features, it needs a stricter path from a
+probabilistic proposal to a real effect. One of its recommendations is not
+adopted. It read RES-012 as stale because `ExecutionLease` and the A2A
+envelope exist. Neither carries a task identity, so RES-012's statement that
+those halves are not implemented is correct and stays.
+
+The 28 arXiv identifiers the review cites all resolve to the titles it gives
+(checked against the arXiv record on 2026-09-28). The 13 that drive this work
+stream are on the research shelf as SHELF-029 to SHELF-041, with title and
+authors verified. Existence of a source is not evidence that REMORA achieves
+its results.
+
+| ID | Requirement | Acceptance criterion | Artifact | Gate |
+|---|---|---|---|---|
+| Q7.0 | The sources behind this work stream are traceable. | Each scoped source is a verified shelf entry whose `remora_status` states what the code does today. | `docs/research/research_shelf_v1.yaml` | `check_research_shelf.py` |
+| Q7.1 | REMORA measures when its own gate is wrong. | A pre-registered study injects validator faults and reports false allows, false blocks and the write floor per fault class; every missed prediction is recorded. | `results/gate_correctness_study_v1.json` | CI reproduction step |
+| Q7.2 | Task identity binds execution, and loop risk does not reset silently. | `ExecutionLease` and the A2A envelope carry the task identity `PolicyDecisionToken` already binds. A loop-safety store keyed by `context_id` keeps denials, tool switches after a denial and irreversible effects across task iterations; only policy may reset it. | `remora/governance/loop_safety.py`, reference vectors | lease and envelope contract tests |
+| Q7.3 | Evidence says whether it is complete for its claim. | A contract lists the evidence kinds a claim or effect requires and returns COMPLETE, AUTHENTIC_BUT_INCOMPLETE, TAMPERED or INCONCLUSIVE, built on RES-013's effect evidence. | `remora/governance/evidence_coverage.py` | new tests |
+| Q7.4 | Authority binds the effect the executor will cause. | A resolved target and effect digest enters the lease and is revalidated at dispatch; alias, redirect and remapping fixtures fail. | resolved-effect module, reference vectors | lease tests |
+| Q7.5 | A plan cannot outlive the state it was built on. | A plan binds the revisions of the state it read; a write refuses when a relevant revision moved and ignores irrelevant ones. | `remora/governance/plan_binding.py` | new tests |
+| Q7.6 | Evidence is captured outside the agent's control. | A reference recorder runs as a separate process with append-only storage; the agent process cannot delete earlier events; a high-risk commit refuses when a mandatory recorder is down. A real sink is an owner decision and overlaps REM-025. | recorder module, reference artifact | fail-closed tests |
+| Q7.7 | Procedure and completion are checked, not asserted. | A small finite-state obligation contract runs online and in replay; completion is derived from satisfied obligations and can return NOT_ESTABLISHED. | procedure and completion modules | new tests |
+
+Order: Q7.0 and Q7.1 first, because every later item adds a gate and Q7.1
+measures what a wrong gate costs. Q7.2 and Q7.3 next: small, and they extend
+RES-012 and RES-013. Q7.4 to Q7.7 after Q7.1 is published. The proposal's P1
+items (typed claim status, cut-point replay, failure-to-policy compilation,
+per-argument provenance, qualified MCP registry) stay on the shelf as
+UNEVALUATED until then.
+
 ## 5. Design notes
 
 **Results manifest (Q1.1, Q1.2).** One YAML entry per results file: path,
@@ -300,3 +334,22 @@ their own configuration: backend, calibration input and the uncommitted
 stays unverified: routing_bench_v1, because its committed run includes
 ToolSandbox data that cannot be redistributed.
 
+**2026-09-28, Q5.2.** `tests/test_experimental_liveness.py` reads the
+Module Stability Index and fails on an EXPERIMENTAL module that no test
+imports. Of 34 modules, one had no test: `remora/layers.py`, now covered by
+`tests/test_layers_decompose.py`. The criterion that each module also names
+a result or roadmap item is not enforced. It does not fit infrastructure
+packages such as interop, integrations and decision providers, so only the
+test criterion is a gate.
+
+**2026-09-28, Q7.0 (PR #600).** The review's 13 scoped sources are on the
+research shelf as SHELF-029 to SHELF-041. Each `remora_status` states what
+the code does today, and `reported_results` holds only the authors' numbers.
+
+**2026-09-28, Q7.1 (PR #601).** The pre-registered gate-correctness study
+ran on the 540 fleetops episodes with seven validator arms. Five of seven
+predictions were met; the two misses are recorded in `NEGATIVE_RESULTS.md`
+§60 (open). A prefix matcher let 0.667 of corrupt calls through and every
+corrupt read. Failing open let 0.078 through. A stale or partial index cost
+valid-read acceptance instead (0.850 and 0.667). No write was auto-accepted
+in any gated arm. The result is regenerable and checked in CI.
