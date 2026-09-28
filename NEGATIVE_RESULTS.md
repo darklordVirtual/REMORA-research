@@ -11,7 +11,7 @@ never deleted, only re-statused in place.
 
 ## How to read a status
 
-**59 numbered sections does not mean 59 open problems.** Until 2026-07-31 this
+**60 numbered sections does not mean 60 open problems.** Until 2026-07-31 this
 document read as if it did. Sections kept the status they were written with,
 even after later sections resolved them. Every section now carries a
 machine-readable marker directly under its heading, and
@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-09-28: **12 `open`**, **24 `accepted`**, **23 `superseded`**.
+Counts as of 2026-09-28: **13 `open`**, **24 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -64,10 +64,13 @@ cites only `open` sections and that no `open` section is missing a theme.
    now: re-run the same raw oracle responses through both backends and publish
    the per-episode cluster and route deltas. Explicitly **not** a route to
    reviving temperature as an authoritative selector (§18 stands).
-5. **Production validator quality** (§33): the mechanism recovers read utility
+5. **Production validator quality** (§33, §60): the mechanism recovers read utility
    0% → 100%, but the study validator is correct by construction. Real
    validators need their own contracts and measurements: false-absent rate,
-   staleness, tenant binding, timeout behaviour, response provenance.
+   staleness, tenant binding, timeout behaviour, response provenance. The
+   gate-correctness study (§60) measures the cost per fault class: a lenient prefix matcher accepted every
+   corrupt read, fail-open lookups 11.7 %, a stale snapshot refused 15 % of
+   valid reads.
 6. **External replication, REM-021, and live evidence** (§1, §4, §15, §16);
    cannot be closed from inside this repository. Needs third-party replication,
    a named independent reviewer, and field traces.
@@ -3797,3 +3800,48 @@ labelled is the test that would decide it.
 `results/end_to_end_n500_v3_policy_v5.json` holds the current-policy
 numbers, and the claim-ledger entries that cited the round now give each
 run's numbers separately.
+
+## §60 REMORA's own gate is only as safe as its validator (2026-09-28)
+<!-- finding-status: open -->
+
+**Status:** measured by the pre-registered gate-correctness study of
+quality program WS7 item 1. The protocol is
+`experiments/gate_correctness/PREREGISTERED.md` and the result is
+`results/gate_correctness_study_v1.json`. Open, because production
+validators have no contract that rules these faults out.
+
+**What was measured.** The 540 fleetops episodes of §33, one engine, seven
+arms that differ only in the validator. Every earlier REMORA safety number
+assumed a correct gate; this one breaks the gate on purpose.
+
+| Arm | False allow | Corrupt reads allowed (post hoc) | Valid reads accepted | Writes auto-accepted |
+|---|---:|---:|---:|---:|
+| no_gate | 1.000 | 1.000 | 1.000 | 1.000 |
+| correct | 0.000 | 0.000 | 1.000 | 0.000 |
+| stale_snapshot (15 % missing) | 0.000 | 0.000 | 0.850 | 0.000 |
+| prefix_matcher | 0.667 | 1.000 | 1.000 | 0.000 |
+| fail_open (20 % unavailable) | 0.078 | 0.117 | 1.000 | 0.000 |
+| partial_closed_world (70 % export) | 0.000 | 0.000 | 0.667 | 0.000 |
+| partial_unknown (70 % export) | 0.000 | 0.000 | 0.667 | 0.000 |
+
+N is small: 90 corrupt calls (60 reads), 60 valid reads and 30 valid writes.
+
+**Predictions.** Five of seven were met. P5 missed: fail-open lookups gave a
+false-allow rate of 0.078 against a predicted 0.10 to 0.30. The
+pre-registered denominator includes corrupt writes, which the engine never
+auto-accepts; restricted to reads, the rate is 0.117. That restriction was
+chosen after the run and is reported as post hoc. P6 missed: reading an
+incomplete export as closed-world and reading it as UNKNOWN produced
+identical routes. The prediction assumed an UNKNOWN verdict routes to
+review. It does not: the §32 contract makes an unresolved validation
+terminal, so both paths abstain. The prediction misread the design.
+
+**What it means.** A lenient matcher turns the gate itself into the source
+of unsafe accepts: every corrupt read passed. Failing open converts
+unavailability into accepts at roughly its own rate. A stale or incomplete
+index costs autonomy instead of safety. The one property no validator fault
+touched is the write floor: no write was auto-accepted in any gated arm.
+
+**What this does not establish.** One synthetic domain and one engine
+configuration. The retired-identifier path of a stale snapshot, which would
+falsely allow, is not sampled.
