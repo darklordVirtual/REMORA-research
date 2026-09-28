@@ -487,6 +487,13 @@ epochs, and the dispatcher reads them again. A set issued under an older
 epoch refuses as `capability_stale`, and a revoked one as
 `capability_revoked`. A source that cannot answer refuses as
 `capability_epoch_unverifiable`.
+The evidence export carries a `capability_decision` section with every
+capability check recorded for the proposal (Q8.7). Its `evidence_coverage`
+section adds the contract `success_established_v1`. That contract is complete
+only when the chain holds an assessment the capability check allowed, the
+authorization, an execution that ran and a verified effect. Executor success
+alone never completes it. A proposal assessed without a capability policy
+reports the missing capability decision.
 
 **Checks between authority and effect (WS7, all opt-in):** each setting
 below binds one check into the governed dispatcher. Every check runs after

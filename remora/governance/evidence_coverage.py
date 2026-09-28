@@ -47,6 +47,7 @@ from typing import Any
 __all__ = [
     "AUTHORIZED_EXECUTION",
     "EXECUTED_EFFECT",
+    "SUCCESS_ESTABLISHED",
     "Authenticity",
     "CoverageStatus",
     "CoverageVerdict",
@@ -102,7 +103,7 @@ class EvidenceRequirement:
 
     def accepts(self, item: EvidenceItem) -> bool:
         return item.kind == self.kind and all(
-            item.payload.get(name) == value for name, value in self.where.items())
+            _field(item.payload, name) == value for name, value in self.where.items())
 
     @property
     def label(self) -> str:
@@ -192,6 +193,20 @@ def assess_coverage(
                            tuple(missing), tampered, tuple(unverifiable))
 
 
+_MISSING = object()
+
+
+def _field(payload: Mapping[str, Any], name: str) -> Any:
+    """A payload field; a dotted name reads a nested one (``capability.allowed``).
+    A plain name reads the top level exactly as before."""
+    value: Any = payload
+    for part in name.split("."):
+        if not isinstance(value, Mapping) or part not in value:
+            return _MISSING
+        value = value[part]
+    return value
+
+
 _PROBLEM_INDEX = re.compile(r"_at:(\d+)$")
 
 
@@ -249,5 +264,21 @@ EXECUTED_EFFECT = EvidenceContract(
         *AUTHORIZED_EXECUTION.requirements,
         EvidenceRequirement("effect_verified", MappingProxyType({"status": "EFFECT_VERIFIED"}),
                             description="a bound verifier observed the declared delta"),
+    ),
+)
+
+#: SDD §24 (quality program Q8.7): an action is established only when every
+#: layer holds, never because the executor returned success. The capability
+#: check allowed the tool, the call was authorised, the dispatcher ran it,
+#: and a bound verifier observed the intended effect. A proposal assessed
+#: without a capability policy cannot complete this contract; the verdict
+#: then names the missing capability decision instead of hiding it.
+SUCCESS_ESTABLISHED = EvidenceContract(
+    contract_id="success_established_v1",
+    claim="capability, authority, execution and effect all hold for the action",
+    requirements=(
+        EvidenceRequirement("assessed", MappingProxyType({"capability.allowed": True}),
+                            description="the capability check allowed the tool"),
+        *EXECUTED_EFFECT.requirements[1:],
     ),
 )

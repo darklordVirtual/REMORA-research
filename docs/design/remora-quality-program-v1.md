@@ -566,3 +566,12 @@ store. The server test covers the case the SDD's fresh check targets: a
 lease minted by the authority, then a policy change, a suspended principal
 or a revocation before the executor dispatches. Each refuses with nothing
 run.
+
+**2026-09-28, Q8.7.** The evidence export carries a `capability_decision`
+section inside its hashed manifest. Its coverage adds
+`success_established_v1`, the SDD's invariant as a contract: an assessment
+the capability check allowed, the authorization, an execution that ran and a
+verified effect. Tests on the execution API show each stage. All four
+complete it, a missing effect is named, and a proposal assessed without a
+capability policy names the missing capability decision. Evidence
+requirements can now match nested fields, and plain fields behave as before.
