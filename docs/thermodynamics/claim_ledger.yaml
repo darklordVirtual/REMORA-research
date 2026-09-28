@@ -499,7 +499,7 @@ claims:
     artifact: results/end_to_end_n500_v3_policy_v5.json
     also_cites: results/end_to_end_n500_v3.json
     parameters: ["0.1972", "18%"]
-    retired_values: ["38.5%", "41.18%", "61.5%", "18.0%", "88.78%", "11.22%"]
+    retired_values: ["38.5%", "41.18%", "61.5%", "18.0%", "88.78%", "11.22%", "98/544"]
     test: tests/test_end_to_end_n500_v3.py
     date: 2026-05-25
     revised: 2026-09-28
@@ -532,7 +532,7 @@ claims:
     artifact: results/end_to_end_n500_v3_policy_v5.json
     also_cites: results/end_to_end_n500_v3.json
     parameters: ["0.18", "0.1972", "0.88"]
-    retired_values: ["18.0%", "88.78%", "11.22%", "0.810", "0.936", "41.18%"]
+    retired_values: ["18.0%", "88.78%", "11.22%", "0.810", "0.936", "41.18%", "98/544"]
     test: tests/test_policy_decision_engine.py, tests/test_end_to_end_n500_v3.py
     date: 2026-05-25
     revised: 2026-09-28
@@ -555,7 +555,7 @@ claims:
       Finite-sample UCB (Clopper-Pearson) is strictly more conservative than
       point estimate. Results are benchmark-locked; no universal guarantee.
     artifact: results/conformal_repeated_splits.json
-    retired_values: ["0.082"]
+    retired_values: ["0.082", "7/20"]
     test: tests/test_conformal_repeated_splits.py, tests/test_binomial_bounds.py
     date: 2026-05-25
 

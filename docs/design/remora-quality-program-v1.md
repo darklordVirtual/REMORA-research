@@ -254,7 +254,7 @@ the precision it is written. Entries declare `also_cites`, `parameters` and
 corrected: the three N500 policy entries, a utility figure from before
 REM-038, and a conformal entry that understated upper-bound failures. One
 number stays baselined with its reason. Integer ratios such as "7/20" are
-not yet checked.
+checked too: both integers must be integer fields of the cited artifacts.
 
 **2026-09-28, Q1.4.** The v2 live and live-exec results carry
 `decision_sources` per single-model baseline (`replay_seed`, `live:<model>`

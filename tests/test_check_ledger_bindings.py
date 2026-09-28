@@ -73,3 +73,11 @@ def test_missing_cited_artifact_fails(tmp_path):
 
 def test_the_repository_ledger_passes():
     assert gate.main(["--root", str(ROOT)]) == 0
+
+
+def test_a_wrong_ratio_fails_and_a_right_one_passes(tmp_path):
+    arts = {"results/a.json": {"failures": 20, "n_seeds": 20, "point": 5}}
+    bad = _tree(tmp_path / "bad", _claim("fails 7/20 by the upper bound"), arts)
+    assert gate.unbound_numbers(bad)[0] == ["c:7/20"]
+    good = _tree(tmp_path / "good", _claim("fails 5/20 by point estimate"), arts)
+    assert gate.unbound_numbers(good)[0] == []
