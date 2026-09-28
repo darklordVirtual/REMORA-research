@@ -89,7 +89,7 @@ def _claim_lost_response(
     item_id: str,
     tool_call_hash: str,
     grant_jti: str,
-    intent_sequence_no: int,
+    intent_sequence_no: int | None,
 ) -> dict[str, Any]:
     """Record and return "another worker holds this intent".
 
@@ -99,6 +99,10 @@ def _claim_lost_response(
     the outbox row or drive the item to a terminal state: both belong to the
     worker that won the claim, and writing them here would overwrite the record
     of the execution that actually happens.
+
+    On the review path the claim precedes the grant, so the loser passes an
+    empty ``grant_jti`` and no ``intent_sequence_no``: it consumed nothing and
+    appended no authorization for this record to point at.
     """
     tool_execution = {
         "executed": False,
@@ -524,6 +528,19 @@ def execute_approved_item(
             response["outbox_id"] = intent.outbox_id
         return response
 
+    # FT-02: claim the intent before anything can take effect (exclusive).
+    # A lost race means another worker holds this intent. Dispatching anyway
+    # would execute the same side effect twice, which is the single failure the
+    # outbox exists to prevent. The claim comes BEFORE the grant is minted and
+    # consumed and before execution_authorized is appended, the order issue
+    # #417 set for the worker path: the loser consumes and asserts nothing.
+    if not _claim_or_none(outbox, intent, worker_id=worker_id):
+        return _claim_lost_response(
+            response, chain=chain, tenant=tenant, principal=principal,
+            proposal_id=proposal_id, item_id=item_id,
+            tool_call_hash=fresh_obs.tool_call_hash, grant_jti="",
+            intent_sequence_no=None)
+
     # The re-gate only AUTHORIZED the call; EXECUTED is recorded separately
     # after the dispatcher reports what actually happened.
     now = datetime.now(UTC)
@@ -584,17 +601,6 @@ def execute_approved_item(
         # component, which is why this is not policy_bundle_hash again.
         "policy_components": coverage,
     })
-
-    # FT-02: claim the intent before anything can take effect (exclusive).
-    # A lost race means another worker holds this intent. Dispatching anyway
-    # would execute the same side effect twice, which is the single failure the
-    # outbox exists to prevent.
-    if not _claim_or_none(outbox, intent, worker_id=worker_id):
-        return _claim_lost_response(
-            response, chain=chain, tenant=tenant, principal=principal,
-            proposal_id=proposal_id, item_id=item_id,
-            tool_call_hash=fresh_obs.tool_call_hash, grant_jti=token.jti,
-            intent_sequence_no=intent_entry.sequence_no)
 
     tool_execution = dispatch_under_lease(
         tenant=tenant,
@@ -1315,6 +1321,11 @@ def redeem_accept_token(
         "tool_contract_bundle_hash": semantic["tool_contract_bundle_hash"],
         "intent_authority_hash": semantic["intent_authority_hash"],
     })
+    # Unlike the review path, consumption stays ahead of the claim here: the
+    # presented token IS the authority, and it must be proven single-use
+    # before any intent exists for it. A second redeemer is stopped by the
+    # atomic consume above, and the async worker skips this row because it
+    # carries no tool_call_json, so this branch is defensive.
     if not _claim_or_none(outbox, intent, worker_id=worker_id):
         return _claim_lost_response(
             response, chain=chain, tenant=tenant, principal=principal,
