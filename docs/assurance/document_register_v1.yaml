@@ -2497,6 +2497,18 @@ documents:
   audience:
   - maintainers
   - evaluators
+- id: DOC-342
+  path: docs/assurance/ledger_binding_baseline.json
+  status: generated
+  generated_by: scripts/check_ledger_bindings.py
+  topic: docs_assurance_ledger_binding_baseline_json
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-09-28'
+  last_reviewed: '2026-09-28'
+  audience:
+  - maintainers
+  - evaluators
 topics:
 - docs_integrations_jev_decision_provider_md
 - docs_integrations_mcp-gateway_md
@@ -2771,3 +2783,4 @@ topics:
 - docs_assurance_authority_state_topology_yaml
 - docs_design_remora-quality-program-v1_md
 - docs_assurance_results_manifest_v1_yaml
+- docs_assurance_ledger_binding_baseline_json

@@ -165,6 +165,7 @@ Several topics have more than one document. This table says which to open.
 | [claim_provenance_baseline.json](assurance/claim_provenance_baseline.json) | Grandfathered provenance exceptions |
 | [claim_metric_binding_baseline.json](assurance/claim_metric_binding_baseline.json) | Published numbers not stored in their artifact, with reasons; shrink-only |
 | [prose_style_baseline.json](assurance/prose_style_baseline.json) | Shrink-only per-file counts of structural prose tells (`scripts/check_prose_style.py`) |
+| [ledger_binding_baseline.json](assurance/ledger_binding_baseline.json) | Shrink-only list of thermodynamics-ledger numbers not yet bound to an artifact field (`scripts/check_ledger_bindings.py`) |
 | [ADR: single execution path](architecture/ADR-single-authoritative-execution-path.md) | One authoritative execution path; agent-control is ingress, not an engine |
 | [ADR: tainted arguments](architecture/ADR-tainted-argument-approval.md) | Approval suffices; sanitisation not required, with the residual stated (issue #40) |
 | [ADR: authority custody and lease durability](architecture/ADR-authority-custody-and-lease-durability.md) | A and B implemented (Ed25519 custody split, durable lease nonces); C, D and E accepted as direction only |
