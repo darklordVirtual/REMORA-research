@@ -283,6 +283,22 @@ whether this call may happen. The first is authentication, the second is
 authority. Neither substitutes for the other; a valid service token still
 gets `escalate` on a valve change under a monitoring round.
 
+The Worker does not take the Access policy on trust. `/mcp` verifies the
+`Cf-Access-Jwt-Assertion` header itself (`src/admission.ts`: RS256 against the
+team's published keys, the application's AUD tag, issuer and expiry) and
+answers 503 while `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD` are unset. A route or
+policy that drifts at the edge therefore fails closed instead of exposing the
+operator token's authority to propose. Only the development config, which talks
+to a local API over `REMORA_API_URL`, skips the check.
+
+`REMORA_DEPLOYMENT_PROFILE` states what the deployment is for. Under
+`production`, `/mcp` refuses every call until three prerequisites hold:
+`REMORA_PG_DSN` for a durable tenant audit chain, the authority/executor
+custody split (the `EXECUTION` binding and both Ed25519 lease keys), and the
+Access settings above. The D1 binding alone does not satisfy the first one: it
+makes the grant and nonce ledgers durable, but the tenant audit chain has no D1
+adapter. `/health` reports the profile, the custody mode and anything missing.
+
 A service token identifies a *client*, not a person. It is the right primitive
 for an agent, and the wrong one for approval: approving stays with a human
 holding the approver role, and the gateway's own token cannot approve at all.

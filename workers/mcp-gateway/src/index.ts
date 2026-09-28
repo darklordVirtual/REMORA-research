@@ -21,6 +21,7 @@ import { handleRpc, type JsonRpcRequest, type PendingProposal, type ProposalStor
 import { RemoraClient } from "./remora";
 import { isReadOnlySql } from "./sql";
 import { verifyGraphWrite } from "./effect";
+import { admitMcp, productionReadiness } from "./admission";
 
 export interface Env {
   /** Absent in the development config, which uses REMORA_API_URL instead. */
@@ -120,6 +121,18 @@ export interface Env {
    * here that reaches a tool without one.
    */
   REMORA_API_URL?: string;
+
+  // ── Admission (src/admission.ts) ─────────────────────────────────────────
+  /** "development" | "staging" | "production". Production refuses /mcp until
+   *  the durable chain, the custody split and Access verification are all in
+   *  place; an unset or unknown value is reported by /health. */
+  REMORA_DEPLOYMENT_PROFILE?: string;
+  /** Cloudflare Access team domain, e.g. "remora.cloudflareaccess.com". */
+  ACCESS_TEAM_DOMAIN?: string;
+  /** The AUD tag of the Access application in front of /mcp. With the team
+   *  domain unset or this unset, /mcp answers 503 rather than trusting that a
+   *  policy exists at the edge. */
+  ACCESS_AUD?: string;
 }
 
 /**
@@ -643,15 +656,26 @@ export default {
 
     if (url.pathname === "/health") {
       const durable = Boolean(env.REMORA_PG_DSN) || Boolean(env.STATE_DB);
+      const readiness = productionReadiness(env);
       return Response.json({
         status: "ok",
         service: "remora-mcp-gateway",
         transport: env.REMORA_API_URL ? "direct (development)" : "container",
         jurisdiction: env.PROPOSAL_JURISDICTION ?? "unconstrained",
+        deployment_profile: readiness.profile,
+        readiness_problems: readiness.problems,
+        access_verification:
+          env.ACCESS_TEAM_DOMAIN && env.ACCESS_AUD ? "in-worker" : "NOT CONFIGURED",
+        custody_split: env.REMORA_LEASE_ED25519_PRIVATE && env.EXECUTION
+          ? "authority/executor"
+          : "unsplit",
         execution_state: env.REMORA_PG_DSN
           ? "durable (postgres)"
           : env.STATE_DB
-            ? "durable (D1 binding)"
+            // The binding makes the grant and nonce ledgers durable. The
+            // tenant audit chain has no D1 adapter, so effect receipts are
+            // refused under REMORA_ENV=production until Postgres is set.
+            ? "ledgers durable (D1 binding); tenant audit chain NOT durable"
             : "EPHEMERAL (container disk)",
         ...(durable
           ? {}
@@ -725,6 +749,30 @@ export default {
         status: 405,
         headers: { Allow: "POST" },
       });
+    }
+
+    // Deployment prerequisites first: a production gateway missing its
+    // durable chain or custody split must not take calls at all.
+    const readiness = productionReadiness(env);
+    if (readiness.profile === "production" && readiness.problems.length > 0) {
+      return Response.json(
+        {
+          error: "deployment_not_ready",
+          profile: readiness.profile,
+          problems: readiness.problems,
+        },
+        { status: 503 },
+      );
+    }
+    // Then the caller. /mcp acts with the operator token, so reaching it is
+    // itself a grant of the ability to propose; the Access assertion is
+    // verified here rather than assumed from an edge policy.
+    const admission = await admitMcp(request, env);
+    if (!admission.ok) {
+      return Response.json(
+        { error: "not_admitted", reason: admission.reason },
+        { status: admission.status },
+      );
     }
 
     let body: JsonRpcRequest | JsonRpcRequest[];
