@@ -291,8 +291,6 @@ pytest_add_cli_args = [
 # one of the mutated modules and is missing here. Cost of the full set: the
 # selection runs in 4.2 s against 2.8 s for the frozen 17.
 pytest_add_cli_args_test_selection = [
-    "tests/capabilities/test_capability_enforcement.py",
-    "tests/capabilities/test_capability_server_path.py",
     "tests/test_callable_closure_digest.py",
     "tests/test_credential_issuer_scope.py",
     "tests/test_custody_split_dispatch.py",
