@@ -508,17 +508,23 @@ entries:
     controls:
       - task_identity_binding
       - authorization_context_task_fields
+      - execution_lease_task_fields
+      - a2a_envelope_task_fields
     code:
       - remora/governance/task_identity.py
       - remora/enforcement/token.py
+      - remora/enforcement/lease.py
+      - remora/governance/a2a_envelope.py
+      - remora/execution/dispatch.py
       - scripts/generate_authorization_context_vectors.py
       - artifacts/task_authority/authorization_context_preimage_v1.json
     tests:
       - tests/test_task_identity.py
       - tests/test_task_bound_authority.py
-    evidence: "An approval bound to one task yields a different AuthorizationContext hash under another, while every binding REMORA already checked stays identical. The committed preimage artifact records that a context carrying no task identity hashes byte-identically to the pre-change implementation, so tokens issued since RMR-001 still verify; scripts/generate_authorization_context_vectors.py --check reproduces it exactly."
+      - tests/test_task_bound_lease_and_envelope.py
+    evidence: "An approval bound to one task yields a different AuthorizationContext hash under another, while every binding REMORA already checked stays identical. The committed preimage artifact records that a context carrying no task identity hashes byte-identically to the pre-change implementation, so tokens issued since RMR-001 still verify; scripts/generate_authorization_context_vectors.py --check reproduces it exactly. The ExecutionLease and the A2A envelope carry the same pair, signed only when set: an unbound lease or envelope signs its pre-change key set, a lease or envelope checked against another task refuses as task_mismatch and an unbound one as task_unbound, and a task refusal at the dispatcher does not burn the nonce (tests/test_task_bound_lease_and_envelope.py)."
     maturity: implemented_and_tested
-    scope_boundary: "Binding only. This is not proof-of-possession: it binds an authorization to a task and does not prove the presenter holds a key, and nothing here closes the AGNTCY profile's PoP requirement. The A2A envelope and ExecutionLease halves, the declared-operation subset check and the loop-safety store are designed but not implemented at this revision. LoopHarness itself is not implemented; only the context_id key its state would need."
+    scope_boundary: "Binding only. This is not proof-of-possession: it binds an authorization to a task and does not prove the presenter holds a key, and nothing here closes the AGNTCY profile's PoP requirement. The ExecutionLease and A2A envelope halves are library checks (quality program Q7.2): no server path supplies a task identity yet, so no deployment enforces them, and require_task_identity is off by default. The declared-operation subset check and the loop-safety store are designed but not implemented at this revision. LoopHarness itself is not implemented; only the context_id key its state would need."
     related_work_section: "docs/09-related-work.md §11"
     in_code_citation: true
     citation_anchor: "2608.27443"

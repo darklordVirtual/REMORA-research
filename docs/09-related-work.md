@@ -471,6 +471,17 @@ empty string. The committed artifact
 pre-change preimages, so a replicator can check that guarantee without
 trusting the test suite.
 
+The same rule now covers the execution lease and the A2A envelope (quality
+program Q7.2). Each carries the pair only when bound, so an unbound lease or
+envelope signs the bytes it signed before, and
+`tests/test_task_bound_lease_and_envelope.py` pins both pre-change key sets.
+Checked against another task, either one refuses as `task_mismatch`; one that
+was never bound refuses as `task_unbound`. The check runs when the executor
+supplies the current task, and a dispatcher built with
+`require_task_identity` refuses a call that supplies none. No server path
+supplies a task yet, so at this revision the binding is a library property
+that no deployment enforces.
+
 This is binding, not proof-of-possession. It ties an authorization to a task
 and does not prove the presenter holds a key. Nothing here should be read as
 closing the AGNTCY profile's PoP requirement, and REMORA claims no PoP at
