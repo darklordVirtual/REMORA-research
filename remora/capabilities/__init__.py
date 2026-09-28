@@ -16,6 +16,7 @@ from remora.capabilities.model import (
 )
 from remora.capabilities.projector import CapabilityProjector, Projection
 from remora.capabilities.resolver import CapabilityPolicy, CapabilityResolver
+from remora.capabilities.revocation import EpochSource, StaticEpochSource, revocation_refusal
 
 __all__ = [
     "CapabilityEpochs",
@@ -25,6 +26,9 @@ __all__ = [
     "CapabilityResolver",
     "DelegationDenied",
     "EffectiveCapabilitySet",
+    "EpochSource",
     "Projection",
+    "StaticEpochSource",
     "delegate",
+    "revocation_refusal",
 ]

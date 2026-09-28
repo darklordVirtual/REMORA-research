@@ -480,6 +480,13 @@ arguments)` function of the module named by
 `capability_scope_violation`. A condition that needs state no reader can
 supply is `capability_state_unverifiable`. The same checks run at `/assess`,
 at the execution pre-check and in the dispatcher.
+With `REMORA_CAPABILITY_EPOCH_MODULE` naming a module with
+`current(tenant_id, principal_id)` and `revoked(capability_set_id)` (Q8.6),
+each set is issued under the current principal, tenant, policy and ToolSpec
+epochs, and the dispatcher reads them again. A set issued under an older
+epoch refuses as `capability_stale`, and a revoked one as
+`capability_revoked`. A source that cannot answer refuses as
+`capability_epoch_unverifiable`.
 
 **Checks between authority and effect (WS7, all opt-in):** each setting
 below binds one check into the governed dispatcher. Every check runs after

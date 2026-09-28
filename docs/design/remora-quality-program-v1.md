@@ -555,3 +555,14 @@ call unchanged. A report tool in a read-only task cannot reach
 `email.send`, and a nested call outside the delegated tools or recipient
 scope refuses. A property test over two-link chains pins that every link is
 a subset, never outlives its parent, and keeps every parent condition.
+
+**2026-09-28, Q8.6.** A capability set records the principal, tenant, policy
+and ToolSpec epochs it was issued under. With an epoch source configured,
+the dispatcher reads the current epochs again. A set issued under an older
+epoch in any scope refuses as `capability_stale`, and an explicitly revoked
+set as `capability_revoked`. A source that cannot answer refuses. REMORA keeps
+no counter of its own; the deployment supplies the source over its durable
+store. The server test covers the case the SDD's fresh check targets: a
+lease minted by the authority, then a policy change, a suspended principal
+or a revocation before the executor dispatches. Each refuses with nothing
+run.

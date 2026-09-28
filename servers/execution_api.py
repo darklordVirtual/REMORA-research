@@ -933,6 +933,9 @@ def _bind_premise_checks(dispatcher: GovernedToolDispatcher) -> None:
     state_reader = _capability_state_reader()
     if state_reader is not None:
         dispatcher.bind_capability_state(state_reader)
+    epoch_source = _capability_epoch_source()
+    if epoch_source is not None:
+        dispatcher.bind_capability_epochs(epoch_source)
     revisions = _deployment_module(
         _os.environ.get("REMORA_STATE_REVISION_MODULE", ""))
     if revisions is not None:
@@ -988,13 +991,28 @@ def _resolve_capability(tool_call: Any, principal: str, tenant: str,
     resolver = _capability_resolver()
     if resolver is None:
         return None
+    source = _capability_epoch_source()
+    # Issued under the epochs in force now; a source that cannot answer is
+    # raised to the caller, which refuses (capability_epoch_unverifiable).
+    epochs = source.current(tenant, principal) if source is not None else None
     return resolver.resolve(
+        epochs=epochs,
         principal_id=principal, tenant_id=tenant,
         environment=tool_call.target_environment or "",
         # A call that names no task type gets one the policy never names, so
         # it resolves to no tools: default deny, not an error.
         task_type=getattr(tool_call, "task_type", None) or "unspecified",
         now=now or _dt.datetime.now(_dt.UTC))
+
+
+def _capability_epoch_source() -> Any:
+    """The deployment's revocation epochs (Q8.6), or None.
+
+    ``REMORA_CAPABILITY_EPOCH_MODULE`` names a module exposing
+    ``current(tenant_id, principal_id) -> CapabilityEpochs`` and
+    ``revoked(capability_set_id) -> bool``; the module itself is the source.
+    """
+    return _deployment_module(_os.environ.get("REMORA_CAPABILITY_EPOCH_MODULE", ""))
 
 
 def _capability_state_reader() -> Any:
@@ -1006,7 +1024,11 @@ def _capability_state_reader() -> Any:
 
 def _capability_block(tool_call: Any, principal: str, tenant: str) -> dict[str, Any] | None:
     """What /assess records about the capability check (Q8.2)."""
-    capability_set = _resolve_capability(tool_call, principal, tenant)
+    try:
+        capability_set = _resolve_capability(tool_call, principal, tenant)
+    except Exception:  # noqa: BLE001 - an unreadable epoch source refuses, never allows
+        return {"allowed": False, "refusal": "capability_epoch_unverifiable",
+                "requested_tool": tool_call.tool_name}
     if capability_set is None:
         return None
     refusal = capability_set.check(
@@ -1907,7 +1929,11 @@ def _dispatch_under_lease(
         # Resolved on the clock the dispatch is judged by. Resolving on a
         # later clock made issued_at fall after the dispatch time, and every
         # lease refused as capability_not_yet_valid.
-        capability_set = _resolve_capability(tool_call, principal, tenant, now=now)
+        try:
+            capability_set = _resolve_capability(tool_call, principal, tenant, now=now)
+        except Exception:  # noqa: BLE001 - unknown epochs are not current ones
+            return {"executed": False, "refusal_reason": "capability_epoch_unverifiable",
+                    "proposal_id": proposal_id}
         if capability_set is not None:
             refusal = capability_set.check(
                 tool_call.tool_name, principal_id=principal, tenant_id=tenant,

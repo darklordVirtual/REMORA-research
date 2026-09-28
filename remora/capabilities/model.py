@@ -45,6 +45,7 @@ class CapabilityRefusal(str, Enum):
     PRINCIPAL_MISMATCH = "capability_principal_mismatch"
     DIGEST_MISMATCH = "capability_digest_mismatch"
     STATE_UNVERIFIABLE = "capability_state_unverifiable"
+    EPOCH_UNVERIFIABLE = "capability_epoch_unverifiable"
 
 
 @dataclass(frozen=True)

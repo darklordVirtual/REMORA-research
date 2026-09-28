@@ -703,6 +703,7 @@ class GovernedToolDispatcher:
         self._require_task = require_task_identity
         self._require_capability = require_capability_set
         self._capability_state: Callable[[str, Any], Any] | None = None
+        self._capability_epochs: Any = None
         self._effect_resolver: "EffectResolver | None" = None
         self._revisions: "RevisionReader | None" = None
         self._recorder: "RecorderClient | None" = None
@@ -836,6 +837,16 @@ class GovernedToolDispatcher:
             obligations=list(refused))
         return "procedure_violation"
 
+    def bind_capability_epochs(self, source: Any) -> None:
+        """Read the current revocation epochs at dispatch (Q8.6).
+
+        A set issued under an older principal, tenant, policy or ToolSpec
+        epoch refuses as ``capability_stale``, a revoked set as
+        ``capability_revoked``, and a source that cannot answer as
+        ``capability_epoch_unverifiable``.
+        """
+        self._capability_epochs = source
+
     def bind_capability_state(self, reader: Callable[[str, Any], Any]) -> None:
         """Supply the trusted-state reader capability constraints use (Q8.4)."""
         self._capability_state = reader
@@ -863,6 +874,10 @@ class GovernedToolDispatcher:
             tool_name, principal_id=lease.actor_identity, tenant_id=tenant_id,
             environment=target_environment, now=moment) or capability_set.check_arguments(
             tool_name, arguments, self._capability_state)
+        if refusal is None:
+            from remora.capabilities.revocation import revocation_refusal
+
+            refusal = revocation_refusal(capability_set, self._capability_epochs)
         return refusal.value if refusal is not None else None
 
     def bind_surface_observer(self, observer: Callable[[], str], *,
