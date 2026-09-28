@@ -1060,6 +1060,36 @@
         "title": "HealthResponse",
         "type": "object"
       },
+      "LoopSafetyResetRequest": {
+        "description": "Start a context's loop safety count again, under a named policy decision.\n\n``policy_ref`` names the decision that authorised the reset (a review item,\ndecision envelope or ticket id). The earlier events stay in the store and\nthe reset itself is appended to the tenant chain, so a reset can always be\ntraced to the person and the decision behind it.",
+        "properties": {
+          "context_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Context Id",
+            "type": "string"
+          },
+          "policy_ref": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Policy Ref",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "context_id",
+          "policy_ref",
+          "reason"
+        ],
+        "title": "LoopSafetyResetRequest",
+        "type": "object"
+      },
       "PepResult": {
         "properties": {
           "allowed": {
@@ -1390,6 +1420,19 @@
             "title": "Arguments",
             "type": "object"
           },
+          "context_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Id"
+          },
           "derivations": {
             "anyOf": [
               {
@@ -1454,6 +1497,19 @@
             "default": "prod",
             "title": "Target Environment",
             "type": "string"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
           },
           "tool_name": {
             "maxLength": 200,
@@ -2304,6 +2360,155 @@
           }
         },
         "summary": "Execute Accepted",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
+    "/v1/execution/loop-safety/reset": {
+      "post": {
+        "description": "Reset a context's loop safety count under a named policy decision.\n\nReviewer capability, as for revoking a principal: it is a human decision\nabout authority. The store keeps the earlier events, and the reset is\nappended to the tenant chain with the reviewer, the policy reference and\nthe reason. The agent whose history it is has no route to this.",
+        "operationId": "loop_safety_reset_v1_execution_loop_safety_reset_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoopSafetyResetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Loop Safety Reset V1 Execution Loop Safety Reset Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Reset recorded; the context's count starts again."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Missing or invalid bearer token."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Role lacks the required capability for this tenant."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Loop safety store unavailable."
+          }
+        },
+        "summary": "Loop Safety Reset",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
+    "/v1/execution/loop-safety/{context_id}": {
+      "get": {
+        "description": "Read a context's loop safety state (Q7.2). Reviewer capability.",
+        "operationId": "loop_safety_state_v1_execution_loop_safety__context_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "context_id",
+            "required": true,
+            "schema": {
+              "title": "Context Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Loop Safety State V1 Execution Loop Safety  Context Id  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "What this context has accumulated since its last reset."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Missing or invalid bearer token."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Role lacks the required capability for this tenant."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Loop safety store unavailable."
+          }
+        },
+        "summary": "Loop Safety State",
         "tags": [
           "execution"
         ]

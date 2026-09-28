@@ -365,3 +365,15 @@ policy decision starts the count again. Both are library controls: no server
 path supplies a task identity or records loop state yet, and the loop limits
 are uncalibrated defaults. The declared-operation check from the same design
 is not done.
+
+**2026-09-28, Q7.2 on the server path.** The execution API takes
+`context_id` and `task_id` on every tool call, both or neither. The pair is
+bound into the ACCEPT token's authorization context and the lease. A token
+redeemed under another task, or with the task stripped, is refused as
+`context_mismatch` before its grant is spent. `/dispatch-leased` refuses a
+lease from another task. `/assess` reads the context's loop state before
+deciding and records the decision after. A context at a limit cannot ACCEPT,
+and an unreadable store is a 503. Reviewers read and reset the state through
+two routes, and each reset is chained with a policy reference.
+`REMORA_REQUIRE_TASK_IDENTITY` makes the fields mandatory; it is off by
+default.

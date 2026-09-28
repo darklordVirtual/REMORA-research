@@ -131,6 +131,9 @@ class DecisionReason(str, Enum):
     INSUFFICIENT_ORACLE_VOTES     = "insufficient_oracle_votes"     # valid_oracle_count < MIN_REQUIRED_ORACLE_VOTES
     # Tool-set membership gate (open risk B)
     TOOL_NOT_IN_AVAILABLE_SET     = "tool_not_in_available_set"     # proposed tool absent from declared available_tools
+    # Loop safety (quality program Q7.2): the task's context has reached a
+    # limit in remora/governance/loop_safety.py, so an ACCEPT goes to review.
+    LOOP_SAFETY_ESCALATE          = "loop_safety_escalate"
 
 
 @dataclass(frozen=True)

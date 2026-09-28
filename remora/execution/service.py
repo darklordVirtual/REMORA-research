@@ -33,7 +33,8 @@ from remora.enforcement.token import AuthorizationContext, PolicyDecisionToken
 from remora.governance.audit_outbox import encode_key
 from remora.governance.review_queue import ExecutionDecision
 from remora.governance.proposal_lineage import derive_lineage, lineage_key_for
-from remora.policy.report import DecisionAction
+from remora.governance.task_identity import TaskIdentity
+from remora.policy.report import DecisionAction, DecisionReason
 
 
 #: The outbox state each outcome settles as. A table rather than a chain of
@@ -152,6 +153,7 @@ def assess_proposal(
     token_audience: str,
     token_ttl_seconds: int,
     policy_bundle_hash: Callable[[], str] | None = None,
+    loop_safety: Any = None,
 ) -> dict[str, Any]:
     """Assess a proposed tool call — nothing executes here.
 
@@ -163,7 +165,19 @@ def assess_proposal(
     leaves an item the API refuses as unknown — external review
     2026-07-27); ABSTAIN returns neither. Every assessment appends to the
     tenant audit chain.
+
+    ``loop_safety`` (Q7.2) is a ``LoopSafetyMonitor``. For a proposal that
+    names a task, the context's accumulated state is read first: when it has
+    reached a limit, an ACCEPT becomes ESCALATE, so a context that has been
+    probing does not keep acting autonomously. The downgrade never goes the
+    other way. The decision is then recorded against the context. A store
+    that cannot answer raises before anything is decided or recorded.
     """
+    task = task_identity_of(proposal)
+    prior_loop = (
+        loop_safety.assess(tenant, task.context_id)
+        if loop_safety is not None and task is not None else None
+    )
     obs, semantic = build_observation(proposal, tenant)
     toolspec_identity = resolve_toolspec(
         proposal.tool_name, proposal.arguments, proposal.target_environment
@@ -178,6 +192,14 @@ def assess_proposal(
     note_proposal_id(proposal_id)
     obs = dataclasses.replace(obs, proposal_id=proposal_id)
     report = engine.decide(obs)
+    if (prior_loop is not None and prior_loop.action == "escalate"
+            and report.action is DecisionAction.ACCEPT):
+        report = dataclasses.replace(
+            report,
+            action=DecisionAction.ESCALATE,
+            reasons=(*report.reasons, DecisionReason.LOOP_SAFETY_ESCALATE),
+            human_review_required=True,
+        )
     now = datetime.now(UTC)
 
     # Derived from the chain, never from the request: a caller-declared
@@ -221,6 +243,9 @@ def assess_proposal(
         "toolspec_hash": toolspec_identity["hash"],
         "toolspec_version": toolspec_identity["version"],
     }
+    if task is not None:
+        record["context_id"] = task.context_id
+        record["task_id"] = task.task_id
     response: dict[str, Any] = {
         "proposal_id": proposal_id,
         "decision": report.action.value,
@@ -237,6 +262,24 @@ def assess_proposal(
         DecisionAction.ABSTAIN: "abstain_or_hard_refusal",
     }.get(report.action, "abstain_or_hard_refusal")
     lifecycle_guard("PROPOSED", "engine_decision", branch_event)
+
+    if loop_safety is not None and task is not None:
+        # Recorded before the token or review item exists, so a failure to
+        # record refuses the whole assessment instead of issuing authority
+        # the context's history does not show.
+        after = loop_safety.observe(
+            tenant, task, proposal.tool_name,
+            denied=report.action is DecisionAction.ABSTAIN,
+        )
+        loop_summary = {
+            "context_id": task.context_id,
+            "action": after.action,
+            "reached": list(after.reached),
+            "escalated_by_loop_state": (
+                DecisionReason.LOOP_SAFETY_ESCALATE in report.reasons),
+        }
+        record["loop_safety"] = loop_summary
+        response["loop_safety"] = loop_summary
 
     item = None
     if report.action is DecisionAction.ACCEPT:
@@ -256,6 +299,7 @@ def assess_proposal(
                 target_environment=proposal.target_environment or "",
                 policy_bundle_hash=_policy_bundle_hash(policy_bundle_hash),
                 toolspec_hash=str(toolspec_identity["hash"]),
+                task=task,
             ),
         )
         record["grant_jti"] = token.jti
@@ -471,6 +515,7 @@ def execute_approved_item(
         target_environment=tool_call.target_environment or "",
         policy_bundle_hash=_policy_bundle_hash(policy_bundle_hash),
         toolspec_hash=str(toolspec_identity["hash"]),
+        task=task_identity_of(tool_call),
     )
     token = PolicyDecisionToken.issue(
         action="accept",
@@ -544,6 +589,7 @@ def execute_approved_item(
         toolspec=toolspec_identity,
         proposal_id=str(proposal_id or item_id),
         grant_jti=token.jti,
+        **_task_kwargs(tool_call),
     )
 
     # FT-02: settle with what actually happened - derived, never assumed.
@@ -897,6 +943,7 @@ def dispatch_pending_intent(
         target_environment=getattr(tool_call, "target_environment", "") or "",
         policy_bundle_hash=_policy_bundle_hash(policy_bundle_hash),
         toolspec_hash=str((toolspec_identity or {}).get("hash", "")),
+        task=task_identity_of(tool_call),
     )
     token = PolicyDecisionToken.issue(
         action="accept",
@@ -934,6 +981,7 @@ def dispatch_pending_intent(
         toolspec=toolspec_identity,
         proposal_id=str(proposal_id or row.item_id),
         grant_jti=token.jti,
+        **_task_kwargs(tool_call),
     )
 
     outcome = classify_outcome(tool_execution)
@@ -1014,6 +1062,7 @@ def authorization_context(
     target_environment: str,
     policy_bundle_hash: str,
     toolspec_hash: str,
+    task: TaskIdentity | None = None,
 ) -> AuthorizationContext:
     """The conditions a decision is made under, in one place.
 
@@ -1029,6 +1078,11 @@ def authorization_context(
     moves for reasons that have nothing to do with this tool's spec. They are
     passed explicitly now, so a caller cannot leave one unbound by omission.
     The contract-bundle hash keeps its own place in the audit record.
+
+    ``task`` (Q7.2) is the task the call is made under. It enters the hash
+    only when present, so a request that names no task hashes as before, and
+    a token issued under one task and redeemed under another is refused as
+    ``context_mismatch`` before the grant is consumed.
     """
 
     return AuthorizationContext(
@@ -1038,7 +1092,28 @@ def authorization_context(
         policy_bundle_hash=policy_bundle_hash,
         toolspec_hash=toolspec_hash,
         intent_authority_hash=str(semantic.get("intent_authority_hash", "")),
+        context_id=task.context_id if task is not None else "",
+        task_id=task.task_id if task is not None else "",
     )
+
+
+def task_identity_of(tool_call: Any) -> TaskIdentity | None:
+    """The task a proposal names, or None. Raises ValueError for one half.
+
+    Read by attribute so the duck-typed call a worker rebuilds from the outbox
+    is handled like the wire model; a call without the fields names no task.
+    """
+    return TaskIdentity.from_fields({
+        "context_id": getattr(tool_call, "context_id", None) or None,
+        "task_id": getattr(tool_call, "task_id", None) or None,
+    })
+
+
+def _task_kwargs(tool_call: Any) -> dict[str, Any]:
+    """``task_identity`` for a dispatch call, omitted when the call names none,
+    so a dispatcher binding that predates the parameter keeps working."""
+    task = task_identity_of(tool_call)
+    return {"task_identity": task} if task is not None else {}
 
 
 def redeem_accept_token(
@@ -1136,6 +1211,7 @@ def redeem_accept_token(
         target_environment=tool_call.target_environment or "",
         policy_bundle_hash=_policy_bundle_hash(policy_bundle_hash),
         toolspec_hash=str((toolspec_identity or {}).get("hash", "")),
+        task=task_identity_of(tool_call),
     )
     context_check = token.verify(obs.tool_call_hash, context=current_context)
     if not context_check.verified and context_check.reason in {
@@ -1220,6 +1296,7 @@ def redeem_accept_token(
         toolspec=toolspec_identity,
         proposal_id=str(proposal_id or token.jti),
         grant_jti=token.jti,
+        **_task_kwargs(tool_call),
     )
 
     # Same structural classification as the review path: a dispatch that began

@@ -191,11 +191,12 @@ state:
     on_loss: reauthorizes
     durable_adapter: "remora/governance/loop_safety.py::DurableLoopSafetyStore"
     reference_implementation: true
+    wired_at: "servers/execution_api.py::_loop_safety_monitor"
     note: >-
       Classed reauthorizes because losing the history lets a context that
-      had reached an escalation limit continue as if it had not. No decision
-      path records into or reads the store yet, so there is no wiring point
-      to declare; when one is added it needs an ASW entry here.
+      had reached an escalation limit continue as if it had not: /assess
+      reads it before deciding and downgrades an ACCEPT to ESCALATE at a
+      limit. Wiring point ASW-004.
 
 # THE SWITCHES
 #
@@ -230,6 +231,12 @@ wiring:
       The fourth occurrence. REMORA_STATE_ENDPOINT was missing here while
       ASW-001 and ASW-002 had it, which is the whole defect class in one
       diff.
+
+  - id: ASW-004
+    for: AST-012
+    symbol: "servers/execution_api.py::_loop_safety_monitor"
+    selects: "the loop safety store /assess reads before deciding and records into after"
+    switches: [REMORA_PG_DSN, REMORA_CHAIN_DB, REMORA_STATE_ENDPOINT]
 
 # What a PASS from this gate does NOT establish.
 #

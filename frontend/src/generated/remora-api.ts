@@ -344,6 +344,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/execution/loop-safety/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Loop Safety Reset
+         * @description Reset a context's loop safety count under a named policy decision.
+         *
+         *     Reviewer capability, as for revoking a principal: it is a human decision
+         *     about authority. The store keeps the earlier events, and the reset is
+         *     appended to the tenant chain with the reviewer, the policy reference and
+         *     the reason. The agent whose history it is has no route to this.
+         */
+        post: operations["loop_safety_reset_v1_execution_loop_safety_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/execution/loop-safety/{context_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Loop Safety State
+         * @description Read a context's loop safety state (Q7.2). Reviewer capability.
+         */
+        get: operations["loop_safety_state_v1_execution_loop_safety__context_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/execution/proposals/{proposal_id}": {
         parameters: {
             query?: never;
@@ -1178,6 +1223,23 @@ export interface components {
             /** Version */
             version: string;
         };
+        /**
+         * LoopSafetyResetRequest
+         * @description Start a context's loop safety count again, under a named policy decision.
+         *
+         *     ``policy_ref`` names the decision that authorised the reset (a review item,
+         *     decision envelope or ticket id). The earlier events stay in the store and
+         *     the reset itself is appended to the tenant chain, so a reset can always be
+         *     traced to the person and the decision behind it.
+         */
+        LoopSafetyResetRequest: {
+            /** Context Id */
+            context_id: string;
+            /** Policy Ref */
+            policy_ref: string;
+            /** Reason */
+            reason: string;
+        };
         /** PepResult */
         PepResult: {
             /** Allowed */
@@ -1342,6 +1404,8 @@ export interface components {
             arguments?: {
                 [key: string]: unknown;
             };
+            /** Context Id */
+            context_id?: string | null;
             /** Derivations */
             derivations?: components["schemas"]["DerivationProposal"][] | null;
             /** Idempotency Key */
@@ -1357,6 +1421,8 @@ export interface components {
              * @default prod
              */
             target_environment: string;
+            /** Task Id */
+            task_id?: string | null;
             /** Tool Name */
             tool_name: string;
             /** Untrusted Context */
@@ -1965,6 +2031,128 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    loop_safety_reset_v1_execution_loop_safety_reset_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoopSafetyResetRequest"];
+            };
+        };
+        responses: {
+            /** @description Reset recorded; the context's count starts again. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Missing or invalid bearer token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Role lacks the required capability for this tenant. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Loop safety store unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+        };
+    };
+    loop_safety_state_v1_execution_loop_safety__context_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                context_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description What this context has accumulated since its last reset. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Missing or invalid bearer token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Role lacks the required capability for this tenant. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Loop safety store unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
                 };
             };
         };
