@@ -510,21 +510,24 @@ entries:
       - authorization_context_task_fields
       - execution_lease_task_fields
       - a2a_envelope_task_fields
+      - context_scoped_loop_safety_store
     code:
       - remora/governance/task_identity.py
       - remora/enforcement/token.py
       - remora/enforcement/lease.py
       - remora/governance/a2a_envelope.py
       - remora/execution/dispatch.py
+      - remora/governance/loop_safety.py
       - scripts/generate_authorization_context_vectors.py
       - artifacts/task_authority/authorization_context_preimage_v1.json
     tests:
       - tests/test_task_identity.py
       - tests/test_task_bound_authority.py
       - tests/test_task_bound_lease_and_envelope.py
-    evidence: "An approval bound to one task yields a different AuthorizationContext hash under another, while every binding REMORA already checked stays identical. The committed preimage artifact records that a context carrying no task identity hashes byte-identically to the pre-change implementation, so tokens issued since RMR-001 still verify; scripts/generate_authorization_context_vectors.py --check reproduces it exactly. The ExecutionLease and the A2A envelope carry the same pair, signed only when set: an unbound lease or envelope signs its pre-change key set, a lease or envelope checked against another task refuses as task_mismatch and an unbound one as task_unbound, and a task refusal at the dispatcher does not burn the nonce (tests/test_task_bound_lease_and_envelope.py)."
+      - tests/test_loop_safety.py
+    evidence: "An approval bound to one task yields a different AuthorizationContext hash under another, while every binding REMORA already checked stays identical. The committed preimage artifact records that a context carrying no task identity hashes byte-identically to the pre-change implementation, so tokens issued since RMR-001 still verify; scripts/generate_authorization_context_vectors.py --check reproduces it exactly. The ExecutionLease and the A2A envelope carry the same pair, signed only when set: an unbound lease or envelope signs its pre-change key set, a lease or envelope checked against another task refuses as task_mismatch and an unbound one as task_unbound, and a task refusal at the dispatcher does not burn the nonce (tests/test_task_bound_lease_and_envelope.py). A loop-safety store keyed on (tenant_id, context_id) keeps denials, authority probes, tool switches after a denial and irreversible effects across task iterations: three denials in three separate tasks reach the default limit that no single task reaches, a new task_id never resets the count, a reset must name a policy decision and keeps the earlier events, state written through one store instance is read by another on the same SQLite file, and an unreadable store raises instead of reporting an empty history (tests/test_loop_safety.py)."
     maturity: implemented_and_tested
-    scope_boundary: "Binding only. This is not proof-of-possession: it binds an authorization to a task and does not prove the presenter holds a key, and nothing here closes the AGNTCY profile's PoP requirement. The ExecutionLease and A2A envelope halves are library checks (quality program Q7.2): no server path supplies a task identity yet, so no deployment enforces them, and require_task_identity is off by default. The declared-operation subset check and the loop-safety store are designed but not implemented at this revision. LoopHarness itself is not implemented; only the context_id key its state would need."
+    scope_boundary: "Binding only. This is not proof-of-possession: it binds an authorization to a task and does not prove the presenter holds a key, and nothing here closes the AGNTCY profile's PoP requirement. The ExecutionLease and A2A envelope halves are library checks (quality program Q7.2): no server path supplies a task identity yet, so no deployment enforces them, and require_task_identity is off by default. The loop-safety store is likewise a library control: no decision path records into it or reads it, and its limits are uncalibrated defaults. The declared-operation subset check is designed but not implemented at this revision. LoopHarness itself is not implemented; REMORA keeps the non-decaying state the paper motivates, not its harness."
     related_work_section: "docs/09-related-work.md §11"
     in_code_citation: true
     citation_anchor: "2608.27443"
