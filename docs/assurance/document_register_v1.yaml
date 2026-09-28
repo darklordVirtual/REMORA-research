@@ -2522,10 +2522,11 @@ documents:
   - evaluators
 - id: DOC-344
   path: docs/design/capability-minimized-execution-v1.md
-  status: proposal
+  status: canonical
   topic: docs_design_capability-minimized-execution-v1_md
   code_synced: verified
-  verdict: pending
+  verdict: current
+  last_audited: '2026-09-28'
   last_reviewed: '2026-09-28'
   audience:
   - maintainers

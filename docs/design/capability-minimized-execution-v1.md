@@ -1,6 +1,7 @@
 # Capability-Minimized Verified Execution v1
 
-Status: design, adopted 2026-09-28 as quality program WS8. Source: an
+Status: implemented 2026-09-28 as quality program WS8 (Q8.1 to Q8.9; see the
+resolution notes in docs/design/remora-quality-program-v1.md and RES-020). Source: an
 owner-supplied software design document ("Capability-Minimized Verified
 Execution for REMORA"). This document maps that proposal onto the code that
 exists, records where REMORA deviates from it, and fixes what "done" means

@@ -578,6 +578,39 @@ Every item is strictly narrowing: it adds a refusal before an effect or a
 verdict about evidence, and grants nothing. None of the sources' own
 measurements is reproduced, and none is claimed.
 
+## 13. Capability Minimization Before Reasoning
+
+REMORA's earlier lines judge an action after an agent has proposed it. WS8,
+adopted from an owner-supplied design, reduces what the agent can propose at
+all: an agent is shown, and may call, only the tools its task needs. RES-020
+maps the code, tests and artifact. No external result is claimed for the
+design itself.
+
+The set an agent works under is derived from trusted state as an
+intersection. The requested tools, the principal's tools, the task's, the
+tenant's and the environment's are intersected with what the registry holds,
+and anything not named is denied. Visibility is not authorization. The same
+set is signed into the execution lease and checked again at dispatch, so a
+client that ignores the projected tool list gains nothing. An allowed tool is
+held to its argument scope, a nested call needs a delegation that is a subset
+of its caller's, and a set can be revoked by epoch between issuance and
+dispatch. Success is established only when the evidence shows the capability,
+the authorization, the execution and a verified effect.
+
+Debenedetti et al. (2025), *Defeating Prompt Injections by Design (CaMeL)*,
+is the closest published work. It binds capabilities to data values and
+separates a privileged planner from a quarantined model that reads untrusted
+content. REMORA does neither. Its capabilities attach to tools, tasks and
+arguments, and an argument can be required to equal a fact from trusted
+state. That is coarser than CaMeL's data-flow tracking and needs no changes
+to how the agent is built.
+
+The pre-registered layer study (`NEGATIVE_RESULTS.md` §62 records its one
+missed prediction) shows that each layer stops the class of proposal it was
+built for, and that no layer blocks a legitimate one. Its corpus is
+author-written. Whether exposing fewer tools changes what a model proposes
+in the first place is a question about models, and it needs a live run.
+
 ## Positioning Statement
 
 REMORA is a nested governance control plane for long-running agentic AI:

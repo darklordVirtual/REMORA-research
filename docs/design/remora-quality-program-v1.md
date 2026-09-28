@@ -586,3 +586,13 @@ exposure ratio in arms C to F was 0.2545, above the predicted 0.25. It is
 recorded in `NEGATIVE_RESULTS.md` §62 (accepted). The corpus and labels are
 the authors', so this is layer attribution, not a real-world rate. The
 model-behaviour questions still wait for a live model.
+
+**2026-09-28, Q8.9 and WS8 closed.** RES-020 maps capability minimization
+to its code, tests and the layer-study artifact, and related work §13 places
+it next to CaMeL (SHELF-008). SHELF-008 stays UNEVALUATED because data-flow
+capabilities are not implemented. CAP-023 records the capability as
+WIRED_API_PATH, opt-in. The design document is marked implemented. WS8
+leaves three questions open, each stated where it applies. No deployment is
+claimed to run a capability policy. The task type is declared by the caller
+and only narrows. The effect of reduced exposure on what a model proposes
+needs a live run (owner decision 2).

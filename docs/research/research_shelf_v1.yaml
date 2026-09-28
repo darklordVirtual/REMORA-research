@@ -218,7 +218,12 @@ components:
     remora_status: >-
       The propose/decide/execute separation already holds and the agent owns
       neither callables nor credentials. Capability is attached to the tool and
-      the lease, not to each datum used as an argument.
+      the lease, not to each datum used as an argument. Since 2026-09-28 (WS8,
+      RES-020) capability sets are also scoped to the task, bound into the
+      lease, and can require an argument to equal a fact from trusted state,
+      which covers some of the same attacks at tool and argument granularity.
+      CaMeL's data-flow capabilities and its privileged/quarantined split are
+      still not implemented, so this stays UNEVALUATED.
     adoption: UNEVALUATED
 
   # ── Least privilege ────────────────────────────────────────────────────────
