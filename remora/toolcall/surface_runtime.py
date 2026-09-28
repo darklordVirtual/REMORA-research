@@ -121,9 +121,17 @@ class SurfaceRuntime:
             return RuntimeToolSurface(self._identity, "agent-runtime", True,
                                       tuple(tools), datetime.now(UTC).isoformat())
 
-    def offered_tools(self) -> list[dict[str, Any]]:
-        return [{"name": t.tool_id, "inputSchema": json.loads(t.argument_schema_json)}
-                for t in self.snapshot().tools if t.offered_to_agent]
+    def offered_tools(self, capability_set: Any = None) -> list[dict[str, Any]]:
+        """The tools offered to the agent; with a capability set (Q8.3), only
+        those in it. Enforcement still checks every call, so the filter
+        narrows what is seen and never stands in for authorization."""
+        offered = [{"name": t.tool_id, "inputSchema": json.loads(t.argument_schema_json)}
+                   for t in self.snapshot().tools if t.offered_to_agent]
+        if capability_set is None:
+            return offered
+        from remora.capabilities.projector import CapabilityProjector
+
+        return CapabilityProjector(capability_set).filter(offered)
 
     def assess(self, tool_name: str, arguments: Any, *, tenant: str,
                principal: str, target: str,

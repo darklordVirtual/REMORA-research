@@ -245,6 +245,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/execution/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Capability Projection
+         * @description The agent-facing tool list for one task (WS8 Q8.3).
+         *
+         *     Resolved from the deployment's capability policy for the AUTHENTICATED
+         *     principal and tenant, exactly as the execution routes resolve it, and
+         *     projected as an OpenAI tool list. Everything outside the set is absent.
+         *     The same set is enforced again on every call, so a client that ignores
+         *     this list gains nothing.
+         */
+        get: operations["capability_projection_v1_execution_capabilities_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/execution/dispatch-leased": {
         parameters: {
             query?: never;
@@ -1859,6 +1885,67 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+        };
+    };
+    capability_projection_v1_execution_capabilities_get: {
+        parameters: {
+            query?: {
+                task_type?: string;
+                target_environment?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The tools this principal may see for the task, projected for an agent. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Missing or invalid bearer token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Role lacks the required capability for this tenant. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description No capability policy is configured. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

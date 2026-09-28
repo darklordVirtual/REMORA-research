@@ -463,6 +463,12 @@ expired, or bound to another principal, tenant or environment.
 `REMORA_REQUIRE_CAPABILITY_SET=1` refuses any lease without a capability
 digest. The task type is declared by the caller. It is intersected with the
 principal's own tools, so it can never widen them.
+`GET /capabilities?task_type=...&target_environment=...` (Q8.3) returns the
+same set projected for an agent. It returns the set, an OpenAI tool list
+holding only the tools in the set, and the capability exposure ratio
+(exposed over registered tools). A tool outside the set is absent from the
+list, and it is still refused if a client calls it anyway. Without a
+capability policy the route answers 404.
 
 **Checks between authority and effect (WS7, all opt-in):** each setting
 below binds one check into the governed dispatcher. Every check runs after

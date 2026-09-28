@@ -2191,6 +2191,92 @@
         ]
       }
     },
+    "/v1/execution/capabilities": {
+      "get": {
+        "description": "The agent-facing tool list for one task (WS8 Q8.3).\n\nResolved from the deployment's capability policy for the AUTHENTICATED\nprincipal and tenant, exactly as the execution routes resolve it, and\nprojected as an OpenAI tool list. Everything outside the set is absent.\nThe same set is enforced again on every call, so a client that ignores\nthis list gains nothing.",
+        "operationId": "capability_projection_v1_execution_capabilities_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "task_type",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Task Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "target_environment",
+            "required": false,
+            "schema": {
+              "default": "prod",
+              "title": "Target Environment",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Capability Projection V1 Execution Capabilities Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The tools this principal may see for the task, projected for an agent."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Missing or invalid bearer token."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Role lacks the required capability for this tenant."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "No capability policy is configured."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Capability Projection",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
     "/v1/execution/dispatch-leased": {
       "post": {
         "description": "The execution domain's half of the custody split (ADR-A).\n\nThis process holds the PUBLIC lease verification key and the downstream\ncredentials. It cannot mint authority -- ``ExecutionLease.issue`` refuses\nwhen only verification material is present -- and it does not try to. It\nreceives a lease from the authority domain and either dispatches exactly\nwhat that lease binds, or refuses.\n\nThe verification is not a formality and not a signature check alone.\n``GovernedToolDispatcher.dispatch`` re-derives the argument hash, compares\nevery bound field against this concrete call, and consumes the nonce in\ndurable tenant-scoped state before the tool runs. An authority-signed lease\npresented for a different call is refused here.",

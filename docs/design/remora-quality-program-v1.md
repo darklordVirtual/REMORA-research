@@ -523,3 +523,11 @@ then re-resolve at dispatch and bind the fresh set into the lease. Building
 this found an ordering bug: the fresh set was resolved on a later clock than
 the dispatch was judged by, so it was refused as not yet valid. It now
 resolves on the dispatch clock.
+
+**2026-09-28, Q8.3.** `CapabilityProjector` turns a capability set into what
+an agent is shown: an OpenAI tool list, a filtered MCP `tools/list` result,
+or a filtered reference-runtime offered list. The projection reports the
+capability exposure ratio. `GET /v1/execution/capabilities` serves it for the
+authenticated principal. A property test pins that nothing outside the set
+is ever exposed. The projection narrows what is seen, and it never stands in
+for authorization: a hidden tool called directly is still refused (Q8.2).

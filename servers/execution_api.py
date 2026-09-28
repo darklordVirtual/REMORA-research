@@ -32,6 +32,7 @@ from __future__ import annotations
 
 from contextlib import AbstractContextManager
 from datetime import UTC, datetime, timedelta
+from types import SimpleNamespace
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -192,12 +193,15 @@ def _engine_from_env() -> RemoraDecisionEngine:
     """
     import os as _env
 
-    def _flag(name: str) -> bool:
-        return _env.environ.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
+    def _on(value: str) -> bool:
+        # Takes the value, not the name: each variable is read below by its
+        # literal name, so the credential topology scanner sees every read
+        # without a line-pinned exception that moves with every edit.
+        return value.strip().lower() in {"1", "true", "yes", "on"}
 
     return RemoraDecisionEngine(
-        low_consequence_accept=_flag("REMORA_LOW_CONSEQUENCE_ACCEPT"),
-        grounded_read_accept=_flag("REMORA_GROUNDED_READ_ACCEPT"),
+        low_consequence_accept=_on(_env.environ.get("REMORA_LOW_CONSEQUENCE_ACCEPT", "")),
+        grounded_read_accept=_on(_env.environ.get("REMORA_GROUNDED_READ_ACCEPT", "")),
         # Issue #35: the enforcing surface runs the execution profile — a
         # probabilistic signal (conformal/temperature/evidence/ordered-trust)
         # can STRUCTURALLY never produce ACCEPT here, independent of what a
@@ -1626,6 +1630,49 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
         raise HTTPException(status_code=409, detail=exc.reason) from exc
     api_mod.record_execution_approval()
     return response
+
+
+@router.get("/capabilities", responses={
+    200: {"description": "The tools this principal may see for the task, projected for an agent."},
+    **_AUTH_RESPONSES,
+    404: {"model": ErrorDetail, "description": "No capability policy is configured."},
+})
+def capability_projection(request: Request, task_type: str = "",
+                          target_environment: str = "prod") -> dict[str, Any]:
+    """The agent-facing tool list for one task (WS8 Q8.3).
+
+    Resolved from the deployment's capability policy for the AUTHENTICATED
+    principal and tenant, exactly as the execution routes resolve it, and
+    projected as an OpenAI tool list. Everything outside the set is absent.
+    The same set is enforced again on every call, so a client that ignores
+    this list gains nothing.
+    """
+    tenant, role, principal = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "assess")
+    call = SimpleNamespace(target_environment=target_environment, task_type=task_type or None)
+    capability_set = _resolve_capability(call, principal, tenant)
+    if capability_set is None:
+        raise HTTPException(status_code=404, detail="no capability policy is configured")
+    from remora.capabilities import CapabilityProjector
+
+    bundle = _toolspec_bundle()
+    specs: dict[str, dict[str, Any]] = {}
+    for name, entry in TOOL_REGISTRY.items():
+        schema: Any = None
+        if bundle is not None:
+            try:
+                schema = dict(bundle.get(name).argument_schema)
+            except Exception:  # noqa: BLE001 - no signed spec: no schema is invented
+                schema = None
+        specs[name] = {"description": f"{entry.get('action_type', '')} "
+                                      f"({entry.get('risk_tier', '')} risk)".strip(),
+                       "parameters": schema}
+    projector = CapabilityProjector(capability_set)
+    return {"capability_set": capability_set.to_dict(),
+            "projection": projector.project(specs).to_dict(),
+            "tools": projector.for_openai(specs)}
 
 
 @router.get("/loop-safety/{context_id}", responses={
