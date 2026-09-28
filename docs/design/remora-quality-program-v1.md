@@ -531,3 +531,15 @@ capability exposure ratio. `GET /v1/execution/capabilities` serves it for the
 authenticated principal. A property test pins that nothing outside the set
 is ever exposed. The projection narrows what is seen, and it never stands in
 for authorization: a hidden tool called directly is still refused (Q8.2).
+
+**2026-09-28, Q8.4.** A capability policy may constrain each allowed tool.
+`allowed_fields` limits argument keys. Conditions compare an argument or a
+trusted-state fact with a literal, or require an argument to equal a state
+fact. That covers the SDD's payment example: NOK only, at most 50 000, to the
+invoice's authorised recipient, for an approved invoice. State is read only
+through a reader the deployment supplies. An argument that asserts a state
+fact changes nothing (tested). A condition that needs unreadable state
+refuses. The constraints travel in the capability set and enter its digest
+only when present, so a relaxed constraint presented with the old digest is
+refused. Building this found a round-trip bug: the canonical form of a
+condition could not be parsed back. The set now stores the policy form.

@@ -702,6 +702,7 @@ class GovernedToolDispatcher:
         self._spec_identity: Callable[[str], tuple[str, int] | None] | None = None
         self._require_task = require_task_identity
         self._require_capability = require_capability_set
+        self._capability_state: Callable[[str, Any], Any] | None = None
         self._effect_resolver: "EffectResolver | None" = None
         self._revisions: "RevisionReader | None" = None
         self._recorder: "RecorderClient | None" = None
@@ -835,10 +836,14 @@ class GovernedToolDispatcher:
             obligations=list(refused))
         return "procedure_violation"
 
+    def bind_capability_state(self, reader: Callable[[str, Any], Any]) -> None:
+        """Supply the trusted-state reader capability constraints use (Q8.4)."""
+        self._capability_state = reader
+
     def _capability_refusal(self, lease: ExecutionLease, tool_name: str,
                             tenant_id: str, target_environment: str,
                             capability_set: EffectiveCapabilitySet | None,
-                            now: str | None) -> str | None:
+                            now: str | None, arguments: Any = None) -> str | None:
         """Q8.2. A lease that names a capability set runs only under that set.
 
         The set travels with the call and is checked against the signed
@@ -856,7 +861,8 @@ class GovernedToolDispatcher:
         moment = _parse_utc(now) if now is not None else datetime.now(UTC)
         refusal = capability_set.check(
             tool_name, principal_id=lease.actor_identity, tenant_id=tenant_id,
-            environment=target_environment, now=moment)
+            environment=target_environment, now=moment) or capability_set.check_arguments(
+            tool_name, arguments, self._capability_state)
         return refusal.value if refusal is not None else None
 
     def bind_surface_observer(self, observer: Callable[[], str], *,
@@ -1126,7 +1132,8 @@ class GovernedToolDispatcher:
         # turn an authorization failure into an unknown-state incident.
         runtime_refusal = (
             self._capability_refusal(lease, tool_name, tenant_id,
-                                     target_environment or "", capability_set, now)
+                                     target_environment or "", capability_set, now,
+                                     arguments)
             or self._runtime_refusal(lease)
             or self._effect_refusal(lease, tool_name, arguments, target_environment or "")
             or self._plan_refusal(lease, plan)

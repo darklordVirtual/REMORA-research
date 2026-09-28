@@ -469,6 +469,17 @@ holding only the tools in the set, and the capability exposure ratio
 (exposed over registered tools). A tool outside the set is absent from the
 list, and it is still refused if a client calls it anyway. Without a
 capability policy the route answers 404.
+A capability policy may carry `constraints` per tool (Q8.4). The
+`allowed_fields` key limits which argument keys a call may use. `conditions`
+compare an argument or a trusted-state fact with a literal (`eq`, `ne`, `in`,
+`not_in`, `lt`, `lte`, `gt`, `gte`), or require an argument to equal a state
+fact (`equals_state`). State is read only through the `read(source,
+arguments)` function of the module named by
+`REMORA_CAPABILITY_STATE_MODULE`. An out-of-scope argument is
+`capability_argument_mismatch`, and a violated state condition is
+`capability_scope_violation`. A condition that needs state no reader can
+supply is `capability_state_unverifiable`. The same checks run at `/assess`,
+at the execution pre-check and in the dispatcher.
 
 **Checks between authority and effect (WS7, all opt-in):** each setting
 below binds one check into the governed dispatcher. Every check runs after

@@ -930,6 +930,9 @@ def _bind_premise_checks(dispatcher: GovernedToolDispatcher) -> None:
     resolver = _effect_resolver()
     if resolver is not None:
         dispatcher.bind_effect_resolver(resolver)
+    state_reader = _capability_state_reader()
+    if state_reader is not None:
+        dispatcher.bind_capability_state(state_reader)
     revisions = _deployment_module(
         _os.environ.get("REMORA_STATE_REVISION_MODULE", ""))
     if revisions is not None:
@@ -994,6 +997,13 @@ def _resolve_capability(tool_call: Any, principal: str, tenant: str,
         now=now or _dt.datetime.now(_dt.UTC))
 
 
+def _capability_state_reader() -> Any:
+    """``read(source, arguments)`` from ``REMORA_CAPABILITY_STATE_MODULE`` (Q8.4),
+    or None. Capability constraints read trusted state only through it."""
+    module = _deployment_module(_os.environ.get("REMORA_CAPABILITY_STATE_MODULE", ""))
+    return module.read if module is not None else None
+
+
 def _capability_block(tool_call: Any, principal: str, tenant: str) -> dict[str, Any] | None:
     """What /assess records about the capability check (Q8.2)."""
     capability_set = _resolve_capability(tool_call, principal, tenant)
@@ -1002,7 +1012,8 @@ def _capability_block(tool_call: Any, principal: str, tenant: str) -> dict[str, 
     refusal = capability_set.check(
         tool_call.tool_name, principal_id=principal, tenant_id=tenant,
         environment=tool_call.target_environment or "",
-        now=_dt.datetime.now(_dt.UTC))
+        now=_dt.datetime.now(_dt.UTC)) or capability_set.check_arguments(
+        tool_call.tool_name, tool_call.arguments, _capability_state_reader())
     return {
         "capability_set_id": capability_set.capability_set_id,
         "capability_digest": capability_set.digest,
@@ -1900,7 +1911,9 @@ def _dispatch_under_lease(
         if capability_set is not None:
             refusal = capability_set.check(
                 tool_call.tool_name, principal_id=principal, tenant_id=tenant,
-                environment=tool_call.target_environment or "", now=now)
+                environment=tool_call.target_environment or "", now=now,
+            ) or capability_set.check_arguments(
+                tool_call.tool_name, tool_call.arguments, _capability_state_reader())
             if refusal is not None:
                 return {"executed": False, "refusal_reason": refusal.value,
                         "proposal_id": proposal_id}
