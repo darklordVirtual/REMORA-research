@@ -8,6 +8,7 @@ set is derived from trusted state for one principal, tenant, environment and
 task, and everything outside it is denied by default. Design:
 docs/design/capability-minimized-execution-v1.md.
 """
+from remora.capabilities.delegation import DelegationDenied, delegate
 from remora.capabilities.model import (
     CapabilityEpochs,
     CapabilityRefusal,
@@ -22,6 +23,8 @@ __all__ = [
     "CapabilityProjector",
     "CapabilityRefusal",
     "CapabilityResolver",
+    "DelegationDenied",
     "EffectiveCapabilitySet",
     "Projection",
+    "delegate",
 ]

@@ -543,3 +543,15 @@ refuses. The constraints travel in the capability set and enter its digest
 only when present, so a relaxed constraint presented with the old digest is
 refused. Building this found a round-trip bug: the canonical form of a
 condition could not be parsed back. The set now stores the policy form.
+
+**2026-09-28, Q8.5.** `remora/capabilities/delegation.py` derives a child
+capability set for a sub-tool from a parent set. It refuses tools outside
+the parent, a lifetime beyond the parent or above 300 seconds, a missing
+purpose, and a re-delegation of a non-transitive child. The child inherits
+the parent's constraints and can only add conditions or narrow fields. Its
+digest covers the parent's digest. The child is an ordinary capability set
+for the delegatee, so the lease and dispatcher checks apply to the nested
+call unchanged. A report tool in a read-only task cannot reach
+`email.send`, and a nested call outside the delegated tools or recipient
+scope refuses. A property test over two-link chains pins that every link is
+a subset, never outlives its parent, and keeps every parent condition.
