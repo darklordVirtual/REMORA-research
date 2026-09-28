@@ -530,7 +530,7 @@ entries:
     source:
       citation: "REMORA internal research question (2026-09-27): discussion-derived requirements, not an adopted external publication."
       sections:
-        - "docs/13-research-frontier-roadmap.md RF-12"
+        - "docs/13-research-frontier-roadmap.md RF-13"
         - "artifacts/runtime_surface/negative_cases_v1.json"
         - "artifacts/runtime_surface/reference_runtime_v1.json"
     concepts:

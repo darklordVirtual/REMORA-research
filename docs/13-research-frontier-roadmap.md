@@ -2,7 +2,7 @@
 
 **Status: research roadmap with dated implementation slices.** Individual
 resolution notes and the capability register determine what has shipped;
-proposal text is not a capability claim. RF-12 records the local runtime
+proposal text is not a capability claim. RF-13 records the local runtime
 implementation added on 2026-09-27. A claim may only enter `README.md` or
 `docs/EVIDENCE_OF_CAPABILITY.md` after its artifact exists, its tests pass and
 `make audit` verifies claim-to-artifact consistency. Caveats travel with results.
@@ -19,7 +19,7 @@ RF-11 was added on 2026-08-10 (master, SHELF-024 VERIFIED_RETRIEVED). The
 "Already in the repo" subsections record what the draft's gap statements had to
 be corrected against.
 
-**Namespace note.** WP identifiers are RF-01…RF-12 (research frontier). The
+**Namespace note.** WP identifiers are RF-01…RF-13 (research frontier). The
 `REM-` prefix is deliberately not used: it is the namespace of
 `docs/assurance/remediation_register.yaml` (REM-001…REM-046, machine-consumed
 by release-profile gating), and roadmap WPs are not remediation items. Where a
@@ -1434,7 +1434,11 @@ too: if a WP ships and misses its pre-committed target, the result goes to
 dated resolution note rather than a silent edit.
 
 
-## RF-12 — Runtime surface, authority paths and effect evidence `[reference implementation]`
+## RF-13 — Runtime surface, authority paths and effect evidence `[reference implementation]`
+
+**Numbering (2026-09-28).** This package landed in PR #580 as RF-12, an
+identifier the tenant-isolation package above already held. It is RF-13
+from this date; commit messages and PR titles before it say RF-12.
 
 **Resolution (2026-09-27).** The discussion-derived implementation package is
 wired in REMORA's own opt-in reference runtime. RES-013 in the research control
