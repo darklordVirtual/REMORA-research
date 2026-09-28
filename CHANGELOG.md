@@ -6,6 +6,16 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Added
 
+- Utility floors in the claim register. Every active safety claim now declares
+  its pre-registered utility bars (`utility_floors`: metric, min or max,
+  source, met or missed) or a reason none applies (`utility_floor_exempt`).
+  `scripts/check_claim_utility_floors.py` recomputes each status and runs in
+  the quality gates and `make audit`. Five floors are declared and four are
+  missed: AgentHarm benign false-block 100% against a 40% ceiling (CLAIM-002),
+  and BFCL C-ext3 read autonomy, obtainable VERIFY and unobtainable ABSTAIN
+  (CLAIM-019). The last two C-ext3 metrics are now bound to their artifact, so
+  the unbound-metric baseline falls from 17 to 15.
+
 - `remora.decision_providers`: the contract through which an external source
   of typed semantic judgment is admitted as evidence, and only as evidence.
   A provider answers narrow typed questions (choice, score, boolean) with

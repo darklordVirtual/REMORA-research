@@ -101,6 +101,8 @@ audit: meta-audit lint test render-claims  ## Full quality gate: lint + tests + 
 	$(PYTHON) scripts/check_claim_provenance.py
 	@echo "\n-- Claim metric bindings (every published number resolves to its artifact) --"
 	$(PYTHON) scripts/check_claim_metric_bindings.py
+	@echo "\n-- Claim utility floors (every active safety claim states its utility cost) --"
+	$(PYTHON) scripts/check_claim_utility_floors.py
 	@echo "\n-- Research shelf (source verification, adoption evidence) --"
 	$(PYTHON) scripts/check_research_shelf.py
 	@echo "\n-- Capability verification binding (verified_at_sha freshness) --"
