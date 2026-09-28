@@ -264,3 +264,13 @@ docs section that cites such a baseline from such a file without saying
 replay or seed. The rule is disclosure rather than refusal, because the
 committed citations are legitimate replay descriptions.
 
+**2026-09-28, Q6.1 and Q6.2.** `tests/test_mcp_tool_contracts.py` calls
+every MCP handler with the network mocked and all endpoints configured, and
+varies one parameter at a time. Each parameter must change the outgoing
+request or be described as not sent. A local handler must
+change its output instead. The first run found `remora_codegraph_scope`
+ignoring `query` and `limit` in its local fallback without saying so; the
+descriptions now say it. Model sizes named in descriptions must match the
+committed RAG worker configuration, and no description may name a model
+family or a model count.
+
