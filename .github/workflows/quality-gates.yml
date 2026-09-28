@@ -84,6 +84,11 @@ jobs:
       - name: Lint (ruff)
         run: ruff check .
 
+      - name: Security and bug lint for the core (REM-037)
+        # Bandit (S) and bugbear (B) rules over the trusted core. Reviewed
+        # exceptions live in pyproject.toml per-file-ignores, each with its reason.
+        run: ruff check remora/policy remora/enforcement remora/governance remora/execution servers --select B,S
+
       - name: Makefile parses (the documented reviewer entry point)
         # An external review found `make audit` dead since 2026-08-29: an
         # @echo string carried a literal newline, so every target failed with

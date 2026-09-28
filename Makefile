@@ -47,6 +47,7 @@ stress-toolcalls:  ## Run large tool-call stress replay
 
 lint:  ## Run ruff linter
 	$(RUFF) check .
+	$(RUFF) check remora/policy remora/enforcement remora/governance remora/execution servers --select B,S
 
 typecheck: lint test  ## Run lint + tests
 
