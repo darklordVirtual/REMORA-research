@@ -216,8 +216,8 @@ class ExecutionLease:
         grant_jti: str = "",
         runtime_identity_hash: str = "",
         task_identity: "TaskIdentity | None" = None,
-        resolved_effect: "ResolvedEffect | None" = None,
-        plan: "PlanBinding | None" = None,
+        resolved_effect: ResolvedEffect | None = None,
+        plan: PlanBinding | None = None,
     ) -> ExecutionLease:
         """Issue a lease for an ACCEPTED decision; refuse everything else.
 
@@ -809,7 +809,7 @@ class GovernedToolDispatcher:
         self._revisions = reader
 
     def _plan_refusal(self, lease: ExecutionLease,
-                      plan: "PlanBinding | None") -> str | None:
+                      plan: PlanBinding | None) -> str | None:
         from remora.governance.plan_binding import revalidate
 
         if not lease.plan_binding_hash:
@@ -925,7 +925,7 @@ class GovernedToolDispatcher:
         now: str | None = None,
         actor_identity: str | None = None,
         task_identity: "TaskIdentity | None" = None,
-        plan: "PlanBinding | None" = None,
+        plan: PlanBinding | None = None,
     ) -> DispatchResult:
         """Execute ``tool_name`` iff the lease covers this exact call.
 

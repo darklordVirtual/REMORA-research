@@ -144,7 +144,6 @@ class TestTheDispatcherResolvesAgain:
 
     def test_an_unbound_lease_refuses_under_a_strict_profile(self, monkeypatch):
         import remora.enforcement.custody as custody
-        import remora.enforcement.lease as lease_module
 
         calls: list = []
         dispatcher = GovernedToolDispatcher(BUNDLE)
@@ -153,7 +152,7 @@ class TestTheDispatcherResolvesAgain:
         lease = _lease(None)
         # Strict from here on; the runtime binding is ADR-D's subject, not this one.
         monkeypatch.setattr(custody, "custody_is_enforced", lambda: True)
-        monkeypatch.setattr(lease_module.GovernedToolDispatcher, "_runtime_refusal",
+        monkeypatch.setattr(GovernedToolDispatcher, "_runtime_refusal",
                             staticmethod(lambda lease: None))
         result = dispatcher.dispatch(lease, "close_wo", ARGS, tenant_id="acme",
                                      target_environment="prod", actor_identity="agent-1")

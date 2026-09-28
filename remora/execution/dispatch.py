@@ -51,8 +51,8 @@ def dispatch_under_lease(
     grant_jti: str = "",
     presented_lease: ExecutionLease | None = None,
     task_identity: "TaskIdentity | None" = None,
-    resolved_effect: "ResolvedEffect | None" = None,
-    plan: "PlanBinding | None" = None,
+    resolved_effect: ResolvedEffect | None = None,
+    plan: PlanBinding | None = None,
 ) -> dict[str, Any]:
     """Dispatch one authorized call through the governed dispatcher.
 
@@ -256,8 +256,8 @@ def issue_execution_lease(
     proposal_id: str = "",
     grant_jti: str = "",
     task_identity: "TaskIdentity | None" = None,
-    resolved_effect: "ResolvedEffect | None" = None,
-    plan: "PlanBinding | None" = None,
+    resolved_effect: ResolvedEffect | None = None,
+    plan: PlanBinding | None = None,
 ) -> ExecutionLease:
     """Mint a lease. The authority domain's half of the custody split.
 
@@ -288,8 +288,8 @@ def _issue_local_lease(
     proposal_id: str,
     grant_jti: str,
     task_identity: "TaskIdentity | None" = None,
-    resolved_effect: "ResolvedEffect | None" = None,
-    plan: "PlanBinding | None" = None,
+    resolved_effect: ResolvedEffect | None = None,
+    plan: PlanBinding | None = None,
 ) -> ExecutionLease:
     return ExecutionLease.issue(
             decision="accept",

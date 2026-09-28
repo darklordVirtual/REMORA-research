@@ -88,7 +88,6 @@ class EffectResolver(Protocol):
     def resolve(self, tool_name: str, arguments: Any,
                 target_environment: str) -> ResolvedEffect:
         """Resolve a call. Raises ``UnresolvedReference`` for an unknown one."""
-        ...
 
 
 class ClosedWorldResolver:

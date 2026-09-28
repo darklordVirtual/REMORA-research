@@ -241,7 +241,8 @@ class TestTheProtocolInProcess:
             with sock.makefile("rb") as reader:
                 response = reader.readline()
         assert b'"ok": false' in response
-        assert client.append("s", {"still": "alive"}).seq == 0
+        receipt = client.append("s", {"still": "alive"})
+        assert receipt.seq == 0
 
     def test_an_oversized_request_is_refused(self, server):
         client, _ = server
