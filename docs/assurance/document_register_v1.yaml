@@ -2520,6 +2520,17 @@ documents:
   audience:
   - maintainers
   - evaluators
+- id: DOC-344
+  path: docs/design/capability-minimized-execution-v1.md
+  status: proposal
+  topic: docs_design_capability-minimized-execution-v1_md
+  code_synced: verified
+  verdict: pending
+  last_reviewed: '2026-09-28'
+  audience:
+  - maintainers
+  - evaluators
+  - integrators
 topics:
 - docs_integrations_jev_decision_provider_md
 - docs_integrations_mcp-gateway_md
@@ -2796,3 +2807,4 @@ topics:
 - docs_assurance_results_manifest_v1_yaml
 - docs_assurance_ledger_binding_baseline_json
 - docs_assurance_far_claim_size_baseline_json
+- docs_design_capability-minimized-execution-v1_md
