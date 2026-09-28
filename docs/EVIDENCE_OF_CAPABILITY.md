@@ -7,41 +7,52 @@ enterprise safety still requires external validation.
 
 ## What REMORA Proves
 
-REMORA proves that the repository contains a working, test-backed architecture
-for AI assurance:
+REMORA proves that the repository contains a working, test-backed execution
+assurance kernel for tool-using agents:
 
-- multi-oracle agreement can be measured and used for selective acceptance,
-- low-trust cases can be routed to `VERIFY`, `ABSTAIN`, or `ESCALATE`,
-- proposed tool calls can be evaluated in deterministic dry-run simulators,
-- agent tool calls can be intercepted before execution by a local hook,
-- claims can be tied to committed artifacts, tests, and explicit limitations.
+- a proposed tool call gets one of four decisions (`ACCEPT`, `VERIFY`,
+  `ABSTAIN`, `ESCALATE`) from a policy engine whose deterministic hard guards
+  outrank model-derived signals,
+- tool meaning, target and risk come from deployment-owned sources such as a
+  Signed ToolSpec, never from the calling agent,
+- an `ACCEPT` becomes a short-lived, single-use grant bound to the exact
+  proposal and consumed once at the policy-enforcement point,
+- dispatch runs under an `ExecutionLease` through `GovernedToolDispatcher`,
+  with a durable intent recorded before the side effect,
+- authorized, dispatched, executed and verified effect are separate recorded
+  states, so a transport success is never counted as a completed effect,
+- claims are tied to committed artifacts, tests and explicit limitations, and
+  CI checks that binding.
 
 The strongest current claim is not "REMORA is production safe." The stronger
 and more defensible claim is:
 
-> REMORA is a reproducible AI assurance prototype that turns uncertainty,
-> disagreement, evidence, policy, and action risk into auditable routing
-> decisions before AI output is trusted or executed.
+> REMORA is a reproducible governed-execution prototype that turns policy,
+> authoritative tool context and action risk into auditable, single-use
+> execution decisions before an agent's tool call takes effect.
 
 ## What Is Implemented
 
-Core implementation areas:
+The execution kernel is listed module by module in
+[DEVELOPER_OVERVIEW.md](../DEVELOPER_OVERVIEW.md#core-modules); the main areas:
 
-- `remora/cascade/`: six-stage adaptive routing from fast acceptance to
-  consensus, verification, critique-revision, self-consistency, and optional
-  Mixture-of-Agents synthesis.
-- `remora/policy/`: `ACCEPT`, `VERIFY`, `ABSTAIN`, and `ESCALATE` decision
-  engine with structured reports.
-- `remora/toolcall/`: deterministic tool-call benchmark schemas, simulators,
-  baselines, scoring, and REMORA gates.
-- `remora/agent_hook/`: local PreToolUse-style safety hook for classifying
-  proposed tool calls, checking drift, and fail-closing risky operations.
-- `remora/governance/`: memory layers, context flow, drift monitoring,
-  governance-forgetting metrics, and policy proposal primitives.
-- `remora/research_attic/theory/`: MaxEnt, joint-convergence, and scaling-analysis modules
-  used to document current theoretical assumptions and numerical checks.
-- `enterprise/`: policy-as-code examples, audit schema, threat model,
-  deployment runbooks, observability model, and production-readiness plan.
+- `remora/policy/`: the decision engine and its hard-guard floor.
+- `remora/toolcall/`: deployment tool authority, Signed ToolSpec, and the
+  deterministic tool-call benchmark schemas, simulators and baselines.
+- `remora/enforcement/`: PDP-to-PEP grants, the one-time-grant gate, execution
+  leases and the dispatch outbox.
+- `remora/execution/` and `servers/execution_api.py`: the `POST /v1/execution/*`
+  surface that joins review, re-gating, dispatch and audit.
+- `remora/governance/`: review queue, lifecycle, tenant audit chain and effect
+  verification.
+- `remora/agent_hook/`: local PreToolUse-style hook for classifying proposed
+  tool calls and fail-closing risky operations.
+
+Outside the kernel, the `/v1/assess` research surface (`remora/cascade/`,
+oracles, evidence and uncertainty modules) is optional and cannot override the
+hard-guard floor. `remora/research_attic/theory/` keeps the earlier MaxEnt,
+joint-convergence and scaling-analysis work as history, and `docs/enterprise/`
+holds deployment and rollout material.
 
 ## What Is Tested
 
@@ -71,6 +82,8 @@ Recent review-hardening tests also cover:
 
 Representative tested artifacts include:
 
+- `results/routing_bench_bfcl_v4_cext3_results.json` (BFCL v4 C-ext3, sealed once; utility targets missed, see NEGATIVE_RESULTS §39)
+- `results/external_benchmark_agentharm_v1.json` (AgentHarm; every benign twin was blocked too)
 - `results/end_to_end_n500_v3_policy_v5.json` (current policy; the SAP v2 round record `results/end_to_end_n500_v3.json` is frozen)
 - `results/conformal_guardrail_holdout.json`
 - `results/toolcall_benchmark_v2_results.json`
@@ -88,6 +101,8 @@ REMORA does not currently claim:
 - universal hallucination prevention,
 - semantic entailment quality from the default lexical evidence verifier,
 - real tool-call execution safety from simulator-only benchmarks,
+- that the gate tells harmful from benign requests on AgentHarm: it blocked
+  all 208 benign twins as well as the 208 harmful scenarios,
 - external replication on public agent benchmarks.
 
 Tool-call v2 is best described as a **controlled deterministic safety simulation**:
@@ -105,7 +120,7 @@ python experiments/evaluate_toolcall_benchmark_v2.py
 python experiments/toolcall_v2_significance.py
 ```
 
-For external review, use a clean checkout of `main`, run the commands above,
+For external review, use a clean checkout of `master`, run the commands above,
 and compare regenerated artifacts against the committed `results/` and
 `artifacts/` files.
 

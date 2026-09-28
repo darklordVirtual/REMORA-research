@@ -64,3 +64,43 @@ def test_the_repository_manifest_passes():
     errors, counts = gate.check(ROOT)
     assert errors == []
     assert sum(counts.values()) == len(gate._tracked_results(ROOT))
+
+
+def _sidecar_tree(tmp_path: Path, sidecar: dict) -> Path:
+    import json
+
+    entries = [REGEN, {"path": "results/a.provenance.json", "class": "sidecar",
+                       "of": "results/a.json"}]
+    root = _tree(tmp_path, ["results/a.json", "results/a.provenance.json"], entries)
+    (root / "results/a.json").write_bytes(b'{\n  "n": 1\n}\n')
+    (root / "results/a.provenance.json").write_text(json.dumps(sidecar), encoding="utf-8")
+    return root
+
+
+def _lf_sha(data: bytes) -> str:
+    import hashlib
+
+    return hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
+
+
+def test_sidecar_hash_matching_the_result_passes(tmp_path):
+    root = _sidecar_tree(tmp_path, {"artifact_sha256": _lf_sha(b'{\n  "n": 1\n}\n')})
+    errors, _ = gate.check(root)
+    assert errors == []
+
+
+def test_sidecar_hash_taken_over_crlf_bytes_fails(tmp_path):
+    """The 2026-07 defect: a hash over CRLF bytes never matches the LF file."""
+    import hashlib
+
+    crlf = hashlib.sha256(b'{\r\n  "n": 1\r\n}\r\n').hexdigest()
+    errors, _ = gate.check(_sidecar_tree(tmp_path, {"artifact_sha256": crlf}))
+    assert errors == [
+        "results/a.provenance.json: artifact_sha256 does not match results/a.json"
+    ]
+
+
+def test_sidecar_without_a_hash_is_not_checked(tmp_path):
+    """Older sidecar schemas carry no artifact hash; absence is not a mismatch."""
+    errors, _ = gate.check(_sidecar_tree(tmp_path, {"schema": "old"}))
+    assert errors == []

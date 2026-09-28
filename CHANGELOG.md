@@ -146,6 +146,25 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Fixed
 
+- The synchronous `/v1/execution/execute` path now claims the dispatch intent
+  before it mints and consumes the grant and before it appends
+  `execution_authorized`, the order issue #417 set for the async worker. A
+  request that loses the claim consumes no grant and leaves no authorization
+  event for a dispatch it never performs.
+- `scripts/check_results_manifest.py` compares each sidecar's
+  `artifact_sha256` with the LF hash of its result. Eleven sidecars carried a
+  hash over CRLF bytes; they are corrected, and each keeps the old value under
+  `artifact_sha256_correction`. No result file changed.
+- CLAIM-006 no longer cites `artifacts/aromer/intelligence_after_v020.json`,
+  a 2026-06-09 snapshot that predates the TRAINED run and reads AII=0.5165.
+  The statement now matches the NEGATIVE_RESULTS.md §11 table (0.8412 at cycle
+  8, peak 0.844 at cycle 12, regression to CAPABLE the same day) and says the
+  values are live telemetry no gate can bind.
+- README and the executive one-pager pair the AgentHarm 0/208 false-accept
+  result with its 100% false-block rate on the benign twins.
+  `docs/EVIDENCE_OF_CAPABILITY.md` describes the execution kernel instead of
+  the earlier cascade framing.
+
 - The REM-047 transactional audit outbox is wired to production writes. It
   was implemented and had no caller outside its own test, so every
   state-transition audit event was appended after the transaction recording

@@ -292,14 +292,14 @@ claims:
   - id: CLAIM-006
     title: "AROMER reached AII=0.8412 TRAINED status (shadow-mode only)"
     statement: >
-      AROMER's Autonomous Intelligence Index (AII) reached 0.8412 in the TRAINED
-      band (>=0.80) after 12+ consecutive organic adapt cycles with FAR=0 throughout.
-      Peak: AII=0.844, T2=1.000, T3=0.800 (milestone) at cycle 12.
+      AROMER's Autonomous Intelligence Index (AII) was in the TRAINED band (>=0.80)
+      for 12 consecutive organic adapt cycles on 2026-06-28, with FAR=0 throughout.
+      It read 0.8412 at cycle 8 and peaked at AII=0.844, T2=1.000, T3=0.800
+      (milestone) at cycle 12, then regressed to CAPABLE (AII=0.7885) the same day.
     evidence_level: internal_simulation
     status: active
     artifact:
       - "NEGATIVE_RESULTS.md"
-      - "artifacts/aromer/intelligence_after_v020.json"
     n: null
     n_detail: "15306+ episodes in AROMER D1 as of 2026-06-28"
     caveat: >
@@ -312,11 +312,16 @@ claims:
       review) and REM-023, per release_profiles_v1.yaml CONTROLLED_PILOT. Do not cite AII as
       a safety proof. AROMER is NOT the core governance system; AII metrics do not
       imply safety for the REMORA decision engine.
+      The AII values are live D1 telemetry transcribed into the NEGATIVE_RESULTS.md
+      §11 table; no committed machine-readable artifact carries them, so no gate
+      can bind them. The committed snapshot artifacts/aromer/intelligence_after_v020.json
+      (2026-06-09) predates this run and reads AII=0.5165 (history peak 0.6497,
+      trend degraded_from_peak); it was listed as evidence until 2026-09-28 and
+      does not support this claim.
     reproduce: >
-      Live AROMER endpoint: GET /intelligence (requires AROMER worker access).
-      Historical snapshots: artifacts/aromer/intelligence_before_v020.json,
-      artifacts/aromer/intelligence_after_v020.json.
-      NEGATIVE_RESULTS.md §11-§13 documents the full recovery trajectory.
+      Not reproducible from this repository. Live AROMER endpoint: GET /intelligence
+      (requires AROMER worker access). NEGATIVE_RESULTS.md §11-§13 documents the
+      full recovery trajectory and the regression that followed.
 
   - id: CLAIM-007
     title: "Five-condition component ablation: REMORA full gate dominates"
