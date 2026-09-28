@@ -94,10 +94,9 @@ results:
   generator: python experiments/empirical_susceptibility.py
   verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/end_to_end_n500_v2.json
-  class: unverified
+  class: regenerable
   generator: python experiments/end_to_end_n500_v2.py
-  reason: oracle-backed; an offline rerun gives different numbers, and whether that run replayed the cache
-    or fell back is not yet established
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/end_to_end_n500_v3.json
   class: frozen
   reason: SAP v2 cross-family round record (2026-07-27, 576ad9f, RemoraDecisionEngine-v3); pre-registered
@@ -111,9 +110,9 @@ results:
   generator: python experiments/end_to_end_n500_v3.py
   verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/evidence_v2_n500.json
-  class: unverified
-  generator: python experiments/evidence_v2_n500.py
-  reason: needs --input; no documented invocation
+  class: regenerable
+  generator: python experiments/evidence_v2_n500.py --input results/thermodynamic_router_eval_n500_evidence_results.json
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/external_benchmark_agentharm_v1.json
   class: frozen
   reason: live AgentHarm run against the AROMER worker (P0 safety artifact, REM-014); no generator for
@@ -240,10 +239,9 @@ results:
   class: frozen
   reason: no generator in the tracked code; the file cannot be regenerated
 - path: results/phase_transition_study_results.json
-  class: unverified
+  class: live
   generator: python experiments/phase_transition_study.py
-  reason: oracle-backed; an offline rerun gives different numbers, and whether that run replayed the cache
-    or fell back is not yet established
+  needs: Groq oracles through .remora_cache.json, which is not committed
 - path: results/rag_adversarial_results.json
   class: live
   generator: python scripts/build_rag_adversarial.py
@@ -282,16 +280,16 @@ results:
     never committed (see the artifact caveats and local_only_sources_included); a clean checkout sees
     1016 of the 1044 episodes, so it cannot reproduce this file. Deterministic, not drift.
 - path: results/sap_v3_collection.json
-  class: unverified
-  generator: python experiments/sap_v3_round.py
-  reason: needs collect|analyze and live collection
+  class: live
+  generator: python experiments/sap_v3_round.py collect
+  needs: live oracle collection for the SAP v3 round
 - path: results/sap_v3_collection.provenance.json
   class: sidecar
   of: results/sap_v3_collection.json
 - path: results/sap_v3_round_results.json
-  class: unverified
-  generator: python experiments/sap_v3_round.py
-  reason: needs collect|analyze and live collection
+  class: live
+  generator: python experiments/sap_v3_round.py analyze
+  needs: the live SAP v3 collection
 - path: results/sap_v3_round_results.provenance.json
   class: sidecar
   of: results/sap_v3_round_results.json
@@ -302,9 +300,9 @@ results:
   class: sidecar
   of: results/se_backend_parity_smoke.json
 - path: results/selection_signal_shootout_2026_07.json
-  class: unverified
+  class: live
   generator: python experiments/selection_signal_shootout_2026_07.py
-  reason: 'refuses: 544 items missing from the oracle cache'
+  needs: the oracle response cache of the 2026-07 round, which is not committed (544 items missing offline)
 - path: results/selection_signal_shootout_2026_07.provenance.json
   class: sidecar
   of: results/selection_signal_shootout_2026_07.json
@@ -386,9 +384,9 @@ results:
   class: live
   generator: python scripts/run_system_demonstration.py
 - path: results/thermodynamic_calibration_n500.json
-  class: unverified
-  generator: python experiments/calibrate_thermodynamics.py
-  reason: needs --phase-study; no documented invocation
+  class: regenerable
+  generator: python experiments/calibrate_thermodynamics.py --phase-study results/phase_transition_study_n500_results.json
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/thermodynamic_eval_n500_calibrated_results.json
   class: unverified
   generator: python experiments/thermodynamic_eval.py
@@ -425,10 +423,9 @@ results:
   generator: python experiments/thermodynamic_router_eval.py
   reason: live oracle run; the exact invocation that produced this file is not recorded in the repository
 - path: results/thermodynamic_router_eval_results.json
-  class: unverified
+  class: live
   generator: python experiments/thermodynamic_router_eval.py
-  reason: oracle-backed; an offline rerun gives different numbers, and whether that run replayed the cache
-    or fell back is not yet established
+  needs: an oracle swarm and the Cloudflare RAG worker
 - path: results/toolcall_ablation_results.json
   class: regenerable
   generator: python experiments/toolcall_ablation.py
