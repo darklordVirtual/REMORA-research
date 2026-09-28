@@ -392,9 +392,10 @@ results:
   generator: python experiments/calibrate_thermodynamics.py --phase-study results/phase_transition_study_n500_results.json
   verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/thermodynamic_eval_n500_calibrated_results.json
-  class: unverified
-  generator: python experiments/thermodynamic_eval.py
-  reason: live oracle run; the exact invocation that produced this file is not recorded in the repository
+  class: live
+  generator: python experiments/thermodynamic_eval.py --benchmark-module remora.benchmarks.extended_v2_n500
+    --results results/ablation_v2_n500_results.json --calibration results/thermodynamic_calibration_n500.json
+  needs: Groq oracles through .remora_cache.json (recorded in the artifact meta), which is not committed
 - path: results/thermodynamic_eval_n500_uncalibrated_results.json
   class: live
   generator: python experiments/thermodynamic_eval.py --benchmark-module remora.benchmarks.extended_v2_n500
@@ -415,17 +416,20 @@ results:
   class: frozen
   reason: no generator in the tracked code; the file cannot be regenerated
 - path: results/thermodynamic_router_eval_n500_calibrated_results.json
-  class: unverified
+  class: live
   generator: python experiments/thermodynamic_router_eval.py
-  reason: live oracle run; the exact invocation that produced this file is not recorded in the repository
+  needs: backend auto, thermo_calibration results/thermodynamic_calibration_n500.json (recorded in the
+    artifact summary); live oracles
 - path: results/thermodynamic_router_eval_n500_evidence_results.json
-  class: unverified
+  class: live
   generator: python experiments/thermodynamic_router_eval.py
-  reason: live oracle run; the exact invocation that produced this file is not recorded in the repository
+  needs: backend groq, lambda 0.4, thermo_calibration results/thermodynamic_calibration_n500.json (recorded
+    in the artifact summary); live oracles
 - path: results/thermodynamic_router_eval_n500_final_results.json
-  class: unverified
+  class: live
   generator: python experiments/thermodynamic_router_eval.py
-  reason: live oracle run; the exact invocation that produced this file is not recorded in the repository
+  needs: backend groq, lambda 0.4, thermo_calibration results/thermodynamic_calibration_n500.json (recorded
+    in the artifact summary); live oracles
 - path: results/thermodynamic_router_eval_results.json
   class: live
   generator: python experiments/thermodynamic_router_eval.py
