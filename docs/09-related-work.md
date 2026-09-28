@@ -482,6 +482,16 @@ supplies the current task, and a dispatcher built with
 supplies a task yet, so at this revision the binding is a library property
 that no deployment enforces.
 
+`remora/governance/loop_safety.py` keeps the state Wu et al. show must not
+decay. It is keyed on `(tenant_id, context_id)`, so a new task inside the
+same context sees what earlier iterations accumulated: denials, authority
+probes, a switch to another tool straight after a denial, and irreversible
+effects. The store is append-only, and only a reset that names a policy
+decision starts the count again. An unreadable store raises rather than
+reporting an empty history. Like the lease binding, it is a library control
+at this revision: no decision path records into it yet, and its limits are
+defaults that no study has calibrated.
+
 This is binding, not proof-of-possession. It ties an authorization to a task
 and does not prove the presenter holds a key. Nothing here should be read as
 closing the AGNTCY profile's PoP requirement, and REMORA claims no PoP at

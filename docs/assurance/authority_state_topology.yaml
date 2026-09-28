@@ -58,7 +58,7 @@
 # the durable store closes.
 
 schema_version: "1"
-updated: "2026-09-27"
+updated: "2026-09-28"
 
 state:
   - id: AST-001
@@ -184,6 +184,18 @@ state:
       surface, continuity and effect record; record_effect then refuses with
       execution_not_found. audit_entries() exports detached evidence, but the
       runtime claims no durable retention (RES-013 scope boundary).
+
+  - id: AST-012
+    symbol: "remora/governance/loop_safety.py::InMemoryLoopSafetyStore"
+    gates: "Nothing on its own. The in-process control for DurableLoopSafetyStore, which keeps a context's accumulated denials, authority probes, tool switches after a denial and irreversible effects (Q7.2)."
+    on_loss: reauthorizes
+    durable_adapter: "remora/governance/loop_safety.py::DurableLoopSafetyStore"
+    reference_implementation: true
+    note: >-
+      Classed reauthorizes because losing the history lets a context that
+      had reached an escalation limit continue as if it had not. No decision
+      path records into or reads the store yet, so there is no wiring point
+      to declare; when one is added it needs an ASW entry here.
 
 # THE SWITCHES
 #

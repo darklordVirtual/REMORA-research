@@ -148,6 +148,7 @@ ignore = [
 "remora/enforcement/nonce_store.py" = ["S608"]
 "remora/enforcement/outbox.py" = ["S608"]
 "remora/governance/audit_outbox.py" = ["S608"]
+"remora/governance/loop_safety.py" = ["S608"]
 "remora/governance/revocation_store.py" = ["S608"]
 # S310: the URL is scheme-checked before it is opened (http or https only).
 "remora/execution/remote_dispatch.py" = ["S310", "S105", "S110"]  # S105: an env var name, not a secret; S110: optional OpenTelemetry import

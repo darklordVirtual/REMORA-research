@@ -353,3 +353,15 @@ predictions were met; the two misses are recorded in `NEGATIVE_RESULTS.md`
 corrupt read. Failing open let 0.078 through. A stale or partial index cost
 valid-read acceptance instead (0.850 and 0.667). No write was auto-accepted
 in any gated arm. The result is regenerable and checked in CI.
+
+**2026-09-28, Q7.2.** `ExecutionLease` and the A2A envelope carry the task
+identity `PolicyDecisionToken` already bound, signed only when set. An
+unbound lease or envelope therefore signs its pre-change bytes. Checked
+against another task, both refuse as `task_mismatch`, and one never bound
+refuses as `task_unbound`. `remora/governance/loop_safety.py` keeps denials,
+authority probes, tool switches after a denial and irreversible effects per
+`(tenant_id, context_id)` across task iterations. Only a reset naming a
+policy decision starts the count again. Both are library controls: no server
+path supplies a task identity or records loop state yet, and the loop limits
+are uncalibrated defaults. The declared-operation check from the same design
+is not done.

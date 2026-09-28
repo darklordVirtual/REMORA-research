@@ -7,8 +7,10 @@ principal revocation) shipped separately as PR #502.
 Implementation status, 2026-09-28: the task fields in `AuthorizationContext`
 shipped first. `ExecutionLease` and `A2AGovernanceEnvelope` followed as
 quality program Q7.2, as library checks that no server path supplies a task
-to yet. The declared operation (section 2 of the scope) and the loop-safety
-store (section 3) are not implemented. The table below records the state
+to yet. The loop-safety store (section 3) is
+`remora/governance/loop_safety.py`, also a library control that no decision
+path uses yet. The declared operation (section 2 of the scope) is not
+implemented. The table below records the state
 before any of this work.
 
 ## The gap, stated exactly
