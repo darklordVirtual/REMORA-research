@@ -827,8 +827,9 @@ report. Running `experiments/toolcall_ablation_v2.py` produces
 
 *Limitations.* Deterministic simulator benchmark with synthetic
 `PolicyObservation` features and no live oracle calls. Rows are clustered by
-template; the artifact records `effective_n = 7` clusters per condition, so
-row-level counts overstate independence.
+template; the artifact records `effective_n = 56` harmful template clusters
+per condition (70 templates in all), so row-level counts overstate
+independence.
 
 **Reading the table.** The false-accept column is constant. Every condition,
 including the one with the hard blocks removed, records FAR = 0.000. An

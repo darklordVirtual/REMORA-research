@@ -305,9 +305,14 @@ results:
   class: sidecar
   of: results/sap_v3_collection.json
 - path: results/sap_v3_round_results.json
-  class: live
+  class: regenerable
   generator: python experiments/sap_v3_round.py analyze
-  needs: the live SAP v3 collection
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
+  note: >-
+    The analysis replays the committed live collection (results/sap_v3_collection.json)
+    offline. Re-analysed 2026-09-28: the file predated the issue #85 fix, so four
+    uncertified sgr risk_bound fields still held the old sentinel (0.99, 0.996667)
+    instead of the best rejected bound. Certified flags and coverages did not change.
 - path: results/sap_v3_round_results.provenance.json
   class: sidecar
   of: results/sap_v3_round_results.json
@@ -399,8 +404,11 @@ results:
   volatile:
   - .meta.source
 - path: results/system_demonstration_v1.json
-  class: live
+  class: regenerable
   generator: python scripts/run_system_demonstration.py
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
+  volatile:
+  - run_at_commit
 - path: results/thermodynamic_calibration_n500.json
   class: regenerable
   generator: python experiments/calibrate_thermodynamics.py --phase-study results/phase_transition_study_n500_results.json
