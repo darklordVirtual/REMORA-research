@@ -1,7 +1,7 @@
 # Experiment manifest — spec: docs/assurance/experiment_manifest_spec_v1.md
 experiment_id: EXP-GATE-CORRECTNESS-01
 title: Gate-correctness study v1 (quality program WS7 item 1)
-status: preregistered
+status: completed
 hypothesis: >
   REMORA's own gate is bounded by the correctness of its validator: injected
   validator faults (stale snapshot, lenient prefix matcher, fail-open lookups,
@@ -21,6 +21,9 @@ datasets:
 result_artifacts:
   - results/gate_correctness_study_v1.json
 promotion_target: none
+notes: >
+  Ran once after pre-registration. Five of seven predictions met; P5 and P6
+  missed and are recorded in NEGATIVE_RESULTS.md §60 with the measured values.
 known_limitations:
   - Openly non-blind; the fleetops blind budget was spent in §31.
   - The retired-identifier path of a stale snapshot is not sampled.
