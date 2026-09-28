@@ -1161,6 +1161,26 @@
       "utility_delta_vs_best_baseline": 0.0
     }
   },
+  "decision_sources": {
+    "single_model_gpt": {
+      "source": "replay_seed",
+      "counts": {
+        "replay_seed": 700
+      }
+    },
+    "single_model_claude": {
+      "source": "replay_seed",
+      "counts": {
+        "replay_seed": 700
+      }
+    },
+    "single_model_gemini": {
+      "source": "replay_seed",
+      "counts": {
+        "replay_seed": 700
+      }
+    }
+  },
   "limitations": [
     "Sandbox execution is local and deterministic; no production tools are touched.",
     "When mode=replay, single-model decisions come from deterministic cached entries.",

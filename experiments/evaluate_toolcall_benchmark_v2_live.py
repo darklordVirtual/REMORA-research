@@ -205,7 +205,7 @@ def _decide_single_model(
             return _decision_from_cache(cached)
         decision = live_fn(task)
         _cache_put(cache, key, task.task_id, decision, source="live")
-        return decision
+        return _decision_from_cache(_cache_get(cache, key, task.task_id))
 
     cached = _cache_get(cache, baseline_name, task.task_id)
     if cached is not None:
@@ -213,7 +213,29 @@ def _decide_single_model(
 
     decision = _heuristic_seed_decision(task, variant=seed_variant)
     _cache_put(cache, baseline_name, task.task_id, decision, source="replay_seed")
-    return decision
+    return _decision_from_cache(_cache_get(cache, baseline_name, task.task_id))
+
+
+SINGLE_MODEL_BASELINES = ("single_model_gpt", "single_model_claude", "single_model_gemini")
+
+
+def decision_sources(decisions_by_name: dict[str, list[ToolCallDecision]]) -> dict[str, dict[str, Any]]:
+    """Where each single-model baseline's decisions came from (quality program Q1.4).
+
+    ``replay_seed`` means a heuristic stand-in, not a model answer; a claim
+    about model behaviour must not rest on it. ``live:<model>`` means every
+    decision is a cached or fresh answer from that model. Anything else is
+    ``mixed`` and reports the counts.
+    """
+    out: dict[str, dict[str, Any]] = {}
+    for name in SINGLE_MODEL_BASELINES:
+        labels = Counter(
+            "replay_seed" if d.raw.get("source") == "replay_seed" else f"live:{d.raw.get('model', 'unknown')}"
+            for d in decisions_by_name.get(name, [])
+        )
+        label = next(iter(labels)) if len(labels) == 1 else "mixed"
+        out[name] = {"source": label, "counts": dict(sorted(labels.items()))}
+    return out
 
 
 def build_decision_table(
@@ -345,6 +367,7 @@ def run(mode: str = "replay", cache_path: Path = CACHE_PATH) -> dict[str, Any]:
         "cache_path": cache_label,
         "n_tasks": len(tasks),
         "baselines": baselines,
+        "decision_sources": decision_sources(decisions_by_name),
         "limitations": [
             "When mode=replay, single-model baselines come from deterministic replay cache entries.",
             "Live mode requires configured provider SDKs and API keys.",

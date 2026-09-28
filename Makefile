@@ -88,6 +88,8 @@ audit: meta-audit lint test render-claims  ## Full quality gate: lint + tests + 
 	$(PYTHON) scripts/check_results_manifest.py
 	@echo "\n-- Thermodynamics ledger number bindings (quality program Q1.5) --"
 	$(PYTHON) scripts/check_ledger_bindings.py
+	@echo "\n-- Replay-seed disclosure (quality program Q1.4) --"
+	$(PYTHON) scripts/check_decision_sources.py
 	@echo "\n-- Core module import integrity --"
 	$(PYTHON) scripts/_check_imports.py
 	@echo "\n-- Evaluator leakage gate (M1 assurance) --"

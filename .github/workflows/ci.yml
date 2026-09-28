@@ -362,6 +362,8 @@ jobs:
           python scripts/check_results_manifest.py
           # Q1.5: numbers in the thermodynamics claim ledger come from their artifacts.
           python scripts/check_ledger_bindings.py
+          # Q1.4: a replay-seed baseline is never cited as a model's answer.
+          python scripts/check_decision_sources.py
 
       - name: Source hygiene (script metadata, SPDX headers)
         run: python scripts/check_script_hygiene.py

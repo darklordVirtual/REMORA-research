@@ -172,3 +172,14 @@ def test_live_result_reports_non_answers(monkeypatch, tmp_path: Path):
 def test_replay_result_shape_is_unchanged(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(live, "load_benchmark_v2", lambda: load_benchmark_v2()[:5])
     assert "live_non_answers" not in live.run(mode="replay", cache_path=tmp_path / "cache.json")
+
+
+def test_decision_sources_name_seed_and_live(monkeypatch, tmp_path: Path):
+    monkeypatch.setattr(live, "load_benchmark_v2", lambda: load_benchmark_v2()[:5])
+    _, replay = live.build_decision_table(mode="replay", cache_path=tmp_path / "r.json")
+    assert live.decision_sources(replay)["single_model_claude"] == {
+        "source": "replay_seed", "counts": {"replay_seed": 5}}
+    _stub_live(monkeypatch)
+    _, fresh = live.build_decision_table(mode="live", cache_path=tmp_path / "l.json")
+    src = live.decision_sources(fresh)["single_model_claude"]
+    assert src["source"] == f"live:{live.DEFAULT_ANTHROPIC_MODEL}"

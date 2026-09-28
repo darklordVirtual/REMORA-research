@@ -1007,6 +1007,26 @@
       "utility_delta_vs_best_baseline": 0.0
     }
   },
+  "decision_sources": {
+    "single_model_gpt": {
+      "source": "replay_seed",
+      "counts": {
+        "replay_seed": 700
+      }
+    },
+    "single_model_claude": {
+      "source": "replay_seed",
+      "counts": {
+        "replay_seed": 700
+      }
+    },
+    "single_model_gemini": {
+      "source": "replay_seed",
+      "counts": {
+        "replay_seed": 700
+      }
+    }
+  },
   "limitations": [
     "When mode=replay, single-model baselines come from deterministic replay cache entries.",
     "Live mode requires configured provider SDKs and API keys.",
