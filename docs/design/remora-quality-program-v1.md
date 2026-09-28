@@ -499,3 +499,14 @@ container images are not covered.
 store rebuilds executions, effects and contracts and rechecks the evidence.
 AST-011 now names that durable adapter and is no longer an open durability
 gap. Pending one-use handles are deliberately not rebuilt.
+
+**2026-09-28, Q8.1.** `remora/capabilities/` derives an
+`EffectiveCapabilitySet` from a deployment `CapabilityPolicy`. The set is
+the intersection of the requested, principal, task, tenant and environment
+sets and the registry, minus a denylist. Anything the policy does not name
+resolves to nothing. Property tests pin that the result lies inside every
+operand, and that a larger request never yields more than no request. The
+set's digest covers every field, and a widened set presented with its old
+digest is refused. `check` refuses a principal, tenant or environment
+mismatch, or an expired set, before it tests membership. The package is
+rated CORE; until Q8.2 binds it into the lease, nothing calls it.
