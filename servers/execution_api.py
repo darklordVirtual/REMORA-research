@@ -2625,6 +2625,8 @@ def export_evidence(proposal_id: str, request: Request) -> dict[str, Any]:
         # Q7.3: authentic is not complete. Each contract names the evidence
         # its claim needs; the verdict says whether this proposal has it.
         "evidence_coverage": _evidence_coverage(events, problems),
+        # Q8.7: which capability set each assessment was checked against.
+        "capability_decision": _capability_decision(events),
     }
 
     def _digest(value: Any) -> str:
@@ -2652,13 +2654,27 @@ def _evidence_coverage(events: list[dict[str, Any]],
     from remora.governance.evidence_coverage import (
         AUTHORIZED_EXECUTION,
         EXECUTED_EFFECT,
+        SUCCESS_ESTABLISHED,
         assess_coverage,
         chain_event_items,
     )
 
     items = chain_event_items(events, problems)
     return {contract.contract_id: assess_coverage(contract, items).to_dict()
-            for contract in (AUTHORIZED_EXECUTION, EXECUTED_EFFECT)}
+            for contract in (AUTHORIZED_EXECUTION, EXECUTED_EFFECT, SUCCESS_ESTABLISHED)}
+
+
+def _capability_decision(events: list[dict[str, Any]]) -> dict[str, Any]:
+    """The capability checks recorded for one proposal (Q8.7), latest last.
+
+    Always present, even when empty: an absent capability decision must be
+    distinguishable from an export that predates the section.
+    """
+    decisions = [dict(e["payload"]["capability"]) for e in events
+                 if e.get("event") == "assessed"
+                 and isinstance((e.get("payload") or {}).get("capability"), dict)]
+    return {"decisions": decisions,
+            "latest": decisions[-1] if decisions else None}
 
 
 def _remora_version() -> str:
