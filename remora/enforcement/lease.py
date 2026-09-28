@@ -22,7 +22,10 @@ ESCALATE technically unexecutable:
 
 Signed binding set (REM-024): tenant_id, actor_identity, tool_name,
 tool_args_hash (canonical, full arguments), target_environment,
-policy_bundle_hash, decision, nonce, issued_at, expires_at.
+policy_bundle_hash, decision, nonce, issued_at, expires_at. When the
+authorization was granted under a task, also context_id and task_id (quality
+program Q7.2); an unbound lease signs exactly the bytes it signed before
+those fields existed.
 
 Key management: ``REMORA_LEASE_SIGNING_KEY`` (falls back to
 ``REMORA_PDP_SIGNING_KEY``). Without a key, issued leases are unsigned and the
@@ -49,12 +52,15 @@ import threading
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Any, Callable, ContextManager
+from typing import TYPE_CHECKING, Any, Callable, ContextManager
 
 from remora.enforcement import lease_signing as _signing
 from remora.enforcement.nonce_store import NonceStore, NonceStoreUnavailable
 from remora.observability.events import governance_event
 from remora.policy.observation import canonical_tool_call_hash
+
+if TYPE_CHECKING:
+    from remora.governance.task_identity import TaskIdentity
 
 _ENV_KEY = "REMORA_LEASE_SIGNING_KEY"
 _FALLBACK_ENV_KEY = "REMORA_PDP_SIGNING_KEY"
@@ -170,6 +176,13 @@ class ExecutionLease:
     #: implementation nobody authorized. Empty string means the authorizing
     #: side declared no runtime; it is carried, never invented here.
     runtime_identity_hash: str = ""
+    #: Q7.2: the task this authorization was granted under
+    #: (:mod:`remora.governance.task_identity`). Signed only when set, so an
+    #: unbound lease signs byte-identical bytes to one issued before these
+    #: fields existed and every issued lease still verifies. Both halves or
+    #: neither: a lease carrying one is refused at verification.
+    context_id: str = ""
+    task_id: str = ""
 
     @classmethod
     def issue(
@@ -191,6 +204,7 @@ class ExecutionLease:
         proposal_id: str = "",
         grant_jti: str = "",
         runtime_identity_hash: str = "",
+        task_identity: "TaskIdentity | None" = None,
     ) -> ExecutionLease:
         """Issue a lease for an ACCEPTED decision; refuse everything else.
 
@@ -239,6 +253,12 @@ class ExecutionLease:
             "grant_jti": grant_jti,
             "runtime_identity_hash": runtime_identity_hash,
         }
+        # Omitted when absent, never defaulted to "": a present key changes
+        # the signed bytes exactly as much as a populated one.
+        from remora.governance.task_identity import task_fields
+
+        fields.update(task_fields(task_identity))
+        task_event_fields: dict[str, Any] = dict(task_fields(task_identity))
         alg = _signing.issuer_algorithm()
         if alg:
             # sig_alg and kid are inside the payload the signature covers.
@@ -276,6 +296,7 @@ class ExecutionLease:
             signed=lease.is_signed,
             proposal_id=lease.proposal_id,
             grant_jti=lease.grant_jti,
+            **task_event_fields,
         )
         return lease
 
@@ -298,7 +319,7 @@ class ExecutionLease:
         ).hexdigest()
 
     def _signed_fields(self) -> dict[str, Any]:
-        return {
+        fields: dict[str, Any] = {
             "decision": self.decision,
             "tenant_id": self.tenant_id,
             "actor_identity": self.actor_identity,
@@ -319,6 +340,22 @@ class ExecutionLease:
             "sig_alg": self.sig_alg,
             "kid": self.kid,
         }
+        # Each half is signed when set, so a lease carrying only one is still
+        # covered by its signature and is refused as malformed in verify().
+        if self.context_id:
+            fields["context_id"] = self.context_id
+        if self.task_id:
+            fields["task_id"] = self.task_id
+        return fields
+
+    def task_identity(self) -> "TaskIdentity | None":
+        """The bound task, or None. Raises ValueError when only one half is set."""
+        from remora.governance.task_identity import TaskIdentity
+
+        return TaskIdentity.from_fields({
+            "context_id": self.context_id or None,
+            "task_id": self.task_id or None,
+        })
 
     def verify(
         self,
@@ -333,6 +370,7 @@ class ExecutionLease:
         toolspec_hash: str | None = None,
         toolspec_version: int | None = None,
         expected_proposal_id: str | None = None,
+        task_identity: "TaskIdentity | None" = None,
     ) -> LeaseVerificationResult:
         """Verify signature, expiry, and the full binding against a concrete call.
 
@@ -345,6 +383,14 @@ class ExecutionLease:
         transport context, never from the request body; transport-anchored
         workload identity (credential/key ID binding) is REM-024 residual
         scope.
+
+        ``task_identity`` is the task the call is being made under now. When
+        given, the lease must have been granted under exactly that task: an
+        unbound lease is ``task_unbound`` and a different task is
+        ``task_mismatch``, so a caller can tell a missing binding from a
+        replay into another task. When omitted, the task is not checked, the
+        same convention as ``toolspec_hash``; a dispatcher that must always
+        check refuses the omission itself (``require_task_identity``).
         """
         if not self.is_signed or not self.signature:
             return LeaseVerificationResult(False, "lease_not_signed")
@@ -444,6 +490,15 @@ class ExecutionLease:
                 expected_proposal_id.encode(), self.proposal_id.encode()
             ):
                 return LeaseVerificationResult(False, "proposal_mismatch")
+        try:
+            bound_task = self.task_identity()
+        except (TypeError, ValueError):
+            return LeaseVerificationResult(False, "task_identity_malformed")
+        if task_identity is not None:
+            if bound_task is None:
+                return LeaseVerificationResult(False, "task_unbound")
+            if not task_identity.matches(bound_task):
+                return LeaseVerificationResult(False, "task_mismatch")
         return LeaseVerificationResult(True, "ok")
 
     def to_dict(self) -> dict[str, Any]:
@@ -456,6 +511,7 @@ class ExecutionLease:
         "tool_contract_bundle_hash", "intent_authority_hash",
         "toolspec_hash", "toolspec_version",
         "proposal_id", "grant_jti", "runtime_identity_hash", "sig_alg", "kid",
+        "context_id", "task_id",
     })
 
     @classmethod
@@ -566,8 +622,15 @@ class GovernedToolDispatcher:
         expected_policy_bundle_hash: str,
         ledger: NonceLedger | None = None,
         nonce_store: "NonceStore | None" = None,
+        *,
+        require_task_identity: bool = False,
     ) -> None:
         """
+        ``require_task_identity`` (Q7.2) refuses any dispatch that does not
+        present the current task, and any lease not granted under one. Off by
+        default, because no server path supplies a task identity yet;
+        turning it on is how a deployment makes task binding mandatory.
+
         ``nonce_store`` (ADR-B) makes single-use consumption durable and
         tenant-scoped. When supplied it REPLACES the in-process ledger for the
         consume decision: a lease then spends exactly once across restarts,
@@ -587,6 +650,7 @@ class GovernedToolDispatcher:
         self._ledger = ledger or NonceLedger()
         self._nonce_store = nonce_store
         self._spec_identity: Callable[[str], tuple[str, int] | None] | None = None
+        self._require_task = require_task_identity
 
     def bind_toolspec_identity(
         self, resolver: "Callable[[str], tuple[str, int] | None]"
@@ -683,6 +747,7 @@ class GovernedToolDispatcher:
         target_environment: str | None = None,
         now: str | None = None,
         actor_identity: str | None = None,
+        task_identity: "TaskIdentity | None" = None,
     ) -> DispatchResult:
         """Execute ``tool_name`` iff the lease covers this exact call.
 
@@ -690,6 +755,10 @@ class GovernedToolDispatcher:
         (transport/session context), never taken from the payload the agent
         controls. A lease issued to a named actor refuses to dispatch without
         a matching identity.
+
+        ``task_identity`` is the task the call is made under, from the
+        orchestration context rather than the lease; the lease is checked
+        against it. See ``ExecutionLease.verify``.
         """
         if lease is None:
             governance_event(
@@ -737,6 +806,18 @@ class GovernedToolDispatcher:
             if identity is not None:
                 spec_hash, spec_version = identity[0], int(identity[1])
 
+        if self._require_task and task_identity is None:
+            governance_event(
+                "dispatch.refused", level=logging.WARNING,
+                reason="task_identity_required", tenant_id=tenant_id,
+                tool_name=tool_name, proposal_id=proposal_id,
+                grant_jti=lease.grant_jti,
+            )
+            return DispatchResult(
+                executed=False, refusal_reason="task_identity_required",
+                proposal_id=proposal_id,
+            )
+
         verdict = lease.verify(
             tool_name=tool_name, arguments=arguments,
             tenant_id=tenant_id,
@@ -746,6 +827,7 @@ class GovernedToolDispatcher:
             actor_identity=actor_identity,
             toolspec_hash=spec_hash,
             toolspec_version=spec_version,
+            task_identity=task_identity,
         )
         if not verdict.verified:
             governance_event(
@@ -756,6 +838,16 @@ class GovernedToolDispatcher:
             return DispatchResult(
                 executed=False, refusal_reason=verdict.reason,
                 proposal_id=proposal_id,
+            )
+        if task_identity is None and (lease.context_id or lease.task_id):
+            # Allowed, because the caller opted out of the check, but recorded:
+            # a task-bound authorization that ran with no task compared is the
+            # case an auditor needs to find.
+            governance_event(
+                "dispatch.task_unchecked", tenant_id=tenant_id,
+                tool_name=tool_name, proposal_id=proposal_id,
+                grant_jti=lease.grant_jti, context_id=lease.context_id,
+                task_id=lease.task_id,
             )
         # ADR-D. The runtime binding is checked HERE rather than in verify():
         # this is a property of the place the action is performed, and verify()

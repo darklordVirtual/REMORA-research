@@ -104,14 +104,32 @@ def _resigned(lease: ExecutionLease, **over) -> ExecutionLease:
 # ── what the signature has to cover ─────────────────────────────────────────
 
 
+#: Signed only when set, so an unbound lease keeps the bytes it signed before
+#: they existed (Q7.2). Their absence is still covered: adding them to an
+#: unbound lease changes the preimage, which the next test pins.
+SIGNED_WHEN_SET = {"context_id", "task_id"}
+
+
 def test_every_reconstructable_field_is_inside_the_signature() -> None:
-    signed = set(_lease()._signed_fields())
+    from remora.governance.task_identity import TaskIdentity
+
+    bound = _lease(task_identity=TaskIdentity(context_id="ctx-1", task_id="task-1"))
     reconstructable = set(ExecutionLease._FIELDS) - {"signature", "is_signed"}
-    unsigned = sorted(reconstructable - signed)
+    unsigned = sorted(reconstructable - set(bound._signed_fields()))
     assert not unsigned, (
         f"these lease fields survive from_dict but are outside the signed preimage, so "
         f"the holder of a lease can rewrite them undetected: {unsigned}"
     )
+    always = sorted(reconstructable - SIGNED_WHEN_SET - set(_lease()._signed_fields()))
+    assert not always, f"only {sorted(SIGNED_WHEN_SET)} may be signed conditionally: {always}"
+
+
+@pytest.mark.parametrize(
+    "over",
+    [{"context_id": "ctx-1", "task_id": "task-1"}, {"context_id": "ctx-1"}, {"task_id": "task-1"}],
+)
+def test_adding_a_task_to_an_unbound_lease_breaks_its_signature(over) -> None:
+    assert _verify(_rebuild(_lease(), **over)).reason == "signature_invalid"
 
 
 def test_the_signed_preimage_is_canonical_json() -> None:
