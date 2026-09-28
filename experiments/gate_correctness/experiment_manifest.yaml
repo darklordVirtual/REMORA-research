@@ -1,0 +1,27 @@
+# Experiment manifest — spec: docs/assurance/experiment_manifest_spec_v1.md
+experiment_id: EXP-GATE-CORRECTNESS-01
+title: Gate-correctness study v1 (quality program WS7 item 1)
+status: preregistered
+hypothesis: >
+  REMORA's own gate is bounded by the correctness of its validator: injected
+  validator faults (stale snapshot, lenient prefix matcher, fail-open lookups,
+  incomplete coverage treated as closed-world) move false allows and false
+  blocks in the directions fixed in PREREGISTERED.md, while writes stay
+  gated in every arm.
+baseline: the correct point-lookup validator of NEGATIVE_RESULTS.md §33
+policy_configuration:
+  engine: RemoraDecisionEngine(low_consequence_accept=True)
+  fault_seed: 0
+  stale_missing_fraction: 0.15
+  fail_open_rate: 0.20
+  partial_export_fraction: 0.70
+seeds: [0]
+datasets:
+  - fleetops routing episodes (540), remora/toolcall/routing/validator_study.py
+result_artifacts:
+  - results/gate_correctness_study_v1.json
+promotion_target: none
+known_limitations:
+  - Openly non-blind; the fleetops blind budget was spent in §31.
+  - The retired-identifier path of a stale snapshot is not sampled.
+  - One synthetic domain, one engine configuration.
