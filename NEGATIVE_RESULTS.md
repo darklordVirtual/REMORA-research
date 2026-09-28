@@ -11,7 +11,7 @@ never deleted, only re-statused in place.
 
 ## How to read a status
 
-**60 numbered sections does not mean 60 open problems.** Until 2026-07-31 this
+**61 numbered sections does not mean 61 open problems.** Until 2026-07-31 this
 document read as if it did. Sections kept the status they were written with,
 even after later sections resolved them. Every section now carries a
 machine-readable marker directly under its heading, and
@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-09-28: **13 `open`**, **24 `accepted`**, **23 `superseded`**.
+Counts as of 2026-09-28: **14 `open`**, **24 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -71,9 +71,10 @@ cites only `open` sections and that no `open` section is missing a theme.
    gate-correctness study (§60) measures the cost per fault class: a lenient prefix matcher accepted every
    corrupt read, fail-open lookups 11.7 %, a stale snapshot refused 15 % of
    valid reads.
-6. **External replication, REM-021, and live evidence** (§1, §4, §15, §16);
+6. **External replication, REM-021, and live evidence** (§1, §4, §15, §16, §61);
    cannot be closed from inside this repository. Needs third-party replication,
-   a named independent reviewer, and field traces.
+   a named independent reviewer, and field traces. §61: no FAR claim rests on
+   the 299 independent harmful units a ~1% bound needs.
 7. **Authoritative tool metadata on the advisory path** (§14): the enforcement
    path already takes `effect`, risk class and validator bindings from a
    server-side registry, but the library path judges the metadata it is handed.
@@ -3845,3 +3846,41 @@ touched is the write floor: no write was auto-accepted in any gated arm.
 **What this does not establish.** One synthetic domain and one engine
 configuration. The retired-identifier path of a stale snapshot, which would
 falsely allow, is not sampled.
+
+## §61 No FAR claim rests on enough independent harmful units (2026-09-28)
+<!-- finding-status: open -->
+
+**Status:** found by the FAR claim-size gate of quality program Q2.1
+(`scripts/check_far_claim_size.py`). Open, because closing it needs a larger
+harmful set with independently withheld labels, which cannot be written
+inside this repository (Q2.3).
+
+**What was checked.** Zero false accepts in N independent harmful units
+bounds the one-sided 95 % false-accept rate at about 3/N. At N = 299 that is
+about 1 %, which is the precision a claim written as "FAR = 0 %" invites a
+reader to assume. Every active FAR claim now declares the number of
+*independent* harmful units it rests on.
+
+| Claim | Harmful units | Independent units | Wilson 95 % upper bound |
+|---|---:|---:|---:|
+| CLAIM-001 tool-call benchmark v2 | 560 | 70 template clusters | 5.2 % |
+| CLAIM-003 historical regression corpus | 167 | 167 | 2.25 % |
+| CLAIM-002 AgentHarm | 208 | 208 | 1.81 % |
+
+None reaches 299. CLAIM-001 and CLAIM-002 already stated their intervals
+in the register. CLAIM-003 did not, and gained its 2.25 % bound in the same
+change that added this gate. No claim's status changes. What changes is that
+a new FAR claim below the minimum now fails CI. These three sit on a shrink-only
+baseline (`docs/assurance/far_claim_size_baseline.json`) with their reasons.
+
+**What it means.** "FAR = 0 %" in REMORA's register is a statement about a
+small number of independent cases. The upper bounds above are the claims the
+evidence supports. The replay arena the CI safety gate runs holds 48 harmful
+episodes and backs no FAR claim.
+
+**What would close it.** At least 299 independent harmful units, labelled
+before the first REMORA run by people outside the core authors (Q2.3), and
+a pre-registered analysis. Generating more synthetic variants from the same
+templates would raise the count without raising the independence, and is not
+a route to closing this.
+

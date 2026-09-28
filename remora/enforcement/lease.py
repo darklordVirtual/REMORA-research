@@ -194,6 +194,10 @@ class ExecutionLease:
     #: Q7.5: digest of the plan binding (:mod:`remora.governance.plan_binding`)
     #: whose premises this write depends on. Signed only when set.
     plan_binding_hash: str = ""
+    #: Q3.2: digest of the tool surface observed at assessment
+    #: (``RuntimeToolSurface.digest``). Signed only when set; the dispatcher
+    #: compares it with the surface it observes at dispatch.
+    surface_digest: str = ""
 
     @classmethod
     def issue(
@@ -218,6 +222,7 @@ class ExecutionLease:
         task_identity: "TaskIdentity | None" = None,
         resolved_effect: ResolvedEffect | None = None,
         plan: PlanBinding | None = None,
+        surface_digest: str = "",
     ) -> ExecutionLease:
         """Issue a lease for an ACCEPTED decision; refuse everything else.
 
@@ -275,6 +280,8 @@ class ExecutionLease:
             fields["resolved_effect_hash"] = resolved_effect.digest()
         if plan is not None:
             fields["plan_binding_hash"] = plan.digest()
+        if surface_digest:
+            fields["surface_digest"] = surface_digest
         task_event_fields: dict[str, Any] = dict(task_fields(task_identity))
         alg = _signing.issuer_algorithm()
         if alg:
@@ -367,6 +374,8 @@ class ExecutionLease:
             fields["resolved_effect_hash"] = self.resolved_effect_hash
         if self.plan_binding_hash:
             fields["plan_binding_hash"] = self.plan_binding_hash
+        if self.surface_digest:
+            fields["surface_digest"] = self.surface_digest
         return fields
 
     def task_identity(self) -> "TaskIdentity | None":
@@ -533,6 +542,7 @@ class ExecutionLease:
         "toolspec_hash", "toolspec_version",
         "proposal_id", "grant_jti", "runtime_identity_hash", "sig_alg", "kid",
         "context_id", "task_id", "resolved_effect_hash", "plan_binding_hash",
+        "surface_digest",
     })
 
     @classmethod
@@ -679,6 +689,12 @@ class GovernedToolDispatcher:
         self._effect_resolver: "EffectResolver | None" = None
         self._revisions: "RevisionReader | None" = None
         self._recorder: "RecorderClient | None" = None
+        self._surface_observer: Callable[[], str] | None = None
+        self._surface_enforced = False
+        #: Q3.2 shadow metrics: how many bound leases were compared with the
+        #: observed surface, and how many found it changed.
+        self.surface_checks = 0
+        self.surface_changes = 0
         self._procedure: "tuple[ProcedureContract, Callable[[ExecutionLease], Sequence[Step]]] | None" = None
         self._recording_mandatory: Callable[[str], bool] = lambda _tool: False
 
@@ -802,6 +818,41 @@ class GovernedToolDispatcher:
             proposal_id=lease.proposal_id, contract_id=contract.contract_id,
             obligations=list(refused))
         return "procedure_violation"
+
+    def bind_surface_observer(self, observer: Callable[[], str], *,
+                              enforce: bool = False) -> None:
+        """Compare the tool surface a lease was granted under with the one
+        observed now (Q3.2).
+
+        ``observer`` returns the digest of the currently offered surface. In
+        shadow (``enforce=False``, the default) a changed surface is counted
+        and recorded but not refused, which is the measuring period the
+        design asks for before enforcement. Enforced, or under a strict
+        runtime profile, a changed surface refuses as ``surface_changed`` and
+        an observer that fails refuses as ``surface_unobservable``.
+        """
+        self._surface_observer = observer
+        self._surface_enforced = enforce
+
+    def _surface_refusal(self, lease: ExecutionLease) -> str | None:
+        if self._surface_observer is None or not lease.surface_digest:
+            return None
+        from remora.enforcement.custody import custody_is_enforced
+
+        enforcing = self._surface_enforced or custody_is_enforced()
+        try:
+            current = self._surface_observer()
+        except Exception:  # noqa: BLE001 - an unobservable surface is not an unchanged one
+            return "surface_unobservable" if enforcing else None
+        self.surface_checks += 1
+        if hmac.compare_digest(current, lease.surface_digest):
+            return None
+        self.surface_changes += 1
+        governance_event(
+            "dispatch.surface_changed", level=logging.WARNING,
+            tenant_id=lease.tenant_id, tool_name=lease.tool_name,
+            proposal_id=lease.proposal_id, enforced=enforcing)
+        return "surface_changed" if enforcing else None
 
     def bind_state_revisions(self, reader: "RevisionReader") -> None:
         """Supply current state revisions, so a plan's premises are re-read
@@ -1036,7 +1087,8 @@ class GovernedToolDispatcher:
             self._runtime_refusal(lease)
             or self._effect_refusal(lease, tool_name, arguments, target_environment or "")
             or self._plan_refusal(lease, plan)
-            or self._procedure_refusal(lease, tool_name, arguments))
+            or self._procedure_refusal(lease, tool_name, arguments)
+            or self._surface_refusal(lease))
         if runtime_refusal is not None:
             governance_event(
                 "dispatch.refused", level=logging.WARNING,

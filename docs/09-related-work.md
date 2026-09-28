@@ -210,6 +210,18 @@ no external work in this section is claimed as implemented by it. Deployment
 providers still supply authority scopes. No external-runtime completeness,
 production containment or independent replication result is claimed.
 
+Quality program Q3.2 to Q3.5 narrowed four of those limits on the same
+reference runtime. The lease now carries the digest of the surface observed
+at assessment, and the dispatcher compares it at dispatch. In a shadow
+measurement the surface did not change in 200 legitimate runs, and every one
+of 20 injected changes was caught. A tool's identity can cover its imported
+modules and installed dependency versions, not only its own source text. The
+credential scope checked against the signed spec can come from an issuer
+REMORA queries, not from the tool provider. Surface and effect evidence can
+be written to a durable chain and rechecked after a restart. All four are
+properties of REMORA's own reference runtime. Measuring them inside an
+external agent host is Q3.1, which waits on the choice of host.
+
 ## 5. Evidence Grounding and Retrieval-Augmented Verification
 
 Relevant ideas:

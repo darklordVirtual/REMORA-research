@@ -19,8 +19,13 @@ results:
   class: live
   generator: python experiments/ablation_matrix.py
 - path: results/ablation_results.json
-  class: live
-  generator: python experiments/ablation.py
+  class: frozen
+  reason: >-
+    measured on build_mixed_swarm, whose pool includes claude-3.5-sonnet
+    (Claude Sonnet 3.5, retired 2025-10-28). The instrument cannot be re-run
+    on the pool it measured, so the result is frozen as history (quality
+    program Q2.4, 2026-09-28). A new round on current models needs a live
+    budget (owner decision 2) and is a new dated result, not a rerun.
 - path: results/ablation_v2_canonical_results.json
   class: frozen
   reason: no generator in the repository writes this file; it is read as an input by bootstrap_trust_curve.py
@@ -58,8 +63,13 @@ results:
   generator: python experiments/toolcall_v2_calibration_blind.py
   verified_by: 'ci.yml: Deterministic reproduction round (byte-compare)'
 - path: results/calibration_results.json
-  class: live
-  generator: python experiments/calibration.py
+  class: frozen
+  reason: >-
+    measured on build_mixed_swarm, whose pool includes claude-3.5-sonnet
+    (Claude Sonnet 3.5, retired 2025-10-28). The instrument cannot be re-run
+    on the pool it measured, so the result is frozen as history (quality
+    program Q2.4, 2026-09-28). A new round on current models needs a live
+    budget (owner decision 2) and is a new dated result, not a rerun.
 - path: results/cascade_benchmark_results.json
   class: live
   generator: python experiments/cascade_benchmark.py

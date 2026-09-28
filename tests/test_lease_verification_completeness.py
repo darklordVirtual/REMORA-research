@@ -107,7 +107,8 @@ def _resigned(lease: ExecutionLease, **over) -> ExecutionLease:
 #: Signed only when set, so an unbound lease keeps the bytes it signed before
 #: they existed (Q7.2). Their absence is still covered: adding them to an
 #: unbound lease changes the preimage, which the next test pins.
-SIGNED_WHEN_SET = {"context_id", "task_id", "resolved_effect_hash", "plan_binding_hash"}
+SIGNED_WHEN_SET = {"context_id", "task_id", "resolved_effect_hash", "plan_binding_hash",
+                   "surface_digest"}
 
 
 def test_every_reconstructable_field_is_inside_the_signature() -> None:
@@ -118,7 +119,8 @@ def test_every_reconstructable_field_is_inside_the_signature() -> None:
 
     bound = _lease(task_identity=TaskIdentity(context_id="ctx-1", task_id="task-1"),
                    resolved_effect=ResolvedEffect("wo_close", "impl@1", "WO-1", "write"),
-                   plan=PlanBinding("plan-1", (("WO-1", "7"),), ("WO-1",)))
+                   plan=PlanBinding("plan-1", (("WO-1", "7"),), ("WO-1",)),
+                   surface_digest="sha256:" + "0" * 64)
     reconstructable = set(ExecutionLease._FIELDS) - {"signature", "is_signed"}
     unsigned = sorted(reconstructable - set(bound._signed_fields()))
     assert not unsigned, (
@@ -132,7 +134,8 @@ def test_every_reconstructable_field_is_inside_the_signature() -> None:
 @pytest.mark.parametrize(
     "over",
     [{"context_id": "ctx-1", "task_id": "task-1"}, {"context_id": "ctx-1"}, {"task_id": "task-1"},
-     {"resolved_effect_hash": "0" * 64}, {"plan_binding_hash": "0" * 64}],
+     {"resolved_effect_hash": "0" * 64}, {"plan_binding_hash": "0" * 64},
+     {"surface_digest": "0" * 64}],
 )
 def test_adding_a_task_to_an_unbound_lease_breaks_its_signature(over) -> None:
     assert _verify(_rebuild(_lease(), **over)).reason == "signature_invalid"

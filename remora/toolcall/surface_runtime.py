@@ -66,7 +66,13 @@ class SurfaceRuntime:
                  assessment_ttl: float = 60.0,
                  governed_authority: Mapping[str, RuntimeTool] | None = None,
                  inventory_complete: bool = False,
-                 trusted_verifiers: Mapping[str, str] | None = None) -> None:
+                 trusted_verifiers: Mapping[str, str] | None = None,
+                 chain: Any = None) -> None:
+        """``chain`` (quality program Q3.5) is where surface, execution and
+        effect evidence is written: ``SQLiteTenantChain`` or
+        ``PostgresTenantChain`` for evidence that survives a restart. Omitted,
+        the runtime keeps the in-process chain it always had (AST-011).
+        """
         if mode not in {"shadow", "enforce"} or assessment_ttl <= 0:
             raise ValueError("invalid mode or assessment_ttl")
         self.dispatcher = dispatcher
@@ -85,7 +91,12 @@ class SurfaceRuntime:
         self._contracts: dict[str, dict[str, Any]] = {}
         self._executions: dict[tuple[str, str], dict[str, Any]] = {}
         self._effects: dict[tuple[str, str], dict[str, Any]] = {}
-        self._chain = TenantAuditChain()
+        self._chain = chain if chain is not None else TenantAuditChain()
+        # Q3.2: a lease that carries the surface digest from assessment is
+        # compared with the surface observed at dispatch, in this runtime's
+        # own mode (shadow counts changes, enforce refuses them).
+        dispatcher.bind_surface_observer(lambda: self.snapshot().digest(),
+                                         enforce=mode == "enforce")
 
     def register(self, tool: RuntimeTool, fn: Callable[[Any], Any]) -> None:
         with self._lock, self.dispatcher.registry_guard():
@@ -147,9 +158,14 @@ class SurfaceRuntime:
                     observation_deadline_seconds=postcondition.observation_deadline_seconds,
                     repeatable=postcondition.repeatable, evidence_fields=list(postcondition.evidence_fields))))
             self._pending[assessment.assessment_id] = assessment
-            self._chain.append(tenant, dict(event="surface_assessment", assessment_id=assessment.assessment_id,
-                                           surface=observed.identity(), surface_digest=observed.digest(),
-                                           report=asdict(assessment.report), action_hash=assessment.action_hash))
+            record = dict(event="surface_assessment", assessment_id=assessment.assessment_id,
+                          surface=observed.identity(), surface_digest=observed.digest(),
+                          report=asdict(assessment.report), action_hash=assessment.action_hash)
+            if assessment.assessment_id in self._contracts:
+                # Carried so a runtime restarted on a durable chain can recheck
+                # effect evidence against the contract it was declared under.
+                record["postcondition_contract"] = self._contracts[assessment.assessment_id]
+            self._chain.append(tenant, record)
             return assessment
 
     def dispatch(self, assessment_id: str, lease: ExecutionLease | None,
@@ -209,6 +225,7 @@ class SurfaceRuntime:
                       verifier_identity: str, observed: Mapping[str, Any] | None) -> dict[str, Any]:
         """Record a separate authenticated read; never execute the tool again."""
         with self._lock:
+            self._rehydrate(tenant, assessment_id)
             key = (tenant, assessment_id)
             event = self._executions.get(key)
             if event is None:
@@ -232,6 +249,7 @@ class SurfaceRuntime:
 
     def recheck_effect(self, assessment_id: str, *, tenant: str) -> dict[str, Any]:
         with self._lock:
+            self._rehydrate(tenant, assessment_id)
             key = (tenant, assessment_id)
             if key not in self._effects:
                 raise ValueError("effect_not_found")
@@ -242,6 +260,31 @@ class SurfaceRuntime:
                 evidence, contract=PostconditionContract(**self._contracts[assessment_id]),
                 events=[self._executions[key]], principal=evidence["principal"],
                 trusted_verifiers=self._trusted_verifiers)
+
+    def _rehydrate(self, tenant: str, assessment_id: str) -> None:
+        """Rebuild one assessment's execution, effect and contract from the chain.
+
+        A runtime restarted on a durable chain has none of them in memory.
+        Read-only against the chain, and only for an assessment this process
+        does not already hold. Pending one-use handles are deliberately not
+        rebuilt: a lost handle refuses dispatch, which is the safe direction.
+        """
+        key = (tenant, assessment_id)
+        if key in self._executions:
+            return
+        for entry in self._chain.entries(tenant):
+            payload = entry.payload
+            event = payload.get("event")
+            if event == "surface_assessment" and payload.get("assessment_id") == assessment_id:
+                contract = payload.get("postcondition_contract")
+                if contract is not None:
+                    self._contracts[assessment_id] = dict(contract)
+            elif event == "execution_result" and payload.get("proposal_id") == assessment_id:
+                self._executions[key] = dict(event="execution_result",
+                                             timestamp=entry.timestamp, payload=dict(payload))
+            elif (event == "effect_evidence"
+                  and (payload.get("evidence") or {}).get("proposal_id") == assessment_id):
+                self._effects[key] = dict(payload["evidence"])
 
     def audit_valid(self, tenant: str) -> bool:
         return self._chain.verify(tenant)[0]

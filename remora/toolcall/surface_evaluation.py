@@ -37,7 +37,7 @@ class LocalRecordStore:
         return json.loads(self.path.read_text(encoding="utf-8")) if self.path.exists() else None
 
 
-def reference_runtime(root: Path, *, mode: str = "enforce"):
+def reference_runtime(root: Path, *, mode: str = "enforce", chain=None, key: str | None = None):
     store = LocalRecordStore(root)
     raw = dict(tool_id="write", version=1, callable_digest=source_digest(store.write),
                implementation_identity="remora-local-record-v1", description="Write the local record.",
@@ -49,13 +49,14 @@ def reference_runtime(root: Path, *, mode: str = "enforce"):
                postcondition_reader="local-reader", compensation_tool=None,
                timeout_policy={"dispatch_timeout_seconds": 10}, network_policy={"egress": "none"},
                signing_identity="reference-signer")
-    key = secrets.token_hex(32)
+    key = key or secrets.token_hex(32)
     bundle = sign_bundle({"schema_version": 1, "tool_specs": [raw]}, key=key,
                          signing_identity="reference-signer", signed_at=datetime.now(UTC).isoformat())
     runtime = SignedSurfaceRuntime(GovernedToolDispatcher("reference-policy"), bundle,
                                    key=key, trusted_identities=["reference-signer"], mode=mode,
                                    inventory_complete=True,
-                                   trusted_verifiers={"local-reader": "reference-reader"})
+                                   trusted_verifiers={"local-reader": "reference-reader"},
+                                   chain=chain)
     # Provider observation: fixed-path writer, no external credentials or network.
     spec = runtime._bundle.get("write")
     observed = RuntimeTool("write", "native", True, True, spec.toolspec_hash,
@@ -69,12 +70,13 @@ def reference_runtime(root: Path, *, mode: str = "enforce"):
     return runtime, store, observed, spec
 
 
-def reference_lease(spec, arguments=None):
+def reference_lease(spec, arguments=None, surface_digest: str = ""):
     return ExecutionLease.issue(
         decision="accept", tenant_id="reference", actor_identity="reference-agent",
         tool_name="write", arguments=arguments or {"value": 1}, target_environment="local-record",
         policy_bundle_hash="reference-policy", issued_at=datetime.now(UTC).isoformat(),
-        toolspec_hash=spec.toolspec_hash, toolspec_version=spec.version)
+        toolspec_hash=spec.toolspec_hash, toolspec_version=spec.version,
+        surface_digest=surface_digest)
 
 
 def evaluate_reference() -> dict:

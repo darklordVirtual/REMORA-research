@@ -54,12 +54,13 @@ FROZEN: dict[str, tuple[tuple[str, ...], str]] = {
     "experiments/ablation.py": (
         ("claude-3.5-sonnet",),
         "ablation v1 instrument; its committed results were measured on this "
-        "pool. Re-run as a new round or freeze under quality program Q2.4.",
+        "pool and are frozen with the retirement noted (Q2.4, 2026-09-28).",
     ),
     "remora/oracles/factory.py": (
         ("claude-3.5-sonnet",),
         "build_mixed_swarm feeds the ablation and calibration experiments whose "
-        "results used this pool (Q2.4). build_recommended_swarm is current.",
+        "results used this pool; both are frozen (Q2.4, 2026-09-28). "
+        "build_recommended_swarm is current.",
     ),
     "remora/aromer/seeds/07_strategy_patterns.seed.json": (
         ("claude-3.5-sonnet",),

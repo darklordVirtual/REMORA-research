@@ -423,3 +423,53 @@ flags a completion claim the trace does not establish. RES-014 to RES-019
 map every WS7 item to its source, code, tests and artifact. The research
 shelf records adoption: SHELF-029, 031, 032 and 033 ADOPTED, and 030, 035,
 036 and 037 PARTIAL, each with its reason.
+
+**2026-09-28, Q2.1 (gate met, data open).** `scripts/check_far_claim_size.py`
+runs in CI. It fails any active FAR claim that does not declare how many
+independent harmful units it rests on, or that rests on fewer than 299
+without a baselined reason. The baseline may only shrink. All three existing
+FAR claims are below the floor: 70 template clusters, 167 regression
+episodes and 208 AgentHarm scenarios, with Wilson upper bounds of 5.2 %,
+2.25 % and 1.81 %. They are recorded in `NEGATIVE_RESULTS.md` §61 (open).
+CLAIM-003 gained its bound, recomputed by the metric gate from the
+artifact's counts. The set of at least 299 independent harmful units is not
+written. It needs labels withheld from the authors (Q2.3), and more
+synthetic variants of the same templates would not supply the independence.
+
+**2026-09-28, Q2.2, Q2.3 and Q3.1 (not started, owner decisions).** Each
+needs a decision this program cannot make. Q2.2 needs a live-run budget and
+three model families (decision 2), Q2.3 independent labelers (decision 4),
+and Q3.1 a named external agent host (decision 1). Nothing was substituted
+for them.
+
+**2026-09-28, Q2.4.** `results/ablation_results.json` and
+`results/calibration_results.json` were measured on `build_mixed_swarm`,
+whose pool includes Claude Sonnet 3.5, retired 2025-10-28. Both are now
+classed `frozen` with the retirement recorded. A new round on current models
+is a new dated result and needs the Q2.2 budget.
+
+**2026-09-28, Q3.2.** The lease carries the surface digest from assessment,
+and the dispatcher compares it at dispatch. In shadow a change is counted,
+and enforced or under a strict profile it refuses as `surface_changed`.
+`scripts/measure_surface_binding_shadow.py` records the shadow period on the
+reference runtime: 0 changes in 200 legitimate runs, 20 of 20 injected
+changes counted, and 20 of 20 refused when enforced. External hosts are
+unmeasured until Q3.1.
+
+**2026-09-28, Q3.3.** `remora/toolcall/credential_issuer.py` is a reference
+issuer that REMORA can query. With it bound, the signed runtime compares the
+spec with the scope the issuer reports for the credential the tool was
+given, at registration and before every dispatch. The pinned no-caller test
+records the change. The issuer shares the runtime's trust domain.
+
+**2026-09-28, Q3.4.** A spec may attest a `closure-sha256:` digest over the
+defining module, its in-package imports and the installed version of each
+third-party distribution it imports. A changed dependency fails
+registration, and a v1 source-span spec still verifies. Host integrity and
+container images are not covered.
+
+**2026-09-28, Q3.5.** `SurfaceRuntime(chain=...)` writes through
+`SQLiteTenantChain` or `PostgresTenantChain`. A runtime restarted on the same
+store rebuilds executions, effects and contracts and rechecks the evidence.
+AST-011 now names that durable adapter and is no longer an open durability
+gap. Pending one-use handles are deliberately not rebuilt.
