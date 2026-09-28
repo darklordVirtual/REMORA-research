@@ -168,6 +168,13 @@ GET /envelopes/<request_id>               Fetch one envelope (admin)
 GET /envelopes/verify                     Recompute the tenant chain (admin)
 ```
 
+All three read the deployment's own `TENANT_ID`. A `tenant_id` query
+parameter may name that tenant and nothing else; naming another one is a 403
+(`src/tenant.ts`), and a single-envelope lookup matches both request id and
+tenant. `audit_log` and `sessions` carry no tenant column, so an `AUDIT_DB`
+must not be shared between tenants: give each tenant's deployment its own
+database.
+
 Chain contract, identical to `remora.governance.tenant_chain` (REM-034):
 
 ```

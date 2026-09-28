@@ -156,6 +156,20 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Fixed
 
+- The MCP gateway verifies the Cloudflare Access assertion on `/mcp` itself
+  (`workers/mcp-gateway/src/admission.ts`: RS256 against the team key set,
+  AUD, issuer, expiry) and answers 503 while `ACCESS_TEAM_DOMAIN` and
+  `ACCESS_AUD` are unset, instead of relying on an edge policy configured
+  outside the repository. `REMORA_DEPLOYMENT_PROFILE=production` refuses `/mcp`
+  until `REMORA_PG_DSN`, the custody split and Access verification are all
+  configured, and `/health` no longer reports a D1 binding as a durable audit
+  chain. The deployed staging gateway needs the two Access settings before its
+  next deploy.
+- Agent-control's administrative reads (`/envelopes`, `/envelopes/verify`,
+  `/envelopes/<request_id>`, `/audit`) are bound to the deployment's
+  `TENANT_ID`. A query naming another tenant is refused with 403, and the
+  single-envelope lookup matches the tenant as well as the request id.
+
 - The synchronous `/v1/execution/execute` path now claims the dispatch intent
   before it mints and consumes the grant and before it appends
   `execution_authorized`, the order issue #417 set for the async worker. A

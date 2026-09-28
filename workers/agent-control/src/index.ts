@@ -73,6 +73,7 @@ import {
   grantApproval,
 } from "./approval";
 import { isHumanReviewer } from "./principal";
+import { resolveReadTenant } from "./tenant";
 import {
   canonicalExecutionConfigured,
   executeViaCanonicalService,
@@ -872,6 +873,12 @@ async function handleEndSession(id: string, env: Env): Promise<Response> {
 }
 
 async function handleAudit(url: URL, env: Env): Promise<Response> {
+  // audit_log carries no tenant column: it is deployment-scoped, which is
+  // only sound while each tenant has its own AUDIT_DB. The resolver still
+  // refuses a request that names another tenant rather than answering it
+  // with this deployment's rows.
+  const scope = resolveReadTenant(url.searchParams.get("tenant_id"), env.TENANT_ID);
+  if (!scope.ok) return err("tenant_mismatch", scope.status);
   const session_id = url.searchParams.get("session_id");
   const limit      = Math.min(Number(url.searchParams.get("limit") ?? 50), 200);
   const offset     = Number(url.searchParams.get("offset") ?? 0);
@@ -894,7 +901,9 @@ async function handleAudit(url: URL, env: Env): Promise<Response> {
 // ── DecisionEnvelope read + verify ─────────────────────────────────────────────
 
 async function handleEnvelopeList(url: URL, env: Env): Promise<Response> {
-  const tenantId   = url.searchParams.get("tenant_id") ?? env.TENANT_ID ?? "default";
+  const scope = resolveReadTenant(url.searchParams.get("tenant_id"), env.TENANT_ID);
+  if (!scope.ok) return err("tenant_mismatch", scope.status);
+  const tenantId   = scope.tenant;
   const sessionId  = url.searchParams.get("session_id");
   const limit      = Math.min(Number(url.searchParams.get("limit") ?? 50), 200);
   const offset     = Number(url.searchParams.get("offset") ?? 0);
@@ -921,13 +930,19 @@ async function handleEnvelopeList(url: URL, env: Env): Promise<Response> {
   return json({ tenant_id: tenantId, rows, count: rows.length });
 }
 
-async function handleEnvelopeGet(requestId: string, env: Env): Promise<Response> {
+async function handleEnvelopeGet(
+  requestId: string,
+  url: URL,
+  env: Env,
+): Promise<Response> {
+  const scope = resolveReadTenant(url.searchParams.get("tenant_id"), env.TENANT_ID);
+  if (!scope.ok) return err("tenant_mismatch", scope.status);
   const row = await env.AUDIT_DB.prepare(
     "SELECT request_id, tenant_id, session_id, sequence_no, created_at, " +
       "envelope_canonical, previous_hash, entry_hash, signature, audit_id " +
-      "FROM decision_envelopes WHERE request_id = ?",
+      "FROM decision_envelopes WHERE request_id = ? AND tenant_id = ?",
   )
-    .bind(requestId)
+    .bind(requestId, scope.tenant)
     .first<Record<string, unknown>>();
 
   if (!row) return err("Envelope not found", 404);
@@ -935,7 +950,9 @@ async function handleEnvelopeGet(requestId: string, env: Env): Promise<Response>
 }
 
 async function handleEnvelopeVerify(url: URL, env: Env): Promise<Response> {
-  const tenantId = url.searchParams.get("tenant_id") ?? env.TENANT_ID ?? "default";
+  const scope = resolveReadTenant(url.searchParams.get("tenant_id"), env.TENANT_ID);
+  if (!scope.ok) return err("tenant_mismatch", scope.status);
+  const tenantId = scope.tenant;
 
   // Verification must read the WHOLE chain: a paged subset cannot prove that
   // nothing was removed outside the page.
@@ -1146,7 +1163,7 @@ export default {
     // GET /envelopes/:request_id — one DecisionEnvelope (admin)
     const envelopeMatch = path.match(/^\/envelopes\/([A-Za-z0-9._-]+)$/);
     if (envelopeMatch && request.method === "GET") {
-      return handleEnvelopeGet(envelopeMatch[1], env);
+      return handleEnvelopeGet(envelopeMatch[1], url, env);
     }
 
     // GET /status — public health check (no upstream URLs in response)
