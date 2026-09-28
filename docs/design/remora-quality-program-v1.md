@@ -285,3 +285,12 @@ passed. Oracle-backed files are classed live, with what each one needs.
 Five files stay unverified: four n500 router or eval runs whose invocation
 was never recorded, and routing_bench_v1, which includes local-only data.
 
+**2026-09-28, Q5.1 import contract.** `tests/test_core_import_contract.py`
+fails on any new import from a CORE module into an EXPERIMENTAL one.
+`remora/toolcall/toolspec.py` and `remora/agent_hook/shell_ast.py` are rated
+CORE at file level: the enforcement path and a CORE guard depend on them, and
+both are leaves. The 14 remaining imports are listed with a reason and may
+only shrink. Dependencies are already separated: the base install has
+none, and every research dependency is an extra. Splitting the research
+modules out of the wheel is owner decision 3.
+
