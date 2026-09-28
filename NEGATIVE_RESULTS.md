@@ -11,7 +11,7 @@ never deleted, only re-statused in place.
 
 ## How to read a status
 
-**61 numbered sections does not mean 61 open problems.** Until 2026-07-31 this
+**62 numbered sections does not mean 62 open problems.** Until 2026-07-31 this
 document read as if it did. Sections kept the status they were written with,
 even after later sections resolved them. Every section now carries a
 machine-readable marker directly under its heading, and
@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-09-28: **14 `open`**, **24 `accepted`**, **23 `superseded`**.
+Counts as of 2026-09-28: **14 `open`**, **25 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -3883,4 +3883,34 @@ before the first REMORA run by people outside the core authors (Q2.3), and
 a pre-registered analysis. Generating more synthetic variants from the same
 templates would raise the count without raising the independence, and is not
 a route to closing this.
+
+## §62 The capability exposure ratio did not fall to 0.25 (2026-09-28)
+<!-- finding-status: accepted -->
+
+**Status:** measured by the pre-registered capability-minimization study of
+quality program WS8 (Q8.8). The protocol is
+`experiments/capability_minimization/PREREGISTERED.md` and the result is
+`results/capability_minimization_study_v1.json`. Accepted: a falsified
+prediction, not a defect to tune away.
+
+**What was measured.** A fixed corpus of 44 proposals in eight classes,
+through six arms that each add one layer. Seven of eight predictions were
+met. Each layer stopped the class it was built for, and no earlier layer
+stopped it. The name allowlist stopped foreign tools, task-scoped sets
+stopped hidden tools, constraints and delegation stopped argument escalation
+and confused-deputy calls, and the lease with revocation epochs stopped
+replay and stale authority. Only effect verification stopped the executor
+that reported success while the readback disagreed. No arm blocked a
+legitimate proposal.
+
+**The miss.** P8 predicted a capability exposure ratio of at most 0.25 in
+arms C to F. The measured ratio was 0.2545. The corpus weights its three
+tasks unevenly, and the reconcile task needs three of the ten registered
+tools. The threshold was a guess about the corpus, not about the mechanism.
+It is recorded as missed and not moved after the fact.
+
+**What this does not establish.** The corpus and its labels were written by
+the authors, and each class was built to probe one layer. The study shows
+layer attribution on REMORA's code. It measures no real-world rate and no
+model's propensity to propose any class. Those need a live model.
 

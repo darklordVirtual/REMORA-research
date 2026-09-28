@@ -169,6 +169,10 @@ results:
   class: regenerable
   generator: python experiments/gainability_routing.py --v2
   verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
+- path: results/capability_minimization_study_v1.json
+  class: regenerable
+  generator: python experiments/capability_minimization_study.py
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/gate_correctness_study_v1.json
   class: regenerable
   generator: python experiments/gate_correctness_study.py

@@ -575,3 +575,14 @@ verified effect. Tests on the execution API show each stage. All four
 complete it, a missing effect is named, and a proposal assessed without a
 capability policy names the missing capability decision. Evidence
 requirements can now match nested fields, and plain fields behave as before.
+
+**2026-09-28, Q8.8.** The pre-registered layer-attribution study ran once.
+Its corpus has 44 proposals in eight classes, run through arms A to F with
+REMORA's real code for each layer. Seven of eight predictions were met. The
+unsafe execution rate fell from 1.0 in arm A to 0.875, 0.6875, 0.375, 0.125
+and 0.0 as the layers were added. Every class was stopped first by the layer
+built for it, and the false block rate was 0 in every arm. P8 missed: the
+exposure ratio in arms C to F was 0.2545, above the predicted 0.25. It is
+recorded in `NEGATIVE_RESULTS.md` §62 (accepted). The corpus and labels are
+the authors', so this is layer attribution, not a real-world rate. The
+model-behaviour questions still wait for a live model.
