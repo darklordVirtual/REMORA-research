@@ -256,3 +256,11 @@ REM-038, and a conformal entry that understated upper-bound failures. One
 number stays baselined with its reason. Integer ratios such as "7/20" are
 not yet checked.
 
+**2026-09-28, Q1.4.** The v2 live and live-exec results carry
+`decision_sources` per single-model baseline (`replay_seed`, `live:<model>`
+or `mixed`); all 700 decisions per model in the committed files are
+`replay_seed`. `scripts/check_decision_sources.py` fails any claim entry or
+docs section that cites such a baseline from such a file without saying
+replay or seed. The rule is disclosure rather than refusal, because the
+committed citations are legitimate replay descriptions.
+
