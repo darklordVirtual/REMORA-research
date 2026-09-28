@@ -52,7 +52,7 @@ import threading
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING, Any, Callable, ContextManager
+from typing import TYPE_CHECKING, Any, Callable, ContextManager, Sequence
 
 from remora.enforcement import lease_signing as _signing
 from remora.enforcement.nonce_store import NonceStore, NonceStoreUnavailable
@@ -60,6 +60,10 @@ from remora.observability.events import governance_event
 from remora.policy.observation import canonical_tool_call_hash
 
 if TYPE_CHECKING:
+    from remora.audit.recorder import RecorderClient
+    from remora.enforcement.resolved_effect import EffectResolver, ResolvedEffect
+    from remora.governance.plan_binding import PlanBinding, RevisionReader
+    from remora.governance.procedure import ProcedureContract, Step
     from remora.governance.task_identity import TaskIdentity
 
 _ENV_KEY = "REMORA_LEASE_SIGNING_KEY"
@@ -183,6 +187,13 @@ class ExecutionLease:
     #: neither: a lease carrying one is refused at verification.
     context_id: str = ""
     task_id: str = ""
+    #: Q7.4: digest of the effect the call resolved to when authorised
+    #: (:mod:`remora.enforcement.resolved_effect`). Signed only when set, like
+    #: the task fields; the dispatcher resolves again and compares.
+    resolved_effect_hash: str = ""
+    #: Q7.5: digest of the plan binding (:mod:`remora.governance.plan_binding`)
+    #: whose premises this write depends on. Signed only when set.
+    plan_binding_hash: str = ""
 
     @classmethod
     def issue(
@@ -205,6 +216,8 @@ class ExecutionLease:
         grant_jti: str = "",
         runtime_identity_hash: str = "",
         task_identity: "TaskIdentity | None" = None,
+        resolved_effect: "ResolvedEffect | None" = None,
+        plan: "PlanBinding | None" = None,
     ) -> ExecutionLease:
         """Issue a lease for an ACCEPTED decision; refuse everything else.
 
@@ -258,6 +271,10 @@ class ExecutionLease:
         from remora.governance.task_identity import task_fields
 
         fields.update(task_fields(task_identity))
+        if resolved_effect is not None:
+            fields["resolved_effect_hash"] = resolved_effect.digest()
+        if plan is not None:
+            fields["plan_binding_hash"] = plan.digest()
         task_event_fields: dict[str, Any] = dict(task_fields(task_identity))
         alg = _signing.issuer_algorithm()
         if alg:
@@ -346,6 +363,10 @@ class ExecutionLease:
             fields["context_id"] = self.context_id
         if self.task_id:
             fields["task_id"] = self.task_id
+        if self.resolved_effect_hash:
+            fields["resolved_effect_hash"] = self.resolved_effect_hash
+        if self.plan_binding_hash:
+            fields["plan_binding_hash"] = self.plan_binding_hash
         return fields
 
     def task_identity(self) -> "TaskIdentity | None":
@@ -511,7 +532,7 @@ class ExecutionLease:
         "tool_contract_bundle_hash", "intent_authority_hash",
         "toolspec_hash", "toolspec_version",
         "proposal_id", "grant_jti", "runtime_identity_hash", "sig_alg", "kid",
-        "context_id", "task_id",
+        "context_id", "task_id", "resolved_effect_hash", "plan_binding_hash",
     })
 
     @classmethod
@@ -604,6 +625,9 @@ class DispatchResult:
     #: from — a missing lease has no identity to report, and inventing one here
     #: would be worse than the gap.
     proposal_id: str = ""
+    #: Q7.6: the independent recorder's sequence number for this dispatch's
+    #: intent, when recording was mandatory for the tool. None otherwise.
+    recorder_seq: int | None = None
 
 
 class GovernedToolDispatcher:
@@ -652,6 +676,11 @@ class GovernedToolDispatcher:
         self._nonce_store = nonce_store
         self._spec_identity: Callable[[str], tuple[str, int] | None] | None = None
         self._require_task = require_task_identity
+        self._effect_resolver: "EffectResolver | None" = None
+        self._revisions: "RevisionReader | None" = None
+        self._recorder: "RecorderClient | None" = None
+        self._procedure: "tuple[ProcedureContract, Callable[[ExecutionLease], Sequence[Step]]] | None" = None
+        self._recording_mandatory: Callable[[str], bool] = lambda _tool: False
 
     def bind_toolspec_identity(
         self, resolver: "Callable[[str], tuple[str, int] | None]"
@@ -672,6 +701,135 @@ class GovernedToolDispatcher:
         lookup as an absent bundle.
         """
         self._spec_identity = resolver
+
+    def bind_effect_resolver(self, resolver: "EffectResolver") -> None:
+        """Resolve every call again immediately before it runs (Q7.4).
+
+        A lease carrying ``resolved_effect_hash`` must resolve to the same
+        effect now, or it refuses as ``resolved_effect_mismatch``. A reference
+        the resolver does not know refuses as ``unresolved_reference``; a
+        resolver that fails otherwise refuses as
+        ``resolved_effect_unresolvable``, never as "nothing to check". A lease
+        with no resolved effect is refused under a strict runtime profile and
+        allowed, with an event, outside one.
+        """
+        self._effect_resolver = resolver
+
+    def _effect_refusal(self, lease: ExecutionLease, tool_name: str,
+                        arguments: Any, target_environment: str) -> str | None:
+        from remora.enforcement.custody import custody_is_enforced
+        from remora.enforcement.resolved_effect import UnresolvedReference
+
+        if self._effect_resolver is None:
+            if lease.resolved_effect_hash:
+                governance_event(
+                    "dispatch.resolved_effect_unchecked", tenant_id=lease.tenant_id,
+                    tool_name=tool_name, proposal_id=lease.proposal_id)
+            return None
+        try:
+            current = self._effect_resolver.resolve(tool_name, arguments, target_environment)
+        except UnresolvedReference:
+            return "unresolved_reference"
+        except Exception:  # noqa: BLE001 - a failed lookup is not an absent one
+            return "resolved_effect_unresolvable"
+        if lease.resolved_effect_hash:
+            if not hmac.compare_digest(current.digest(), lease.resolved_effect_hash):
+                return "resolved_effect_mismatch"
+            return None
+        if custody_is_enforced():
+            return "resolved_effect_unbound"
+        governance_event(
+            "dispatch.resolved_effect_unbound", tenant_id=lease.tenant_id,
+            tool_name=tool_name, proposal_id=lease.proposal_id)
+        return None
+
+    def bind_recorder(self, recorder: "RecorderClient",
+                      mandatory_for: Callable[[str], bool]) -> None:
+        """Record outside this process before a named tool runs (Q7.6).
+
+        For every tool ``mandatory_for`` accepts, the dispatch intent is
+        appended to the independent recorder BEFORE the nonce is consumed. If
+        the recorder cannot confirm the append the call refuses as
+        ``recorder_unavailable``: an action that could not be recorded
+        outside the agent's control does not happen. The outcome is appended
+        afterwards; a failure there cannot undo the effect and is reported as
+        an ERROR event instead.
+        """
+        self._recorder = recorder
+        self._recording_mandatory = mandatory_for
+
+    def _record(self, lease: ExecutionLease, tool_name: str, phase: str,
+                **detail: Any) -> int | None:
+        if self._recorder is None or not self._recording_mandatory(tool_name):
+            return None
+        receipt = self._recorder.append("dispatch", {
+            "phase": phase, "tenant_id": lease.tenant_id, "tool_name": tool_name,
+            "proposal_id": lease.proposal_id, "grant_jti": lease.grant_jti,
+            "tool_args_hash": lease.tool_args_hash, "nonce": lease.nonce, **detail})
+        return receipt.seq
+
+    def bind_procedure(self, contract: "ProcedureContract",
+                       trace_for: "Callable[[ExecutionLease], Sequence[Step]]") -> None:
+        """Refuse a step that would violate the procedure's safety obligations (Q7.7).
+
+        ``trace_for`` returns the steps already executed in the lease's
+        context, from the deployment's own record. The contract is replayed
+        over them and the proposed step is checked with the same automata the
+        replay uses. A trace that cannot be read refuses as
+        ``procedure_trace_unavailable``; a step that would violate refuses as
+        ``procedure_violation``. Liveness obligations never block a step.
+        """
+        self._procedure = (contract, trace_for)
+
+    def _procedure_refusal(self, lease: ExecutionLease, tool_name: str,
+                           arguments: Any) -> str | None:
+        if self._procedure is None:
+            return None
+        from remora.governance.procedure import Step, replay
+
+        contract, trace_for = self._procedure
+        try:
+            trace = trace_for(lease)
+        except Exception:  # noqa: BLE001 - an unreadable history is not an empty one
+            return "procedure_trace_unavailable"
+        refused = replay(contract, trace).admits(
+            Step(tool_name, arguments if isinstance(arguments, dict) else {}))
+        if not refused:
+            return None
+        governance_event(
+            "dispatch.procedure_refused", level=logging.WARNING,
+            tenant_id=lease.tenant_id, tool_name=tool_name,
+            proposal_id=lease.proposal_id, contract_id=contract.contract_id,
+            obligations=list(refused))
+        return "procedure_violation"
+
+    def bind_state_revisions(self, reader: "RevisionReader") -> None:
+        """Supply current state revisions, so a plan's premises are re-read
+        immediately before the write it justified (Q7.5)."""
+        self._revisions = reader
+
+    def _plan_refusal(self, lease: ExecutionLease,
+                      plan: "PlanBinding | None") -> str | None:
+        from remora.governance.plan_binding import revalidate
+
+        if not lease.plan_binding_hash:
+            return None
+        if plan is None:
+            return "plan_binding_required"
+        if not hmac.compare_digest(plan.digest(), lease.plan_binding_hash):
+            return "plan_binding_mismatch"
+        if self._revisions is None:
+            # The lease asserts premises and this process cannot read them.
+            return "plan_state_unverifiable"
+        check = revalidate(plan, self._revisions)
+        if check.refusal is not None:
+            governance_event(
+                "dispatch.plan_refused", level=logging.WARNING,
+                tenant_id=lease.tenant_id, tool_name=lease.tool_name,
+                proposal_id=lease.proposal_id, plan_id=plan.plan_id,
+                reason=check.refusal, moved=list(check.moved_dependencies),
+                unreadable=list(check.unreadable))
+        return check.refusal
 
     def registered_tool_names(self) -> tuple[str, ...]:
         """A detached view of this executor's registry, not agent visibility."""
@@ -702,6 +860,24 @@ class GovernedToolDispatcher:
         with self._registry_lock:
             self._tools[tool_name] = fn
             self._registry_versions[tool_name] = self._registry_versions.get(tool_name, 0) + 1
+
+    def _record_outcome(self, lease: ExecutionLease, tool_name: str,
+                        intent_seq: int | None, outcome: str) -> None:
+        """Append the outcome after the effect. Cannot refuse any more, so a
+        failure is surfaced as an ERROR event rather than raised."""
+        if intent_seq is None:
+            return
+        from remora.audit.recorder import RecorderUnavailable
+
+        try:
+            self._record(lease, tool_name, "outcome", intent_seq=intent_seq,
+                         outcome=outcome)
+        except RecorderUnavailable as exc:
+            governance_event(
+                "dispatch.recorder_outcome_unrecorded", level=logging.ERROR,
+                tenant_id=lease.tenant_id, tool_name=tool_name,
+                proposal_id=lease.proposal_id, intent_seq=intent_seq,
+                outcome=outcome, detail=str(exc))
 
     @staticmethod
     def _runtime_refusal(lease: ExecutionLease) -> str | None:
@@ -749,6 +925,7 @@ class GovernedToolDispatcher:
         now: str | None = None,
         actor_identity: str | None = None,
         task_identity: "TaskIdentity | None" = None,
+        plan: "PlanBinding | None" = None,
     ) -> DispatchResult:
         """Execute ``tool_name`` iff the lease covers this exact call.
 
@@ -855,7 +1032,11 @@ class GovernedToolDispatcher:
         # may legitimately run anywhere. It is checked BEFORE the nonce is
         # consumed, so a rejected runtime does not burn a single-use nonce and
         # turn an authorization failure into an unknown-state incident.
-        runtime_refusal = self._runtime_refusal(lease)
+        runtime_refusal = (
+            self._runtime_refusal(lease)
+            or self._effect_refusal(lease, tool_name, arguments, target_environment or "")
+            or self._plan_refusal(lease, plan)
+            or self._procedure_refusal(lease, tool_name, arguments))
         if runtime_refusal is not None:
             governance_event(
                 "dispatch.refused", level=logging.WARNING,
@@ -865,6 +1046,24 @@ class GovernedToolDispatcher:
             )
             return DispatchResult(
                 executed=False, refusal_reason=runtime_refusal,
+                proposal_id=proposal_id,
+            )
+
+        # Q7.6: recorded outside this process before anything is spent. A
+        # refusal here leaves the nonce unspent, like every refusal above.
+        from remora.audit.recorder import RecorderUnavailable
+
+        try:
+            recorder_seq = self._record(lease, tool_name, "intent")
+        except RecorderUnavailable as exc:
+            governance_event(
+                "dispatch.refused", level=logging.ERROR,
+                reason="recorder_unavailable", tenant_id=tenant_id,
+                tool_name=tool_name, proposal_id=proposal_id,
+                grant_jti=lease.grant_jti, detail=str(exc),
+            )
+            return DispatchResult(
+                executed=False, refusal_reason="recorder_unavailable",
                 proposal_id=proposal_id,
             )
 
@@ -935,6 +1134,7 @@ class GovernedToolDispatcher:
         # execution
         try:
             res = fn(arguments)
+            self._record_outcome(lease, tool_name, recorder_seq, "executed")
             governance_event(
                 "dispatch.executed",
                 tenant_id=tenant_id, tool_name=tool_name,
@@ -943,13 +1143,14 @@ class GovernedToolDispatcher:
             )
             return DispatchResult(
                 executed=True, result=res, proposal_id=proposal_id,
-                dispatch_began=True,
+                dispatch_began=True, recorder_seq=recorder_seq,
             )
         except Exception as e:
             # Burn is recorded with its reason so failure() can surface it;
             # the nonce stays consumed — state at the tool is unknown.
             if hasattr(self._ledger, "fail_consume"):
                 self._ledger.fail_consume(lease.nonce, str(e))
+            self._record_outcome(lease, tool_name, recorder_seq, "state_unknown")
             # The single most alert-worthy condition in the system used to
             # raise a bare RuntimeError with no log line and no distinct type
             # (issue #45 item 2). It is now both: an ERROR-level governance

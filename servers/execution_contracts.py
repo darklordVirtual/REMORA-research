@@ -221,6 +221,27 @@ class DerivationProposal(BaseModel):
     model_config = {"extra": "forbid"}
 
 
+class PlanProposal(BaseModel):
+    """The premises a write's plan rests on (Q7.5).
+
+    ``reads`` maps each resource the plan read to the revision it saw;
+    ``depends_on`` names the reads this write depends on. The server signs
+    the plan into the lease and re-reads the dependencies immediately before
+    the write, so a plan whose premises moved is refused as ``stale_plan``.
+    """
+
+    plan_id: str = Field(..., min_length=1, max_length=200)
+    reads: dict[str, str] = Field(..., max_length=256)
+    depends_on: list[str] = Field(default_factory=list, max_length=256)
+
+    @model_validator(mode="after")
+    def _dependencies_were_read(self) -> "PlanProposal":
+        from remora.governance.plan_binding import PlanBinding
+
+        PlanBinding.from_dict(self.model_dump())  # raises for an unread dependency
+        return self
+
+
 class ToolCallRequest(BaseModel):
     """The PROPOSAL only (issue #34 trust boundary; full-args binding kept).
 
@@ -265,6 +286,7 @@ class ToolCallRequest(BaseModel):
     # context's loop safety state (remora/governance/loop_safety.py).
     context_id: str | None = Field(None, min_length=1, max_length=200)
     task_id: str | None = Field(None, min_length=1, max_length=200)
+    plan: PlanProposal | None = None
 
     @model_validator(mode="after")
     def _task_identity_is_whole(self) -> "ToolCallRequest":

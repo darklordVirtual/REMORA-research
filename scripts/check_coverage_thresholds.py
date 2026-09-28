@@ -95,6 +95,7 @@ FILE_THRESHOLDS: dict[str, float] = {
     # ADR-B. Same shape as gate.py: the Postgres and D1 backend branches are
     # not reachable in this run, and the in-process logic around them is.
     "remora/enforcement/nonce_store.py": 80.5,  # 80.67
+    "remora/enforcement/resolved_effect.py": 96.0,  # 96.30 measured 2026-09-28 (Q7.4)
     # ADR-A. The uncovered remainder is the import-error path for the optional
     # 'cryptography' extra, which is exercised by monkeypatch rather than by
     # actually uninstalling the package mid-run.

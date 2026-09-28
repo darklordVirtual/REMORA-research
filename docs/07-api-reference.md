@@ -447,6 +447,26 @@ tenant chain, and keeps the earlier events. Both routes need `review`.
 off by default because callers must first send the fields. The loop limits
 are defaults that no study has calibrated.
 
+**Checks between authority and effect (WS7, all opt-in):** each setting
+below binds one check into the governed dispatcher. Every check runs after
+the lease verifies and before the nonce is consumed, so a refusal leaves the
+lease unspent. An unset setting leaves dispatch as it was.
+
+| Setting | Check | Refusals |
+|---|---|---|
+| `REMORA_EFFECT_REGISTRY_MODULE` (`build_resolver()`) | The implementation, resource and effect kind a call resolves to are signed into the lease and resolved again at dispatch | `resolved_effect_mismatch`, `unresolved_reference` |
+| `REMORA_STATE_REVISION_MODULE` (`read_revision(resource)`) | A call may carry `plan` (`plan_id`, `reads`, `depends_on`); its dependencies are re-read before the write | `stale_plan`, `plan_state_unverifiable` |
+| `REMORA_RECORDER_ADDRESS` with `REMORA_RECORDER_MANDATORY_TOOLS` | The intent is appended to the independent recorder (`python -m remora.audit.recorder`) before the named tools run | `recorder_unavailable` |
+| `REMORA_PROCEDURE_MODULE` (`contract()`, `trace_for(lease)`) | A step that would violate the procedure's safety obligations is refused before it runs | `procedure_violation`, `procedure_trace_unavailable` |
+
+The evidence export (`GET /proposals/{proposal_id}/evidence`) carries an
+`evidence_coverage` section in its hashed manifest. It says, for the claims
+`authorized_execution_v1` and `executed_effect_v1`, whether the evidence is
+`COMPLETE`, `AUTHENTIC_BUT_INCOMPLETE`, `INCONCLUSIVE` or `TAMPERED`, and
+what is missing. A plan is signed into the lease when the call is executed,
+not into the ACCEPT token at assessment. It guards against premises that
+moved, not against a different plan presented later.
+
 **Authentication modes:** token-table mode (`REMORA_API_TOKENS`) maps each
 bearer token to a fixed tenant and role; callers cannot forge either.
 Single-token mode (`REMORA_API_BEARER_TOKEN`) reads tenant/role from

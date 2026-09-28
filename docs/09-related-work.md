@@ -501,6 +501,71 @@ and does not prove the presenter holds a key. Nothing here should be read as
 closing the AGNTCY profile's PoP requirement, and REMORA claims no PoP at
 this revision.
 
+## 12. From Authority to Effect
+
+REMORA's earlier lines bind an authorization to the exact call, and
+recompute that binding before dispatch. Quality program WS7 asks what
+happens between a correct binding and a correct effect. Each item below
+takes one rule from one source, implements it where REMORA already
+enforces, and states what it does not take. RES-014 to RES-019 map the code,
+tests and artifacts.
+
+**When the gate itself is wrong (RES-019).** Zhang, Kweon and Han (2026)
+report that enforcement is bounded by the correctness of its state and of
+the matcher that maps requests to steps. REMORA measured its own version of
+that in a pre-registered study with seven validator faults
+(`NEGATIVE_RESULTS.md` §60). A lenient matcher turned the gate into the
+source of unsafe accepts, and failing open converted unavailability into
+accepts at roughly its own rate. Stale or incomplete state cost autonomy
+instead of safety. No fault let a write through without review.
+
+**Authentic is not complete (RES-014).** An audit chain that verifies says
+nothing about whether it holds enough. The evidence export now reports, per
+claim, whether the evidence is complete, authentic but incomplete,
+inconclusive or tampered. An executed call with no effect observation is
+authentic and incomplete for the claim "it happened as intended". No
+external source is claimed for this; it builds on RES-013's recheckable
+effect evidence.
+
+**The effect the call resolves to (RES-015).** Iyer (2026) resolves a tool
+reference against a closed, known set before acting on it. REMORA applies
+that at both ends of the lease. The resolved implementation, resource and
+effect kind are signed into it, and the executor resolves again. An alias
+retargeted, a resource redirected or an implementation remapped after
+approval refuses, and a reference the registry does not know is refused
+rather than guessed. The committed fixtures
+(`artifacts/resolved_effect/fixtures_v1.json`) reproduce all seven cases.
+
+**The premises of a plan (RES-016).** Chen, Wang and Brinton (2026) validate
+a plan against the state it depends on, not against all state. A REMORA
+lease can now carry the revisions a plan read and name the reads the write
+depends on. A moved dependency refuses as `stale_plan`, and a moved
+irrelevant read does not. Validating against everything would refuse far
+more correct work, and a control that refuses correct work is switched off.
+
+**Evidence outside the agent's process (RES-017).** Qin, Schmotz, Prinzhorn
+et al. (2026) report agents deleting their own traces without tripping
+guardrails. Every REMORA chain was written by the process that acts. The
+reference recorder runs as a separate process with append-only storage and
+no delete operation. For the tools a deployment names, the dispatcher
+records the intent there before anything is spent, and refuses when the
+recorder is down. How separate the process really is depends on the
+deployment's OS boundary, which REMORA does not configure.
+
+**Procedure and completion (RES-018).** Singh, Kumar, Agarwal et al. (2026)
+match procedural obligations against traces. Xiao and Nuzzo (2026)
+supervise tool-call traces with temporal contracts, and Smyth,
+Mantilla-Ramos, Tikeng Notsawo et al. (2026) measure agents claiming
+completion they did not reach. REMORA takes a small finite-state part: four
+obligation shapes, one monitor used both online and in replay, and
+completion derived from the trace. A completion claim the trace does not
+establish is flagged as an overclaim. General temporal logic, and matching
+natural-language procedures, are not implemented.
+
+Every item is strictly narrowing: it adds a refusal before an effect or a
+verdict about evidence, and grants nothing. None of the sources' own
+measurements is reproduced, and none is claimed.
+
 ## Positioning Statement
 
 REMORA is a nested governance control plane for long-running agentic AI:

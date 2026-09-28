@@ -1250,6 +1250,25 @@ export interface components {
              */
             reason: string;
         };
+        /**
+         * PlanProposal
+         * @description The premises a write's plan rests on (Q7.5).
+         *
+         *     ``reads`` maps each resource the plan read to the revision it saw;
+         *     ``depends_on`` names the reads this write depends on. The server signs
+         *     the plan into the lease and re-reads the dependencies immediately before
+         *     the write, so a plan whose premises moved is refused as ``stale_plan``.
+         */
+        PlanProposal: {
+            /** Depends On */
+            depends_on?: string[];
+            /** Plan Id */
+            plan_id: string;
+            /** Reads */
+            reads: {
+                [key: string]: string;
+            };
+        };
         /** PolicyDecision */
         PolicyDecision: {
             /** Action */
@@ -1412,6 +1431,7 @@ export interface components {
             idempotency_key?: string | null;
             /** Intent Ref */
             intent_ref?: string | null;
+            plan?: components["schemas"]["PlanProposal"] | null;
             /** Rollback Available */
             rollback_available?: boolean | null;
             /** Schema Valid */

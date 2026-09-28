@@ -40,6 +40,13 @@ alongside any A2A request:
   ``task_id`` naming the task the request was delegated under
   (:mod:`remora.governance.task_identity`). They enter the signed payload only
   when set, so an envelope without them signs the same bytes as before.
+- **Declared operation** — an optional ``declared_operation``: the action and
+  resources this hop says it will touch, between the opaque
+  ``requested_scope`` and the exact ``tool_call_hash``. The rule is
+  ``actual ⊆ declared ⊆ authorized``: the declared action must be in the
+  requested and delegated scope, and the operation a verifier observes must
+  lie inside the declaration. A declaration only narrows; an absent one
+  never widens, because the observed action must still be authorized.
 
 Scope strings are opaque capability names (e.g. ``"workorder:read"``,
 ``"workorder:propose_change"``). Hierarchical wildcard matching is
@@ -137,6 +144,22 @@ def sign_delegation_link(link: DelegationLink, *, key: bytes, kid: str) -> Deleg
 
 
 @dataclass(frozen=True)
+class DeclaredOperation:
+    """The action and resources a hop declares it will touch.
+
+    ``action`` is a capability name from the same vocabulary as
+    ``requested_scope``. ``resources`` are opaque identifiers, compared and
+    never parsed; an empty tuple declares no resource and so covers none.
+    """
+
+    action: str
+    resources: tuple[str, ...]
+
+    def covers(self, action: str, resource: str) -> bool:
+        return action == self.action and resource in self.resources
+
+
+@dataclass(frozen=True)
 class RegisteredKey:
     """A key-registry entry binding key material to a principal.
 
@@ -186,6 +209,8 @@ class A2AGovernanceEnvelope:
     # before they existed keeps its bytes and its signature.
     context_id: str | None = None
     task_id: str | None = None
+    # Signed only when set, like the task fields.
+    declared_operation: DeclaredOperation | None = None
     signature: str = ""
     is_signed: bool = False
     # Non-signed convenience metadata (display only; never trusted).
@@ -225,6 +250,7 @@ class A2AGovernanceEnvelope:
         expires_at: str | None = None,
         signing_key: bytes | None = None,
         task_identity: "TaskIdentity | None" = None,
+        declared_operation: DeclaredOperation | None = None,
     ) -> A2AGovernanceEnvelope:
         """Create an envelope, signed when a key is available.
 
@@ -248,6 +274,7 @@ class A2AGovernanceEnvelope:
             tool_call_hash=tool_call_hash,
             context_id=task_identity.context_id if task_identity else None,
             task_id=task_identity.task_id if task_identity else None,
+            declared_operation=declared_operation,
         )
         key = signing_key if signing_key is not None else _get_signing_key()
         if key is None:
@@ -273,6 +300,7 @@ class A2AGovernanceEnvelope:
         replay_guard: Callable[[str], bool] | None = None,
         strict: bool = True,
         expected_task_identity: "TaskIdentity | None" = None,
+        actual_operation: tuple[str, str] | None = None,
     ) -> VerificationResult:
         """Verify integrity, accountability, and delegation attenuation.
 
@@ -315,6 +343,14 @@ class A2AGovernanceEnvelope:
             when it names none, ``task_mismatch`` when it names another. Not
             part of ``strict``, because no caller supplies a task identity
             yet; a malformed identity (one half only) fails regardless.
+        actual_operation:
+            ``(action, resource)`` the receiving side is about to perform.
+            With a declaration it must lie inside it
+            (``actual_operation_exceeds_declaration``); without one, the
+            action must still be in the delegated scope
+            (``actual_operation_exceeds_authority``). A declared action outside
+            the requested or delegated scope fails whether or not this is
+            given (``declared_operation_exceeds_authority``).
         """
         failures: list[str] = []
 
@@ -403,6 +439,23 @@ class A2AGovernanceEnvelope:
                     failures.append("task_unbound")
                 elif not expected_task_identity.matches(bound_task):
                     failures.append("task_mismatch")
+
+        # 7c. Declared operation: actual ⊆ declared ⊆ authorized.
+        authorized = set(self.requested_scope) & self.effective_scope()
+        declared = self.declared_operation
+        if declared is not None:
+            if not isinstance(declared, DeclaredOperation) or not declared.action:
+                failures.append("malformed_declared_operation")
+                declared = None
+            elif declared.action not in authorized:
+                failures.append("declared_operation_exceeds_authority")
+        if actual_operation is not None:
+            action, resource = actual_operation
+            if declared is not None:
+                if not declared.covers(action, resource):
+                    failures.append("actual_operation_exceeds_declaration")
+            elif action not in authorized:
+                failures.append("actual_operation_exceeds_authority")
 
         # 8. Delegation chain attenuation (+ per-link signatures if registry given).
         failures.extend(self._verify_delegation_chain(link_keys))
@@ -579,6 +632,18 @@ class A2AGovernanceEnvelope:
                 })
                 for link in chain_data
             )
+            declared_data = data.pop("declared_operation", None)
+            declared = None
+            if declared_data is not None:
+                if not isinstance(declared_data, dict) or not isinstance(
+                        declared_data.get("action"), str):
+                    raise TypeError("declared_operation must be an object with an action")
+                declared = DeclaredOperation(
+                    action=declared_data["action"],
+                    resources=tuple(_require_str_list(
+                        declared_data.get("resources"), "declared_operation.resources")),
+                )
+            data["declared_operation"] = declared
             data["requested_scope"] = tuple(
                 _require_str_list(data.get("requested_scope") or [], "requested_scope")
             )
@@ -601,8 +666,8 @@ class A2AGovernanceEnvelope:
 
 
 def _drop_absent_task(data: dict) -> None:
-    """Remove None-valued task fields in place (see ``context_id``)."""
-    for key in ("context_id", "task_id"):
+    """Remove None-valued optional signed fields in place (see ``context_id``)."""
+    for key in ("context_id", "task_id", "declared_operation"):
         if data.get(key) is None:
             data.pop(key, None)
 

@@ -1109,11 +1109,30 @@ def task_identity_of(tool_call: Any) -> TaskIdentity | None:
     })
 
 
+def plan_binding_of(tool_call: Any) -> Any:
+    """The plan a proposal carries (Q7.5), or None. Raises ValueError when
+    the plan is malformed, so a bad plan is refused rather than dropped."""
+    raw = getattr(tool_call, "plan", None)
+    if raw is None:
+        return None
+    from remora.governance.plan_binding import PlanBinding
+
+    data = raw.model_dump() if hasattr(raw, "model_dump") else raw
+    return PlanBinding.from_dict(data)
+
+
 def _task_kwargs(tool_call: Any) -> dict[str, Any]:
-    """``task_identity`` for a dispatch call, omitted when the call names none,
-    so a dispatcher binding that predates the parameter keeps working."""
+    """``task_identity`` and ``plan`` for a dispatch call, each omitted when
+    the call carries none, so a dispatcher binding that predates the
+    parameters keeps working."""
+    out: dict[str, Any] = {}
     task = task_identity_of(tool_call)
-    return {"task_identity": task} if task is not None else {}
+    if task is not None:
+        out["task_identity"] = task
+    plan = plan_binding_of(tool_call)
+    if plan is not None:
+        out["plan"] = plan
+    return out
 
 
 def redeem_accept_token(

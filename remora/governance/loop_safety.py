@@ -41,6 +41,7 @@ defaults, not calibrated values.
 """
 from __future__ import annotations
 
+import contextlib
 import threading
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
@@ -228,8 +229,7 @@ class DurableLoopSafetyStore:
             import psycopg
             return psycopg.connect(self._dsn)
         if self._db_path:
-            import sqlite3
-            return sqlite3.connect(self._db_path)
+            return _closing_sqlite(self._db_path)
         from remora.persistence import d1_connection
         return d1_connection.connect(self._state_endpoint)
 
@@ -379,6 +379,23 @@ class LoopSafetyMonitor:
             detail += f"; reason={reason}"
         self._store.append(tenant_id=tenant_id, context_id=context_id, task_id="",
                            tool_name="", signals=(_RESET,), detail=detail)
+
+
+@contextlib.contextmanager
+def _closing_sqlite(path: str) -> Any:
+    """Committed on success, rolled back on error, and always closed.
+
+    ``sqlite3.connect`` used as a context manager commits but never closes,
+    which would leak one handle per observation on a busy API.
+    """
+    import sqlite3
+
+    conn = sqlite3.connect(path)
+    try:
+        with conn:
+            yield conn
+    finally:
+        conn.close()
 
 
 def _require_scope(tenant_id: str, context_id: str) -> None:

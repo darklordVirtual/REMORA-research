@@ -6,7 +6,7 @@
 
 The machine-checked chain from research source to tested code, one row per research line. Every code and test path below is verified to exist on disk by CI; the literature narrative lives in [docs/09-related-work.md](../09-related-work.md).
 
-Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, updated 2026-09-27).
+Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, updated 2026-09-28).
 
 ## Summary
 
@@ -26,6 +26,12 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | RES-011 | SDAD-inspired content-bound specification intake | `signed_context_manifest`, `evidence_vector_spec_intake` | `conceptual_translation_implemented` |
 | RES-012 | Task-bound execution authority and non-decaying loop state | `task_identity_binding`, `authorization_context_task_fields`, `execution_lease_task_fields`, `a2a_envelope_task_fields`, `context_scoped_loop_safety_store` | `implemented_and_tested` |
 | RES-013 | Observed runtime surface, authority paths and recheckable effect evidence | `surface_completeness_comparison`, `assessment_dispatch_continuity`, `bounded_authority_path_analysis`, `independent_effect_recheck` | `implemented_and_tested` |
+| RES-014 | Evidence completeness against claim contracts | `evidence_coverage_verdict`, `chain_derived_authenticity` | `implemented_and_tested` |
+| RES-015 | Closed-world resolved-effect binding | `resolved_effect_digest_in_lease`, `dispatch_time_re_resolution` | `implemented_and_tested` |
+| RES-016 | Dependency-scoped plan validity (PlanFence) | `plan_binding_digest_in_lease`, `dispatch_time_revision_recheck` | `implemented_and_tested` |
+| RES-017 | Evidence captured outside the agent's process | `separate_process_append_only_recorder`, `record_before_effect_fail_closed` | `implemented_and_tested` |
+| RES-018 | Procedure obligations and derived completion | `finite_state_obligation_monitor`, `pre_dispatch_procedure_refusal`, `overclaim_flag` | `implemented_and_tested` |
+| RES-019 | Measured correctness of the enforcement gate itself | `preregistered_gate_fault_study` | `empirically_evaluated_adaptation` |
 
 ## RES-001; Causal post-hoc explainability and concept interventions
 
@@ -231,29 +237,123 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 - Literature: [docs/09-related-work.md](../../docs/09-related-work.md) §4
 - Landscape (local compendium): Internal implementation from discussion-derived requirements; external thread claims are not treated as verified literature.
 
+## RES-014; Evidence completeness against claim contracts
+
+- Source: REMORA internal research question (2026-09-28): quality program WS7 item Q7.3, built on RES-013's recheckable effect evidence; not an adopted external publication. (idea family / generic construct; attributed via docs/09-related-work.md, not cited in code)
+  - docs/design/remora-quality-program-v1.md WS7 Q7.3
+- Concepts: authentic_is_not_complete, claim_scoped_evidence_contract
+- REMORA controls: evidence_coverage_verdict, chain_derived_authenticity
+- Code: [`remora/governance/evidence_coverage.py`](../../remora/governance/evidence_coverage.py), [`servers/execution_api.py`](../../servers/execution_api.py)
+- Tests: [`tests/test_evidence_coverage.py`](../../tests/test_evidence_coverage.py)
+- Evidence: An evidence contract names the kinds a claim needs; assess_coverage returns TAMPERED, INCONCLUSIVE, AUTHENTIC_BUT_INCOMPLETE or COMPLETE, in that precedence, and lists missing kinds on every verdict. Authenticity of a proposal's chain entries is derived from the tenant chain's own verification. The evidence export reports two contracts: an executed proposal with no effect observation is AUTHENTIC_BUT_INCOMPLETE for executed_effect_v1, a verified observation completes it, an EFFECT_UNSUPPORTED record does not, and a rewritten chain entry reads TAMPERED (tests/test_evidence_coverage.py).
+- Maturity: `implemented_and_tested`
+- Scope boundary: Two contracts are defined, over the tenant chain's event kinds only. Coverage says whether the named kinds are present and intact; it does not judge whether an effect observation was itself correct, which is RES-013's recheck. A contract is only as complete as the kinds its author listed.
+- Literature: [docs/09-related-work.md](../../docs/09-related-work.md) §12
+- Landscape (local compendium): Internal requirement; no external source is claimed for it.
+
+## RES-015; Closed-world resolved-effect binding
+
+- Source: Iyer, L. G. (2026). Closed-World Resolution Against Tool Hallucination in LLM Agents. arXiv:2609.19425. (cited in code; anchor `2609.19425`; CI-verified)
+  - closed-world resolution of a tool reference before it is acted on
+- Concepts: closed_world_resolution, authority_binds_effect_not_call
+- REMORA controls: resolved_effect_digest_in_lease, dispatch_time_re_resolution
+- Code: [`remora/enforcement/resolved_effect.py`](../../remora/enforcement/resolved_effect.py), [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py), [`remora/execution/dispatch.py`](../../remora/execution/dispatch.py), [`scripts/generate_resolved_effect_fixtures.py`](../../scripts/generate_resolved_effect_fixtures.py), [`artifacts/resolved_effect/fixtures_v1.json`](../../artifacts/resolved_effect/fixtures_v1.json)
+- Tests: [`tests/test_resolved_effect_binding.py`](../../tests/test_resolved_effect_binding.py)
+- Evidence: Reproduce with python scripts/generate_resolved_effect_fixtures.py --check. Of seven fixture cases, alias retargeting, a resource redirect and an implementation remap refuse at dispatch as resolved_effect_mismatch with the tool never run; an unknown alias and an unknown resource refuse as unresolved_reference; an unchanged registry and a change to an unrelated entry execute. The digest is frozen in a golden test, signed only when set, and a refusal does not burn the nonce.
+- Maturity: `implemented_and_tested`
+- Scope boundary: The registry is deployment configuration and is not checked for correctness; an adapter that resolves differently from the registry it declares is outside what REMORA can see. Iyer's evaluation of tool hallucination is not reproduced; only the closed-world rule is taken.
+- Literature: [docs/09-related-work.md](../../docs/09-related-work.md) §12
+- Landscape (local compendium): September 2026 source, postdates the compendium; identifier checked against the arXiv record on 2026-09-28.
+
+## RES-016; Dependency-scoped plan validity (PlanFence)
+
+- Source: Chen, E., Wang, S. & Brinton, C. G. (2026). Fresh Memory, Stale Plans: Dependency-Scoped Validation for Distributed LLM-Agent Memory. arXiv:2609.03340. (cited in code; anchor `2609.03340`; CI-verified)
+  - validate a plan against the state it depends on, not against all state
+- Concepts: plan_premise_binding, dependency_scoped_validation
+- REMORA controls: plan_binding_digest_in_lease, dispatch_time_revision_recheck
+- Code: [`remora/governance/plan_binding.py`](../../remora/governance/plan_binding.py), [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py)
+- Tests: [`tests/test_plan_binding.py`](../../tests/test_plan_binding.py)
+- Evidence: A write whose plan depended on a resource that moved refuses as stale_plan with the tool never run; a moved read the write does not depend on is ignored; an unreadable dependency refuses as plan_state_unverifiable; a lease naming a plan refuses without it or with a different one; a refusal leaves the nonce unspent (tests/test_plan_binding.py).
+- Maturity: `implemented_and_tested`
+- Scope boundary: Revisions come from a provider the deployment supplies and are compared, never interpreted. Which reads a write depends on is declared by the plan's author; an under-declared dependency is not detected. The paper's distributed-memory setting and its measurements are not reproduced.
+- Literature: [docs/09-related-work.md](../../docs/09-related-work.md) §12
+- Landscape (local compendium): September 2026 source, postdates the compendium; identifier checked against the arXiv record on 2026-09-28.
+
+## RES-017; Evidence captured outside the agent's process
+
+- Source: Qin, J., Schmotz, D., Prinzhorn, D. et al. (2026). LLM Agents Can Easily Tamper With Their Own Traces. arXiv:2609.30266. (cited in code; anchor `2609.30266`; CI-verified)
+  - agents delete their own traces without tripping guardrails; capture outside the agent's control
+- Concepts: trace_tampering, independent_capture
+- REMORA controls: separate_process_append_only_recorder, record_before_effect_fail_closed
+- Code: [`remora/audit/recorder.py`](../../remora/audit/recorder.py), [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py)
+- Tests: [`tests/test_independent_recorder.py`](../../tests/test_independent_recorder.py)
+- Evidence: Tests start the recorder as a separate interpreter. The protocol has no delete, update, truncate or reset; the store's triggers abort UPDATE and DELETE; a deletion made after dropping them is detected against the receipt. For a tool the deployment names, the dispatcher records the intent before the nonce is spent and refuses as recorder_unavailable when the recorder is down, leaving the nonce unspent; the outcome, including state_unknown for a tool that raised, is recorded after.
+- Maturity: `implemented_and_tested`
+- Scope boundary: Reference implementation. Separation is only as strong as the deployment's OS boundary (another user, host or socket permissions), which REMORA does not configure. The durable, independently operated sink is an owner decision overlapping REM-025. The paper's harness measurements are not reproduced.
+- Literature: [docs/09-related-work.md](../../docs/09-related-work.md) §12
+- Landscape (local compendium): September 2026 source, postdates the compendium; identifier checked against the arXiv record on 2026-09-28.
+
+## RES-018; Procedure obligations and derived completion
+
+- Source: Singh, P., Kumar, S., Agarwal, A. et al. (2026). ContractEval: Query-Conditioned Execution Matching for Procedural Instruction Conformance. arXiv:2609.09458. (cited in code; anchor `2609.09458`; CI-verified)
+  - procedural obligations matched against execution traces
+  - builds on: Xiao, Y. & Nuzzo, P. (2026). Symbolic Temporal Supervision of LLM Agents Using Contracts. arXiv:2609.18128 (temporal contracts over tool-call traces).
+  - builds on: Smyth, N., Mantilla-Ramos, Y.-J., Tikeng Notsawo, P. Jr et al. (2026). Quantifying Overclaiming Propensity in Frontier LLM Agents. arXiv:2609.20812 (completion claims agents did not reach).
+- Concepts: trace_level_obligation, online_and_replay_equivalence, completion_is_derived
+- REMORA controls: finite_state_obligation_monitor, pre_dispatch_procedure_refusal, overclaim_flag
+- Code: [`remora/governance/procedure.py`](../../remora/governance/procedure.py), [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py)
+- Tests: [`tests/test_procedure_contracts.py`](../../tests/test_procedure_contracts.py)
+- Evidence: Four obligation shapes (precedence, absence, response, existence) are finite automata. An exhaustive test over all 1296 traces of length four from six tools pins that stepping live and replaying agree on every prefix, and that the online admits() check predicts exactly the safety violations step() records. derive_completion returns NOT_ESTABLISHED for a pending response or an empty trace, VIOLATED for any violation, and flags a completion claim the trace does not establish as an overclaim. The dispatcher refuses a violating step before it runs and refuses when the history cannot be read.
+- Maturity: `implemented_and_tested`
+- Scope boundary: Steps are matched on tool name and exact argument fields; ContractEval's query-conditioned matching of natural-language procedures, general temporal logic and assume-guarantee composition are not implemented. The trace comes from the deployment's own record. No model's overclaiming propensity is measured.
+- Literature: [docs/09-related-work.md](../../docs/09-related-work.md) §12
+- Landscape (local compendium): September 2026 sources, postdate the compendium; all three identifiers checked against the arXiv record on 2026-09-28.
+
+## RES-019; Measured correctness of the enforcement gate itself
+
+- Source: Zhang, C., Kweon, W. & Han, J. (2026). How Strongly Should Task State Influence an LLM Agent? arXiv:2609.25686. (idea family / generic construct; attributed via docs/09-related-work.md, not cited in code)
+  - enforcement is bounded by the correctness of its state and of the matcher
+- Concepts: gate_correctness, validator_fault_injection
+- REMORA controls: preregistered_gate_fault_study
+- Code: [`experiments/gate_correctness_study.py`](../../experiments/gate_correctness_study.py), [`experiments/gate_correctness/PREREGISTERED.md`](../../experiments/gate_correctness/PREREGISTERED.md), [`results/gate_correctness_study_v1.json`](../../results/gate_correctness_study_v1.json)
+- Tests: [`tests/test_gate_correctness_fixture.py`](../../tests/test_gate_correctness_fixture.py)
+- Evidence: Pre-registered study over the 540 fleetops episodes with seven validator arms, regenerated in CI. A lenient prefix matcher let 0.667 of corrupt calls through and every corrupt read; failing open let 0.078 through; a stale or partial index cost valid-read acceptance (0.850 and 0.667); no gated arm auto-accepted a write. Five of seven predictions were met and the two misses are NEGATIVE_RESULTS.md §60 (open).
+- Maturity: `empirically_evaluated_adaptation`
+- Scope boundary: One synthetic domain and one engine configuration; N is small (90 corrupt calls). The retired-identifier path of a stale snapshot is not sampled. The source's own model experiments are not reproduced.
+- Literature: [docs/09-related-work.md](../../docs/09-related-work.md) §12
+- Landscape (local compendium): September 2026 source, postdates the compendium; identifier checked against the arXiv record on 2026-09-28. Cited in the study's pre-registration rather than in remora/.
+
 ## Reverse index: code → research
 
 | Code file | Research line(s) |
 |-----------|------------------|
+| [`artifacts/resolved_effect/fixtures_v1.json`](../../artifacts/resolved_effect/fixtures_v1.json) | RES-015 |
 | [`artifacts/runtime_surface/negative_cases_v1.json`](../../artifacts/runtime_surface/negative_cases_v1.json) | RES-013 |
 | [`artifacts/runtime_surface/reference_runtime_v1.json`](../../artifacts/runtime_surface/reference_runtime_v1.json) | RES-013 |
 | [`artifacts/spec_intake/sdad_spec_fidelity_v1.json`](../../artifacts/spec_intake/sdad_spec_fidelity_v1.json) | RES-011 |
 | [`artifacts/task_authority/authorization_context_preimage_v1.json`](../../artifacts/task_authority/authorization_context_preimage_v1.json) | RES-012 |
 | [`docs/enterprise/togaf-enterprise-rollout-plan.md`](../../docs/enterprise/togaf-enterprise-rollout-plan.md) | RES-009 |
 | [`examples/enterprise_demo.py`](../../examples/enterprise_demo.py) | RES-009 |
+| [`experiments/gate_correctness/PREREGISTERED.md`](../../experiments/gate_correctness/PREREGISTERED.md) | RES-019 |
+| [`experiments/gate_correctness_study.py`](../../experiments/gate_correctness_study.py) | RES-019 |
+| [`remora/audit/recorder.py`](../../remora/audit/recorder.py) | RES-017 |
 | [`remora/cascade/stages.py`](../../remora/cascade/stages.py) | RES-004a |
 | [`remora/causal/attribution.py`](../../remora/causal/attribution.py) | RES-001 |
 | [`remora/causal/explanation.py`](../../remora/causal/explanation.py) | RES-001 |
 | [`remora/causal/schema.py`](../../remora/causal/schema.py) | RES-001 |
 | [`remora/causal/search.py`](../../remora/causal/search.py) | RES-001 |
-| [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py) | RES-012, RES-013 |
+| [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py) | RES-012, RES-013, RES-015, RES-016, RES-017, RES-018 |
+| [`remora/enforcement/resolved_effect.py`](../../remora/enforcement/resolved_effect.py) | RES-015 |
 | [`remora/enforcement/token.py`](../../remora/enforcement/token.py) | RES-012 |
-| [`remora/execution/dispatch.py`](../../remora/execution/dispatch.py) | RES-012 |
+| [`remora/execution/dispatch.py`](../../remora/execution/dispatch.py) | RES-012, RES-015 |
 | [`remora/governance/a2a_envelope.py`](../../remora/governance/a2a_envelope.py) | RES-012 |
 | [`remora/governance/context_flow.py`](../../remora/governance/context_flow.py) | RES-008 |
+| [`remora/governance/evidence_coverage.py`](../../remora/governance/evidence_coverage.py) | RES-014 |
 | [`remora/governance/loop_safety.py`](../../remora/governance/loop_safety.py) | RES-012 |
 | [`remora/governance/memory_layers.py`](../../remora/governance/memory_layers.py) | RES-008 |
 | [`remora/governance/nested_governance.py`](../../remora/governance/nested_governance.py) | RES-008 |
+| [`remora/governance/plan_binding.py`](../../remora/governance/plan_binding.py) | RES-016 |
+| [`remora/governance/procedure.py`](../../remora/governance/procedure.py) | RES-018 |
 | [`remora/governance/spec_intake.py`](../../remora/governance/spec_intake.py) | RES-011 |
 | [`remora/governance/task_identity.py`](../../remora/governance/task_identity.py) | RES-012 |
 | [`remora/oracles/diversity.py`](../../remora/oracles/diversity.py) | RES-004a |
@@ -278,10 +378,12 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | [`remora/toolcall/surface_evaluation.py`](../../remora/toolcall/surface_evaluation.py) | RES-013 |
 | [`remora/toolcall/surface_runtime.py`](../../remora/toolcall/surface_runtime.py) | RES-013 |
 | [`remora/verifier/llm_judge.py`](../../remora/verifier/llm_judge.py) | RES-004b |
+| [`results/gate_correctness_study_v1.json`](../../results/gate_correctness_study_v1.json) | RES-019 |
 | [`schemas/spec_intake_v1.yaml`](../../schemas/spec_intake_v1.yaml) | RES-011 |
 | [`scripts/evaluate_runtime_surface.py`](../../scripts/evaluate_runtime_surface.py) | RES-013 |
 | [`scripts/generate_authorization_context_vectors.py`](../../scripts/generate_authorization_context_vectors.py) | RES-012 |
-| [`servers/execution_api.py`](../../servers/execution_api.py) | RES-012 |
+| [`scripts/generate_resolved_effect_fixtures.py`](../../scripts/generate_resolved_effect_fixtures.py) | RES-015 |
+| [`servers/execution_api.py`](../../servers/execution_api.py) | RES-012, RES-014 |
 
 ## Reverse index: control → research → code
 
@@ -293,22 +395,34 @@ Source of truth: `docs/research/research_control_matrix_v1.yaml` (schema 1, upda
 | `authorization_context_task_fields` | RES-012 | [`artifacts/task_authority/authorization_context_preimage_v1.json`](../../artifacts/task_authority/authorization_context_preimage_v1.json), [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py), [`remora/enforcement/token.py`](../../remora/enforcement/token.py), [`remora/execution/dispatch.py`](../../remora/execution/dispatch.py), [`remora/governance/a2a_envelope.py`](../../remora/governance/a2a_envelope.py), [`remora/governance/loop_safety.py`](../../remora/governance/loop_safety.py), [`remora/governance/task_identity.py`](../../remora/governance/task_identity.py), [`scripts/generate_authorization_context_vectors.py`](../../scripts/generate_authorization_context_vectors.py), [`servers/execution_api.py`](../../servers/execution_api.py) |
 | `bounded_authority_path_analysis` | RES-013 | [`artifacts/runtime_surface/negative_cases_v1.json`](../../artifacts/runtime_surface/negative_cases_v1.json), [`artifacts/runtime_surface/reference_runtime_v1.json`](../../artifacts/runtime_surface/reference_runtime_v1.json), [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py), [`remora/toolcall/runtime_surface.py`](../../remora/toolcall/runtime_surface.py), [`remora/toolcall/signed_surface_runtime.py`](../../remora/toolcall/signed_surface_runtime.py), [`remora/toolcall/surface_authority.py`](../../remora/toolcall/surface_authority.py), [`remora/toolcall/surface_effect_evidence.py`](../../remora/toolcall/surface_effect_evidence.py), [`remora/toolcall/surface_evaluation.py`](../../remora/toolcall/surface_evaluation.py), [`remora/toolcall/surface_runtime.py`](../../remora/toolcall/surface_runtime.py), [`scripts/evaluate_runtime_surface.py`](../../scripts/evaluate_runtime_surface.py) |
 | `causal_policy_explanation` | RES-001 | [`remora/causal/attribution.py`](../../remora/causal/attribution.py), [`remora/causal/explanation.py`](../../remora/causal/explanation.py), [`remora/causal/schema.py`](../../remora/causal/schema.py), [`remora/causal/search.py`](../../remora/causal/search.py) |
+| `chain_derived_authenticity` | RES-014 | [`remora/governance/evidence_coverage.py`](../../remora/governance/evidence_coverage.py), [`servers/execution_api.py`](../../servers/execution_api.py) |
 | `conformal_thresholding` | RES-003 | [`remora/selective/binomial_bounds.py`](../../remora/selective/binomial_bounds.py), [`remora/selective/crc.py`](../../remora/selective/crc.py) |
 | `context_flow_governance` | RES-008 | [`remora/governance/context_flow.py`](../../remora/governance/context_flow.py), [`remora/governance/memory_layers.py`](../../remora/governance/memory_layers.py), [`remora/governance/nested_governance.py`](../../remora/governance/nested_governance.py) |
 | `context_scoped_loop_safety_store` | RES-012 | [`artifacts/task_authority/authorization_context_preimage_v1.json`](../../artifacts/task_authority/authorization_context_preimage_v1.json), [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py), [`remora/enforcement/token.py`](../../remora/enforcement/token.py), [`remora/execution/dispatch.py`](../../remora/execution/dispatch.py), [`remora/governance/a2a_envelope.py`](../../remora/governance/a2a_envelope.py), [`remora/governance/loop_safety.py`](../../remora/governance/loop_safety.py), [`remora/governance/task_identity.py`](../../remora/governance/task_identity.py), [`scripts/generate_authorization_context_vectors.py`](../../scripts/generate_authorization_context_vectors.py), [`servers/execution_api.py`](../../servers/execution_api.py) |
 | `continuous_far_monitoring` | RES-010 | [`remora/selective/confidence_sequence.py`](../../remora/selective/confidence_sequence.py) |
+| `dispatch_time_re_resolution` | RES-015 | [`artifacts/resolved_effect/fixtures_v1.json`](../../artifacts/resolved_effect/fixtures_v1.json), [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py), [`remora/enforcement/resolved_effect.py`](../../remora/enforcement/resolved_effect.py), [`remora/execution/dispatch.py`](../../remora/execution/dispatch.py), [`scripts/generate_resolved_effect_fixtures.py`](../../scripts/generate_resolved_effect_fixtures.py) |
+| `dispatch_time_revision_recheck` | RES-016 | [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py), [`remora/governance/plan_binding.py`](../../remora/governance/plan_binding.py) |
 | `enterprise_rollout_reference` | RES-009 | [`docs/enterprise/togaf-enterprise-rollout-plan.md`](../../docs/enterprise/togaf-enterprise-rollout-plan.md), [`examples/enterprise_demo.py`](../../examples/enterprise_demo.py) |
+| `evidence_coverage_verdict` | RES-014 | [`remora/governance/evidence_coverage.py`](../../remora/governance/evidence_coverage.py), [`servers/execution_api.py`](../../servers/execution_api.py) |
 | `evidence_vector_spec_intake` | RES-011 | [`artifacts/spec_intake/sdad_spec_fidelity_v1.json`](../../artifacts/spec_intake/sdad_spec_fidelity_v1.json), [`remora/governance/spec_intake.py`](../../remora/governance/spec_intake.py), [`schemas/spec_intake_v1.yaml`](../../schemas/spec_intake_v1.yaml) |
 | `evidence_verifier` | RES-006 | [`remora/oracles/evidence_v3.py`](../../remora/oracles/evidence_v3.py), [`remora/oracles/evidence_verifier.py`](../../remora/oracles/evidence_verifier.py) |
 | `execution_lease_task_fields` | RES-012 | [`artifacts/task_authority/authorization_context_preimage_v1.json`](../../artifacts/task_authority/authorization_context_preimage_v1.json), [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py), [`remora/enforcement/token.py`](../../remora/enforcement/token.py), [`remora/execution/dispatch.py`](../../remora/execution/dispatch.py), [`remora/governance/a2a_envelope.py`](../../remora/governance/a2a_envelope.py), [`remora/governance/loop_safety.py`](../../remora/governance/loop_safety.py), [`remora/governance/task_identity.py`](../../remora/governance/task_identity.py), [`scripts/generate_authorization_context_vectors.py`](../../scripts/generate_authorization_context_vectors.py), [`servers/execution_api.py`](../../servers/execution_api.py) |
+| `finite_state_obligation_monitor` | RES-018 | [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py), [`remora/governance/procedure.py`](../../remora/governance/procedure.py) |
 | `governed_memory_layers` | RES-008 | [`remora/governance/context_flow.py`](../../remora/governance/context_flow.py), [`remora/governance/memory_layers.py`](../../remora/governance/memory_layers.py), [`remora/governance/nested_governance.py`](../../remora/governance/nested_governance.py) |
 | `independent_effect_recheck` | RES-013 | [`artifacts/runtime_surface/negative_cases_v1.json`](../../artifacts/runtime_surface/negative_cases_v1.json), [`artifacts/runtime_surface/reference_runtime_v1.json`](../../artifacts/runtime_surface/reference_runtime_v1.json), [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py), [`remora/toolcall/runtime_surface.py`](../../remora/toolcall/runtime_surface.py), [`remora/toolcall/signed_surface_runtime.py`](../../remora/toolcall/signed_surface_runtime.py), [`remora/toolcall/surface_authority.py`](../../remora/toolcall/surface_authority.py), [`remora/toolcall/surface_effect_evidence.py`](../../remora/toolcall/surface_effect_evidence.py), [`remora/toolcall/surface_evaluation.py`](../../remora/toolcall/surface_evaluation.py), [`remora/toolcall/surface_runtime.py`](../../remora/toolcall/surface_runtime.py), [`scripts/evaluate_runtime_surface.py`](../../scripts/evaluate_runtime_surface.py) |
 | `independent_verifier_gate` | RES-004b | [`remora/verifier/llm_judge.py`](../../remora/verifier/llm_judge.py) |
 | `multi_oracle_consensus` | RES-004a | [`remora/cascade/stages.py`](../../remora/cascade/stages.py), [`remora/oracles/diversity.py`](../../remora/oracles/diversity.py) |
+| `overclaim_flag` | RES-018 | [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py), [`remora/governance/procedure.py`](../../remora/governance/procedure.py) |
 | `phase_aware_guardrail` | RES-002 | [`remora/selective/conformal.py`](../../remora/selective/conformal.py), [`remora/selective/guardrail.py`](../../remora/selective/guardrail.py), [`remora/selective/risk_coverage.py`](../../remora/selective/risk_coverage.py) |
 | `phase_classification` | RES-007 | [`remora/policy/thermodynamic_braking.py`](../../remora/policy/thermodynamic_braking.py), [`remora/research_attic/statphys/potts.py`](../../remora/research_attic/statphys/potts.py), [`remora/thermodynamics.py`](../../remora/thermodynamics.py) |
+| `plan_binding_digest_in_lease` | RES-016 | [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py), [`remora/governance/plan_binding.py`](../../remora/governance/plan_binding.py) |
+| `pre_dispatch_procedure_refusal` | RES-018 | [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py), [`remora/governance/procedure.py`](../../remora/governance/procedure.py) |
+| `preregistered_gate_fault_study` | RES-019 | [`experiments/gate_correctness/PREREGISTERED.md`](../../experiments/gate_correctness/PREREGISTERED.md), [`experiments/gate_correctness_study.py`](../../experiments/gate_correctness_study.py), [`results/gate_correctness_study_v1.json`](../../results/gate_correctness_study_v1.json) |
+| `record_before_effect_fail_closed` | RES-017 | [`remora/audit/recorder.py`](../../remora/audit/recorder.py), [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py) |
+| `resolved_effect_digest_in_lease` | RES-015 | [`artifacts/resolved_effect/fixtures_v1.json`](../../artifacts/resolved_effect/fixtures_v1.json), [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py), [`remora/enforcement/resolved_effect.py`](../../remora/enforcement/resolved_effect.py), [`remora/execution/dispatch.py`](../../remora/execution/dispatch.py), [`scripts/generate_resolved_effect_fixtures.py`](../../scripts/generate_resolved_effect_fixtures.py) |
 | `reviewed_policy_proposals` | RES-008 | [`remora/governance/context_flow.py`](../../remora/governance/context_flow.py), [`remora/governance/memory_layers.py`](../../remora/governance/memory_layers.py), [`remora/governance/nested_governance.py`](../../remora/governance/nested_governance.py) |
 | `selective_routing` | RES-002 | [`remora/selective/conformal.py`](../../remora/selective/conformal.py), [`remora/selective/guardrail.py`](../../remora/selective/guardrail.py), [`remora/selective/risk_coverage.py`](../../remora/selective/risk_coverage.py) |
+| `separate_process_append_only_recorder` | RES-017 | [`remora/audit/recorder.py`](../../remora/audit/recorder.py), [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py) |
 | `signed_context_manifest` | RES-011 | [`artifacts/spec_intake/sdad_spec_fidelity_v1.json`](../../artifacts/spec_intake/sdad_spec_fidelity_v1.json), [`remora/governance/spec_intake.py`](../../remora/governance/spec_intake.py), [`schemas/spec_intake_v1.yaml`](../../schemas/spec_intake_v1.yaml) |
 | `surface_completeness_comparison` | RES-013 | [`artifacts/runtime_surface/negative_cases_v1.json`](../../artifacts/runtime_surface/negative_cases_v1.json), [`artifacts/runtime_surface/reference_runtime_v1.json`](../../artifacts/runtime_surface/reference_runtime_v1.json), [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py), [`remora/toolcall/runtime_surface.py`](../../remora/toolcall/runtime_surface.py), [`remora/toolcall/signed_surface_runtime.py`](../../remora/toolcall/signed_surface_runtime.py), [`remora/toolcall/surface_authority.py`](../../remora/toolcall/surface_authority.py), [`remora/toolcall/surface_effect_evidence.py`](../../remora/toolcall/surface_effect_evidence.py), [`remora/toolcall/surface_evaluation.py`](../../remora/toolcall/surface_evaluation.py), [`remora/toolcall/surface_runtime.py`](../../remora/toolcall/surface_runtime.py), [`scripts/evaluate_runtime_surface.py`](../../scripts/evaluate_runtime_surface.py) |
 | `task_identity_binding` | RES-012 | [`artifacts/task_authority/authorization_context_preimage_v1.json`](../../artifacts/task_authority/authorization_context_preimage_v1.json), [`remora/enforcement/lease.py`](../../remora/enforcement/lease.py), [`remora/enforcement/token.py`](../../remora/enforcement/token.py), [`remora/execution/dispatch.py`](../../remora/execution/dispatch.py), [`remora/governance/a2a_envelope.py`](../../remora/governance/a2a_envelope.py), [`remora/governance/loop_safety.py`](../../remora/governance/loop_safety.py), [`remora/governance/task_identity.py`](../../remora/governance/task_identity.py), [`scripts/generate_authorization_context_vectors.py`](../../scripts/generate_authorization_context_vectors.py), [`servers/execution_api.py`](../../servers/execution_api.py) |
@@ -442,7 +556,7 @@ Compared against or used as framing in the paper. No code, no evaluation - and t
 | `zhan-2024-injecagent` | none | none | none | InjecAgent. |
 | `zhang-2024-calibrating` | arxiv:2404.02655 | none | none | Confidence elicitation by fidelity. |
 
-### Cited in code but not in the paper (8)
+### Cited in code but not in the paper (15)
 
 The reconciliation runs both ways. These sources ground code or a research line while the paper carries no reference to them; recorded so the asymmetry is visible instead of hidden.
 
@@ -450,12 +564,19 @@ The reconciliation runs both ways. These sources ground code or a research line 
 |-----------|------|------|------|
 | `agntcy-identity-wg` | AGNTCY Identity working group: Agent Identity, TBAC and A2A task authorization (2026-08-25 analysis) | [`remora/governance/task_identity.py`](../../remora/governance/task_identity.py) | The standards-side source of RES-012, absent from the paper. The url locates the working group's published identity specification (checked 2026-09-03); the dated analysis is a working-group document, and the record of it in this repository is docs/design/task-bound-execution-authority-v1.md. REMORA claims no conformance: the profile's proof-of-possession requirement is explicitly open, as RES-012's scope boundary states. |
 | `behrouz-2025-nested` | Nested Learning | RES-008 (narrative attribution) | Source of RES-008 and absent from the paper. Deliberately NOT cited in code: RES-008 carries in_code_citation false because REMORA implements the governance framing, not the architecture, so the attribution lives in docs/09-related-work.md rather than in a module docstring. |
+| `chen-2026-fresh-memory-stale-plans` | Fresh Memory, Stale Plans: Dependency-Scoped Validation for Distributed LLM-Agent Memory (arXiv:2609.03340) | [`remora/governance/plan_binding.py`](../../remora/governance/plan_binding.py) | Source of RES-016 (SHELF-032). Identifier checked against the arXiv record on 2026-09-28. |
 | `galhotra-2021-contrastive` | Contrastive explanations (SIGMOD) | [`remora/causal/search.py`](../../remora/causal/search.py) | builds_on source for RES-001. |
+| `iyer-2026-closed-world-resolution` | Closed-World Resolution Against Tool Hallucination in LLM Agents (arXiv:2609.19425) | [`remora/enforcement/resolved_effect.py`](../../remora/enforcement/resolved_effect.py) | Source of RES-015 (SHELF-033). Identifier checked against the arXiv record on 2026-09-28. |
+| `qin-2026-trace-tampering` | LLM Agents Can Easily Tamper With Their Own Traces (arXiv:2609.30266) | [`remora/audit/recorder.py`](../../remora/audit/recorder.py) | Source of RES-017 (SHELF-030). Identifier checked against the arXiv record on 2026-09-28. |
 | `rfc-3161-timestamping` | RFC 3161, Time-Stamp Protocol (TSP) | [`remora/audit/hash_chain.py`](../../remora/audit/hash_chain.py), [`remora/audit/merkle.py`](../../remora/audit/merkle.py), [`remora/governance/envelope.py`](../../remora/governance/envelope.py) | Named in the audit modules as an EXTERNAL trust anchor REMORA does not provide: the hash chain detects tampering but cannot prevent it, so a trusted timestamp authority is listed among the deployment-side controls that must be combined with it. Not implemented here. |
 | `rfc-8785-jcs` | RFC 8785, JSON Canonicalization Scheme (JCS) | [`remora/interop/jcs.py`](../../remora/interop/jcs.py), [`remora/enforcement/runtime_identity.py`](../../remora/enforcement/runtime_identity.py) | Implemented for wire interoperability only, after the 2026-08-28 REMORA x APS conformance feedback. jcs.py states what it does NOT do: it must not replace the internal canonicalisation behind canonical_tool_call_hash, because rewriting those bytes would make the historical audit record unverifiable. runtime_identity.py cites the same RFC to record that it deliberately does not use it. |
+| `singh-2026-contracteval` | ContractEval: Query-Conditioned Execution Matching for Procedural Instruction Conformance (arXiv:2609.09458) | [`remora/governance/procedure.py`](../../remora/governance/procedure.py) | Source of RES-018 (SHELF-035). Identifier checked against the arXiv record on 2026-09-28. |
+| `smyth-2026-overclaiming` | Quantifying Overclaiming Propensity in Frontier LLM Agents (arXiv:2609.20812) | [`remora/governance/procedure.py`](../../remora/governance/procedure.py) | builds_on source for RES-018 (SHELF-037): the overclaim flag in derive_completion. No propensity is measured. |
 | `wang-2024-moa` | Mixture-of-Agents | [`remora/cascade/stages.py`](../../remora/cascade/stages.py) | Single-stage aggregation inspired by MoA. The paper no longer discusses MoA (the multi-layer architecture is not implemented), so it carries no paper reference. |
 | `wu-2026-safety-does-not-compose` | Safety Does Not Compose: Non-Decaying Loop State for Autonomous LLM Agents (arXiv:2608.27141) | [`remora/governance/task_identity.py`](../../remora/governance/task_identity.py) | builds_on source for RES-012, cited where it is load-bearing rather than where it is merely relevant: the non-decaying loop state it proposes needs a key, and that key is the context_id this module defines. LoopHarness itself is NOT implemented, which RES-012's scope boundary states. Identifier checked against the arXiv record on 2026-08-30. |
+| `xiao-2026-temporal-contracts` | Symbolic Temporal Supervision of LLM Agents Using Contracts (arXiv:2609.18128) | [`remora/governance/procedure.py`](../../remora/governance/procedure.py) | builds_on source for RES-018 (SHELF-036); a finite-state subset is taken, not general temporal logic. |
 | `yan-2026-permission-policies` | Do User-Authored Permission Policies Improve Protection Against AI Agent Overreach? (arXiv:2608.27443) | [`remora/governance/task_identity.py`](../../remora/governance/task_identity.py) | Source of RES-012 and absent from the paper. Cited in the module the finding motivates: across 113 participants a reusable-policy setup blocked fewer overreach attempts than either real-time approval or automated review, because users approved actions outside the original task. That is the empirical case for binding an authorization to the task it was granted under. Identifier checked against the arXiv record on 2026-08-30. |
+| `zhang-2026-task-state-influence` | How Strongly Should Task State Influence an LLM Agent? (arXiv:2609.25686) | RES-019 (narrative attribution) | Source question of the gate-correctness study (SHELF-029), cited in experiments/gate_correctness/PREREGISTERED.md rather than in remora/. |
 
 ### Discussed in related work only (4)
 
@@ -468,7 +589,7 @@ Works that appear only in [docs/09-related-work.md](../09-related-work.md): no c
 | `microsoft-2026-agent-governance-toolkit` | none | [docs/09-related-work.md](../../docs/09-related-work.md) §4b | Agent Governance Toolkit (announced 2026-04-02) | Broader-surface comparator; no identifier recorded because the source is a product announcement, not a paper. |
 | `patel-2026-bitter-lesson` | arxiv:2608.06370 | [docs/09-related-work.md](../../docs/09-related-work.md) §4a | The Bitter Lesson of Tool Calling (arXiv:2608.06370) | The PTC source behind the GPTC planning layer (RF-11, SCOPED). It is cited in remora/toolcall/ptc/__init__.py, so it also appears under code_identifiers; it carries no REMORA number, because the ablation that would produce one has not been run. |
 
-### Citation identifiers found in the package (14)
+### Citation identifiers found in the package (20)
 
 Reverse scan: every `arXiv:` and `RFC` identifier appearing in `remora/**/*.py`, with the files that carry it. The generator fails on an identifier that is in the code but not here, and on one that is here but no longer in the code. Presence is a citation, never an implementation claim - several of these are cited precisely to record what REMORA does **not** do.
 
@@ -488,6 +609,12 @@ Reverse scan: every `arXiv:` and `RFC` identifier appearing in `remora/**/*.py`,
 | arXiv:2608.20341 | Nguyen & Nguyen (2026), SDAD | [`remora/governance/spec_intake.py`](../../remora/governance/spec_intake.py) | none | Source of RES-011; the entry carries it as citation_anchor. |
 | arXiv:2608.27141 | Wu et al. (2026), Safety Does Not Compose | [`remora/governance/task_identity.py`](../../remora/governance/task_identity.py) | `wu-2026-safety-does-not-compose` | none |
 | arXiv:2608.27443 | Yan (2026), user-authored permission policies | [`remora/governance/task_identity.py`](../../remora/governance/task_identity.py) | `yan-2026-permission-policies` | none |
+| arXiv:2609.03340 | Chen, Wang & Brinton (2026), Fresh Memory, Stale Plans | [`remora/governance/plan_binding.py`](../../remora/governance/plan_binding.py) | `chen-2026-fresh-memory-stale-plans` | none |
+| arXiv:2609.09458 | Singh et al. (2026), ContractEval | [`remora/governance/procedure.py`](../../remora/governance/procedure.py) | `singh-2026-contracteval` | none |
+| arXiv:2609.18128 | Xiao & Nuzzo (2026), Symbolic Temporal Supervision | [`remora/governance/procedure.py`](../../remora/governance/procedure.py) | `xiao-2026-temporal-contracts` | none |
+| arXiv:2609.19425 | Iyer (2026), Closed-World Resolution | [`remora/enforcement/resolved_effect.py`](../../remora/enforcement/resolved_effect.py) | `iyer-2026-closed-world-resolution` | none |
+| arXiv:2609.20812 | Smyth et al. (2026), Overclaiming Propensity | [`remora/governance/procedure.py`](../../remora/governance/procedure.py) | `smyth-2026-overclaiming` | none |
+| arXiv:2609.30266 | Qin et al. (2026), Agents Tamper With Their Own Traces | [`remora/audit/recorder.py`](../../remora/audit/recorder.py) | `qin-2026-trace-tampering` | none |
 
 ## Research landscape coverage
 

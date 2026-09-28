@@ -879,6 +879,72 @@ def _loop_safety_monitor() -> LoopSafetyMonitor:
     return _LOOP_SAFETY
 
 
+_EFFECT_RESOLVER: Any = None
+
+
+def _deployment_module(spec: str) -> Any:
+    """The module a deployment names, or None when the setting is unset.
+
+    Callers read the variable by its literal name, so the credential
+    topology scanner can see every setting this process reads.
+    """
+    spec = spec.strip()
+    if not spec:
+        return None
+    import importlib
+
+    return importlib.import_module(spec)
+
+
+def _effect_resolver() -> Any:
+    """The deployment's closed effect registry (Q7.4), or None.
+
+    ``REMORA_EFFECT_REGISTRY_MODULE`` names a module exposing
+    ``build_resolver()``. Unset means no resolved-effect binding, which is
+    the behaviour before Q7.4.
+    """
+    global _EFFECT_RESOLVER
+    if _EFFECT_RESOLVER is None:
+        module = _deployment_module(
+            _os.environ.get("REMORA_EFFECT_REGISTRY_MODULE", ""))
+        if module is None:
+            return None
+        _EFFECT_RESOLVER = module.build_resolver()
+    return _EFFECT_RESOLVER
+
+
+def _bind_premise_checks(dispatcher: GovernedToolDispatcher) -> None:
+    """Bind the WS7 pre-dispatch checks a deployment configured. Each is
+    opt-in; an unset variable leaves the dispatcher as it was.
+
+    ``REMORA_EFFECT_REGISTRY_MODULE``   resolved-effect binding (Q7.4)
+    ``REMORA_STATE_REVISION_MODULE``    ``read_revision(resource)`` for plans (Q7.5)
+    ``REMORA_RECORDER_ADDRESS``         independent recorder host:port (Q7.6), with
+    ``REMORA_RECORDER_MANDATORY_TOOLS`` comma-separated tools, or ``*`` for all
+    ``REMORA_PROCEDURE_MODULE``         ``contract()`` and ``trace_for(lease)`` (Q7.7)
+    """
+    resolver = _effect_resolver()
+    if resolver is not None:
+        dispatcher.bind_effect_resolver(resolver)
+    revisions = _deployment_module(
+        _os.environ.get("REMORA_STATE_REVISION_MODULE", ""))
+    if revisions is not None:
+        dispatcher.bind_state_revisions(revisions.read_revision)
+    address = _os.environ.get("REMORA_RECORDER_ADDRESS", "").strip()
+    if address:
+        from remora.audit.recorder import RecorderClient
+
+        named = {t.strip() for t in _os.environ.get(
+            "REMORA_RECORDER_MANDATORY_TOOLS", "").split(",") if t.strip()}
+        dispatcher.bind_recorder(
+            RecorderClient(address),
+            mandatory_for=lambda tool: "*" in named or tool in named)
+    procedure = _deployment_module(
+        _os.environ.get("REMORA_PROCEDURE_MODULE", ""))
+    if procedure is not None:
+        dispatcher.bind_procedure(procedure.contract(), procedure.trace_for)
+
+
 def _require_task_identity() -> bool:
     """Whether this deployment refuses calls that name no task (Q7.2).
 
@@ -888,6 +954,16 @@ def _require_task_identity() -> bool:
     """
     return _os.environ.get("REMORA_REQUIRE_TASK_IDENTITY", "").strip().lower() in {
         "1", "true", "yes", "on"}
+
+
+def _plan_or_refuse(tool_call: Any) -> Any:
+    """The plan a call carries (Q7.5); a malformed one is a 422."""
+    from remora.execution.service import plan_binding_of
+
+    try:
+        return plan_binding_of(tool_call)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=f"malformed plan: {exc}") from exc
 
 
 def _task_or_refuse(tool_call: Any) -> TaskIdentity | None:
@@ -970,6 +1046,7 @@ def _tool_dispatcher() -> GovernedToolDispatcher | None:
                 # spec THIS process would run, at the moment of dispatch, so a
                 # bundle that moved between approval and execution refuses.
                 dispatcher.bind_toolspec_identity(_toolspec_identity)
+                _bind_premise_checks(dispatcher)
                 spec = _os.environ.get("REMORA_TOOL_REGISTRY_MODULE", "").strip()
                 if spec:
                     import importlib
@@ -999,8 +1076,9 @@ def _toolspec_identity(tool_name: str) -> tuple[str, int] | None:
 
 def _reset_tool_dispatcher() -> None:
     """Test hook: drop the cached dispatcher (e.g. after env changes)."""
-    global _DISPATCHER
+    global _DISPATCHER, _EFFECT_RESOLVER
     _DISPATCHER = None
+    _EFFECT_RESOLVER = None
 
 
 # ── Semantic bundle (SHELF-020) ────────────────────────────────────────────
@@ -1654,6 +1732,7 @@ def _dispatch_under_lease(
     grant_jti: str = "",
     presented_lease: Any = None,
     task_identity: TaskIdentity | None = None,
+    plan: Any = None,
 ) -> dict[str, Any]:
     """Governed dispatch (see remora.execution.dispatch); binds this module's
     dispatcher and current policy bundle hash. Shared by /execute,
@@ -1666,6 +1745,20 @@ def _dispatch_under_lease(
     (issue #45 gap 6). The span carries the proposal id as the tool-call id,
     so a trace joins the audit chain on the same key everything else uses.
     """
+    resolved_effect = None
+    resolver = _effect_resolver() if presented_lease is None else None
+    if resolver is not None:
+        from remora.enforcement.resolved_effect import UnresolvedReference
+
+        try:
+            resolved_effect = resolver.resolve(
+                tool_call.tool_name, tool_call.arguments,
+                tool_call.target_environment or "")
+        except UnresolvedReference:
+            # Closed world: a reference the registry does not know is not
+            # authorised by guessing what it probably meant.
+            return {"executed": False, "refusal_reason": "unresolved_reference",
+                    "proposal_id": proposal_id}
     with _EXEC_TRACER.tool_governance_span(
         tool_call.tool_name,
         invocation_id=proposal_id or None,
@@ -1686,6 +1779,8 @@ def _dispatch_under_lease(
             grant_jti=grant_jti,
             presented_lease=presented_lease,
             task_identity=task_identity,
+            resolved_effect=resolved_effect,
+            plan=plan,
         )
         _span.set_attribute("remora.executed", bool(result.get("executed")))
         if result.get("refusal_reason"):
@@ -1922,6 +2017,8 @@ def dispatch_leased(req: DispatchLeasedRequest, request: Request) -> dict[str, A
         # From the call being executed, checked against the task the signed
         # lease was granted under: a lease from another task refuses.
         task_identity=task,
+        # The plan the lease was signed over; its premises are re-read here.
+        plan=_plan_or_refuse(req.tool_call),
     )
     api_mod.record_execution_execute(
         executed=bool(tool_execution["executed"]),
@@ -2321,6 +2418,9 @@ def export_evidence(proposal_id: str, request: Request) -> dict[str, Any]:
             "problems": problems,
             "records_checked": len(_CHAIN.entries(tenant)),
         },
+        # Q7.3: authentic is not complete. Each contract names the evidence
+        # its claim needs; the verdict says whether this proposal has it.
+        "evidence_coverage": _evidence_coverage(events, problems),
     }
 
     def _digest(value: Any) -> str:
@@ -2339,6 +2439,22 @@ def export_evidence(proposal_id: str, request: Request) -> dict[str, Any]:
         "section_sha256": {name: _digest(v) for name, v in sections.items()},
     }
     return bundle
+
+
+def _evidence_coverage(events: list[dict[str, Any]],
+                       problems: list[str]) -> dict[str, Any]:
+    """Coverage of this proposal's chain entries against the two claims a
+    reader usually makes about an execution (remora/governance/evidence_coverage.py)."""
+    from remora.governance.evidence_coverage import (
+        AUTHORIZED_EXECUTION,
+        EXECUTED_EFFECT,
+        assess_coverage,
+        chain_event_items,
+    )
+
+    items = chain_event_items(events, problems)
+    return {contract.contract_id: assess_coverage(contract, items).to_dict()
+            for contract in (AUTHORIZED_EXECUTION, EXECUTED_EFFECT)}
 
 
 def _remora_version() -> str:
