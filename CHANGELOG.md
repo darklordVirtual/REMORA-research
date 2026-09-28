@@ -169,6 +169,23 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Fixed
 
+- Five register findings from the replication pack.
+  `effective_n` in the tool-call scorers counted domains, not templates: task
+  ids are `<domain>_<seq>`, so stripping the last segment left 7 "clusters".
+  `remora.toolcall.scoring.template_cluster_key` now counts harmful template
+  clusters (56 for v2 and blind v3, 21 for v1), and the 13 affected regenerable
+  results are re-issued with no other field changed (artifact manifest
+  revision note, tag `effective-n-reissue-2026-09-28`). CLAIM-001's effective
+  N = 70 was always computed correctly by the significance analysis.
+  `results/sap_v3_round_results.json` is re-analysed: it predated the issue
+  #85 fix, so four uncertified SGR `risk_bound` fields still held the old
+  sentinel (0.99 and 0.996667 instead of 0.084, 0.093 and 0.060). Certified
+  flags and coverages are unchanged. It and `system_demonstration_v1.json`
+  are reclassed from live to regenerable, because both reproduce offline and
+  are now byte-compared in CI. CLAIM-001's Wilson bound is bound to the
+  significance file, which lowers the unbound baseline from 15 to 14.
+  `docs/06-reproducibility.md` now uses CLAIM-001's registered commands.
+
 - The MCP gateway verifies the Cloudflare Access assertion on `/mcp` itself
   (`workers/mcp-gateway/src/admission.ts`: RS256 against the team key set,
   AUD, issuer, expiry) and answers 503 while `ACCESS_TEAM_DOMAIN` and

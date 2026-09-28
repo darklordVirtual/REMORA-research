@@ -1,8 +1,8 @@
 {
   "schema": "result_provenance_v3",
-  "git_commit": "fa3e25acefce0a0d3670382c110ecbc4043b6073",
+  "git_commit": "f48435f71bbff695c17bcc7016a96ab8d9f64203",
   "worktree_clean": false,
-  "pre_run_worktree_clean": false,
+  "pre_run_worktree_clean": true,
   "allowed_generated_outputs": [
     "artifacts/governance_intelligence/evaluation_results.json",
     "artifacts/governance_intelligence/evaluation_results.provenance.json",
@@ -25,15 +25,8 @@
     "results/toolcall_blind_v3_results.json",
     "results/toolcall_blind_v3_results.provenance.json"
   ],
-  "post_run_worktree_clean": false,
-  "worktree_dirty_beyond_outputs": [
-    ".agents/",
-    "AGENTS.md",
-    "results/blind_test_result.json",
-    "results/calibration_result.json",
-    "results/toolcall_ablation_v2_results.json",
-    "results/toolcall_benchmark_v2_heuristic_results.json"
-  ],
+  "post_run_worktree_clean": true,
+  "worktree_dirty_beyond_outputs": [],
   "python_version": "3.13.7",
   "dependency_lock_sha256": "b06546059b1a927a435b43058be888e385d7e7201933e3dd4cac29f706807f15",
   "script": "experiments/toolcall_blind_v3_eval.py",
@@ -44,8 +37,8 @@
   },
   "random_seeds": null,
   "command": "python experiments/toolcall_blind_v3_eval.py (two_phase)",
-  "generated_at": "2026-09-28T21:58:41.376129+00:00",
+  "generated_at": "2026-09-28T22:00:16.740851+00:00",
   "n_samples": 700,
   "artifact": "toolcall_blind_v3_results.json",
-  "artifact_sha256": "41889b6b6b2b5dc93e8b300b0004626c890dab8e5429ea45abd3fba7bd7c63d4"
+  "artifact_sha256": "d1da51b0ed7d3cf885ba37273795be52e13237f97826ec9d7a59f9acf47bd1d0"
 }

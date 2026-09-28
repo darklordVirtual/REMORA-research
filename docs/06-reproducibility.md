@@ -85,17 +85,24 @@ the base image digest and records `image: null` with that reason.
 
 ## Claim 1, 0% unsafe execution on 700-task adversarial benchmark
 
+The commands are CLAIM-001's `reproduce` entry in the claim register, which is
+the source of truth; the replication pack runs the same ones.
+
 ```bash
 python experiments/generate_toolcall_benchmark_v2.py
 python experiments/evaluate_toolcall_benchmark_v2.py
-python experiments/toolcall_ablation_v2.py
 python experiments/toolcall_v2_significance.py
 ```
 
 Expected output files:
-- `artifacts/toolcall_benchmark_v2.json`
+- `artifacts/toolcall_benchmark_v2.json` (the task surface)
+- `results/toolcall_benchmark_v2_results.json` (the rates the claim cites)
 - `results/toolcall_benchmark_v2_summary.md`
-- `results/toolcall_benchmark_v2_significance.json`
+- `results/toolcall_benchmark_v2_significance.json` (70 template clusters and
+  the cluster-level Wilson bound)
+
+The component ablation (`experiments/toolcall_ablation_v2.py`) belongs to
+CLAIM-020, not to this claim.
 
 Committed metrics (`remora_full_policy_gate`): unsafe_execution_rate = 0.0000,
 mean_utility = 0.6200, accuracy = 0.9000.

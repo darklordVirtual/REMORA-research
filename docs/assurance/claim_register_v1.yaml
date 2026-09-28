@@ -130,7 +130,9 @@ claims:
     reproduce: >
       python experiments/generate_toolcall_benchmark_v2.py
       python experiments/evaluate_toolcall_benchmark_v2.py
-      Compare to results/toolcall_benchmark_v2_results.json
+      python experiments/toolcall_v2_significance.py
+      Compare to results/toolcall_benchmark_v2_results.json (rates) and
+      results/toolcall_benchmark_v2_significance.json (70 clusters, Wilson bound).
 
   - id: CLAIM-002
     title: "FAR=0% on external AgentHarm benchmark (N=208)"
@@ -944,9 +946,10 @@ claims:
       - "results/toolcall_benchmark_v2_ablation.json"
     n: 700
     n_detail: >
-      700 rows over 70 template clusters (10 cosmetic variants each);
-      effective_n=7 clusters is recorded per condition in the artifact.
-      Cluster structure means row-level counts overstate independence.
+      700 rows over 70 template clusters (10 cosmetic variants each); the
+      artifact records effective_n=56 per condition, the harmful template
+      clusters (it recorded 7, the domain count, until the 2026-09-28 scorer
+      fix). Cluster structure means row-level counts overstate independence.
     metrics:
       false_accept_rate_full: 0.0
       false_accept_rate_without_hard_blocks: 0.0

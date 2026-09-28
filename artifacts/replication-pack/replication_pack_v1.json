@@ -99,9 +99,9 @@
       "claim_id": "CLAIM-001",
       "title": "Simulator tool-call benchmark v2 FAR (700 tasks, 70 template clusters)",
       "artifacts": [
-        {"path": "results/toolcall_benchmark_v2_results.json", "sha256_lf": "559a39a092aeacdaf4ea74c20444df9221d4043408bdecf0cbf01d175249cd75", "results_manifest_class": "regenerable"},
+        {"path": "results/toolcall_benchmark_v2_results.json", "sha256_lf": "148ae31217de9745b0ed7f6cdc596007f7fd75ccfd31fe776f9663efebc74fd1", "results_manifest_class": "regenerable"},
         {"path": "results/toolcall_benchmark_v2_significance.json", "sha256_lf": "a285400c966989d4ae43ae69168140353a353240f68c1741cfa27838c87e7a9d", "results_manifest_class": "regenerable"},
-        {"path": "results/toolcall_blind_v3_results.json", "sha256_lf": "dcdbcc587dc5b4520961d420523964272375c284326f850f87fcd97c29083ba3", "results_manifest_class": "regenerable"},
+        {"path": "results/toolcall_blind_v3_results.json", "sha256_lf": "d1da51b0ed7d3cf885ba37273795be52e13237f97826ec9d7a59f9acf47bd1d0", "results_manifest_class": "regenerable"},
         {"path": "results/toolcall_m1_clean_signal.json", "sha256_lf": "62a497f3483f7375e08ad6fa9f6929c5d0ea7c2556d3f5dd541f76cda533f663", "results_manifest_class": "regenerable"}
       ],
       "integrity": [],
@@ -154,7 +154,7 @@
       "claim_id": "CLAIM-010",
       "title": "Blinded tool-call benchmark v3 (label access separated)",
       "artifacts": [
-        {"path": "results/toolcall_blind_v3_results.json", "sha256_lf": "dcdbcc587dc5b4520961d420523964272375c284326f850f87fcd97c29083ba3", "results_manifest_class": "regenerable"},
+        {"path": "results/toolcall_blind_v3_results.json", "sha256_lf": "d1da51b0ed7d3cf885ba37273795be52e13237f97826ec9d7a59f9acf47bd1d0", "results_manifest_class": "regenerable"},
         {"path": "benchmarks/toolcall_blind_v3/tasks.json", "sha256_lf": "bf57c38479e08cc68c1ac041a266afab14c791d788c8d39d228006ef740d1167", "results_manifest_class": null, "role": "benchmark input"},
         {"path": "benchmarks/toolcall_blind_v3/labels.json", "sha256_lf": "4de7910ff272fe16222b71ded98c4de65af8b26ce16403ebd49a1eb4e1be87be", "results_manifest_class": null, "role": "benchmark labels"}
       ],
@@ -210,7 +210,7 @@
       "claim_id": "CLAIM-020",
       "title": "Component ablation has no discriminating power on FAR (negative identification result)",
       "artifacts": [
-        {"path": "results/toolcall_benchmark_v2_ablation.json", "sha256_lf": "ee23fa1c9f99c7e0ef505e63fda3a60e842e32fcefa4cd1d85505e67b7cbca42", "results_manifest_class": "regenerable"}
+        {"path": "results/toolcall_benchmark_v2_ablation.json", "sha256_lf": "9965a013f39f4c1e5c7be4f842655e8b50417d868aaa0e39653c328b25349979", "results_manifest_class": "regenerable"}
       ],
       "integrity": [],
       "metrics": [
@@ -236,7 +236,7 @@
       "claim_id": "CLAIM-014",
       "title": "System demonstration: governance chain from tool call to enforcement (open mechanism study)",
       "artifacts": [
-        {"path": "results/system_demonstration_v1.json", "sha256_lf": "63fb21ddb9e0f7a3cf32e1321d4b072370d527bd2299e5ed350c458e0ab05c78", "results_manifest_class": "live"},
+        {"path": "results/system_demonstration_v1.json", "sha256_lf": "63fb21ddb9e0f7a3cf32e1321d4b072370d527bd2299e5ed350c458e0ab05c78", "results_manifest_class": "regenerable"},
         {"path": "results/fleetops_degradation_results.json", "sha256_lf": "6695d7d114be5faff21a131a8f09917aae6aed1569ba976a875d23df5913c394", "results_manifest_class": "regenerable"},
         {"path": "results/fleetops_validator_study_results.json", "sha256_lf": "43d8058e0f76bf8b4afb3b7f649688a6be08c4f393cec939c1e4b73a74c6e2b2", "results_manifest_class": "regenerable"}
       ],
@@ -254,7 +254,7 @@
       ],
       "regenerate": {
         "mode": "regenerate",
-        "reason": "The register calls the command deterministic with no API keys. The results manifest classes system_demonstration_v1.json as live; the pack measurement on 2026-09-28 ran it with no keys and no network use in about 1 s, and only run_at_commit differed. The fleetops files are pinned by hash only here.",
+        "reason": "Deterministic with no API keys; the results manifest classes system_demonstration_v1.json as regenerable (reclassified from live on 2026-09-28 after an offline run in about 1 s changed only run_at_commit). The fleetops files are pinned by hash only here.",
         "commands": [
           {"run": "python scripts/run_system_demonstration.py", "source": "register reproduce", "observed_seconds": 1}
         ],
@@ -268,8 +268,8 @@
     {"claim_id": "CLAIM-006", "reason": "No committed machine-readable artifact carries the AII values (live AROMER D1 telemetry transcribed into NEGATIVE_RESULTS.md section 11); the register says it is not reproducible from this repository."},
     {"claim_id": "CLAIM-009", "reason": "No metrics block; the artifacts were restored from the main implementation repo and re-running needs AROMER worker access. Nothing machine-comparable beyond existence, which scripts/check_artifacts_exist.py already covers."},
     {"claim_id": "CLAIM-011", "reason": "Its only metric (upper_bound_pct) is declared unbound in the register, so there is no field to compare; the input and output files are already reproduced by scripts/reproduce_results.py (results manifest class regenerable)."},
-    {"claim_id": "CLAIM-012", "reason": "All metrics are declared unbound in the register and results/sap_v3_round_results.json is classed live in the results manifest. The pack measurement on 2026-09-28 found that the offline 'analyze' replay rewrites four uncertified-arm sgr risk_bound fields (for example 0.99 to 0.084398), so the file does not reproduce byte-for-byte; certified flags and coverages were unchanged."},
-    {"claim_id": "CLAIM-013", "reason": "Same artifact and status as CLAIM-012: all metrics unbound, results file classed live, offline replay not byte-identical."},
+    {"claim_id": "CLAIM-012", "reason": "All metrics are declared unbound in the register, so there is no field for the pack to compare. results/sap_v3_round_results.json itself is regenerable and byte-compared by scripts/reproduce_results.py; it was re-analysed on 2026-09-28 because four uncertified-arm sgr risk_bound fields still held the pre-issue-#85 sentinel (for example 0.99, now 0.084398). Certified flags and coverages did not change."},
+    {"claim_id": "CLAIM-013", "reason": "Same artifact as CLAIM-012 and all metrics unbound; the results file is covered by scripts/reproduce_results.py instead."},
     {"claim_id": "CLAIM-017", "reason": "A code-and-test claim with no result artifact or metrics; verified by tests/test_goal_match.py in the ordinary test suite."}
   ]
 }
