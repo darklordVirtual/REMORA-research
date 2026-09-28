@@ -454,6 +454,7 @@ selective routing is phase-aware rather than a single global threshold. See
 | `remora/sdk/` | **STABLE** | The only namespace with an external backward-compatibility guarantee. Snapshot-gated against `artifacts/sdk/public_api_v1.json` and re-checked against the installed wheel in CI |
 | `remora/observability/` | **CORE** | OTel tracer (degrades to a documented no-op) + structured governance events |
 | `remora/toolcall/` | **EXPERIMENTAL** | Tool-call routing, semantic contracts and the benchmark harnesses |
+| `remora/toolcall/toolspec.py` | **CORE** | Signed ToolSpec bundle, verified at the PEP for every lease (RMR-004) and by `remora/execution/authorization.py`. A leaf: it imports nothing from `remora` |
 | `remora/shadow/` | **EXPERIMENTAL** | Counterfactual replay of an agent action log |
 | `remora/integrations/` | **EXPERIMENTAL** | Outbound integrations (GO-STAR MCP bridge) |
 | `remora/assess.py` | **CORE** | One-call tool-call assessment (the library form of `remora assess`) |
@@ -464,6 +465,7 @@ selective routing is phase-aware rather than a single global threshold. See
 | `remora/canonical.py`, `remora/action_semantics.py` | **CORE** | Canonical hashing and action-semantics vocabulary used by the binding hashes |
 | `remora/provenance.py` | **CORE** | Build/commit provenance stamped into result artifacts |
 | `remora/agent_hook/` | **EXPERIMENTAL** | Cross-call session tracking for the agent hook and MCP surface |
+| `remora/agent_hook/shell_ast.py` | **CORE** | Shell AST parser behind the CORE destructive-command guard (`remora/safety/ast_guard.py`). A leaf: it imports nothing from `remora` |
 | `remora/assurance/` | **EXPERIMENTAL** | Assurance trace and stability markers |
 | `remora/audit_gates/` | **EXPERIMENTAL** | Gate definitions used by the claim-audit tooling |
 | `remora/benchmarks/` | **EXPERIMENTAL** | Deterministic benchmark corpora and scoring harnesses |
