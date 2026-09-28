@@ -71,7 +71,7 @@ Recent review-hardening tests also cover:
 
 Representative tested artifacts include:
 
-- `results/end_to_end_n500_v3.json`
+- `results/end_to_end_n500_v3_policy_v5.json` (current policy; the SAP v2 round record `results/end_to_end_n500_v3.json` is frozen)
 - `results/conformal_guardrail_holdout.json`
 - `results/toolcall_benchmark_v2_results.json`
 - `results/toolcall_benchmark_v2_significance.json`

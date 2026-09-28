@@ -99,16 +99,17 @@ results:
   reason: oracle-backed; an offline rerun gives different numbers, and whether that run replayed the cache
     or fell back is not yet established
 - path: results/end_to_end_n500_v3.json
-  class: drifted
-  generator: python experiments/end_to_end_n500_v3.py
-  drift: 'deterministic over a stored artifact, no oracle calls. Policy v5 (076142a, 2026-07-31) excluded
-    the critical phase from the temperature ACCEPT path after this file was written (576ad9f, policy v4):
-    accepted 101 -> 31, ACCEPT share 18.6 % -> 5.7 %, false-trust rate among accepts 3.96 % -> 6.45 %.
-    Cited by docs/EVIDENCE_OF_CAPABILITY.md and others.'
-  tracking: quality program Q1.3 (second batch)
+  class: frozen
+  reason: SAP v2 cross-family round record (2026-07-27, 576ad9f, RemoraDecisionEngine-v3); pre-registered
+    round output, never regenerated. The current policy is measured in results/end_to_end_n500_v3_policy_v5.json
+    (NEGATIVE_RESULTS.md §59).
 - path: results/end_to_end_n500_v3.provenance.json
   class: sidecar
   of: results/end_to_end_n500_v3.json
+- path: results/end_to_end_n500_v3_policy_v5.json
+  class: regenerable
+  generator: python experiments/end_to_end_n500_v3.py
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
 - path: results/evidence_v2_n500.json
   class: unverified
   generator: python experiments/evidence_v2_n500.py

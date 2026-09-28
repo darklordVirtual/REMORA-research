@@ -56,3 +56,12 @@ def test_repository_manifest_gives_ci_something_to_check():
     assert all(rr.ROUND_MARKER not in e["verified_by"] for e in entries)
     generators = {e["generator"] for e in entries}
     assert all(g.startswith("python ") for g in generators)
+
+
+def test_far_bound_refuses_a_half_override():
+    """--k without --n (or the reverse) must fail, not fall back silently."""
+    import subprocess
+    for args in (["--k", "1"], ["--n", "50"]):
+        proc = subprocess.run([sys.executable, str(ROOT / "scripts" / "compute_far_confidence_sequence.py"), *args],
+                              capture_output=True, text=True)
+        assert proc.returncode == 2 and "must be given together" in proc.stderr
