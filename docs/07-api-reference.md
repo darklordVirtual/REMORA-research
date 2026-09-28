@@ -447,6 +447,23 @@ tenant chain, and keeps the earlier events. Both routes need `review`.
 off by default because callers must first send the fields. The loop limits
 are defaults that no study has calibrated.
 
+**Capability sets (WS8 Q8.2, opt-in):** with
+`REMORA_CAPABILITY_POLICY_FILE` naming a YAML or JSON capability policy,
+the API resolves an `EffectiveCapabilitySet` for every call. It uses the
+authenticated principal, the tenant, the call's `target_environment` and its
+optional `task_type`, and takes nothing else from the request. A call with no
+task type resolves to no tools. `/assess` records the capability block on the
+chain and in the response. A tool outside the set is ABSTAIN with reason
+`capability_not_allowed`. `/execute` and `/execute-accepted` refuse such a
+tool with 409 before anything is consumed. They resolve the set again at
+dispatch and sign its digest into the lease. `/dispatch-leased` takes the set
+as `capability_set`, and refuses one whose content no longer matches its
+digest. The dispatcher refuses a lease whose set is missing, mismatched,
+expired, or bound to another principal, tenant or environment.
+`REMORA_REQUIRE_CAPABILITY_SET=1` refuses any lease without a capability
+digest. The task type is declared by the caller. It is intersected with the
+principal's own tools, so it can never widen them.
+
 **Checks between authority and effect (WS7, all opt-in):** each setting
 below binds one check into the governed dispatcher. Every check runs after
 the lease verifies and before the nonce is consumed, so a refusal leaves the

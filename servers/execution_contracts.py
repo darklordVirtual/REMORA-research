@@ -287,6 +287,10 @@ class ToolCallRequest(BaseModel):
     context_id: str | None = Field(None, min_length=1, max_length=200)
     task_id: str | None = Field(None, min_length=1, max_length=200)
     plan: PlanProposal | None = None
+    # Q8.2: the task type the capability policy scopes tools by. Declared by
+    # the caller, and only ever intersected with the authenticated
+    # principal's own tools, so choosing a task type cannot widen them.
+    task_type: str | None = Field(None, min_length=1, max_length=200)
 
     @model_validator(mode="after")
     def _task_identity_is_whole(self) -> "ToolCallRequest":
@@ -405,6 +409,9 @@ class DispatchLeasedRequest(BaseModel):
     lease: dict[str, Any]
     tool_call: ToolCallRequest
     tenant_id: str = ""
+    # Q8.2: the capability set the lease was minted under. Checked against the
+    # lease's signed digest before use, so a widened set is refused.
+    capability_set: dict[str, Any] | None = None
 
 
 class ExecuteAcceptedRequest(BaseModel):
