@@ -123,3 +123,66 @@ class TestRegistrationVerifiesTheClosure:
         _, _, module = package
         runtime, observed = _runtime(module.run, source_digest(module.run))
         runtime.register(observed, module.run)
+
+
+class TestTheClosureEdges:
+    """Every branch of the closure walk, so a regression in any of them fails."""
+
+    @pytest.fixture()
+    def edgy(self, tmp_path, monkeypatch):
+        name = f"edgepkg_{secrets.token_hex(4)}"
+        root = tmp_path / name
+        root.mkdir()
+        (root / "__init__.py").write_text("")
+        (root / "helper.py").write_text("def scale(x):\n    return x\n")
+        (root / "tool.py").write_text(textwrap.dedent(f"""
+            from __future__ import annotations
+            from .helper import scale
+            from . import helper
+            import yaml
+            import json, json.decoder
+            try:
+                import not_an_installed_distribution_q34
+            except ImportError:
+                pass
+            try:
+                import {name}.ghost.thing
+            except ImportError:
+                pass
+
+            def run(arguments):
+                return scale(arguments)
+        """))
+        monkeypatch.syspath_prepend(str(tmp_path))
+        module = importlib.import_module(f"{name}.tool")
+        yield name, module
+        for key in [k for k in sys.modules if k.startswith(name)]:
+            del sys.modules[key]
+
+    def test_every_kind_of_member_is_identified(self, edgy):
+        name, module = edgy
+        members = closure_members(module.run)
+        assert members[f"{name}.helper"].startswith("sha256:")  # relative import followed
+        assert members["yaml"].startswith("dist:")               # third party by version
+        assert members["json"].startswith("stdlib:")              # stdlib once, by name
+        assert "json.decoder" not in members
+        assert members["not_an_installed_distribution_q34"] == "unresolved"
+        assert members[f"{name}.ghost.thing"] == "unresolved"     # in-package, missing
+        assert "__future__" not in members
+
+    def test_a_callable_without_a_module_file_is_refused(self):
+        with pytest.raises(ValueError, match="closure_unavailable"):
+            closure_digest(len)
+
+
+class TestAssessChecksTheReader:
+    def test_a_postcondition_read_by_another_reader_is_refused(self, package):
+        from remora.governance.effect_verification import PostconditionContract
+
+        _, _, module = package
+        runtime, observed = _runtime(module.run, source_digest(module.run))
+        runtime.register(observed, module.run)
+        with pytest.raises(ValueError, match="toolspec_reader_mismatch"):
+            runtime.assess("write", {"value": 1}, tenant="t", principal="p", target="record",
+                           postcondition=PostconditionContract("write", "someone-else",
+                                                               {"id": "r"}, {"value": 1}))
