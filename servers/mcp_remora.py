@@ -736,11 +736,11 @@ TOOLS = [
             "properties": {
                 "query": {
                     "type": "string",
-                    "description": "Optional search terms like 'MCP', 'Cloudflare', 'counterfactual', or 'worker'",
+                    "description": "Optional search terms like 'MCP', 'Cloudflare', 'counterfactual', or 'worker'. Ignored by the local fallback.",
                 },
                 "limit": {
                     "type": "integer",
-                    "description": "Maximum number of relevant files to return (1-25, default 8)",
+                    "description": "Maximum number of relevant files to return (1-25, default 8). Ignored by the local fallback, which returns the whole scope file.",
                     "default": 8,
                 },
             },
