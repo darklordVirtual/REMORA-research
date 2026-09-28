@@ -294,3 +294,9 @@ only shrink. Dependencies are already separated: the base install has
 none, and every research dependency is an extra. Splitting the research
 modules out of the wheel is owner decision 3.
 
+**2026-09-28, the n500 oracle runs.** The four n500 evaluation files record
+their own configuration: backend, calibration input and the uncommitted
+`.remora_cache.json`. They are classed live with that configuration. One file
+stays unverified: routing_bench_v1, because its committed run includes
+ToolSandbox data that cannot be redistributed.
+
