@@ -156,7 +156,7 @@ def dispatch_under_lease(
         try:
             return remote_dispatch(
                 lease=lease, tenant=tenant, principal=principal,
-                tool_call=tool_call,
+                tool_call=tool_call, capability_set=capability_set, plan=plan,
             )
         except RemoteDispatchUnavailable as exc:
             # No verdict. Reported as unknown rather than as a refusal: the

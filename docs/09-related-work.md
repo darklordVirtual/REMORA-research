@@ -582,9 +582,10 @@ measurements is reproduced, and none is claimed.
 
 REMORA's earlier lines judge an action after an agent has proposed it. WS8,
 adopted from an owner-supplied design, reduces what the agent can propose at
-all: an agent is shown, and may call, only the tools its task needs. RES-020
-maps the code, tests and artifact. No external result is claimed for the
-design itself.
+all: an agent is shown, and may call, only the tools its task needs. It is
+opt-in: a deployment turns it on with a capability policy, and no deployment
+is claimed to run one. RES-020 maps the code, tests and artifact. No external
+result is claimed for the design itself.
 
 The set an agent works under is derived from trusted state as an
 intersection. The requested tools, the principal's tools, the task's, the

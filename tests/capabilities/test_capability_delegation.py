@@ -69,20 +69,20 @@ class TestSubset:
 
 class TestNarrowing:
     def test_parent_constraints_are_inherited(self):
-        assert _child().constraints["email.send"]["conditions"] == [
+        assert _child().canonical()["constraints"]["email.send"]["conditions"] == [
             {"in": ["ops@acme", "user@acme"], "argument": "to"}]
 
     def test_extra_constraints_only_add(self):
         child = _child(extra_constraints={"email.send": {
             "allowed_fields": ["to", "body"],
             "conditions": [{"argument": "to", "eq": "user@acme"}]}})
-        rule = child.constraints["email.send"]
+        rule = child.canonical()["constraints"]["email.send"]
         assert rule["allowed_fields"] == ["body", "to"]
         assert len(rule["conditions"]) == 2
 
     def test_a_widened_field_list_cannot_add_fields(self):
         child = _child(extra_constraints={"email.send": {"allowed_fields": ["to", "bcc"]}})
-        assert child.constraints["email.send"]["allowed_fields"] == ["to"]
+        assert child.canonical()["constraints"]["email.send"]["allowed_fields"] == ["to"]
 
     def test_the_recipient_scope_is_enforced_on_the_nested_call(self):
         child = _child(extra_constraints={"email.send": {
@@ -169,8 +169,8 @@ class TestProperties:
         for tool in grandchild.allowed_tools:
             parent_rule = parent.constraints.get(tool)
             if parent_rule:
-                for condition in parent_rule.get("conditions", []):
-                    assert condition in grandchild.constraints[tool]["conditions"]
+                for condition in parent.canonical()["constraints"][tool].get("conditions", []):
+                    assert condition in grandchild.canonical()["constraints"][tool]["conditions"]
 
 
 class TestTheNestedCallIsEnforced:

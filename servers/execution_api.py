@@ -1685,7 +1685,11 @@ def capability_projection(request: Request, task_type: str = "",
 
     api_mod._require_tenant_capability(role, tenant, "assess")
     call = SimpleNamespace(target_environment=target_environment, task_type=task_type or None)
-    capability_set = _resolve_capability(call, principal, tenant)
+    try:
+        capability_set = _resolve_capability(call, principal, tenant)
+    except Exception as exc:  # noqa: BLE001 - same fail-closed rule as the execution paths
+        raise HTTPException(status_code=503,
+                            detail="capability_epoch_unverifiable") from exc
     if capability_set is None:
         raise HTTPException(status_code=404, detail="no capability policy is configured")
     from remora.capabilities import CapabilityProjector

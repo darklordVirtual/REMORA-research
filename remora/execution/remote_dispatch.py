@@ -128,6 +128,8 @@ def remote_dispatch(
     tenant: str,
     principal: str,
     tool_call: Any,
+    capability_set: Any = None,
+    plan: Any = None,
 ) -> dict[str, Any]:
     """Hand a minted lease to the execution domain and return its outcome.
 
@@ -147,15 +149,30 @@ def remote_dispatch(
         raise RemoteDispatchUnavailable(
             f"{ENDPOINT_ENV} must be an http or https URL, not {scheme or 'schemeless'!r}")
 
-    payload = {
+    call: dict[str, Any] = {
+        "tool_name": tool_call.tool_name,
+        "arguments": tool_call.arguments,
+        "target_environment": tool_call.target_environment,
+    }
+    # Everything the executor checks the lease against must travel with it.
+    # Forwarding only the three fields above left the executor with no task
+    # identity (so the Q7.2 task check was skipped, not refused), and with no
+    # plan or capability set (so a lease carrying either always refused).
+    # Found by the 2026-09-28 WS8 review.
+    for name in ("context_id", "task_id", "task_type"):
+        value = getattr(tool_call, name, None)
+        if value:
+            call[name] = value
+    if plan is not None:
+        call["plan"] = {"plan_id": plan.plan_id, "reads": dict(plan.reads),
+                        "depends_on": list(plan.depends_on)}
+    payload: dict[str, Any] = {
         "lease": lease.to_dict(),
         "tenant_id": tenant,
-        "tool_call": {
-            "tool_name": tool_call.tool_name,
-            "arguments": tool_call.arguments,
-            "target_environment": tool_call.target_environment,
-        },
+        "tool_call": call,
     }
+    if capability_set is not None:
+        payload["capability_set"] = capability_set.to_dict()
 
     try:
         answer = _post(url.rstrip("/") + "/v1/execution/dispatch-leased",

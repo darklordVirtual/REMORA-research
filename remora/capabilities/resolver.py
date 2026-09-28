@@ -37,7 +37,9 @@ def _frozen(mapping: Mapping[str, Iterable[str]] | None) -> Mapping[str, frozens
     out: dict[str, frozenset[str]] = {}
     for key, tools in (mapping or {}).items():
         values = frozenset(tools)
-        if any("*" in t for t in values):
+        # Keys and values: in ``registry`` the key is the tool name and the
+        # values are environments, so checking values alone missed it.
+        if "*" in str(key) or any("*" in t for t in values):
             raise ValueError(f"capability policy {key!r}: wildcards are not allowed")
         out[str(key)] = values
     return MappingProxyType(out)

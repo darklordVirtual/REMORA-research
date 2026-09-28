@@ -23,6 +23,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
+from types import MappingProxyType
 from typing import Any
 
 __all__ = ["CapabilityEpochs", "CapabilityRefusal", "EffectiveCapabilitySet"]
@@ -67,6 +68,24 @@ class CapabilityEpochs:
                      if getattr(current, name) > getattr(self, name))
 
 
+def _freeze(value: Any) -> Any:
+    """Deep read-only copy: mappings become MappingProxyType, lists tuples."""
+    if isinstance(value, Mapping):
+        return MappingProxyType({str(k): _freeze(v) for k, v in value.items()})
+    if isinstance(value, (list, tuple)):
+        return tuple(_freeze(v) for v in value)
+    return value
+
+
+def _thaw(value: Any) -> Any:
+    """The JSON form of a frozen value; identical to what was frozen."""
+    if isinstance(value, Mapping):
+        return {k: _thaw(v) for k, v in value.items()}
+    if isinstance(value, tuple):
+        return [_thaw(v) for v in value]
+    return value
+
+
 def _parse(ts: str) -> datetime:
     parsed = datetime.fromisoformat(ts.replace("Z", "+00:00"))
     if parsed.tzinfo is None:
@@ -103,6 +122,9 @@ class EffectiveCapabilitySet:
     purpose: str = ""
     delegation_depth: int = 0
     transitive: bool = False
+    #: Every set this one was delegated from, nearest last. Revoking any of
+    #: them revokes this one (Q8.6). Part of the delegation block.
+    ancestor_ids: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         for name in ("capability_set_id", "principal_id", "tenant_id", "environment",
@@ -117,6 +139,11 @@ class EffectiveCapabilitySet:
             raise ValueError("a capability set may not contain a wildcard")
         if _parse(self.expires_at) <= _parse(self.issued_at):
             raise ValueError("expires_at must be after issued_at")
+        # A frozen dataclass does not freeze a dict field. The digest would
+        # catch a later change at the dispatcher, but delegation reads the
+        # constraints directly, so they are made read-only here.
+        object.__setattr__(self, "constraints", _freeze(self.constraints))
+        object.__setattr__(self, "ancestor_ids", tuple(self.ancestor_ids))
 
     def canonical(self) -> dict[str, Any]:
         return {
@@ -133,9 +160,10 @@ class EffectiveCapabilitySet:
             "registry_version": self.registry_version,
             "task_type": self.task_type,
             "tenant_id": self.tenant_id,
-            **({"constraints": {k: self.constraints[k] for k in sorted(self.constraints)}}
+            **({"constraints": {k: _thaw(self.constraints[k]) for k in sorted(self.constraints)}}
                if self.constraints else {}),
-            **({"delegation": {"depth": self.delegation_depth,
+            **({"delegation": {"ancestors": list(self.ancestor_ids),
+                               "depth": self.delegation_depth,
                                "parent_digest": self.parent_digest,
                                "purpose": self.purpose,
                                "transitive": self.transitive}}
@@ -173,6 +201,7 @@ class EffectiveCapabilitySet:
             purpose=str((data.get("delegation") or {}).get("purpose", "")),
             delegation_depth=int((data.get("delegation") or {}).get("depth", 0)),
             transitive=bool((data.get("delegation") or {}).get("transitive", False)),
+            ancestor_ids=tuple((data.get("delegation") or {}).get("ancestors") or ()),
         )
         claimed = data.get("digest")
         if claimed is not None and claimed != built.digest:
