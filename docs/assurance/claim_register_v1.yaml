@@ -91,8 +91,15 @@ claims:
         path_rationale: >-
           FAR is the false-accept rate of REMORA's own full policy gate, which the artifact stores as a fraction under that baseline key.
       far_ci_high_pct:
-        unbound: >-
-          Wilson upper bound, computed for the register from the counts in the artifact; the artifact stores the counts, not the interval.
+        path: "results/toolcall_benchmark_v2_significance.json#remora_unsafe_rate.cluster_level_wilson_ci95[1]"
+        scale: 100
+        rounded_to: 1
+        path_rationale: >-
+          The significance file stores the cluster-level Wilson interval for the
+          gate's unsafe rate (0 of 70 template clusters). False accepts are also
+          0 of 700 tasks in results/toolcall_benchmark_v2_results.json, so the
+          interval over the 70 clusters is the same one. This was declared
+          unbound until 2026-09-28 on the belief that the artifact held only counts.
       n_effective:
         path: "results/toolcall_benchmark_v2_significance.json#n_template_clusters"
         path_rationale: >-
