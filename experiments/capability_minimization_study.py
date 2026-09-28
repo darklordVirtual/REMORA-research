@@ -199,7 +199,7 @@ def _dispatch(level: int, p: Proposal, capability_set: Any, world: World) -> boo
         # and a call whose authority went stale.
         tool(p.arguments)
         return True
-    from remora.capabilities import CapabilityEpochs, StaticEpochSource
+    from remora.capabilities import StaticEpochSource
     from remora.enforcement.lease import ExecutionLease, GovernedToolDispatcher
 
     lease = ExecutionLease.issue(
