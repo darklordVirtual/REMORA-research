@@ -816,6 +816,7 @@ items:
       a different CI job. Still open: hash-locked Python installs, npm ci on
       a regenerated Linux lockfile, extended ruff rule sets as a gate, and
       mutation coverage as a measured gate.
+      PROGRESS 2026-09-28: re-checked against the workflows. npm ci is restored (quality-gates.yml), and mutation coverage is a measured gate (mutation.yml fails on new survivors against a committed baseline). The security (S) and bugbear (B) rule sets now gate the trusted core (remora/policy, enforcement, governance, execution, servers) in quality-gates.yml, each reviewed exception with its reason in pyproject.toml. The review found and closed two scheme gaps: query_opa_policy returned ALLOW from a file: URL, and the custody hop accepted any scheme. Still open: hash-locked Python installs, and the style-only I/UP/RUF rule sets, which touch most capability evidence files and go in one mechanical PR with the capability rebinds.
 
   # Assurance-polish wave (2026-07-20): compendium audit items P3-P8.
   # Governance/evidence artifacts are DONE deliverables; the code-level

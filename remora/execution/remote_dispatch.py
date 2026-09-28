@@ -46,6 +46,7 @@ from remora.errors import RemoraError
 import json
 import os
 import urllib.error
+import urllib.parse
 import urllib.request
 from typing import Any
 
@@ -139,6 +140,12 @@ def remote_dispatch(
         raise RemoteDispatchUnavailable(
             f"{ENDPOINT_ENV} is not set; there is no execution domain to "
             "dispatch to")
+    scheme = urllib.parse.urlparse(url).scheme.lower()
+    if scheme not in ("http", "https"):
+        # A file: or custom scheme would let local content stand in for the
+        # executor's answer. Fail closed before anything is built or sent.
+        raise RemoteDispatchUnavailable(
+            f"{ENDPOINT_ENV} must be an http or https URL, not {scheme or 'schemeless'!r}")
 
     payload = {
         "lease": lease.to_dict(),

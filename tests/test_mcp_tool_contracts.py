@@ -24,7 +24,7 @@ import mcp_remora as m  # noqa: E402
 
 #: Handlers that compute locally and send nothing; their parameters are
 #: checked against the handler's output instead of an outgoing request.
-LOCAL = {"agent_audit_log", "remora_session_status", "remora_status"}
+LOCAL = {"remora_session_status", "remora_status"}
 #: Samples that make a parameter reachable (the citation tool only calls out
 #: when the text contains a citation it recognises).
 SAMPLES = {
@@ -63,8 +63,24 @@ def _run(tool: str, args: dict) -> tuple[list, str]:
             return _FAKE
         return fn
 
+    class _Resp:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+        def read(self):
+            return json.dumps(_FAKE).encode()
+
+    def urlopen(req, **_):
+        # Handlers that call urllib directly (the audit log) are recorded too.
+        sent.append(("URLOPEN", req.full_url, (req.data or b"").decode()))
+        return _Resp()
+
     with mock.patch.object(m, "_post", record("POST")), mock.patch.object(m, "_get", record("GET")), \
-         mock.patch.object(m, "_agent_post", record("AGENT")):
+         mock.patch.object(m, "_agent_post", record("AGENT")), \
+         mock.patch.object(m.urllib.request, "urlopen", urlopen):
         return sent, str(m.HANDLERS[tool](copy.deepcopy(args)))
 
 

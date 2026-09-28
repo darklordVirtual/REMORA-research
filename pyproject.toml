@@ -139,6 +139,32 @@ ignore = [
     "E702",   # multiple-statements-on-one-line-semicolon (compact math style)
 ]
 
+[tool.ruff.lint.per-file-ignores]
+# Reviewed exceptions for the core security gate (ci.yml: ruff --select B,S
+# over remora/policy, enforcement, governance, execution and servers).
+# REM-037, reviewed 2026-09-28. Each line states why the finding is safe.
+# S608: only dialect placeholders (? or %s) and literals are interpolated;
+# every value is a bound parameter.
+"remora/enforcement/nonce_store.py" = ["S608"]
+"remora/enforcement/outbox.py" = ["S608"]
+"remora/governance/audit_outbox.py" = ["S608"]
+"remora/governance/revocation_store.py" = ["S608"]
+# S310: the URL is scheme-checked before it is opened (http or https only).
+"remora/execution/remote_dispatch.py" = ["S310", "S105", "S110"]  # S105: an env var name, not a secret; S110: optional OpenTelemetry import
+"remora/policy/opa_adapter.py" = ["S310"]
+# S310: every helper checks _http_only first. S603/S607: `git ls-files` with a
+# fixed argument list, no shell. S112: an unreadable file is skipped in search.
+# B023: the citation lambda is called synchronously in the same iteration.
+"servers/mcp_remora.py" = ["S310", "S603", "S607", "S112", "B023"]
+# S101: type narrowing after a guard that already returned; the next line
+# raises on None even with -O.
+"remora/execution/dispatch.py" = ["S101"]
+"remora/execution/service.py" = ["S101"]
+"remora/governance/audit_chain.py" = ["S101"]
+"servers/execution_api.py" = ["S101"]
+# S110: falls back to a text projection so the audit record is never lost.
+"remora/enforcement/result_envelope.py" = ["S110"]
+
 [tool.mypy]
 # Gate scope: `mypy remora servers` in quality-gates.yml. servers/ was
 # outside the gate until 2026-08-20 even though it holds the audit-chain
