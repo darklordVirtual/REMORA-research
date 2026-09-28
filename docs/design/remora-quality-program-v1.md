@@ -274,3 +274,14 @@ descriptions now say it. Model sizes named in descriptions must match the
 committed RAG worker configuration, and no description may name a model
 family or a model count.
 
+**2026-09-28, deterministic mocks and the last reclassification.**
+`MockOracle` is documented as deterministic but seeded its RNG with
+`hash(name)`, which Python salts per process, so mock-backed experiments
+differed from run to run. It now uses a CRC32 of the name. With that,
+`experiments/end_to_end_n500_v2.py` reproduces its committed aggregates, and
+the file is regenerable. Two generators whose inputs were undocumented
+reproduce byte for byte once the input recorded in their own artifact is
+passed. Oracle-backed files are classed live, with what each one needs.
+Five files stay unverified: four n500 router or eval runs whose invocation
+was never recorded, and routing_bench_v1, which includes local-only data.
+
