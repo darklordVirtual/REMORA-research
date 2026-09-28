@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -43,6 +44,7 @@ class CapabilityRefusal(str, Enum):
     TENANT_MISMATCH = "capability_tenant_mismatch"
     PRINCIPAL_MISMATCH = "capability_principal_mismatch"
     DIGEST_MISMATCH = "capability_digest_mismatch"
+    STATE_UNVERIFIABLE = "capability_state_unverifiable"
 
 
 @dataclass(frozen=True)
@@ -89,6 +91,10 @@ class EffectiveCapabilitySet:
     #: what the set permits.
     denied_tools: tuple[str, ...] = ()
     epochs: CapabilityEpochs = field(default_factory=CapabilityEpochs)
+    #: Q8.4: canonical ToolConstraint forms for allowed tools that have one.
+    #: Part of the digest only when non-empty, so a set without constraints
+    #: keeps the digest it had before constraints existed.
+    constraints: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         for name in ("capability_set_id", "principal_id", "tenant_id", "environment",
@@ -119,6 +125,8 @@ class EffectiveCapabilitySet:
             "registry_version": self.registry_version,
             "task_type": self.task_type,
             "tenant_id": self.tenant_id,
+            **({"constraints": {k: self.constraints[k] for k in sorted(self.constraints)}}
+               if self.constraints else {}),
         }
 
     @property
@@ -147,6 +155,7 @@ class EffectiveCapabilitySet:
             expires_at=str(data["expires_at"]),
             denied_tools=tuple(data.get("denied_tools") or ()),
             epochs=CapabilityEpochs(**{k: int(v) for k, v in epochs.items()}),
+            constraints=dict(data.get("constraints") or {}),
         )
         claimed = data.get("digest")
         if claimed is not None and claimed != built.digest:
@@ -174,3 +183,17 @@ class EffectiveCapabilitySet:
         if tool_name not in self.allowed_tools:
             return CapabilityRefusal.NOT_ALLOWED
         return None
+
+    def check_arguments(self, tool_name: str, arguments: Any,
+                        reader: Any = None) -> CapabilityRefusal | None:
+        """Why ``arguments`` exceed the tool's scope in this set (Q8.4), or None.
+
+        ``reader`` is the deployment's trusted-state reader; a constraint that
+        needs state refuses without one.
+        """
+        from remora.capabilities.constraints import ToolConstraint, evaluate_constraint
+
+        raw = self.constraints.get(tool_name)
+        if raw is None:
+            return None
+        return evaluate_constraint(ToolConstraint.from_dict(raw), arguments, reader)

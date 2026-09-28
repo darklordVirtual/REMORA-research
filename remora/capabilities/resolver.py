@@ -27,6 +27,7 @@ from datetime import datetime, timedelta
 from types import MappingProxyType
 from typing import Any
 
+from remora.capabilities.constraints import canonical_constraints, constraints_from_policy
 from remora.capabilities.model import CapabilityEpochs, EffectiveCapabilitySet
 
 __all__ = ["CapabilityPolicy", "CapabilityResolver"]
@@ -60,6 +61,8 @@ class CapabilityPolicy:
     environment_tools: Mapping[str, frozenset[str]]
     denied_tools: frozenset[str] = field(default_factory=frozenset)
     ttl_seconds: int = 900
+    #: Q8.4: per-tool argument scope (remora.capabilities.constraints).
+    constraints: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not self.policy_version or not self.registry_version:
@@ -80,6 +83,7 @@ class CapabilityPolicy:
             environment_tools=_frozen(data.get("environments")),
             denied_tools=frozenset(data.get("denied") or ()),
             ttl_seconds=int(data.get("ttl_seconds", 900)),
+            constraints=MappingProxyType(constraints_from_policy(data.get("constraints"))),
         )
 
 
@@ -116,4 +120,5 @@ class CapabilityResolver:
             expires_at=(now + timedelta(seconds=p.ttl_seconds)).isoformat(),
             denied_tools=tuple(sorted(denied)),
             epochs=epochs or CapabilityEpochs(),
+            constraints=canonical_constraints(p.constraints, sorted(allowed)),
         )
