@@ -68,8 +68,11 @@ def revocation_refusal(capability_set: EffectiveCapabilitySet,
     if source is None:
         return None
     try:
-        if source.revoked(capability_set.capability_set_id):
-            return CapabilityRefusal.REVOKED
+        # A delegated set is revoked with any set it was delegated from, or a
+        # revoked parent's children would keep working until they expired.
+        for set_id in (capability_set.capability_set_id, *capability_set.ancestor_ids):
+            if source.revoked(set_id):
+                return CapabilityRefusal.REVOKED
         current = source.current(capability_set.tenant_id, capability_set.principal_id)
     except Exception:  # noqa: BLE001 - unknown is not current
         return CapabilityRefusal.EPOCH_UNVERIFIABLE

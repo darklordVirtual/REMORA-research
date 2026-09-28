@@ -596,3 +596,24 @@ leaves three questions open, each stated where it applies. No deployment is
 claimed to run a capability policy. The task type is declared by the caller
 and only narrows. The effect of reduced exposure on what a model proposes
 needs a live run (owner decision 2).
+
+**2026-09-28, WS8 review.** A three-part review of WS8 found no claim in the
+documents or registers that exceeds its evidence. It found five defects in
+the code, all now fixed with regression tests that fail on the old code:
+
+- **The custody split dropped bindings.** The hop from authority to executor
+  forwarded only the tool name, arguments and target. The executor therefore
+  had no task identity, so the Q7.2 task check was skipped rather than
+  refused; this dated from #607. It also had no plan or capability set, so a
+  lease carrying either always refused. The hop now forwards all of them.
+- **Delegation depth was never enforced.** It is now capped at three hops.
+- **Revoking a set did not revoke sets delegated from it.** A delegated set
+  now carries its ancestors' identifiers in its digest, and revoking any of
+  them revokes it.
+- **The registry wildcard check read the wrong side of the mapping.**
+- **A capability set's constraints were a mutable dict** on a frozen object.
+  They are now read-only, and their canonical form, and so every digest, is
+  unchanged.
+
+`GET /capabilities` now refuses by name when the epoch source cannot answer.
+Related work §13 now states that capability minimization is opt-in.

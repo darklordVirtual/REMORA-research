@@ -40,10 +40,13 @@ from typing import Any
 from remora.capabilities.model import CapabilityRefusal, EffectiveCapabilitySet, _parse
 from remora.errors import RemoraError
 
-__all__ = ["DelegationDenied", "MAX_DELEGATION_TTL_SECONDS", "delegate"]
+__all__ = ["DelegationDenied", "MAX_DELEGATION_DEPTH", "MAX_DELEGATION_TTL_SECONDS", "delegate"]
 
 #: A delegation is for one nested step, not a standing grant.
 MAX_DELEGATION_TTL_SECONDS = 300
+#: Hops from the resolved set. Transitivity is opt-in per link, and without
+#: a cap a chain of opt-ins could grow for as long as the root set lives.
+MAX_DELEGATION_DEPTH = 3
 
 
 class DelegationDenied(RemoraError, ValueError):
@@ -82,6 +85,8 @@ def delegate(parent: EffectiveCapabilitySet, *, delegatee: str, tools: Iterable[
         raise DelegationDenied("a delegation must name its delegatee")
     if parent.parent_digest and not parent.transitive:
         raise DelegationDenied("the parent is itself a delegation and is not transitive")
+    if parent.delegation_depth + 1 > MAX_DELEGATION_DEPTH:
+        raise DelegationDenied(f"delegation deeper than {MAX_DELEGATION_DEPTH} hops")
     outside = set(wanted) - set(parent.allowed_tools)
     if outside:
         raise DelegationDenied(f"tools outside the parent's set: {sorted(outside)}")
@@ -116,4 +121,5 @@ def delegate(parent: EffectiveCapabilitySet, *, delegatee: str, tools: Iterable[
         purpose=purpose,
         delegation_depth=parent.delegation_depth + 1,
         transitive=transitive,
+        ancestor_ids=(*parent.ancestor_ids, parent.capability_set_id),
     )
