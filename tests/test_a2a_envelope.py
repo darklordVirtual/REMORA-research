@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timedelta, timezone
+import pytest
 
 from remora.governance.a2a_envelope import (
     PROTOCOL_VERSION,
@@ -18,6 +19,15 @@ KEY = b"test-a2a-signing-key"
 # Envelopes are issued with the real clock; verify against the real clock so
 # the issued-in-future guard (clock-skew tolerance 300s) does not trip.
 NOW = datetime.now(timezone.utc)
+
+
+@pytest.fixture(autouse=True)
+def _fresh_clock():
+    """Re-read the clock per test: a module-level timestamp is taken at
+    collection, and the full suite can outlast a lease or token lifetime
+    before this module runs (see tests/test_token_hardening.py)."""
+    global NOW
+    NOW = datetime.now(timezone.utc)
 
 
 def _identity(**overrides) -> AgentIdentity:

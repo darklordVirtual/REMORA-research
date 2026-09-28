@@ -42,6 +42,15 @@ require_security_extra()
 from cryptography.hazmat.primitives.asymmetric import ed25519  # noqa: E402
 
 ISSUED = datetime.now(UTC).isoformat()
+
+
+@pytest.fixture(autouse=True)
+def _fresh_clock():
+    """Re-read the clock per test: a module-level timestamp is taken at
+    collection, and the full suite can outlast a lease or token lifetime
+    before this module runs (see tests/test_token_hardening.py)."""
+    global ISSUED
+    ISSUED = datetime.now(UTC).isoformat()
 CALL = {"tool_name": "wo_close", "arguments": {"id": "WO-1"},
         "tenant_id": "acme", "target_environment": "staging"}
 

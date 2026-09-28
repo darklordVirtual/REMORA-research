@@ -21,6 +21,21 @@ SOON = (NOW + timedelta(seconds=60)).isoformat()
 
 
 @pytest.fixture(autouse=True)
+def _fresh_clock():
+    """Re-read the clock per test.
+
+    NOW was taken once at import, i.e. at collection. Tokens live
+    DEFAULT_TOKEN_TTL_SECONDS (300 s); once the full suite took longer than
+    that between collecting and running this module, its tokens were already
+    expired when checked (CI, 2026-09-28).
+    """
+    global NOW, ISSUED, SOON
+    NOW = datetime.now(timezone.utc)
+    ISSUED = NOW.isoformat()
+    SOON = (NOW + timedelta(seconds=60)).isoformat()
+
+
+@pytest.fixture(autouse=True)
 def _key(monkeypatch):
     monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "hardening-key")
 

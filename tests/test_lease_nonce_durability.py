@@ -52,6 +52,16 @@ DISPATCH = {**CALL, "actor_identity": "agent-1", "now": ISSUED}
 
 
 @pytest.fixture(autouse=True)
+def _fresh_clock():
+    """Re-read the clock per test: a module-level timestamp is taken at
+    collection, and the full suite can outlast a lease or token lifetime
+    before this module runs (see tests/test_token_hardening.py)."""
+    global ISSUED, DISPATCH
+    ISSUED = datetime.now(UTC).isoformat()
+    DISPATCH = {**CALL, "actor_identity": "agent-1", "now": ISSUED}
+
+
+@pytest.fixture(autouse=True)
 def _signing_key(monkeypatch):
     """Signed leases in the production shape, not a relaxed path."""
     monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "nonce-durability-test-key")
