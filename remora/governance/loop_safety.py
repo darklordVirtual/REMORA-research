@@ -35,8 +35,8 @@ fail closed
 The durable store follows ``remora/governance/revocation_store.py`` and uses
 the backends the durability guard in ``servers/api.py`` admits.
 
-Scope at this revision: a library control. No REMORA decision path records
-into it or reads it yet, and the thresholds in ``LoopSafetyPolicy`` are
+Wired at ``POST /v1/execution/assess`` (``servers/execution_api.py``): read
+before deciding, recorded after. The thresholds in ``LoopSafetyPolicy`` are
 defaults, not calibrated values.
 """
 from __future__ import annotations

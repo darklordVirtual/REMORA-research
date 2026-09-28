@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from remora.governance.effect_verification import EffectStatus
 
@@ -257,6 +257,22 @@ class ToolCallRequest(BaseModel):
     # Proposals only — verified by deterministic re-execution server-side;
     # an invalid receipt just leaves its value ungrounded.
     derivations: list[DerivationProposal] | None = Field(None, max_length=32)
+    # Q7.2: the task this call is made under, in A2A's vocabulary. Opaque;
+    # compared, never parsed. Both or neither: a task id is only unique
+    # within its context. When present it is bound into the ACCEPT token's
+    # authorization context and the execution lease, so an approval granted
+    # under one task refuses under another, and the call is recorded in the
+    # context's loop safety state (remora/governance/loop_safety.py).
+    context_id: str | None = Field(None, min_length=1, max_length=200)
+    task_id: str | None = Field(None, min_length=1, max_length=200)
+
+    @model_validator(mode="after")
+    def _task_identity_is_whole(self) -> "ToolCallRequest":
+        from remora.governance.task_identity import TaskIdentity
+
+        # Raises ValueError (a 422) for one half, blank or padded values.
+        TaskIdentity.from_fields({"context_id": self.context_id, "task_id": self.task_id})
+        return self
 
     model_config = {
         "json_schema_extra": {
@@ -288,6 +304,20 @@ class RevokePrincipalRequest(BaseModel):
 
     principal: str = Field(..., min_length=1, max_length=256)
     reason: str | None = Field(None, max_length=512)
+
+
+class LoopSafetyResetRequest(BaseModel):
+    """Start a context's loop safety count again, under a named policy decision.
+
+    ``policy_ref`` names the decision that authorised the reset (a review item,
+    decision envelope or ticket id). The earlier events stay in the store and
+    the reset itself is appended to the tenant chain, so a reset can always be
+    traced to the person and the decision behind it.
+    """
+
+    context_id: str = Field(..., min_length=1, max_length=200)
+    policy_ref: str = Field(..., min_length=1, max_length=200)
+    reason: str = Field(..., min_length=1, max_length=512)
 
 
 class ApproveRequest(BaseModel):

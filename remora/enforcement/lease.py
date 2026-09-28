@@ -628,8 +628,9 @@ class GovernedToolDispatcher:
         """
         ``require_task_identity`` (Q7.2) refuses any dispatch that does not
         present the current task, and any lease not granted under one. Off by
-        default, because no server path supplies a task identity yet;
-        turning it on is how a deployment makes task binding mandatory.
+        default, because a caller that sends no task would be refused on
+        every call; ``REMORA_REQUIRE_TASK_IDENTITY`` turns it on for the
+        execution API.
 
         ``nonce_store`` (ADR-B) makes single-use consumption durable and
         tenant-scoped. When supplied it REPLACES the in-process ledger for the

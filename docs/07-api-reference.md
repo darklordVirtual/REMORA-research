@@ -427,6 +427,26 @@ chain and reports `records_checked`; an `empty` chain is flagged because it is
 trivially valid). RBAC: `assess`/`execute` capabilities gate assess/execute;
 `review` gates approve; `read` gates audit. `review` also gates `POST /revoke-principal`, which withdraws a principal's authority after the fact. An approval that principal granted is invalidated at the execution re-gate, not rewritten. The chain therefore shows both the approval and the revocation.
 
+**Task identity and loop safety (Q7.2):** a tool call may carry `context_id`
+and `task_id`, in A2A's vocabulary, both or neither (one alone is a 422).
+When present, the task is bound into the ACCEPT token's authorization
+context and into the execution lease. Redeeming the token under another
+task, or with the task stripped, is refused as `context_mismatch` before the
+grant is spent. `POST /dispatch-leased` refuses a lease from another task as
+`task_mismatch`. Every assessment that names a task is recorded in the
+context's loop safety state (`remora/governance/loop_safety.py`). A context
+that has reached a limit (by default 3 denials, 1 authority probe, or 2 tool
+switches straight after a denial) cannot ACCEPT: the decision becomes
+ESCALATE with reason `loop_safety_escalate`. An unreadable loop store is a
+503 and nothing is assessed. `GET /loop-safety/{context_id}` reads a
+context's state, and `POST /loop-safety/reset` starts it again. The reset
+takes a `policy_ref` and a `reason`, both mandatory, is recorded on the
+tenant chain, and keeps the earlier events. Both routes need `review`.
+`REMORA_REQUIRE_TASK_IDENTITY=1` refuses every call that names no task with
+409 `task_identity_required` before anything is decided or consumed. It is
+off by default because callers must first send the fields. The loop limits
+are defaults that no study has calibrated.
+
 **Authentication modes:** token-table mode (`REMORA_API_TOKENS`) maps each
 bearer token to a fixed tenant and role; callers cannot forge either.
 Single-token mode (`REMORA_API_BEARER_TOKEN`) reads tenant/role from

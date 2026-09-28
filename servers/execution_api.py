@@ -70,6 +70,13 @@ from remora.governance.revocation_store import (
     RevocationStoreUnavailable,
 )
 from remora.governance import audit_outbox as _audit_outbox
+from remora.governance.loop_safety import (
+    DurableLoopSafetyStore,
+    InMemoryLoopSafetyStore,
+    LoopSafetyMonitor,
+    LoopSafetyStoreUnavailable,
+)
+from remora.governance.task_identity import TaskIdentity
 from remora.governance.tenant_chain import TenantAuditChain
 from remora.policy.decision_engine import RemoraDecisionEngine
 from remora.policy.observation import PolicyObservation, canonical_tool_call_hash
@@ -113,6 +120,7 @@ from servers.execution_contracts import (  # noqa: F401
     ToolExecutionResult,
     ToolResultEnvelopeModel,
     RevokePrincipalRequest,
+    LoopSafetyResetRequest,
 )
 
 #: The only path the execution domain serves.
@@ -843,6 +851,59 @@ def _revocation_store() -> RevocationStore | None:
 # it instead of implying execution.
 
 _DISPATCHER: GovernedToolDispatcher | None = None
+_LOOP_SAFETY: LoopSafetyMonitor | None = None
+
+
+def _loop_safety_monitor() -> LoopSafetyMonitor:
+    """The loop safety monitor, over durable state when the deployment has it.
+
+    The same three switches as ``_revocation_store`` and the durability guard,
+    for the reason recorded there: a switch the guard admits and this store
+    did not read would leave that deployment's loop history per-process.
+    Without any of them the in-process store is used, which keeps a context's
+    history for the life of this worker only (AST-012).
+    """
+    global _LOOP_SAFETY
+    if _LOOP_SAFETY is None:
+        with _LAZY_INIT_LOCK:
+            if _LOOP_SAFETY is None:
+                dsn = _os.environ.get("REMORA_PG_DSN", "").strip()
+                db_path = _os.environ.get("REMORA_CHAIN_DB", "").strip()
+                endpoint = _os.environ.get("REMORA_STATE_ENDPOINT", "").strip()
+                store = (
+                    DurableLoopSafetyStore(dsn=dsn, db_path=db_path,
+                                           state_endpoint=endpoint)
+                    if (dsn or db_path or endpoint) else InMemoryLoopSafetyStore()
+                )
+                _LOOP_SAFETY = LoopSafetyMonitor(store)
+    return _LOOP_SAFETY
+
+
+def _require_task_identity() -> bool:
+    """Whether this deployment refuses calls that name no task (Q7.2).
+
+    Off unless ``REMORA_REQUIRE_TASK_IDENTITY`` is set, because a caller that
+    does not yet send ``context_id`` and ``task_id`` would otherwise be
+    refused on every call.
+    """
+    return _os.environ.get("REMORA_REQUIRE_TASK_IDENTITY", "").strip().lower() in {
+        "1", "true", "yes", "on"}
+
+
+def _task_or_refuse(tool_call: Any) -> TaskIdentity | None:
+    """The task a call names; a 409 when the deployment requires one and it
+    names none. Checked before anything is decided or consumed, so a refused
+    call spends no grant and records no loop state."""
+    task = TaskIdentity.from_fields({
+        "context_id": getattr(tool_call, "context_id", None),
+        "task_id": getattr(tool_call, "task_id", None),
+    })
+    if task is None and _require_task_identity():
+        raise HTTPException(
+            status_code=409,
+            detail="task_identity_required: this deployment requires "
+                   "context_id and task_id on every call")
+    return task
 
 
 def _policy_coverage() -> dict[str, Any]:
@@ -900,6 +961,7 @@ def _tool_dispatcher() -> GovernedToolDispatcher | None:
                 dispatcher = GovernedToolDispatcher(
                     expected_policy_bundle_hash=bundle,
                     nonce_store=_lease_nonce_store(),
+                    require_task_identity=_require_task_identity(),
                 )
                 # RMR-004: the lease has always carried the signed spec
                 # identity and verify() has always been able to check it.
@@ -1291,13 +1353,34 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "assess")
+    _task_or_refuse(req)
     # FT-02 lazy sweep (same discipline as REM-032's TTL sweep): a dispatch
     # whose worker never reported back is settled as UNKNOWN before new
     # work is considered, so a stranded intent cannot linger unnoticed.
     reconcile_stale_dispatches(tenant)
     # Orchestration lives in remora.execution.service (issue #241, slice 7);
     # this route binds the module's ambient state and stays HTTP conversion.
-    response = _assess_proposal(
+    try:
+        response = _assess_proposal_with_loop_state(
+            tenant=tenant, principal=principal, req=req)
+    except LoopSafetyStoreUnavailable as exc:
+        # 503 and no decision. Assessing without the context's history
+        # would read an outage as "nothing accumulated".
+        raise HTTPException(
+            status_code=503,
+            detail="loop safety store unavailable; nothing was assessed "
+                   "and this call must be retried") from exc
+    api_mod.record_execution_assess(response["decision"])
+
+    if idemp_key:
+        _idempotency_put(tenant, idemp_key, response)
+    return response
+
+
+def _assess_proposal_with_loop_state(
+    *, tenant: str, principal: str, req: "ToolCallRequest",
+) -> dict[str, Any]:
+    return _assess_proposal(
         tenant=tenant, principal=principal, proposal=req,
         engine=_ENGINE, chain=_CHAIN,
         transaction=db_transaction_state, item_tenant=_ITEM_TENANT,
@@ -1309,12 +1392,8 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
         token_audience=PEP_AUDIENCE,
         token_ttl_seconds=EXECUTION_TOKEN_TTL_SECONDS,
         policy_bundle_hash=_current_policy_bundle_hash,
+        loop_safety=_loop_safety_monitor(),
     )
-    api_mod.record_execution_assess(response["decision"])
-
-    if idemp_key:
-        _idempotency_put(tenant, idemp_key, response)
-    return response
 
 
 @router.post("/approve", responses={
@@ -1372,6 +1451,70 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
         raise HTTPException(status_code=409, detail=exc.reason) from exc
     api_mod.record_execution_approval()
     return response
+
+
+@router.get("/loop-safety/{context_id}", responses={
+    200: {"description": "What this context has accumulated since its last reset."},
+    **_AUTH_RESPONSES,
+    503: {"model": ErrorDetail, "description": "Loop safety store unavailable."},
+})
+def loop_safety_state(context_id: str, request: Request) -> dict[str, Any]:
+    """Read a context's loop safety state (Q7.2). Reviewer capability."""
+    tenant, role, _principal = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "review")
+    try:
+        verdict = _loop_safety_monitor().assess(tenant, context_id)
+    except LoopSafetyStoreUnavailable as exc:
+        raise HTTPException(status_code=503,
+                            detail="loop safety store unavailable") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    state = verdict.state
+    return {
+        "context_id": context_id,
+        "action": verdict.action,
+        "reached": list(verdict.reached),
+        "counts": dict(state.counts),
+        "tasks": list(state.tasks),
+        "events_since_reset": state.events_since_reset,
+    }
+
+
+@router.post("/loop-safety/reset", responses={
+    200: {"description": "Reset recorded; the context's count starts again."},
+    **_AUTH_RESPONSES,
+    503: {"model": ErrorDetail, "description": "Loop safety store unavailable."},
+})
+def loop_safety_reset(req: LoopSafetyResetRequest, request: Request) -> dict[str, Any]:
+    """Reset a context's loop safety count under a named policy decision.
+
+    Reviewer capability, as for revoking a principal: it is a human decision
+    about authority. The store keeps the earlier events, and the reset is
+    appended to the tenant chain with the reviewer, the policy reference and
+    the reason. The agent whose history it is has no route to this.
+    """
+    tenant, role, reviewer = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "review")
+    try:
+        _loop_safety_monitor().reset(tenant, req.context_id,
+                                     policy_ref=req.policy_ref, reason=req.reason)
+    except LoopSafetyStoreUnavailable as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="loop safety store unavailable; the context was NOT reset",
+        ) from exc
+    _CHAIN.append(tenant, {
+        "event": "loop_safety_reset",
+        "context_id": req.context_id,
+        "reset_by": reviewer,
+        "policy_ref": req.policy_ref,
+        "reason": req.reason,
+    })
+    return {"context_id": req.context_id, "reset_by": reviewer, "status": "reset"}
 
 
 @router.post("/revoke-principal", responses={
@@ -1510,6 +1653,7 @@ def _dispatch_under_lease(
     proposal_id: str = "",
     grant_jti: str = "",
     presented_lease: Any = None,
+    task_identity: TaskIdentity | None = None,
 ) -> dict[str, Any]:
     """Governed dispatch (see remora.execution.dispatch); binds this module's
     dispatcher and current policy bundle hash. Shared by /execute,
@@ -1541,6 +1685,7 @@ def _dispatch_under_lease(
             proposal_id=proposal_id,
             grant_jti=grant_jti,
             presented_lease=presented_lease,
+            task_identity=task_identity,
         )
         _span.set_attribute("remora.executed", bool(result.get("executed")))
         if result.get("refusal_reason"):
@@ -1578,6 +1723,7 @@ def execute(req: ExecuteRequest, request: Request) -> "dict[str, Any] | JSONResp
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "execute")
+    _task_or_refuse(req.tool_call)
     reconcile_stale_dispatches(tenant)  # FT-02 lazy sweep (see assess)
     # Issue #82: async mode answers 202 after durable authorization; the
     # dispatch half belongs to the standalone worker
@@ -1665,6 +1811,7 @@ def execute_accepted(req: ExecuteAcceptedRequest, request: Request) -> dict[str,
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "execute")
+    _task_or_refuse(req.tool_call)
     reconcile_stale_dispatches(tenant)
 
     try:
@@ -1732,6 +1879,7 @@ def dispatch_leased(req: DispatchLeasedRequest, request: Request) -> dict[str, A
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "execute")
+    task = _task_or_refuse(req.tool_call)
 
     try:
         lease = ExecutionLease.from_dict(req.lease)
@@ -1771,6 +1919,9 @@ def dispatch_leased(req: DispatchLeasedRequest, request: Request) -> dict[str, A
         proposal_id=lease.proposal_id,
         grant_jti=lease.grant_jti,
         presented_lease=lease,
+        # From the call being executed, checked against the task the signed
+        # lease was granted under: a lease from another task refuses.
+        task_identity=task,
     )
     api_mod.record_execution_execute(
         executed=bool(tool_execution["executed"]),

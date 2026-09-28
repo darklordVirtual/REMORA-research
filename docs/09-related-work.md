@@ -478,9 +478,12 @@ envelope signs the bytes it signed before, and
 Checked against another task, either one refuses as `task_mismatch`; one that
 was never bound refuses as `task_unbound`. The check runs when the executor
 supplies the current task, and a dispatcher built with
-`require_task_identity` refuses a call that supplies none. No server path
-supplies a task yet, so at this revision the binding is a library property
-that no deployment enforces.
+`require_task_identity` refuses a call that supplies none. The execution API
+takes `context_id` and `task_id` on every call and binds them into the token
+and the lease, so a token redeemed under another task is refused before its
+grant is spent. A deployment makes the fields mandatory with
+`REMORA_REQUIRE_TASK_IDENTITY`; without it, a call that names no task behaves
+as before.
 
 `remora/governance/loop_safety.py` keeps the state Wu et al. show must not
 decay. It is keyed on `(tenant_id, context_id)`, so a new task inside the
@@ -488,9 +491,10 @@ same context sees what earlier iterations accumulated: denials, authority
 probes, a switch to another tool straight after a denial, and irreversible
 effects. The store is append-only, and only a reset that names a policy
 decision starts the count again. An unreadable store raises rather than
-reporting an empty history. Like the lease binding, it is a library control
-at this revision: no decision path records into it yet, and its limits are
-defaults that no study has calibrated.
+reporting an empty history. `POST /v1/execution/assess` reads it before
+deciding and records every decision that names a task. A context at a limit
+cannot ACCEPT, and only a reviewer's reset naming a policy decision clears
+it. The limits are defaults that no study has calibrated.
 
 This is binding, not proof-of-possession. It ties an authorization to a task
 and does not prove the presenter holds a key. Nothing here should be read as
