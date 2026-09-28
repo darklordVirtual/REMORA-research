@@ -153,6 +153,32 @@ items (typed claim status, cut-point replay, failure-to-policy compilation,
 per-argument provenance, qualified MCP registry) stay on the shelf as
 UNEVALUATED until then.
 
+### WS8. Capability-minimized verified execution (P1)
+
+Added 2026-09-28 from an owner-supplied software design document. The
+mapping onto existing code, the deviations and the full acceptance criteria
+are in `docs/design/capability-minimized-execution-v1.md`. REMORA already
+enforces authority after an agent proposes an action. WS8 reduces what the
+agent can see and request before it reasons. It reuses the existing lease,
+re-gate, delegation chain and effect verification instead of rebuilding
+them.
+
+| ID | Requirement | Artifact | Gate |
+|---|---|---|---|
+| Q8.1 | A capability set is derived from trusted state, never from the agent: an intersection with default deny, and a canonical digest. | `remora/capabilities/` | new tests |
+| Q8.2 | A tool outside the set cannot run: the digest is in the lease, the dispatcher refuses, and `/assess` returns ABSTAIN. | lease field, dispatcher check | lease contract tests |
+| Q8.3 | The agent sees only the tools in its set, as OpenAI and MCP projections, with the exposure ratio reported. | projector, execution API route | new tests |
+| Q8.4 | An allowed tool cannot exceed its argument scope; constraints read trusted state only. | constraint evaluator | new tests |
+| Q8.5 | Delegation is a subset, purpose-bound, short-lived and non-transitive; a nested call outside it refuses. | delegation module | property tests |
+| Q8.6 | Capability sets can be revoked by epoch. | epochs in the set | new tests |
+| Q8.7 | Success is established by evidence: capability decision, authorization, execution and verified effect. | `success_established_v1` coverage contract | evidence tests |
+| Q8.8 | The layers are measured separately in a pre-registered deterministic benchmark (arms A to F). | benchmark, pre-registration, artifact | CI reproduction |
+| Q8.9 | The work is traceable in the research, capability and document registers. | registers | register gates |
+
+Order: Q8.1, then Q8.2 and Q8.3, then Q8.4 to Q8.7, then Q8.8 and Q8.9. The
+benchmark's model-behaviour arms need a live model and wait for owner
+decision 2.
+
 ## 5. Design notes
 
 **Results manifest (Q1.1, Q1.2).** One YAML entry per results file: path,
