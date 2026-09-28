@@ -196,6 +196,13 @@ def test_verify_callable_still_has_no_non_test_caller():
     comparison can fail. What it measures is recorded with it: source text
     only, not closure state, imported dependencies or host integrity. No
     other path, including the REST dispatch, calls it.
+
+    2026-09-28 (Q3.4): a spec may now attest a ``closure-sha256:`` digest over
+    the defining module and its transitive in-package imports, plus the
+    installed version of each third-party distribution, and the reference
+    runtime verifies whichever kind the spec declares. A changed dependency
+    then fails (tests/test_callable_closure_digest.py). Host integrity is
+    still not measured, and the caller is still the reference module only.
     """
     _assert_no_production_caller("verify_callable", allowed=_REFERENCE_RUNTIME)
 
@@ -213,6 +220,14 @@ def test_verify_credential_scope_still_has_no_non_test_caller():
     registration, and refuses a wider one. That is still a provider
     assertion, not the scope dispatch is about to use, which nothing tracks
     yet. The narrow exemption is the reference module only.
+
+    2026-09-28 (Q3.3): with a credential issuer bound, the scope compared is
+    the one the issuer reports for the credential the tool was actually
+    given, at registration and again before every dispatch; the provider's
+    declaration is no longer the input (tests/test_credential_issuer_scope.py).
+    The issuer is a reference implementation in the runtime's own trust
+    domain, and REMORA cannot check that the downstream system enforces the
+    scope. The caller is still the reference module only.
     """
     _assert_no_production_caller("verify_credential_scope", allowed=_REFERENCE_RUNTIME)
 

@@ -364,6 +364,7 @@ jobs:
           python scripts/check_ledger_bindings.py
           # Q1.4: a replay-seed baseline is never cited as a model's answer.
           python scripts/check_decision_sources.py
+          python scripts/check_far_claim_size.py
 
       - name: Source hygiene (script metadata, SPDX headers)
         run: python scripts/check_script_hygiene.py

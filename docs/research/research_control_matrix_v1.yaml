@@ -557,6 +557,10 @@ entries:
       - assessment_dispatch_continuity
       - bounded_authority_path_analysis
       - independent_effect_recheck
+      - surface_digest_lease_binding
+      - callable_closure_identity
+      - issuer_observed_credential_scope
+      - durable_surface_evidence
     code:
       - remora/toolcall/runtime_surface.py
       - remora/toolcall/surface_runtime.py
@@ -564,10 +568,13 @@ entries:
       - remora/toolcall/surface_authority.py
       - remora/toolcall/surface_effect_evidence.py
       - remora/toolcall/surface_evaluation.py
+      - remora/toolcall/credential_issuer.py
       - remora/enforcement/lease.py
       - scripts/evaluate_runtime_surface.py
+      - scripts/measure_surface_binding_shadow.py
       - artifacts/runtime_surface/negative_cases_v1.json
       - artifacts/runtime_surface/reference_runtime_v1.json
+      - artifacts/runtime_surface/surface_binding_shadow_v1.json
     tests:
       - tests/test_runtime_surface.py
       - tests/test_runtime_surface_continuity.py
@@ -575,6 +582,10 @@ entries:
       - tests/test_surface_authority.py
       - tests/test_surface_effect_evidence.py
       - tests/test_surface_reference_integration.py
+      - tests/test_surface_lease_binding.py
+      - tests/test_callable_closure_digest.py
+      - tests/test_credential_issuer_scope.py
+      - tests/test_surface_evidence_durability.py
     evidence: >-
       Reproduce with python scripts/evaluate_runtime_surface.py --check.
       The REMORA reference runtime loads a signed ToolSpec, serves its actual
@@ -585,15 +596,31 @@ entries:
       receipt and property verdicts. Tests recheck full evidence against the
       retained contract and dispatch, reject tampering and cross-tenant access,
       and exercise scope drift, replacement, unknown outcomes and concurrency.
+      Quality program Q3.2 to Q3.5 (2026-09-28): the lease carries the surface
+      digest from assessment and the dispatcher compares it at dispatch; the
+      shadow measurement (python scripts/measure_surface_binding_shadow.py
+      --check) found the surface unchanged in 200 of 200 legitimate reference
+      runs, counted 20 of 20 injected changes in shadow, and refused 20 of 20
+      when enforced. A spec may attest a closure digest over the defining module,
+      its in-package imports and installed third-party versions, and a changed
+      dependency fails registration. With a credential issuer bound, the scope
+      compared with the spec is the one the issuer reports, at registration and
+      before every dispatch. With a SQLite or Postgres chain, surface, execution
+      and effect evidence survives a restart and rechecks.
     maturity: implemented_and_tested
     scope_boundary: >-
       Opt-in WIRED_REFERENCE_PATH, not the default HTTP API or production.
-      Authority scopes are finite deployment-provider assertions. Source-span
-      hashes do not measure closures, dependencies or credential custody.
-      Trusted host code, in-memory state and process-local locks; no external
-      runtime attestation, durable retention, OS containment or universal proof
-      that an alternative effect path is absent. MATCHED_OBSERVATION is bounded
-      to the observed inventory. No new benchmark or external-literature result.
+      Authority scopes are finite deployment-provider assertions. A v1
+      source-span digest still measures only source text; the closure digest
+      covers in-package imports and installed versions, not host integrity or
+      an image. The credential issuer is a reference in the runtime's own trust
+      domain, and REMORA cannot check that a downstream system enforces the
+      issued scope. The shadow measurement covers REMORA's own reference runtime
+      only; how often an external host's surface changes is unmeasured until
+      Q3.1 runs on a named host. Trusted host code and process-local locks; no
+      external runtime attestation, OS containment or universal proof that an
+      alternative effect path is absent. MATCHED_OBSERVATION is bounded to the
+      observed inventory. No new benchmark or external-literature result.
     related_work_section: "docs/09-related-work.md §4"
     in_code_citation: false
     compendium_refs: []

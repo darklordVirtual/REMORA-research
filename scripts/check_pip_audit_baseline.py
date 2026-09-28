@@ -43,8 +43,14 @@ BASELINE_PATH = ROOT / BASELINE_REL
 
 
 def run_audit() -> dict[str, list[str]]:
+    # --skip-editable: CI installs this project editable (pip install -e .),
+    # and pip-audit then asked PyPI for remora-assurance, which is not
+    # published there. PyPI answers that lookup intermittently with 503, which
+    # failed the job on availability rather than on a vulnerability. The
+    # project's own code has no PyPI advisory record to check; every third-party
+    # dependency is still audited.
     proc = subprocess.run(
-        [sys.executable, "-m", "pip_audit", "--local", "-f", "json"],
+        [sys.executable, "-m", "pip_audit", "--local", "--skip-editable", "-f", "json"],
         capture_output=True,
         text=True,
         cwd=ROOT,

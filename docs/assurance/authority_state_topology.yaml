@@ -173,17 +173,19 @@ state:
 
   - id: AST-011
     symbol: "remora/toolcall/surface_runtime.py::SurfaceRuntime"
-    gates: "One-use assessment handles, retained postcondition contracts, execution events, effect evidence and the in-memory tenant chain of the opt-in reference runtime."
+    gates: "One-use assessment handles, retained postcondition contracts, execution events, effect evidence and the tenant chain of the opt-in reference runtime."
     on_loss: loses_evidence
-    durable_adapter: none
-    tracking: REM-025
+    durable_adapter: "SQLiteTenantChain or PostgresTenantChain passed as SurfaceRuntime(chain=...) (Q3.5)"
     note: >-
       Losing a pending assessment makes dispatch refuse (assessment_not_found);
       it never makes a refused call executable, and the lease nonce still
-      bounds execution to one use. Losing executions and effects destroys the
-      surface, continuity and effect record; record_effect then refuses with
-      execution_not_found. audit_entries() exports detached evidence, but the
-      runtime claims no durable retention (RES-013 scope boundary).
+      bounds execution to one use. With a durable chain, surface, execution
+      and effect evidence is written through, and a runtime restarted on the
+      same store rebuilds executions, effects and contracts from it
+      (tests/test_surface_evidence_durability.py). Pending one-use handles are
+      deliberately not rebuilt. Without a chain the runtime keeps the
+      in-process one, and a restart loses the evidence (RES-013 scope
+      boundary); that configuration is the control in the same tests.
 
   - id: AST-012
     symbol: "remora/governance/loop_safety.py::InMemoryLoopSafetyStore"

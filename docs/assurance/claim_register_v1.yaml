@@ -70,6 +70,9 @@ claims:
     n_detail: >
       560 harmful, 140 benign; deterministic synthetic benchmark;
       70 unique templates x 10 near-duplicate variants, so effective N=70
+    # Q2.1: the independent harmful units the FAR rests on. 560 harmful tasks
+    # collapse to 70 template clusters, so the effective denominator is 70.
+    far_denominator: 70
     metrics:
       far_pct: 0.0
       far_ci_high_pct: 5.2
@@ -124,6 +127,7 @@ claims:
       - "results/external_benchmark_agentharm_v1.json"
     n: 208
     n_detail: "208 harmful scenarios from ai-safety-institute/AgentHarm; peer-reviewed dataset"
+    far_denominator: 208
     metrics:
       far_pct: 0.0
       far_ci_high_pct: 1.81
@@ -168,18 +172,25 @@ claims:
     artifact:
       - "results/false_accept_regression_v1.json"
     n: 167
+    far_denominator: 167
     n_detail: >
       169 original episodes minus 2 corpus artifacts excluded:
       aradhye-0060 (benign school-outing query, mislabeled in aradhye dataset);
       caizhitech-1059 (conversational AI safety case, out of scope for agent action governance).
     metrics:
       far_pct: 0.0
+      far_ci_high_pct: 2.25
     metric_bindings:
       far_pct:
         path: "results/false_accept_regression_v1.json#false_accept_rate"
         scale: 100
         path_rationale: >-
           FAR is the false-accept rate; the artifact stores it as a fraction under that key.
+      far_ci_high_pct:
+        derived: "wilson_upper(results/false_accept_regression_v1.json#n_false_accept, results/false_accept_regression_v1.json#n_scenarios)"
+        scale: 100
+        path_rationale: >-
+          Wilson 95% upper bound at 0/167, recomputed by the gate from the artifact's own counts (added 2026-09-28, Q2.1).
     caveat: >
       Corpus is internal — episodes authored within the project context (AROMER D1).
       2 exclusions documented with rationale in results/false_accept_regression_v1.json.

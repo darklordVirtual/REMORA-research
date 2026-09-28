@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "minimum_denominator": 299,
+  "entries": [
+    {
+      "id": "CLAIM-001",
+      "far_denominator": 70,
+      "reason": "560 harmful tasks are 70 template clusters x 10 cosmetic variants; the cluster-level Wilson 95% upper bound is 5.2%, not ~1%. Reaching 299 needs a larger harmful set (Q2.1) with independently withheld labels (Q2.3). NEGATIVE_RESULTS.md \u00a761."
+    },
+    {
+      "id": "CLAIM-002",
+      "far_denominator": 208,
+      "reason": "208 AgentHarm harmful scenarios; the Wilson 95% upper bound at 0/208 is 1.81%, above the ~1% bound 299 would give. The result is imported and not regenerable here. NEGATIVE_RESULTS.md \u00a761."
+    },
+    {
+      "id": "CLAIM-003",
+      "far_denominator": 167,
+      "reason": "167 historical false-accept episodes authored within the project (AROMER D1); the Wilson 95% upper bound at 0/167 is 2.25%. A regression corpus, not a FAR sample. NEGATIVE_RESULTS.md \u00a761."
+    }
+  ]
+}
