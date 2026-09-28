@@ -11,7 +11,7 @@ never deleted, only re-statused in place.
 
 ## How to read a status
 
-**58 numbered sections does not mean 58 open problems.** Until 2026-07-31 this
+**59 numbered sections does not mean 59 open problems.** Until 2026-07-31 this
 document read as if it did. Sections kept the status they were written with,
 even after later sections resolved them. Every section now carries a
 machine-readable marker directly under its heading, and
@@ -24,11 +24,11 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-09-28: **11 `open`**, **24 `accepted`**, **23 `superseded`**.
+Counts as of 2026-09-28: **12 `open`**, **24 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
-Seven themes, all research gaps; the one production gap (CI gates that ran
+Eight themes, all research gaps; the one production gap (CI gates that ran
 without blocking, §55) is closed and struck from this list; a backlog that
 keeps closed items is the drift the status gate exists to prevent. The section numbers
 after each theme are where its evidence lives, and CI checks that every theme
@@ -86,6 +86,12 @@ cites only `open` sections and that no `open` section is missing a theme.
    (FT-03 ToolSpec) remains open, so this theme stays open; FT-03 is tracked in
    [fasttrack_register_v1.yaml](docs/assurance/fasttrack_register_v1.yaml),
    not in the remediation register (pointer corrected 2026-09-03).
+8. **Critical-phase exclusion on the temperature ACCEPT path** (§59): policy
+   v5 removed critical-phase items from temperature acceptance by analogy
+   with the trust-score path. On the N500 round artifact the removed accepts
+   were 68 of 70 correct, more accurate than the ones kept. Whether the
+   exclusion belongs on this path needs an out-of-sample test; until then v5
+   stays as the conservative choice.
 
 <!-- backlog-end -->
 
@@ -3754,3 +3760,40 @@ entries and `docs/03-experiments.md` cite the regenerated numbers.
 an offline rerun, and quality program Q1.2 extends CI regeneration to every
 file classed `regenerable`. Row R8 above records the leakage-era reading and
 is kept as written.
+
+## §59 Policy v5's critical-phase exclusion removed mostly correct accepts on the N500 round (2026-09-28)
+<!-- finding-status: open -->
+
+**Status:** measured by the quality program while resolving the drifted
+`results/end_to_end_n500_v3.json` (Q1.3). Open, because the question it raises
+has no out-of-sample answer yet.
+
+**What was measured.** `experiments/end_to_end_n500_v3.py` is deterministic
+over the stored 544-item round artifact, so the policy change is the only
+difference between these two runs:
+
+| Engine | Accepted | Correct | Accuracy on accepted |
+|---|---:|---:|---:|
+| RemoraDecisionEngine-v3 (SAP v2 round, 2026-07-27) | 101 | 97 | 96.04 % |
+| RemoraDecisionEngine-v5 (commit `076142a`) | 31 | 29 | 93.55 % |
+
+v5 excluded the critical phase from the temperature ACCEPT path. The 70
+accepts it removed were 68 correct (97.1 %), more accurate than the 31 it kept.
+
+**Why this matters.** The v5 commit carried the exclusion over from the
+trust-score path, where trust anti-correlates with correctness in the
+critical phase (ARCHITECTURE.md §8, CLAIM-005). It stated that accuracy on
+the accepted set was unaffected. The test it cited only asserts at least 0.88,
+which both runs pass. On this artifact the temperature signal did not show
+the inversion the trust score shows.
+
+**What this does not establish.** One artifact, a threshold derived in-sample
+on the same 544 items, and 70 removed items. It does not show that v5 is
+wrong, and it is no reason to reopen an ACCEPT path. Removing an accept path
+cannot add a false accept. An out-of-sample split with the critical phase
+labelled is the test that would decide it.
+
+**Recorded.** The round file stays frozen as the engine-v3 record.
+`results/end_to_end_n500_v3_policy_v5.json` holds the current-policy
+numbers, and the claim-ledger entries that cited the round now give each
+run's numbers separately.

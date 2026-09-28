@@ -33,30 +33,57 @@ class GateResult:
         self.passed = False
         self.violations.append((v, loc))
 
+#: Numbers in the docs/claim_register.md N500 row, and where each one lives.
+#: (pattern, artifact, JSON path to the fraction, JSON path to the count).
+#: Until 2026-09-28 this gate read a field the artifact never had and fell
+#: back to a hardcoded 0.8878, so it compared the document with a constant.
+_N500_ROW_BINDINGS: tuple[tuple[str, str, tuple[str, ...], tuple[str, ...]], ...] = (
+    (r"top (\d+) of 544 are (\d+\.\d+)% correct", "results/selective_n500_results.json",
+     ("best_operating_point", "accuracy"), ("best_operating_point", "k")),
+    (r"RemoraDecisionEngine-v5: (\d+) of 544 accepted at (\d+\.\d+)%",
+     "results/end_to_end_n500_v3_policy_v5.json", ("accuracy_by_action", "accept"), ("accepted",)),
+    (r"engine v3\) has (\d+) at (\d+\.\d+)%", "results/end_to_end_n500_v3.json",
+     ("accuracy_by_action", "accept"), ("accepted",)),
+)
+
+
+def _dig(data: object, path: tuple[str, ...]) -> object:
+    for key in path:
+        if not isinstance(data, dict) or key not in data:
+            return None
+        data = data[key]
+    return data
+
+
 def run_claim_audit(root: Path) -> GateResult:
+    """Each N500 number in the claim register must equal its artifact field."""
     import json
     result = GateResult()
 
     claim_register = root / "docs" / "claim_register.md"
     if not claim_register.exists():
         return result
-
     register_text = claim_register.read_text(encoding="utf-8")
+    loc = "docs/claim_register.md"
 
-    match = re.search(r"(\d+\.\d+)%\s+accepted\s+accuracy", register_text)
-    if match:
-        doc_percentage = float(match.group(1))
-
-        end_to_end_file = root / "results/end_to_end_n500_v3.json"
-
-        if end_to_end_file.exists():
-            data = json.loads(end_to_end_file.read_text())
-            actual_accuracy = data.get("accepted_accuracy", 0.8878)
-            actual_pct = round(actual_accuracy * 100, 2)
-
-            if doc_percentage != actual_pct:
-                result.add(Violation.ARTIFACT_MISMATCH, "docs/claim_register.md")
-
+    for pattern, artifact, frac_path, count_path in _N500_ROW_BINDINGS:
+        match = re.search(pattern, register_text)
+        if not match:
+            # A binding whose sentence is gone is a gate checking nothing.
+            result.add(Violation.UNBACKED_CLAIM, f"{loc}: no text matches {pattern!r}")
+            continue
+        path = root / artifact
+        if not path.exists():
+            result.add(Violation.MISSING_ARTIFACT, artifact)
+            continue
+        data = json.loads(path.read_text(encoding="utf-8"))
+        fraction, count = _dig(data, frac_path), _dig(data, count_path)
+        if not isinstance(fraction, (int, float)) or not isinstance(count, int):
+            result.add(Violation.ARTIFACT_MISMATCH, f"{loc}: {artifact} lacks {frac_path} or {count_path}")
+            continue
+        doc_count, doc_pct = int(match.group(1)), float(match.group(2))
+        if doc_count != count or doc_pct != round(fraction * 100, 2):
+            result.add(Violation.ARTIFACT_MISMATCH, f"{loc}: {match.group(0)!r} vs {artifact}")
     return result
 
 def run_profile_gate(root: Path) -> GateResult:

@@ -53,6 +53,7 @@ def test_generator_imports_resolve(script: str) -> None:
     assert path.exists(), f"manifest names a generator that does not exist: {script}"
     sys.path[:0] = [str(ROOT), str(ROOT / "scripts")]
     missing = []
+    unimportable = []
     try:
         for module, name, line in _local_imports(path):
             try:
@@ -60,8 +61,10 @@ def test_generator_imports_resolve(script: str) -> None:
             except ModuleNotFoundError as exc:
                 if (exc.name or "").split(".")[0] in LOCAL:
                     missing.append(f"{script}:{line}: module {module} does not exist")
-                    continue
-                pytest.skip(f"{module} needs {exc.name}, which is not installed here")
+                else:
+                    # Keep checking the other imports; skip only at the end.
+                    unimportable.append(f"{module} needs {exc.name}")
+                continue
             if not hasattr(mod, name):
                 try:
                     importlib.import_module(f"{module}.{name}")
@@ -70,3 +73,5 @@ def test_generator_imports_resolve(script: str) -> None:
     finally:
         del sys.path[:2]
     assert missing == []
+    if unimportable:
+        pytest.skip("; ".join(unimportable) + ", not installed here")

@@ -61,6 +61,9 @@ def main() -> int:
     parser.add_argument("--threshold", type=float, default=0.05,
                         help="gate threshold the bound is compared against")
     args = parser.parse_args()
+    if (args.k is None) != (args.n is None):
+        # One override alone would be silently dropped for the artifact value.
+        parser.error("--k and --n must be given together")
 
     if args.k is not None and args.n is not None:
         k, n, source = args.k, args.n, "cli_override"

@@ -63,6 +63,7 @@ follows once its dependencies close.
 | Q1.1 | Every committed `results/*.json` has a reproduction class: `regenerable` (deterministic, no keys), `live` (needs keys, carries a provenance sidecar) or `frozen` (historical, never regenerated). | A check fails on any results file without a class, and on a class that names no generator. | `docs/assurance/results_manifest_v1.yaml` | new `scripts/check_results_manifest.py` in the claim-hygiene CI job |
 | Q1.2 | Every `regenerable` result is regenerated in CI and compared with the committed file. | A docgate test per generator; any difference fails with the changed keys. `scripts/evaluate_runtime_surface.py --check` is the model to follow. | generator `--check` modes | `pytest -m docgate` |
 | Q1.3 | The known drift in `toolcall_benchmark_v2_live_results.json` is resolved without losing the old numbers. | The old file moves to the superseded archive with its date. The regenerated file carries a dated resolution note. Every claim that cited the old numbers passes claim review again. | superseded archive entry, claim-register update | `generate_superseded_claims.py --check`, `check_claim_provenance.py` |
+| Q1.5 | Every number in `docs/thermodynamics/claim_ledger.yaml` resolves to the artifact its entry names. | A gate binds each percentage and count in an entry's wording to a field of that entry's artifact, and fails on a number it cannot bind unless the entry marks it as a retired value. No claim gate reads this ledger today. | ledger bindings | new gate in the claim-hygiene job |
 | Q1.4 | A result states where each baseline's decisions came from. | Each `single_model_*` baseline carries `decision_source` with the value `replay_seed` or `live:<model>`. The claim gate refuses a claim that cites a `replay_seed` baseline as model evidence. | result schema field | `check_claim_metric_bindings.py` extension |
 
 ### WS2. Evaluation strength (P1)
@@ -230,4 +231,19 @@ checks every local import of every generator. Writer attributions that came
 from a reference heuristic are replaced by the scripts that write each file.
 The manifest now has 48 regenerable, 18 live, 14 unverified, 31 frozen and
 21 sidecar entries.
+
+**2026-09-28, Q1.3 second batch.** `results/end_to_end_n500_v3.json` is the
+pre-registered SAP v2 round record and stays frozen. The current policy is
+measured in a new regenerable artifact,
+`results/end_to_end_n500_v3_policy_v5.json`, which the documented command now
+writes by default. The claim-ledger entries that cited the round now give
+the numbers of each run separately. `NEGATIVE_RESULTS.md` §59 (open) records
+what policy v5 did to the temperature ACCEPT path. The manifest has no
+drifted entries left.
+
+**2026-09-28, independent review follow-ups.** `remora/audit_gates/api.py`
+compared the N500 claim-register row with a hardcoded 0.8878 because it read
+a field the artifact never had. It now binds all three numbers in that row
+to their artifacts, and meta-tests seed a drift in each. Q1.5 records the
+remaining gap the review found: no gate reads the thermodynamics claim ledger.
 
