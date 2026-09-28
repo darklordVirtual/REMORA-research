@@ -1,0 +1,275 @@
+{
+  "schema": "remora_replication_pack_v1",
+  "purpose": "Verify-only replication pack: lets an outside group confirm that REMORA's headline results resolve to the committed artifacts, without reading the whole repository. Verified by scripts/verify_replication_pack.py.",
+  "measured_at": "2026-09-28",
+  "measured_on": "8d7c8f9",
+  "sources": {
+    "claim_register": "docs/assurance/claim_register_v1.yaml",
+    "results_manifest": "docs/assurance/results_manifest_v1.yaml",
+    "artifact_manifest": "docs/assurance/artifact_manifest_v1.md"
+  },
+  "hash_protocol": "SHA-256, lowercase hex, over the file bytes with CRLF normalised to LF (docs/assurance/artifact_manifest_v1.md). On a Windows checkout with autocrlf the raw bytes differ; the LF hash does not.",
+  "metric_tolerance": 0.005,
+  "environment": {
+    "python_requires": ">=3.11",
+    "ci_python_versions": ["3.11", "3.12", "3.13", "3.14"],
+    "measured_with_python": "3.13.7 (macOS arm64, venv with the dev extras)",
+    "requirements_lock": {
+      "path": "requirements-lock.txt",
+      "sha256_lf": "b06546059b1a927a435b43058be888e385d7e7201933e3dd4cac29f706807f15"
+    },
+    "reference_image": {
+      "dockerfile": "deploy/reference/Dockerfile",
+      "base_image": "python:3.12-slim",
+      "base_digest": "sha256:7a8b475003c4fe15a2cd4e55e5cfc2f3560bdc9333d624f24cdd6d4340fd7a17"
+    },
+    "image": null,
+    "image_reason": "No REMORA container image is published to any registry. deploy/reference/Dockerfile builds one locally from the wheel on top of the digest-pinned base above; the CI container-contract job builds it on every push but does not push it. There is therefore no image digest to pin, and none is claimed."
+  },
+  "does_not_verify": [
+    "Live results (results manifest class live) that need API keys, a Cloudflare worker or network access.",
+    "Imported historical results beyond their hash and recorded fields: the pack cannot re-run them here.",
+    "External or independent replication. A passing pack shows that committed numbers match committed files and, for regenerable entries, that the committed code reproduces them. It is not a third-party result.",
+    "Whether a benchmark measures what its claim says. Scope and caveats live in the claim register and NEGATIVE_RESULTS.md."
+  ],
+  "entries": [
+    {
+      "claim_id": "CLAIM-019",
+      "title": "Sealed C-ext3 BFCL v4 confirmation (blind, spent)",
+      "artifacts": [
+        {"path": "results/routing_bench_bfcl_v4_cext3_results.json", "sha256_lf": "767b857a180b9b9bcb18ee63bbdddf85265ff227d7c2d5cc71b47a464bf1ce25", "results_manifest_class": "frozen"},
+        {"path": "data/routing_bench_bfcl_v4_cext3/manifest.json", "sha256_lf": "d94014f41d7d0206a345f57e8833367731d8c9a4fec19e6a9bfa345c1227493d", "results_manifest_class": null, "role": "sealed holdout manifest"},
+        {"path": "data/routing_bench_bfcl_v4_cext3/bfcl_holdout.jsonl", "sha256_lf": "5fdd32c1e048935db0991157b223eb92dd51b61724cac79433c5f062c42b9ee6", "results_manifest_class": null, "role": "sealed holdout episodes"},
+        {"path": "data/routing_bench_bfcl_v4_cext3/registry.json", "sha256_lf": "c0ba92e2034ab672836876d8f0743ba78ffa7f66db4a431ee2f7ce3d03c9542c", "results_manifest_class": null, "role": "sealed tool registry"}
+      ],
+      "integrity": [
+        {"description": "the sealed track is recorded as evaluated", "kind": "equals", "pointer": "data/routing_bench_bfcl_v4_cext3/manifest.json#status", "expected": "evaluated"},
+        {"description": "the manifest pins the committed holdout", "kind": "sha256_of", "file": "data/routing_bench_bfcl_v4_cext3/bfcl_holdout.jsonl", "pointer": "data/routing_bench_bfcl_v4_cext3/manifest.json#sha256"},
+        {"description": "the manifest pins the committed registry", "kind": "sha256_of", "file": "data/routing_bench_bfcl_v4_cext3/registry.json", "pointer": "data/routing_bench_bfcl_v4_cext3/manifest.json#registry_sha256"},
+        {"description": "the result names the same holdout as the manifest", "kind": "same_value", "pointer": "results/routing_bench_bfcl_v4_cext3_results.json#holdout_sha256", "other": "data/routing_bench_bfcl_v4_cext3/manifest.json#sha256"},
+        {"description": "the result names the same frozen semantic bundle as the manifest", "kind": "same_value", "pointer": "results/routing_bench_bfcl_v4_cext3_results.json#frozen_semantic_bundle_sha256", "other": "data/routing_bench_bfcl_v4_cext3/manifest.json#frozen_semantic_bundle_sha256"},
+        {"description": "current bfcl_semantic_bundle.py is the bundle frozen at sealing (advisory: code may legitimately move on; the sealed record rests on the recorded hash)", "kind": "sha256_of", "file": "remora/toolcall/routing/bfcl_semantic_bundle.py", "pointer": "data/routing_bench_bfcl_v4_cext3/manifest.json#frozen_semantic_bundle_sha256", "advisory": true},
+        {"description": "current goal_match.py is the one frozen at sealing (advisory, as above)", "kind": "sha256_of", "file": "remora/toolcall/routing/goal_match.py", "pointer": "data/routing_bench_bfcl_v4_cext3/manifest.json#frozen_goal_match_sha256", "advisory": true}
+      ],
+      "metrics": [
+        {"name": "wrong_call_accept_pct", "expected": 0.0, "source": "register", "binding": {"path": "results/routing_bench_bfcl_v4_cext3_results.json#targets.known_wrong_call_accept.value", "scale": 100}},
+        {"name": "wrong_call_wilson_upper_pct", "expected": 0.76, "source": "register", "binding": {"path": "results/routing_bench_bfcl_v4_cext3_results.json#targets.known_wrong_call_accept.wilson95[1]", "scale": 100}},
+        {"name": "constructed_wrong_tool_accept_pct", "expected": 1.005, "source": "pack", "binding": {"ratio": ["results/routing_bench_bfcl_v4_cext3_results.json#per_arm_metrics.F_confirmatory.constructed_wrong_tool_accept.n", "results/routing_bench_bfcl_v4_cext3_results.json#per_arm_metrics.F_confirmatory.constructed_wrong_tool_accept.d"], "scale": 100}, "note": "unbound in the register (recomputed from n/d); the pack recomputes it from the confirmatory arm's counts, 2/199"},
+        {"name": "irrelevance_abstain_pct", "expected": 100.0, "source": "register", "binding": {"path": "results/routing_bench_bfcl_v4_cext3_results.json#targets.irrelevance_abstain_recall.value", "scale": 100}},
+        {"name": "required_unknown_accept_pct", "expected": 0.0, "source": "register", "binding": {"path": "results/routing_bench_bfcl_v4_cext3_results.json#targets.required_unknown_auto_accept.value", "scale": 100}},
+        {"name": "legitimate_read_autonomy_pct", "expected": 26.6, "source": "register", "binding": {"path": "results/routing_bench_bfcl_v4_cext3_results.json#targets.legitimate_read_autonomy.value", "scale": 100}},
+        {"name": "obtainable_verify_pct", "expected": 46.7, "source": "register", "binding": {"path": "results/routing_bench_bfcl_v4_cext3_results.json#targets.obtainable_verify_recall.value", "scale": 100, "rounded_to": 1}},
+        {"name": "unobtainable_abstain_pct", "expected": 63.3, "source": "register", "binding": {"path": "results/routing_bench_bfcl_v4_cext3_results.json#targets.unobtainable_abstain_recall.value", "scale": 100, "rounded_to": 1}},
+        {"name": "n_clusters", "expected": 800, "source": "register", "binding": {"path": "data/routing_bench_bfcl_v4_cext3/manifest.json#n_clusters"}}
+      ],
+      "unbound_metrics": [],
+      "regenerate": {
+        "mode": "none",
+        "reason": "Sealed one-shot holdout (results manifest class frozen). The register: 'The sealed result must not be regenerated.' scripts/run_bfcl_cext3.py refuses a second run once the manifest status is evaluated. The pack verifies hashes, the manifest's internal pins and the metric fields only.",
+        "commands": [],
+        "compare": []
+      }
+    },
+    {
+      "claim_id": "CLAIM-002",
+      "title": "AgentHarm FAR on 208 harmful scenarios (imported historical result)",
+      "artifacts": [
+        {"path": "results/external_benchmark_agentharm_v1.json", "sha256_lf": "5170a7176e7a60fc7afaaa35d005ced97cfd1d2c4ec1f7154b9359b73e70e45a", "results_manifest_class": "frozen"}
+      ],
+      "integrity": [
+        {"description": "the imported artifact records a PASS for the REM-014 gate", "kind": "equals", "pointer": "results/external_benchmark_agentharm_v1.json#gate", "expected": "PASS"},
+        {"description": "the imported artifact records 208 harmful scenarios", "kind": "equals", "pointer": "results/external_benchmark_agentharm_v1.json#n_harmful", "expected": 208}
+      ],
+      "metrics": [
+        {"name": "far_pct", "expected": 0.0, "source": "register", "binding": {"path": "results/external_benchmark_agentharm_v1.json#false_accept_rate", "scale": 100}},
+        {"name": "far_ci_high_pct", "expected": 1.81, "source": "pack", "binding": {"derived": "wilson_upper(results/external_benchmark_agentharm_v1.json#n_harmful_false_accept, results/external_benchmark_agentharm_v1.json#n_harmful)", "scale": 100, "rounded_to": 2}, "note": "unbound in the register; the pack recomputes the Wilson 95% upper bound from the artifact's own counts, 0/208"},
+        {"name": "fbr_pct", "expected": 100.0, "source": "register", "binding": {"path": "results/external_benchmark_agentharm_v1.json#false_block_rate", "scale": 100}}
+      ],
+      "unbound_metrics": [],
+      "regenerate": {
+        "mode": "validate",
+        "reason": "IMPORTED HISTORICAL RESULT, not regenerable here. It was produced in the REMORA main implementation repo (commit 483d1b0, experiments/agentharm/score_guardrail.py) against the live AROMER worker. scripts/run_agentharm_benchmark.py in this repository implements a different protocol and writes a different artifact. The pack verifies the hash and recorded fields, and --regenerate runs the register's structural validation.",
+        "commands": [
+          {"run": "python -m pytest tests/test_rem014_external_benchmark.py -m rem014_gate -q -p no:cacheprovider", "source": "register reproduce", "observed_seconds": 1}
+        ],
+        "compare": []
+      }
+    },
+    {
+      "claim_id": "CLAIM-001",
+      "title": "Simulator tool-call benchmark v2 FAR (700 tasks, 70 template clusters)",
+      "artifacts": [
+        {"path": "results/toolcall_benchmark_v2_results.json", "sha256_lf": "559a39a092aeacdaf4ea74c20444df9221d4043408bdecf0cbf01d175249cd75", "results_manifest_class": "regenerable"},
+        {"path": "results/toolcall_benchmark_v2_significance.json", "sha256_lf": "a285400c966989d4ae43ae69168140353a353240f68c1741cfa27838c87e7a9d", "results_manifest_class": "regenerable"},
+        {"path": "results/toolcall_blind_v3_results.json", "sha256_lf": "dcdbcc587dc5b4520961d420523964272375c284326f850f87fcd97c29083ba3", "results_manifest_class": "regenerable"},
+        {"path": "results/toolcall_m1_clean_signal.json", "sha256_lf": "62a497f3483f7375e08ad6fa9f6929c5d0ea7c2556d3f5dd541f76cda533f663", "results_manifest_class": "regenerable"}
+      ],
+      "integrity": [],
+      "metrics": [
+        {"name": "far_pct", "expected": 0.0, "source": "register", "binding": {"path": "results/toolcall_benchmark_v2_results.json#baselines.remora_full_policy_gate.false_accept_rate", "scale": 100}},
+        {"name": "far_ci_high_pct", "expected": 5.2, "source": "pack", "binding": {"path": "results/toolcall_benchmark_v2_significance.json#remora_unsafe_rate.cluster_level_wilson_ci95[1]", "scale": 100, "rounded_to": 1}, "note": "declared unbound in the register ('the artifact stores the counts, not the interval'), but the significance artifact does store the cluster-level Wilson 95% interval of the gate's unsafe rate, 0.05202; the gate's false accepts and unsafe executions are both 0 of 700 in the results artifact"},
+        {"name": "n_effective", "expected": 70, "source": "register", "binding": {"path": "results/toolcall_benchmark_v2_significance.json#n_template_clusters"}},
+        {"name": "baseline_far_pct", "expected": 1.4, "source": "register", "binding": {"path": "results/toolcall_benchmark_v2_results.json#baselines.single_model_heuristic.false_accept_rate", "scale": 100, "rounded_to": 1}}
+      ],
+      "unbound_metrics": [],
+      "regenerate": {
+        "mode": "regenerate",
+        "reason": "Deterministic simulator benchmark; no API keys. The register's commands regenerate the benchmark and the results file; the significance and M1 files come from the generators the results manifest names. toolcall_blind_v3_results.json is regenerated under CLAIM-010.",
+        "commands": [
+          {"run": "python experiments/generate_toolcall_benchmark_v2.py", "source": "register reproduce", "observed_seconds": 1},
+          {"run": "python experiments/evaluate_toolcall_benchmark_v2.py", "source": "register reproduce", "observed_seconds": 1},
+          {"run": "python experiments/toolcall_v2_significance.py", "source": "results manifest generator", "observed_seconds": 2},
+          {"run": "python experiments/m1_clean_signal_eval.py", "source": "results manifest generator", "observed_seconds": 1}
+        ],
+        "compare": [
+          {"path": "results/toolcall_benchmark_v2_results.json", "match": "lf_sha256"},
+          {"path": "results/toolcall_benchmark_v2_significance.json", "match": "lf_sha256"},
+          {"path": "results/toolcall_m1_clean_signal.json", "match": "fields", "volatile": [".timestamp"]}
+        ]
+      }
+    },
+    {
+      "claim_id": "CLAIM-003",
+      "title": "Historical false-accept regression corpus (167 episodes)",
+      "artifacts": [
+        {"path": "results/false_accept_regression_v1.json", "sha256_lf": "2a1f2b6af17270a36b2a441580246e59a6eabea901a0c30986b63e2fdaa6d54b", "results_manifest_class": "frozen"}
+      ],
+      "integrity": [
+        {"description": "the artifact records a PASS for the REM-019 gate", "kind": "equals", "pointer": "results/false_accept_regression_v1.json#gate", "expected": "PASS"},
+        {"description": "the artifact records 167 scenarios", "kind": "equals", "pointer": "results/false_accept_regression_v1.json#n_scenarios", "expected": 167}
+      ],
+      "metrics": [
+        {"name": "far_pct", "expected": 0.0, "source": "register", "binding": {"path": "results/false_accept_regression_v1.json#false_accept_rate", "scale": 100}},
+        {"name": "far_ci_high_pct", "expected": 2.25, "source": "register", "binding": {"derived": "wilson_upper(results/false_accept_regression_v1.json#n_false_accept, results/false_accept_regression_v1.json#n_scenarios)", "scale": 100}}
+      ],
+      "unbound_metrics": [],
+      "regenerate": {
+        "mode": "none",
+        "reason": "Not regenerable here (results manifest class frozen). The register: 'Requires REMORA main repo + AROMER worker + D1 corpus access.' The pack verifies the hash and the metric fields only.",
+        "commands": [],
+        "compare": []
+      }
+    },
+    {
+      "claim_id": "CLAIM-010",
+      "title": "Blinded tool-call benchmark v3 (label access separated)",
+      "artifacts": [
+        {"path": "results/toolcall_blind_v3_results.json", "sha256_lf": "dcdbcc587dc5b4520961d420523964272375c284326f850f87fcd97c29083ba3", "results_manifest_class": "regenerable"},
+        {"path": "benchmarks/toolcall_blind_v3/tasks.json", "sha256_lf": "bf57c38479e08cc68c1ac041a266afab14c791d788c8d39d228006ef740d1167", "results_manifest_class": null, "role": "benchmark input"},
+        {"path": "benchmarks/toolcall_blind_v3/labels.json", "sha256_lf": "4de7910ff272fe16222b71ded98c4de65af8b26ce16403ebd49a1eb4e1be87be", "results_manifest_class": null, "role": "benchmark labels"}
+      ],
+      "integrity": [
+        {"description": "the scorer reports the run as leakage-free (statement: leakage_free=True)", "kind": "equals", "pointer": "results/toolcall_blind_v3_results.json#leakage_free", "expected": true}
+      ],
+      "metrics": [
+        {"name": "false_accept_rate", "expected": 0.0, "source": "statement", "binding": {"path": "results/toolcall_blind_v3_results.json#false_accept_rate"}, "note": "the register has no metrics block for CLAIM-010; the statement's 'FAR=0.0000 on N=700' is checked here"},
+        {"name": "n_tasks", "expected": 700, "source": "statement", "binding": {"path": "results/toolcall_blind_v3_results.json#n_tasks"}}
+      ],
+      "unbound_metrics": [],
+      "regenerate": {
+        "mode": "regenerate",
+        "reason": "Deterministic; no API keys. The register's command runs the single-process path, so decision_process.mode reads single_process where the committed file (written by the two-phase deterministic round) reads two_phase; that field and the run timestamp are ignored, every scored field must match.",
+        "commands": [
+          {"run": "python experiments/toolcall_blind_v3_eval.py", "source": "register reproduce", "observed_seconds": 1}
+        ],
+        "compare": [
+          {"path": "results/toolcall_blind_v3_results.json", "match": "fields", "volatile": [".timestamp", ".decision_process.mode"]},
+          {"path": "benchmarks/toolcall_blind_v3/tasks.json", "match": "lf_sha256"},
+          {"path": "benchmarks/toolcall_blind_v3/labels.json", "match": "lf_sha256"}
+        ]
+      }
+    },
+    {
+      "claim_id": "CLAIM-005",
+      "title": "Critical-phase trust inversion (negative result)",
+      "artifacts": [
+        {"path": "results/critical_trust_split_v1.json", "sha256_lf": "a3577cec74cbd81032d345cc1d851c6c9bd370702a6aa38682ba65584c5ac11e", "results_manifest_class": "regenerable"},
+        {"path": "results/selective_n500_results.json", "sha256_lf": "ba838b99eeedcbe707d5ebbac5b21dc63edf4f107efaeaaf423ed390b9ecf1fb", "results_manifest_class": "regenerable"}
+      ],
+      "integrity": [],
+      "metrics": [
+        {"name": "low_trust_correct_pct", "expected": 76.2, "source": "register", "binding": {"path": "results/critical_trust_split_v1.json#low_trust_bucket.accuracy_pct"}},
+        {"name": "high_trust_correct_pct", "expected": 36.4, "source": "register", "binding": {"path": "results/critical_trust_split_v1.json#high_trust_bucket.accuracy_pct"}}
+      ],
+      "unbound_metrics": [],
+      "not_hashed": [
+        {"path": "NEGATIVE_RESULTS.md", "reason": "living narrative document named as an artifact by the register; its bytes change with every negative-results edit, so the pack does not pin it"}
+      ],
+      "regenerate": {
+        "mode": "regenerate",
+        "reason": "Deterministic offline split of a committed input file.",
+        "commands": [
+          {"run": "python scripts/compute_critical_trust_split.py", "source": "register reproduce", "observed_seconds": 1}
+        ],
+        "compare": [
+          {"path": "results/critical_trust_split_v1.json", "match": "lf_sha256"}
+        ]
+      }
+    },
+    {
+      "claim_id": "CLAIM-020",
+      "title": "Component ablation has no discriminating power on FAR (negative identification result)",
+      "artifacts": [
+        {"path": "results/toolcall_benchmark_v2_ablation.json", "sha256_lf": "ee23fa1c9f99c7e0ef505e63fda3a60e842e32fcefa4cd1d85505e67b7cbca42", "results_manifest_class": "regenerable"}
+      ],
+      "integrity": [],
+      "metrics": [
+        {"name": "false_accept_rate_full", "expected": 0.0, "source": "register", "binding": {"path": "results/toolcall_benchmark_v2_ablation.json#ablations.remora_full.false_accept_rate"}},
+        {"name": "false_accept_rate_without_hard_blocks", "expected": 0.0, "source": "register", "binding": {"path": "results/toolcall_benchmark_v2_ablation.json#ablations.remora_without_hard_blocks.false_accept_rate"}},
+        {"name": "accuracy_full", "expected": 0.9, "source": "register", "binding": {"path": "results/toolcall_benchmark_v2_ablation.json#ablations.remora_full.accuracy"}},
+        {"name": "accuracy_without_hard_blocks", "expected": 0.3, "source": "register", "binding": {"path": "results/toolcall_benchmark_v2_ablation.json#ablations.remora_without_hard_blocks.accuracy"}},
+        {"name": "review_friction_benign_full", "expected": 0.5, "source": "register", "binding": {"path": "results/toolcall_benchmark_v2_ablation.json#ablations.remora_full.review_friction_benign"}}
+      ],
+      "unbound_metrics": [],
+      "regenerate": {
+        "mode": "regenerate",
+        "reason": "Deterministic simulator ablation; no API keys.",
+        "commands": [
+          {"run": "python experiments/toolcall_ablation_v2.py", "source": "register reproduce", "observed_seconds": 1}
+        ],
+        "compare": [
+          {"path": "results/toolcall_benchmark_v2_ablation.json", "match": "lf_sha256"}
+        ]
+      }
+    },
+    {
+      "claim_id": "CLAIM-014",
+      "title": "System demonstration: governance chain from tool call to enforcement (open mechanism study)",
+      "artifacts": [
+        {"path": "results/system_demonstration_v1.json", "sha256_lf": "63fb21ddb9e0f7a3cf32e1321d4b072370d527bd2299e5ed350c458e0ab05c78", "results_manifest_class": "live"},
+        {"path": "results/fleetops_degradation_results.json", "sha256_lf": "6695d7d114be5faff21a131a8f09917aae6aed1569ba976a875d23df5913c394", "results_manifest_class": "regenerable"},
+        {"path": "results/fleetops_validator_study_results.json", "sha256_lf": "43d8058e0f76bf8b4afb3b7f649688a6be08c4f393cec939c1e4b73a74c6e2b2", "results_manifest_class": "regenerable"}
+      ],
+      "integrity": [],
+      "metrics": [
+        {"name": "degradation_conditions_n", "expected": 7, "source": "register", "binding": {"path": "results/system_demonstration_v1.json#degradation_study.n_conditions"}},
+        {"name": "read_utility_without_validators", "expected": 0.0, "source": "register", "binding": {"path": "results/system_demonstration_v1.json#validator_study.read_utility_without_validators"}},
+        {"name": "read_utility_with_validators", "expected": 1.0, "source": "register", "binding": {"path": "results/system_demonstration_v1.json#validator_study.read_utility_with_validators"}},
+        {"name": "corrupt_accept_rate", "expected": 0.0, "source": "register", "binding": {"path": "results/system_demonstration_v1.json#validator_study.targets.corrupt_id_accept_after_resolver.value"}},
+        {"name": "valid_id_completion_read", "expected": 1.0, "source": "register", "binding": {"path": "results/system_demonstration_v1.json#validator_study.targets.valid_id_completion_read.value"}}
+      ],
+      "unbound_metrics": [
+        {"name": "validator_targets_n", "reason": "register: count of targets in the study protocol, not a field in the results artifact."},
+        {"name": "seeded_corruption_forms_n", "reason": "register: count of seeded forms in the generator, not a field in the results artifact."}
+      ],
+      "regenerate": {
+        "mode": "regenerate",
+        "reason": "The register calls the command deterministic with no API keys. The results manifest classes system_demonstration_v1.json as live; the pack measurement on 2026-09-28 ran it with no keys and no network use in about 1 s, and only run_at_commit differed. The fleetops files are pinned by hash only here.",
+        "commands": [
+          {"run": "python scripts/run_system_demonstration.py", "source": "register reproduce", "observed_seconds": 1}
+        ],
+        "compare": [
+          {"path": "results/system_demonstration_v1.json", "match": "fields", "volatile": [".run_at_commit"]}
+        ]
+      }
+    }
+  ],
+  "excluded": [
+    {"claim_id": "CLAIM-006", "reason": "No committed machine-readable artifact carries the AII values (live AROMER D1 telemetry transcribed into NEGATIVE_RESULTS.md section 11); the register says it is not reproducible from this repository."},
+    {"claim_id": "CLAIM-009", "reason": "No metrics block; the artifacts were restored from the main implementation repo and re-running needs AROMER worker access. Nothing machine-comparable beyond existence, which scripts/check_artifacts_exist.py already covers."},
+    {"claim_id": "CLAIM-011", "reason": "Its only metric (upper_bound_pct) is declared unbound in the register, so there is no field to compare; the input and output files are already reproduced by scripts/reproduce_results.py (results manifest class regenerable)."},
+    {"claim_id": "CLAIM-012", "reason": "All metrics are declared unbound in the register and results/sap_v3_round_results.json is classed live in the results manifest. The pack measurement on 2026-09-28 found that the offline 'analyze' replay rewrites four uncertified-arm sgr risk_bound fields (for example 0.99 to 0.084398), so the file does not reproduce byte-for-byte; certified flags and coverages were unchanged."},
+    {"claim_id": "CLAIM-013", "reason": "Same artifact and status as CLAIM-012: all metrics unbound, results file classed live, offline replay not byte-identical."},
+    {"claim_id": "CLAIM-017", "reason": "A code-and-test claim with no result artifact or metrics; verified by tests/test_goal_match.py in the ordinary test suite."}
+  ]
+}

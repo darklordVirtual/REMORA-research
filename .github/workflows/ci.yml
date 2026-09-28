@@ -360,6 +360,9 @@ jobs:
           python scripts/check_retired_models.py
           # Q1.1: every committed result carries a measured reproduction class.
           python scripts/check_results_manifest.py
+          # Replication pack: headline artifact hashes, metric fields and the
+          # pinned environment, cross-checked against the register.
+          python scripts/verify_replication_pack.py --check
           # Q1.5: numbers in the thermodynamics claim ledger come from their artifacts.
           python scripts/check_ledger_bindings.py
           # Q1.4: a replay-seed baseline is never cited as a model's answer.

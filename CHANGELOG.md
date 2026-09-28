@@ -16,6 +16,19 @@ This file lists externally relevant changes by release. Fine-grained development
   (CLAIM-019). The last two C-ext3 metrics are now bound to their artifact, so
   the unbound-metric baseline falls from 17 to 15.
 
+- Verify-only replication pack. `artifacts/replication-pack/replication_pack_v1.json`
+  lists each active headline claim with its artifacts, their LF SHA-256, their
+  results-manifest class, the metric values and the JSON fields they must
+  equal, and the offline commands that regenerate or validate them; active
+  claims it leaves out are listed with a reason. It also pins the environment:
+  the `requirements-lock.txt` hash and the reference Dockerfile's base image
+  digest, with `image: null` because no REMORA image is published.
+  `scripts/verify_replication_pack.py --check` verifies all of it offline and
+  fails when the pack drifts from the claim register or the results manifest;
+  `--regenerate` re-runs the regenerable entries in a temporary worktree of
+  HEAD and compares metric fields, ignoring only the named volatile fields.
+  `--check` runs in CI, in `make audit` and `make claim-check`, and first in
+  `artifacts/reproduce.sh`. Documented in `docs/06-reproducibility.md`.
 - `remora.decision_providers`: the contract through which an external source
   of typed semantic judgment is admitted as evidence, and only as evidence.
   A provider answers narrow typed questions (choice, score, boolean) with

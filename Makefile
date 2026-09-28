@@ -87,6 +87,8 @@ audit: meta-audit lint test render-claims  ## Full quality gate: lint + tests + 
 	$(PYTHON) scripts/check_retired_models.py
 	@echo "\n-- Results reproduction manifest (quality program Q1.1) --"
 	$(PYTHON) scripts/check_results_manifest.py
+	@echo "\n-- Replication pack (headline artifact hashes and metric fields) --"
+	$(PYTHON) scripts/verify_replication_pack.py --check
 	@echo "\n-- Thermodynamics ledger number bindings (quality program Q1.5) --"
 	$(PYTHON) scripts/check_ledger_bindings.py
 	@echo "\n-- Replay-seed disclosure (quality program Q1.4) --"
@@ -157,6 +159,7 @@ claim-check:  ## Validate README/artifact/overclaim consistency
 	$(PYTHON) scripts/check_artifacts_exist.py
 	$(PYTHON) scripts/check_no_overclaims.py
 	$(PYTHON) scripts/check_claim_sync.py
+	$(PYTHON) scripts/verify_replication_pack.py --check
 
 holdout:  ## Run held-out selective-trust evaluation; tau* locked from training split
 	$(PYTHON) scripts/selective_n500_holdout.py
