@@ -95,6 +95,13 @@ class EffectiveCapabilitySet:
     #: Part of the digest only when non-empty, so a set without constraints
     #: keeps the digest it had before constraints existed.
     constraints: Mapping[str, Any] = field(default_factory=dict)
+    #: Q8.5: set on a delegated set only (remora.capabilities.delegation).
+    #: The parent's digest chains the child to the authority it came from;
+    #: all four enter the digest only on a delegated set.
+    parent_digest: str = ""
+    purpose: str = ""
+    delegation_depth: int = 0
+    transitive: bool = False
 
     def __post_init__(self) -> None:
         for name in ("capability_set_id", "principal_id", "tenant_id", "environment",
@@ -127,6 +134,11 @@ class EffectiveCapabilitySet:
             "tenant_id": self.tenant_id,
             **({"constraints": {k: self.constraints[k] for k in sorted(self.constraints)}}
                if self.constraints else {}),
+            **({"delegation": {"depth": self.delegation_depth,
+                               "parent_digest": self.parent_digest,
+                               "purpose": self.purpose,
+                               "transitive": self.transitive}}
+               if self.parent_digest else {}),
         }
 
     @property
@@ -156,6 +168,10 @@ class EffectiveCapabilitySet:
             denied_tools=tuple(data.get("denied_tools") or ()),
             epochs=CapabilityEpochs(**{k: int(v) for k, v in epochs.items()}),
             constraints=dict(data.get("constraints") or {}),
+            parent_digest=str((data.get("delegation") or {}).get("parent_digest", "")),
+            purpose=str((data.get("delegation") or {}).get("purpose", "")),
+            delegation_depth=int((data.get("delegation") or {}).get("depth", 0)),
+            transitive=bool((data.get("delegation") or {}).get("transitive", False)),
         )
         claimed = data.get("digest")
         if claimed is not None and claimed != built.digest:
