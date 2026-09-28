@@ -9,9 +9,10 @@ shipped first. `ExecutionLease` and `A2AGovernanceEnvelope` followed as
 quality program Q7.2. The loop-safety store (section 3) is
 `remora/governance/loop_safety.py`. The execution API carries the task from
 the request into the token, the lease and the loop state (see
-docs/07-api-reference.md). The declared operation (section 2 of the scope) is
-not implemented. The table below records the state
-before any of this work.
+docs/07-api-reference.md). The declared operation (section 2 of the scope)
+followed in the envelope as `DeclaredOperation`, with the three refusals the
+table under Refusal semantics names (tests/test_a2a_declared_operation.py).
+The table below records the state before any of this work.
 
 ## The gap, stated exactly
 

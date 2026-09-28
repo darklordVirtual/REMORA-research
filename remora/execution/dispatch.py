@@ -31,6 +31,8 @@ from remora.observability.events import governance_event
 from remora.enforcement.result_envelope import capture_tool_result
 
 if TYPE_CHECKING:
+    from remora.enforcement.resolved_effect import ResolvedEffect
+    from remora.governance.plan_binding import PlanBinding
     from remora.governance.task_identity import TaskIdentity
 
 
@@ -49,6 +51,8 @@ def dispatch_under_lease(
     grant_jti: str = "",
     presented_lease: ExecutionLease | None = None,
     task_identity: "TaskIdentity | None" = None,
+    resolved_effect: ResolvedEffect | None = None,
+    plan: PlanBinding | None = None,
 ) -> dict[str, Any]:
     """Dispatch one authorized call through the governed dispatcher.
 
@@ -66,6 +70,14 @@ def dispatch_under_lease(
     ``task_identity`` (Q7.2) is the task the call is made under. It is signed
     into a lease minted here and checked against the lease at dispatch, so an
     approval granted under one task cannot run under another.
+
+    ``resolved_effect`` (Q7.4) is what the call resolves to in this domain's
+    registry. It is signed into a lease minted here; the executing
+    dispatcher resolves again and refuses a different effect.
+
+    ``plan`` (Q7.5) is the plan whose premises this write depends on. Its
+    digest is signed into a lease minted here and the dispatcher re-reads
+    the premises before the write.
 
     The lease is NOT trusted because it arrived. ``dispatcher.dispatch``
     re-verifies the whole binding against the concrete call before anything
@@ -102,6 +114,8 @@ def dispatch_under_lease(
                 policy_bundle_hash=policy_bundle_hash, toolspec=toolspec,
                 proposal_id=proposal_id, grant_jti=grant_jti,
                 task_identity=task_identity,
+                resolved_effect=resolved_effect,
+                plan=plan,
             )
         except (LeaseRefused, ValueError, SigningUnavailable) as exc:
             # SigningUnavailable belongs here, and its absence was a live 500.
@@ -167,6 +181,8 @@ def dispatch_under_lease(
     task_kwargs: dict[str, Any] = (
         {"task_identity": task_identity} if task_identity is not None else {}
     )
+    if plan is not None:
+        task_kwargs["plan"] = plan
     try:
         dres = dispatcher.dispatch(
             lease,
@@ -240,6 +256,8 @@ def issue_execution_lease(
     proposal_id: str = "",
     grant_jti: str = "",
     task_identity: "TaskIdentity | None" = None,
+    resolved_effect: ResolvedEffect | None = None,
+    plan: PlanBinding | None = None,
 ) -> ExecutionLease:
     """Mint a lease. The authority domain's half of the custody split.
 
@@ -253,6 +271,8 @@ def issue_execution_lease(
         semantic=semantic, now=now, policy_bundle_hash=policy_bundle_hash,
         toolspec=toolspec, proposal_id=proposal_id, grant_jti=grant_jti,
         task_identity=task_identity,
+        resolved_effect=resolved_effect,
+        plan=plan,
     )
 
 
@@ -268,6 +288,8 @@ def _issue_local_lease(
     proposal_id: str,
     grant_jti: str,
     task_identity: "TaskIdentity | None" = None,
+    resolved_effect: ResolvedEffect | None = None,
+    plan: PlanBinding | None = None,
 ) -> ExecutionLease:
     return ExecutionLease.issue(
             decision="accept",
@@ -285,6 +307,8 @@ def _issue_local_lease(
             proposal_id=proposal_id,
             grant_jti=grant_jti,
             task_identity=task_identity,
+            resolved_effect=resolved_effect,
+            plan=plan,
         )
 
 

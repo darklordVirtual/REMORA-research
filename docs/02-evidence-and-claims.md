@@ -194,7 +194,7 @@ are first-class here, see `NEGATIVE_RESULTS.md` and
 
 **To reach `CONTROLLED_PILOT`, still open:** REM-021, REM-023.
 
-**Capabilities:** 8 of 18 wired to the API path or deeper ([wiring register](assurance/capability_register_v1.yaml)); full gate status in [release_gates.md](assurance/release_gates.md), maturity ladder in [release_profiles_v1.yaml](assurance/release_profiles_v1.yaml).
+**Capabilities:** 12 of 22 wired to the API path or deeper ([wiring register](assurance/capability_register_v1.yaml)); full gate status in [release_gates.md](assurance/release_gates.md), maturity ladder in [release_profiles_v1.yaml](assurance/release_profiles_v1.yaml).
 <!-- END GENERATED: status -->
 
 Shadow-mode research only; not certified for production. The load-bearing caveats:

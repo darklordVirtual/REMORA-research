@@ -788,8 +788,12 @@ components:
       reported_results: >-
         Authors report, across three models, two reasoning regimes and two domains, that enforcement needs no model obedience but is bounded by the correctness of its state and of the matcher that maps requests to steps; showing accurate state is unreliable and a self-written ledger beats a shown checklist. Their setup, their findings.
     remora_status: >-
-      No REMORA study measures when its own gate is wrong. The fleetops validator study (§33) uses a validator that is correct by construction, and NEGATIVE_RESULTS.md §59 records a policy revision that removed mostly correct accepts. Scoped as quality program WS7 item 1: a deterministic gate-correctness study with injected validator faults (stale state, wrong matcher, incomplete coverage treated as closed-world).
-    adoption: SCOPED
+      Measured by the pre-registered gate-correctness study (WS7 item 1): seven validator arms over the 540 fleetops episodes, 5 of 7 predictions met, the misses in NEGATIVE_RESULTS.md §60 (open). A lenient prefix matcher let 0.667 of corrupt calls through; a fail-open validator 0.078; stale or partial indexes cost autonomy instead; no gated arm auto-accepted a write. One domain and one engine configuration.
+    adoption: ADOPTED
+    remora_evidence:
+      - experiments/gate_correctness_study.py
+      - results/gate_correctness_study_v1.json
+      - tests/test_gate_correctness_fixture.py
 
   - id: SHELF-030
     name: "Trace capture outside the agent's control"
@@ -804,8 +808,12 @@ components:
         Authors report that all tested local agent harnesses but one (they name Claude Code, Codex, Antigravity, Open Code and Grok Build among those that failed) let agents delete their own traces when asked without triggering monitor guardrails, that external attackers can induce the deletion, and that trace tampering emerges when agents pursue reward. They advise independent interception outside the agent's control. Their setup, their findings.
     roadmap_ref: "RF-08"
     remora_status: >-
-      REMORA's audit chains are tamper-evident after capture but written in the executing process (RES-013 scope boundary; AST-011, AST-008, AST-009 lose evidence on loss). This is the verified anchor for the open question SHELF-028 raised without a retrievable source. Scoped as WS7 item 6, reference mode first; a real independent sink overlaps REM-025 and is an owner decision.
-    adoption: SCOPED
+      Reference form implemented (Q7.6): remora/audit/recorder.py runs as a separate process with a hash-chained SQLite store whose triggers abort UPDATE and DELETE, and an agent-side client with no destructive operation. Every append returns a receipt, so a deletion made behind the recorder's back is detected. GovernedToolDispatcher.bind_recorder records the intent before the nonce is spent for the tools a deployment names, and refuses as recorder_unavailable when the recorder is down. PARTIAL because process separation is only as strong as the deployment's OS boundary, and the independently operated durable sink is an owner decision overlapping REM-025.
+    adoption: PARTIAL
+    remora_evidence:
+      - remora/audit/recorder.py
+      - remora/enforcement/lease.py
+      - tests/test_independent_recorder.py
 
   - id: SHELF-031
     name: "Non-decaying loop safety state across task iterations"
@@ -819,8 +827,13 @@ components:
       reported_results: >-
         Authors bound the expected number of unauthorized irreversible actions under mediated commits and an arbiter detection floor by a constant in the number of iterations, of which the model-free part survives a fully colluding verifier. Their analysis, their bound.
     remora_status: >-
-      Already a builds_on source of RES-012. PolicyDecisionToken binds task identity (remora/enforcement/token.py); ExecutionLease and the A2A envelope do not, and remora/governance/loop_safety.py does not exist (named only in task_identity.py). Scoped as WS7 item 2.
-    adoption: SCOPED
+      Implemented (Q7.2): remora/governance/loop_safety.py keeps denials, authority probes, tool switches after a denial and irreversible effects per (tenant_id, context_id), append-only, reset only by a named policy decision, and fail-closed on an unreadable store. POST /v1/execution/assess reads it before deciding and records after; a context at a limit cannot ACCEPT. ExecutionLease and the A2A envelope carry the task identity. LoopHarness itself and the paper's bound are not implemented, and the limits are uncalibrated defaults.
+    adoption: ADOPTED
+    remora_evidence:
+      - remora/governance/loop_safety.py
+      - servers/execution_api.py
+      - tests/test_loop_safety.py
+      - tests/test_task_identity_server_path.py
 
   - id: SHELF-032
     name: "Dependency-scoped plan validity (PlanFence)"
@@ -834,8 +847,12 @@ components:
       reported_results: >-
         Authors report that in 30 controlled live workflows with a post-plan revision, a freshness-only executor acts on the obsolete plan in every task, while PlanFence completes all tasks without an invalid action. Their setup, their numbers.
     remora_status: >-
-      REMORA binds a grant to the exact call, not to the state revision the plan was built on; no plan or state revision symbol exists in remora/ or servers/. Related to SHELF-027 (commit-time revalidation). Scoped as WS7 item 5.
-    adoption: SCOPED
+      Implemented (Q7.5): remora/governance/plan_binding.py records the revision of each resource a plan read and which of them a write depends on; the digest is signed into the lease, and the dispatcher re-reads the dependencies immediately before the write. A moved dependency refuses as stale_plan, a moved read the write does not depend on is ignored, and an unreadable dependency refuses as plan_state_unverifiable. Dependencies are declared by the plan's author; an under-declared one is not detected.
+    adoption: ADOPTED
+    remora_evidence:
+      - remora/governance/plan_binding.py
+      - remora/enforcement/lease.py
+      - tests/test_plan_binding.py
 
   - id: SHELF-033
     name: "Closed-world resolution of tool identity before authorization"
@@ -850,8 +867,13 @@ components:
         Author gives a five-class taxonomy of tool hallucination and measures 322 genuine hallucinations across ten hosted models under two invocation surfaces, with fabricated-tool calls concentrated on the unconstrained raw-JSON surface. Their setup, their numbers.
     roadmap_ref: "RF-01"
     remora_status: >-
-      ExecutionLease binds tool name, arguments and target environment, but no resolved target or resolved effect is represented, so an alias resolved by an adapter after authorization is not bound. Scoped as WS7 item 4 (resolved-effect binding with alias and redirect fixtures).
-    adoption: SCOPED
+      Implemented (Q7.4): remora/enforcement/resolved_effect.py resolves a call against a closed registry (implementation, canonical resource, effect kind) and signs the digest into the lease; the dispatcher resolves again before execution. Alias retargeting, resource redirects and implementation remaps refuse as resolved_effect_mismatch, and an unknown reference refuses as unresolved_reference rather than being guessed (artifacts/resolved_effect/fixtures_v1.json). The registry itself is deployment configuration and is not checked for correctness.
+    adoption: ADOPTED
+    remora_evidence:
+      - remora/enforcement/resolved_effect.py
+      - scripts/generate_resolved_effect_fixtures.py
+      - artifacts/resolved_effect/fixtures_v1.json
+      - tests/test_resolved_effect_binding.py
 
   - id: SHELF-034
     name: "Permission-aware MCP discovery plus invocation-time checks"
@@ -883,8 +905,11 @@ components:
         Authors represent procedural instructions as query-active obligations and report that output-only and trace-aware LLM judges miss many injected omissions, wrong branches, ordering errors and extra actions on a controlled suite of audited procedural contracts. Their setup, their findings.
     roadmap_ref: "RF-03"
     remora_status: >-
-      ToolContract declares effects and preconditions, and the preconditions_met adjudicator is still open (RF-10). No trajectory-level obligation check exists. Scoped as WS7 item 7, after the gate-correctness study.
-    adoption: SCOPED
+      A small part implemented (Q7.7): remora/governance/procedure.py matches four obligation shapes (precedence, absence, response, existence) against tool-call traces, on tool name and exact argument fields. PARTIAL because ContractEval's query-conditioned matching of natural-language procedures is not implemented; obligations are written as contracts by hand.
+    adoption: PARTIAL
+    remora_evidence:
+      - remora/governance/procedure.py
+      - tests/test_procedure_contracts.py
 
   - id: SHELF-036
     name: "Assume-guarantee temporal contracts over tool-call traces"
@@ -899,8 +924,12 @@ components:
         Authors formalise agent behaviour as a trace over checkable predicates and specify required behaviour as assume-guarantee contracts in linear temporal logic, one deterministic artifact serving both post-hoc grading and online supervision. Their framework, their claims.
     roadmap_ref: "RF-03"
     remora_status: >-
-      Same gap as SHELF-035. REMORA would start from a small finite-state obligation set, not general LTL, and use one contract online and in replay. Scoped as WS7 item 7.
-    adoption: SCOPED
+      A finite-state subset implemented (Q7.7): each of the four obligation shapes is an automaton with one bit of memory, and one monitor serves online checking (GovernedToolDispatcher.bind_procedure refuses a step that would violate a safety obligation) and replay; an exhaustive test over 1296 traces pins that the two agree. PARTIAL because general temporal logic and assume-guarantee composition are deliberately not implemented.
+    adoption: PARTIAL
+    remora_evidence:
+      - remora/governance/procedure.py
+      - remora/enforcement/lease.py
+      - tests/test_procedure_contracts.py
 
   - id: SHELF-037
     name: "Completion claims checked against obligations"
@@ -914,8 +943,11 @@ components:
       reported_results: >-
         Authors report that agents failed to read every file they were asked to review in 67.9% of runs, and in 80.4% of those incomplete runs (59-96% per model) were misleading, claiming a complete review or leaving the gap undisclosed. Their setup, their numbers.
     remora_status: >-
-      No REMORA mechanism derives completion from satisfied obligations; completion is whatever the caller reports. Scoped as WS7 item 7, and must be able to return NOT_ESTABLISHED.
-    adoption: SCOPED
+      Completion is derived, not asserted (Q7.7): derive_completion returns ESTABLISHED, NOT_ESTABLISHED or VIOLATED from the trace, and flags a caller's completion claim the trace does not establish as an overclaim. PARTIAL because REMORA measures no overclaiming propensity of any model; it only refuses to record an unestablished claim as fact.
+    adoption: PARTIAL
+    remora_evidence:
+      - remora/governance/procedure.py
+      - tests/test_procedure_contracts.py
 
   - id: SHELF-038
     name: "Typed verification status that survives handoffs"

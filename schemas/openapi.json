@@ -1109,6 +1109,39 @@
         "title": "PepResult",
         "type": "object"
       },
+      "PlanProposal": {
+        "description": "The premises a write's plan rests on (Q7.5).\n\n``reads`` maps each resource the plan read to the revision it saw;\n``depends_on`` names the reads this write depends on. The server signs\nthe plan into the lease and re-reads the dependencies immediately before\nthe write, so a plan whose premises moved is refused as ``stale_plan``.",
+        "properties": {
+          "depends_on": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 256,
+            "title": "Depends On",
+            "type": "array"
+          },
+          "plan_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Plan Id",
+            "type": "string"
+          },
+          "reads": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "maxProperties": 256,
+            "title": "Reads",
+            "type": "object"
+          }
+        },
+        "required": [
+          "plan_id",
+          "reads"
+        ],
+        "title": "PlanProposal",
+        "type": "object"
+      },
       "PolicyDecision": {
         "properties": {
           "action": {
@@ -1470,6 +1503,16 @@
               }
             ],
             "title": "Intent Ref"
+          },
+          "plan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlanProposal"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "rollback_available": {
             "anyOf": [

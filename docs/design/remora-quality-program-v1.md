@@ -377,3 +377,49 @@ and an unreadable store is a 503. Reviewers read and reset the state through
 two routes, and each reset is chained with a policy reference.
 `REMORA_REQUIRE_TASK_IDENTITY` makes the fields mandatory; it is off by
 default.
+
+**2026-09-28, declared operation.** The A2A envelope carries an optional
+`DeclaredOperation`, the action and resources a hop says it will touch.
+`verify` enforces `actual ⊆ declared ⊆ authorized`. A declared action
+outside the requested or delegated scope refuses. An observed operation
+outside the declaration refuses, and without a declaration the observed
+action must still be delegated. The declaration is signed only when set.
+It is a library check, and no route receives envelopes.
+
+**2026-09-28, Q7.3.** `remora/governance/evidence_coverage.py` compares the
+evidence present with a contract of the kinds a claim needs. It returns
+TAMPERED, INCONCLUSIVE, AUTHENTIC_BUT_INCOMPLETE or COMPLETE, in that order
+of precedence. The evidence export reports two contracts per proposal. An
+execution with no effect observation is authentic but incomplete for
+`executed_effect_v1`, and a rewritten chain entry reads TAMPERED.
+
+**2026-09-28, Q7.4.** The lease signs the digest of the effect a call
+resolves to in a closed registry, and the executor resolves again.
+`artifacts/resolved_effect/fixtures_v1.json` reproduces seven cases. An
+alias retarget, a resource redirect and an implementation remap refuse,
+unknown references refuse, and an unchanged or unrelated registry change
+executes. The registry itself is deployment configuration.
+
+**2026-09-28, Q7.5.** A call may carry the plan it rests on: the revisions
+it read and the reads the write depends on. The plan is signed into the
+lease, and the dependencies are re-read before the write. A moved
+dependency refuses as `stale_plan`, and a moved read the write does not
+depend on is ignored. Dependencies are declared by the plan's author.
+
+**2026-09-28, Q7.6.** `remora/audit/recorder.py` is a reference recorder
+that runs as a separate process. Its store is append-only and
+hash-chained, its protocol has no delete, and it returns a receipt for
+every append. For the tools a deployment names, the dispatcher records the
+intent there before the nonce is spent, and refuses when the recorder is
+down. Separation depends on the deployment's OS boundary. The durable,
+independently operated sink is still an owner decision (REM-025).
+
+**2026-09-28, Q7.7.** `remora/governance/procedure.py` has four
+finite-state obligation shapes and one monitor for online and replay use.
+An exhaustive test over 1296 traces pins that the two agree. The
+dispatcher refuses a step that would break a safety obligation.
+`derive_completion` returns NOT_ESTABLISHED for a pending obligation and
+flags a completion claim the trace does not establish. RES-014 to RES-019
+map every WS7 item to its source, code, tests and artifact. The research
+shelf records adoption: SHELF-029, 031, 032 and 033 ADOPTED, and 030, 035,
+036 and 037 PARTIAL, each with its reason.
