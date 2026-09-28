@@ -4,6 +4,10 @@
     {
       "id": "gainability_classifier:2.6%",
       "reason": "8/302 = 2.6% gainable on the N=302 canonical ablation; the cited artifact holds a different split (n_test=121, 3 gainable), so the figure has no field to bind to. Needs the run that produced it, or a rewrite to the artifact."
+    },
+    {
+      "id": "gainability_classifier:8/302",
+      "reason": "the same figure as gainability_classifier:2.6%: the cited artifact holds a different split (n_test=121), so 8 and 302 have no field."
     }
   ]
 }

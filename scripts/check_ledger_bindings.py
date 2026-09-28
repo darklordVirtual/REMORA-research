@@ -11,7 +11,9 @@ For each entry whose ``artifact`` (and optional ``also_cites``) names JSON
 files, every percentage (``88.78%``) and every decimal fraction (``0.1972``) in
 its ``wording`` must equal a numeric field of one of those files, compared at
 the precision the number is written with. A number that is not a measurement
-of those files is declared on the entry itself:
+of those files is declared on the entry itself. An integer ratio (``5/20``)
+is bound when both of its integers are integer fields of those files, which
+catches a wrong count without having to know which field is the numerator.
 
 ``parameters``      thresholds, targets and test bars the text quotes
 ``retired_values``  numbers from a run whose file is no longer in results/
@@ -38,6 +40,7 @@ ROOT = Path(__file__).resolve().parent.parent
 LEDGER = Path("docs/thermodynamics/claim_ledger.yaml")
 BASELINE = Path("docs/assurance/ledger_binding_baseline.json")
 _NUMBER = re.compile(r"(\d+(?:\.\d+)?)\s*%|(?<![\d.])(0\.\d{2,})(?![\d.])")
+_RATIO = re.compile(r"(?<![\d.])(\d+)\s*/\s*(\d+)(?![\d.%])")
 
 
 def _values(node: Any) -> Iterator[float]:
@@ -77,12 +80,15 @@ def unbound_numbers(root: Path) -> tuple[list[str], list[str]]:
         if not paths:
             continue
         values: list[float] = []
+        integers: set[int] = set()
         for rel in paths:
             path = root / rel
             if not path.exists():
                 errors.append(f"{cid}: cited artifact {rel} does not exist")
                 continue
-            values += list(_values(json.loads(path.read_text(encoding="utf-8"))))
+            found = list(_values(json.loads(path.read_text(encoding="utf-8"))))
+            values += found
+            integers |= {int(v) for v in found if float(v).is_integer()}
         declared = {str(x) for x in (claim.get("parameters") or []) + (claim.get("retired_values") or [])}
         for m in _NUMBER.finditer(str(claim.get("wording", ""))):
             token, is_pct = (m.group(1), True) if m.group(1) else (m.group(2), False)
@@ -90,6 +96,12 @@ def unbound_numbers(root: Path) -> tuple[list[str], list[str]]:
             if written in declared or token in declared:
                 continue
             if not _matches(token, is_pct, values):
+                unbound.append(f"{cid}:{written}")
+        for m in _RATIO.finditer(str(claim.get("wording", ""))):
+            written = f"{m.group(1)}/{m.group(2)}"
+            if written in declared:
+                continue
+            if not {int(m.group(1)), int(m.group(2))} <= integers:
                 unbound.append(f"{cid}:{written}")
     return unbound, errors
 
