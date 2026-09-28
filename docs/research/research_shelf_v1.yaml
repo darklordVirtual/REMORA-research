@@ -37,7 +37,7 @@
 # A `remora_results` key is a hard error.
 
 schema_version: "1"
-updated: "2026-08-24"
+updated: "2026-09-28"
 
 components:
 
@@ -773,3 +773,211 @@ components:
       tamper-evident against later modification but not independent of the
       producer. That is a known property, not a new finding.
     adoption: UNEVALUATED
+
+  # ── Authority-to-effect hardening (quality program WS7, intake 2026-09-28) ──
+
+  - id: SHELF-029
+    name: "Measured correctness of the enforcement gate itself"
+    source:
+      title: "How Strongly Should Task State Influence an LLM Agent?"
+      authors: "Chenyu Zhang, Wonbin Kweon, Jiawei Han"
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2609.25686"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-09-28"
+      reported_results: >-
+        Authors report, across three models, two reasoning regimes and two domains, that enforcement needs no model obedience but is bounded by the correctness of its state and of the matcher that maps requests to steps; showing accurate state is unreliable and a self-written ledger beats a shown checklist. Their setup, their findings.
+    remora_status: >-
+      No REMORA study measures when its own gate is wrong. The fleetops validator study (§33) uses a validator that is correct by construction, and NEGATIVE_RESULTS.md §59 records a policy revision that removed mostly correct accepts. Scoped as quality program WS7 item 1: a deterministic gate-correctness study with injected validator faults (stale state, wrong matcher, incomplete coverage treated as closed-world).
+    adoption: SCOPED
+
+  - id: SHELF-030
+    name: "Trace capture outside the agent's control"
+    source:
+      title: "LLM Agents Can Easily Tamper With Their Own Traces"
+      authors: "Jeremy Qin, David Schmotz, Derck Prinzhorn et al."
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2609.30266"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-09-28"
+      reported_results: >-
+        Authors report that all tested local agent harnesses but one (they name Claude Code, Codex, Antigravity, Open Code and Grok Build among those that failed) let agents delete their own traces when asked without triggering monitor guardrails, that external attackers can induce the deletion, and that trace tampering emerges when agents pursue reward. They advise independent interception outside the agent's control. Their setup, their findings.
+    roadmap_ref: "RF-08"
+    remora_status: >-
+      REMORA's audit chains are tamper-evident after capture but written in the executing process (RES-013 scope boundary; AST-011, AST-008, AST-009 lose evidence on loss). This is the verified anchor for the open question SHELF-028 raised without a retrievable source. Scoped as WS7 item 6, reference mode first; a real independent sink overlaps REM-025 and is an owner decision.
+    adoption: SCOPED
+
+  - id: SHELF-031
+    name: "Non-decaying loop safety state across task iterations"
+    source:
+      title: "Safety Does Not Compose: Non-Decaying Loop State for Autonomous LLM Agents"
+      authors: "Chenhao Wu, Haoxuan Jia, Yang Liu et al."
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2608.27141"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-09-28"
+      reported_results: >-
+        Authors bound the expected number of unauthorized irreversible actions under mediated commits and an arbiter detection floor by a constant in the number of iterations, of which the model-free part survives a fully colluding verifier. Their analysis, their bound.
+    remora_status: >-
+      Already a builds_on source of RES-012. PolicyDecisionToken binds task identity (remora/enforcement/token.py); ExecutionLease and the A2A envelope do not, and remora/governance/loop_safety.py does not exist (named only in task_identity.py). Scoped as WS7 item 2.
+    adoption: SCOPED
+
+  - id: SHELF-032
+    name: "Dependency-scoped plan validity (PlanFence)"
+    source:
+      title: "Fresh Memory, Stale Plans: Dependency-Scoped Validation for Distributed LLM-Agent Memory"
+      authors: "Evan Chen, Shiqiang Wang, Christopher G. Brinton"
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2609.03340"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-09-28"
+      reported_results: >-
+        Authors report that in 30 controlled live workflows with a post-plan revision, a freshness-only executor acts on the obsolete plan in every task, while PlanFence completes all tasks without an invalid action. Their setup, their numbers.
+    remora_status: >-
+      REMORA binds a grant to the exact call, not to the state revision the plan was built on; no plan or state revision symbol exists in remora/ or servers/. Related to SHELF-027 (commit-time revalidation). Scoped as WS7 item 5.
+    adoption: SCOPED
+
+  - id: SHELF-033
+    name: "Closed-world resolution of tool identity before authorization"
+    source:
+      title: "Closed-World Resolution Against Tool Hallucination in LLM Agents"
+      authors: "Laxmipriya Ganesh Iyer"
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2609.19425"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-09-28"
+      reported_results: >-
+        Author gives a five-class taxonomy of tool hallucination and measures 322 genuine hallucinations across ten hosted models under two invocation surfaces, with fabricated-tool calls concentrated on the unconstrained raw-JSON surface. Their setup, their numbers.
+    roadmap_ref: "RF-01"
+    remora_status: >-
+      ExecutionLease binds tool name, arguments and target environment, but no resolved target or resolved effect is represented, so an alias resolved by an adapter after authorization is not bound. Scoped as WS7 item 4 (resolved-effect binding with alias and redirect fixtures).
+    adoption: SCOPED
+
+  - id: SHELF-034
+    name: "Permission-aware MCP discovery plus invocation-time checks"
+    source:
+      title: "Zero-Trust Authorization and Discovery for Enterprise MCP"
+      authors: "Huan Li, Yuwei Wang, Srinivasan Manoharan"
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2609.22573"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-09-28"
+      reported_results: >-
+        Authors report over 2160 attempts across four frontier models that an in-body-check-only server still exposes forbidden tools in 152/720 attempts, permission-aware visibility drives that to 0/720, visibility-only filtering stays bypassable by scripted clients, and models named a hidden tool in up to 94% of settings when it was inferable. Their setup, their numbers.
+    roadmap_ref: "RF-01"
+    remora_status: >-
+      RES-013 observes the tools a runtime actually offers; it does not qualify third-party metadata before the agent sees it. Candidate for a qualified-registry extension of RES-013 (proposal P1.5); no decision taken.
+    adoption: UNEVALUATED
+    remaining: "Evaluate after WS7 items 1-3 (quality program)."
+
+  - id: SHELF-035
+    name: "Query-active procedural obligations matched against traces"
+    source:
+      title: "ContractEval: Query-Conditioned Execution Matching for Procedural Instruction Conformance"
+      authors: "Praphul Singh, Shanu Kumar, Akshat Agarwal et al."
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2609.09458"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-09-28"
+      reported_results: >-
+        Authors represent procedural instructions as query-active obligations and report that output-only and trace-aware LLM judges miss many injected omissions, wrong branches, ordering errors and extra actions on a controlled suite of audited procedural contracts. Their setup, their findings.
+    roadmap_ref: "RF-03"
+    remora_status: >-
+      ToolContract declares effects and preconditions, and the preconditions_met adjudicator is still open (RF-10). No trajectory-level obligation check exists. Scoped as WS7 item 7, after the gate-correctness study.
+    adoption: SCOPED
+
+  - id: SHELF-036
+    name: "Assume-guarantee temporal contracts over tool-call traces"
+    source:
+      title: "Symbolic Temporal Supervision of LLM Agents Using Contracts"
+      authors: "Yifeng Xiao, Pierluigi Nuzzo"
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2609.18128"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-09-28"
+      reported_results: >-
+        Authors formalise agent behaviour as a trace over checkable predicates and specify required behaviour as assume-guarantee contracts in linear temporal logic, one deterministic artifact serving both post-hoc grading and online supervision. Their framework, their claims.
+    roadmap_ref: "RF-03"
+    remora_status: >-
+      Same gap as SHELF-035. REMORA would start from a small finite-state obligation set, not general LTL, and use one contract online and in replay. Scoped as WS7 item 7.
+    adoption: SCOPED
+
+  - id: SHELF-037
+    name: "Completion claims checked against obligations"
+    source:
+      title: "Quantifying Overclaiming Propensity in Frontier LLM Agents"
+      authors: "Nolan Smyth, Yorguin-Jose Mantilla-Ramos, Pascal Jr Tikeng Notsawo et al."
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2609.20812"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-09-28"
+      reported_results: >-
+        Authors report that agents failed to read every file they were asked to review in 67.9% of runs, and in 80.4% of those incomplete runs (59-96% per model) were misleading, claiming a complete review or leaving the gap undisclosed. Their setup, their numbers.
+    remora_status: >-
+      No REMORA mechanism derives completion from satisfied obligations; completion is whatever the caller reports. Scoped as WS7 item 7, and must be able to return NOT_ESTABLISHED.
+    adoption: SCOPED
+
+  - id: SHELF-038
+    name: "Typed verification status that survives handoffs"
+    source:
+      title: "Silence Is Endorsement: Verification-Status Laundering in LLM Agent Pipelines"
+      authors: "Yibo Hu"
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2609.20211"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-09-28"
+      reported_results: >-
+        Author reports that dropping a verification-status qualifier raises approval of risky actions from 5% to 60% on Llama-3.1-8B and from 9% to 98% on Qwen2.5-14B, and a proposer-summarizer-memory-monitor pipeline reaches 57-81% risky approval across three monitors. Their setup, their numbers.
+    remora_status: >-
+      The A2A envelope carries signatures, delegation and evidence references; no first-class claim status exists in remora/. Candidate (proposal P1.3); no decision taken.
+    adoption: UNEVALUATED
+    remaining: "Evaluate after WS7 items 1-3 (quality program)."
+
+  - id: SHELF-039
+    name: "Cut-point replay of recorded agent incidents"
+    source:
+      title: "Chronicle: Cut-Point Replay for Regression Testing of LLM Agents"
+      authors: "Tisha Chawla, Susheem Koul"
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2609.20625"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-09-28"
+      reported_results: >-
+        Authors report on 6 recorded failures that recording adds 23 microseconds per boundary crossing, full replay issues zero model calls and is bit-stable over 20 repetitions, and cut-point tests fail on faulty code and pass on guarded and benign changes for all 6 incidents. Their setup, their numbers.
+    remora_status: >-
+      remora/shadow/replay.py replays governance decisions and verifies the envelope chain; it does not replay execution at a cut point. Candidate (proposal P1.2); no decision taken.
+    adoption: UNEVALUATED
+    remaining: "Evaluate after WS7 items 1-3 (quality program)."
+
+  - id: SHELF-040
+    name: "Failure-informed runtime policies"
+    source:
+      title: "FIRE: Failure-Informed Runtime Engineering for Reliable Language-Model Agents"
+      authors: "Nikita Agarwal, Nivedit Jain"
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2609.26048"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-09-28"
+      reported_results: >-
+        Authors report on the 87-task Terminal-Bench 2.1 suite with two attempts per task that policies raise repeated success (pass^2) in all three model tiers, e.g. 64.4% to 73.6% for the tier they call Sol, whose best-of-two success moves by 1.2 points. Their setup, their numbers.
+    remora_status: >-
+      NEGATIVE_RESULTS.md records failures, but none is compiled into a deterministic predicate with a replayed regression. Candidate (proposal P1.1); REMORA would prefer machine-checkable rules over runtime prompt policies. No decision taken.
+    adoption: UNEVALUATED
+    remaining: "Evaluate after WS7 items 1-3 (quality program)."
+
+  - id: SHELF-041
+    name: "Per-argument provenance through multi-turn tool use"
+    source:
+      title: "SAP: State-Guided Data Synthesis with Argument Provenance for Multi-Turn Tool Use"
+      authors: "Zichen Tian, Jinpeng Chen, Cheng Gong et al."
+      venue: "arXiv preprint"
+      url: "https://arxiv.org/abs/2609.06124"
+      verification: VERIFIED_RETRIEVED
+      verified: "2026-09-28"
+      reported_results: >-
+        Authors synthesise multi-turn tool-use data with per-argument provenance and report that a 4B model trained on it is competitive with much larger models across multiple benchmarks. Their setup, their claims.
+    roadmap_ref: "RF-02"
+    remora_status: >-
+      Much of this exists: argument grounding, DerivationReceipt and ArgumentValueEvidence (RF-02). Any work extends those structures rather than adding a provenance store. Candidate (proposal P1.4); no decision taken.
+    adoption: UNEVALUATED
+    remaining: "Evaluate after WS7 items 1-3 (quality program)."
