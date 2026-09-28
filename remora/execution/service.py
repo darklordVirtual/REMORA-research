@@ -154,6 +154,7 @@ def assess_proposal(
     token_ttl_seconds: int,
     policy_bundle_hash: Callable[[], str] | None = None,
     loop_safety: Any = None,
+    capability_gate: Callable[[Any], dict[str, Any] | None] | None = None,
 ) -> dict[str, Any]:
     """Assess a proposed tool call — nothing executes here.
 
@@ -172,6 +173,11 @@ def assess_proposal(
     probing does not keep acting autonomously. The downgrade never goes the
     other way. The decision is then recorded against the context. A store
     that cannot answer raises before anything is decided or recorded.
+
+    ``capability_gate`` (Q8.2) returns the capability block for the proposal:
+    the effective set it was checked against and whether the tool is in it.
+    A tool outside the set is ABSTAIN with ``capability_not_allowed``, whatever
+    the engine decided. None from the gate means no capability policy applies.
     """
     task = task_identity_of(proposal)
     prior_loop = (
@@ -199,6 +205,13 @@ def assess_proposal(
             action=DecisionAction.ESCALATE,
             reasons=(*report.reasons, DecisionReason.LOOP_SAFETY_ESCALATE),
             human_review_required=True,
+        )
+    capability = capability_gate(proposal) if capability_gate is not None else None
+    if capability is not None and not capability.get("allowed"):
+        report = dataclasses.replace(
+            report,
+            action=DecisionAction.ABSTAIN,
+            reasons=(*report.reasons, DecisionReason.CAPABILITY_NOT_ALLOWED),
         )
     now = datetime.now(UTC)
 
@@ -246,6 +259,8 @@ def assess_proposal(
     if task is not None:
         record["context_id"] = task.context_id
         record["task_id"] = task.task_id
+    if capability is not None:
+        record["capability"] = capability
     response: dict[str, Any] = {
         "proposal_id": proposal_id,
         "decision": report.action.value,
@@ -254,6 +269,8 @@ def assess_proposal(
         "semantic": dict(semantic),
         "toolspec": dict(toolspec_identity),
     }
+    if capability is not None:
+        response["capability"] = capability
     # FT-01 conformance BEFORE anything is recorded.
     branch_event = {
         DecisionAction.ACCEPT: "direct_accept_token",

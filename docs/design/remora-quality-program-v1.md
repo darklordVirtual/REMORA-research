@@ -510,3 +510,16 @@ set's digest covers every field, and a widened set presented with its old
 digest is refused. `check` refuses a principal, tenant or environment
 mismatch, or an expired set, before it tests membership. The package is
 rated CORE; until Q8.2 binds it into the lease, nothing calls it.
+
+**2026-09-28, Q8.2.** The lease signs a `capability_digest` when set. The
+dispatcher requires the matching `EffectiveCapabilitySet` and checks the call
+against it. That check runs after the lease verifies and before the nonce is
+spent. A missing set, a widened set, an expired set, another principal and a
+tool outside the set each refuse with their own code. On the execution API
+the set is resolved from `REMORA_CAPABILITY_POLICY_FILE` for the
+authenticated principal. `/assess` abstains outside the set and records the
+capability block. The execution routes refuse before anything is consumed,
+then re-resolve at dispatch and bind the fresh set into the lease. Building
+this found an ordering bug: the fresh set was resolved on a later clock than
+the dispatch was judged by, so it was refused as not yet valid. It now
+resolves on the dispatch clock.

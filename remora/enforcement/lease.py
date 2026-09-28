@@ -61,6 +61,7 @@ from remora.policy.observation import canonical_tool_call_hash
 
 if TYPE_CHECKING:
     from remora.audit.recorder import RecorderClient
+    from remora.capabilities.model import EffectiveCapabilitySet
     from remora.enforcement.resolved_effect import EffectResolver, ResolvedEffect
     from remora.governance.plan_binding import PlanBinding, RevisionReader
     from remora.governance.procedure import ProcedureContract, Step
@@ -105,11 +106,11 @@ class LeaseRefused(RemoraError):
 
 
 def _get_signing_key() -> bytes | None:
-    for env in (_ENV_KEY, _FALLBACK_ENV_KEY):
-        val = os.environ.get(env, "").strip()
-        if val:
-            return val.encode()
-    return None
+    # Each name read directly rather than in a loop, so the credential
+    # topology scanner resolves both reads (scripts/check_credential_topology.py).
+    val = (os.environ.get(_ENV_KEY, "").strip()
+           or os.environ.get(_FALLBACK_ENV_KEY, "").strip())
+    return val.encode() if val else None
 
 
 def _parse_utc(ts: str) -> datetime:
@@ -198,6 +199,10 @@ class ExecutionLease:
     #: (``RuntimeToolSurface.digest``). Signed only when set; the dispatcher
     #: compares it with the surface it observes at dispatch.
     surface_digest: str = ""
+    #: Q8.2: digest of the EffectiveCapabilitySet the call was authorised
+    #: under (:mod:`remora.capabilities`). Signed only when set; the
+    #: dispatcher requires the matching set and checks the tool against it.
+    capability_digest: str = ""
 
     @classmethod
     def issue(
@@ -223,6 +228,7 @@ class ExecutionLease:
         resolved_effect: ResolvedEffect | None = None,
         plan: PlanBinding | None = None,
         surface_digest: str = "",
+        capability_set: EffectiveCapabilitySet | None = None,
     ) -> ExecutionLease:
         """Issue a lease for an ACCEPTED decision; refuse everything else.
 
@@ -282,6 +288,8 @@ class ExecutionLease:
             fields["plan_binding_hash"] = plan.digest()
         if surface_digest:
             fields["surface_digest"] = surface_digest
+        if capability_set is not None:
+            fields["capability_digest"] = capability_set.digest
         task_event_fields: dict[str, Any] = dict(task_fields(task_identity))
         alg = _signing.issuer_algorithm()
         if alg:
@@ -376,6 +384,8 @@ class ExecutionLease:
             fields["plan_binding_hash"] = self.plan_binding_hash
         if self.surface_digest:
             fields["surface_digest"] = self.surface_digest
+        if self.capability_digest:
+            fields["capability_digest"] = self.capability_digest
         return fields
 
     def task_identity(self) -> "TaskIdentity | None":
@@ -542,7 +552,7 @@ class ExecutionLease:
         "toolspec_hash", "toolspec_version",
         "proposal_id", "grant_jti", "runtime_identity_hash", "sig_alg", "kid",
         "context_id", "task_id", "resolved_effect_hash", "plan_binding_hash",
-        "surface_digest",
+        "surface_digest", "capability_digest",
     })
 
     @classmethod
@@ -658,8 +668,13 @@ class GovernedToolDispatcher:
         nonce_store: "NonceStore | None" = None,
         *,
         require_task_identity: bool = False,
+        require_capability_set: bool = False,
     ) -> None:
         """
+        ``require_capability_set`` (Q8.2) refuses a lease that carries no
+        capability digest, so every dispatch runs under a capability set.
+        Off by default for the same reason as ``require_task_identity``.
+
         ``require_task_identity`` (Q7.2) refuses any dispatch that does not
         present the current task, and any lease not granted under one. Off by
         default, because a caller that sends no task would be refused on
@@ -686,6 +701,7 @@ class GovernedToolDispatcher:
         self._nonce_store = nonce_store
         self._spec_identity: Callable[[str], tuple[str, int] | None] | None = None
         self._require_task = require_task_identity
+        self._require_capability = require_capability_set
         self._effect_resolver: "EffectResolver | None" = None
         self._revisions: "RevisionReader | None" = None
         self._recorder: "RecorderClient | None" = None
@@ -818,6 +834,30 @@ class GovernedToolDispatcher:
             proposal_id=lease.proposal_id, contract_id=contract.contract_id,
             obligations=list(refused))
         return "procedure_violation"
+
+    def _capability_refusal(self, lease: ExecutionLease, tool_name: str,
+                            tenant_id: str, target_environment: str,
+                            capability_set: EffectiveCapabilitySet | None,
+                            now: str | None) -> str | None:
+        """Q8.2. A lease that names a capability set runs only under that set.
+
+        The set travels with the call and is checked against the signed
+        digest, then against the call itself: the lease's actor, the tenant,
+        the target environment, the set's validity window and membership.
+        A lease with no digest is refused only when the dispatcher requires
+        capability sets.
+        """
+        if not lease.capability_digest:
+            return "capability_set_required" if self._require_capability else None
+        if capability_set is None:
+            return "capability_set_required"
+        if not hmac.compare_digest(capability_set.digest, lease.capability_digest):
+            return "capability_digest_mismatch"
+        moment = _parse_utc(now) if now is not None else datetime.now(UTC)
+        refusal = capability_set.check(
+            tool_name, principal_id=lease.actor_identity, tenant_id=tenant_id,
+            environment=target_environment, now=moment)
+        return refusal.value if refusal is not None else None
 
     def bind_surface_observer(self, observer: Callable[[], str], *,
                               enforce: bool = False) -> None:
@@ -977,6 +1017,7 @@ class GovernedToolDispatcher:
         actor_identity: str | None = None,
         task_identity: "TaskIdentity | None" = None,
         plan: PlanBinding | None = None,
+        capability_set: EffectiveCapabilitySet | None = None,
     ) -> DispatchResult:
         """Execute ``tool_name`` iff the lease covers this exact call.
 
@@ -1084,7 +1125,9 @@ class GovernedToolDispatcher:
         # consumed, so a rejected runtime does not burn a single-use nonce and
         # turn an authorization failure into an unknown-state incident.
         runtime_refusal = (
-            self._runtime_refusal(lease)
+            self._capability_refusal(lease, tool_name, tenant_id,
+                                     target_environment or "", capability_set, now)
+            or self._runtime_refusal(lease)
             or self._effect_refusal(lease, tool_name, arguments, target_environment or "")
             or self._plan_refusal(lease, plan)
             or self._procedure_refusal(lease, tool_name, arguments)

@@ -31,6 +31,7 @@ from remora.observability.events import governance_event
 from remora.enforcement.result_envelope import capture_tool_result
 
 if TYPE_CHECKING:
+    from remora.capabilities.model import EffectiveCapabilitySet
     from remora.enforcement.resolved_effect import ResolvedEffect
     from remora.governance.plan_binding import PlanBinding
     from remora.governance.task_identity import TaskIdentity
@@ -53,6 +54,7 @@ def dispatch_under_lease(
     task_identity: "TaskIdentity | None" = None,
     resolved_effect: ResolvedEffect | None = None,
     plan: PlanBinding | None = None,
+    capability_set: EffectiveCapabilitySet | None = None,
 ) -> dict[str, Any]:
     """Dispatch one authorized call through the governed dispatcher.
 
@@ -78,6 +80,10 @@ def dispatch_under_lease(
     ``plan`` (Q7.5) is the plan whose premises this write depends on. Its
     digest is signed into a lease minted here and the dispatcher re-reads
     the premises before the write.
+
+    ``capability_set`` (Q8.2) is the set the call runs under, resolved from
+    trusted state by the caller. Its digest is signed into a lease minted here
+    and the dispatcher checks the tool against it.
 
     The lease is NOT trusted because it arrived. ``dispatcher.dispatch``
     re-verifies the whole binding against the concrete call before anything
@@ -116,6 +122,7 @@ def dispatch_under_lease(
                 task_identity=task_identity,
                 resolved_effect=resolved_effect,
                 plan=plan,
+                capability_set=capability_set,
             )
         except (LeaseRefused, ValueError, SigningUnavailable) as exc:
             # SigningUnavailable belongs here, and its absence was a live 500.
@@ -183,6 +190,8 @@ def dispatch_under_lease(
     )
     if plan is not None:
         task_kwargs["plan"] = plan
+    if capability_set is not None:
+        task_kwargs["capability_set"] = capability_set
     try:
         dres = dispatcher.dispatch(
             lease,
@@ -258,6 +267,7 @@ def issue_execution_lease(
     task_identity: "TaskIdentity | None" = None,
     resolved_effect: ResolvedEffect | None = None,
     plan: PlanBinding | None = None,
+    capability_set: EffectiveCapabilitySet | None = None,
 ) -> ExecutionLease:
     """Mint a lease. The authority domain's half of the custody split.
 
@@ -273,6 +283,7 @@ def issue_execution_lease(
         task_identity=task_identity,
         resolved_effect=resolved_effect,
         plan=plan,
+        capability_set=capability_set,
     )
 
 
@@ -290,6 +301,7 @@ def _issue_local_lease(
     task_identity: "TaskIdentity | None" = None,
     resolved_effect: ResolvedEffect | None = None,
     plan: PlanBinding | None = None,
+    capability_set: EffectiveCapabilitySet | None = None,
 ) -> ExecutionLease:
     return ExecutionLease.issue(
             decision="accept",
@@ -309,6 +321,7 @@ def _issue_local_lease(
             task_identity=task_identity,
             resolved_effect=resolved_effect,
             plan=plan,
+            capability_set=capability_set,
         )
 
 

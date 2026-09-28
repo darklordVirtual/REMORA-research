@@ -893,6 +893,10 @@ export interface components {
          *     its own transport credential remains open (CAP-013).
          */
         DispatchLeasedRequest: {
+            /** Capability Set */
+            capability_set?: {
+                [key: string]: unknown;
+            } | null;
             /** Lease */
             lease: {
                 [key: string]: unknown;
@@ -1443,6 +1447,8 @@ export interface components {
             target_environment: string;
             /** Task Id */
             task_id?: string | null;
+            /** Task Type */
+            task_type?: string | null;
             /** Tool Name */
             tool_name: string;
             /** Untrusted Context */

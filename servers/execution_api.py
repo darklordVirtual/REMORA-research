@@ -945,6 +945,86 @@ def _bind_premise_checks(dispatcher: GovernedToolDispatcher) -> None:
         dispatcher.bind_procedure(procedure.contract(), procedure.trace_for)
 
 
+_CAPABILITY_RESOLVER: Any = None
+
+
+def _capability_resolver() -> Any:
+    """The deployment's capability resolver (Q8.2), or None when unset.
+
+    ``REMORA_CAPABILITY_POLICY_FILE`` names a YAML or JSON capability policy
+    (``CapabilityPolicy.from_dict``). Unset means no capability minimization,
+    which is the behaviour before WS8.
+    """
+    global _CAPABILITY_RESOLVER
+    path = _os.environ.get("REMORA_CAPABILITY_POLICY_FILE", "").strip()
+    if not path:
+        return None
+    if _CAPABILITY_RESOLVER is None:
+        import yaml
+
+        from remora.capabilities import CapabilityPolicy, CapabilityResolver
+
+        with open(path, encoding="utf-8") as handle:
+            _CAPABILITY_RESOLVER = CapabilityResolver(
+                CapabilityPolicy.from_dict(yaml.safe_load(handle)))
+    return _CAPABILITY_RESOLVER
+
+
+def _resolve_capability(tool_call: Any, principal: str, tenant: str,
+                        now: "_dt.datetime | None" = None) -> Any:
+    """A fresh capability set for this call, or None without a policy.
+
+    Resolved from the deployment's policy for the AUTHENTICATED principal,
+    never from anything in the request but the task type, which can only
+    narrow (see ToolCallRequest.task_type).
+    """
+    resolver = _capability_resolver()
+    if resolver is None:
+        return None
+    return resolver.resolve(
+        principal_id=principal, tenant_id=tenant,
+        environment=tool_call.target_environment or "",
+        # A call that names no task type gets one the policy never names, so
+        # it resolves to no tools: default deny, not an error.
+        task_type=getattr(tool_call, "task_type", None) or "unspecified",
+        now=now or _dt.datetime.now(_dt.UTC))
+
+
+def _capability_block(tool_call: Any, principal: str, tenant: str) -> dict[str, Any] | None:
+    """What /assess records about the capability check (Q8.2)."""
+    capability_set = _resolve_capability(tool_call, principal, tenant)
+    if capability_set is None:
+        return None
+    refusal = capability_set.check(
+        tool_call.tool_name, principal_id=principal, tenant_id=tenant,
+        environment=tool_call.target_environment or "",
+        now=_dt.datetime.now(_dt.UTC))
+    return {
+        "capability_set_id": capability_set.capability_set_id,
+        "capability_digest": capability_set.digest,
+        "task_type": capability_set.task_type,
+        "requested_tool": tool_call.tool_name,
+        "allowed": refusal is None,
+        "refusal": refusal.value if refusal is not None else None,
+        "allowed_tools": list(capability_set.allowed_tools),
+        "policy_version": capability_set.policy_version,
+    }
+
+
+def _capability_or_refuse(tool_call: Any, principal: str, tenant: str) -> None:
+    """Refuse an execution whose tool is outside a fresh capability set,
+    before anything is decided or consumed (409, reason in the detail)."""
+    block = _capability_block(tool_call, principal, tenant)
+    if block is not None and not block["allowed"]:
+        raise HTTPException(status_code=409, detail=str(block["refusal"]))
+
+
+def _require_capability_set() -> bool:
+    """``REMORA_REQUIRE_CAPABILITY_SET``: refuse any lease without a capability digest."""
+    return _os.environ.get("REMORA_REQUIRE_CAPABILITY_SET", "").strip().lower() in {
+        "1", "true", "yes", "on"}
+
+
 def _require_task_identity() -> bool:
     """Whether this deployment refuses calls that name no task (Q7.2).
 
@@ -954,6 +1034,19 @@ def _require_task_identity() -> bool:
     """
     return _os.environ.get("REMORA_REQUIRE_TASK_IDENTITY", "").strip().lower() in {
         "1", "true", "yes", "on"}
+
+
+def _presented_capability_set(raw: Any) -> Any:
+    """The capability set sent with a leased dispatch; a set whose content no
+    longer matches its own digest is a 409."""
+    if raw is None:
+        return None
+    from remora.capabilities import EffectiveCapabilitySet
+
+    try:
+        return EffectiveCapabilitySet.from_dict(raw)
+    except (KeyError, TypeError, ValueError) as exc:
+        raise HTTPException(status_code=409, detail=f"capability set refused: {exc}") from exc
 
 
 def _plan_or_refuse(tool_call: Any) -> Any:
@@ -1038,6 +1131,7 @@ def _tool_dispatcher() -> GovernedToolDispatcher | None:
                     expected_policy_bundle_hash=bundle,
                     nonce_store=_lease_nonce_store(),
                     require_task_identity=_require_task_identity(),
+                    require_capability_set=_require_capability_set(),
                 )
                 # RMR-004: the lease has always carried the signed spec
                 # identity and verify() has always been able to check it.
@@ -1076,9 +1170,10 @@ def _toolspec_identity(tool_name: str) -> tuple[str, int] | None:
 
 def _reset_tool_dispatcher() -> None:
     """Test hook: drop the cached dispatcher (e.g. after env changes)."""
-    global _DISPATCHER, _EFFECT_RESOLVER
+    global _DISPATCHER, _EFFECT_RESOLVER, _CAPABILITY_RESOLVER
     _DISPATCHER = None
     _EFFECT_RESOLVER = None
+    _CAPABILITY_RESOLVER = None
 
 
 # ── Semantic bundle (SHELF-020) ────────────────────────────────────────────
@@ -1471,6 +1566,8 @@ def _assess_proposal_with_loop_state(
         token_ttl_seconds=EXECUTION_TOKEN_TTL_SECONDS,
         policy_bundle_hash=_current_policy_bundle_hash,
         loop_safety=_loop_safety_monitor(),
+        capability_gate=(lambda proposal: _capability_block(proposal, principal, tenant))
+        if _capability_resolver() is not None else None,
     )
 
 
@@ -1733,6 +1830,7 @@ def _dispatch_under_lease(
     presented_lease: Any = None,
     task_identity: TaskIdentity | None = None,
     plan: Any = None,
+    capability_set: Any = None,
 ) -> dict[str, Any]:
     """Governed dispatch (see remora.execution.dispatch); binds this module's
     dispatcher and current policy bundle hash. Shared by /execute,
@@ -1745,6 +1843,20 @@ def _dispatch_under_lease(
     (issue #45 gap 6). The span carries the proposal id as the tool-call id,
     so a trace joins the audit chain on the same key everything else uses.
     """
+    if presented_lease is None:
+        # Q8.2, the fresh check of SDD §15: resolved again at the moment the
+        # lease is minted, and signed into it.
+        # Resolved on the clock the dispatch is judged by. Resolving on a
+        # later clock made issued_at fall after the dispatch time, and every
+        # lease refused as capability_not_yet_valid.
+        capability_set = _resolve_capability(tool_call, principal, tenant, now=now)
+        if capability_set is not None:
+            refusal = capability_set.check(
+                tool_call.tool_name, principal_id=principal, tenant_id=tenant,
+                environment=tool_call.target_environment or "", now=now)
+            if refusal is not None:
+                return {"executed": False, "refusal_reason": refusal.value,
+                        "proposal_id": proposal_id}
     resolved_effect = None
     resolver = _effect_resolver() if presented_lease is None else None
     if resolver is not None:
@@ -1781,6 +1893,7 @@ def _dispatch_under_lease(
             task_identity=task_identity,
             resolved_effect=resolved_effect,
             plan=plan,
+            capability_set=capability_set,
         )
         _span.set_attribute("remora.executed", bool(result.get("executed")))
         if result.get("refusal_reason"):
@@ -1819,6 +1932,7 @@ def execute(req: ExecuteRequest, request: Request) -> "dict[str, Any] | JSONResp
 
     api_mod._require_tenant_capability(role, tenant, "execute")
     _task_or_refuse(req.tool_call)
+    _capability_or_refuse(req.tool_call, principal, tenant)
     reconcile_stale_dispatches(tenant)  # FT-02 lazy sweep (see assess)
     # Issue #82: async mode answers 202 after durable authorization; the
     # dispatch half belongs to the standalone worker
@@ -1907,6 +2021,7 @@ def execute_accepted(req: ExecuteAcceptedRequest, request: Request) -> dict[str,
 
     api_mod._require_tenant_capability(role, tenant, "execute")
     _task_or_refuse(req.tool_call)
+    _capability_or_refuse(req.tool_call, principal, tenant)
     reconcile_stale_dispatches(tenant)
 
     try:
@@ -2019,6 +2134,9 @@ def dispatch_leased(req: DispatchLeasedRequest, request: Request) -> dict[str, A
         task_identity=task,
         # The plan the lease was signed over; its premises are re-read here.
         plan=_plan_or_refuse(req.tool_call),
+        # The capability set the lease was minted under, checked against its
+        # signed digest and against this call by the dispatcher.
+        capability_set=_presented_capability_set(req.capability_set),
     )
     api_mod.record_execution_execute(
         executed=bool(tool_execution["executed"]),
