@@ -858,6 +858,79 @@ entries:
     compendium_refs: []
     compendium_note: "September 2026 source, postdates the compendium; identifier checked against the arXiv record on 2026-09-28. Cited in the study's pre-registration rather than in remora/."
 
+  - id: RES-020
+    title: "Capability minimization before reasoning, enforced through execution and effect"
+    source:
+      citation: "REMORA internal design (2026-09-28): owner-supplied software design document 'Capability-Minimized Verified Execution for REMORA', adopted as quality program WS8; not an external publication."
+      sections:
+        - "docs/design/capability-minimized-execution-v1.md"
+        - "experiments/capability_minimization/PREREGISTERED.md"
+    concepts:
+      - least_privilege_tool_vocabulary
+      - visibility_is_not_authorization
+      - non_widening_delegation
+      - epoch_revocation
+      - success_established_by_evidence
+    controls:
+      - task_scoped_capability_set
+      - capability_projection
+      - capability_digest_in_lease
+      - argument_and_state_constraints
+      - subset_delegation
+      - revocation_epochs
+      - success_established_contract
+    code:
+      - remora/capabilities/model.py
+      - remora/capabilities/resolver.py
+      - remora/capabilities/projector.py
+      - remora/capabilities/constraints.py
+      - remora/capabilities/delegation.py
+      - remora/capabilities/revocation.py
+      - remora/enforcement/lease.py
+      - remora/execution/service.py
+      - remora/governance/evidence_coverage.py
+      - servers/execution_api.py
+      - experiments/capability_minimization_study.py
+      - results/capability_minimization_study_v1.json
+    tests:
+      - tests/capabilities/test_capability_set.py
+      - tests/capabilities/test_capability_enforcement.py
+      - tests/capabilities/test_capability_server_path.py
+      - tests/capabilities/test_capability_projection.py
+      - tests/capabilities/test_capability_constraints.py
+      - tests/capabilities/test_capability_delegation.py
+      - tests/capabilities/test_capability_revocation.py
+      - tests/capabilities/test_success_established.py
+      - tests/test_capability_minimization_fixture.py
+    evidence: >-
+      Reproduce with python experiments/capability_minimization_study.py
+      --check. A capability set is the intersection of trusted operands with
+      default deny (property-tested), projected into the agent's tool list and
+      enforced at /assess, before consumption and in the dispatcher through a
+      digest signed into the lease. Argument and trusted-state constraints,
+      subset delegation and revocation epochs refuse with their own codes, and
+      success_established_v1 requires capability, authorization, execution and
+      a verified effect. The pre-registered layer study (44 proposals, eight
+      classes, arms A to F on REMORA's code) met seven of eight predictions:
+      unsafe execution fell from 1.0 to 0.0 as layers were added, each class
+      was first stopped by the layer built for it, and no arm blocked a
+      legitimate proposal. P8 missed (exposure ratio 0.2545 > 0.25,
+      NEGATIVE_RESULTS.md §62).
+    maturity: implemented_and_tested
+    scope_boundary: >-
+      Opt-in on the execution API; no deployment is claimed to run a capability
+      policy. The policy, the trusted-state reader and the epoch source are
+      deployment inputs REMORA does not check for correctness. The task type
+      is declared by the caller and only narrows. Capabilities bind to tools,
+      tasks and arguments, not to the provenance of each data value (the CaMeL
+      model, SHELF-008, is not adopted). The layer study uses an author-written
+      corpus: it shows layer attribution, not real-world rates or model
+      behaviour, which need a live model.
+    related_work_section: "docs/09-related-work.md §13"
+    in_code_citation: false
+    compendium_refs: []
+    compendium_note: "Internal design from an owner-supplied SDD; no external result is claimed for it."
+
 # ── Landscape coverage ──────────────────────────────────────────────────────
 # Whole areas of the local AI-assurance compendium that REMORA deliberately does
 # NOT implement as controls. Recording them here makes the scope boundary

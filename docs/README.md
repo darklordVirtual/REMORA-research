@@ -249,7 +249,7 @@ Design documents describe a proposal at the time it was written; whether it ship
 | [design/runtime-trust-base-identity-v1.md](design/runtime-trust-base-identity-v1.md) | Binding the executing runtime into the execution lease (ADR-D), and what a self-declared identity does not establish (open proposal) |
 | [interop/REMORA-APS-PROFILE-v0.1.md](interop/REMORA-APS-PROFILE-v0.1.md) | APS interop profile v0.1: the term mapping for four conformance families, fixed before the run (open proposal) |
 | [design/task-bound-execution-authority-v1.md](design/task-bound-execution-authority-v1.md) | Binding an authorization to the task it was granted under: the gap, the three lines that found it, and the signature-preserving field rule (open proposal) |
-| [design/capability-minimized-execution-v1.md](design/capability-minimized-execution-v1.md) | Capability minimization before reasoning: the owner's SDD mapped onto existing REMORA code, the four gaps, the deviations, and WS8 Q8.1 to Q8.9 (proposal) |
+| [design/capability-minimized-execution-v1.md](design/capability-minimized-execution-v1.md) | Capability minimization before reasoning: the owner's SDD mapped onto existing REMORA code, the four gaps, the deviations, and WS8 Q8.1 to Q8.9 (implemented) |
 | [design/remora-quality-program-v1.md](design/remora-quality-program-v1.md) | Spec-driven quality program: reproducible results, larger and live evaluation, runtime-surface binding in deployments, and the order of the open remediation items (open proposal) |
 | [methods/nested_governance.md](methods/nested_governance.md) | Nested governance model |
 | [methods/architecture_risk_register.md](methods/architecture_risk_register.md) | Architecture risk register |
