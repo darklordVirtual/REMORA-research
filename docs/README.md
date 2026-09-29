@@ -99,6 +99,7 @@ Several topics have more than one document. This table says which to open.
 | [security/owasp_genai_mapping.md](security/owasp_genai_mapping.md) | OWASP GenAI mapping |
 | [security/non-transitivity-of-authority.md](security/non-transitivity-of-authority.md) | Non-Transitivity of Authority (NTA-1, NTA-2): principle, enforcement, conformance vectors, limits |
 | [design/authority-preserving-capability-mediation-v1.md](design/authority-preserving-capability-mediation-v1.md) | Authority-Preserving Capability Mediation (NTA-2): proposed design, phase 1 implemented |
+| [design/evidence-sufficiency-v1.1.md](design/evidence-sufficiency-v1.1.md) | Evidence-sufficiency v1.1: closing the gaps found by external seeded-fault testing; decisions, requirements, rerun protocol |
 | [governance/eu_ai_act_nsm_mapping.md](governance/eu_ai_act_nsm_mapping.md) | EU AI Act / NSM mapping |
 | [governance/nist_ai_rmf_mapping.md](governance/nist_ai_rmf_mapping.md) | NIST AI RMF mapping |
 | [reference_architecture.md](reference_architecture.md) | Compact architecture overview |
@@ -211,6 +212,7 @@ Several topics have more than one document. This table says which to open.
 | [resilience_plan_v1.md](assurance/resilience_plan_v1.md) | Resilience plan |
 | [reproducibility_scorecard_v1.md](assurance/reproducibility_scorecard_v1.md) | Reproducibility scorecard |
 | [mutation_testing_v1.md](assurance/mutation_testing_v1.md) | Measured mutation pass over the grant/lease/PEP paths; kill rates, survivor triage, golden-vector fix (issue #280) |
+| [external_adequacy_evidence_sufficiency_v1.md](assurance/external_adequacy_evidence_sufficiency_v1.md) | External seeded-fault adequacy run over evidence-sufficiency-v1 (issue #629): counts, crash kills, survivor labels |
 | [domain_pack_governance_v1.md](assurance/domain_pack_governance_v1.md) | Domain-pack governance |
 | [aromer_memory_governance_v1.md](assurance/aromer_memory_governance_v1.md) | AROMER memory governance |
 | [validation/EXTERNAL_VALIDATION_PLAN.md](validation/EXTERNAL_VALIDATION_PLAN.md) | External validation plan |
