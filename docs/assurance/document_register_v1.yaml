@@ -2555,6 +2555,18 @@ documents:
   audience:
   - evaluators
   - integrators
+- id: DOC-347
+  path: docs/design/authority-preserving-capability-mediation-v1.md
+  status: proposal
+  topic: docs_design_authority-preserving-capability-mediation-v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-09-29'
+  last_reviewed: '2026-09-29'
+  audience:
+  - maintainers
+  - evaluators
+  - integrators
 topics:
 - docs_integrations_jev_decision_provider_md
 - docs_integrations_mcp-gateway_md
@@ -2834,3 +2846,4 @@ topics:
 - docs_design_capability-minimized-execution-v1_md
 - docs_security_non-transitivity-of-authority_md
 - conformance_non-transitivity-of-authority-v1_readme_md
+- docs_design_authority-preserving-capability-mediation-v1_md

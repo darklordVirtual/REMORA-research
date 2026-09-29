@@ -47,6 +47,14 @@ class CapabilityRefusal(str, Enum):
     DIGEST_MISMATCH = "capability_digest_mismatch"
     STATE_UNVERIFIABLE = "capability_state_unverifiable"
     EPOCH_UNVERIFIABLE = "capability_epoch_unverifiable"
+    # NTA-2 (docs/design/authority-preserving-capability-mediation-v1.md):
+    # an effect capability used on a resource outside its patterns, or a
+    # mediated effect with no active execution, no resolved resource, or no
+    # executor for the capability.
+    RESOURCE_NOT_AUTHORIZED = "capability_resource_not_authorized"
+    CONTEXT_MISSING = "capability_context_missing"
+    DEFAULT_UNRESOLVED = "capability_default_unresolved"
+    EXECUTOR_UNAVAILABLE = "capability_executor_unavailable"
 
 
 @dataclass(frozen=True)

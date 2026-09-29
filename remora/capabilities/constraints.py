@@ -15,6 +15,9 @@ level 3, semantic constraints
     (``state``). The operand is either a literal or, with ``equals_state``,
     another fact from trusted state: ``recipient`` must equal the invoice's
     authorised recipient, and the invoice's status must be ``APPROVED``.
+    ``within`` compares a resource identity with canonical resource patterns
+    (``remora.capabilities.resource``); a resource outside them, or one with
+    no single canonical form, refuses as ``capability_resource_not_authorized``.
 
 Trusted state is read only through a :class:`StateReader` the deployment
 supplies, keyed by the call's arguments. An agent's own assertion about state
@@ -38,7 +41,7 @@ __all__ = ["Condition", "StateReader", "ToolConstraint", "evaluate_constraint"]
 #: record (the invoice id). Raises when the fact cannot be read.
 StateReader = Callable[[str, Mapping[str, Any]], Any]
 
-_OPERATORS = {"eq", "ne", "in", "not_in", "lt", "lte", "gt", "gte", "equals_state"}
+_OPERATORS = {"eq", "ne", "in", "not_in", "lt", "lte", "gt", "gte", "equals_state", "within"}
 _NUMERIC = {"lt", "lte", "gt", "gte"}
 
 
@@ -66,6 +69,13 @@ class Condition:
             raise ValueError(f"{self.operator} needs a list operand")
         if self.operator == "equals_state" and not isinstance(self.operand, str):
             raise ValueError("equals_state names a state source")
+        if self.operator == "within":
+            from remora.capabilities.resource import canonical_resource_pattern
+
+            if not isinstance(self.operand, (list, tuple)) or not self.operand:
+                raise ValueError("within needs a non-empty list of resource patterns")
+            canonical = [canonical_resource_pattern(p) for p in self.operand]
+            object.__setattr__(self, "operand", sorted(set(canonical)))
 
     @property
     def needs_state(self) -> bool:
@@ -132,6 +142,10 @@ def _holds(condition: Condition, value: Any, reader: StateReader | None,
     op, operand = condition.operator, condition.operand
     if op == "equals_state":
         return bool(value == _read(reader, operand, arguments))
+    if op == "within":
+        from remora.capabilities.resource import resource_within
+
+        return resource_within(value, operand)
     if op == "eq":
         return bool(value == operand)
     if op == "ne":
@@ -164,6 +178,8 @@ def evaluate_constraint(constraint: ToolConstraint | None, arguments: Any,
             else:
                 value = _read(reader, str(condition.state), arguments)
             if not _holds(condition, value, reader, arguments):
+                if condition.operator == "within":
+                    return CapabilityRefusal.RESOURCE_NOT_AUTHORIZED
                 return (CapabilityRefusal.SCOPE_VIOLATION if condition.needs_state
                         else CapabilityRefusal.ARGUMENT_MISMATCH)
     except _Unverifiable:

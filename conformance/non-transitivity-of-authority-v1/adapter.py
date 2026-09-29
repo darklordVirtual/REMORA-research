@@ -44,3 +44,18 @@ class NtaAdapter(Protocol):
 
     def revoke(self, authority_set: str) -> str:
         """Revoke one issued authority."""
+
+    # NTA-2: effects inside a governed execution.
+
+    def open_execution(self, handle: str, *, authority_set: str, tool: str,
+                       policy_allows: list[str] | None) -> str:
+        """Start executing ``tool`` under ``authority_set`` with the tool's declared
+        downstream ceiling from the world. The effect authority is also
+        addressable as a set under ``handle``. Returns OPENED or DELEGATION_DENIED."""
+
+    def mediate(self, *, execution: str, capability: str, resource: str | None,
+                arguments: dict[str, Any]) -> str:
+        """Request one privileged effect from inside the execution. Returns an outcome class."""
+
+    def close_execution(self, execution: str) -> str:
+        """End the execution."""
