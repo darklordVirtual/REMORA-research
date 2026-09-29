@@ -5,6 +5,11 @@
 ACCEPTED 2026-09-29. The maintainer decided D-2 (option A) and D-3 (in scope) on that date.
 The implementation merged through #637 after the v1.0 external report became public (D-5).
 Rul1an ran an external measurement of v1.1 at `57ee035`. It is private until the survivors are classified (T-7).
+One change landed after that measurement, before merge.
+A CodeQL finding flagged an implicit string concatenation in the runner's `limits` list.
+The fix made the concatenation explicit and corrected "G1-G4" to "G1-G5" in the same sentence.
+Cases, guidance, ladders, the checker and every check are identical to `57ee035`.
+The only difference in `run-record.json` is that one `limits` sentence.
 
 ## 1. Context
 

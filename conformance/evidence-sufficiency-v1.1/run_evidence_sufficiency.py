@@ -313,8 +313,10 @@ def build_record() -> dict:
             "No production, cryptographic, APS or CoSAI conformance claim is made.",
             "No causal effect attribution is implemented.",
             "ESTABLISHED and VIOLATED are bounded property verdicts, not whole-system grades.",
-            "Cases G1-G4 were written after an external seeded-fault run named the gaps; "
-            "their kills of those faults are not independent evidence.",
+            (
+                "Cases G1-G5 were written after an external seeded-fault run named the gaps; "
+                "their kills of those faults are not independent evidence."
+            ),
         ],
     }
 
