@@ -6,6 +6,12 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Added
 
+- The external v1.1 seeded-fault run over evidence-sufficiency, recorded in
+  `docs/assurance/external_adequacy_evidence_sufficiency_v1.md`. The known
+  faults are all killed on the runner row, which shows the repair and is not
+  evidence of generalisation. Of six withheld faults, the three in
+  `canonical()` survived every row; recorded as open in NEGATIVE_RESULTS.md
+  §64 for v1.2.
 - The pre-registered capability-mediation study (NTA-2,
   `experiments/authority_preserving_capability_mediation.py`,
   `results/authority_preserving_capability_mediation_v1.json`). Registered and

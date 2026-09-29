@@ -11,7 +11,7 @@ never deleted, only re-statused in place.
 
 ## How to read a status
 
-**63 numbered sections does not mean 63 open problems.** Until 2026-07-31 this
+**64 numbered sections does not mean 64 open problems.** Until 2026-07-31 this
 document read as if it did. Sections kept the status they were written with,
 even after later sections resolved them. Every section now carries a
 machine-readable marker directly under its heading, and
@@ -24,11 +24,11 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-09-29: **14 `open`**, **26 `accepted`**, **23 `superseded`**.
+Counts as of 2026-09-29: **15 `open`**, **26 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
-Eight themes, all research gaps; the one production gap (CI gates that ran
+Nine themes, all research gaps; the one production gap (CI gates that ran
 without blocking, §55) is closed and struck from this list; a backlog that
 keeps closed items is the drift the status gate exists to prevent. The section numbers
 after each theme are where its evidence lives, and CI checks that every theme
@@ -96,6 +96,12 @@ cites only `open` sections and that no `open` section is missing a theme.
    were 68 of 70 correct, more accurate than the ones kept. Whether the
    exclusion belongs on this path needs an out-of-sample test; until then v5
    stays as the conservative choice.
+9. **Evidence-sufficiency corpus: state comparison** (§64): an external
+   run with withheld faults found that the v1.1 corpus cannot tell exact
+   state comparison from case-folded, list-sorted or key-only comparison.
+   The fix is v1.2 cases whose expected and observed states differ in
+   exactly those ways; they are written after the faults were known and
+   are not independent evidence.
 
 <!-- backlog-end -->
 
@@ -3947,3 +3953,38 @@ Arm C separates operating-system processes on one machine, not a deployment's
 containers or network, and an effect credential the deployment does not
 declare is outside the custody guard in any arm. The study measures mechanism
 efficacy on REMORA's code, not a real-world rate.
+
+
+## §64 The v1.1 evidence-sufficiency corpus misses three state-comparison faults (2026-09-29)
+<!-- finding-status: open -->
+
+**Status:** measured externally by Rul1an with corpus-adequacy 0.7.0 on
+`conformance/evidence-sufficiency-v1.1/` at `57ee0351` (the #637 head; the
+conformance trees are byte-identical to the merged `8772d85` apart from one
+limits string). Report:
+[REPORT.md at `9f38519`](https://github.com/corpus-adequacy/remora-es-v11-adequacy/blob/9f3851995bbe395e510dde9ce9a03ebb6f1f965a/REPORT.md).
+Record and labels: `docs/assurance/external_adequacy_evidence_sufficiency_v1.md`.
+Open: a real corpus gap, within scope.
+
+**What was measured.** v1.1 was written against the 103 faults of the v1.0
+run and kills all of them on the runner row. Rul1an also ran six faults the
+maintainer had not seen, committed by hash before execution. Three were
+killed, but two of those match known mutations and the third partly
+overlaps one. The three that survived on every row all change `canonical()`,
+the checker's comparison of expected and observed state: one case-folds
+strings, one sorts lists, one compares only the keys of a mapping.
+
+**Why it matters.** Each of the three merges states that differ, so a
+postcondition that disagrees would come out ESTABLISHED, which fails open.
+The checker is correct; the corpus has no case that exposes the difference.
+Every postcondition case compares plain strings, apart from E08 (`1`
+against `true`), which is why the raw-equality fault was caught and these
+were not. On the only faults in the run that were not fitted, v1.1 does not
+generalise to this family.
+
+**What this does not establish.** The six faults were chosen after the v1.1
+design and pre-flight totals were public, so they are withheld, not blind,
+and six selected faults are not a coverage rate. A survivor is a corpus
+discrimination gap, not a checker defect. v1.2 cases for these faults will
+be written with them in view; their kills will show the repair and will not
+be independent evidence.
