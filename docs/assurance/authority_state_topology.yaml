@@ -58,7 +58,7 @@
 # the durable store closes.
 
 schema_version: "1"
-updated: "2026-09-28"
+updated: "2026-09-29"
 
 state:
   - id: AST-001
@@ -199,6 +199,21 @@ state:
       had reached an escalation limit continue as if it had not: /assess
       reads it before deciding and downgrades an ACCEPT to ESCALATE at a
       limit. Wiring point ASW-004.
+
+  - id: AST-013
+    symbol: "remora/enforcement/capability_mediator.py::CapabilityMediator"
+    gates: "Whether one governed execution is still open for mediated effects, and the record of every effect it requested (NTA-2 phase 1)."
+    on_loss: loses_evidence
+    durable_adapter: none
+    tracking: "docs/design/authority-preserving-capability-mediation-v1.md phase 2"
+    note: >-
+      Per execution and in-process by design: the mediator lives only as long
+      as the tool call it mediates. Losing it with its process loses the
+      execution and its effect records; it makes nothing newly executable,
+      because a lost mediator can mediate nothing and a new one needs fresh
+      effect authority derived from a valid parent set. Phase 2 moves the
+      records into the execution evidence (ResolvedEffectGraph), which is
+      where they become durable.
 
 # THE SWITCHES
 #

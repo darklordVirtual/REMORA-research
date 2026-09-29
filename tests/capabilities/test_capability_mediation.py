@@ -238,3 +238,22 @@ class TestTheContext:
         assert (context.tenant_id, context.principal_id, context.capability_digest) == (
             parent.tenant_id, parent.principal_id, parent.digest)
         assert context.execution_id
+
+
+class TestDerivationBounds:
+    def test_the_depth_cap_applies_to_effect_authority(self):
+        from remora.capabilities.delegation import MAX_DELEGATION_DEPTH
+
+        chain = _parent()
+        now = datetime.now(UTC)
+        for n in range(MAX_DELEGATION_DEPTH):
+            chain = delegate(chain, delegatee=f"d{n}", tools=["report.generate"],
+                             purpose="relay", now=now, transitive=True)
+        with pytest.raises(DelegationDenied, match="deeper"):
+            derive_effect_authority(chain, tool_name="report.generate", ceiling=CEILING, now=now)
+
+    @pytest.mark.parametrize("ttl", [0, 301])
+    def test_the_lifetime_is_capped(self, ttl):
+        with pytest.raises(DelegationDenied, match="ttl"):
+            derive_effect_authority(_parent(), tool_name="report.generate", ceiling=CEILING,
+                                    now=datetime.now(UTC), ttl_seconds=ttl)

@@ -26,6 +26,7 @@ class TestCanonicalResource:
         ("Workspace://Reports-EU/x", "workspace://reports-eu/x"),
         ("https://Billing.Example:8443/api/invoice", "https://billing.example:8443/api/invoice"),
         ("workspace://reports/", "workspace://reports"),
+        ("workspace://reports/2026/", "workspace://reports/2026"),
         ("database://reporting-eu", "database://reporting-eu"),
     ])
     def test_the_canonical_form(self, raw, expected):
@@ -117,3 +118,17 @@ class TestTheWithinCondition:
     def test_the_canonical_form_round_trips(self):
         c = self._constraint()
         assert ToolConstraint.from_dict(c.canonical()) == c
+
+
+class TestRemainingRefusals:
+    def test_an_invalid_scheme_is_refused(self):
+        with pytest.raises(ResourceRefused, match="scheme"):
+            canonical_resource("in valid://x/y".replace(" ", "_"))
+
+    def test_a_subtree_pattern_of_a_non_string_is_refused(self):
+        with pytest.raises(ResourceRefused):
+            canonical_resource_pattern(None)  # type: ignore[arg-type]
+
+    def test_a_subtree_pattern_without_an_authority_is_refused(self):
+        with pytest.raises(ResourceRefused):
+            canonical_resource_pattern("workspace:///*")

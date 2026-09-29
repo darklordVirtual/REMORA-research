@@ -63,10 +63,9 @@ def canonical_resource_pattern(raw: str) -> str:
     if not isinstance(raw, str):
         raise ResourceRefused("a pattern is a string")
     if raw.endswith("/*"):
-        base = canonical_resource(raw[:-2])
-        if "://" not in base or base.endswith("://"):
-            raise ResourceRefused("a subtree pattern needs an authority")
-        return base + "/*"
+        # canonical_resource already refuses an empty authority, so a subtree
+        # pattern always has one.
+        return canonical_resource(raw[:-2]) + "/*"
     return canonical_resource(raw)
 
 
