@@ -2567,6 +2567,29 @@ documents:
   - maintainers
   - evaluators
   - integrators
+- id: DOC-348
+  path: docs/design/evidence-sufficiency-v1.1.md
+  status: canonical
+  topic: docs_design_evidence-sufficiency-v1.1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-09-29'
+  last_reviewed: '2026-09-29'
+  audience:
+  - maintainers
+  - evaluators
+- id: DOC-349
+  path: docs/assurance/external_adequacy_evidence_sufficiency_v1.md
+  status: canonical
+  topic: docs_assurance_external_adequacy_evidence_sufficiency_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-09-29'
+  last_reviewed: '2026-09-29'
+  audience:
+  - maintainers
+  - evaluators
+  - researchers
 topics:
 - docs_integrations_jev_decision_provider_md
 - docs_integrations_mcp-gateway_md
@@ -2847,3 +2870,5 @@ topics:
 - docs_security_non-transitivity-of-authority_md
 - conformance_non-transitivity-of-authority-v1_readme_md
 - docs_design_authority-preserving-capability-mediation-v1_md
+- docs_design_evidence-sufficiency-v1.1_md
+- docs_assurance_external_adequacy_evidence_sufficiency_v1_md
