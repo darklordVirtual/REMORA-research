@@ -97,6 +97,7 @@ Several topics have more than one document. This table says which to open.
 | [TOGAF enterprise architecture (PDF)](enterprise/no/REMORA_TOGAF_Enterprise_Architecture_v1.0.pdf) | Norwegian TOGAF-aligned architecture PDF |
 | [security/pre-deployment-review.md](security/pre-deployment-review.md) | Pre-deployment security review |
 | [security/owasp_genai_mapping.md](security/owasp_genai_mapping.md) | OWASP GenAI mapping |
+| [security/non-transitivity-of-authority.md](security/non-transitivity-of-authority.md) | Non-Transitivity of Authority (NTA-1): principle, enforcement, conformance vectors, limits |
 | [governance/eu_ai_act_nsm_mapping.md](governance/eu_ai_act_nsm_mapping.md) | EU AI Act / NSM mapping |
 | [governance/nist_ai_rmf_mapping.md](governance/nist_ai_rmf_mapping.md) | NIST AI RMF mapping |
 | [reference_architecture.md](reference_architecture.md) | Compact architecture overview |
