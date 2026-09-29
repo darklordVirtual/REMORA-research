@@ -114,9 +114,9 @@ Phase 1 is a library in the research profile:
 | Revoking the caller's set revokes the tool's effect authority | the parent set is an ancestor of the effect authority |
 
 Phase 1 demonstrates the authority semantics. It does not stop code that
-ignores the mediator and uses a client directly: that needs the strict
-profile's separation of effect credentials from tool workers (phase 3), and
-until then limitation 1 below applies to NTA-2 in full.
+ignores the mediator and uses a client directly. Stopping that needs the strict
+profile's separation of effect credentials from tool workers (phase 3). Until
+then, limitation 1 below applies to NTA-2 in full.
 
 ## Security invariant
 

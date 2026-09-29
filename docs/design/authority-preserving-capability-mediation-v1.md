@@ -16,16 +16,16 @@ REMORA preserves that property at runtime.
 ## 1. The gap
 
 `ExecutionLease` and `GovernedToolDispatcher` bind an accepted action to a
-concrete call: principal, tenant, target environment, exact tool name, full
-argument hash, policy identity, ToolSpec identity, task identity, capability
-set digest, resolved effect, runtime identity, plan binding, expiry and single
-use. Q8.5 delegation covers nested calls that are themselves REMORA
+concrete call. The binding covers principal, tenant, target environment, exact
+tool name and full argument hash. It also covers policy, ToolSpec and task
+identity, the capability set digest, the resolved effect, runtime identity,
+plan binding, expiry and single use. Q8.5 delegation covers nested calls that are themselves REMORA
 capabilities: "a tool cannot hand its caller more authority than it had".
 
 A governed tool's implementation can still reach a privileged resource through
-its own code without any nested REMORA invocation: filesystem access, database
-clients, HTTP clients, cloud SDKs, authenticated connection pools, message
-queues, secret stores, subprocesses and operating-system services. REMORA may
+its own code without any nested REMORA invocation. Examples are filesystem
+access, database and HTTP clients, cloud SDKs, authenticated connection pools,
+message queues, secret stores, subprocesses and operating-system services. REMORA may
 authorize `report.generate` while the implementation performs
 `filesystem.read` and `network.http.post`, and neither crosses an authority
 boundary.
@@ -49,9 +49,9 @@ privileged effect needs its own authority basis.
 
 ## 3. Load-bearing invariant
 
-For every privileged operation B that originates during execution of an
-authorized tool A, the authority for B is either established independently or
-derived by explicit attenuation from authority A already holds, and the child
+Take a privileged operation B that originates during execution of an
+authorized tool A. The authority for B is either established independently or
+derived by explicit attenuation from authority A already holds. A derived child
 authority is a subset of the parent's. It is never created from caller
 assertions, implementation assumptions, ambient credentials, implicit defaults,
 provider or adapter selection, connection state, or hidden runtime
@@ -136,10 +136,11 @@ and is non-transitive.
 
 ## 9. No security-relevant defaults after authorization
 
-A value that changes what an effect is allowed to be (provider, adapter,
+Some values change what an effect is allowed to be: provider, adapter,
 database, HTTP verb, target environment, credential identity, resource
-namespace, region, account, tenant) is materialized before authorization, or
-triggers a new authority check after resolution and before execution. An
+namespace, region, account and tenant. Such a value is materialized before
+authorization, or it triggers a new authority check after resolution and before
+execution. An
 omitted resource that the runtime would fill in later is refused
 (`capability_default_unresolved`).
 
@@ -318,10 +319,10 @@ format.
 
 ## 25. Research experiment
 
-A pre-registered deterministic experiment compares arm A (current execution
-with Q8 capability minimization), arm B (A plus downstream declarations and the
-mediator) and arm C (B plus split effect custody, with raw effect credentials
-absent from tool workers). Classes: `confused_deputy`, `direct_sdk_access`,
+A pre-registered deterministic experiment compares three arms. Arm A is the
+current execution with Q8 capability minimization. Arm B adds downstream
+declarations and the mediator. Arm C adds split effect custody, with raw effect
+credentials absent from tool workers. Classes: `confused_deputy`, `direct_sdk_access`,
 `resource_widening`, `argument_widening`, `provider_switch`,
 `implicit_default`, `transitive_delegation`, `stale_parent_authority`,
 `legitimate_nested_effect`. Metrics: unauthorized effect rate, unauthorized
@@ -369,13 +370,16 @@ effect, not source-code structure.
 
 ## 30. Non-claims
 
-This design does not establish that every privileged effect has been
-identified; that static analysis proves the absence of bypasses; that a
-compromised operating system respects process boundaries; that a malicious
-capability executor constrains itself; that a deployment's network
-segmentation is correct; that a provider performs only the effect REMORA
-observes; that a signed ToolSpec is semantically correct; or that successful
-mediation proves the business action was right.
+This design does not establish any of the following:
+
+- that every privileged effect has been identified;
+- that static analysis proves the absence of bypasses;
+- that a compromised operating system respects process boundaries;
+- that a malicious capability executor constrains itself;
+- that a deployment's network segmentation is correct;
+- that a provider performs only the effect REMORA observes;
+- that a signed ToolSpec is semantically correct;
+- that successful mediation proves the business action was right.
 
 ## 31. Definition of done
 
