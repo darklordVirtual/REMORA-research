@@ -6,6 +6,20 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Added
 
+- Authority-Preserving Capability Mediation, NTA-2 phase 1
+  (`docs/design/authority-preserving-capability-mediation-v1.md`, status
+  proposed). Authorization of a tool does not authorize the privileged effects
+  its implementation can reach. Phase 1 is a library in the research profile:
+  canonical resource identities that refuse ambiguous forms rather than
+  normalise them (`remora/capabilities/resource.py`), a `within` constraint
+  operator, a ToolSpec-shaped `DownstreamCeiling` that is a limit and not a
+  grant, `derive_effect_authority` chaining a tool's effect authority to the
+  caller's set, and a fail-closed `CapabilityMediator` that records every
+  request. The conformance suite gains NTA2-01 to NTA2-11 (24 of 24 match).
+  Registered as CAP-024 at `IMPLEMENTED_LIBRARY`; the runtime property
+  `implementation_effect_non_transitivity` is registered as `NOT_ESTABLISHED`,
+  because the mediator runs in-process and does not stop direct client use.
+
 - Non-Transitivity of Authority (NTA-1) is a named principle with one
   canonical page, `docs/security/non-transitivity-of-authority.md`. It gathers
   what Q8.4, Q8.5, the lease binding and the "confused deputy" tests each

@@ -107,6 +107,13 @@ FILE_THRESHOLDS: dict[str, float] = {
     # tests/test_runtime_trust_base_binding.py; a gap here means a runtime
     # the binding no longer distinguishes.
     "remora/enforcement/runtime_identity.py": 98.0,
+    # NTA-2 phase 1 (docs/design/authority-preserving-capability-mediation-v1.md).
+    # 100.00 measured 2026-09-29: every refusal of the mediator and every bound
+    # of derive_effect_authority is a named test or conformance vector, so a
+    # gap here means a request the mediator no longer refuses.
+    "remora/enforcement/capability_mediator.py": 98.0,
+    "remora/enforcement/effect_capability.py": 98.0,
+    "remora/enforcement/execution_context.py": 98.0,
     # RES-013 runtime surface (quality program Q5.3). Measured 2026-09-28 on
     # the full local suite; floors sit half a point under the measurement.
     "remora/toolcall/runtime_surface.py": 92.5,  # 92.98

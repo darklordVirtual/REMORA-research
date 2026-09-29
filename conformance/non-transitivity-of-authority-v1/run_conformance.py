@@ -62,6 +62,16 @@ def run_vector(adapter, vector: dict, world: dict) -> str:
                 arguments=dict(step["arguments"]))
         elif op == "revoke":
             outcome = adapter.revoke(step["set"])
+        elif op == "open_execution":
+            outcome = adapter.open_execution(
+                step["as"], authority_set=step["set"], tool=step["tool"],
+                policy_allows=step.get("policy_allows"))
+        elif op == "mediate":
+            outcome = adapter.mediate(
+                execution=step["execution"], capability=step["capability"],
+                resource=step.get("resource"), arguments=dict(step.get("arguments") or {}))
+        elif op == "close_execution":
+            outcome = adapter.close_execution(step["execution"])
         else:
             raise Unsupported(f"unknown op {op!r}")
     return outcome

@@ -16,7 +16,7 @@
 # EXTERNALLY_VERIFIED — deployment_status is SHADOW_ONLY until REM-021.
 
 schema_version: "1"
-updated: "2026-09-28"
+updated: "2026-09-29"
 
 # Research gaps are property verdicts, not capability maturity rungs. They do
 # not imply that a library test establishes a deployed runtime property.
@@ -34,6 +34,19 @@ unestablished_properties:
       identity, issuer-observed credential scope and durable surface evidence to
       the reference runtime; the property stays NOT_ESTABLISHED until Q3.1 runs
       the observer inside a named external host.
+
+  - id: implementation_effect_non_transitivity
+    phase: RESEARCH
+    status: NOT_ESTABLISHED
+    evidence: docs/design/authority-preserving-capability-mediation-v1.md
+    caveat: >-
+      NTA-2: authorization of a tool does not authorize the privileged effects
+      its implementation can reach. Phase 1 (CAP-024) implements the authority
+      semantics as an in-process library that a tool must choose to use; code
+      that uses a client or credential directly is not stopped, so credential
+      topology L3 and L5 stand unchanged. The property stays NOT_ESTABLISHED
+      until the strict profile separates effect credentials from tool workers
+      and a deployment provides evidence for it (design phase 3).
 
 # Verification binding (issue #281). A capability's status and caveat are
 # claims about code, so they are bound to the revision that was audited.
@@ -575,9 +588,10 @@ capabilities:
   - id: CAP-023
     name: "Capability minimization: task-scoped capability sets enforced at assess, execution and dispatch"
     status: WIRED_API_PATH
-    verified_at_sha: d4b62c4fb31e6772d551d4a9ebf4fd35f675316d
+    verified_at_sha: 450f5ba99d1c0902956045c22ae3f7f957b6ce57
     verified_by: >-
-      re-audit 2026-09-29 naming the property this capability enforces: NTA-1, Non-Transitivity of Authority (docs/security/non-transitivity-of-authority.md). remora/capabilities/delegation.py changes only in its module docstring, which now names NTA-1; no code changes. New evidence: conformance/non-transitivity-of-authority-v1 states NTA-1 as 13 implementation-agnostic vectors over the reachability, argument and delegation forms, and tests/test_conformance_non_transitivity.py runs them against REMORA (13 of 13 match) and checks that a permissive adapter, an unbounded depth cap, default transitivity, dropped argument constraints and ancestor-blind revocation each diverge on exactly the vectors that name them. Status and caveat unchanged. Evidence green at this revision. Bound to the branch commit 01c97e95 (left the repository; rebound to d4b62c4).
+      re-audit 2026-09-29 for NTA-2 phase 1: remora/capabilities/constraints.py gains the within operator (resource patterns canonicalised when the policy is read; a resource outside them, or with no single canonical form, refuses as capability_resource_not_authorized) and remora/capabilities/model.py gains four refusal codes. Existing operators, their parsing and their refusals are unchanged; the new operator only refuses. For this capability: agent-tool constraints can now also scope a resource argument. tests/capabilities/test_capability_resource.py covers the canonical form and the operator; the NTA-1 vectors still match 13 of 13. Status and caveat unchanged. Evidence green at this revision. Bound to the branch commit 09bbf428; rebound to 450f5ba9 after an unreachable branch was removed from remora/capabilities/resource.py (canonical_resource already refuses an empty authority, so a subtree pattern always has one), with no change in behaviour.
+      Prior: re-audit 2026-09-29 naming the property this capability enforces: NTA-1, Non-Transitivity of Authority (docs/security/non-transitivity-of-authority.md). remora/capabilities/delegation.py changes only in its module docstring, which now names NTA-1; no code changes. New evidence: conformance/non-transitivity-of-authority-v1 states NTA-1 as 13 implementation-agnostic vectors over the reachability, argument and delegation forms, and tests/test_conformance_non_transitivity.py runs them against REMORA (13 of 13 match) and checks that a permissive adapter, an unbounded depth cap, default transitivity, dropped argument constraints and ancestor-blind revocation each diverge on exactly the vectors that name them. Status and caveat unchanged. Evidence green at this revision. Bound to the branch commit 01c97e95 (left the repository; rebound to d4b62c4).
       Prior: re-audit 2026-09-28 for the sync-path claim order (project review 2026-09-28): remora/execution/service.py execute_approved_item now claims the dispatch intent before it mints and PEP-consumes the grant and before it appends execution_authorized, the order issue #417 set for dispatch_pending_intent. A lost claim consumes no grant, appends no authorization, and records execution_result with outbox_claim_lost, an empty grant_jti and no intent_sequence_no (tests/test_sync_execute_claim_order.py). redeem_accept_token changes only by a comment. No refusal is removed and nothing is granted. For this capability: the capability gate and the capability block are still applied in the re-gate before the claim. Status and caveat unchanged. Evidence green at this revision. Bound to the branch commit 775d93ed (left the repository; rebound to e8d57b1).
       Prior: re-audit 2026-09-28 for the WS8 review fixes: servers/execution_api.py changes only in that GET /v1/execution/capabilities now answers 503 capability_epoch_unverifiable instead of an unhandled error when the epoch source cannot answer (read-only route). Separately, remora/execution/remote_dispatch.py (not an evidence file here) now forwards context_id, task_id, task_type, the plan and the capability set to the executor, closing a custody-split gap in which the executor's task check was skipped. No refusal is removed. For this capability: remora/capabilities gains a delegation depth cap (MAX_DELEGATION_DEPTH = 3), ancestor ids in a delegated set's digest so revoking any ancestor revokes it, a registry wildcard check on tool names, and deep read-only constraints with an unchanged canonical form. Each is pinned by a regression test that fails on the old code (tests/capabilities/test_ws8_review_findings.py). Status and caveat unchanged. Evidence green at this revision. Bound to the branch commit 887ca001, rebound to the #621 squash commit 98506c4.
       Prior: re-audit 2026-09-28 for WS8 Q8.7: servers/execution_api.py adds a read-only capability_decision section to the evidence export (inside its hashed manifest) and the success_established_v1 coverage contract; remora/governance/evidence_coverage.py lets a requirement match a nested field and adds the contract. No enforcement, binding or dispatch path changes. Status and caveat unchanged. Evidence green at this revision. Bound to the branch commit 124bb864, rebound to the #618 squash commit e5bc5af.
@@ -605,7 +619,25 @@ capabilities:
       - tests/capabilities/test_capability_revocation.py
       - tests/test_conformance_non_transitivity.py
       - conformance/non-transitivity-of-authority-v1/vectors.json
+      - remora/capabilities/resource.py
+      - tests/capabilities/test_capability_resource.py
     caveat: "Opt-in: without a capability policy the API behaves as before, and no deployment is claimed to run one. The task type is declared by the caller and only narrows the principal's tools; making it authoritative needs an intent source. The agent-facing projection (GET /v1/execution/capabilities, CapabilityProjector) is available; an agent runtime that does not use it still meets enforcement on every call."
+
+  - id: CAP-024
+    name: "Capability mediation for implementation effects, research profile (NTA-2 phase 1)"
+    status: IMPLEMENTED_LIBRARY
+    verified_at_sha: 450f5ba99d1c0902956045c22ae3f7f957b6ce57
+    verified_by: >-
+      audit 2026-09-29 at registration: remora/enforcement/effect_capability.py derives a tool's effect authority from the caller's capability set and the tool's DownstreamCeiling (a limit, not a grant; policy may only narrow it), chained to the parent set and never transitive; remora/enforcement/capability_mediator.py refuses before any executor runs on a closed context, a foreign authority, an unresolved resource, a capability or resource outside the authority, a revoked or stale parent, or a missing executor, records every request, and leaves an executor that raised as UNKNOWN; remora/enforcement/execution_context.py carries the parent identity. tests/capabilities/test_capability_mediation.py covers the design's regression cases 1 to 4, 6 and 7; conformance/non-transitivity-of-authority-v1 NTA2-01 to NTA2-11 match, and tests/test_conformance_non_transitivity.py shows each guard's removal diverging. Not called from GovernedToolDispatcher or any API path. Evidence green at this revision. Bound to the branch commit 09bbf428; rebound to 450f5ba9 after an unreachable branch was removed from remora/capabilities/resource.py (canonical_resource already refuses an empty authority, so a subtree pattern always has one), with no change in behaviour.
+    evidence:
+      - remora/enforcement/effect_capability.py
+      - remora/enforcement/capability_mediator.py
+      - remora/enforcement/execution_context.py
+      - remora/capabilities/resource.py
+      - tests/capabilities/test_capability_mediation.py
+      - tests/test_conformance_non_transitivity.py
+      - conformance/non-transitivity-of-authority-v1/vectors.json
+    caveat: "Library only, research profile: the mediator runs in the tool's own process and a tool must choose to call it, so it demonstrates authority semantics and records requests but does not stop direct client or credential use (credential topology L3, L5). Not wired into dispatch; the ceiling is a parameter, not yet part of the signed ToolSpec. Design: docs/design/authority-preserving-capability-mediation-v1.md."
 
   - id: CAP-META
     name: "Metatesting of the evidence regime (audit gates are mutation-tested)"

@@ -1,7 +1,9 @@
-# Non-Transitivity of Authority (NTA-1)
+# Non-Transitivity of Authority (NTA-1, NTA-2)
 
-**Status:** implemented and tested at the enforcement point (library and
-dispatcher level); author-run conformance only, no external replication.
+**Status:** NTA-1 implemented and tested at the enforcement point (library and
+dispatcher level). NTA-2 phase 1 implemented as a library in the research
+profile, not wired into dispatch. Author-run conformance only, no external
+replication.
 **Canonical for:** the principle, its three forms, where it is enforced, and
 what it does not cover. Earlier documents describe parts of it under other
 names; the [terminology](#terminology) section maps them here.
@@ -88,6 +90,34 @@ purpose, cannot outlive its parent, and lives at most
 `MAX_DELEGATION_TTL_SECONDS` (300 s). Revoking any ancestor revokes every set
 derived from it.
 
+## NTA-2: implementation reachability
+
+```text
+ALLOW(tool A)  and  A's implementation can reach effect B    does not imply    ALLOW(B)
+```
+
+NTA-1 governs calls that are REMORA capabilities. NTA-2 extends the principle
+to what a tool's own code can reach: a filesystem, a database client, an HTTP
+client, a secret store. The design is
+[Authority-Preserving Capability Mediation v1](../design/authority-preserving-capability-mediation-v1.md).
+Phase 1 is a library in the research profile:
+
+| Property | Implementation |
+|---|---|
+| A tool's effects have a declared ceiling, which is a limit and not a grant | `DownstreamCeiling` in `remora/enforcement/effect_capability.py` |
+| Effect authority exists only for a tool the caller's set authorizes, while that set is valid | `derive_effect_authority()` in the same module |
+| Policy can narrow the ceiling, never widen it | `policy_allows` in `derive_effect_authority()` |
+| A resource is compared in one canonical form; ambiguous forms are refused | `remora/capabilities/resource.py` |
+| Resource patterns are Q8.4 constraints, bound into the authority's digest | the `within` operator in `remora/capabilities/constraints.py` |
+| The authority context comes from enforcement, not from the tool | `ExecutionContext` in `remora/enforcement/execution_context.py` |
+| Every effect request is checked, fails closed and is recorded | `CapabilityMediator` in `remora/enforcement/capability_mediator.py` |
+| Revoking the caller's set revokes the tool's effect authority | the parent set is an ancestor of the effect authority |
+
+Phase 1 demonstrates the authority semantics. It does not stop code that
+ignores the mediator and uses a client directly. Stopping that needs the strict
+profile's separation of effect credentials from tool workers (phase 3). Until
+then, limitation 1 below applies to NTA-2 in full.
+
 ## Security invariant
 
 For every call that reaches a governed tool through REMORA's enforcement point,
@@ -127,9 +157,10 @@ unspent. Revocation is read from the epoch source the deployment binds
 ### Conformance vectors
 
 [`conformance/non-transitivity-of-authority-v1/`](../../conformance/non-transitivity-of-authority-v1/)
-states the principle as 13 implementation-agnostic vectors over a fixed world
-(one principal, a wrapper `report.generate`, a downstream `email.send`). A
-second system can run them by writing one adapter.
+states the principle as 24 implementation-agnostic vectors over a fixed world
+(one principal, a wrapper `report.generate`, a downstream `email.send`, and the
+wrapper's declared effect ceiling). A second system can run them by writing one
+adapter.
 
 | Vector | Form | Expectation |
 |---|---|---|
@@ -146,16 +177,29 @@ second system can run them by writing one adapter.
 | NTA-11 | delegation | a derived set is bound to its delegatee |
 | NTA-12 | delegation | revoking the parent revokes the child |
 | NTA-13 | baseline | an explicitly delegated, in-scope downstream call executes |
+| NTA2-01 | implementation | an effect outside the tool's declared ceiling is refused |
+| NTA2-02 | implementation | a declared effect on a resource outside its patterns is refused |
+| NTA2-03 | implementation | path traversal out of an authorized subtree is refused |
+| NTA2-04 | implementation | a switched provider is a different resource and is refused |
+| NTA2-05 | implementation | an effect with no resolved resource is refused |
+| NTA2-06 | implementation | effect authority cannot be delegated on |
+| NTA2-07 | implementation | a tool outside the caller's set yields no effect authority |
+| NTA2-08 | implementation | an execution that has ended mediates nothing |
+| NTA2-09 | implementation | revoking the caller's set revokes the tool's effect authority |
+| NTA2-10 | implementation | deployment policy can narrow the ceiling but not widen it |
+| NTA2-11 | baseline | a declared effect on an authorized resource executes |
 
 ```bash
 python conformance/non-transitivity-of-authority-v1/run_conformance.py --adapter remora
 ```
 
-The committed `run-record.json` is an author run with all 13 vectors matching.
+The committed `run-record.json` is an author run with all 24 vectors matching.
 `tests/test_conformance_non_transitivity.py` runs the suite in CI and also
 checks that it can fail. A permissive adapter diverges on every refusal vector.
 Weakening one guard at a time (depth cap, default transitivity, argument
-constraints, ancestor revocation) diverges on exactly the vectors that name it.
+constraints, ancestor revocation, resource patterns, traversal refusal, the
+unresolved-resource check, closing an execution, policy narrowing) diverges on
+exactly the vectors that name it.
 
 ### Unit and property tests
 
@@ -185,7 +229,8 @@ the class, not how often the pattern occurs in real systems.
    made with a credential it holds, is invisible to REMORA. The principle is
    only as strong as the guarantee that downstream capabilities are reachable
    solely through the PEP, which is credential custody, not policy (REM-024;
-   `docs/assurance/credential_topology.yaml`).
+   `docs/assurance/credential_topology.yaml`). NTA-2 is the design that narrows
+   this limit; its phase 1 mediator is in-process and does not narrow it yet.
 2. The capability layer is opt-in. Without a capability policy, forms 2
    and 3 are not in force: a lease issued without a capability set is checked
    for tool and argument binding only (form 1). A deployment that relies on
@@ -203,7 +248,7 @@ the class, not how often the pattern occurs in real systems.
    later reads under its own, separately granted authority, each call is
    authorized on its own terms. Multi-step and data-flow analysis is the open
    gap G-2 in `docs/14-remora-prime-architecture.md`.
-6. The evidence is author-run. 13 conformance vectors and 4 study
+6. The evidence is author-run. 24 conformance vectors and 4 study
    proposals, all written by the authors. No external implementation has run
    the suite and no external replication exists.
 

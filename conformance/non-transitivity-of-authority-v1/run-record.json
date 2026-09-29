@@ -1,16 +1,16 @@
 {
   "adapter": "remora",
-  "adapter_sha256": "49ff54fe9189e93826a0ad268cd822c8530517df4baa4e9c9a2cedeebb85222e",
-  "adapter_version": "capabilities-q8.5",
+  "adapter_sha256": "0c5ef45315cb4345ac529ce90b661c384d838a4f708fac7b6459100c30415a69",
+  "adapter_version": "capabilities-q8.5+nta2-phase1",
   "counts": {
     "divergent": 0,
     "error": 0,
-    "match": 13,
-    "total": 13,
+    "match": 24,
+    "total": 24,
     "unsupported": 0
   },
   "python": "3.13.7",
-  "repo_commit": "31c4060630923344d43d9fac26821150262c3687",
+  "repo_commit": "2cf8409fe9d48ed6d2063916e28dee0c8b5d76ff",
   "results": [
     {
       "expected": "REFUSED_BINDING",
@@ -115,11 +115,99 @@
       "observed": "EXECUTED",
       "status": "MATCH",
       "title": "an explicitly delegated, in-scope downstream call executes"
+    },
+    {
+      "expected": "REFUSED_NOT_AUTHORIZED",
+      "form": "implementation",
+      "id": "NTA2-01",
+      "observed": "REFUSED_NOT_AUTHORIZED",
+      "status": "MATCH",
+      "title": "an effect the tool's ceiling does not declare is refused"
+    },
+    {
+      "expected": "REFUSED_RESOURCE_SCOPE",
+      "form": "implementation",
+      "id": "NTA2-02",
+      "observed": "REFUSED_RESOURCE_SCOPE",
+      "status": "MATCH",
+      "title": "a declared effect on a resource outside its patterns is refused"
+    },
+    {
+      "expected": "REFUSED_RESOURCE_SCOPE",
+      "form": "implementation",
+      "id": "NTA2-03",
+      "observed": "REFUSED_RESOURCE_SCOPE",
+      "status": "MATCH",
+      "title": "path traversal out of an authorized subtree is refused"
+    },
+    {
+      "expected": "REFUSED_RESOURCE_SCOPE",
+      "form": "implementation",
+      "id": "NTA2-04",
+      "observed": "REFUSED_RESOURCE_SCOPE",
+      "status": "MATCH",
+      "title": "a switched provider is a different resource and is refused"
+    },
+    {
+      "expected": "REFUSED_DEFAULT_UNRESOLVED",
+      "form": "implementation",
+      "id": "NTA2-05",
+      "observed": "REFUSED_DEFAULT_UNRESOLVED",
+      "status": "MATCH",
+      "title": "an effect with no resolved resource is refused"
+    },
+    {
+      "expected": "DELEGATION_DENIED",
+      "form": "implementation",
+      "id": "NTA2-06",
+      "observed": "DELEGATION_DENIED",
+      "status": "MATCH",
+      "title": "effect authority cannot be delegated on"
+    },
+    {
+      "expected": "DELEGATION_DENIED",
+      "form": "implementation",
+      "id": "NTA2-07",
+      "observed": "DELEGATION_DENIED",
+      "status": "MATCH",
+      "title": "a tool outside the caller's set yields no effect authority"
+    },
+    {
+      "expected": "REFUSED_CONTEXT",
+      "form": "implementation",
+      "id": "NTA2-08",
+      "observed": "REFUSED_CONTEXT",
+      "status": "MATCH",
+      "title": "an execution that has ended mediates nothing"
+    },
+    {
+      "expected": "REFUSED_REVOKED",
+      "form": "implementation",
+      "id": "NTA2-09",
+      "observed": "REFUSED_REVOKED",
+      "status": "MATCH",
+      "title": "revoking the caller's set revokes the tool's effect authority"
+    },
+    {
+      "expected": "REFUSED_NOT_AUTHORIZED",
+      "form": "implementation",
+      "id": "NTA2-10",
+      "observed": "REFUSED_NOT_AUTHORIZED",
+      "status": "MATCH",
+      "title": "deployment policy can narrow the ceiling but not widen it"
+    },
+    {
+      "expected": "EXECUTED",
+      "form": "baseline",
+      "id": "NTA2-11",
+      "observed": "EXECUTED",
+      "status": "MATCH",
+      "title": "a declared effect on an authorized resource executes"
     }
   ],
-  "run_at": "2026-09-29T10:15:43.819204+00:00",
+  "run_at": "2026-09-29T10:58:18.188264+00:00",
   "run_kind": "author-run",
-  "runner_sha256": "7ccab75eeeec0ba4813bfb133e285d2d745b4433e03184be42cebd46319047be",
+  "runner_sha256": "e3fda2c18f972067ef01aa46d6d492d18004cedbc4c08a0bdd2aec59a9a3eef9",
   "suite": "non-transitivity-of-authority-v1",
-  "suite_sha256": "936099fba3c56ec7715e399abc65db68815e36502cea5f51ec8358610f817dfa"
+  "suite_sha256": "725fe1aee529cabc9101621f2c8a306f5d1a45de08faf9b91591651f8f10f105"
 }

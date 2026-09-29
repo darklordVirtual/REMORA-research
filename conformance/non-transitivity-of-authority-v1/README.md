@@ -7,13 +7,15 @@ pip install -e .
 python conformance/non-transitivity-of-authority-v1/run_conformance.py --adapter remora
 ```
 
-Thirteen vectors, one line of output each, a fresh `run-record.json`. No
+Twenty-four vectors, one line of output each, a fresh `run-record.json`. No
 services, no credentials, no configuration.
 
 ## What this is
 
 A cross-implementation statement of NTA-1: authorization of one capability does
-not authorize any capability reachable through it. The principle, its three
+not authorize any capability reachable through it; and of NTA-2: authorization
+of a tool does not authorize the privileged effects its implementation can
+reach. The principle, its three
 forms (reachability, argument authority, delegation transitivity) and REMORA's
 enforcement are described in
 [`docs/security/non-transitivity-of-authority.md`](../../docs/security/non-transitivity-of-authority.md).
@@ -22,8 +24,8 @@ enforcement are described in
 
 | file | role |
 |---|---|
-| `vectors.json` | the fixed world and the 13 vectors. Implementation-agnostic: a step programme and a normalized expected outcome class. |
-| `adapter.py` | the adapter contract: `resolve`, `delegate`, `authorize`, `dispatch`, `revoke`. |
+| `vectors.json` | the fixed world and the 24 vectors (NTA-01 to NTA-13 for NTA-1, NTA2-01 to NTA2-11 for NTA-2). Implementation-agnostic: a step programme and a normalized expected outcome class. |
+| `adapter.py` | the adapter contract: `resolve`, `delegate`, `authorize`, `dispatch`, `revoke`, and for NTA-2 `open_execution`, `mediate`, `close_execution`. |
 | `adapter_skeleton.py` | a runnable adapter with nothing implemented; every vector reports UNSUPPORTED until you fill a method in. |
 | `adapter_remora.py` | the REMORA adapter, including the map from REMORA refusal reasons to outcome classes. |
 | `run_conformance.py` | the runner. Emits `run-record.json`. |

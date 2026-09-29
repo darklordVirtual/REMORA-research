@@ -35,6 +35,15 @@ class SkeletonNtaAdapter:
     def revoke(self, authority_set: str) -> str:
         raise Unsupported("revoke")
 
+    def open_execution(self, handle: str, **_: Any) -> str:
+        raise Unsupported("open_execution")
+
+    def mediate(self, **_: Any) -> str:
+        raise Unsupported("mediate")
+
+    def close_execution(self, execution: str) -> str:
+        raise Unsupported("close_execution")
+
 
 def build() -> SkeletonNtaAdapter:
     return SkeletonNtaAdapter()
