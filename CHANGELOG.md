@@ -6,6 +6,18 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Added
 
+- Non-Transitivity of Authority (NTA-1) is a named principle with one
+  canonical page, `docs/security/non-transitivity-of-authority.md`. It gathers
+  what Q8.4, Q8.5, the lease binding and the "confused deputy" tests each
+  enforced under separate names into three forms (reachability, argument
+  authority, delegation transitivity), maps each to its code, and states the
+  limits: enforcement ends at REMORA's PEP, the capability layer is opt-in,
+  and no HTTP route derives a delegation. `conformance/non-transitivity-of-authority-v1`
+  states NTA-1 as 13 implementation-agnostic vectors with an adapter contract.
+  REMORA matches all 13, and `tests/test_conformance_non_transitivity.py`
+  shows that weakening each guard diverges on the vectors that name it.
+  CAP-023 is re-audited with the suite as evidence.
+
 - Utility floors in the claim register. Every active safety claim now declares
   its pre-registered utility bars (`utility_floors`: metric, min or max,
   source, met or missed) or a reason none applies (`utility_floor_exempt`).

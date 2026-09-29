@@ -1,0 +1,125 @@
+{
+  "adapter": "remora",
+  "adapter_sha256": "49ff54fe9189e93826a0ad268cd822c8530517df4baa4e9c9a2cedeebb85222e",
+  "adapter_version": "capabilities-q8.5",
+  "counts": {
+    "divergent": 0,
+    "error": 0,
+    "match": 13,
+    "total": 13,
+    "unsupported": 0
+  },
+  "python": "3.13.7",
+  "repo_commit": "31c4060630923344d43d9fac26821150262c3687",
+  "results": [
+    {
+      "expected": "REFUSED_BINDING",
+      "form": "reachability",
+      "id": "NTA-01",
+      "observed": "REFUSED_BINDING",
+      "status": "MATCH",
+      "title": "authority for the wrapper does not dispatch the downstream capability"
+    },
+    {
+      "expected": "DELEGATION_DENIED",
+      "form": "reachability",
+      "id": "NTA-02",
+      "observed": "DELEGATION_DENIED",
+      "status": "MATCH",
+      "title": "a wrapper cannot obtain a downstream capability its caller lacks (confused deputy)"
+    },
+    {
+      "expected": "REFUSED_NOT_AUTHORIZED",
+      "form": "reachability",
+      "id": "NTA-03",
+      "observed": "REFUSED_NOT_AUTHORIZED",
+      "status": "MATCH",
+      "title": "a capability outside the principal's set is refused even with a call-bound authority"
+    },
+    {
+      "expected": "REFUSED_ARGUMENT_SCOPE",
+      "form": "argument",
+      "id": "NTA-04",
+      "observed": "REFUSED_ARGUMENT_SCOPE",
+      "status": "MATCH",
+      "title": "an authorized downstream capability with out-of-scope arguments is refused"
+    },
+    {
+      "expected": "REFUSED_BINDING",
+      "form": "argument",
+      "id": "NTA-05",
+      "observed": "REFUSED_BINDING",
+      "status": "MATCH",
+      "title": "authority for B(X) does not dispatch B(Y)"
+    },
+    {
+      "expected": "REFUSED_ARGUMENT_SCOPE",
+      "form": "argument",
+      "id": "NTA-06",
+      "observed": "REFUSED_ARGUMENT_SCOPE",
+      "status": "MATCH",
+      "title": "a delegation can narrow fields but never add one"
+    },
+    {
+      "expected": "DELEGATION_DENIED",
+      "form": "delegation",
+      "id": "NTA-07",
+      "observed": "DELEGATION_DENIED",
+      "status": "MATCH",
+      "title": "a delegated authority cannot be delegated again by default"
+    },
+    {
+      "expected": "DELEGATED",
+      "form": "delegation",
+      "id": "NTA-08",
+      "observed": "DELEGATED",
+      "status": "MATCH",
+      "title": "re-delegation is possible only where the link opted in, and stays a subset"
+    },
+    {
+      "expected": "DELEGATION_DENIED",
+      "form": "delegation",
+      "id": "NTA-09",
+      "observed": "DELEGATION_DENIED",
+      "status": "MATCH",
+      "title": "a re-delegation cannot add a capability the link above lacked"
+    },
+    {
+      "expected": "DELEGATION_DENIED",
+      "form": "delegation",
+      "id": "NTA-10",
+      "observed": "DELEGATION_DENIED",
+      "status": "MATCH",
+      "title": "delegation depth is bounded even when every link opts in"
+    },
+    {
+      "expected": "REFUSED_NOT_AUTHORIZED",
+      "form": "delegation",
+      "id": "NTA-11",
+      "observed": "REFUSED_NOT_AUTHORIZED",
+      "status": "MATCH",
+      "title": "a derived authority is bound to its delegatee"
+    },
+    {
+      "expected": "REFUSED_REVOKED",
+      "form": "delegation",
+      "id": "NTA-12",
+      "observed": "REFUSED_REVOKED",
+      "status": "MATCH",
+      "title": "revoking the parent revokes what was derived from it"
+    },
+    {
+      "expected": "EXECUTED",
+      "form": "baseline",
+      "id": "NTA-13",
+      "observed": "EXECUTED",
+      "status": "MATCH",
+      "title": "an explicitly delegated, in-scope downstream call executes"
+    }
+  ],
+  "run_at": "2026-09-29T10:15:43.819204+00:00",
+  "run_kind": "author-run",
+  "runner_sha256": "7ccab75eeeec0ba4813bfb133e285d2d745b4433e03184be42cebd46319047be",
+  "suite": "non-transitivity-of-authority-v1",
+  "suite_sha256": "936099fba3c56ec7715e399abc65db68815e36502cea5f51ec8358610f817dfa"
+}

@@ -2,6 +2,10 @@
 # SPDX-License-Identifier: BUSL-1.1
 """Delegation never widens authority (quality program Q8.5).
 
+This module is the delegation form of NTA-1, Non-Transitivity of Authority
+(docs/security/non-transitivity-of-authority.md): authorization of one
+capability does not authorize any capability reachable through it.
+
 A tool the agent may call can itself need another tool: ``report.generate``
 reads a database and sends an email. If the inner call simply ran under the
 caller's authority, the wrapper would be a confused deputy: the agent would

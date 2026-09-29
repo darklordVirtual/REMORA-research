@@ -2532,6 +2532,29 @@ documents:
   - maintainers
   - evaluators
   - integrators
+- id: DOC-345
+  path: docs/security/non-transitivity-of-authority.md
+  status: canonical
+  topic: docs_security_non-transitivity-of-authority_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-09-29'
+  last_reviewed: '2026-09-29'
+  audience:
+  - maintainers
+  - evaluators
+  - integrators
+- id: DOC-346
+  path: conformance/non-transitivity-of-authority-v1/README.md
+  status: canonical
+  topic: conformance_non-transitivity-of-authority-v1_readme_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-09-29'
+  last_reviewed: '2026-09-29'
+  audience:
+  - evaluators
+  - integrators
 topics:
 - docs_integrations_jev_decision_provider_md
 - docs_integrations_mcp-gateway_md
@@ -2809,3 +2832,5 @@ topics:
 - docs_assurance_ledger_binding_baseline_json
 - docs_assurance_far_claim_size_baseline_json
 - docs_design_capability-minimized-execution-v1_md
+- docs_security_non-transitivity-of-authority_md
+- conformance_non-transitivity-of-authority-v1_readme_md
