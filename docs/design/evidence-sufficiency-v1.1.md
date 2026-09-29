@@ -4,7 +4,7 @@
 
 ACCEPTED 2026-09-29. The maintainer decided D-2 (option A) and D-3 (in scope) on that date.
 The implementation merged through #637 after the v1.0 external report became public (D-5).
-Rul1an ran an external measurement of v1.1 at `57ee035`. It is private until the survivors are classified (T-7).
+Rul1an ran an external measurement of v1.1 at `57ee035`. The survivors are classified (T-7), and the result stays private until publication is agreed.
 One change landed after that measurement, before merge.
 A CodeQL finding flagged an implicit string concatenation in the runner's `limits` list.
 The fix made the concatenation explicit and corrected "G1-G4" to "G1-G5" in the same sentence.
@@ -276,7 +276,7 @@ The independent evidence is the held-out part of the rerun in section 8.
 | T-4 | Regenerate and commit `run-record.json`; run the prose and artifact gates | T-3 | done |
 | T-5 | Register the new documents in `docs/assurance/document_register_v1.yaml`. No claim register row cites evidence-sufficiency, so no claim row changes. | T-3 | done |
 | T-6 | Ask Rul1an for the v1.1 rerun with a held-out set (section 8) | T-3, T-2 | done at `57ee035`; the additional faults were not selected blind (see the external record) |
-| T-7 | Record the rerun result and label every survivor | T-6 | open: classify survivors before any corpus change |
+| T-7 | Record the rerun result and label every survivor | T-6 | in progress: every survivor labelled in the private package on 2026-09-29 (equivalent, out of scope by a stated contract, or open gap); the result is recorded here once publication is agreed, and the corpus does not change before then |
 
 ## 11. Risks
 
