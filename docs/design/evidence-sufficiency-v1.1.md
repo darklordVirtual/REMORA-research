@@ -3,9 +3,8 @@
 ## Status
 
 ACCEPTED 2026-09-29. The maintainer decided D-2 (option A) and D-3 (in scope) on that date.
-The implementation is on the pull request that carries this spec.
-Its merge waits for the v1.0 external report to become public (D-5).
-No external measurement of v1.1 exists yet.
+The implementation merged through #637 after the v1.0 external report became public (D-5).
+Rul1an ran an external measurement of v1.1 at `57ee035`. It is private until the survivors are classified (T-7).
 
 ## 1. Context
 
@@ -267,12 +266,12 @@ The independent evidence is the held-out part of the rerun in section 8.
 | ID | Task | Depends on | State |
 |---|---|---|---|
 | T-1 | Reply on #629: accept the run, ask Rul1an to publish it unchanged, state D-2 and D-3 | D-2, D-3 | done (#629, 2026-09-29) |
-| T-2 | Add `docs/assurance/external_adequacy_evidence_sufficiency_v1.md` with the v1.0 counts, the named survivors and a link to the published report | T-1 | done; report link pending publication |
+| T-2 | Add `docs/assurance/external_adequacy_evidence_sufficiency_v1.md` with the v1.0 counts, the named survivors and a link to the published report | T-1 | done |
 | T-3 | Commit the v1.1 directory, `guidance.json`, `ladders.json`, runner and tests | D-2, D-3 | done |
 | T-4 | Regenerate and commit `run-record.json`; run the prose and artifact gates | T-3 | done |
 | T-5 | Register the new documents in `docs/assurance/document_register_v1.yaml`. No claim register row cites evidence-sufficiency, so no claim row changes. | T-3 | done |
-| T-6 | Ask Rul1an for the v1.1 rerun with a held-out set (section 8) | T-3, T-2 | requested on #629 |
-| T-7 | Record the rerun result and label every survivor | T-6 | open |
+| T-6 | Ask Rul1an for the v1.1 rerun with a held-out set (section 8) | T-3, T-2 | done at `57ee035`; the additional faults were not selected blind (see the external record) |
+| T-7 | Record the rerun result and label every survivor | T-6 | open: classify survivors before any corpus change |
 
 ## 11. Risks
 

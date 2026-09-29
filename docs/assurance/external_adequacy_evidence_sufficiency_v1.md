@@ -11,7 +11,7 @@
 | Checker sha256 | `c4ca50aee2b2918b11c6fbde1f8615ca6c6bf1e5b6fa2ac1775f49c5e8c20be0` |
 | Corpus sha256 | `a0048cc021ab7cd7f7d1b09a93e13c7dbdee9f7a685ea617a112da8af3c88d7e` |
 | Tool | corpus-adequacy 0.7.0 at `5fa2ff587497b00ac684a767335b9068f7e520a6` |
-| Report | delivered privately on 2026-09-29 (Rul1an/remora-es-v1-adequacy); public link added when published |
+| Report | [REPORT.md at `05f7a08`](https://github.com/Rul1an/remora-es-v1-adequacy/blob/05f7a087b6462400f4eb9ea9e4fb7d4aa023ccd3/REPORT.md), delivered privately on 2026-09-29 and published unchanged the same day |
 
 ## Result
 
@@ -43,5 +43,11 @@ Labels were set after the result was known. This is stated here and not hidden.
 
 ## Status of v1.1
 
-Not yet measured externally. A rerun with a held-out fault set was requested on #629.
-See section 8 of `docs/design/evidence-sufficiency-v1.1.md`.
+Rul1an reran the harness at `57ee0351a6acd6c1dd865ca933603469ab519cd4` on 2026-09-29 (#629).
+The package is private until the survivors are classified and publication is agreed, so no v1.1 counts are stated here.
+
+Two properties of that run are recorded now, as Rul1an stated them on #629.
+Known faults and additional faults are reported separately, with crash kills labelled.
+The additional fault definitions were committed by hash before execution, but they were chosen with the v1.1 design and pre-flight totals in view.
+They are therefore not held out in the sense of section 8 of `docs/design/evidence-sufficiency-v1.1.md`.
+The report also notes behavioral overlap between additional and known faults, and the measured denominator was not reduced after the results were seen.
