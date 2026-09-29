@@ -257,3 +257,16 @@ class TestDerivationBounds:
         with pytest.raises(DelegationDenied, match="ttl"):
             derive_effect_authority(_parent(), tool_name="report.generate", ceiling=CEILING,
                                     now=datetime.now(UTC), ttl_seconds=ttl)
+
+
+class TestRemoteRefusal:
+    def test_an_executor_that_refuses_records_a_refusal_not_an_unknown(self):
+        from remora.enforcement.capability_mediator import EffectRefused
+
+        def refusing(resource, args):
+            raise EffectRefused("capability_resource_not_authorized")
+
+        mediator, _ = _open(executors={"filesystem.read": refusing})
+        effect = mediator.invoke("filesystem.read", "workspace://reports/a.pdf")
+        assert effect.state is EffectState.REFUSED
+        assert effect.refusal == "capability_resource_not_authorized"

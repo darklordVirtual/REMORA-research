@@ -6,6 +6,21 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Added
 
+- NTA-2 phase 3: a three-domain custody split for mediated effects. A process
+  with `REMORA_EXECUTION_DOMAIN_ROLE=effect` holds the effect credentials and
+  serves only `/v1/execution/effects` and `/effects/close`; an executor with
+  `REMORA_EFFECT_ENDPOINT` set must then hold no declared effect credential
+  (custody K12 to K19). The effect domain verifies the lease with
+  verification material only (`ExecutionLease.verify_authenticity`), refuses
+  a lease the durable nonce store says was never dispatched
+  (`consumed()`, read-only), derives the effect authority from its own signed
+  ceiling, and keeps closure and the budget in the same store (AST-014).
+  Under a strict profile a mediated tool without a declared ceiling is
+  refused. `scripts/check_credential_topology.py` gains a direct-access gate
+  over governed tool modules. The experiment of the design's section 25 is
+  pre-registered in `experiments/authority_preserving_capability_mediation/`
+  and has not run.
+
 - NTA-2 phase 2: capability mediation wired through the signed ToolSpec, the
   dispatcher and the evidence. ToolSpec schema version 2 adds an optional
   `downstream_capabilities` ceiling (`schemas/tool_spec_v2.yaml`); the

@@ -1,8 +1,9 @@
 # Non-Transitivity of Authority (NTA-1, NTA-2)
 
 **Status:** NTA-1 implemented and tested at the enforcement point (library and
-dispatcher level). NTA-2 phases 1 and 2 implemented in the research profile
-and wired through the dispatcher and the execution API, opt-in per tool.
+dispatcher level). NTA-2 phases 1 to 3 implemented and wired through the
+dispatcher and the execution API, opt-in per tool, with a three-domain split
+for strict deployments.
 Author-run conformance only, no external replication.
 **Canonical for:** the principle, its three forms, where it is enforced, and
 what it does not cover. Earlier documents describe parts of it under other
@@ -115,12 +116,16 @@ Phases 1 and 2 are implemented in the research profile:
 | The ceiling is part of the signed ToolSpec (schema version 2) | `downstream_capabilities` in `remora/toolcall/toolspec.py` |
 | The dispatcher builds the mediator from the lease it verified, before the nonce is spent | `register(..., mediated=True)` and `_prepare_mediation` in `remora/enforcement/lease.py` |
 | Nested effects are bounded evidence in the chain and the export | `ResolvedEffectGraph` in `remora/enforcement/effect_graph.py`; `success_established_v2` |
+| In a strict deployment the tool's process holds no effect credential; effects run in a separate effect domain | the `effect` role in `remora/enforcement/custody.py`; `EffectDomain` in `remora/enforcement/effect_domain.py` |
+| The effect domain derives the authority itself from the lease, the nonce store and its own ceiling | `EffectDomain.serve` |
+| Direct access from governed tool code is declared or fails CI | the direct-access gate in `scripts/check_credential_topology.py` |
 
-These phases demonstrate the authority semantics and record every request
-made through the mediator. They do not stop code that ignores the mediator and
-uses a client directly. Stopping that needs the strict
-profile's separation of effect credentials from tool workers (phase 3). Until
-then, limitation 1 below applies to NTA-2 in full.
+In the research profile and the two-domain split the mediator runs in the
+tool's own process: it records every request made through it, and does not
+stop code that uses a client directly. The three-domain split removes the
+declared effect credentials from that process, which narrows limitation 1
+below for declared credentials. No deployment is claimed to run it yet, and
+the pre-registered experiment that measures it has not run.
 
 ## Security invariant
 
@@ -233,8 +238,9 @@ the class, not how often the pattern occurs in real systems.
    made with a credential it holds, is invisible to REMORA. The principle is
    only as strong as the guarantee that downstream capabilities are reachable
    solely through the PEP, which is credential custody, not policy (REM-024;
-   `docs/assurance/credential_topology.yaml`). NTA-2 is the design that narrows
-   this limit; its phase 1 mediator is in-process and does not narrow it yet.
+   `docs/assurance/credential_topology.yaml`). NTA-2's three-domain split
+   narrows this limit for declared effect credentials (L3); an undeclared
+   credential remains outside it.
 2. The capability layer is opt-in. Without a capability policy, forms 2
    and 3 are not in force: a lease issued without a capability set is checked
    for tool and argument binding only (form 1). A deployment that relies on

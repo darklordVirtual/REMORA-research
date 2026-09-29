@@ -35,7 +35,7 @@ from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from remora.enforcement.gate import EnforcementGate
@@ -132,6 +132,9 @@ from servers.execution_contracts import (  # noqa: F401
 #: (NEGATIVE_RESULTS section 51). A prefix test here would admit
 #: /dispatch-leased-anything.
 _EXECUTOR_PATHS = frozenset({"/v1/execution/dispatch-leased"})
+#: The only routes the effect domain serves (NTA-2 phase 3), and the only
+#: domain that serves them. Exact equality, for the reason above.
+_EFFECT_PATHS = frozenset({"/v1/execution/effects", "/v1/execution/effects/close"})
 
 #: Which half of the custody split this process is.
 #:
@@ -143,18 +146,19 @@ _EXECUTOR_PATHS = frozenset({"/v1/execution/dispatch-leased"})
 #: so an unconfigured deployment behaves as it always did.
 _DOMAIN_AUTHORITY = "authority"
 _DOMAIN_EXECUTOR = "executor"
+_DOMAIN_EFFECT = "effect"
 
 
 def _execution_domain() -> str:
     value = (_os.getenv("REMORA_EXECUTION_DOMAIN_ROLE") or "").strip().lower()
-    if value in (_DOMAIN_AUTHORITY, _DOMAIN_EXECUTOR):
+    if value in (_DOMAIN_AUTHORITY, _DOMAIN_EXECUTOR, _DOMAIN_EFFECT):
         return value
     if value:
         # An unrecognised role is a configuration error, and guessing which
-        # half was meant is the wrong way to resolve it.
+        # domain was meant is the wrong way to resolve it.
         raise RuntimeError(
-            f"REMORA_EXECUTION_DOMAIN_ROLE={value!r} is neither "
-            f"{_DOMAIN_AUTHORITY!r} nor {_DOMAIN_EXECUTOR!r}")
+            f"REMORA_EXECUTION_DOMAIN_ROLE={value!r} is not one of "
+            f"{_DOMAIN_AUTHORITY!r}, {_DOMAIN_EXECUTOR!r}, {_DOMAIN_EFFECT!r}")
     return _DOMAIN_AUTHORITY
 
 
@@ -165,9 +169,18 @@ def _enforce_execution_domain(request: Request) -> None:
     a list that a new endpoint silently fails to join, and that failure mode is
     an authority route quietly reachable from the execution domain.
     """
-    if _execution_domain() != _DOMAIN_EXECUTOR:
+    role = _execution_domain()
+    path = request.url.path
+    if role == _DOMAIN_EFFECT:
+        if path in _EFFECT_PATHS:
+            return
+        raise HTTPException(status_code=404, detail="not served by the effect domain")
+    if path in _EFFECT_PATHS:
+        # Effects run only where the effect credentials are.
+        raise HTTPException(status_code=404, detail="served only by the effect domain")
+    if role != _DOMAIN_EXECUTOR:
         return
-    if request.url.path in _EXECUTOR_PATHS:
+    if path in _EXECUTOR_PATHS:
         return
     raise HTTPException(
         status_code=404,
@@ -1187,10 +1200,20 @@ def _tool_dispatcher() -> GovernedToolDispatcher | None:
 
                     registry = importlib.import_module(spec)
                     registry.register_tools(dispatcher.register)
-                    # Optional: the primitives mediated effects run on,
-                    # registered like tool callables because they close over
-                    # the same kind of credential.
-                    if hasattr(registry, "register_effect_executors"):
+                    if _os.environ.get("REMORA_EFFECT_ENDPOINT", "").strip():
+                        # Three domains (NTA-2 phase 3): mediated effects go to
+                        # the effect domain; this process holds no executor.
+                        from remora.enforcement.effect_client import (
+                            RemoteEffectClient,
+                            http_post_from_env,
+                        )
+
+                        dispatcher.bind_effect_domain(
+                            RemoteEffectClient(post=http_post_from_env()))
+                    elif hasattr(registry, "register_effect_executors"):
+                        # Optional: the primitives mediated effects run on,
+                        # registered like tool callables because they close
+                        # over the same kind of credential.
                         registry.register_effect_executors(
                             dispatcher.bind_effect_executors)
                 _DISPATCHER = dispatcher
@@ -1213,6 +1236,84 @@ def _toolspec_identity(tool_name: str) -> tuple[str, int] | None:
     return spec.toolspec_hash, int(spec.version)
 
 
+_EFFECT_DOMAIN: Any = None
+#: The raw JSON body of an effect request; the effect domain parses and
+#: refuses it itself, so no request model sits in front of its own checks.
+_EFFECT_BODY = Body(...)
+
+
+def _effect_domain() -> Any:
+    """This process's EffectDomain (NTA-2 phase 3), built once.
+
+    Its effect executors come from the registry module's
+    ``register_effect_executors``; whether a lease was dispatched is read from
+    the durable nonce store the executor consumed it in. Without a durable
+    store this process cannot tell, and every effect refuses as
+    ``execution_state_unverifiable``: the executor's in-process ledger is in
+    another process.
+    """
+    global _EFFECT_DOMAIN
+    if _EFFECT_DOMAIN is None:
+        from remora.enforcement.custody import assert_may_hold_effect_executors
+        from remora.enforcement.effect_domain import EffectDomain
+
+        executors: dict[str, Any] = {}
+
+        def collect(mapping: Any) -> None:
+            assert_may_hold_effect_executors()
+            executors.update(mapping)
+
+        spec = _os.environ.get("REMORA_TOOL_REGISTRY_MODULE", "").strip()
+        if spec:
+            import importlib
+
+            registry = importlib.import_module(spec)
+            if hasattr(registry, "register_effect_executors"):
+                registry.register_effect_executors(collect)
+        store = _lease_nonce_store()
+
+        def started(lease: ExecutionLease) -> bool:
+            if store is None or not hasattr(store, "consumed"):
+                raise RuntimeError("no durable nonce store shared with the executor")
+            return bool(store.consumed(lease.nonce, tenant_id=lease.tenant_id))
+
+        _EFFECT_DOMAIN = EffectDomain(
+            ceilings=_downstream_ceiling, executors=executors, execution_started=started,
+            epochs=_capability_epoch_source(), ledger=store)
+    return _EFFECT_DOMAIN
+
+
+def _effect_request(payload: dict[str, Any], request: Request) -> Any:
+    tenant, role, _ = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "execute")
+    lease = payload.get("lease") if isinstance(payload, dict) else None
+    if not isinstance(lease, dict) or lease.get("tenant_id") != tenant:
+        raise HTTPException(status_code=409,
+                            detail="effect refused: the lease is not for the authenticated tenant")
+    return _effect_domain()
+
+
+@router.post("/effects")
+def serve_effect(request: Request, payload: dict[str, Any] = _EFFECT_BODY) -> dict[str, Any]:
+    """One mediated effect, served by the effect domain (NTA-2 phase 3).
+
+    The body carries the lease, the lease-bound capability set, the
+    capability, the resource and the arguments. The effect domain verifies
+    the lease, checks it was dispatched, derives the authority from its own
+    ToolSpec ceiling and answers REFUSED or EXECUTED; it never raises for a
+    refusal.
+    """
+    return dict(_effect_request(payload, request).serve(payload))
+
+
+@router.post("/effects/close")
+def close_effects(request: Request, payload: dict[str, Any] = _EFFECT_BODY) -> dict[str, Any]:
+    """End a mediated execution in the effect domain."""
+    return dict(_effect_request(payload, request).close(payload))
+
+
 def _downstream_ceiling(tool_name: str) -> Any:
     """The signed ToolSpec's downstream ceiling for ``tool_name`` (NTA-2).
 
@@ -1228,8 +1329,9 @@ def _downstream_ceiling(tool_name: str) -> Any:
 
 def _reset_tool_dispatcher() -> None:
     """Test hook: drop the cached dispatcher (e.g. after env changes)."""
-    global _DISPATCHER, _EFFECT_RESOLVER, _CAPABILITY_RESOLVER
+    global _DISPATCHER, _EFFECT_RESOLVER, _CAPABILITY_RESOLVER, _EFFECT_DOMAIN
     _DISPATCHER = None
+    _EFFECT_DOMAIN = None
     _EFFECT_RESOLVER = None
     _CAPABILITY_RESOLVER = None
 

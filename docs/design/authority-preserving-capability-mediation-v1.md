@@ -1,7 +1,7 @@
 # Authority-Preserving Capability Mediation v1
 
-**Status:** proposed design. Phases 1 and 2 (research profile) are
-implemented; phase 3 (strict profile) is not. See
+**Status:** proposed design. Phases 1 to 3 are implemented; the
+pre-registered experiment of section 25 has not run yet. See
 [Delivery status](#delivery-status).
 **Scope:** governed execution, nested capabilities, privileged resources,
 internal dispatch and effect authority.
@@ -170,6 +170,28 @@ executes the primitive, records the result and returns only what the caller
 needs. This extends the existing authority/executor custody split
 (`remora/enforcement/custody.py`) to internal effects.
 
+As implemented (phase 3), the three domains are separate processes, each
+declared with `REMORA_EXECUTION_DOMAIN_ROLE`:
+
+| Role | Holds | Serves |
+|---|---|---|
+| `authority` | lease signing material; no effect credential | assess, approve, execute; mints leases |
+| `executor` | lease verification key; with `REMORA_EFFECT_ENDPOINT` set, no declared effect credential | `/v1/execution/dispatch-leased`; runs tool code; sends mediated effects to the effect domain |
+| `effect` | lease verification key and the declared effect credentials | `/v1/execution/effects` and `/effects/close` only; runs the primitives, never tool code |
+
+Under a strict profile the custody guard refuses any other combination (K12 to
+K19). The effect domain trusts nothing the worker sends beyond the lease. It
+verifies the lease with verification material only
+(`ExecutionLease.verify_authenticity`). It refuses a lease the shared durable
+nonce store says was never dispatched. It requires the lease-bound capability
+set, and derives the effect authority from its own copy of the tool's signed
+ceiling. The per-execution budget and closure are claimed in the same durable
+store, so a restart neither reopens a closed execution nor resets its budget.
+This answers open question 1: the execution-scoped credential is the lease
+itself, bound to the dispatch the nonce store records, and the worker's
+transport bearer (`REMORA_EFFECT_TOKEN`) authenticates the hop, not the
+authority.
+
 ## 12. Execution context
 
 The enforcement layer creates an immutable context before invoking the
@@ -256,6 +278,10 @@ where it already has the meaning:
 | more requests than the execution's budget | `capability_effect_budget_exhausted` |
 | mediated tool with no lease-bound capability set (dispatcher) | `capability_set_required` |
 | the tool's ceiling cannot be read (dispatcher) | `downstream_ceiling_unavailable` |
+| strict profile, mediated tool, no declared ceiling (dispatcher) | `downstream_declaration_required` |
+| the lease was never dispatched (effect domain) | `execution_not_started` |
+| the dispatch or closure state cannot be read (effect domain) | `execution_state_unverifiable` |
+| an effect request that cannot be parsed (effect domain) | `request_malformed` |
 
 Proposed and not needed so far: `capability_resolution_unknown`,
 `capability_provider_not_authorized` (a provider switch is a resource refusal
@@ -271,7 +297,7 @@ parent, so it cannot cycle).
 | NTA-2.3 provider | a dynamically selected provider is checked as resolved | NTA2-04 |
 | NTA-2.4 default | an omitted value never materializes into authority that would be refused if explicit | NTA2-05 |
 | NTA-2.5 chain | A may delegate to B; B may not delegate to C unless a link permits it | NTA2-06 |
-| NTA-2.6 ambient credential | in strict mode, execution inside A does not by itself yield credentials for B outside the mediator | phase 3 |
+| NTA-2.6 ambient credential | in strict mode, execution inside A does not by itself yield credentials for B outside the mediator | custody K15 and K16 (`tests/conformance/test_custody_effect_domain.py`); measured by arm C of the experiment |
 
 ## 21. Regression cases
 
@@ -281,7 +307,7 @@ parent, so it cannot cycle).
 | 2 resource widening | `filesystem.read workspace://reports/*`; request for `secrets://production/*` | `capability_resource_not_authorized` | `test_case_2_...` |
 | 3 late-bound provider | `database.read` for one provider; input selects another | resolved provider checked and refused | `test_case_3_...` |
 | 4 implicit target | no resource; runtime would pick a privileged default | `capability_default_unresolved` | `test_case_4_...` |
-| 5 direct SDK bypass | tool uses a credential-bearing client directly | research: recorded, no containment claim; strict: no credential or network path | phase 3 |
+| 5 direct SDK bypass | tool uses a credential-bearing client directly | research: recorded, no containment claim; strict: no credential or network path | custody K15; the direct-access gate (section 16); experiment arm C |
 | 6 valid attenuation | `filesystem.read workspace://reports/*`; request for `.../september.pdf` | executes and is recorded | `test_case_6_...` |
 | 7 transitive widening | A delegates B; B attempts C without transitive authority | `capability_delegation_denied` | `test_effect_authority_cannot_be_delegated_on` |
 
@@ -298,11 +324,15 @@ Tests: `tests/capabilities/test_capability_mediation.py`.
 | `remora/capabilities/ceiling.py` (`EffectCapability`, `DownstreamCeiling`, shared by ToolSpec and enforcement) | 2 |
 | `remora/toolcall/toolspec.py` downstream declaration, bundle schema version; `schemas/tool_spec_v2.yaml` | 2 |
 | `remora/enforcement/lease.py` mediated registration, ceiling and executor binding, mediator per dispatch, `ExecutionLease.digest()` | 2 |
+| `remora/enforcement/lease.py` `verify_authenticity`, `bind_effect_domain`, strict declaration rule | 3 |
+| `remora/enforcement/effect_domain.py`, `remora/enforcement/effect_client.py` | 3 |
+| `remora/enforcement/custody.py` effect role and three-domain rules; `remora/enforcement/nonce_store.py` `consumed()` | 3 |
+| `servers/execution_api.py` effect role routing and `/effects` routes | 3 |
+| `scripts/check_credential_topology.py` direct-access gate | 3 |
 | `remora/enforcement/effect_graph.py` (`ResolvedEffectGraph`) | 2 |
 | `remora/execution/dispatch.py`, `remora/execution/service.py` nested effects in `execution_result` and the outbox projection | 2 |
 | `remora/governance/evidence_coverage.py` `success_established_v2` | 2 |
 | `servers/execution_api.py` ceiling from the signed bundle, executors from the registry module | 2 |
-| strict-profile capability executor and custody rule | 3 |
 
 ## 23. Tool API
 
@@ -325,8 +355,9 @@ developer discipline.
 ## 24. Compatibility
 
 Tools without a downstream declaration keep running under the research
-profile. A strict profile requires an explicit declaration, and a v1 ToolSpec
-without one is refused there. A migration period may record
+profile. Under a strict profile a tool registered as mediated needs an
+explicit declaration and is refused without one
+(`downstream_declaration_required`); unmediated tools are unchanged. A migration period may record
 `unmediated_effect_observed` without blocking. `ExecutionLease` keeps its
 format.
 
@@ -445,20 +476,17 @@ inspected and verified independently.
 
 ## Open questions
 
-1. Who authenticates the tool worker to the capability executor in the strict
-   profile. The executor holds no lease signing material (custody rule 3), so
-   the channel needs an execution-scoped credential bound to the lease that
-   expires with the execution and carries a per-execution budget. Otherwise a
-   worker could keep requesting effects after its tool returned.
+1. Resolved in phase 3 (section 11): the lease is the execution-scoped
+   credential, checked against the durable nonce store, with budget and
+   closure held there too.
 2. Research-profile honesty. `ExecutionContext` is immutable, but code in the
    same process can build another one, and `contextvars` can be set by any
    code in the process. Phase 1 makes no bypass claim and says so in the
    module docstrings.
 3. Resolved in phase 2 for the schema: `downstream_capabilities` is only
    accepted in a schema-version-2 bundle, the signed `schema_version` is now
-   checked, and an absent declaration changes no existing spec hash. Still
-   open, for phase 3: refusing a spec without a declaration under a strict
-   profile (section 24).
+   checked, and an absent declaration changes no existing spec hash. The
+   strict-profile rule of section 24 followed in phase 3.
 4. Arm C of the experiment demonstrates containment only if the tool worker
    runs as a separate process without effect credentials in its environment.
    An in-process simulation of arm C is a simulation and is reported as one.
@@ -468,8 +496,10 @@ inspected and verified independently.
    do not change after the fact. The only state recorded so far is
    `REFUSED`, `EXECUTED` or `UNKNOWN`; `VERIFIED`, `MISMATCH` and
    `UNVERIFIABLE` need per-effect verification, which is not built.
-6. The direct-access gate (section 16) should extend
-   `scripts/check_credential_topology.py` rather than add a second scanner.
+6. Resolved in phase 3: the direct-access gate is part of
+   `scripts/check_credential_topology.py`. It scans every module the
+   discovery globs match and requires each privileged interface a governed
+   tool reaches directly to be declared with a reason.
 
 ## Delivery status
 
@@ -477,4 +507,4 @@ inspected and verified independently.
 |---|---|---|
 | 1 | resource identities and `within`; `DownstreamCeiling`; `derive_effect_authority`; `ExecutionContext`; `CapabilityMediator` (research profile, fails closed); NTA2-01 to NTA2-11 in `conformance/non-transitivity-of-authority-v1` | implemented, library only; not wired into dispatch |
 | 2 | ToolSpec v2 downstream declaration and schema-version check; `GovernedToolDispatcher` builds the context and mediator for tools registered as mediated, before the nonce is spent; per-execution effect budget; `ResolvedEffectGraph` in the dispatch result, the `execution_result` chain record and the outbox projection; `success_established_v2`; the execution API reads ceilings from the signed bundle and executors from the registry module | implemented, opt-in, research profile |
-| 3 | strict profile: capability executor holding effect credentials, worker without them, custody rule and deployment checks; direct-access gate; pre-registered experiment and artifact | not started |
+| 3 | three-domain custody split with an effect domain holding the credentials; `EffectDomain` and `RemoteEffectClient`; durable closure and budget; strict declaration rule; direct-access gate; experiment pre-registered in `experiments/authority_preserving_capability_mediation/PREREGISTERED.md` | implemented; the experiment has not run |

@@ -199,3 +199,78 @@ def test_a_parent_at_the_depth_cap_derives_no_effect_authority():
     calls = []
     result = _run(_dispatcher(lambda a, c: calls.append(a)), chain)
     assert result.refusal_reason == "capability_delegation_denied" and calls == []
+
+
+# Phase 3: the three-domain split and the strict declaration rule.
+
+def _three_domain(tool):
+    from remora.enforcement.effect_client import RemoteEffectClient
+    from remora.enforcement.effect_domain import EffectDomain
+    from remora.enforcement.nonce_store import InMemoryNonceStore
+
+    store = InMemoryNonceStore()
+    effect_calls: list = []
+    domain = EffectDomain(
+        ceilings=lambda name: CEILING if name == CEILING.tool else None,
+        executors={"database.read": lambda r, a: effect_calls.append(r) or [7]},
+        execution_started=lambda lease: store.consumed(lease.nonce, tenant_id=lease.tenant_id))
+    worker = GovernedToolDispatcher("b1", nonce_store=store)
+    worker.register("report.generate", tool, mediated=True)
+    worker.bind_downstream_ceilings(lambda name: CEILING if name == CEILING.tool else None)
+    worker.bind_effect_domain(RemoteEffectClient(post=lambda path, body: (
+        domain.serve(body) if path.endswith("/effects") else domain.close(body))))
+    return worker, domain, effect_calls
+
+
+def test_in_three_domains_the_effect_runs_in_the_effect_domain_only():
+    def tool(arguments, capabilities):
+        return capabilities.invoke("database.read", "database://reporting-eu/monthly").result
+
+    worker, _, effect_calls = _three_domain(tool)
+    result = _run(worker, _parent())
+    assert result.executed and result.result == [7]
+    assert effect_calls == ["database://reporting-eu/monthly"]
+    assert result.nested_effects["by_state"] == {"EXECUTED": 1}
+
+
+def test_the_effect_domain_closes_when_the_tool_returns():
+    kept = {}
+
+    def tool(arguments, capabilities):
+        kept["request"] = capabilities
+        return "ok"
+
+    parent = _parent()
+    lease = _lease(parent)
+    worker, domain, _ = _three_domain(tool)
+    worker.dispatch(lease, "report.generate", ARGS, tenant_id="acme",
+                    target_environment="prod", actor_identity="agent-42", capability_set=parent)
+    answer = domain.serve({"lease": lease.to_dict(), "capability_set": parent.to_dict(),
+                           "capability": "database.read",
+                           "resource": "database://reporting-eu/monthly", "arguments": {}})
+    assert answer["refusal"] == CapabilityRefusal.CONTEXT_MISSING.value
+
+
+def test_a_domain_refusal_is_recorded_as_a_refusal():
+    def tool(arguments, capabilities):
+        return capabilities.invoke("database.read", "database://billing-us/x").refusal
+
+    worker, _, effect_calls = _three_domain(tool)
+    result = _run(worker, _parent())
+    assert result.result == CapabilityRefusal.RESOURCE_NOT_AUTHORIZED.value
+    assert effect_calls == [] and result.nested_effects["by_state"] == {"REFUSED": 1}
+
+
+def test_a_strict_dispatcher_refuses_a_mediated_tool_without_a_declaration():
+    calls = []
+    d = GovernedToolDispatcher("b1", require_downstream_declaration=True)
+    d.register("report.generate", lambda a, c: calls.append(a), mediated=True)
+    result = _run(d, _parent())
+    assert result.refusal_reason == "downstream_declaration_required" and calls == []
+
+
+def test_strict_profiles_require_the_declaration_by_default(monkeypatch):
+    monkeypatch.setenv("REMORA_RUNTIME_PROFILE", "review")
+    assert GovernedToolDispatcher("b1")._require_declaration is True
+    monkeypatch.delenv("REMORA_RUNTIME_PROFILE")
+    assert GovernedToolDispatcher("b1")._require_declaration is False

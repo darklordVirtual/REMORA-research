@@ -2352,6 +2352,98 @@
         ]
       }
     },
+    "/v1/execution/effects": {
+      "post": {
+        "description": "One mediated effect, served by the effect domain (NTA-2 phase 3).\n\nThe body carries the lease, the lease-bound capability set, the\ncapability, the resource and the arguments. The effect domain verifies\nthe lease, checks it was dispatched, derives the authority from its own\nToolSpec ceiling and answers REFUSED or EXECUTED; it never raises for a\nrefusal.",
+        "operationId": "serve_effect_v1_execution_effects_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Payload",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Serve Effect V1 Execution Effects Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Serve Effect",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
+    "/v1/execution/effects/close": {
+      "post": {
+        "description": "End a mediated execution in the effect domain.",
+        "operationId": "close_effects_v1_execution_effects_close_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Payload",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Close Effects V1 Execution Effects Close Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Close Effects",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
     "/v1/execution/execute": {
       "post": {
         "description": "Execute a previously approved item under full re-gating.\n\nThe complete payload is re-presented and freshly re-decided: an\nequal-or-safer world state executes, a stricter one invalidates the\napproval, and changed arguments are refused by exact payload binding. A\nsingle-use grant is consumed atomically, and the tool is dispatched\nthrough the governed dispatcher under a lease bound to the current\npolicy bundle hash. Both the pre-dispatch authorization and the result\nare separate records in the tenant audit chain.",

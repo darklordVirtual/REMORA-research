@@ -37,8 +37,8 @@ from remora.capabilities.model import CapabilityRefusal, EffectiveCapabilitySet
 from remora.capabilities.resource import ResourceRefused, canonical_resource
 from remora.enforcement.execution_context import ExecutionContext
 
-__all__ = ["MAX_NESTED_EFFECTS", "CapabilityMediator", "EffectExecutor", "EffectState",
-           "MediatedEffect"]
+__all__ = ["MAX_NESTED_EFFECTS", "CapabilityMediator", "EffectExecutor", "EffectRefused",
+           "EffectState", "MediatedEffect"]
 
 #: Requests one execution may make. Past it, requests refuse as
 #: ``capability_effect_budget_exhausted`` and are counted, not recorded, so the
@@ -48,6 +48,19 @@ MAX_NESTED_EFFECTS = 64
 #: ``(canonical_resource, arguments) -> result``, registered by the deployment
 #: per effect capability. It holds whatever client or credential the effect needs.
 EffectExecutor = Callable[[str, Mapping[str, Any]], Any]
+
+
+class EffectRefused(Exception):
+    """An executor's verdict that the effect did not run, with its reason.
+
+    Raised by a remote executor when the effect domain refused (NTA-2 phase
+    3). Distinct from any other exception, which leaves the state unknown: a
+    refusal is first-hand knowledge that nothing happened.
+    """
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(reason)
+        self.reason = reason
 
 
 class EffectState(str, Enum):
@@ -104,6 +117,11 @@ class CapabilityMediator:
     @property
     def context(self) -> ExecutionContext:
         return self._context
+
+    @property
+    def authority(self) -> EffectiveCapabilitySet:
+        """The effect authority this mediator checks requests against."""
+        return self._authority
 
     @property
     def records(self) -> tuple[MediatedEffect, ...]:
@@ -177,6 +195,11 @@ class CapabilityMediator:
         # to block close() or another request's refusal.
         try:
             result = self._executors[capability](shown, dict(arguments))
+        except EffectRefused as refused:
+            effect = MediatedEffect(state=EffectState.REFUSED, refusal=refused.reason, **base)
+            with self._lock:
+                self._records.append(effect)
+            return effect
         except Exception:  # noqa: BLE001 - began and failed: the state is unknown
             effect = MediatedEffect(state=EffectState.UNKNOWN, refusal=None, **base)
         else:
