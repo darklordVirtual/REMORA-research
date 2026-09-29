@@ -6,6 +6,18 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Added
 
+- The pre-registered capability-mediation study (NTA-2,
+  `experiments/authority_preserving_capability_mediation.py`,
+  `results/authority_preserving_capability_mediation_v1.json`). Registered and
+  merged before the code existed; first run committed as the result. With
+  capability minimization alone every unsafe class produced its effect; the
+  in-process mediator stopped all but direct use of the credential in the
+  tool's process; the three-domain split, with the tool in a separate process
+  holding no credential, stopped all eight unsafe classes. No legitimate
+  nested effect was blocked. Seven of eight predictions met; P6 (mediated
+  effect coverage 1.0 in arm B) missed at 0.6667 and is recorded in
+  NEGATIVE_RESULTS.md §63. Author-written corpus; not a real-world rate.
+
 - NTA-2 phase 3: a three-domain custody split for mediated effects. A process
   with `REMORA_EXECUTION_DOMAIN_ROLE=effect` holds the effect credentials and
   serves only `/v1/execution/effects` and `/effects/close`; an executor with
@@ -18,8 +30,7 @@ This file lists externally relevant changes by release. Fine-grained development
   Under a strict profile a mediated tool without a declared ceiling is
   refused. `scripts/check_credential_topology.py` gains a direct-access gate
   over governed tool modules. The experiment of the design's section 25 is
-  pre-registered in `experiments/authority_preserving_capability_mediation/`
-  and has not run.
+  pre-registered in `experiments/authority_preserving_capability_mediation/`.
 
 - NTA-2 phase 2: capability mediation wired through the signed ToolSpec, the
   dispatcher and the evidence. ToolSpec schema version 2 adds an optional

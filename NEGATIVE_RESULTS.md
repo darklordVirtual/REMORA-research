@@ -11,7 +11,7 @@ never deleted, only re-statused in place.
 
 ## How to read a status
 
-**62 numbered sections does not mean 62 open problems.** Until 2026-07-31 this
+**63 numbered sections does not mean 63 open problems.** Until 2026-07-31 this
 document read as if it did. Sections kept the status they were written with,
 even after later sections resolved them. Every section now carries a
 machine-readable marker directly under its heading, and
@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-09-28: **14 `open`**, **25 `accepted`**, **23 `superseded`**.
+Counts as of 2026-09-29: **14 `open`**, **26 `accepted`**, **23 `superseded`**.
 
 ## The actual backlog
 
@@ -3914,3 +3914,36 @@ the authors, and each class was built to probe one layer. The study shows
 layer attribution on REMORA's code. It measures no real-world rate and no
 model's propensity to propose any class. Those need a live model.
 
+
+## §63 Mediated effect coverage in arm B was 0.67, not 1.0 (2026-09-29)
+<!-- finding-status: accepted -->
+
+**Status:** measured by the pre-registered capability-mediation study
+(NTA-2, design section 25). The protocol is
+`experiments/authority_preserving_capability_mediation/PREREGISTERED.md`,
+merged before the study code existed, and the result is
+`results/authority_preserving_capability_mediation_v1.json`. Accepted: a
+falsified prediction, recorded as missed on the first run and not redefined.
+
+**What was measured.** A fixed corpus of 36 proposals in nine classes through
+three arms. Seven of eight predictions were met. With capability minimization
+alone (arm A) every unsafe class produced its effect. The in-process mediator
+(arm B) stopped every unsafe class except direct use of the credential in the
+tool's own process. The three-domain split (arm C), in which the tool ran in a
+separate process with no effect credential, stopped all eight unsafe classes.
+No arm blocked the legitimate nested effect, and no mediated request ended
+`UNKNOWN`.
+
+**The miss.** P6 predicted mediated effect coverage of 1.0 in arm B. The
+registration defines coverage over all observed effects, and in arm B the four
+`direct_sdk_access` effects were observed without passing through the mediator,
+which is the bypass P2 itself predicted. Coverage was therefore 8 of 12, or
+0.6667. The prediction contradicted the registration's own definition; the
+measured value is the one the mechanism produces.
+
+**What this does not establish.** The corpus, its labels and the primitives
+were written by the authors, and each class was built to probe one mechanism.
+Arm C separates operating-system processes on one machine, not a deployment's
+containers or network, and an effect credential the deployment does not
+declare is outside the custody guard in any arm. The study measures mechanism
+efficacy on REMORA's code, not a real-world rate.
