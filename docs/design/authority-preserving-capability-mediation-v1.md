@@ -1,7 +1,8 @@
 # Authority-Preserving Capability Mediation v1
 
-**Status:** proposed design. Phase 1 (library, research profile) is
-implemented; phases 2 and 3 are not. See [Delivery status](#delivery-status).
+**Status:** proposed design. Phases 1 and 2 (research profile) are
+implemented; phase 3 (strict profile) is not. See
+[Delivery status](#delivery-status).
 **Scope:** governed execution, nested capabilities, privileged resources,
 internal dispatch and effect authority.
 **Principle:** NTA-2 in
@@ -252,10 +253,14 @@ where it already has the meaning:
 | no resolved resource | `capability_default_unresolved` |
 | no executor for the capability | `capability_executor_unavailable` |
 | effect authority from another execution | `capability_digest_mismatch` |
+| more requests than the execution's budget | `capability_effect_budget_exhausted` |
+| mediated tool with no lease-bound capability set (dispatcher) | `capability_set_required` |
+| the tool's ceiling cannot be read (dispatcher) | `downstream_ceiling_unavailable` |
 
-Proposed and not yet needed in phase 1: `capability_resolution_unknown`,
+Proposed and not needed so far: `capability_resolution_unknown`,
 `capability_provider_not_authorized` (a provider switch is a resource refusal
-here), `capability_cycle_detected`.
+here), `capability_cycle_detected` (the graph is a flat, ordered list under one
+parent, so it cannot cycle).
 
 ## 20. Conformance invariants
 
@@ -287,15 +292,23 @@ Tests: `tests/capabilities/test_capability_mediation.py`.
 | Module | Phase |
 |---|---|
 | `remora/capabilities/resource.py` (canonical resources, patterns, `within`) | 1 |
-| `remora/enforcement/effect_capability.py` (`EffectCapability`, `DownstreamCeiling`, `derive_effect_authority`) | 1 |
+| `remora/enforcement/effect_capability.py` (`derive_effect_authority`) | 1 |
 | `remora/enforcement/execution_context.py` | 1 |
-| `remora/enforcement/capability_mediator.py` | 1 |
-| `remora/enforcement/effect_graph.py`, `resolved_effect.py` extension | 2 |
-| `remora/toolcall/toolspec.py` downstream declaration | 2 |
-| `remora/enforcement/lease.py` context creation at dispatch | 2 |
+| `remora/enforcement/capability_mediator.py` | 1 (budget in 2) |
+| `remora/capabilities/ceiling.py` (`EffectCapability`, `DownstreamCeiling`, shared by ToolSpec and enforcement) | 2 |
+| `remora/toolcall/toolspec.py` downstream declaration, bundle schema version; `schemas/tool_spec_v2.yaml` | 2 |
+| `remora/enforcement/lease.py` mediated registration, ceiling and executor binding, mediator per dispatch, `ExecutionLease.digest()` | 2 |
+| `remora/enforcement/effect_graph.py` (`ResolvedEffectGraph`) | 2 |
+| `remora/execution/dispatch.py`, `remora/execution/service.py` nested effects in `execution_result` and the outbox projection | 2 |
+| `remora/governance/evidence_coverage.py` `success_established_v2` | 2 |
+| `servers/execution_api.py` ceiling from the signed bundle, executors from the registry module | 2 |
 | strict-profile capability executor and custody rule | 3 |
 
 ## 23. Tool API
+
+A tool opts in by registering as mediated, `register("report.generate",
+generate_report, mediated=True)`, and is then called with the mediator as its
+second argument:
 
 ```python
 def generate_report(args, capabilities):
@@ -441,15 +454,20 @@ inspected and verified independently.
    same process can build another one, and `contextvars` can be set by any
    code in the process. Phase 1 makes no bypass claim and says so in the
    module docstrings.
-3. The ToolSpec change alters the signed bundle hash. It needs a schema
-   version, and section 24's rule (a v1 spec without a declaration is refused
-   under a strict profile) has to be implemented with it.
+3. Resolved in phase 2 for the schema: `downstream_capabilities` is only
+   accepted in a schema-version-2 bundle, the signed `schema_version` is now
+   checked, and an absent declaration changes no existing spec hash. Still
+   open, for phase 3: refusing a spec without a declaration under a strict
+   profile (section 24).
 4. Arm C of the experiment demonstrates containment only if the tool worker
    runs as a separate process without effect credentials in its environment.
    An in-process simulation of arm C is a simulation and is reported as one.
-5. The nested-effect evidence (section 15) should extend the
-   `success_established_v1` coverage contract (Q8.7) rather than define a
-   second notion of success.
+5. Resolved in phase 2 as `success_established_v2`: v1's requirements, with
+   the execution result also required to report its nested effects settled.
+   A new version rather than a changed v1, so verdicts already given under v1
+   do not change after the fact. The only state recorded so far is
+   `REFUSED`, `EXECUTED` or `UNKNOWN`; `VERIFIED`, `MISMATCH` and
+   `UNVERIFIABLE` need per-effect verification, which is not built.
 6. The direct-access gate (section 16) should extend
    `scripts/check_credential_topology.py` rather than add a second scanner.
 
@@ -458,5 +476,5 @@ inspected and verified independently.
 | Phase | Content | Status |
 |---|---|---|
 | 1 | resource identities and `within`; `DownstreamCeiling`; `derive_effect_authority`; `ExecutionContext`; `CapabilityMediator` (research profile, fails closed); NTA2-01 to NTA2-11 in `conformance/non-transitivity-of-authority-v1` | implemented, library only; not wired into dispatch |
-| 2 | ToolSpec downstream declaration with schema version; context and mediator created by `GovernedToolDispatcher`; `ResolvedEffectGraph`; evidence contract | not started |
+| 2 | ToolSpec v2 downstream declaration and schema-version check; `GovernedToolDispatcher` builds the context and mediator for tools registered as mediated, before the nonce is spent; per-execution effect budget; `ResolvedEffectGraph` in the dispatch result, the `execution_result` chain record and the outbox projection; `success_established_v2`; the execution API reads ceilings from the signed bundle and executors from the registry module | implemented, opt-in, research profile |
 | 3 | strict profile: capability executor holding effect credentials, worker without them, custody rule and deployment checks; direct-access gate; pre-registered experiment and artifact | not started |

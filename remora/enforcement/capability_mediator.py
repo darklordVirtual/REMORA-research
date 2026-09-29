@@ -37,7 +37,13 @@ from remora.capabilities.model import CapabilityRefusal, EffectiveCapabilitySet
 from remora.capabilities.resource import ResourceRefused, canonical_resource
 from remora.enforcement.execution_context import ExecutionContext
 
-__all__ = ["CapabilityMediator", "EffectExecutor", "EffectState", "MediatedEffect"]
+__all__ = ["MAX_NESTED_EFFECTS", "CapabilityMediator", "EffectExecutor", "EffectState",
+           "MediatedEffect"]
+
+#: Requests one execution may make. Past it, requests refuse as
+#: ``capability_effect_budget_exhausted`` and are counted, not recorded, so the
+#: evidence stays bounded however the tool behaves (design section 14).
+MAX_NESTED_EFFECTS = 64
 
 #: ``(canonical_resource, arguments) -> result``, registered by the deployment
 #: per effect capability. It holds whatever client or credential the effect needs.
@@ -81,7 +87,7 @@ class CapabilityMediator:
 
     def __init__(self, context: ExecutionContext, authority: EffectiveCapabilitySet, *,
                  executors: Mapping[str, EffectExecutor], epochs: Any = None,
-                 state_reader: Any = None,
+                 state_reader: Any = None, max_effects: int = MAX_NESTED_EFFECTS,
                  clock: Callable[[], datetime] = lambda: datetime.now(UTC)) -> None:
         self._context = context
         self._authority = authority
@@ -92,6 +98,8 @@ class CapabilityMediator:
         self._closed = False
         self._lock = threading.Lock()
         self._records: list[MediatedEffect] = []
+        self._max_effects = max_effects
+        self._overflow = 0
 
     @property
     def context(self) -> ExecutionContext:
@@ -101,6 +109,12 @@ class CapabilityMediator:
     def records(self) -> tuple[MediatedEffect, ...]:
         with self._lock:
             return tuple(self._records)
+
+    @property
+    def overflow(self) -> int:
+        """Requests refused because the budget was spent; not recorded one by one."""
+        with self._lock:
+            return self._overflow
 
     def close(self) -> None:
         """End the execution: later requests refuse as ``capability_context_missing``."""
@@ -143,6 +157,14 @@ class CapabilityMediator:
         """Run one effect under this execution's authority, or refuse it."""
         arguments = {} if arguments is None else arguments
         with self._lock:
+            if len(self._records) >= self._max_effects:
+                self._overflow += 1
+                return MediatedEffect(
+                    execution_id=self._context.execution_id, capability=capability,
+                    resource=resource if isinstance(resource, str) else "",
+                    state=EffectState.REFUSED,
+                    refusal=CapabilityRefusal.EFFECT_BUDGET_EXHAUSTED.value,
+                    arguments_hash="", authority_digest=self._authority.digest)
             refusal, shown = self._refusal(capability, resource, arguments)
             base = dict(execution_id=self._context.execution_id, capability=capability,
                         resource=shown, authority_digest=self._authority.digest,

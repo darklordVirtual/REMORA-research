@@ -55,6 +55,7 @@ class CapabilityRefusal(str, Enum):
     CONTEXT_MISSING = "capability_context_missing"
     DEFAULT_UNRESOLVED = "capability_default_unresolved"
     EXECUTOR_UNAVAILABLE = "capability_executor_unavailable"
+    EFFECT_BUDGET_EXHAUSTED = "capability_effect_budget_exhausted"
 
 
 @dataclass(frozen=True)

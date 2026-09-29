@@ -6,6 +6,18 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Added
 
+- NTA-2 phase 2: capability mediation wired through the signed ToolSpec, the
+  dispatcher and the evidence. ToolSpec schema version 2 adds an optional
+  `downstream_capabilities` ceiling (`schemas/tool_spec_v2.yaml`); the
+  bundle's signed `schema_version` is now checked. A tool registered with
+  `mediated=True` is called with a `CapabilityMediator` that
+  `GovernedToolDispatcher` builds from the lease-bound capability set and the
+  tool's ceiling, before the nonce is spent. Nested effects are recorded as a
+  bounded `ResolvedEffectGraph` in the dispatch result, the `execution_result`
+  chain record and the outbox projection, and `success_established_v2`
+  requires them settled (v1 is unchanged). CAP-024 is `WIRED_API_PATH`, opt-in
+  and research profile; the runtime property stays `NOT_ESTABLISHED`.
+
 - Authority-Preserving Capability Mediation, NTA-2 phase 1
   (`docs/design/authority-preserving-capability-mediation-v1.md`, status
   proposed). Authorization of a tool does not authorize the privileged effects
