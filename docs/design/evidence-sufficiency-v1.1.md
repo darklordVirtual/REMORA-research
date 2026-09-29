@@ -4,7 +4,7 @@
 
 ACCEPTED 2026-09-29. The maintainer decided D-2 (option A) and D-3 (in scope) on that date.
 The implementation merged through #637 after the v1.0 external report became public (D-5).
-Rul1an ran an external measurement of v1.1 at `57ee035`, published at `9f38519` after the survivors were classified (T-7). Three withheld faults in `canonical()` survived (NEGATIVE_RESULTS.md §64).
+Rul1an ran an external measurement of v1.1 at `57ee035`, published at `9f38519` after the survivors were classified (T-7). Three withheld faults in `canonical()` survived (NEGATIVE_RESULTS.md §64); v1.2 adds cases for them (section 12).
 One change landed after that measurement, before merge.
 A CodeQL finding flagged an implicit string concatenation in the runner's `limits` list.
 The fix made the concatenation explicit and corrected "G1-G4" to "G1-G5" in the same sentence.
@@ -288,9 +288,47 @@ The independent evidence is the held-out part of the rerun in section 8.
 | Snapshot checks mistaken for semantic checks | 1.2 is documented; R-6 is semantic |
 | The runner's own hash pin makes adequacy vacuous | D-1: the pin is recorded, never a failure |
 
+## 12. v1.2 addendum
+
+v1.2 closes the one gap from the external v1.1 run that was not fitted: three withheld changes to `canonical()` that no v1.1 case could tell apart.
+The record is `docs/assurance/external_adequacy_evidence_sufficiency_v1.md`, and the finding is NEGATIVE_RESULTS.md §64.
+
+### 12.1 Scope
+
+`conformance/evidence-sufficiency-v1.2/` holds the 50 v1.1 cases verbatim and three new cases, gap H1.
+v1 and v1.1 stay frozen, and their tests pin the bytes the external runs measured.
+`guidance.json` and `ladders.json` are copied byte for byte, and the runner differs from v1.1 only in its suite name and one added `limits` entry.
+No checker, guidance or ladder change is in scope, so each new case is a plain authored expectation.
+
+### 12.2 Cases
+
+Every postcondition case in v1.1 compares plain strings, apart from E08 (`1` against `true`).
+Each H1 case derives from E02 and changes only `expected_state` and `observed_state`, so every other premise holds and the comparison alone decides the verdict.
+
+| Case | Expected state | Observed state | Expected verdict |
+|---|---|---|---|
+| E18 | `"Closed"` | `"closed"` | VIOLATED, `declared_postcondition_disagreed_at_named_point` |
+| E19 | `["closed", "locked"]` | `["locked", "closed"]` | VIOLATED, same reason |
+| E20 | `{"state": "closed"}` | `{"state": "open"}` | VIOLATED, same reason |
+
+### 12.3 Pre-flight, not evidence
+
+The maintainer applied the six withheld definitions and the 103 known faults from Rul1an's published manifests to copies of the tree.
+On v1.1 the runner reproduced the published split: 103 of 103 known faults killed, two by crash, and 3 of 6 withheld.
+On v1.2 it killed 103 of 103 and 6 of 6, with the positive control killed and the inert control unchanged.
+`tests/test_evidence_sufficiency_v1_2.py` pins the three `canonical()` faults against the H1 cases.
+The H1 cases were written with these faults in view, so these kills show the repair and are not independent evidence.
+v1.2 has had no external run.
+
+### 12.4 Not in scope
+
+No case pins that key order in a mapping is ignored (`sort_keys`).
+The external runs named no such fault, and adding one here would widen the corpus beyond the finding.
+
 ## Deliverables
 
 - This spec.
 - `conformance/evidence-sufficiency-v1.1/` reference implementation, passing all acceptance criteria.
 - `tests/test_evidence_sufficiency_v1_1.py`.
 - `preflight.py`, the harness used for 1.1 and section 7. It is kept outside the repository because it reads Rul1an's `mutants.json`, which quotes BUSL-1.1 source under his package NOTICE.
+- `conformance/evidence-sufficiency-v1.2/` and `tests/test_evidence_sufficiency_v1_2.py` (section 12).

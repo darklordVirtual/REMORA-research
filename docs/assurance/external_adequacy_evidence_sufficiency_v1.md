@@ -100,7 +100,7 @@ Labels were set after the result was known, on corpus-adequacy/remora-es-v11-ade
 | Row 2: 13 known faults that change a terminal outcome (six polarity flips, six terminal reasons, raw equality) | out of scope by a stated contract: rule R-6 gives a decisive verdict no guidance, so row 2 cannot see them. All 13 are killed on row 3 | none |
 | Admission and postcondition aliases | killed, but each matches a known mutation on the declared adapter path; no independent evidence | none |
 | Route alias | killed; partly overlaps guard removal, no independence claimed | none |
-| The three `canonical()` faults | open gap, in scope: each merges distinct states, so a disagreeing postcondition would be ESTABLISHED. Every postcondition case compares scalar strings except E08 (`1` against `true`) | v1.2, NEGATIVE_RESULTS.md §64 |
+| The three `canonical()` faults | open gap, in scope: each merges distinct states, so a disagreeing postcondition would be ESTABLISHED. Every postcondition case compares scalar strings except E08 (`1` against `true`) | cases E18-E20 in v1.2 (NEGATIVE_RESULTS.md §64); written after the faults were known |
 
 v1.2 cases for the open gap are written after these faults were known.
 They will demonstrate the repair against them and will not count as independent evidence; v1 and v1.1 stay frozen.

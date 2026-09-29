@@ -6,6 +6,12 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Added
 
+- Evidence-sufficiency v1.2 (`conformance/evidence-sufficiency-v1.2/`): the
+  50 v1.1 cases verbatim plus E18-E20, which tell apart the three withheld
+  `canonical()` faults from the external v1.1 run. v1 and v1.1 are frozen.
+  The cases were written after the faults were known, so their kills show the
+  repair and are not independent evidence; NEGATIVE_RESULTS.md §64 is
+  superseded.
 - The external v1.1 seeded-fault run over evidence-sufficiency, recorded in
   `docs/assurance/external_adequacy_evidence_sufficiency_v1.md`. The known
   faults are all killed on the runner row, which shows the repair and is not
