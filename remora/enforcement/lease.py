@@ -50,9 +50,9 @@ import logging
 import os
 import threading
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
-from typing import TYPE_CHECKING, Any, Callable, ContextManager, Sequence
+from typing import TYPE_CHECKING, Any, Callable, ContextManager, Mapping, Sequence
 
 from remora.enforcement import lease_signing as _signing
 from remora.enforcement.nonce_store import NonceStore, NonceStoreUnavailable
@@ -96,6 +96,10 @@ class ToolExecutionStateUnknown(RemoraError, RuntimeError):
         self.proposal_id = proposal_id
         self.tenant_id = tenant_id
         self.tool_name = tool_name
+        #: The effects a mediated tool requested before it raised (NTA-2): an
+        #: unknown parent can still carry which children executed.
+        self.nested_effects: dict[str, Any] = dict(_UNMEDIATED)
+        self.effect_graph: Any = None
 
 
 class LeaseRefused(RemoraError):
@@ -348,6 +352,17 @@ class ExecutionLease:
         migration window and for callers that pass an explicit key."""
         return hmac.new(
             key, ExecutionLease._canonical_payload(fields), hashlib.sha256
+        ).hexdigest()
+
+    def digest(self) -> str:
+        """Identity of this exact lease: its signed fields and its signature.
+
+        What a nested execution names as its parent (NTA-2): two leases for
+        the same call differ by nonce, so they never share a digest.
+        """
+        return hashlib.sha256(
+            ExecutionLease._canonical_payload(self._signed_fields())
+            + b"." + self.signature.encode()
         ).hexdigest()
 
     def _signed_fields(self) -> dict[str, Any]:
@@ -624,6 +639,11 @@ class NonceLedger:
             return self._failed.get(nonce)
 
 
+#: The nested-effect summary of a tool that was not mediated. A statement
+#: about the mediator, not about what the implementation did on its own.
+_UNMEDIATED: dict[str, Any] = {"mediated": False, "count": 0, "settled": True}
+
+
 @dataclass(frozen=True)
 class DispatchResult:
     """Outcome of a GovernedToolDispatcher.dispatch() call."""
@@ -648,6 +668,11 @@ class DispatchResult:
     #: Q7.6: the independent recorder's sequence number for this dispatch's
     #: intent, when recording was mandatory for the tool. None otherwise.
     recorder_seq: int | None = None
+    #: NTA-2: what a mediated tool asked for through its CapabilityMediator.
+    #: ``nested_effects`` is the summary the audit chain carries;
+    #: ``effect_graph`` the full, bounded ResolvedEffectGraph.
+    nested_effects: Mapping[str, Any] = field(default_factory=lambda: dict(_UNMEDIATED))
+    effect_graph: Any = None
 
 
 class GovernedToolDispatcher:
@@ -693,7 +718,10 @@ class GovernedToolDispatcher:
         """
         if not expected_policy_bundle_hash:
             raise ValueError("expected_policy_bundle_hash is mandatory to prevent stale policy execution")
-        self._tools: dict[str, Callable[[Any], Any]] = {}
+        self._tools: dict[str, Callable[..., Any]] = {}
+        self._mediated: set[str] = set()
+        self._downstream_ceilings: Callable[[str], Any] | None = None
+        self._effect_executors: dict[str, Callable[[str, Mapping[str, Any]], Any]] = {}
         self._registry_lock = threading.RLock()
         self._registry_versions: dict[str, int] = {}
         self._expected_bundle = expected_policy_bundle_hash
@@ -957,7 +985,8 @@ class GovernedToolDispatcher:
         with self._registry_lock:
             return dict(self._registry_versions)
 
-    def register(self, tool_name: str, fn: Callable[[Any], Any]) -> None:
+    def register(self, tool_name: str, fn: Callable[..., Any], *,
+                 mediated: bool = False) -> None:
         """Register the callable that actually executes ``tool_name``.
 
         Under a strict runtime profile the authority domain is refused here
@@ -971,7 +1000,75 @@ class GovernedToolDispatcher:
         assert_may_hold_tool_callables()
         with self._registry_lock:
             self._tools[tool_name] = fn
+            if mediated:
+                self._mediated.add(tool_name)
+            else:
+                self._mediated.discard(tool_name)
             self._registry_versions[tool_name] = self._registry_versions.get(tool_name, 0) + 1
+
+    def bind_downstream_ceilings(self, resolver: Callable[[str], Any]) -> None:
+        """Supply each tool's declared downstream ceiling (NTA-2).
+
+        ``resolver(tool_name)`` returns the signed ToolSpec's
+        ``DownstreamCeiling``, or None when the spec declares none. A mediated
+        tool without one may run, and every effect it requests refuses.
+        """
+        self._downstream_ceilings = resolver
+
+    def bind_effect_executors(
+            self, executors: Mapping[str, Callable[[str, Mapping[str, Any]], Any]]) -> None:
+        """Register the primitives mediated effects run on (NTA-2).
+
+        Each executor closes over the client or credential its effect needs,
+        so this is refused where tool callables are (custody property E).
+        """
+        from remora.enforcement.custody import assert_may_hold_tool_callables
+
+        assert_may_hold_tool_callables()
+        with self._registry_lock:
+            self._effect_executors = dict(executors)
+
+    def _prepare_mediation(self, lease: ExecutionLease, tool_name: str,
+                           capability_set: EffectiveCapabilitySet | None,
+                           now: str | None) -> tuple[Any, str | None]:
+        """The mediator for a mediated tool, or why the call is refused.
+
+        Runs before the nonce is spent. The effect authority is derived from
+        the capability set the lease is bound to, so a lease without one has
+        nothing to derive from and refuses rather than running unmediated.
+        """
+        if tool_name not in self._mediated:
+            return None, None
+        if capability_set is None or not lease.capability_digest:
+            return None, "capability_set_required"
+        from remora.capabilities.ceiling import DownstreamCeiling
+        from remora.capabilities.delegation import DelegationDenied
+        from remora.enforcement.capability_mediator import CapabilityMediator
+        from remora.enforcement.effect_capability import derive_effect_authority
+        from remora.enforcement.execution_context import ExecutionContext
+
+        try:
+            ceiling = (self._downstream_ceilings(tool_name)
+                       if self._downstream_ceilings is not None else None)
+        except Exception:  # noqa: BLE001 - an unreadable ceiling is not an empty one
+            return None, "downstream_ceiling_unavailable"
+        if ceiling is None:
+            ceiling = DownstreamCeiling(tool=tool_name, capabilities=())
+        moment = _parse_utc(now) if now is not None else datetime.now(UTC)
+        try:
+            authority = derive_effect_authority(capability_set, tool_name=tool_name,
+                                                ceiling=ceiling, now=moment)
+        except DelegationDenied:
+            return None, "capability_delegation_denied"
+        context = ExecutionContext.for_dispatch(
+            tool_name=tool_name, capability_set=capability_set,
+            proposal_id=lease.proposal_id, policy_bundle_hash=lease.policy_bundle_hash,
+            toolspec_hash=lease.toolspec_hash, lease_digest=lease.digest(),
+            context_id=lease.context_id, task_id=lease.task_id,
+            runtime_identity_hash=getattr(lease, "runtime_identity_hash", "") or "")
+        return CapabilityMediator(
+            context, authority, executors=self._effect_executors,
+            epochs=self._capability_epochs, state_reader=self._capability_state), None
 
     def _record_outcome(self, lease: ExecutionLease, tool_name: str,
                         intent_seq: int | None, outcome: str) -> None:
@@ -1166,6 +1263,22 @@ class GovernedToolDispatcher:
                 proposal_id=proposal_id,
             )
 
+        # NTA-2: the mediated execution's authority, prepared before anything
+        # is spent so a refusal here leaves the nonce unspent too.
+        mediator, mediation_refusal = self._prepare_mediation(
+            lease, tool_name, capability_set, now)
+        if mediation_refusal is not None:
+            governance_event(
+                "dispatch.refused", level=logging.WARNING,
+                reason=mediation_refusal, tenant_id=tenant_id,
+                tool_name=tool_name, proposal_id=proposal_id,
+                grant_jti=lease.grant_jti,
+            )
+            return DispatchResult(
+                executed=False, refusal_reason=mediation_refusal,
+                proposal_id=proposal_id,
+            )
+
         # Q7.6: recorded outside this process before anything is spent. A
         # refusal here leaves the nonce unspent, like every refusal above.
         from remora.audit.recorder import RecorderUnavailable
@@ -1249,8 +1362,19 @@ class GovernedToolDispatcher:
             )
 
         # execution
+        def _nested() -> tuple[dict[str, Any], Any]:
+            if mediator is None:
+                return dict(_UNMEDIATED), None
+            from remora.enforcement.effect_graph import ResolvedEffectGraph
+
+            mediator.close()
+            graph = ResolvedEffectGraph.from_mediator(
+                mediator, root_effect_digest=lease.resolved_effect_hash or None)
+            return graph.summary(), graph
+
         try:
-            res = fn(arguments)
+            res = fn(arguments, mediator) if mediator is not None else fn(arguments)
+            nested_effects, effect_graph = _nested()
             self._record_outcome(lease, tool_name, recorder_seq, "executed")
             governance_event(
                 "dispatch.executed",
@@ -1261,6 +1385,7 @@ class GovernedToolDispatcher:
             return DispatchResult(
                 executed=True, result=res, proposal_id=proposal_id,
                 dispatch_began=True, recorder_seq=recorder_seq,
+                nested_effects=nested_effects, effect_graph=effect_graph,
             )
         except Exception as e:
             # Burn is recorded with its reason so failure() can surface it;
@@ -1279,9 +1404,11 @@ class GovernedToolDispatcher:
                 proposal_id=proposal_id, grant_jti=lease.grant_jti,
                 nonce_burned=True, error_type=type(e).__name__,
             )
-            raise ToolExecutionStateUnknown(
+            unknown = ToolExecutionStateUnknown(
                 f"Tool execution failed, nonce burned and state unknown/failed: {e}",
                 proposal_id=proposal_id,
                 tenant_id=tenant_id,
                 tool_name=tool_name,
-            ) from e
+            )
+            unknown.nested_effects, unknown.effect_graph = _nested()
+            raise unknown from e

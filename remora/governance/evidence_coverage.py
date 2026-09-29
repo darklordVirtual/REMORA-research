@@ -48,6 +48,7 @@ __all__ = [
     "AUTHORIZED_EXECUTION",
     "EXECUTED_EFFECT",
     "SUCCESS_ESTABLISHED",
+    "SUCCESS_ESTABLISHED_V2",
     "Authenticity",
     "CoverageStatus",
     "CoverageVerdict",
@@ -280,5 +281,26 @@ SUCCESS_ESTABLISHED = EvidenceContract(
         EvidenceRequirement("assessed", MappingProxyType({"capability.allowed": True}),
                             description="the capability check allowed the tool"),
         *EXECUTED_EFFECT.requirements[1:],
+    ),
+)
+
+#: NTA-2 (docs/design/authority-preserving-capability-mediation-v1.md,
+#: section 15): v1 plus the nested effects. The execution_result must also say
+#: that every effect the tool requested through its mediator is settled, so an
+#: execution with an UNKNOWN or truncated child is not established however its
+#: parent reads. An unmediated tool records ``settled: true`` with
+#: ``mediated: false``, which says nothing was requested through REMORA, not
+#: that nothing happened. A new version rather than a changed v1, so a verdict
+#: already given under v1 does not change after the fact.
+SUCCESS_ESTABLISHED_V2 = EvidenceContract(
+    contract_id="success_established_v2",
+    claim="capability, authority, execution, nested effects and effect all hold for the action",
+    requirements=tuple(
+        EvidenceRequirement(
+            "execution_result",
+            MappingProxyType({"tool_executed": True, "nested_effects.settled": True}),
+            description="the dispatcher ran the tool and every nested effect is settled")
+        if r.kind == "execution_result" else r
+        for r in SUCCESS_ESTABLISHED.requirements
     ),
 )

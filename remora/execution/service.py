@@ -674,6 +674,7 @@ def execute_approved_item(
         result_record["result_truncated"] = envelope_meta["truncated"]
     if tool_execution.get("refusal_reason"):
         result_record["tool_refusal_reason"] = tool_execution["refusal_reason"]
+    result_record.update(_nested_effects_fields(tool_execution))
     # Idempotent by outbox id (issue #416): the in-line write claims the
     # same key the projector would replay under, so the record can land at
     # most once regardless of who finishes it.
@@ -689,6 +690,14 @@ def execute_approved_item(
             "sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash,
         }
     return response
+
+
+def _nested_effects_fields(tool_execution: dict[str, Any]) -> dict[str, Any]:
+    """The NTA-2 nested-effect summary an execution_result carries, when the
+    dispatch reported one. Absent for dispatches that never reached the
+    dispatcher, which report no nested effects because none could occur."""
+    nested = tool_execution.get("nested_effects")
+    return {"nested_effects": dict(nested)} if nested else {}
 
 
 def _projection_payload(
@@ -718,6 +727,7 @@ def _projection_payload(
         "state_unknown": bool(tool_execution.get("state_unknown")),
         "refusal_reason": tool_execution.get("refusal_reason"),
         "intent_sequence_no": intent_sequence_no,
+        **_nested_effects_fields(tool_execution),
     }
     if executed_by:
         payload["executed_by"] = executed_by
@@ -746,7 +756,7 @@ def _result_record_from_projection(p: dict[str, Any]) -> dict[str, Any]:
         record["intent_sequence_no"] = p["intent_sequence_no"]
     if p.get("refusal_reason"):
         record["tool_refusal_reason"] = p["refusal_reason"]
-    for key in ("result_sha256", "result_size_bytes", "result_truncated"):
+    for key in ("result_sha256", "result_size_bytes", "result_truncated", "nested_effects"):
         if key in p:
             record[key] = p[key]
     return record
@@ -1049,6 +1059,7 @@ def dispatch_pending_intent(
         result_record["result_truncated"] = envelope_meta["truncated"]
     if tool_execution.get("refusal_reason"):
         result_record["tool_refusal_reason"] = tool_execution["refusal_reason"]
+    result_record.update(_nested_effects_fields(tool_execution))
     # Idempotent by outbox id (issue #416): the same key the projector
     # replays under, so the record lands at most once.
     entry = chain.append_once(
@@ -1386,6 +1397,7 @@ def redeem_accept_token(
         result_record["result_truncated"] = envelope_meta["truncated"]
     if tool_execution.get("refusal_reason"):
         result_record["tool_refusal_reason"] = tool_execution["refusal_reason"]
+    result_record.update(_nested_effects_fields(tool_execution))
     # Idempotent by outbox id (issue #416): the in-line write claims the
     # same key the projector would replay under, so the record can land at
     # most once regardless of who finishes it.

@@ -233,6 +233,13 @@ def dispatch_under_lease(
         tool_execution["proposal_id"] = proposal_id
         tool_execution["dispatch_began"] = True
         tool_execution["state_unknown"] = True
+        # NTA-2: what a mediated tool asked for before it raised.
+        nested = getattr(exc, "nested_effects", None)
+        if nested is not None:
+            tool_execution["nested_effects"] = dict(nested)
+        graph = getattr(exc, "effect_graph", None)
+        if graph is not None:
+            tool_execution["effect_graph"] = graph.to_dict()
         return tool_execution
     tool_execution["executed"] = dres.executed
     # Reported by the dispatcher, never inferred from the refusal reason.
@@ -240,6 +247,11 @@ def dispatch_under_lease(
     # Read the identity back off the dispatch result rather than the local
     # variable: what is reported is what the dispatcher actually acted under.
     tool_execution["proposal_id"] = dres.proposal_id
+    # NTA-2: the nested effects a mediated tool requested, as a bounded
+    # summary for the chain and the full graph for the response and export.
+    tool_execution["nested_effects"] = dict(getattr(dres, "nested_effects", None) or {})
+    if getattr(dres, "effect_graph", None) is not None:
+        tool_execution["effect_graph"] = dres.effect_graph.to_dict()
     if dres.executed:
         # Bounded retention, unbounded verification: the hash covers the
         # full result even when the preview is truncated, so an oversized

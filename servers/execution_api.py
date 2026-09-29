@@ -1177,14 +1177,22 @@ def _tool_dispatcher() -> GovernedToolDispatcher | None:
                 # spec THIS process would run, at the moment of dispatch, so a
                 # bundle that moved between approval and execution refuses.
                 dispatcher.bind_toolspec_identity(_toolspec_identity)
+                # NTA-2: a mediated tool's downstream ceiling is the one its
+                # signed ToolSpec declares, resolved in this process.
+                dispatcher.bind_downstream_ceilings(_downstream_ceiling)
                 _bind_premise_checks(dispatcher)
                 spec = _os.environ.get("REMORA_TOOL_REGISTRY_MODULE", "").strip()
                 if spec:
                     import importlib
 
-                    importlib.import_module(spec).register_tools(
-                        dispatcher.register
-                    )
+                    registry = importlib.import_module(spec)
+                    registry.register_tools(dispatcher.register)
+                    # Optional: the primitives mediated effects run on,
+                    # registered like tool callables because they close over
+                    # the same kind of credential.
+                    if hasattr(registry, "register_effect_executors"):
+                        registry.register_effect_executors(
+                            dispatcher.bind_effect_executors)
                 _DISPATCHER = dispatcher
     return _DISPATCHER
 
@@ -1203,6 +1211,19 @@ def _toolspec_identity(tool_name: str) -> tuple[str, int] | None:
         return None
     spec = bundle.get(tool_name)          # raises ToolSpecRefused if unknown
     return spec.toolspec_hash, int(spec.version)
+
+
+def _downstream_ceiling(tool_name: str) -> Any:
+    """The signed ToolSpec's downstream ceiling for ``tool_name`` (NTA-2).
+
+    ``None`` when no bundle is configured or the spec declares none; a
+    mediated tool then runs with no effect authority at all. A configured
+    bundle that cannot answer raises, and the dispatcher refuses on a raise.
+    """
+    bundle = _authz_load_bundle(_os.environ)
+    if bundle is None:
+        return None
+    return bundle.get(tool_name).downstream_capabilities
 
 
 def _reset_tool_dispatcher() -> None:
@@ -2659,13 +2680,15 @@ def _evidence_coverage(events: list[dict[str, Any]],
         AUTHORIZED_EXECUTION,
         EXECUTED_EFFECT,
         SUCCESS_ESTABLISHED,
+        SUCCESS_ESTABLISHED_V2,
         assess_coverage,
         chain_event_items,
     )
 
     items = chain_event_items(events, problems)
     return {contract.contract_id: assess_coverage(contract, items).to_dict()
-            for contract in (AUTHORIZED_EXECUTION, EXECUTED_EFFECT, SUCCESS_ESTABLISHED)}
+            for contract in (AUTHORIZED_EXECUTION, EXECUTED_EFFECT, SUCCESS_ESTABLISHED,
+                             SUCCESS_ESTABLISHED_V2)}
 
 
 def _capability_decision(events: list[dict[str, Any]]) -> dict[str, Any]:

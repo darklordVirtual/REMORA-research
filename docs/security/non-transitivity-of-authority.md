@@ -1,9 +1,9 @@
 # Non-Transitivity of Authority (NTA-1, NTA-2)
 
 **Status:** NTA-1 implemented and tested at the enforcement point (library and
-dispatcher level). NTA-2 phase 1 implemented as a library in the research
-profile, not wired into dispatch. Author-run conformance only, no external
-replication.
+dispatcher level). NTA-2 phases 1 and 2 implemented in the research profile
+and wired through the dispatcher and the execution API, opt-in per tool.
+Author-run conformance only, no external replication.
 **Canonical for:** the principle, its three forms, where it is enforced, and
 what it does not cover. Earlier documents describe parts of it under other
 names; the [terminology](#terminology) section maps them here.
@@ -100,7 +100,7 @@ NTA-1 governs calls that are REMORA capabilities. NTA-2 extends the principle
 to what a tool's own code can reach: a filesystem, a database client, an HTTP
 client, a secret store. The design is
 [Authority-Preserving Capability Mediation v1](../design/authority-preserving-capability-mediation-v1.md).
-Phase 1 is a library in the research profile:
+Phases 1 and 2 are implemented in the research profile:
 
 | Property | Implementation |
 |---|---|
@@ -112,9 +112,13 @@ Phase 1 is a library in the research profile:
 | The authority context comes from enforcement, not from the tool | `ExecutionContext` in `remora/enforcement/execution_context.py` |
 | Every effect request is checked, fails closed and is recorded | `CapabilityMediator` in `remora/enforcement/capability_mediator.py` |
 | Revoking the caller's set revokes the tool's effect authority | the parent set is an ancestor of the effect authority |
+| The ceiling is part of the signed ToolSpec (schema version 2) | `downstream_capabilities` in `remora/toolcall/toolspec.py` |
+| The dispatcher builds the mediator from the lease it verified, before the nonce is spent | `register(..., mediated=True)` and `_prepare_mediation` in `remora/enforcement/lease.py` |
+| Nested effects are bounded evidence in the chain and the export | `ResolvedEffectGraph` in `remora/enforcement/effect_graph.py`; `success_established_v2` |
 
-Phase 1 demonstrates the authority semantics. It does not stop code that
-ignores the mediator and uses a client directly. Stopping that needs the strict
+These phases demonstrate the authority semantics and record every request
+made through the mediator. They do not stop code that ignores the mediator and
+uses a client directly. Stopping that needs the strict
 profile's separation of effect credentials from tool workers (phase 3). Until
 then, limitation 1 below applies to NTA-2 in full.
 
