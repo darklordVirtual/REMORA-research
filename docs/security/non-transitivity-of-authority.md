@@ -153,8 +153,8 @@ python conformance/non-transitivity-of-authority-v1/run_conformance.py --adapter
 
 The committed `run-record.json` is an author run with all 13 vectors matching.
 `tests/test_conformance_non_transitivity.py` runs the suite in CI and also
-checks that it can fail: a permissive adapter diverges on every refusal vector,
-and weakening one guard at a time (depth cap, default transitivity, argument
+checks that it can fail. A permissive adapter diverges on every refusal vector.
+Weakening one guard at a time (depth cap, default transitivity, argument
 constraints, ancestor revocation) diverges on exactly the vectors that name it.
 
 ### Unit and property tests
