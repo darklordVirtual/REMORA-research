@@ -43,9 +43,11 @@ unestablished_properties:
       NTA-2: authorization of a tool does not authorize the privileged effects
       its implementation can reach. Phases 1 to 3 (CAP-024) implement it,
       including a three-domain split whose effect domain alone holds the
-      declared effect credentials. It stays NOT_ESTABLISHED because no
-      deployment runs that split and the pre-registered experiment has not
-      run. In the research profile a tool must opt in, and code
+      declared effect credentials. The pre-registered experiment measured the
+      mechanism on an author-written corpus (arm C stopped all eight unsafe
+      classes; NEGATIVE_RESULTS.md §63 records one missed prediction). It stays
+      NOT_ESTABLISHED because no deployment runs that split. In the research
+      profile a tool must opt in, and code
       that uses a client or credential directly is not stopped, so credential
       topology L3 and L5 stand unchanged. The property stays NOT_ESTABLISHED
       until the strict profile separates effect credentials from tool workers
@@ -679,7 +681,7 @@ capabilities:
       - tests/capabilities/test_effect_domain.py
       - tests/capabilities/test_effect_domain_server.py
       - tests/conformance/test_custody_effect_domain.py
-    caveat: "Opt-in: only tools a deployment registers as mediated get a mediator, and the research tool registry registers none. In the research profile and the two-domain split the mediator runs in the tool's own process and does not stop code that uses a credential directly. The three-domain split removes the declared effect credentials from the tool's process (credential topology L3 narrowed, not closed: an undeclared credential is outside the guard, and the effect domain's primitives share a process with the credentials they use). No deployment is claimed to run the three-domain split, and the pre-registered experiment has not run yet. Design: docs/design/authority-preserving-capability-mediation-v1.md."
+    caveat: "Opt-in: only tools a deployment registers as mediated get a mediator, and the research tool registry registers none. In the research profile and the two-domain split the mediator runs in the tool's own process and does not stop code that uses a credential directly. The three-domain split removes the declared effect credentials from the tool's process (credential topology L3 narrowed, not closed: an undeclared credential is outside the guard, and the effect domain's primitives share a process with the credentials they use). No deployment is claimed to run the three-domain split. The pre-registered experiment (results/authority_preserving_capability_mediation_v1.json) ran on an author-written corpus: seven of eight predictions met, P6 missed (NEGATIVE_RESULTS.md §63). Design: docs/design/authority-preserving-capability-mediation-v1.md."
 
   - id: CAP-META
     name: "Metatesting of the evidence regime (audit gates are mutation-tested)"

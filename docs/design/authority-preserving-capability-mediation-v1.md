@@ -1,7 +1,8 @@
 # Authority-Preserving Capability Mediation v1
 
-**Status:** proposed design. Phases 1 to 3 are implemented; the
-pre-registered experiment of section 25 has not run yet. See
+**Status:** proposed design. Phases 1 to 3 are implemented, and the
+pre-registered experiment of section 25 has run (seven of eight predictions
+met; NEGATIVE_RESULTS.md §63). See
 [Delivery status](#delivery-status).
 **Scope:** governed execution, nested capabilities, privileged resources,
 internal dispatch and effect authority.
@@ -380,7 +381,8 @@ zero failure count is not a universal safety claim.
 `results/authority_preserving_capability_mediation_v1.json`: corpus, arms,
 results by class, first layer stopping each class, false blocks, known limits,
 generator and revision, reproduced by
-`python experiments/authority_preserving_capability_mediation.py --check`.
+`python experiments/authority_preserving_capability_mediation.py --check`. The first run (2026-09-29) is committed, with P6 recorded as missed in
+NEGATIVE_RESULTS.md §63.
 
 ## 27. Capability register
 
@@ -507,4 +509,5 @@ inspected and verified independently.
 |---|---|---|
 | 1 | resource identities and `within`; `DownstreamCeiling`; `derive_effect_authority`; `ExecutionContext`; `CapabilityMediator` (research profile, fails closed); NTA2-01 to NTA2-11 in `conformance/non-transitivity-of-authority-v1` | implemented, library only; not wired into dispatch |
 | 2 | ToolSpec v2 downstream declaration and schema-version check; `GovernedToolDispatcher` builds the context and mediator for tools registered as mediated, before the nonce is spent; per-execution effect budget; `ResolvedEffectGraph` in the dispatch result, the `execution_result` chain record and the outbox projection; `success_established_v2`; the execution API reads ceilings from the signed bundle and executors from the registry module | implemented, opt-in, research profile |
-| 3 | three-domain custody split with an effect domain holding the credentials; `EffectDomain` and `RemoteEffectClient`; durable closure and budget; strict declaration rule; direct-access gate; experiment pre-registered in `experiments/authority_preserving_capability_mediation/PREREGISTERED.md` | implemented; the experiment has not run |
+| 3 | three-domain custody split with an effect domain holding the credentials; `EffectDomain` and `RemoteEffectClient`; durable closure and budget; strict declaration rule; direct-access gate; experiment pre-registered in `experiments/authority_preserving_capability_mediation/PREREGISTERED.md` | implemented |
+| 3, experiment | `results/authority_preserving_capability_mediation_v1.json`: with capability minimization alone every unsafe class produced its effect; the in-process mediator stopped all but direct use of the credential in the tool's process; the three-domain split, with the tool in a separate process holding no credential, stopped all eight unsafe classes; no legitimate nested effect was blocked. P6 missed (§63) | run, author-written corpus |

@@ -124,8 +124,12 @@ In the research profile and the two-domain split the mediator runs in the
 tool's own process: it records every request made through it, and does not
 stop code that uses a client directly. The three-domain split removes the
 declared effect credentials from that process, which narrows limitation 1
-below for declared credentials. No deployment is claimed to run it yet, and
-the pre-registered experiment that measures it has not run.
+below for declared credentials. The pre-registered experiment
+(`results/authority_preserving_capability_mediation_v1.json`) measured it on an
+author-written corpus: the three-domain split stopped all eight unsafe classes,
+including direct use of a credential, which the in-process mediator cannot
+stop; one prediction missed (NEGATIVE_RESULTS.md §63). No deployment is
+claimed to run the split.
 
 ## Security invariant
 
