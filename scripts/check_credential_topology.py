@@ -306,8 +306,97 @@ def collect(register: dict) -> tuple[dict[str, set[str]], list[str], list[Path]]
     return reads, sorted(set(dynamic)), files
 
 
-def check(register: dict) -> list[str]:
+#: Privileged interfaces a governed tool implementation can reach directly
+#: (NTA-2, design section 16). Imports name the interface; calls catch the
+#: two forms an import does not reveal.
+PRIVILEGED_IMPORTS: dict[str, str] = {
+    "socket": "network", "ssl": "network", "urllib": "network", "http": "network",
+    "requests": "network", "httpx": "network", "aiohttp": "network",
+    "smtplib": "network", "ftplib": "network", "paramiko": "network",
+    "subprocess": "process", "multiprocessing": "process", "pty": "process",
+    "sqlite3": "database", "psycopg": "database", "psycopg2": "database",
+    "pymysql": "database", "redis": "database", "pymongo": "database",
+    "sqlalchemy": "database",
+    "boto3": "cloud", "botocore": "cloud", "google": "cloud", "azure": "cloud",
+    "shutil": "filesystem",
+}
+_PROCESS_CALLS = {"system", "popen", "execv", "execve", "execvp", "spawnv", "spawnl"}
+_FILESYSTEM_METHODS = {"write_text", "write_bytes", "read_text", "read_bytes", "unlink",
+                       "mkdir", "rmdir", "rename", "replace", "touch", "chmod"}
+
+
+def privileged_interfaces(path: Path) -> set[str]:
+    """The privileged interface classes ``path`` reaches directly.
+
+    Evidence of conformance, not proof of absence: dynamic imports, native
+    extensions and clients handed in from elsewhere are invisible here.
+    """
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    found: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                top = alias.name.split(".")[0]
+                if top in PRIVILEGED_IMPORTS:
+                    found.add(PRIVILEGED_IMPORTS[top])
+        elif isinstance(node, ast.ImportFrom) and node.module and node.level == 0:
+            top = node.module.split(".")[0]
+            if top in PRIVILEGED_IMPORTS:
+                found.add(PRIVILEGED_IMPORTS[top])
+        elif isinstance(node, ast.Call):
+            func = node.func
+            if isinstance(func, ast.Name) and func.id == "open":
+                found.add("filesystem")
+            elif isinstance(func, ast.Attribute):
+                if (func.attr in _PROCESS_CALLS and isinstance(func.value, ast.Name)
+                        and func.value.id == "os"):
+                    found.add("process")
+                elif func.attr in _FILESYSTEM_METHODS:
+                    found.add("filesystem")
+    return found
+
+
+def governed_tool_modules(direct: dict) -> list[str]:
+    """Listed tool modules plus every file the discovery globs match, so a new
+    tool registry is scanned whether or not anybody listed it."""
+    modules = set(direct.get("governed_tool_modules") or ())
+    for pattern in direct.get("discovery_globs") or ():
+        modules.update(_rel(p) for p in ROOT.glob(pattern) if p.is_file())
+    return sorted(modules)
+
+
+def direct_access_findings(register: dict) -> list[str]:
+    direct = register.get("direct_access")
+    if not direct:
+        return ["direct_access: the register declares no direct-access section; "
+                "governed tool code would go unscanned"]
     failures: list[str] = []
+    declared: dict[tuple[str, str], dict] = {}
+    for entry in direct.get("declared") or ():
+        key = (str(entry.get("module")), str(entry.get("interface")))
+        declared[key] = entry
+        if not str(entry.get("reason") or "").strip():
+            failures.append(f"direct_access: {key[0]} {key[1]}: a declaration needs a reason")
+    seen: set[tuple[str, str]] = set()
+    for module in governed_tool_modules(direct):
+        path = ROOT / module
+        if not path.exists():
+            failures.append(f"direct_access: governed tool module {module} does not exist")
+            continue
+        for interface in sorted(privileged_interfaces(path)):
+            seen.add((module, interface))
+            if (module, interface) not in declared:
+                failures.append(
+                    f"direct_access: {module} reaches {interface} directly, undeclared. "
+                    "Route it through a CapabilityMediator, or declare it with a reason.")
+    for module, interface in sorted(set(declared) - seen):
+        failures.append(f"direct_access: stale declaration {module} {interface}: "
+                        "the module no longer reaches it")
+    return failures
+
+
+def check(register: dict) -> list[str]:
+    failures: list[str] = direct_access_findings(register)
     reads, dynamic, files = collect(register)
     declared = {c["name"]: c for c in register["credentials"]}
     secrets = {n: m for n, m in reads.items() if SECRET.search(n)}

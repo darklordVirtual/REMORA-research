@@ -412,40 +412,12 @@ class ExecutionLease:
             "task_id": self.task_id or None,
         })
 
-    def verify(
-        self,
-        *,
-        tool_name: str,
-        arguments: Any,
-        tenant_id: str,
-        target_environment: str,
-        now: str | None = None,
-        expected_policy_bundle_hash: str | None = None,
-        actor_identity: str | None = None,
-        toolspec_hash: str | None = None,
-        toolspec_version: int | None = None,
-        expected_proposal_id: str | None = None,
-        task_identity: "TaskIdentity | None" = None,
-    ) -> LeaseVerificationResult:
-        """Verify signature, expiry, and the full binding against a concrete call.
+    def verify_authenticity(self, *, now: str | None = None) -> LeaseVerificationResult:
+        """Signature, decision and validity window, without the call binding.
 
-        Every check fails closed; the first failed check names the reason.
-
-        ``actor_identity`` is the authenticated identity of the caller
-        presenting the lease. A lease issued to a named actor is enforced:
-        presenting it without an actor identity, or with a different one,
-        is refused. The identity string must come from an authenticated
-        transport context, never from the request body; transport-anchored
-        workload identity (credential/key ID binding) is REM-024 residual
-        scope.
-
-        ``task_identity`` is the task the call is being made under now. When
-        given, the lease must have been granted under exactly that task: an
-        unbound lease is ``task_unbound`` and a different task is
-        ``task_mismatch``, so a caller can tell a missing binding from a
-        replay into another task. When omitted, the task is not checked, the
-        same convention as ``toolspec_hash``; a dispatcher that must always
-        check refuses the omission itself (``require_task_identity``).
+        The first half of :meth:`verify`, shared so the two cannot drift. The
+        effect domain (NTA-2 phase 3) uses it on its own: it serves effects
+        for an execution, not a call, so it has no arguments to bind.
         """
         if not self.is_signed or not self.signature:
             return LeaseVerificationResult(False, "lease_not_signed")
@@ -488,6 +460,46 @@ class ExecutionLease:
             return LeaseVerificationResult(False, "lease_not_yet_valid")
         if current >= expiry:
             return LeaseVerificationResult(False, "lease_expired")
+        return LeaseVerificationResult(True, "authentic")
+
+    def verify(
+        self,
+        *,
+        tool_name: str,
+        arguments: Any,
+        tenant_id: str,
+        target_environment: str,
+        now: str | None = None,
+        expected_policy_bundle_hash: str | None = None,
+        actor_identity: str | None = None,
+        toolspec_hash: str | None = None,
+        toolspec_version: int | None = None,
+        expected_proposal_id: str | None = None,
+        task_identity: "TaskIdentity | None" = None,
+    ) -> LeaseVerificationResult:
+        """Verify signature, expiry, and the full binding against a concrete call.
+
+        Every check fails closed; the first failed check names the reason.
+
+        ``actor_identity`` is the authenticated identity of the caller
+        presenting the lease. A lease issued to a named actor is enforced:
+        presenting it without an actor identity, or with a different one,
+        is refused. The identity string must come from an authenticated
+        transport context, never from the request body; transport-anchored
+        workload identity (credential/key ID binding) is REM-024 residual
+        scope.
+
+        ``task_identity`` is the task the call is being made under now. When
+        given, the lease must have been granted under exactly that task: an
+        unbound lease is ``task_unbound`` and a different task is
+        ``task_mismatch``, so a caller can tell a missing binding from a
+        replay into another task. When omitted, the task is not checked, the
+        same convention as ``toolspec_hash``; a dispatcher that must always
+        check refuses the omission itself (``require_task_identity``).
+        """
+        authenticity = self.verify_authenticity(now=now)
+        if not authenticity.verified:
+            return authenticity
         if tool_name != self.tool_name:
             return LeaseVerificationResult(False, "tool_name_mismatch")
         if tenant_id != self.tenant_id:
@@ -694,6 +706,7 @@ class GovernedToolDispatcher:
         *,
         require_task_identity: bool = False,
         require_capability_set: bool = False,
+        require_downstream_declaration: bool | None = None,
     ) -> None:
         """
         ``require_capability_set`` (Q8.2) refuses a lease that carries no
@@ -730,6 +743,14 @@ class GovernedToolDispatcher:
         self._spec_identity: Callable[[str], tuple[str, int] | None] | None = None
         self._require_task = require_task_identity
         self._require_capability = require_capability_set
+        # NTA-2 phase 3: under a strict profile a mediated tool whose spec
+        # declares no downstream ceiling is refused rather than run with none.
+        if require_downstream_declaration is None:
+            from remora.enforcement.custody import custody_is_enforced
+
+            require_downstream_declaration = custody_is_enforced()
+        self._require_declaration = require_downstream_declaration
+        self._effect_domain: Any = None
         self._capability_state: Callable[[str, Any], Any] | None = None
         self._capability_epochs: Any = None
         self._effect_resolver: "EffectResolver | None" = None
@@ -1022,11 +1043,21 @@ class GovernedToolDispatcher:
         Each executor closes over the client or credential its effect needs,
         so this is refused where tool callables are (custody property E).
         """
-        from remora.enforcement.custody import assert_may_hold_tool_callables
+        from remora.enforcement.custody import assert_may_hold_effect_executors
 
-        assert_may_hold_tool_callables()
+        assert_may_hold_effect_executors()
         with self._registry_lock:
             self._effect_executors = dict(executors)
+
+    def bind_effect_domain(self, client: Any) -> None:
+        """Send mediated effects to a separate effect domain (NTA-2 phase 3).
+
+        ``client`` is a ``RemoteEffectClient``. With it bound, a mediated
+        tool's effects run in the effect domain, which re-verifies the lease
+        and derives the authority itself; this process then needs no effect
+        credential. Local effect executors are not used.
+        """
+        self._effect_domain = client
 
     def _prepare_mediation(self, lease: ExecutionLease, tool_name: str,
                            capability_set: EffectiveCapabilitySet | None,
@@ -1053,6 +1084,8 @@ class GovernedToolDispatcher:
         except Exception:  # noqa: BLE001 - an unreadable ceiling is not an empty one
             return None, "downstream_ceiling_unavailable"
         if ceiling is None:
+            if self._require_declaration:
+                return None, "downstream_declaration_required"
             ceiling = DownstreamCeiling(tool=tool_name, capabilities=())
         moment = _parse_utc(now) if now is not None else datetime.now(UTC)
         try:
@@ -1066,8 +1099,11 @@ class GovernedToolDispatcher:
             toolspec_hash=lease.toolspec_hash, lease_digest=lease.digest(),
             context_id=lease.context_id, task_id=lease.task_id,
             runtime_identity_hash=getattr(lease, "runtime_identity_hash", "") or "")
+        executors = (self._effect_domain.executors_for(
+                         lease, capability_set, [c.capability for c in ceiling.capabilities])
+                     if self._effect_domain is not None else self._effect_executors)
         return CapabilityMediator(
-            context, authority, executors=self._effect_executors,
+            context, authority, executors=executors,
             epochs=self._capability_epochs, state_reader=self._capability_state), None
 
     def _record_outcome(self, lease: ExecutionLease, tool_name: str,
@@ -1368,6 +1404,14 @@ class GovernedToolDispatcher:
             from remora.enforcement.effect_graph import ResolvedEffectGraph
 
             mediator.close()
+            if self._effect_domain is not None:
+                try:
+                    self._effect_domain.close(lease)
+                except Exception as exc:  # noqa: BLE001 - it expires with its authority
+                    governance_event(
+                        "dispatch.effect_domain_close_failed", level=logging.WARNING,
+                        tenant_id=lease.tenant_id, tool_name=tool_name,
+                        proposal_id=lease.proposal_id, error_type=type(exc).__name__)
             graph = ResolvedEffectGraph.from_mediator(
                 mediator, root_effect_digest=lease.resolved_effect_hash or None)
             return graph.summary(), graph
