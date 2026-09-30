@@ -659,6 +659,16 @@ Together they reach every reason of every claim.
 The contract shares its author with the checker, so a shared misreading is not caught.
 Held-out probe 3 was locked in `00aa914` before v1.6 was committed; it tests whether the projections reach classes nobody named.
 
+### 16.1 Result (2026-09-30)
+
+Probe 3 has 104 faults, from four new scenarios and two new implementation styles.
+v1.6 kills all 61 decision faults on rows 1 and 3, and 97 of 104 faults in all (v1.5: 94).
+It adds three kills. One is in the class probe 2 named (verdict equality); two are in classes nobody named: a plain `Enum` in place of `StrEnum`, and a list in place of a tuple on the verdict.
+So the whole-API differential caught faults in classes it was not built from, which no earlier mechanism had done.
+Seven faults survive. Two are labelled equivalent under the `assess` contract, and five are open gaps outside the decision logic (NEGATIVE_RESULTS.md §72).
+Three of the five concern state that crosses calls: a shared default scope, and scope validation skipped for empty observations.
+The other two concern the public types themselves: a keyword-only constructor and an alias enum member.
+
 ## Deliverables
 
 - This spec.

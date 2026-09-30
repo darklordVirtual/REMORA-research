@@ -2,7 +2,7 @@
 
 **Status:** research/conformance artifact. Synthetic author-run only. Not a standard, certification, production control, APS result or CoSAI deliverable.
 
-v1.5 is an additive corpus for the unchanged v1 checker, and the current one.
+v1.5 is an additive corpus for the unchanged v1 checker. [v1.6](../evidence-sufficiency-v1.6/README.md) carries it verbatim and is now the current corpus; v1.5 is frozen.
 It exists because a blind probe found faults that survive every row of v1.4 ([NEGATIVE_RESULTS.md §70](../../NEGATIVE_RESULTS.md)), and they lay in classes no fault list had reached.
 The design is section 15 of [`docs/design/evidence-sufficiency-v1.3.md`](../../docs/design/evidence-sufficiency-v1.3.md).
 

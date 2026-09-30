@@ -975,6 +975,7 @@ entries:
       - rule_coverage_profile_v2
       - generated_input_contract
       - return_isolation_check
+      - whole_api_differential
     code:
       - conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py
       - conformance/evidence-sufficiency-v1.3/invariants.json
@@ -994,6 +995,8 @@ entries:
       - conformance/evidence-sufficiency-v1.5/cases.json
       - conformance/evidence-sufficiency-v1.5/model.json
       - conformance/evidence-sufficiency-v1.5/run-record.json
+      - conformance/evidence-sufficiency-v1.6/run_evidence_sufficiency.py
+      - conformance/evidence-sufficiency-v1.6/run-record.json
       - docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt
       - docs/assurance/mutation_baseline_evidence_sufficiency_ast_v1.txt
       - docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt
@@ -1004,6 +1007,7 @@ entries:
       - tests/test_evidence_sufficiency_v1_4.py
       - tests/test_score_heldout_faults.py
       - tests/test_evidence_sufficiency_v1_5.py
+      - tests/test_evidence_sufficiency_v1_6.py
       - tests/test_evidence_sufficiency_blind_probe.py
     evidence: >-
       The record reproduces with python conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py
@@ -1069,7 +1073,12 @@ entries:
       generated input-contract and return-isolation sections. A second probe
       of 97 faults, locked before v1.5 was committed, went from 74 to 77 of 77
       decision faults on row 3 (73 to 76 on row 1); one fault, verdict value
-      equality, survives (NEGATIVE_RESULTS.md §71, open).
+      equality, survives (NEGATIVE_RESULTS.md §71). v1.6 adds a differential
+      test of the whole public API against an executable contract on 2,000
+      seeded inputs. On a third probe of 104 faults, locked before v1.6, it
+      kills all 61 decision faults and 97 of 104 in all (v1.5: 94); two of
+      its three new kills are in classes no probe had named, and five faults
+      on the API surface survive (NEGATIVE_RESULTS.md §72, open).
     maturity: library_only
     scope_boundary: >-
       A conformance research artifact, not a governed runtime path: the checker

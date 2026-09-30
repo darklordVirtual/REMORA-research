@@ -87,6 +87,14 @@ This file lists externally relevant changes by release. Fine-grained development
   locked before v1.5 existed: 77 of 77 decision faults on row 3 (v1.4: 74),
   one survivor in a new class (NEGATIVE_RESULTS.md §71). Found on the way:
   the frozen checker copies a scope shallowly (recorded as a limit).
+- Evidence-sufficiency v1.6 (`conformance/evidence-sufficiency-v1.6/`): v1.5
+  plus a differential test of the whole public API against an executable
+  contract (2,000 seeded inputs; exact types, value semantics, copy and
+  pickle, deep input non-mutation, order, module state, the enum contract).
+  On a third blind probe locked before v1.6: all 61 decision faults killed,
+  97 of 104 faults in all (v1.5: 94); two new kills are in classes no probe
+  had named; five faults on the API surface survive (NEGATIVE_RESULTS.md
+  §72, open).
 - Evidence-sufficiency v1.2 (`conformance/evidence-sufficiency-v1.2/`): the
   50 v1.1 cases verbatim plus E18-E20, which tell apart the three withheld
   `canonical()` faults from the external v1.1 run. v1 and v1.1 are frozen.

@@ -1186,6 +1186,10 @@ def build_record(checker_module: ModuleType | None = None) -> dict:
         for member in EvidenceStatus:
             if str(member) != member.value or member != member.value:
                 fail("enum_str", -1, member.value)
+        # Pickle finds a class through sys.modules; when several runners share a process, the
+        # module registered under this checker's name may be another copy. Point it here for the run.
+        registered = sys.modules.get(chk.__name__)
+        sys.modules[chk.__name__] = chk
         inputs = generated_api_inputs(model)
         api["inputs"] = len(inputs)
         for index, (claim, obs, scope) in enumerate(inputs):
@@ -1230,6 +1234,10 @@ def build_record(checker_module: ModuleType | None = None) -> dict:
                 continue
             if _typed(again) != _typed(reference_envelope(model, guidance, claim, obs, scope)):
                 fail("order", index)
+        if registered is None:
+            sys.modules.pop(chk.__name__, None)
+        else:
+            sys.modules[chk.__name__] = registered
         if _module_state(chk) != module_state_at_start:
             fail("module_state", -1)
         api["by_projection"] = dict(sorted(found.items()))

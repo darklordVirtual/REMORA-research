@@ -45,7 +45,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 CONFORMANCE = ROOT / "conformance"
 MODEL = CONFORMANCE / "evidence-sufficiency-v1.3" / "model.json"
-SUITES = ("evidence-sufficiency-v1.2", "evidence-sufficiency-v1.3", "evidence-sufficiency-v1.4", "evidence-sufficiency-v1.5")
+SUITES = ("evidence-sufficiency-v1.2", "evidence-sufficiency-v1.3", "evidence-sufficiency-v1.4", "evidence-sufficiency-v1.5", "evidence-sufficiency-v1.6")
 CLAIMS = ("admission_accounting", "tested_route_enforcement", "postcondition_observed")
 _ABSENT = object()
 EXACT = (True, False, _ABSENT)
