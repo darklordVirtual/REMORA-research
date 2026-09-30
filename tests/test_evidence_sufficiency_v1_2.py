@@ -155,7 +155,10 @@ def test_v11_runner_properties_carry_over(record: dict) -> None:
 
 
 def test_record_discloses_that_h1_was_written_after_the_faults(record: dict) -> None:
-    assert any("H1" in limit and "not independent evidence" in limit for limit in record["limits"])
+    disclosures = [limit for limit in record["limits"] if "H1" in limit and "not independent evidence" in limit]
+    assert disclosures
+    # Name the cases, not only the gap label, so the disclosure reads as a list of cases.
+    assert all("E18-E20" in limit for limit in disclosures)
 
 
 def test_committed_artifact_reproduces_exactly() -> None:
