@@ -59,5 +59,5 @@ The I1 cases, the rejection set, the envelope checks and the relations were writ
 Their kills of those mutants are expected by construction and are not independent evidence.
 The sweep uses one tool and its default operators; a mutant it never generates is not measured.
 A killed mutant says nothing about the correctness of the checker, and a relation that holds on this corpus is known to hold only on this corpus.
-v1.3 has had no external run; section 8 of the design records the blind protocol for one.
+No external run of v1.3 has happened; section 8 of the design records the blind protocol for one.
 Everything under "Non-claims" in the v1.1 and v1.2 READMEs applies here unchanged.
