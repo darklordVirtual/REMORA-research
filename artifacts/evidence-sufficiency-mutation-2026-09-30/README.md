@@ -16,6 +16,9 @@ Subject: `conformance/evidence-sufficiency-v1/checker.py`, sha256 `c4ca50aee2b29
 `ast-merged-v1.4.json.gz` is the same second set scored by the v1.4 runner, with the AST script's `RUNNER` pointed at `conformance/evidence-sufficiency-v1.4/` and `--workers 1`.
 It kills 901 with the same 4 survivors, and no kill in it rests on an L1 case alone. sha256 `6c8fc9d11b574e4734c7f52577d7ca48bf99fb74ebd198c011ae4e9a0df58e82`.
 
+`heldout-independent-analysis.json.gz` is `python scripts/score_heldout_faults.py artifacts/independent-analysis-2026-09-30/fault-definitions.json --expect-sha256 241fe7d8…d1733 --json …`.
+For v1.2 and v1.3 it agrees with that analysis's own raw rows on every fault; it also scores v1.4 (43 of 43 on row 3). sha256 `84b89bce2707d5de3e5617e0cb15d4f569185f582303722adb960080f5060d5d`.
+
 The v1.2 survivors contain the v1.3 survivors, and the 92 mutants only v1.3 kills are families A, B, D and E of NEGATIVE_RESULTS.md §65 (41 + 40 + 8 + 3).
 The family split itself is a hand classification and is not recomputed here.
 `ast-merged.json.gz`, with its `corpus` field removed, is identical to the `ast-sweep.json` the independent analysis produced on its own host.

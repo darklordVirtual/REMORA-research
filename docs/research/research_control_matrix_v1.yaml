@@ -970,6 +970,7 @@ entries:
       - specification_mutation
       - rule_coverage_criterion
       - held_out_specification_catalogue
+      - committed_held_out_fault_harness
     code:
       - conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py
       - conformance/evidence-sufficiency-v1.3/invariants.json
@@ -980,6 +981,7 @@ entries:
       - scripts/mutation_evidence_sufficiency_ast.py
       - scripts/spec_mutation_evidence_sufficiency.py
       - scripts/rule_coverage_evidence_sufficiency.py
+      - scripts/score_heldout_faults.py
       - conformance/evidence-sufficiency-v1.4/run_evidence_sufficiency.py
       - conformance/evidence-sufficiency-v1.4/cases.json
       - conformance/evidence-sufficiency-v1.4/run-record.json
@@ -991,6 +993,7 @@ entries:
       - tests/test_evidence_sufficiency_spec_mutation.py
       - tests/test_evidence_sufficiency_rule_coverage.py
       - tests/test_evidence_sufficiency_v1_4.py
+      - tests/test_score_heldout_faults.py
     evidence: >-
       The record reproduces with python conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py
       --check. mutmut 3.8.0 generates 489 mutants of the frozen v1 checker.
@@ -1041,7 +1044,9 @@ entries:
       the authored cases alone. The held-out test had little power: v1.3
       already killed 318 of its 319 mutants, and only five of the 22 derived
       cases, all for the §68 family, kill a mutant no other case kills
-      (NEGATIVE_RESULTS.md §69).
+      (NEGATIVE_RESULTS.md §69). A committed harness for section 8 (python
+      scripts/score_heldout_faults.py) reproduces the independent
+      analysis's raw rows for all 43 of its faults on v1.2 and v1.3.
     maturity: library_only
     scope_boundary: >-
       A conformance research artifact, not a governed runtime path: the checker

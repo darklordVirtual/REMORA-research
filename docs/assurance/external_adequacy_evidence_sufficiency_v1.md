@@ -196,4 +196,14 @@ The analysis also audited the numbers in the record. What it found is NEGATIVE_R
 The maintainer reran each historical row with a command added for it and found one more error: the first run of the second operator set had 57 kills resting on one check, not 60.
 The raw outputs are in `artifacts/evidence-sufficiency-mutation-2026-09-30/`.
 The mutmut rows of section 7 reproduce exactly (377/112 and 469/20), and so does the AST sweep: the analysis's `ast-sweep.json` equals the maintainer's.
+
+### Maintainer reproduction, committed
+
+Earlier reproductions by the maintainer were not committed and were not evidence on their own.
+This one is: `scripts/score_heldout_faults.py` scored the 43 definitions after checking their digest.
+For v1.2 and v1.3 it agrees with the analysis's raw rows for every fault, on the set of cases that kill on rows 1 and 2 and on row 3.
+`tests/test_score_heldout_faults.py` checks that agreement.
+It also scores v1.4, which did not exist when the faults were chosen: 43 of 43 on row 3, 24 of 24 hand-picked and 19 of 19 systematic on row 1.
+The record is `artifacts/evidence-sufficiency-mutation-2026-09-30/heldout-independent-analysis.json.gz`.
+
 The analysis proposes a stricter acceptance criterion for a future blind run: at least 30 held-out faults across two operators and one complete operator class, and every non-equivalent fault killed on the v1.3 runner row.
