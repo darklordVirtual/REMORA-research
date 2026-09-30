@@ -367,6 +367,74 @@ Each source is listed with what this spec takes from it and what it leaves.
 - Nosek et al. (2018), *The preregistration revolution*, PNAS 115(11). Taken: section 8 item 6, the criterion stated before the run.
 - McKeeman (1998), *Differential Testing for Software*, Digital Technical Journal 10(1). Two implementations of one specification disagree where one is wrong. Taken: D-14, the reference model over the lattice. Left: random differential inputs; the lattice is enumerated.
 - Jia and Harman (2009), *Higher Order Mutation Testing*, Information and Software Technology 51(10). Pairs of faults can mask each other. Taken: the fixed-seed second-order sample of D-15. Left: the search for subsuming higher-order mutants.
+- Budd and Gopal (1985), *Program testing by specification mutation*, Computer Languages 10(1). Mutate the specification, not the program, and ask whether the tests tell the mutant specification apart. Taken: section 13. Left: specification languages; the specification here is `model.json`.
+- Offutt, Lee, Rothermel, Untch and Zapf (1996), *An experimental determination of sufficient mutant operators*, ACM TOSEM 5(2). A small operator set can stand in for a large one. Taken: section 13 names its operators before the run and does not add operators after it.
+
+## 13. Specification mutation, pre-registered
+
+### 13.1 Why
+
+All three measures so far seed faults in `checker.py`: mutmut, the second operator set and the independent analysis of 2026-09-30.
+Their faults follow the shape of one implementation, and the K1 cases were derived from the second set.
+A corpus that is adequate against faults in one program's shape may still miss a wrong reading of the rules that another program would carry.
+Specification mutation (Budd and Gopal, 1985) seeds faults in the rules instead.
+`scripts/spec_mutation_evidence_sufficiency.py` mutates `model.json`.
+It turns each mutant model into a checker: a fresh copy of the frozen checker whose three assessors interpret the mutant model.
+Validation, the envelope and the guidance table stay the checker's own.
+Each mutant is scored in the three rows of section 8.
+
+### 13.2 Operators
+
+| Operator | Mutants | What it seeds |
+|---|---:|---|
+| `delete_guard` | 18 | a `require` step removed |
+| `swap_guards` | 16 | two adjacent steps exchanged, a terminal excepted |
+| `drop_premise` | 2 | one premise removed from a two-premise guard |
+| `add_premise` | 124 | a guard also requires another premise of the same claim |
+| `premise_reading` | 100 | a premise read by truthiness, `== True`, `is not False`, presence or `is False` |
+| `branch_reading` | 18 | a branch arm taken on truthiness, `== True`, `is not False`, falsiness, `== False`, `is not None`, `is not True` or always; the arms swapped |
+| `reason_swap` | 142 | an inconclusive reason replaced by every other inconclusive reason of the same claim |
+| `verdict_swap` | 18 | a decisive verdict given another status, or another decisive reason of the same claim |
+| `state_comparison` | 8 | states compared by raw `==`, case-folded, with list order ignored, by keys only or as strings; a missing state counted as equal or as different; the two verdicts swapped |
+| second order | 300 | a fixed-seed (20261001) sample of pairs on one claim whose edits compose on distinct steps |
+
+That is 446 first-order and 300 second-order mutants.
+`python scripts/spec_mutation_evidence_sufficiency.py --list` prints the catalogue, each entry with its mutated ladder.
+`--catalogue-sha256` prints its digest: `2fbf983a5b29f7f6c2b4bba8319fd8c8d7a59105651f38e11b4e6b3d8c5bd5a8`, over `model.json` at sha256 `861e5dc80ff1983e2b3a640ad0f20b340fb0157c6ecfc6df259d1c2083dba201`.
+No operator is added or removed after the first score is read.
+
+### 13.3 Equivalence is computed, not argued
+
+The model reads a premise only through predicates, and each predicate in the catalogue gives one answer on each of eight value classes.
+The classes are `true`, `false`, absent, `null`, `1`, `0`, a truthy non-boolean and a falsy non-boolean.
+A premise that no edit of a mutant touches is read exactly, by `is True` or `is False`, in both models.
+Under an exact reading the last five classes behave as absent.
+So two models that agree on every combination of three classes for untouched premises, and eight for touched ones, agree on every premise value JSON can carry.
+The script enumerates that domain per mutant.
+A mutant that agrees with the model on all of it is equivalent, and leaves the denominator by computation, with no hand label.
+The state comparison is decided on the model's twelve declared state values plus absence.
+That bound is stated, not proved complete; a comparison mutant equivalent only on it would be reported as such.
+
+### 13.4 Pre-registered criterion
+
+Stated before any mutant was scored, in the commit that adds this section:
+
+1. S-1: every first-order mutant that is not equivalent on the domain of 13.3 is killed on row 3.
+2. S-2: every such mutant is killed on row 1, by the authored cases alone.
+3. S-3: every second-order mutant that is not equivalent is killed on row 3; its row 1 is reported.
+4. Rows 1, 2 and 3 are reported per operator, and each survivor with its witness from the domain.
+5. No corpus file changes in the change that reports the result. A survivor is an open gap until a later version closes it, and a case written for it is fitted, as K1 was.
+
+S-2 is the test that matters for generalisation.
+Row 3 includes the lattice differential of D-14, which interprets `model.json` itself, so a live specification mutant is expected to die there.
+Row 1 has no such help: it asks whether the 79 authored cases, written against checker-shaped faults, also separate wrong readings of the rules.
+
+### 13.5 What this can and cannot show
+
+A pass shows that the corpus separates the specification from every single wrong reading in a named operator space, whatever code carries it.
+The operators were written by the corpus's author, after v1.3; they are pre-registered, not blind.
+The domain argument covers premise values. State values are bounded to the declared vocabulary.
+A misreading the operators cannot express, or one that `model.json` shares with the checker, is not measured.
 
 ## Deliverables
 
@@ -376,3 +444,4 @@ Each source is listed with what this spec takes from it and what it leaves.
 - `scripts/mutation_evidence_sufficiency_ast.py`, `docs/assurance/mutation_baseline_evidence_sufficiency_ast_v1.txt` and `conformance/evidence-sufficiency-v1.3/model.json`.
 - `tests/test_evidence_sufficiency_v1_3.py`.
 - The `evidence-sufficiency` job in `.github/workflows/mutation.yml`.
+- `scripts/spec_mutation_evidence_sufficiency.py` and section 13.
