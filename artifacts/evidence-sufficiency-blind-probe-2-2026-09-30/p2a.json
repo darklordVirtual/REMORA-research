@@ -1,0 +1,129 @@
+{
+ "selector": "p2a-feature-prs",
+ "files_read": [
+  "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\checker.py",
+  "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\README.md"
+ ],
+ "faults": [
+  {
+   "id": "P2A-01",
+   "old": "    if not scope:\n",
+   "new": "    if scope is None:\n",
+   "rationale": "empty-dict scope treated as given"
+  },
+  {
+   "id": "P2A-02",
+   "old": "missing, decisive_if = _REASON_GUIDANCE[reason]",
+   "new": "missing, decisive_if = (_REASON_GUIDANCE[reason][0][:1], _REASON_GUIDANCE[reason][1])",
+   "rationale": "trim missing list; drops items"
+  },
+  {
+   "id": "P2A-03",
+   "old": "\"status\": self.status.value,",
+   "new": "\"status\": self.status.name,",
+   "rationale": "serialize enum name not value"
+  },
+  {
+   "id": "P2A-04",
+   "old": "o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True",
+   "new": "o.get(\"effect_source_accepted\") is not True and o.get(\"effect_seen\") is not True",
+   "rationale": "or->and"
+  },
+  {
+   "id": "P2A-05",
+   "old": "if o.get(\"scope_accepted\") is not True:",
+   "new": "if o.get(\"scope_accepted\") is False:",
+   "rationale": "missing scope tolerated"
+  },
+  {
+   "id": "P2A-06",
+   "old": "if o.get(\"admission_present\") is not False:",
+   "new": "if o.get(\"admission_present\") is None:",
+   "rationale": "non-bool presence tolerated"
+  },
+  {
+   "id": "P2A-07",
+   "old": "if o.get(\"admission_matches\") is True:",
+   "new": "if o.get(\"admission_matches\") is not False:",
+   "rationale": "missing match treated as match"
+  },
+  {
+   "id": "P2A-08",
+   "old": "if o.get(\"window_finalized\") is not True:",
+   "new": "if o.get(\"window_finalized\") is False:",
+   "rationale": "missing finalization tolerated"
+  },
+  {
+   "id": "P2A-09",
+   "old": "if o.get(\"admission_coverage_complete\") is not True:",
+   "new": "if o.get(\"admission_coverage_complete\") is None:",
+   "rationale": "false coverage no longer blocks"
+  },
+  {
+   "id": "P2A-10",
+   "old": "if o.get(\"outside_required_pep\") is not True:",
+   "new": "if o.get(\"outside_required_pep\") is False:",
+   "rationale": "missing tolerated"
+  },
+  {
+   "id": "P2A-11",
+   "old": "if o.get(\"protected_effect_observed\") is True:",
+   "new": "if o.get(\"protected_effect_observed\"):",
+   "rationale": "truthy non-bool counts as effect"
+  },
+  {
+   "id": "P2A-12",
+   "old": "if o.get(\"valid_control_same_context\") is not True:",
+   "new": "if o.get(\"valid_control_same_context\") is False:",
+   "rationale": "missing control tolerated"
+  },
+  {
+   "id": "P2A-13",
+   "old": "if o.get(\"effect_observation_accepted\") is not True:",
+   "new": "if o.get(\"effect_observation_accepted\") is None:",
+   "rationale": "False accepted tolerated"
+  },
+  {
+   "id": "P2A-14",
+   "old": "if o.get(\"fresh_in_declared_window\") is not True:",
+   "new": "if o.get(\"fresh_in_declared_window\") is False:",
+   "rationale": "missing freshness tolerated"
+  },
+  {
+   "id": "P2A-15",
+   "old": "if \"expected_state\" not in o or \"observed_state\" not in o:",
+   "new": "if \"expected_state\" not in o and \"observed_state\" not in o:",
+   "rationale": "one-sided missing raises KeyError"
+  },
+  {
+   "id": "P2A-16",
+   "old": "canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"])",
+   "new": "o[\"expected_state\"] == o[\"observed_state\"]",
+   "rationale": "python equality, True==1 and no validation"
+  },
+  {
+   "id": "P2A-17",
+   "old": "if value is None or type(value) in (str, bool, int):",
+   "new": "if value is None or isinstance(value, (str, bool, int, float)):",
+   "rationale": "floats accepted"
+  },
+  {
+   "id": "P2A-18",
+   "old": "all(type(key) is str for key in value)",
+   "new": "all(isinstance(key, (str, int)) for key in value)",
+   "rationale": "int keys accepted"
+  },
+  {
+   "id": "P2A-19",
+   "old": "json.dumps(value, sort_keys=True, ",
+   "new": "json.dumps(value, ",
+   "rationale": "key order affects equality"
+  },
+  {
+   "id": "P2A-20",
+   "old": "if premise_source != \"synthetic_fixture\":",
+   "new": "if premise_source not in (\"synthetic_fixture\", \"production\"):",
+   "rationale": "accept production source"
+  }
+ ]
+}

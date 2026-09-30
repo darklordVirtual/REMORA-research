@@ -1,0 +1,129 @@
+{
+  "selector": "p2c-adversarial",
+  "files_read": [
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\checker.py",
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\README.md"
+  ],
+  "faults": [
+    {
+      "id": "P2C-01",
+      "old": "type(value) in (str, bool, int)",
+      "new": "type(value) in (str, bool, int, float)",
+      "rationale": "validate_json/canonical accept floats; canonical(1.5) returns '1.5' instead of raising ValueError"
+    },
+    {
+      "id": "P2C-02",
+      "old": "all(type(key) is str for key in value)",
+      "new": "all(isinstance(key, str) for key in value)",
+      "rationale": "str-subclass dict keys (e.g. a StrEnum member) are accepted; validate_json({EvidenceStatus.ESTABLISHED: 1}) no longer raises"
+    },
+    {
+      "id": "P2C-03",
+      "old": "sort_keys=True",
+      "new": "sort_keys=False",
+      "rationale": "canonical becomes key-order dependent; postcondition with expected {'a':1,'b':2} vs observed {'b':2,'a':1} becomes VIOLATED instead of ESTABLISHED"
+    },
+    {
+      "id": "P2C-04",
+      "old": "if not scope:",
+      "new": "if scope is None:",
+      "rationale": "an explicit empty scope {} is kept as {} instead of being replaced by the default synthetic_fixture scope"
+    },
+    {
+      "id": "P2C-05",
+      "old": "    return dict(scope)",
+      "new": "    return scope",
+      "rationale": "verdict scope aliases the caller's scope mapping; mutating the caller dict after assess changes verdict.scope"
+    },
+    {
+      "id": "P2C-06",
+      "old": "(\"expected state\", \"observed state\"),",
+      "new": "(\"observed state\", \"expected state\"),",
+      "rationale": "missing_evidence order for state_value_missing is swapped; readback fixture without states returns ('observed state','expected state')"
+    },
+    {
+      "id": "P2C-07",
+      "old": "validate_json(dict(scope))",
+      "new": "validate_json(list(scope))",
+      "rationale": "scope values are no longer validated (only keys); assess(..., scope={'a': 1.5}) returns a verdict instead of raising ValueError"
+    },
+    {
+      "id": "P2C-08",
+      "old": "validate_json(dict(observations))",
+      "new": "validate_json(list(observations.values()))",
+      "rationale": "non-string observation keys are no longer rejected; assess('postcondition_observed', {1: True}) returns a verdict instead of raising"
+    },
+    {
+      "id": "P2C-09",
+      "old": "not isinstance(observations, Mapping)",
+      "new": "type(observations) is not dict",
+      "rationale": "non-dict Mappings are rejected; assess with MappingProxyType({}) raises ValueError instead of returning not_established"
+    },
+    {
+      "id": "P2C-10",
+      "old": "if premise_source != \"synthetic_fixture\":",
+      "new": "if not premise_source.startswith(\"synthetic_fixture\"):",
+      "rationale": "premise guard accepts any prefix-extended source; premise_source='synthetic_fixture_production' no longer raises"
+    },
+    {
+      "id": "P2C-11",
+      "old": "if o.get(\"admission_present\") is not False:",
+      "new": "if o.get(\"admission_present\") != False:  # noqa: E712",
+      "rationale": "integer 0 is treated as admission absence; closed-world fixture with admission_present=0 becomes VIOLATED instead of not_established"
+    },
+    {
+      "id": "P2C-12",
+      "old": "if o.get(\"window_finalized\") is not True:",
+      "new": "if o.get(\"window_finalized\") != True:  # noqa: E712",
+      "rationale": "integer 1 counts as a finalized window; closed-world fixture with window_finalized=1 becomes VIOLATED instead of not_established"
+    },
+    {
+      "id": "P2C-13",
+      "old": "if o.get(\"protected_effect_observed\") is True:",
+      "new": "if o.get(\"protected_effect_observed\") == True:  # noqa: E712",
+      "rationale": "integer 1 counts as an observed effect; route fixture with protected_effect_observed=1 becomes VIOLATED instead of not_established/protected_effect_unknown"
+    },
+    {
+      "id": "P2C-14",
+      "old": "    if o.get(\"effect_window_complete\") is not True:\n        return _unknown(claim, \"no_effect_observation_not_complete\", scope)\n    if o.get(\"valid_control_same_context\") is not True:\n        return _unknown(claim, \"valid_control_missing_or_incomparable\", scope)",
+      "new": "    if o.get(\"valid_control_same_context\") is not True:\n        return _unknown(claim, \"valid_control_missing_or_incomparable\", scope)\n    if o.get(\"effect_window_complete\") is not True:\n        return _unknown(claim, \"no_effect_observation_not_complete\", scope)",
+      "rationale": "check order swapped; with both effect_window_complete and valid_control missing the reason/missing_evidence is valid_control_* instead of no_effect_observation_not_complete"
+    },
+    {
+      "id": "P2C-15",
+      "old": "    if o.get(\"fresh_in_declared_window\") is not True:\n        return _unknown(claim, \"readback_stale_or_time_unbound\", scope)\n    if o.get(\"settlement_reached\") is not True:\n        return _unknown(claim, \"declared_settlement_point_not_reached\", scope)",
+      "new": "    if o.get(\"settlement_reached\") is not True:\n        return _unknown(claim, \"declared_settlement_point_not_reached\", scope)\n    if o.get(\"fresh_in_declared_window\") is not True:\n        return _unknown(claim, \"readback_stale_or_time_unbound\", scope)",
+      "rationale": "check order swapped; with both freshness and settlement missing the reason is declared_settlement_point_not_reached instead of readback_stale_or_time_unbound"
+    },
+    {
+      "id": "P2C-16",
+      "old": "if \"expected_state\" not in o or \"observed_state\" not in o:",
+      "new": "if o.get(\"expected_state\") is None or o.get(\"observed_state\") is None:",
+      "rationale": "a present JSON-null state is treated as missing; expected_state=None, observed_state=None gives not_established instead of ESTABLISHED"
+    },
+    {
+      "id": "P2C-17",
+      "old": "if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):",
+      "new": "if o[\"expected_state\"] == o[\"observed_state\"]:",
+      "rationale": "Python equality conflates True and 1; expected_state=True, observed_state=1 gives ESTABLISHED instead of VIOLATED"
+    },
+    {
+      "id": "P2C-18",
+      "old": "\"missing_evidence\": list(self.missing_evidence),",
+      "new": "\"missing_evidence\": self.missing_evidence,",
+      "rationale": "as_dict returns missing_evidence as a tuple (JSON serialisation identical); as_dict()['missing_evidence'] == ['accepted bounded scope'] becomes False"
+    },
+    {
+      "id": "P2C-19",
+      "old": "return _unknown(claim, \"valid_control_missing_or_incomparable\", scope)",
+      "new": "return _unknown(claim, \"valid_control_missing_or_incomparable\", None)",
+      "rationale": "caller scope dropped on the valid-control path; with scope={'t':'x'} the verdict scope is the default synthetic scope"
+    },
+    {
+      "id": "P2C-20",
+      "old": "@dataclass(frozen=True)",
+      "new": "@dataclass(frozen=True, eq=False)",
+      "rationale": "verdict value equality lost; two identical assess() calls return verdicts that compare unequal"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+ "implementer": "p2d",
+ "style": "object-oriented",
+ "files_read": [
+  "SPEC.md"
+ ],
+ "variants": [
+  {
+   "file": "variant_01.py",
+   "misreading": "holds() uses truthiness so 1, 'true' or non-empty lists count as holding."
+  },
+  {
+   "file": "variant_02.py",
+   "misreading": "refuted() treats any falsy or absent value (null, 0, missing) as false."
+  },
+  {
+   "file": "variant_03.py",
+   "misreading": "Only effect_source_accepted is checked in the first guard; effect_seen is ignored."
+  },
+  {
+   "file": "variant_04.py",
+   "misreading": "In the absent-admission branch the window_finalized check precedes mandatory_admission."
+  },
+  {
+   "file": "variant_05.py",
+   "misreading": "A matching admission establishes before its source acceptance is checked."
+  },
+  {
+   "file": "variant_06.py",
+   "misreading": "Refusal attribution is checked before the valid-control guard."
+  },
+  {
+   "file": "variant_07.py",
+   "misreading": "A state value of null is treated as missing rather than only an absent key."
+  },
+  {
+   "file": "variant_08.py",
+   "misreading": "Booleans are compared with Python equality so true equals 1."
+  },
+  {
+   "file": "variant_09.py",
+   "misreading": "Mappings are compared in key order instead of regardless of order."
+  },
+  {
+   "file": "variant_10.py",
+   "misreading": "Settlement is checked before freshness."
+  },
+  {
+   "file": "variant_11.py",
+   "misreading": "The effect_observation_accepted guard is dropped from tested_route_enforcement."
+  },
+  {
+   "file": "variant_12.py",
+   "misreading": "Lists are compared order-insensitively."
+  }
+ ]
+}

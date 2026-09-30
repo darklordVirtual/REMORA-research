@@ -1,0 +1,57 @@
+{
+  "implementer": "p2f",
+  "style": "defensive",
+  "files_read": [
+    "SPEC.md"
+  ],
+  "variants": [
+    {
+      "file": "variant_01.py",
+      "misreading": "Premise check uses == True, so the integer 1 is accepted as a holding premise."
+    },
+    {
+      "file": "variant_02.py",
+      "misreading": "Refutation helper treats null as an explicit false, so a null admission_present enters the closed-world branch."
+    },
+    {
+      "file": "variant_03.py",
+      "misreading": "Input normalisation coerces the strings \"true\"/\"false\" into booleans before premise checks."
+    },
+    {
+      "file": "variant_04.py",
+      "misreading": "Execution guard requires only one of effect_source_accepted or effect_seen to hold instead of both."
+    },
+    {
+      "file": "variant_05.py",
+      "misreading": "Closed-world guards checked coverage before window finalisation, changing the reason when both fail."
+    },
+    {
+      "file": "variant_06.py",
+      "misreading": "A matching admission is credited before checking that the admission source is accepted."
+    },
+    {
+      "file": "variant_07.py",
+      "misreading": "Typo in the reason constant for an unattributed refusal."
+    },
+    {
+      "file": "variant_08.py",
+      "misreading": "Anything other than an observed effect is treated as a refuted effect, so an unknown effect goes down the refusal-credit path."
+    },
+    {
+      "file": "variant_09.py",
+      "misreading": "Effect-observation acceptance is only required for the no-effect branch, so an unaccepted observed effect still yields violated."
+    },
+    {
+      "file": "variant_10.py",
+      "misreading": "Defensive null check treats a present null state value as missing."
+    },
+    {
+      "file": "variant_11.py",
+      "misreading": "JSON comparison drops the boolean special case, so true equals 1 via numeric comparison."
+    },
+    {
+      "file": "variant_12.py",
+      "misreading": "List comparison checks membership rather than element-by-element order."
+    }
+  ]
+}

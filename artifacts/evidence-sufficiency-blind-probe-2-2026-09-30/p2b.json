@@ -1,0 +1,129 @@
+{
+  "selector": "p2b-maintenance",
+  "files_read": [
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\checker.py",
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\README.md"
+  ],
+  "faults": [
+    {
+      "id": "P2B-01",
+      "old": "    if not scope:",
+      "new": "    if scope:",
+      "rationale": "Inverted scope check logic; returns default scope when scope is truthy instead of falsy"
+    },
+    {
+      "id": "P2B-02",
+      "old": "                EvidenceStatus.ESTABLISHED,\n                \"covering_admission_observed_for_this_execution\",",
+      "new": "                EvidenceStatus.VIOLATED,\n                \"covering_admission_observed_for_this_execution\",",
+      "rationale": "Returns VIOLATED instead of ESTABLISHED when covering admission matches; inverts claim verdict"
+    },
+    {
+      "id": "P2B-03",
+      "old": "        if o.get(\"admission_source_accepted\") is not True:",
+      "new": "        if o.get(\"admission_source_accepted\") is True:",
+      "rationale": "Inverted admission source acceptance check; early return logic reversed"
+    },
+    {
+      "id": "P2B-04",
+      "old": "    if o.get(\"admission_present\") is not False:",
+      "new": "    if o.get(\"admission_present\") is False:",
+      "rationale": "Inverted absent-admission check; treats definite absence as unknown"
+    },
+    {
+      "id": "P2B-05",
+      "old": "    if o.get(\"mandatory_admission\") is not True:",
+      "new": "    if o.get(\"mandatory_admission\") is True:",
+      "rationale": "Inverted mandatory admission check; treats mandatory as missing when present"
+    },
+    {
+      "id": "P2B-06",
+      "old": "            EvidenceStatus.VIOLATED,\n            \"accepted_effect_observed_outside_required_pep\",",
+      "new": "            EvidenceStatus.ESTABLISHED,\n            \"accepted_effect_observed_outside_required_pep\",",
+      "rationale": "Returns ESTABLISHED instead of VIOLATED when effect observed outside PEP; inverts security verdict"
+    },
+    {
+      "id": "P2B-07",
+      "old": "    if o.get(\"route_observation_accepted\") is not True:",
+      "new": "    if o.get(\"route_observation_accepted\") is True:",
+      "rationale": "Inverted route observation acceptance check; exits early on accepted observations"
+    },
+    {
+      "id": "P2B-08",
+      "old": "    if o.get(\"same_protected_operation\") is not True:",
+      "new": "    if o.get(\"same_protected_operation\") is True:",
+      "rationale": "Inverted protected operation binding check; exits when operations match"
+    },
+    {
+      "id": "P2B-09",
+      "old": "    if o.get(\"outside_required_pep\") is not True:",
+      "new": "    if o.get(\"outside_required_pep\") is True:",
+      "rationale": "Inverted scope boundary check; exits when route is provably outside PEP"
+    },
+    {
+      "id": "P2B-10",
+      "old": "    if o.get(\"effect_observation_accepted\") is not True:",
+      "new": "    if o.get(\"effect_observation_accepted\") is True:",
+      "rationale": "Inverted effect observation acceptance; exits early when observation is accepted"
+    },
+    {
+      "id": "P2B-11",
+      "old": "    if o.get(\"effect_window_complete\") is not True:",
+      "new": "    if o.get(\"effect_window_complete\") is True:",
+      "rationale": "Inverted observation window completeness check; exits when window is closed"
+    },
+    {
+      "id": "P2B-12",
+      "old": "    if o.get(\"valid_control_same_context\") is not True:",
+      "new": "    if o.get(\"valid_control_same_context\") is True:",
+      "rationale": "Inverted valid control presence check; exits when control is present and comparable"
+    },
+    {
+      "id": "P2B-13",
+      "old": "    if o.get(\"required_boundary_refusal_accepted\") is not True:",
+      "new": "    if o.get(\"required_boundary_refusal_accepted\") is True:",
+      "rationale": "Inverted boundary attribution check; exits when refusal is attributed to boundary"
+    },
+    {
+      "id": "P2B-14",
+      "old": "            EvidenceStatus.ESTABLISHED,\n            \"declared_postcondition_observed_at_named_point\",",
+      "new": "            EvidenceStatus.VIOLATED,\n            \"declared_postcondition_observed_at_named_point\",",
+      "rationale": "Returns VIOLATED instead of ESTABLISHED when postcondition matches; inverts claim verdict"
+    },
+    {
+      "id": "P2B-15",
+      "old": "    if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):",
+      "new": "    if canonical(o[\"expected_state\"]) != canonical(o[\"observed_state\"]):",
+      "rationale": "Inverted state comparison operator; returns ESTABLISHED when states diverge"
+    },
+    {
+      "id": "P2B-16",
+      "old": "    if \"expected_state\" not in o or \"observed_state\" not in o:",
+      "new": "    if \"expected_state\" not in o and \"observed_state\" not in o:",
+      "rationale": "Changed OR to AND in missing-value check; requires both values absent to return unknown"
+    },
+    {
+      "id": "P2B-17",
+      "old": "    if status is EvidenceStatus.NOT_ESTABLISHED and reason in _REASON_GUIDANCE:",
+      "new": "    if status is not EvidenceStatus.NOT_ESTABLISHED and reason in _REASON_GUIDANCE:",
+      "rationale": "Inverted status filter; applies guidance only when status is ESTABLISHED or VIOLATED"
+    },
+    {
+      "id": "P2B-18",
+      "old": "    validate_json(dict(observations))\n    if scope is not None:",
+      "new": "    if scope is not None:",
+      "rationale": "Removes validation of observations; allows malformed JSON to pass to assessor functions"
+    },
+    {
+      "id": "P2B-19",
+      "old": "    if o.get(\"readback_available\") is not True:",
+      "new": "    if o.get(\"readback_available\") is True:",
+      "rationale": "Inverted readback availability check; exits when readback is present"
+    },
+    {
+      "id": "P2B-20",
+      "old": "    if o.get(\"window_finalized\") is not True:",
+      "new": "    if o.get(\"window_finalized\") is True:",
+      "rationale": "Inverted window finalization check; exits when observation window is finalized"
+    }
+  ]
+}
