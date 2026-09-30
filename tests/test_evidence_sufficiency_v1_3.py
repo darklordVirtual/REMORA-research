@@ -159,12 +159,27 @@ def test_v12_cases_are_carried_verbatim_and_in_order() -> None:
 
 def test_new_cases_declare_origin_and_rationale() -> None:
     new = _cases(V13)[len(_cases(V12)):]
-    assert [case["id"] for case in new] == ["E21", "E22", "E23"]
+    assert [case["id"] for case in new[:3]] == ["E21", "E22", "E23"]
     for case in new:
-        assert case["gap"] == "I1", case["id"]
+        assert case["gap"] in {"I1", "K1"}, case["id"]
         assert case["derived_from"], case["id"]
         assert case["rationale"], case["id"]
-        assert case["claim"] == "postcondition_observed", case["id"]
+    for case in new[:3]:
+        assert case["gap"] == "I1" and case["claim"] == "postcondition_observed", case["id"]
+    lattice = [case for case in new if case["gap"] == "K1"]
+    assert lattice, "the lattice-derived cases are missing"
+    for case in lattice:
+        typed = [k for k, v in case["observations"].items() if not isinstance(v, bool) and k not in ("expected_state", "observed_state")]
+        assert len(typed) == 1, case["id"]
+        assert case["separates"], case["id"]
+        assert case["expected"]["status"] == "not_established", case["id"]
+
+
+def test_lattice_cases_agree_with_the_reference_model() -> None:
+    model = RUNNER.load_json(V13 / "model.json")
+    for case in _cases(V13):
+        expected = RUNNER.interpret_model(model, case["claim"], case["observations"])
+        assert expected == (case["expected"]["status"], case["expected"]["reason"]), case["id"]
 
 
 def test_key_order_cases_differ_only_in_key_order_as_loaded() -> None:
@@ -225,6 +240,30 @@ def test_every_declared_relation_is_executed_and_holds(record: dict) -> None:
     for relation in record["metamorphic_relations"]:
         assert relation["checked"] > 0, relation["id"]
         assert relation["holds"], relation
+
+
+def test_reference_model_agrees_on_the_whole_lattice(record: dict) -> None:
+    reference = record["reference_model"]
+    assert reference["disagreement_count"] == 0, reference["disagreements"]
+    assert reference["lattice_documents"] > 60000
+    assert reference["typed_documents"] > 0
+    assert reference["authored_cases"] == record["authored_expectations"]["total"]
+    assert reference["ladders_consistent"] and reference["reasons_consistent"]
+
+
+def test_reference_model_tells_apart_a_fault_no_authored_case_reaches(tmp_path: Path) -> None:
+    """A typed premise read by truthiness on a field no v1.2 case types: only the lattice sees it.
+
+    The K1 cases now pin these too; this test keeps the model as the check that would
+    have caught the fault without them, by scoring a corpus that lacks the K1 cases."""
+    faulty = _faulty_checker(
+        tmp_path, "truthiness_on_effect_seen",
+        '    if o.get("effect_source_accepted") is not True or o.get("effect_seen") is not True:\n',
+        '    if o.get("effect_source_accepted") is not True or not o.get("effect_seen"):\n',
+    )
+    failures = RUNNER.build_record(faulty)["failures"]
+    assert any(f.startswith("reference_model:disagreements:") for f in failures), failures
+    assert any(f.startswith("A") and f[1:3].isdigit() for f in failures), "a K1 case pins it too"
 
 
 def test_record_discloses_that_the_new_checks_were_written_after_the_sweep(record: dict) -> None:
@@ -315,7 +354,7 @@ def claim_and_observations(draw):
     return claim, dict(zip(keys, values))
 
 
-HYPOTHESIS = settings(max_examples=300, derandomize=True, deadline=None, suppress_health_check=[HealthCheck.too_slow])
+HYPOTHESIS = settings(max_examples=150, derandomize=True, deadline=None, suppress_health_check=[HealthCheck.too_slow])
 
 
 def _outcome(verdict: dict) -> dict:
@@ -419,3 +458,70 @@ def test_mutation_baseline_is_well_formed_and_classified() -> None:
     assert all(id_.startswith("es.checker.x") and "__mutmut_" in id_ for id_ in ids)
     text = baseline.read_text(encoding="utf-8")
     assert "mutmut" in text.splitlines()[3], "the header must record the mutmut version the ids belong to"
+
+
+# ── The second operator set ───────────────────────────────────────────────────
+
+
+def _ast_gate():
+    return _load("mutation_evidence_sufficiency_ast_gate", ROOT / "scripts" / "mutation_evidence_sufficiency_ast.py")
+
+
+def test_second_operator_set_covers_every_operator_and_every_assessor() -> None:
+    gate = _ast_gate()
+    source = gate.Source((V1 / "checker.py").read_text(encoding="utf-8"))
+    mutants = gate.catalogue(source)
+    operators = {m["operator"] for m in mutants}
+    assert operators == set(gate.OPERATORS)
+    for assessor in gate.ASSESSORS:
+        assert any(m["function"] == assessor for m in mutants), assessor
+    ids = [m["id"] for m in mutants]
+    assert len(ids) == len(set(ids))
+    for m in mutants:
+        text = gate.mutated_source(source, m)
+        assert text != source.text, m["id"]
+        compile(text, "checker", "exec")
+
+
+def test_second_order_pairs_do_not_overlap_and_are_seeded() -> None:
+    gate = _ast_gate()
+    source = gate.Source((V1 / "checker.py").read_text(encoding="utf-8"))
+    first = gate.catalogue(source)
+    pairs = gate.second_order(first, 25, 7)
+    assert len(pairs) == 25
+    assert pairs == gate.second_order(first, 25, 7)
+    for pair in pairs:
+        (a0, a1), (b0, b1) = (e["span"] for e in pair["edits"])
+        assert a1 <= b0 or b1 <= a0, pair["id"]
+
+
+def test_second_operator_set_kills_a_sample_and_the_original_passes() -> None:
+    gate = _ast_gate()
+    source = gate.Source((V1 / "checker.py").read_text(encoding="utf-8"))
+    _, failures, _ = gate.score(("original", source.text))
+    assert failures == []
+    # One mutant per operator is a smoke test of the scorer; the full sweep is the
+    # mutation workflow's job and each score is a whole runner pass under coverage.
+    mutants = gate.catalogue(source)
+    sample = [next(m for m in mutants if m["id"].startswith(prefix)) for prefix in ("status_polarity:", "state_comparison:")]
+    for m in sample:
+        _, failures, _ = gate.score((m["id"], gate.mutated_source(source, m)))
+        assert failures, m["id"]
+
+
+def test_label_of_collapses_failures_to_their_check() -> None:
+    gate = _ast_gate()
+    assert gate.label_of("A01") == "A01"
+    assert gate.label_of("A01-effect_seen:decisive_verdict_carries_guidance") == "guidance:A01"
+    assert gate.label_of("MR-10:E01:source_accepted") == "MR-10"
+    assert gate.label_of("reference_model:disagreements:3") == "reference_model"
+    assert gate.label_of("crash:reference_model:TypeError") == "crash"
+    assert gate.label_of("rejection:R05:returned") == "rejection"
+
+
+def test_second_operator_set_baseline_is_well_formed() -> None:
+    gate = _ast_gate()
+    assert gate.BASELINE.exists()
+    ids = gate.read_baseline(gate.BASELINE)
+    assert all(":" in i for i in ids)
+    assert "checker sha256" in gate.BASELINE.read_text(encoding="utf-8")

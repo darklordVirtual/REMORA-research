@@ -29,7 +29,9 @@ on:
       - "conformance/evidence-sufficiency-v1.2/**"
       - "conformance/evidence-sufficiency-v1.3/**"
       - "scripts/mutation_evidence_sufficiency.py"
+      - "scripts/mutation_evidence_sufficiency_ast.py"
       - "docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt"
+      - "docs/assurance/mutation_baseline_evidence_sufficiency_ast_v1.txt"
       - ".github/workflows/mutation.yml"
 
 permissions:
@@ -101,10 +103,15 @@ jobs:
       - name: Run the sweep and compare against the committed baseline
         run: python scripts/mutation_evidence_sufficiency.py --results-out mutation-es-results.txt
 
+      - name: Run the second operator set (first- and second-order) against its baseline
+        run: python scripts/mutation_evidence_sufficiency_ast.py --workers 4 --json mutation-es-ast-results.json
+
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: mutation-evidence-sufficiency-results
-          path: mutation-es-results.txt
+          path: |
+            mutation-es-results.txt
+            mutation-es-ast-results.json
           retention-days: 90
