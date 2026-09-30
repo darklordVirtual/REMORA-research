@@ -15,6 +15,13 @@ cannot see; each is then killed by a new case, or recorded as equivalent in
 relations follow Chen, Cheung and Yiu (1998): they compare verdicts across
 related inputs instead of assuming an oracle for the right verdict.
 
+Section 11 is differential (McKeeman, 1998): `model.json` is a table-driven
+reference model of the checker, written from the v1 README and the declared
+ladders, and the checker must agree with it on every point of a bounded premise
+lattice. A fault that changes any verdict on that lattice is therefore caught
+whether or not an authored case reaches it, which is what moves the corpus's
+discrimination from the cases somebody wrote to the input space itself.
+
 The checker is imported from `../evidence-sufficiency-v1/checker.py`; its
 sha256 is recorded, never enforced as a failure, so a seeded-fault measurement
 of this runner stays meaningful. `build_record` takes an optional checker module
@@ -27,6 +34,7 @@ import ast
 import dataclasses
 import hashlib
 import importlib.util
+import itertools
 import json
 import sys
 from collections import Counter
@@ -50,6 +58,9 @@ NON_JSON_REJECTIONS: dict[str, dict] = {
     "R15_str_subclass_state": {"expected_state": type("Str", (str,), {})("closed")},
     "R16_nan_state": {"expected_state": float("nan")},
     "R17_int_key_in_observations": {1: "closed"},
+    "R18_list_subclass_state": {"expected_state": type("List", (list,), {})(["closed"])},
+    "R19_dict_subclass_state": {"expected_state": type("Dict", (dict,), {})({"state": "closed"})},
+    "R20_str_subclass_key_in_nested_mapping": {"expected_state": {type("Key", (str,), {})("state"): "closed"}},
 }
 
 
@@ -147,6 +158,80 @@ def _outcome(verdict: dict) -> dict:
     return {k: v for k, v in verdict.items() if k in ("status", "reason", "missing_evidence", "decisive_if")}
 
 
+def interpret_model(model: dict, claim: str, obs: dict) -> tuple[str, str]:
+    """(status, reason) the table-driven model gives for one observation set."""
+
+    def holds(field: str, predicate: str) -> bool:
+        if predicate == "is_true":
+            return field in obs and obs[field] is True
+        if predicate == "is_false":
+            return field in obs and obs[field] is False
+        raise ValueError(f"unknown predicate {predicate}")
+
+    def run(steps: list[dict]) -> tuple[str, str]:
+        for step in steps:
+            if "require" in step:
+                if all(holds(f, pred) for f, pred in step["require"].items()):
+                    if "then" in step:
+                        return step["then"]["status"], step["then"]["reason"]
+                    continue
+                return "not_established", step["else"]
+            if "branch" in step:
+                field = step["branch"]
+                if field in obs and obs[field] is True:
+                    return run(step["when_true"])
+                if field in obs and obs[field] is False:
+                    return run(step["when_false"])
+                return "not_established", step["otherwise"]
+            if "compare" in step:
+                a, b = step["compare"]
+                if a not in obs or b not in obs:
+                    return "not_established", step["missing"]
+                outcome = step["equal"] if _same_json(obs[a], obs[b]) else step["different"]
+                return outcome["status"], outcome["reason"]
+            if "terminal" in step:
+                return step["terminal"]["status"], step["terminal"]["reason"]
+            raise ValueError(f"unknown step {sorted(step)}")
+        raise ValueError("ladder ended without a verdict")
+
+    return run(model["claims"][claim]["steps"])
+
+
+def model_reason_order(steps: list[dict]) -> list[str]:
+    """Reasons in the order the model can first fail them, depth first."""
+    order: list[str] = []
+    for step in steps:
+        if "require" in step:
+            order.append(step["else"])
+        elif "branch" in step:
+            order.append(step["otherwise"])
+            order.extend(model_reason_order(step["when_true"]))
+            order.extend(model_reason_order(step["when_false"]))
+        elif "compare" in step:
+            order.append(step["missing"])
+    return order
+
+
+def model_reasons(steps: list[dict]) -> set[str]:
+    reasons: set[str] = set()
+    for step in steps:
+        for key in ("else", "otherwise", "missing"):
+            if key in step:
+                reasons.add(step[key])
+        for key in ("then", "terminal", "equal", "different"):
+            if key in step:
+                reasons.add(step[key]["reason"])
+        for key in ("when_true", "when_false"):
+            if key in step:
+                reasons |= model_reasons(step[key])
+    return reasons
+
+
+def _is_subsequence(short: list[str], long: list[str]) -> bool:
+    it = iter(long)
+    return all(any(item == candidate for candidate in it) for item in short)
+
+
 def build_record(checker_module: ModuleType | None = None) -> dict:
     chk = checker_module or checker
     EvidenceStatus = chk.EvidenceStatus
@@ -157,6 +242,7 @@ def build_record(checker_module: ModuleType | None = None) -> dict:
     guidance = load_json(HERE / "guidance.json")["guidance"]
     ladders = load_json(HERE / "ladders.json")
     invariants = load_json(HERE / "invariants.json")
+    model = load_json(HERE / "model.json")
     default_scope = {"kind": "synthetic_fixture", "suite": SUITE, "bounded": True}
     by_id = {case["id"]: case for case in corpus["cases"]}
     failures: list[str] = []
@@ -179,6 +265,9 @@ def build_record(checker_module: ModuleType | None = None) -> dict:
     rejections: list[dict] = []
     relations: list[dict] = []
     crashes: list[str] = []
+    reference: dict = {"documents": 0, "lattice_documents": 0, "typed_documents": 0, "authored_cases": 0,
+                       "disagreements": [], "disagreement_count": 0, "ladders_consistent": True,
+                       "reasons_consistent": True}
     erasure = {"inconclusive_erasures": 0, "inconclusive_erasure_failures": [], "decisive_erasures": 0, "polarity_flip_failures": []}
     coverage = {"all_reasons": set(), "unreached": [], "undeclared_guidance": [], "orphan_guidance": []}
     vocabulary = reason_vocabulary(CHECKER_PATH.read_text(encoding="utf-8"))
@@ -502,10 +591,87 @@ def build_record(checker_module: ModuleType | None = None) -> dict:
             if r["checked"] == 0:
                 failures.append(f"{r['id']}:never_checked")
 
+    def section_reference_model() -> None:
+        # 11. Differential reference model (new in v1.3): the checker must agree with model.json
+        #     on every point of the premise lattice, on a typed sweep around each decisive
+        #     configuration, and on every authored case. The model compares states
+        #     structurally, never through canonical(), so the two disagree on any fault in
+        #     either comparison.
+        disagreements: list[str] = []
+
+        def compare(claim: str, obs: dict, kind: str) -> tuple[str, str]:
+            reference["documents"] += 1
+            reference[kind] += 1
+            expected = interpret_model(model, claim, obs)
+            try:
+                verdict = assess(claim, obs)
+                actual = (verdict.status.value, verdict.reason)
+            except Exception as exc:  # noqa: BLE001 - a raise on a valid lattice point is a disagreement
+                actual = ("raised", type(exc).__name__)
+            if actual != expected:
+                disagreements.append(
+                    f"{claim}:{json.dumps(obs, sort_keys=True)}:model={expected[0]}/{expected[1]}:checker={actual[0]}/{actual[1]}"
+                )
+            return expected
+
+        premise_values = model["lattice"]["premise_values"]
+        for claim, spec in model["claims"].items():
+            fields = spec["fields"]
+            state_fields = spec.get("state_fields", [])
+            state_values = model["lattice"]["state_values"] if state_fields else [None]
+            decisive_bases: dict[str, dict] = {}
+            for combo in itertools.product(premise_values, repeat=len(fields)):
+                base = {f: v for f, v in zip(fields, combo) if v != "absent"}
+                if not state_fields:
+                    status, _ = compare(claim, base, "lattice_documents")
+                    if status != "not_established":
+                        decisive_bases.setdefault(status, base)
+                    continue
+                for left in state_values:
+                    for right in state_values:
+                        obs = dict(base)
+                        if left != "absent":
+                            obs[state_fields[0]] = deepcopy(left)
+                        if right != "absent":
+                            obs[state_fields[1]] = deepcopy(right)
+                        status, _ = compare(claim, obs, "lattice_documents")
+                        if status != "not_established":
+                            decisive_bases.setdefault(status, obs)
+            # Typed sweep: one premise at a time takes a value outside the boolean vocabulary,
+            # around each decisive configuration the lattice reached.
+            for base in decisive_bases.values():
+                for field in fields:
+                    for typed in model["lattice"]["typed_values"]:
+                        compare(claim, {**deepcopy(base), field: deepcopy(typed)}, "typed_documents")
+        for case in corpus["cases"]:
+            reference["authored_cases"] += 1
+            expected = interpret_model(model, case["claim"], case["observations"])
+            if expected != (case["expected"]["status"], case["expected"]["reason"]):
+                disagreements.append(f"authored:{case['id']}:model={expected[0]}/{expected[1]}")
+        reference["disagreement_count"] = len(disagreements)
+        reference["disagreements"] = disagreements[:25]
+        if disagreements:
+            failures.append(f"reference_model:disagreements:{len(disagreements)}")
+        # Coherence: the model's reason order must contain every declared ladder as a
+        # subsequence, and its reason set must equal the checker's vocabulary.
+        for claim, segments in ladders["ladders"].items():
+            order = model_reason_order(model["claims"][claim]["steps"])
+            for name, seq in segments.items():
+                if not _is_subsequence(seq, order):
+                    reference["ladders_consistent"] = False
+                    failures.append(f"model_ladder_mismatch:{claim}:{name}")
+        declared_reasons = set()
+        for spec in model["claims"].values():
+            declared_reasons |= model_reasons(spec["steps"])
+        vocabulary_reasons = vocabulary["inconclusive"] | vocabulary["decisive"]
+        for reason in sorted(declared_reasons ^ vocabulary_reasons):
+            reference["reasons_consistent"] = False
+            failures.append(f"model_reason_mismatch:{reason}")
+
     for fn in (section_authored_expectations, section_indistinguishable_worlds, section_evidence_erasure,
                section_wrong_shortcuts, section_empty_observations, section_reason_coverage,
                section_precedence_witnesses, section_isolation_witnesses, section_rejection_contract,
-               section_metamorphic_relations):
+               section_metamorphic_relations, section_reference_model):
         name = fn.__name__.removeprefix("section_")
         try:
             fn()
@@ -527,6 +693,7 @@ def build_record(checker_module: ModuleType | None = None) -> dict:
             "guidance.json": sha256_file(HERE / "guidance.json"),
             "ladders.json": sha256_file(HERE / "ladders.json"),
             "invariants.json": sha256_file(HERE / "invariants.json"),
+            "model.json": sha256_file(HERE / "model.json"),
         },
         "checker_is_frozen_v1": sha256_file(CHECKER_PATH) == FROZEN_CHECKER_SHA256,
         "authored_expectations": {
@@ -555,6 +722,7 @@ def build_record(checker_module: ModuleType | None = None) -> dict:
         "isolation_witnesses": isolation,
         "rejections": rejections,
         "metamorphic_relations": relations,
+        "reference_model": reference,
         "crashes": crashes,
         "guidance_contract_failures": guidance_failures,
         "case_results": {item["id"]: item["case_result"] for item in results},
@@ -592,6 +760,11 @@ def build_record(checker_module: ModuleType | None = None) -> dict:
                 "because the checker stays frozen."
             ),
             "A metamorphic relation that holds on this corpus is not a proof that it holds on every input.",
+            (
+                "The reference model in model.json shares its author and its specification with the checker: "
+                "agreement on the lattice catches an implementation slip in either and cannot catch a "
+                "misreading both share. The lattice is bounded to the declared premise, typed and state values."
+            ),
         ],
     }
 

@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-09-30: **14 `open`**, **26 `accepted`**, **25 `superseded`**.
+Counts as of 2026-09-30: **14 `open`**, **26 `accepted`**, **26 `superseded`**.
 
 ## The actual backlog
 
@@ -2486,6 +2486,7 @@ sections again.
 | AROMER seeding, regression and recovery chronicle (§§5–13) | §11, §12, §13 | Kept in sequence because the recovery evidence is only meaningful next to the failure. Architectural finding preserved: stage seeding ≤25 per batch, or implement an EMA dual window |
 | v1.1 evidence-sufficiency corpus misses three state-comparison faults (§64) | evidence-sufficiency v1.2, 2026-09-29 | Cases E18-E20 tell the three faults apart. They were written after the faults were known, so this is the repair, not independent evidence. An external rerun with every fault known (2026-09-30) is private until Rul1an publishes it |
 | Systematic mutation analysis finds 112 faults the v1.2 evidence-sufficiency corpus cannot see (§65) | evidence-sufficiency v1.3, 2026-09-30 | 489 mutmut mutants; v1.2 killed 377. The 112 survivors fell in seven families, four of them real gaps (claim and scope never checked, rejection untested, key order). v1.3 leaves 20, all named and argued equivalent. Written with the survivors in view, so repair, not independent evidence |
+| The v1.1 typed-premise pin covered one premise per claim; 42 typed-premise faults survived every authored case (§66) | evidence-sufficiency v1.3 K1 cases, 2026-09-30 | A second operator set of 905 mutants found 42 `is True` faults read by truthiness or `== True` that only the exhaustive reference model caught, plus three `isinstance` relaxations nothing caught. Now 23 lattice-derived cases and rejections R18-R20; 4 survivors, all argued equivalent |
 | Blind-confirmed intermediate rounds (§25, §27, §28, §31) | — | Each records a round that met or missed its pre-registered targets on the way to §34; retained as the pre-registration trail |
 
 ## Resolved Findings Archive
@@ -4055,3 +4056,51 @@ score one representative fault per family against both runners: v1.3 fails,
 v1.2 does not. That result is fitted: the checks were written with the
 survivor list in view. v1.3 has had no external run; the design records a
 blind protocol for one (`docs/design/evidence-sufficiency-v1.3.md` section 8).
+
+
+## §66 The typed-premise pin covered one premise per claim; 42 typed-premise faults survived every authored case (2026-09-30)
+<!-- finding-status: superseded -->
+
+**Status:** measured by the maintainer with a second operator set
+(`scripts/mutation_evidence_sufficiency_ast.py`: 705 first-order and 200
+second-order mutants of the frozen checker, scored in process by the v1.3
+runner). Superseded by the K1 cases and rejections R18 to R20 in the same
+change (see the end of this section). The finding about the authored corpus
+stands.
+
+**What was measured.** The set applies nine operators mutmut does not have
+and a fixed-seed sample of second-order pairs. The operators are statement
+deletion, guard swaps, comparison variants, reason and field confusion,
+status polarity, state-comparison variants, negation and type vocabulary. Of
+905 mutants, 898 were killed and 7 survived. Every kill carries the set of
+checks that produced it. Sixty of the 898 rested on one check only: 42 on
+the reference model of `model.json` alone, 17 on the rejection contract
+alone, 1 on a crash.
+
+**Why it matters.** The 42 were all `comparison_variant` mutants that read a
+premise by truthiness or by `== True`. The v1.1 typing pin (D-3) covered one
+premise per claim, the last before a decisive return, with A16, B16 and E17.
+The other nineteen premises were unpinned, so a checker that accepted `1` as
+`true` on any of them passed every authored case in v1.0 to v1.3. Only the
+exhaustive lattice saw it, and an external row that scores authored cases
+alone would not. The three `isinstance` relaxations survived everything: the
+rejection contract had a `str` subclass and no `list` or `dict` subclass.
+
+**What this does not establish.** The operator set was written by the
+corpus's author, with the checker in view, and its survivors are argued
+equivalent, not proven. Two operator sets are two samples of the fault space.
+A kill says nothing about the correctness of the checker.
+
+**Resolution (2026-09-30).** `--derive-cases` computed the smallest greedy
+cover of lattice points that separates the 42 mutants. The cover is 23
+cases, A17 to A25, B18 to B26 and E24 to E28, gap K1. Each types one premise
+and names the mutants it separates. Rejections R18 to R20 pin `list` and
+`dict` subclasses and a `str`-subclass key. The set now kills 901 of 905; the 4 survivors are a
+stripped canonical string and three swaps of mutually exclusive guards, named
+in `docs/assurance/mutation_baseline_evidence_sufficiency_ast_v1.txt` and
+classified in `docs/assurance/mutation_testing_v1.md`. No kill rests on the
+reference model alone any more; 18 rest on one check (17 on the rejection
+contract, 1 on a crash). The K1 cases were derived from the sweep and are
+not independent evidence. The blind protocol of the v1.3 spec, section 8,
+now also asks for one more thing: a fault killed on the runner row and not on
+the case rows is reported as such.

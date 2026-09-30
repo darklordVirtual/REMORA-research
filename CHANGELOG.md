@@ -21,6 +21,15 @@ This file lists externally relevant changes by release. Fine-grained development
   the relations on generated inputs with Hypothesis. The new checks were
   written after the sweep named the gaps, so their kills are not independent
   evidence; the spec records a blind external protocol for that.
+  Generalisation measures, same day: `model.json` is a table-driven reference
+  model interpreted over the whole premise lattice (61,544 documents), and
+  the checker must agree at every point; a second operator set
+  (`scripts/mutation_evidence_sufficiency_ast.py`, 705 first-order and 200
+  second-order mutants) is scored in process with a per-mutant redundancy
+  reading; 42 typed-premise faults that only the model caught became the 23
+  lattice-derived K1 cases, and three `isinstance` relaxations became
+  rejections R18-R20. The second set leaves 4 named survivors, all argued
+  equivalent (NEGATIVE_RESULTS.md §66).
 - Evidence-sufficiency v1.2 (`conformance/evidence-sufficiency-v1.2/`): the
   50 v1.1 cases verbatim plus E18-E20, which tell apart the three withheld
   `canonical()` faults from the external v1.1 run. v1 and v1.1 are frozen.

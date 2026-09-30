@@ -250,6 +250,36 @@ The remaining caveat is the one at the top of this document: the sweep
 measures the corpus against mutmut's operators, and a fault the tool never
 generates is not measured.
 
+### A second operator set (2026-09-30)
+
+To measure the corpus against faults it was not tuned to,
+`scripts/mutation_evidence_sufficiency_ast.py` applies nine operators mutmut
+does not have and a fixed-seed sample of 200 second-order pairs. Every mutant
+is a text edit on the checker's source, scored in process by the v1.3
+runner. Each kill carries the set of checks that produced it (D-15 of the
+v1.3 spec).
+
+| Run | Mutants | Killed | Survived | Kills resting on one check |
+|---|---:|---:|---:|---|
+| v1.3 before R18-R20 and the K1 cases | 905 | 898 | 7 | 60: reference model 42, rejection contract 17, crash 1 |
+| v1.3 as merged | 905 | 901 | 4 | 18: rejection contract 17, crash 1 |
+
+Per operator, as merged: delete_statement 86/86, swap_adjacent_guards 21/24,
+comparison_variant 96/96, reason_confusion 236/236, status_polarity 16/16,
+field_confusion 197/197, state_comparison 9/10, negate_condition 33/33,
+type_vocabulary 7/7, second order 200/200. The 42 kills that rested on the
+reference model alone were typed-premise faults on premises no authored case
+had typed (NEGATIVE_RESULTS.md §66); they became the K1 cases. The three
+`type_vocabulary` survivors of the first run were `isinstance` relaxations of
+the exact type checks; rejections R18 to R20 kill them.
+
+| Mutant id | Why it is equivalent under the pinned contract |
+|---|---|
+| `state_comparison:postcondition_observed:5` | `canonical()` output starts and ends with a JSON token, never whitespace, so `.strip()` on both sides is the identity on every value the vocabulary admits |
+| `swap_adjacent_guards:assess:0` | the premise-source guard and the claim guard both raise `ValueError`; swapping them changes which message is raised when both fail, and D-7 pins the class, not the message |
+| `swap_adjacent_guards:validate_json:0` | the scalar guard and the list guard are mutually exclusive on `type(value)`, so their order cannot change any outcome |
+| `swap_adjacent_guards:validate_json:1` | the list guard and the mapping guard are mutually exclusive in the same way |
+
 ## CI integration (wired)
 
 The scheduled job `.github/workflows/mutation.yml` (Mondays 05:00 UTC +

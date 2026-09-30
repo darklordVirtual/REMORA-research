@@ -8,11 +8,12 @@
       "G5": 1,
       "H1": 3,
       "I1": 3,
+      "K1": 23,
       "v1": 26
     },
-    "matched": 56,
+    "matched": 79,
     "note": "expectation matches are regression checks, not a conformance score",
-    "total": 56
+    "total": 79
   },
   "case_guidance": {
     "A01": {
@@ -105,6 +106,60 @@
       "decisive_if": "justify capture/export completeness for every admission stream in scope",
       "missing_evidence": [
         "complete admission coverage for the bounded scope"
+      ]
+    },
+    "A17": {
+      "decisive_if": "supply a candidate admission that joins to the same bounded action context",
+      "missing_evidence": [
+        "covering admission bound to this execution"
+      ]
+    },
+    "A18": {
+      "decisive_if": "determine whether a candidate covering admission is present in the observation set",
+      "missing_evidence": [
+        "admission presence/absence observation"
+      ]
+    },
+    "A19": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A20": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A21": {
+      "decisive_if": "state the rule requiring a covering admission for this action class",
+      "missing_evidence": [
+        "mandatory-admission rule"
+      ]
+    },
+    "A22": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "A23": {
+      "decisive_if": "close the interval under a stated finalization/watermark rule",
+      "missing_evidence": [
+        "finalized observation interval"
+      ]
+    },
+    "A24": {
+      "decisive_if": "establish provenance and acceptance for the candidate admission record",
+      "missing_evidence": [
+        "accepted admission observation"
+      ]
+    },
+    "A25": {
+      "decisive_if": "determine whether a candidate covering admission is present in the observation set",
+      "missing_evidence": [
+        "admission presence/absence observation"
       ]
     },
     "B01": {
@@ -203,6 +258,60 @@
       "decisive_if": "show the same route and operation succeeds when the tested boundary condition is absent",
       "missing_evidence": [
         "comparable valid control"
+      ]
+    },
+    "B18": {
+      "decisive_if": "supply accepted downstream evidence for the protected effect",
+      "missing_evidence": [
+        "accepted protected-effect observation"
+      ]
+    },
+    "B19": {
+      "decisive_if": "close the downstream observation window before inferring non-occurrence",
+      "missing_evidence": [
+        "complete downstream effect window"
+      ]
+    },
+    "B20": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "B21": {
+      "decisive_if": "observe whether the protected effect occurred for the named attempt",
+      "missing_evidence": [
+        "decisive protected-effect observation"
+      ]
+    },
+    "B22": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B23": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B24": {
+      "decisive_if": "show the same route and operation succeeds when the tested boundary condition is absent",
+      "missing_evidence": [
+        "comparable valid control"
+      ]
+    },
+    "B25": {
+      "decisive_if": "observe whether the protected effect occurred for the named attempt",
+      "missing_evidence": [
+        "decisive protected-effect observation"
+      ]
+    },
+    "B26": {
+      "decisive_if": "identify the required boundary as the cause of refusal rather than inferring it from 403/no-effect",
+      "missing_evidence": [
+        "accepted boundary-attribution evidence"
       ]
     },
     "E01": {
@@ -324,6 +433,36 @@
     "E23": {
       "decisive_if": null,
       "missing_evidence": []
+    },
+    "E24": {
+      "decisive_if": "obtain a fresh observation bound to the declared settlement interval",
+      "missing_evidence": [
+        "fresh read-back in the declared window"
+      ]
+    },
+    "E25": {
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ]
+    },
+    "E26": {
+      "decisive_if": "bind expected and observed state to the same target and predicate",
+      "missing_evidence": [
+        "same target and declared postcondition predicate"
+      ]
+    },
+    "E27": {
+      "decisive_if": "establish provenance/trust for the read-back source",
+      "missing_evidence": [
+        "accepted read-back source"
+      ]
+    },
+    "E28": {
+      "decisive_if": "wait for the declared deadline/settlement point before appraising the postcondition",
+      "missing_evidence": [
+        "settlement point reached"
+      ]
     }
   },
   "case_results": {
@@ -343,6 +482,15 @@
     "A14": "MATCH",
     "A15": "MATCH",
     "A16": "MATCH",
+    "A17": "MATCH",
+    "A18": "MATCH",
+    "A19": "MATCH",
+    "A20": "MATCH",
+    "A21": "MATCH",
+    "A22": "MATCH",
+    "A23": "MATCH",
+    "A24": "MATCH",
+    "A25": "MATCH",
     "B01": "MATCH",
     "B02": "MATCH",
     "B03": "MATCH",
@@ -360,6 +508,15 @@
     "B15": "MATCH",
     "B16": "MATCH",
     "B17": "MATCH",
+    "B18": "MATCH",
+    "B19": "MATCH",
+    "B20": "MATCH",
+    "B21": "MATCH",
+    "B22": "MATCH",
+    "B23": "MATCH",
+    "B24": "MATCH",
+    "B25": "MATCH",
+    "B26": "MATCH",
     "E01": "MATCH",
     "E02": "MATCH",
     "E03": "MATCH",
@@ -382,7 +539,12 @@
     "E20": "MATCH",
     "E21": "MATCH",
     "E22": "MATCH",
-    "E23": "MATCH"
+    "E23": "MATCH",
+    "E24": "MATCH",
+    "E25": "MATCH",
+    "E26": "MATCH",
+    "E27": "MATCH",
+    "E28": "MATCH"
   },
   "checker_is_frozen_v1": true,
   "crashes": [],
@@ -432,7 +594,7 @@
   },
   "evidence_erasure_checks": {
     "decisive_single_field_removals": 114,
-    "inconclusive_single_field_removals": 348,
+    "inconclusive_single_field_removals": 536,
     "inconclusive_strengthening_failures": [],
     "polarity_flip_failures": []
   },
@@ -453,11 +615,12 @@
     }
   ],
   "inputs_sha256": {
-    "cases.json": "799f26006e50b1ffe8ff600a1ff9aedeeb7f49f93c5f0cd84f24b4e0733eaef1",
+    "cases.json": "7fc6d42459fc019d84f9b9b723b7f312f1db9a9c2edebf3ad1f9e4a38da1fb81",
     "checker.py (frozen v1)": "c4ca50aee2b2918b11c6fbde1f8615ca6c6bf1e5b6fa2ac1775f49c5e8c20be0",
     "guidance.json": "eeb951e7073e7cc108a1d4886c4d03080b010287321a934f97ad763bb772542c",
     "invariants.json": "15ba2341280b09e7b2dd44e93c1a0b185b4209f0a0c4f6c351f8d92a633bd687",
-    "ladders.json": "e5b5cd88356625b0593062736fb2a386fe36e9334004e99f34e5861f10acd400"
+    "ladders.json": "e5b5cd88356625b0593062736fb2a386fe36e9334004e99f34e5861f10acd400",
+    "model.json": "861e5dc80ff1983e2b3a640ad0f20b340fb0157c6ecfc6df259d1c2083dba201"
   },
   "isolation_witnesses": [
     {
@@ -581,67 +744,68 @@
     "Cases E18-E20 (gap H1) were written after an external run with withheld faults named the gap; their kills of those faults are not independent evidence.",
     "Cases E21-E23 (gap I1), the rejection set (gap J1), the envelope checks and the metamorphic relations were written after a systematic mutation sweep over the checker named the gaps; their kills of those mutants are not independent evidence.",
     "The frozen v1 checker coerces a scope through dict(): a sequence of pairs is accepted as a scope, and a non-mapping scope that dict() cannot convert raises TypeError. That behaviour is outside the contract this corpus pins, and it is recorded here rather than repaired, because the checker stays frozen.",
-    "A metamorphic relation that holds on this corpus is not a proof that it holds on every input."
+    "A metamorphic relation that holds on this corpus is not a proof that it holds on every input.",
+    "The reference model in model.json shares its author and its specification with the checker: agreement on the lattice catches an implementation slip in either and cannot catch a misreading both share. The lattice is bounded to the declared premise, typed and state values."
   ],
   "metamorphic_relations": [
     {
-      "checked": 224,
+      "checked": 316,
       "failures": [],
       "holds": true,
       "id": "MR-1",
       "name": "claim_is_echoed"
     },
     {
-      "checked": 224,
+      "checked": 316,
       "failures": [],
       "holds": true,
       "id": "MR-2",
       "name": "scope_is_echoed_not_consulted"
     },
     {
-      "checked": 224,
+      "checked": 316,
       "failures": [],
       "holds": true,
       "id": "MR-3",
       "name": "envelope_shape"
     },
     {
-      "checked": 56,
+      "checked": 79,
       "failures": [],
       "holds": true,
       "id": "MR-4",
       "name": "observation_key_order_is_irrelevant"
     },
     {
-      "checked": 56,
+      "checked": 79,
       "failures": [],
       "holds": true,
       "id": "MR-5",
       "name": "unrelated_field_is_ignored"
     },
     {
-      "checked": 56,
+      "checked": 79,
       "failures": [],
       "holds": true,
       "id": "MR-6",
       "name": "assessment_is_deterministic"
     },
     {
-      "checked": 56,
+      "checked": 79,
       "failures": [],
       "holds": true,
       "id": "MR-7",
       "name": "inputs_are_not_mutated_or_aliased"
     },
     {
-      "checked": 56,
+      "checked": 79,
       "failures": [],
       "holds": true,
       "id": "MR-8",
       "name": "verdict_is_immutable"
     },
     {
-      "checked": 20,
+      "checked": 25,
       "failures": [],
       "holds": true,
       "id": "MR-9",
@@ -655,7 +819,7 @@
       "name": "acceptance_premise_flip_never_inverts_polarity"
     },
     {
-      "checked": 138,
+      "checked": 148,
       "failures": [],
       "holds": true,
       "id": "MR-11",
@@ -756,7 +920,7 @@
   ],
   "property_verdict_distribution": {
     "established": 6,
-    "not_established": 42,
+    "not_established": 65,
     "violated": 8
   },
   "purpose": "regression evidence for claim-sufficiency inference rules, not system conformance",
@@ -767,6 +931,16 @@
     "unreached": []
   },
   "record_kind": "synthetic-author-run",
+  "reference_model": {
+    "authored_cases": 79,
+    "disagreement_count": 0,
+    "disagreements": [],
+    "documents": 61544,
+    "ladders_consistent": true,
+    "lattice_documents": 61236,
+    "reasons_consistent": true,
+    "typed_documents": 308
+  },
   "rejections": [
     {
       "id": "R01",
@@ -862,6 +1036,30 @@
     },
     {
       "id": "canonical:R17_int_key_in_observations",
+      "rejected": true
+    },
+    {
+      "id": "R18_list_subclass_state",
+      "rejected": true
+    },
+    {
+      "id": "canonical:R18_list_subclass_state",
+      "rejected": true
+    },
+    {
+      "id": "R19_dict_subclass_state",
+      "rejected": true
+    },
+    {
+      "id": "canonical:R19_dict_subclass_state",
+      "rejected": true
+    },
+    {
+      "id": "R20_str_subclass_key_in_nested_mapping",
+      "rejected": true
+    },
+    {
+      "id": "canonical:R20_str_subclass_key_in_nested_mapping",
       "rejected": true
     }
   ],

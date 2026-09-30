@@ -2,7 +2,7 @@
 
 ## Status
 
-ACCEPTED 2026-09-30. The maintainer took decisions D-6 to D-13 on that date, before the new cases were written.
+ACCEPTED 2026-09-30. The maintainer took decisions D-6 to D-13 on that date, before the new cases were written, and D-14 to D-16 later the same day, after the first sweep was closed.
 The implementation lands in the same change as this spec, together with the finding that motivated it (NEGATIVE_RESULTS.md §65).
 `conformance/evidence-sufficiency-v1/`, `-v1.1/` and `-v1.2/` stay frozen; `tests/test_evidence_sufficiency_v1_3.py` pins their bytes.
 v1.3 has had no external run. Section 8 records the protocol for one, and it must be blind.
@@ -109,6 +109,30 @@ The external harness still counts an adapter crash as a kill on its per-case row
 The Hypothesis tests run with `derandomize=True`, a fixed example budget and no deadline, so a CI run is reproducible and a failure is a counterexample, not a flake.
 A relation that holds on 300 generated inputs is known to hold on those inputs.
 
+### D-14. The corpus is scored against the input lattice, not only against authored cases.
+
+`model.json` is a table-driven reference model of the checker, written from the v1 README and the declared ladders.
+The runner interprets it over every combination of premise values (`true`, `false`, absent) for every claim.
+It also interprets it over a typed sweep around each decisive configuration, and over twelve state values in every pair for the postcondition claim.
+The checker must agree on status and reason at every point (McKeeman, 1998).
+A fault that changes any verdict on that lattice is therefore caught whether or not somebody authored a case for it.
+The model compares states structurally and never through `canonical()`, so the two implementations disagree on any fault in either comparison.
+The model shares its author and its specification with the checker; agreement catches an implementation slip in either and cannot catch a misreading both share.
+
+### D-15. A second operator set measures the corpus against faults it was not tuned to.
+
+`scripts/mutation_evidence_sufficiency_ast.py` applies nine operators mutmut does not have, listed in 6.8, plus a fixed-seed sample of second-order mutants (Jia and Harman, 2009).
+Every mutant is scored in process by the runner, and its kill signature is the set of check labels that failed.
+A mutant killed by one label only is fragile, and that label is load-bearing; the report states both.
+The survivors are ratcheted against `docs/assurance/mutation_baseline_evidence_sufficiency_ast_v1.txt` under the same discipline as D-10.
+
+### D-16. Faults only the lattice sees become authored cases, derived and not written.
+
+The first run of the second operator set found 42 mutants that only the reference model killed.
+`--derive-cases` computes, for those mutants, a greedy cover of lattice points on which they and the model disagree, and writes each point as a case with the model's verdict.
+Those cases carry gap `K1`, name the mutants they separate, and exist so that the external rows that score authored cases alone (rows 1 and 2) see what the lattice sees.
+They are derived from the sweep and are not independent evidence.
+
 ## 5. Requirements
 
 Each requirement names the check that enforces it. R-1 to R-13 of the v1.1 spec carry over unchanged.
@@ -126,6 +150,10 @@ Each requirement names the check that enforces it. R-1 to R-13 of the v1.1 spec 
 | R-22 | Every survivor of the sweep is named in the baseline and classified; a new survivor fails the gate; an empty sweep fails the gate | `scripts/mutation_evidence_sufficiency.py`, `test_mutation_baseline_is_well_formed_and_classified` |
 | R-23 | The committed `run-record.json` reproduces byte for byte and lists no failures | `--check`, `test_committed_artifact_reproduces_exactly`, `test_record_has_no_failures` |
 | R-24 | The record states that the new checks were written after the sweep, and states the checker's `scope` looseness | `limits` in the record, `test_record_discloses_that_the_new_checks_were_written_after_the_sweep` |
+| R-25 | The checker agrees with `model.json` on every lattice point, on the typed sweep and on every authored case; the model's reason order contains every declared ladder and its reason set equals the checker's vocabulary | runner `reference_model:*`, `model_ladder_mismatch:*`, `model_reason_mismatch:*`; `test_reference_model_agrees_on_the_whole_lattice`, `test_lattice_cases_agree_with_the_reference_model` |
+| R-26 | A typed premise on a field no earlier case types is told apart by the reference model and by a K1 case | `test_reference_model_tells_apart_a_fault_no_authored_case_reaches` |
+| R-27 | Every survivor of the second operator set is named in its baseline and classified; the operator catalogue covers every operator and every assessor; second-order pairs never overlap | `scripts/mutation_evidence_sufficiency_ast.py`, `test_second_operator_set_*`, `test_second_order_pairs_do_not_overlap_and_are_seeded` |
+| R-28 | Every K1 case types exactly one premise, names the mutants it separates, and carries the model's verdict | `test_new_cases_declare_origin_and_rationale` |
 
 ## 6. Design
 
@@ -141,10 +169,13 @@ conformance/evidence-sufficiency-v1.3/
   guidance.json               byte copy of v1.2
   ladders.json                byte copy of v1.2
   invariants.json             declared scopes, premise classes, distinct pairs, relations
+  model.json                  table-driven reference model and the lattice it is checked on
   run_evidence_sufficiency.py runner; imports the frozen v1 checker; crash capture
   run-record.json             deterministic record
-scripts/mutation_evidence_sufficiency.py                      the sweep and the gate
-docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt  named survivors
+scripts/mutation_evidence_sufficiency.py                          the mutmut sweep and its gate
+scripts/mutation_evidence_sufficiency_ast.py                      the second operator set, its gate and --derive-cases
+docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt      named mutmut survivors
+docs/assurance/mutation_baseline_evidence_sufficiency_ast_v1.txt  named survivors of the second set
 tests/test_evidence_sufficiency_v1_3.py
 ```
 
@@ -158,7 +189,7 @@ tests/test_evidence_sufficiency_v1_3.py
 
 `cases.json` is written without sorting keys, because a sorted rewrite would make E21 and E23 compare equal under the faulty checker too.
 The wrong shortcut `same_members_in_another_key_order_means_disagreement` witnesses E21.
-The distribution becomes 6 established, 42 not_established and 8 violated.
+With the 23 K1 cases of 6.9 the distribution becomes 6 established, 65 not_established and 8 violated over 79 cases.
 
 ### 6.3 Rejections (gap J1)
 
@@ -170,7 +201,7 @@ The distribution becomes 6 established, 42 not_established and 8 violated.
 | R06, R07 | a float inside a list; a float inside a nested mapping | validation recurses |
 | R08 | a float in the scope | the scope is validated like the observations |
 | R09, R10 | premise source `production`; an empty premise source | the production guard |
-| R11 to R17 (runner) | tuple, set, bytes, an int key at depth, a `str` subclass, NaN, an int key at the top | not expressible in JSON |
+| R11 to R20 (runner) | tuple, set, bytes, an int key at depth, a `str` subclass, NaN, an int key at the top, a `list` subclass, a `dict` subclass, a `str`-subclass key | not expressible in JSON; R18 to R20 were added when the second operator set relaxed the exact type checks to `isinstance` and survived |
 
 The frozen checker coerces a scope through `dict()`. A sequence of pairs is accepted as a scope, and a non-mapping the coercion cannot convert raises `TypeError`.
 That is outside the contract this corpus pins. It is recorded in the record's `limits` and not repaired, because the checker stays frozen; a v2 checker should validate the scope as a mapping before coercion.
@@ -209,16 +240,62 @@ The first pins bytes and carry-over. The second scores one representative fault 
 A control fault from the H1 family must fail both, so the differential cannot pass by a runner that fails on everything.
 The third checks the relations with Hypothesis on generated observation sets and generated JSON states, including that `canonical` is injective exactly on structural equality with `1` and `true` kept apart.
 
+### 6.7 The reference model and its lattice
+
+`model.json` declares, per claim, an ordered list of steps of four kinds.
+A `require` step names premises and the reason it fails with.
+A `branch` step selects a sub-ladder on an exact boolean and names the reason for any other value.
+A `compare` step names the two state fields and the verdicts for equal, different and missing.
+A `terminal` step names a decisive verdict.
+The interpreter in the runner is twenty lines and has no knowledge of `checker.py`.
+The lattice is 61,236 documents: 3^9 premise combinations for the admission claim, 3^8 for the route claim, and 3^5 times 12 times 12 state pairs for the postcondition claim.
+The typed sweep adds 308 documents: each premise of each decisive configuration set to each of seven non-boolean values.
+Two coherence checks keep the model honest against the rest of the corpus.
+Every ladder segment in `ladders.json` must be a subsequence of the model's reason order, and the model's reason set must equal the vocabulary read from the checker's source.
+
+### 6.8 The second operator set
+
+| Operator | Mutants | What it seeds |
+|---|---:|---|
+| `delete_statement` | 86 | a guard, a return or an assignment removed |
+| `swap_adjacent_guards` | 24 | two neighbouring guards exchanged |
+| `comparison_variant` | 96 | `is True` and its kin flipped, negated, made truthiness or made equality |
+| `reason_confusion` | 236 | a reason literal replaced by every other reason of the same assessor |
+| `status_polarity` | 16 | a terminal status replaced by each other status |
+| `field_confusion` | 197 | a premise name replaced by every other premise the assessor reads |
+| `state_comparison` | 10 | the postcondition comparison replaced by raw, `str`, `repr`, unsorted, case-folded, stripped, anagram, inverted, constant or length comparison |
+| `negate_condition` | 33 | an `if` test negated |
+| `type_vocabulary` | 7 | a scalar type dropped or added; an exact type check relaxed to `isinstance` |
+| second order | 200 | a fixed-seed sample of non-overlapping pairs |
+
+Every mutant is a text edit on the checker's source, applied in memory, so a second-order mutant is two edits and a catalogue entry is reproducible from the source alone.
+
+### 6.9 Lattice-derived cases (gap K1)
+
+The 23 cases A17 to A25, B18 to B26 and E24 to E28 each set one premise to `1`, or `0` for an `is not False` guard, on a configuration that is otherwise decisive.
+They were computed by `--derive-cases` as the smallest greedy cover of the 42 mutants that only the reference model killed.
+All 42 are `comparison_variant` mutants that read a premise by truthiness or by `== True`.
+The v1.1 typing pin (D-3) covered one premise per claim, the last before a decisive return; these pin the other nineteen.
+Each case names the mutants it separates in a `separates` field, and its expectation is the model's verdict.
+
 ## 7. Pre-flight, not evidence
 
 | Sweep | Mutants | Killed | Survived | Survivors by family |
 |---|---:|---:|---:|---|
-| v1.2 corpus, three projections | 489 | 377 | 112 | A 41, B 40, C 12, D 8, E 3, F 7, G 1 |
-| v1.3 corpus, three projections | 489 | 469 | 20 | C 12, F 7, G 1 |
+| mutmut, v1.2 corpus, three projections | 489 | 377 | 112 | A 41, B 40, C 12, D 8, E 3, F 7, G 1 |
+| mutmut, v1.3 corpus, three projections | 489 | 469 | 20 | C 12, F 7, G 1 |
+| second operator set, v1.3 before R18-R20 and K1 | 905 | 898 | 7 | 3 `isinstance` relaxations (real), 4 equivalent |
+| second operator set, v1.3 as merged | 905 | 901 | 4 | 4 equivalent: a stripped canonical string, and three swaps of mutually exclusive guards |
 
-The 20 survivors are named in the baseline. Each is argued equivalent under the pinned contract in `docs/assurance/mutation_testing_v1.md`; none is proven equivalent, because that is undecidable.
+The 20 mutmut survivors and the 4 survivors of the second set are named in their baselines. Each is argued equivalent under the pinned contract in `docs/assurance/mutation_testing_v1.md`; none is proven equivalent, because that is undecidable.
 The family test passes: each of seven representative faults fails v1.3 and survives v1.2, and the H1 control fails both.
 The Hypothesis tests pass at 300 examples per property, derandomised.
+The reference model agrees with the checker on all 61,544 lattice and typed documents and on all 79 authored cases.
+
+The redundancy reading of the second set is the part worth keeping.
+Before the K1 cases, 60 of 898 kills rested on one label: 42 on the reference model alone, 17 on the rejection contract alone, 1 on a crash.
+The 42 were typed-premise faults on premises no authored case had typed; without the lattice they would have survived, which is what D-16 answers.
+After the K1 cases, 18 kills rest on one label, none of them on the model alone, because every lattice-only kill now has an authored witness as well.
 
 None of this is independent evidence. The cases, the relations and the tests were written with the survivor list in view, and the tool that produced the list is the tool that scores the result.
 
@@ -233,6 +310,7 @@ For v1.3 the run must be blind, and the record says beforehand what would count.
 4. Rows and crash kills are reported as in the earlier runs. Hand-picked and systematic faults are reported in separate tables.
 5. The maintainer labels every survivor (equivalent, out of scope by a stated contract, open gap) before any corpus change, and never moves a label to improve a count.
 6. Pre-registered criterion: v1.3 is confirmed only if every held-out fault that is not labelled equivalent is killed on the runner row. Any open gap goes to v1.4 with the same discipline as sections 12 of the v1.1 spec and this one.
+7. Rows 1 and 2 score the authored cases alone; row 3 scores the runner, and only row 3 sees the lattice of D-14. A fault killed on row 3 and not on row 1 is reported as such, and it is the signal that another K1-style derivation is due.
 
 ## 9. Acceptance criteria
 
@@ -254,6 +332,9 @@ For v1.3 the run must be blind, and the record says beforehand what would count.
 | T-13 | Register the method: RES-021, related-work section 14, `mutation_testing_v1.md`, CHANGELOG, index | T-10 | done |
 | T-14 | Ask for a blind external run under section 8 | T-13 | open |
 | T-15 | Label the survivors of that run before any corpus change; open v1.4 only for open gaps | T-14 | open |
+| T-16 | The reference model, its lattice and the coherence checks (D-14) | T-10 | done |
+| T-17 | The second operator set with second-order sampling, the redundancy reading and its baseline (D-15) | T-11 | done |
+| T-18 | The K1 cases derived from the lattice, and R18 to R20 (D-16) | T-17 | done |
 
 ## 11. Risks
 
@@ -264,6 +345,8 @@ For v1.3 the run must be blind, and the record says beforehand what would count.
 | The gate depends on one mutmut version | the version is in the baseline header; a version change regenerates the baseline in a reviewed diff |
 | Writing tests against a survivor list fits the corpus to the tool | D-11: only a blind run counts as evidence; section 8 asks for a second tool |
 | Long runner, larger record, harder review | sections are small functions with one failure vocabulary each; the record keeps counts per relation |
+| The reference model repeats the checker's mistakes | it is table driven, compares states structurally, and is checked against the declared ladders and the reason vocabulary; a shared misreading of the specification is the residual risk, and section 8 names it |
+| Derived cases fit the corpus to the second operator set | they are labelled K1 with the mutants they separate; the operator set is committed and its survivors ratcheted, so the fit is visible and bounded |
 
 ## 12. Research grounding
 
@@ -282,11 +365,14 @@ Each source is listed with what this spec takes from it and what it leaves.
 - Claessen and Hughes (2000), *QuickCheck*, ICFP, and MacIver et al. (2019), *Hypothesis: A new approach to property-based testing*, JOSS 4(43). Generated inputs under stated properties, with shrinking. Taken: the third test group (D-13). Left: stateful testing; the checker is a pure function.
 - Zhu, Hall and May (1997), *Software unit test coverage and adequacy*, ACM Computing Surveys 29(4), and Inozemtseva and Holmes (2014), *Coverage is not strongly correlated with test suite effectiveness*, ICSE. Why coverage was not used as the adequacy measure.
 - Nosek et al. (2018), *The preregistration revolution*, PNAS 115(11). Taken: section 8 item 6, the criterion stated before the run.
+- McKeeman (1998), *Differential Testing for Software*, Digital Technical Journal 10(1). Two implementations of one specification disagree where one is wrong. Taken: D-14, the reference model over the lattice. Left: random differential inputs; the lattice is enumerated.
+- Jia and Harman (2009), *Higher Order Mutation Testing*, Information and Software Technology 51(10). Pairs of faults can mask each other. Taken: the fixed-seed second-order sample of D-15. Left: the search for subsuming higher-order mutants.
 
 ## Deliverables
 
 - This spec.
 - `conformance/evidence-sufficiency-v1.3/`, passing all acceptance criteria.
 - `scripts/mutation_evidence_sufficiency.py` and `docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt`.
+- `scripts/mutation_evidence_sufficiency_ast.py`, `docs/assurance/mutation_baseline_evidence_sufficiency_ast_v1.txt` and `conformance/evidence-sufficiency-v1.3/model.json`.
 - `tests/test_evidence_sufficiency_v1_3.py`.
 - The `evidence-sufficiency` job in `.github/workflows/mutation.yml`.

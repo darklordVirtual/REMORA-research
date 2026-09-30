@@ -963,13 +963,20 @@ entries:
       - generated_input_properties
       - differential_family_test
       - runner_crash_capture
+      - differential_reference_model_over_the_lattice
+      - second_operator_set_with_second_order_sample
+      - kill_redundancy_reading
+      - lattice_derived_cases
     code:
       - conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py
       - conformance/evidence-sufficiency-v1.3/invariants.json
+      - conformance/evidence-sufficiency-v1.3/model.json
       - conformance/evidence-sufficiency-v1.3/cases.json
       - conformance/evidence-sufficiency-v1.3/run-record.json
       - scripts/mutation_evidence_sufficiency.py
+      - scripts/mutation_evidence_sufficiency_ast.py
       - docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt
+      - docs/assurance/mutation_baseline_evidence_sufficiency_ast_v1.txt
     tests:
       - tests/test_evidence_sufficiency_v1_3.py
     evidence: >-
@@ -985,8 +992,15 @@ entries:
       representative fault per real-gap family against both runners (v1.3
       fails, v1.2 does not, an H1 control fails both) and checks the relations
       on generated inputs with Hypothesis at 300 derandomised examples per
-      property. The record reproduces byte for byte with no failures and no
-      crashes.
+      property. model.json is a table-driven reference model interpreted over
+      61,544 lattice and typed documents on which the checker must agree at
+      every point (McKeeman, 1998); it does. A second operator set of 705
+      first-order and 200 second-order mutants (scripts/mutation_evidence_sufficiency_ast.py)
+      kills 901 of 905, with 4 named survivors argued equivalent; its
+      per-mutant redundancy reading showed 42 typed-premise faults that only
+      the model caught, which became the 23 lattice-derived K1 cases
+      (NEGATIVE_RESULTS.md §66). The record reproduces byte for byte with no
+      failures and no crashes.
     maturity: library_only
     scope_boundary: >-
       A conformance research artifact, not a governed runtime path: the checker
@@ -996,8 +1010,11 @@ entries:
       classification, not a subsumption graph. Every v1.3 check was written
       with the survivor list in view, so the sweep shows the repair and not
       generalisation; only the blind protocol of the v1.3 spec, section 8,
-      could show that, and no such run has happened. The frozen checker's
-      coercion of a scope through dict() is recorded as a limit, not repaired.
+      could show that, and no such run has happened. The reference model
+      shares author and specification with the checker, so agreement cannot
+      catch a misreading both share, and its lattice is bounded to the
+      declared values. The frozen checker's coercion of a scope through
+      dict() is recorded as a limit, not repaired.
     related_work_section: "docs/09-related-work.md §14"
     in_code_citation: true
     citation_anchor: "DeMillo"
@@ -1311,6 +1328,20 @@ bibliography:
       role: grounds_implementation
       code: [tests/test_evidence_sufficiency_v1_3.py]
       note: "Generated-input properties for the relations, run with Hypothesis, derandomised; RES-021."
+    - id: mckeeman-1998-differential
+      surname: "McKeeman"
+      year: "1998"
+      work: "Differential Testing for Software (Digital Technical Journal 10(1))"
+      role: grounds_implementation
+      code: [conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py, conformance/evidence-sufficiency-v1.3/model.json]
+      note: "The reference model in model.json, interpreted over the premise lattice, is a differential oracle for the checker; RES-021."
+    - id: jia-2009-higher-order
+      surname: "Jia"
+      year: "2009"
+      work: "Higher Order Mutation Testing (Information and Software Technology 51(10))"
+      role: grounds_implementation
+      code: [scripts/mutation_evidence_sufficiency_ast.py]
+      note: "The fixed-seed second-order sample of the second operator set; RES-021. Jia and Harman (2011) is cited in the same file for the survey."
     - id: rfc-3161-timestamping
       surname: "IETF"
       year: "2001"

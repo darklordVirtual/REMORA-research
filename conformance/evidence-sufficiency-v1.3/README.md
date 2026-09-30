@@ -26,9 +26,17 @@ Three postcondition cases, gap `I1`, for the key order of a mapping:
 
 The key order in `cases.json` is the fault E21 and E23 expose, so the file is written without sorting keys and a test pins that.
 
-A rejection contract, gap `J1`: ten inputs in `cases.json` and seven that JSON cannot express in the runner.
+A rejection contract, gap `J1`: ten inputs in `cases.json` and ten that JSON cannot express in the runner.
 Each must be refused with `ValueError`, never assessed and never refused with another exception class.
-They cover an unknown or null claim, non-mapping observations, floats at any depth, a float in the scope, a foreign premise source, and tuples, sets, bytes, non-string keys, a `str` subclass and NaN.
+They cover an unknown or null claim, non-mapping observations, floats at any depth, a float in the scope and a foreign premise source.
+The runner's own table covers tuples, sets, bytes, non-string keys, NaN and subclasses of `str`, `list` and `dict`.
+
+A reference model, `model.json`: a table-driven restatement of the rules, interpreted by the runner over every combination of premise values, a typed sweep and every state pair (61,544 documents).
+The checker must agree with it at every point, so a fault that changes any verdict on that lattice is caught whether or not a case reaches it.
+
+Twenty-three lattice-derived cases, gap `K1` (A17 to A25, B18 to B26, E24 to E28).
+Each types one premise (`1`, or `0` for an `is not False` guard) on an otherwise decisive configuration.
+They were computed as the smallest cover of the 42 faults that only the reference model caught in the second operator set, and each names the faults it separates.
 
 Eleven metamorphic relations, declared in `invariants.json` and executed over every case.
 The runner fails on a relation it does not implement or implements without declaring.
@@ -43,7 +51,9 @@ A checker that raises on valid input is reported as `crash:<section>:<Exception>
 
 `scripts/mutation_evidence_sufficiency.py` builds a sandbox, runs mutmut over the checker with this corpus as the test, and compares the survivors with `docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt`.
 On this corpus 489 mutants leave 20 survivors, each named in the baseline and classified in `docs/assurance/mutation_testing_v1.md`.
-The gate fails on a survivor that is in neither place.
+`scripts/mutation_evidence_sufficiency_ast.py` applies a second operator set that mutmut does not have, 705 first-order and 200 second-order mutants, scores them in process, and reports which checks each kill rests on.
+It leaves 4 survivors, named in `docs/assurance/mutation_baseline_evidence_sufficiency_ast_v1.txt`.
+Both gates fail on a survivor that is in neither place.
 
 ## Run
 
@@ -51,13 +61,15 @@ The gate fails on a survivor that is in neither place.
 python conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py --out /tmp/es-v1.3.json
 python conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py --check
 python scripts/mutation_evidence_sufficiency.py
+python scripts/mutation_evidence_sufficiency_ast.py
 ```
 
 ## Non-claims
 
-The I1 cases, the rejection set, the envelope checks and the relations were written after the sweep named the gaps.
+The I1 cases, the rejection set, the envelope checks and the relations were written after the sweep named the gaps, and the K1 cases were derived from the second operator set.
 Their kills of those mutants are expected by construction and are not independent evidence.
-The sweep uses one tool and its default operators; a mutant it never generates is not measured.
+Two operator sets are two samples of the fault space; a mutant neither generates is not measured.
+The reference model shares its author and its specification with the checker, so their agreement cannot catch a misreading both share.
 A killed mutant says nothing about the correctness of the checker, and a relation that holds on this corpus is known to hold only on this corpus.
 No external run of v1.3 has happened; section 8 of the design records the blind protocol for one.
 Everything under "Non-claims" in the v1.1 and v1.2 READMEs applies here unchanged.

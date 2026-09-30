@@ -639,6 +639,17 @@ runner. The same relations are checked on generated inputs with Hypothesis
 (Claessen and Hughes, 2000; MacIver et al., 2019), derandomised so a failure
 is a counterexample.
 
+Authored cases and relations are both samples. The corpus therefore also
+carries a table-driven reference model, interpreted over every combination of
+premise values, and requires the checker to agree at every point: differential
+testing in the sense of McKeeman (1998). A fault that changes any verdict on
+that lattice is caught whether or not a case reaches it. A second operator set,
+with a fixed-seed sample of second-order mutants (Jia and Harman, 2009),
+measures the corpus against faults it was not tuned to, and reports which
+checks each kill rests on. Where a kill rested on the model alone, the lattice
+point that separates the fault was derived into an authored case, so the rows
+that score cases alone see what the lattice sees.
+
 What this line does not take. Coverage is not used as the adequacy measure
 (Zhu, Hall and May, 1997; Inozemtseva and Holmes, 2014). Subsumption between
 mutants (Kurtz et al., 2016) is not computed; the families in the v1.3 spec
