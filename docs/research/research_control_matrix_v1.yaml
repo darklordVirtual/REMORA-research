@@ -971,6 +971,7 @@ entries:
       - rule_coverage_criterion
       - held_out_specification_catalogue
       - committed_held_out_fault_harness
+      - blind_agent_fault_probe
     code:
       - conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py
       - conformance/evidence-sufficiency-v1.3/invariants.json
@@ -982,6 +983,7 @@ entries:
       - scripts/spec_mutation_evidence_sufficiency.py
       - scripts/rule_coverage_evidence_sufficiency.py
       - scripts/score_heldout_faults.py
+      - scripts/probe_reimplementations_evidence_sufficiency.py
       - conformance/evidence-sufficiency-v1.4/run_evidence_sufficiency.py
       - conformance/evidence-sufficiency-v1.4/cases.json
       - conformance/evidence-sufficiency-v1.4/run-record.json
@@ -1046,7 +1048,12 @@ entries:
       cases, all for the §68 family, kill a mutant no other case kills
       (NEGATIVE_RESULTS.md §69). A committed harness for section 8 (python
       scripts/score_heldout_faults.py) reproduces the independent
-      analysis's raw rows for all 43 of its faults on v1.2 and v1.3.
+      analysis's raw rows for all 43 of its faults on v1.2 and v1.3. A
+      blind probe (artifacts/evidence-sufficiency-blind-probe-2026-09-30,
+      pre-registered) scored 60 code faults and 36 reimplementation variants
+      written by context-free agents that did not see the corpus: row 3 of
+      v1.4 kills 80 of 83 decision faults and row 1 kills 76, the same as
+      v1.3; six faults survive every row (NEGATIVE_RESULTS.md §70, open).
     maturity: library_only
     scope_boundary: >-
       A conformance research artifact, not a governed runtime path: the checker
