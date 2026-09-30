@@ -112,3 +112,33 @@ It also recorded two properties from Rul1an's statement on #629.
 The additional definitions were not held out in the sense of section 8 of `docs/design/evidence-sufficiency-v1.1.md`.
 The denominator was not reduced after the results were seen.
 Both properties hold in the published report.
+
+## v1.2 rerun
+
+### Record
+
+| Field | Value |
+|---|---|
+| Measured by | Rul1an |
+| Date | 2026-09-30 |
+| Agreement | darklordVirtual/REMORA-research#629 |
+| Subject | `conformance/evidence-sufficiency-v1/`, `-v1.1/` and `-v1.2/` at `c1345b1f9e0f877454bf996b2160d533c5a9b16a`, the #641 squash commit |
+| Checker sha256 | `c4ca50aee2b2918b11c6fbde1f8615ca6c6bf1e5b6fa2ac1775f49c5e8c20be0`, unchanged from v1 |
+| Tool | corpus-adequacy 0.7.0 at `5fa2ff587497b00ac684a767335b9068f7e520a6` |
+| Fault definitions | the 103 known and six additional definitions of the v1.1 rerun, with the same controls and the same three rows |
+| Report | [private package at `011481d`](https://github.com/corpus-adequacy/remora-es-v12-adequacy/blob/011481d51f6d51d519d6671a49f535f0f130d56c/REPORT.md), delivered on 2026-09-30 |
+| Factual review | [#629 comment](https://github.com/darklordVirtual/REMORA-research/issues/629#issuecomment-5909549290): no corrections |
+
+The recorded run stays on `c1345b1`.
+After the run, the H1 sentence in the v1.2 runner's `limits` list was reworded to name cases E18-E20, and `run-record.json` carries the same sentence.
+Cases, `guidance.json`, `ladders.json` and every check are identical to `c1345b1`, and `tests/test_evidence_sufficiency_v1_2.py` checks that the reworded sentence is the only difference in the runner and the record.
+
+### Result
+
+The package is private until Rul1an publishes it, so no v1.2 counts or survivor labels are stated here.
+The maintainer found no factual corrections and agreed on #629 to publication of the package unchanged.
+Once the package is public, this section gets the counts and labels, as the v1.1 section did.
+
+Every fault in the run was known before E18-E20 were written, so the run can show the repair against those faults.
+It is not evidence that the corpus generalises, and it does not test checker correctness.
+The maintainer reproduced every mutant verdict with a separate harness at `c1345b1`; that reproduction is not committed and is not evidence on its own.

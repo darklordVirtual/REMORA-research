@@ -30,6 +30,21 @@ FROZEN_V11 = {
     "run_evidence_sufficiency.py": "a007df2910b99c62b9fcd4a38eae1e2bec0e9b41a5c5b8dd9ef30a50149eaa88",
 }
 
+# What the external v1.2 rerun measured: `c1345b1`, the #641 squash commit. After that run the
+# H1 limit was reworded to name its cases, in the runner and so in run-record.json. Cases,
+# guidance and ladders are unchanged.
+MEASURED_V12 = {
+    "cases.json": "9f0cdd33a2b115e289ac99fe808596ad11ba672aecfc0426a04aa5bf508156ed",
+    "guidance.json": "eeb951e7073e7cc108a1d4886c4d03080b010287321a934f97ad763bb772542c",
+    "ladders.json": "e5b5cd88356625b0593062736fb2a386fe36e9334004e99f34e5861f10acd400",
+}
+MEASURED_V12_BEFORE_REWORDING = {
+    "run_evidence_sufficiency.py": "6f541741ae1dc0c737ae140a069fa221c32f47c702feae8413249cda90b6d45f",
+    "run-record.json": "94a922230b35d862285ffa5b5d1d5756a81294dc0083e44fcc1095c7df95da09",
+}
+H1_LIMIT_MEASURED = "Cases H1 were written after an external run with withheld faults named the gap; "
+H1_LIMIT = "Cases E18-E20 (gap H1) were written after an external run with withheld faults named the gap; "
+
 
 def _sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
@@ -64,6 +79,19 @@ def test_v1_tested_bytes_are_frozen() -> None:
 def test_v11_tested_bytes_are_frozen() -> None:
     for name, digest in FROZEN_V11.items():
         assert _sha(V11 / name) == digest, name
+
+
+def test_v12_measured_bytes_are_frozen() -> None:
+    for name, digest in MEASURED_V12.items():
+        assert _sha(V12 / name) == digest, name
+
+
+def test_v12_differs_from_the_measured_commit_only_in_the_h1_limit() -> None:
+    for name, digest in MEASURED_V12_BEFORE_REWORDING.items():
+        text = (V12 / name).read_text(encoding="utf-8").replace("\r\n", "\n")
+        assert text.count(H1_LIMIT) == 1, name
+        measured = text.replace(H1_LIMIT, H1_LIMIT_MEASURED)
+        assert hashlib.sha256(measured.encode("utf-8")).hexdigest() == digest, name
 
 
 def test_v11_guidance_and_ladders_are_carried_byte_for_byte() -> None:

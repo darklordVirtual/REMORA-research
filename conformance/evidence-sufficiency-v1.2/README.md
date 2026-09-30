@@ -13,6 +13,11 @@ The runner here imports `../evidence-sufficiency-v1/checker.py` and records its 
 The first 50 cases in `cases.json` are the v1.1 cases, equal as JSON values and in the same order.
 `guidance.json` and `ladders.json` are byte-for-byte copies of the v1.1 files, and the runner checks are those of v1.1.
 
+An external rerun measured this directory at `c1345b1` (the #641 squash commit).
+One change landed after that run: the H1 sentence in the runner's `limits` list now names cases E18-E20 instead of only the gap label, and `run-record.json` carries the same sentence.
+Cases, guidance, ladders and every check are identical to `c1345b1`.
+`tests/test_evidence_sufficiency_v1_2.py` pins the measured bytes and checks that the reworded sentence is the only difference in the runner and the record.
+
 ## What is added
 
 Three postcondition cases, gap `H1`, each derived from E02 and expected VIOLATED:
@@ -34,5 +39,9 @@ python conformance/evidence-sufficiency-v1.2/run_evidence_sufficiency.py --check
 
 The H1 cases were written after the external run named the three faults.
 Their kills of those faults are expected by construction and are not independent evidence.
-v1.2 has had no external run.
+Rul1an reran the published v1.1 fault definitions against v1.2 at `c1345b1` on 2026-09-30, with every fault known in advance.
+That run can show the repair against known faults; it cannot show that the corpus generalises.
+The maintainer agreed to publication on #629, and the package is private until Rul1an publishes it, so no counts are stated here.
+The record is [`docs/assurance/external_adequacy_evidence_sufficiency_v1.md`](../../docs/assurance/external_adequacy_evidence_sufficiency_v1.md).
+Before that run this section read: "v1.2 has had no external run."
 Everything under "Non-claims" in the v1.1 README applies here unchanged.

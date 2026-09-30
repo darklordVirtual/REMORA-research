@@ -318,12 +318,20 @@ On v1.1 the runner reproduced the published split: 103 of 103 known faults kille
 On v1.2 it killed 103 of 103 and 6 of 6, with the positive control killed and the inert control unchanged.
 `tests/test_evidence_sufficiency_v1_2.py` pins the three `canonical()` faults against the H1 cases.
 The H1 cases were written with these faults in view, so these kills show the repair and are not independent evidence.
-v1.2 has had no external run.
+When this section was written, v1.2 had had no external run; section 12.5 records the one since.
 
 ### 12.4 Not in scope
 
 No case pins that key order in a mapping is ignored (`sort_keys`).
 The external runs named no such fault, and adding one here would widen the corpus beyond the finding.
+
+### 12.5 External rerun
+
+Rul1an reran the v1.1 fault definitions, controls and rows against v1.2 at `c1345b1` on 2026-09-30, with every fault known in advance.
+The maintainer found no factual corrections and agreed to publication of the package unchanged (#629).
+The result is recorded in `docs/assurance/external_adequacy_evidence_sufficiency_v1.md`; the counts are added there once the package is public.
+One change landed after the run: the H1 `limits` sentence in the runner and `run-record.json` now names cases E18-E20.
+`tests/test_evidence_sufficiency_v1_2.py` pins the measured bytes and checks that this sentence is the only difference.
 
 ## Deliverables
 

@@ -245,6 +245,12 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Fixed
 
+- The H1 sentence in the evidence-sufficiency v1.2 runner's `limits` list
+  named only the gap label ("Cases H1 were written..."); it now names cases
+  E18-E20, and `run-record.json` is regenerated with no other change. An
+  external rerun measured v1.2 at `c1345b1` before the rewording, so a test
+  pins the measured bytes and checks that this sentence is the only
+  difference.
 - Five register findings from the replication pack.
   `effective_n` in the tool-call scorers counted domains, not templates: task
   ids are `<domain>_<seq>`, so stripping the last segment left 7 "clusters".
