@@ -319,6 +319,17 @@ For v1.3 the run must be blind, and the record says beforehand what would count.
 6. Pre-registered criterion: v1.3 is confirmed only if every held-out fault that is not labelled equivalent is killed on the runner row. Any open gap goes to v1.4 with the same discipline as sections 12 of the v1.1 spec and this one.
 7. Rows 1 and 2 score the authored cases alone; row 3 scores the runner, and only row 3 sees the lattice of D-14. A fault killed on row 3 and not on row 1 is reported as such, and it is the signal that another K1-style derivation is due.
 
+Since 2026-09-30 the protocol has a committed harness, so a run needs only a fault file and its public commitment:
+
+```bash
+python scripts/score_heldout_faults.py FAULTS.json --expect-sha256 <committed digest> --labels labels.json --json record.json --require-pass
+```
+
+It refuses a file whose digest differs from the commitment, and it refuses an edit that does not match the frozen checker.
+It scores v1.2, v1.3 and v1.4 in the three rows and applies item 6 to the newest suite. A survivor without an `equivalent` label counts as an open gap.
+On the 43 faults of the independent analysis it reproduces that analysis's own raw rows for v1.2 and v1.3, case by case, with no disagreement.
+The run still needs a selector who has not read the corpus and a public commitment; the harness removes only the need to write one.
+
 ## 9. Acceptance criteria
 
 1. `python conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py --check` exits 0 with an empty `failures` list and an empty `crashes` list.
@@ -337,7 +348,7 @@ For v1.3 the run must be blind, and the record says beforehand what would count.
 | T-11 | The gate script, the baseline, the workflow job | T-10 | done |
 | T-12 | The test module: pins, family differential, generated inputs | T-10 | done |
 | T-13 | Register the method: RES-021, related-work section 14, `mutation_testing_v1.md`, CHANGELOG, index | T-10 | done |
-| T-14 | Ask for a blind external run under section 8 | T-13 | open; an independent analysis on 2026-09-30 selected its faults blind but hashed them locally, not publicly (`docs/assurance/external_adequacy_evidence_sufficiency_v1.md`) |
+| T-14 | Ask for a blind external run under section 8 | T-13 | open; an independent analysis on 2026-09-30 selected its faults blind but hashed them locally, not publicly (`docs/assurance/external_adequacy_evidence_sufficiency_v1.md`); `scripts/score_heldout_faults.py` now scores such a run |
 | T-15 | Label the survivors of that run before any corpus change; open v1.4 only for open gaps | T-14 | open |
 | T-16 | The reference model, its lattice and the coherence checks (D-14) | T-10 | done |
 | T-17 | The second operator set with second-order sampling, the redundancy reading and its baseline (D-15) | T-11 | done |

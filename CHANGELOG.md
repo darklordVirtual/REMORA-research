@@ -65,6 +65,11 @@ This file lists externally relevant changes by release. Fine-grained development
   now scores v1.4 against an empty baseline. The held-out test had little
   power, and 17 of the 22 cases kill nothing another case does not in any
   catalogue measured (NEGATIVE_RESULTS.md §69).
+- A committed harness for blind external runs of the evidence-sufficiency
+  corpus (`scripts/score_heldout_faults.py`, v1.3 spec section 8). It checks
+  the fault file against its public digest, scores v1.2 to v1.4 in the three
+  rows, and applies the pre-registered criterion. It reproduces the
+  independent analysis's own raw rows for all 43 of its faults.
 - Evidence-sufficiency v1.2 (`conformance/evidence-sufficiency-v1.2/`): the
   50 v1.1 cases verbatim plus E18-E20, which tell apart the three withheld
   `canonical()` faults from the external v1.1 run. v1 and v1.1 are frozen.
