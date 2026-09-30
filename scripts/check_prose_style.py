@@ -76,6 +76,7 @@ EXCLUDE_PREFIXES = (
     "results/",  # result reports are frozen artifacts
     "tests/",  # fixture attribution files
     "artifacts/credibility-pack/",  # frozen evidence pack
+    "artifacts/independent-analysis-2026-09-30/",  # third-party report, committed unchanged
     "CHANGELOG.md",  # historical record
 )
 
