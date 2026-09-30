@@ -24,11 +24,11 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-09-30: **14 `open`**, **26 `accepted`**, **27 `superseded`**.
+Counts as of 2026-09-30: **15 `open`**, **26 `accepted`**, **27 `superseded`**.
 
 ## The actual backlog
 
-Eight themes, all research gaps; the one production gap (CI gates that ran
+Nine themes, all research gaps; the one production gap (CI gates that ran
 without blocking, §55) is closed and struck from this list; a backlog that
 keeps closed items is the drift the status gate exists to prevent. The section numbers
 after each theme are where its evidence lives, and CI checks that every theme
@@ -96,6 +96,11 @@ cites only `open` sections and that no `open` section is missing a theme.
    were 68 of 70 correct, more accurate than the ones kept. Whether the
    exclusion belongs on this path needs an out-of-sample test; until then v5
    stays as the conservative choice.
+9. **Evidence-sufficiency cases that miss rule-level faults** (§68):
+   pre-registered specification mutation of the reference model found twelve
+   cross-branch premise faults that no authored case separates; the runner's
+   lattice differential kills them all. A new corpus version can add the
+   cases, labelled as fitted.
 
 <!-- backlog-end -->
 
@@ -2457,6 +2462,7 @@ sections again.
 | MCE bucket bias and absent cross-domain episodes (§15, §16) | Structural AROMER ceilings: the buckets get no organic traffic and crossDomainCases=0. Needs diverse deployment context | Medium |
 | Authoritative tool metadata still caller-supplied on the advisory path (§14/M4) | Raise-only clamp shipped 2026-08-05 (declared risk cannot undercut the heuristic floor; clamps recorded, unset stays unset). Full authority still needs the signed ToolSpec registry (FT-03) | Medium |
 | External replication, REM-021, field evidence (§1, §4) | Cannot be closed from inside this repository | Medium |
+| Twelve cross-branch premise faults survive every authored evidence-sufficiency case (§68) | Found by pre-registered specification mutation; the runner's reference model kills all twelve, the authored cases none. Closing it needs a new corpus version, which will be fitted | Medium |
 
 ### Accepted negative results — do not "fix" these
 
@@ -4158,3 +4164,47 @@ by removal. The raw output of every row is committed in
 `artifacts/evidence-sufficiency-mutation-2026-09-30/`, and a test pins the
 committed survivors to both baselines, so that a count and its evidence
 cannot drift apart again without a failing test.
+
+## §68 Twelve cross-branch premise faults survive every authored evidence-sufficiency case (2026-09-30)
+<!-- finding-status: open -->
+
+**Status:** measured by the maintainer with specification mutation of
+`conformance/evidence-sufficiency-v1.3/model.json`
+(`scripts/spec_mutation_evidence_sufficiency.py`), pre-registered in section
+13 of `docs/design/evidence-sufficiency-v1.3.md`. The catalogue digest and the
+criterion were pushed in `37b1aac` before any mutant was scored. Open.
+
+**What was measured.** Nine operators produce 446 first-order mutants of the
+rules and a fixed-seed sample of 300 second-order pairs. Each mutant model runs
+as a checker through the v1.3 runner. Equivalence is computed by enumeration
+over eight premise value classes, so 54 first-order mutants leave the
+denominator with no hand label. Of the 392 live first-order mutants, the runner
+kills 392 and the 79 authored cases kill 380. The pre-registered criterion S-2,
+every live mutant killed by the authored cases alone, is not met. The runner
+kills all 298 live second-order mutants, and so do the authored cases.
+
+**Why it matters.** All twelve survivors make one arm of the
+`admission_present` branch require a premise of the other arm. A checker that
+refused ESTABLISHED for a present, accepted and matching admission unless the
+admission was also mandatory, or the window finalized, or coverage complete,
+passes every authored case. So does one that refused VIOLATED for a missing
+admission unless an admission source was accepted or matched. The only two
+decisive admission cases, A01 and A03, set every premise of both arms to
+`true`. An external row that
+scores authored cases alone, rows 1 and 2 of every run so far, cannot see this
+family; only the lattice differential of the runner does. No operator of the
+two code-level sets can express it: they rename a premise or read it
+differently, and never add one to a guard. The independent analysis's
+hand-picked faults did not include one.
+
+**What this does not establish.** The operators were written by the corpus's
+author after v1.3, so they are pre-registered, not blind. The state comparison
+is decided on the declared state values only. The checker is not wrong: the
+frozen checker and the model agree on all 61,544 lattice documents. The finding
+is about what the authored cases can tell apart.
+
+**Next.** A new corpus version can add cases that set each other-arm premise to
+`false` on a decisive admission configuration. Such cases would be fitted to
+this list, as the K1 cases were. The v1.3 spec records the gap as task T-20,
+and `docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt` names
+the twelve until then.

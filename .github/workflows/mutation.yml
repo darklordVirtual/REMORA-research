@@ -30,7 +30,9 @@ on:
       - "conformance/evidence-sufficiency-v1.3/**"
       - "scripts/mutation_evidence_sufficiency.py"
       - "scripts/mutation_evidence_sufficiency_ast.py"
+      - "scripts/spec_mutation_evidence_sufficiency.py"
       - "docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt"
+      - "docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt"
       - "docs/assurance/mutation_baseline_evidence_sufficiency_ast_v1.txt"
       - ".github/workflows/mutation.yml"
 
@@ -106,6 +108,10 @@ jobs:
       - name: Run the second operator set (first- and second-order) against its baseline
         run: python scripts/mutation_evidence_sufficiency_ast.py --workers 4 --json mutation-es-ast-results.json
 
+      - name: Run the specification mutants of model.json against their baseline
+        # v1.3 spec section 13: mutants of the rules, not of checker.py, each run as a checker.
+        run: python scripts/spec_mutation_evidence_sufficiency.py --workers 4 --json mutation-es-spec-results.json
+
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -114,4 +120,5 @@ jobs:
           path: |
             mutation-es-results.txt
             mutation-es-ast-results.json
+            mutation-es-spec-results.json
           retention-days: 90
