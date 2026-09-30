@@ -107,7 +107,7 @@ The external harness still counts an adapter crash as a kill on its per-case row
 ### D-13. Generated-input tests are derandomised.
 
 The Hypothesis tests run with `derandomize=True`, a fixed example budget and no deadline, so a CI run is reproducible and a failure is a counterexample, not a flake.
-A relation that holds on 300 generated inputs is known to hold on those inputs.
+A relation that holds on 150 generated inputs is known to hold on those inputs.
 
 ### D-14. The corpus is scored against the input lattice, not only against authored cases.
 
@@ -289,7 +289,7 @@ Each case names the mutants it separates in a `separates` field, and its expecta
 
 The 20 mutmut survivors and the 4 survivors of the second set are named in their baselines. Each is argued equivalent under the pinned contract in `docs/assurance/mutation_testing_v1.md`; none is proven equivalent, because that is undecidable.
 The family test passes: each of seven representative faults fails v1.3 and survives v1.2, and the H1 control fails both.
-The Hypothesis tests pass at 300 examples per property, derandomised.
+The Hypothesis tests pass at 150 examples per property, derandomised.
 The reference model agrees with the checker on all 61,544 lattice and typed documents and on all 79 authored cases.
 
 The redundancy reading of the second set is the part worth keeping.

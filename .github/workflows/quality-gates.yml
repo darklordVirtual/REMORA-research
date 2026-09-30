@@ -19,7 +19,11 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # 15, not 10 (2026-09-30): the job had grown to 9:00-10:03 with every step
+    # green. The master push for #637 (run 36617592241) and the #644 pull
+    # request run (36730336077) were both cancelled by the limit during the
+    # frontend steps after the coverage pass took 7:03 and 7:29.
+    timeout-minutes: 15
 
     # Real Postgres alongside the coverage run (2026-08-26, external review):
     # the Postgres adapters in enforcement/gate.py and enforcement/outbox.py

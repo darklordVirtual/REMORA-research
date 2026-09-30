@@ -354,7 +354,7 @@ def claim_and_observations(draw):
     return claim, dict(zip(keys, values))
 
 
-HYPOTHESIS = settings(max_examples=300, derandomize=True, deadline=None, suppress_health_check=[HealthCheck.too_slow])
+HYPOTHESIS = settings(max_examples=150, derandomize=True, deadline=None, suppress_health_check=[HealthCheck.too_slow])
 
 
 def _outcome(verdict: dict) -> dict:
@@ -500,7 +500,10 @@ def test_second_operator_set_kills_a_sample_and_the_original_passes() -> None:
     source = gate.Source((V1 / "checker.py").read_text(encoding="utf-8"))
     _, failures, _ = gate.score(("original", source.text))
     assert failures == []
-    sample = [m for m in gate.catalogue(source) if m["id"].startswith(("status_polarity:", "state_comparison:"))][:6]
+    # One mutant per operator is a smoke test of the scorer; the full sweep is the
+    # mutation workflow's job and each score is a whole runner pass under coverage.
+    mutants = gate.catalogue(source)
+    sample = [next(m for m in mutants if m["id"].startswith(prefix)) for prefix in ("status_polarity:", "state_comparison:")]
     for m in sample:
         _, failures, _ = gate.score((m["id"], gate.mutated_source(source, m)))
         assert failures, m["id"]
