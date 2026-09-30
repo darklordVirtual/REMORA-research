@@ -100,6 +100,8 @@ Several topics have more than one document. This table says which to open.
 | [security/non-transitivity-of-authority.md](security/non-transitivity-of-authority.md) | Non-Transitivity of Authority (NTA-1, NTA-2): principle, enforcement, conformance vectors, limits |
 | [design/authority-preserving-capability-mediation-v1.md](design/authority-preserving-capability-mediation-v1.md) | Authority-Preserving Capability Mediation (NTA-2): proposed design, phase 1 implemented |
 | [design/evidence-sufficiency-v1.1.md](design/evidence-sufficiency-v1.1.md) | Evidence-sufficiency v1.1: closing the gaps found by external seeded-fault testing; decisions, requirements, rerun protocol |
+| [AutoReview-to-Effect benchmark v1](../conformance/autoreview-to-effect-v1/README.md) | Five post-approval adversarial vectors and one control: argument mutation, identity change, alternate tool, stale policy, claimed success versus authoritative state |
+| [Safety-case evidence profile v0.1](../conformance/safety-case-evidence-profile-v0.1/README.md) | Five safeguard claims appraised as claim, producer evidence, independent verification, evidence sufficiency and verdict (synthetic) |
 | [governance/eu_ai_act_nsm_mapping.md](governance/eu_ai_act_nsm_mapping.md) | EU AI Act / NSM mapping |
 | [governance/nist_ai_rmf_mapping.md](governance/nist_ai_rmf_mapping.md) | NIST AI RMF mapping |
 | [reference_architecture.md](reference_architecture.md) | Compact architecture overview |

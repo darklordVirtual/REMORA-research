@@ -6,6 +6,18 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Added
 
+- `conformance/autoreview-to-effect-v1/`: five adversarial post-approval
+  vectors (argument mutation, identity change, alternate tool, stale policy,
+  claimed success versus authoritative state) and one control. Author-run
+  against REMORA: 6 of 6 match. A naive boolean-gate adapter matches only the
+  control and diverges on all five, which is the evidence that the vectors
+  discriminate. Not run against any third-party system.
+- `conformance/safety-case-evidence-profile-v0.1/`: five safeguard claims
+  (containment maintained, monitor active, unauthorized execution prevented,
+  run paused on violation, postcondition verified) laid out as claim, producer
+  evidence, independent verification, evidence sufficiency and verdict. 22
+  synthetic cases; producer evidence is checked never to move a verdict. Two
+  claims delegate to the unchanged evidence-sufficiency-v1 checker.
 - The external v1.1 seeded-fault run over evidence-sufficiency, recorded in
   `docs/assurance/external_adequacy_evidence_sufficiency_v1.md`. The known
   faults are all killed on the runner row, which shows the repair and is not
