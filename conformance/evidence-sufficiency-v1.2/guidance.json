@@ -1,0 +1,140 @@
+{
+  "artifact": "evidence-sufficiency-v1.1",
+  "guidance": {
+    "admission_coverage_incomplete": {
+      "decisive_if": "justify capture/export completeness for every admission stream in scope",
+      "missing_evidence": [
+        "complete admission coverage for the bounded scope"
+      ]
+    },
+    "admission_observation_unaccepted": {
+      "decisive_if": "establish provenance and acceptance for the candidate admission record",
+      "missing_evidence": [
+        "accepted admission observation"
+      ]
+    },
+    "admission_presence_unknown": {
+      "decisive_if": "determine whether a candidate covering admission is present in the observation set",
+      "missing_evidence": [
+        "admission presence/absence observation"
+      ]
+    },
+    "admission_requirement_not_defined": {
+      "decisive_if": "state the rule requiring a covering admission for this action class",
+      "missing_evidence": [
+        "mandatory-admission rule"
+      ]
+    },
+    "alternative_route_not_established": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "candidate_admission_does_not_establish_a_covering_admission": {
+      "decisive_if": "supply a candidate admission that joins to the same bounded action context",
+      "missing_evidence": [
+        "covering admission bound to this execution"
+      ]
+    },
+    "declared_settlement_point_not_reached": {
+      "decisive_if": "wait for the declared deadline/settlement point before appraising the postcondition",
+      "missing_evidence": [
+        "settlement point reached"
+      ]
+    },
+    "execution_observation_unaccepted_or_missing": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "no_effect_observation_not_complete": {
+      "decisive_if": "close the downstream observation window before inferring non-occurrence",
+      "missing_evidence": [
+        "complete downstream effect window"
+      ]
+    },
+    "observation_window_open": {
+      "decisive_if": "close the interval under a stated finalization/watermark rule",
+      "missing_evidence": [
+        "finalized observation interval"
+      ]
+    },
+    "protected_effect_observation_unaccepted": {
+      "decisive_if": "supply accepted downstream evidence for the protected effect",
+      "missing_evidence": [
+        "accepted protected-effect observation"
+      ]
+    },
+    "protected_effect_unknown": {
+      "decisive_if": "observe whether the protected effect occurred for the named attempt",
+      "missing_evidence": [
+        "decisive protected-effect observation"
+      ]
+    },
+    "readback_source_not_accepted": {
+      "decisive_if": "establish provenance/trust for the read-back source",
+      "missing_evidence": [
+        "accepted read-back source"
+      ]
+    },
+    "readback_stale_or_time_unbound": {
+      "decisive_if": "obtain a fresh observation bound to the declared settlement interval",
+      "missing_evidence": [
+        "fresh read-back in the declared window"
+      ]
+    },
+    "readback_unavailable": {
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ]
+    },
+    "refusal_not_attributed_to_required_boundary": {
+      "decisive_if": "identify the required boundary as the cause of refusal rather than inferring it from 403/no-effect",
+      "missing_evidence": [
+        "accepted boundary-attribution evidence"
+      ]
+    },
+    "route_observation_unaccepted_or_missing": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "scope_unaccepted_or_missing": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "state_value_missing": {
+      "decisive_if": "supply both sides of the declared postcondition comparison",
+      "missing_evidence": [
+        "expected state",
+        "observed state"
+      ]
+    },
+    "target_or_operation_not_bound": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "target_or_predicate_not_bound": {
+      "decisive_if": "bind expected and observed state to the same target and predicate",
+      "missing_evidence": [
+        "same target and declared postcondition predicate"
+      ]
+    },
+    "valid_control_missing_or_incomparable": {
+      "decisive_if": "show the same route and operation succeeds when the tested boundary condition is absent",
+      "missing_evidence": [
+        "comparable valid control"
+      ]
+    }
+  },
+  "pinned_from_checker_sha256": "c4ca50aee2b2918b11c6fbde1f8615ca6c6bf1e5b6fa2ac1775f49c5e8c20be0",
+  "purpose": "independent expected guidance for every inconclusive reason; the checker's own table is not used as the oracle"
+}

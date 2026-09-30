@@ -24,11 +24,11 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-09-29: **15 `open`**, **26 `accepted`**, **23 `superseded`**.
+Counts as of 2026-09-29: **14 `open`**, **26 `accepted`**, **24 `superseded`**.
 
 ## The actual backlog
 
-Nine themes, all research gaps; the one production gap (CI gates that ran
+Eight themes, all research gaps; the one production gap (CI gates that ran
 without blocking, §55) is closed and struck from this list; a backlog that
 keeps closed items is the drift the status gate exists to prevent. The section numbers
 after each theme are where its evidence lives, and CI checks that every theme
@@ -96,12 +96,6 @@ cites only `open` sections and that no `open` section is missing a theme.
    were 68 of 70 correct, more accurate than the ones kept. Whether the
    exclusion belongs on this path needs an out-of-sample test; until then v5
    stays as the conservative choice.
-9. **Evidence-sufficiency corpus: state comparison** (§64): an external
-   run with withheld faults found that the v1.1 corpus cannot tell exact
-   state comparison from case-folded, list-sorted or key-only comparison.
-   The fix is v1.2 cases whose expected and observed states differ in
-   exactly those ways; they are written after the faults were known and
-   are not independent evidence.
 
 <!-- backlog-end -->
 
@@ -2490,6 +2484,7 @@ sections again.
 | Coverage loss degrades discrimination (§32) | §35 | Wrong-argument accepts in the UNKNOWN regime 50% → 0% with value grounding, all pre-registered expectations still met |
 | Benchmark v2 leakage and overstated effective N (§17) | Fixed 2026-07-20 | Gate and baselines restricted to the observable surface; effective N=70 not 700; the "0% vs 10–20%" claim withdrawn |
 | AROMER seeding, regression and recovery chronicle (§§5–13) | §11, §12, §13 | Kept in sequence because the recovery evidence is only meaningful next to the failure. Architectural finding preserved: stage seeding ≤25 per batch, or implement an EMA dual window |
+| v1.1 evidence-sufficiency corpus misses three state-comparison faults (§64) | evidence-sufficiency v1.2, 2026-09-29 | Cases E18-E20 tell the three faults apart. They were written after the faults were known, so this is the repair, not independent evidence; no external rerun of v1.2 |
 | Blind-confirmed intermediate rounds (§25, §27, §28, §31) | — | Each records a round that met or missed its pre-registered targets on the way to §34; retained as the pre-registration trail |
 
 ## Resolved Findings Archive
@@ -3956,7 +3951,7 @@ efficacy on REMORA's code, not a real-world rate.
 
 
 ## §64 The v1.1 evidence-sufficiency corpus misses three state-comparison faults (2026-09-29)
-<!-- finding-status: open -->
+<!-- finding-status: superseded -->
 
 **Status:** measured externally by Rul1an with corpus-adequacy 0.7.0 on
 `conformance/evidence-sufficiency-v1.1/` at `57ee0351` (the #637 head; the
@@ -3964,7 +3959,8 @@ conformance trees are byte-identical to the merged `8772d85` apart from one
 limits string). Report:
 [REPORT.md at `9f38519`](https://github.com/corpus-adequacy/remora-es-v11-adequacy/blob/9f3851995bbe395e510dde9ce9a03ebb6f1f965a/REPORT.md).
 Record and labels: `docs/assurance/external_adequacy_evidence_sufficiency_v1.md`.
-Open: a real corpus gap, within scope.
+Superseded by evidence-sufficiency v1.2 (see the end of this section). The finding
+about v1.1 stands.
 
 **What was measured.** v1.1 was written against the 103 faults of the v1.0
 run and kills all of them on the runner row. Rul1an also ran six faults the
@@ -3988,3 +3984,12 @@ and six selected faults are not a coverage rate. A survivor is a corpus
 discrimination gap, not a checker defect. v1.2 cases for these faults will
 be written with them in view; their kills will show the repair and will not
 be independent evidence.
+
+**Resolution (2026-09-29).** `conformance/evidence-sufficiency-v1.2/` carries
+the 50 v1.1 cases verbatim and adds E18, E19 and E20. Each derives from E02
+and expects a disagreeing postcondition to be VIOLATED: `"Closed"` against
+`"closed"`, a two-item list in another order, and a mapping with the same key
+and another value. Against the frozen checker, the v1.2 runner reports
+failures under each of the three faults, and still under every known fault
+from the external manifests. That result is fitted: the cases were written
+with these faults in view. v1.2 has had no external run.
