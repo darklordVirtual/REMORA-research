@@ -52,8 +52,19 @@ This file lists externally relevant changes by release. Fine-grained development
   catalogue and criterion were pushed before the first score. The runner
   kills every live mutant; the authored cases miss twelve cross-branch
   premise faults, so the pre-registered criterion S-2 is not met
-  (NEGATIVE_RESULTS.md §68, open). The corpus is unchanged. The sweep runs in
-  the mutation workflow against a baseline that names the twelve.
+  (NEGATIVE_RESULTS.md §68). The corpus is unchanged in that change. The sweep
+  runs in the mutation workflow.
+- Evidence-sufficiency v1.4 (`conformance/evidence-sufficiency-v1.4/`): v1.3
+  verbatim plus 22 cases derived from a rule-coverage criterion
+  (`scripts/rule_coverage_evidence_sufficiency.py`, v1.3 spec section 14)
+  that defines adequacy from `model.json` alone, MC/DC-style per decisive
+  outcome. The runner fails on any of its 80 obligations left open. The
+  derivation rule, its output digest and a held-out mutant catalogue were
+  pushed before v1.4 existed. v1.4 kills every live specification mutant of
+  both catalogues on the authored cases alone, and the specification gate
+  now scores v1.4 against an empty baseline. The held-out test had little
+  power, and 17 of the 22 cases kill nothing another case does not in any
+  catalogue measured (NEGATIVE_RESULTS.md §69).
 - Evidence-sufficiency v1.2 (`conformance/evidence-sufficiency-v1.2/`): the
   50 v1.1 cases verbatim plus E18-E20, which tell apart the three withheld
   `canonical()` faults from the external v1.1 run. v1 and v1.1 are frozen.

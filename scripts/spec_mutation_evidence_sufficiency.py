@@ -81,7 +81,7 @@ V13 = ROOT / "conformance" / "evidence-sufficiency-v1.3"
 CHECKER = ROOT / "conformance" / "evidence-sufficiency-v1" / "checker.py"
 RUNNER = V13 / "run_evidence_sufficiency.py"
 MODEL = V13 / "model.json"
-DEFAULT_SUITE = "evidence-sufficiency-v1.3"
+DEFAULT_SUITE = "evidence-sufficiency-v1.4"
 #: The corpus the gate and its baseline belong to.
 GATED_SUITE = DEFAULT_SUITE
 AST_SCRIPT = ROOT / "scripts" / "mutation_evidence_sufficiency_ast.py"
@@ -909,9 +909,9 @@ def main(argv: list[str]) -> int:
         return 0
     if args.update:
         header = [
-            "# Live specification mutants of conformance/evidence-sufficiency-v1.3/model.json that a",
-            "# row misses (scripts/spec_mutation_evidence_sufficiency.py). `row1` = no authored case",
-            "# separates the mutant; `row3` = the v1.3 runner does not. Regenerate with --update.",
+            "# Live specification mutants of the evidence-sufficiency model.json that a row of the",
+            f"# {GATED_SUITE} corpus misses (scripts/spec_mutation_evidence_sufficiency.py). `row1` = no",
+            "# authored case separates the mutant; `row3` = the runner does not. Regenerate with --update.",
             f"# catalogue sha256 {report['catalogue_sha256']}; model sha256 {report['model_sha256']}.",
             "# Every entry is an open gap recorded in NEGATIVE_RESULTS.md, not an equivalence label:",
             "# equivalent mutants are computed and never listed here.",

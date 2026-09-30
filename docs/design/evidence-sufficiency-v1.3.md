@@ -343,8 +343,8 @@ For v1.3 the run must be blind, and the record says beforehand what would count.
 | T-17 | The second operator set with second-order sampling, the redundancy reading and its baseline (D-15) | T-11 | done |
 | T-18 | The K1 cases derived from the lattice, and R18 to R20 (D-16) | T-17 | done |
 | T-19 | Pre-register and run specification mutation of `model.json` (section 13) | T-16 | done; S-2 not met, twelve row-1 survivors (NEGATIVE_RESULTS.md §68) |
-| T-20 | Close the §68 gap in a new corpus version, labelled as fitted | T-19 | open; section 14 pre-registers v1.4 |
-| T-21 | Rule coverage (RC-1 to RC-3), the derivation rule and the held-out catalogue (section 14) | T-19 | pre-registered |
+| T-20 | Close the §68 gap in a new corpus version, labelled as fitted | T-19 | done: v1.4 (section 14.6) |
+| T-21 | Rule coverage (RC-1 to RC-3), the derivation rule and the held-out catalogue (section 14) | T-19 | done; H-1 to H-3 as in section 14.6, with the power caveat of NEGATIVE_RESULTS.md §69 |
 
 ## 11. Risks
 
@@ -475,7 +475,8 @@ None of them is killed on row 3, which is the consistency check the computation 
 Row 2 misses 36 live mutants: the twelve above, and 24 that change only a decisive verdict, which carries no guidance under rule R-6.
 
 As section 13.4 item 5 requires, no corpus file changed in the change that reports this.
-`scripts/spec_mutation_evidence_sufficiency.py` now runs in the mutation workflow against `docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt`, which names the twelve as `row1` survivors.
+`scripts/spec_mutation_evidence_sufficiency.py` now runs in the mutation workflow against `docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt`, which named the twelve as `row1` survivors until v1.4 emptied it (section 14.6).
+The v1.3 row reproduces with `--suite evidence-sufficiency-v1.3`.
 
 ## 14. Rule coverage and v1.4, pre-registered
 
@@ -539,6 +540,32 @@ A guard that sinks into one arm leaves a premise off that arm's path, and an RC-
 A guard that is hoisted puts a premise on the other arm's path, and an RC-1 case tells that apart.
 So the run tests the argument and its implementation. The 300 third-order mutants have no such argument.
 The criterion was written after section 13 had named the §68 family, by the corpus's author; it is pre-registered, not blind.
+
+### 14.6 Result (2026-09-30)
+
+The criterion, the derivation digest and the held-out catalogue were pushed in `f3ba6d0` at 20:31:19 +02:00, before v1.4 existed and before any held-out mutant was scored.
+`conformance/evidence-sufficiency-v1.4/` was then built by the derivation, and its cases hash to the pre-registered digest.
+The raw reports are in `artifacts/evidence-sufficiency-spec-mutation-2026-09-30/`.
+
+| Prediction | Result |
+|---|---|
+| H-1, v1.4 kills every live held-out mutant on row 1 | met: 19 of 19 first-order, 300 of 300 third-order |
+| H-2, v1.4 discharges every obligation and meets S-2 | met: 80 of 80 obligations; 392 of 392 live first-catalogue mutants on row 1, 298 of 298 second-order |
+| H-3, v1.3 on the held-out catalogue, reported | 18 of 19 first-order and 300 of 300 third-order on row 1 |
+
+H-1 is weak evidence, and this section says so rather than letting the table say otherwise.
+v1.3 already killed 318 of the 319 held-out mutants on row 1.
+The one it missed, `guard_hoist:admission_accounting:0`, makes the absence arm require an accepted admission source, a member of the §68 family.
+So the held-out catalogue could separate v1.4 from v1.3 on one mutant, and it was not the family the criterion's other obligations aim at.
+The guard-placement mutants that RC-2 was expected to need were already killed by v1.3 cases that happen to cross the same guards.
+
+The derived cases split the same way.
+On row 1, only five of the 22 L1 cases kill a mutant of either specification catalogue that no other case kills.
+They are A26, A27 and A28 (RC-1 on ESTABLISHED) and A32 and A33 (RC-1 on VIOLATED), the §68 family.
+The other seventeen are required by the criterion and are redundant against every fault list measured so far.
+The AST operator set of section 6.8, rerun with the v1.4 runner, gives the same 901 of 905, and no kill in it rests on an L1 case alone.
+NEGATIVE_RESULTS.md §69 records both points.
+The criterion stays, because it needs no fault list and gates the runner, but its measured value is those five cases.
 
 ## Deliverables
 

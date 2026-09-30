@@ -968,6 +968,8 @@ entries:
       - kill_redundancy_reading
       - lattice_derived_cases
       - specification_mutation
+      - rule_coverage_criterion
+      - held_out_specification_catalogue
     code:
       - conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py
       - conformance/evidence-sufficiency-v1.3/invariants.json
@@ -977,12 +979,18 @@ entries:
       - scripts/mutation_evidence_sufficiency.py
       - scripts/mutation_evidence_sufficiency_ast.py
       - scripts/spec_mutation_evidence_sufficiency.py
+      - scripts/rule_coverage_evidence_sufficiency.py
+      - conformance/evidence-sufficiency-v1.4/run_evidence_sufficiency.py
+      - conformance/evidence-sufficiency-v1.4/cases.json
+      - conformance/evidence-sufficiency-v1.4/run-record.json
       - docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt
       - docs/assurance/mutation_baseline_evidence_sufficiency_ast_v1.txt
       - docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt
     tests:
       - tests/test_evidence_sufficiency_v1_3.py
       - tests/test_evidence_sufficiency_spec_mutation.py
+      - tests/test_evidence_sufficiency_rule_coverage.py
+      - tests/test_evidence_sufficiency_v1_4.py
     evidence: >-
       The record reproduces with python conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py
       --check. mutmut 3.8.0 generates 489 mutants of the frozen v1 checker.
@@ -1021,7 +1029,19 @@ entries:
       score was read. The runner kills all 392 live first-order mutants; the
       authored cases kill 380, so the pre-registered criterion S-2 is not met.
       The twelve survivors are cross-branch premise faults
-      (NEGATIVE_RESULTS.md §68, open).
+      (NEGATIVE_RESULTS.md §68). Rule coverage (python
+      scripts/rule_coverage_evidence_sufficiency.py) then defines adequacy
+      from model.json alone, MC/DC-style per decisive outcome: 80
+      obligations, of which v1.3 discharges 58. The derivation rule, its
+      output digest and a held-out catalogue (19 guard-placement and 300
+      third-order mutants) were pushed before v1.4 existed (section 14).
+      conformance/evidence-sufficiency-v1.4 is v1.3 plus the 22 derived
+      cases, and its runner fails on any open obligation. v1.4 discharges
+      all 80 and kills every live mutant of both specification catalogues on
+      the authored cases alone. The held-out test had little power: v1.3
+      already killed 318 of its 319 mutants, and only five of the 22 derived
+      cases, all for the §68 family, kill a mutant no other case kills
+      (NEGATIVE_RESULTS.md §69).
     maturity: library_only
     scope_boundary: >-
       A conformance research artifact, not a governed runtime path: the checker

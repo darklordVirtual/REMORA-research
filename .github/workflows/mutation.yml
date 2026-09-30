@@ -28,9 +28,11 @@ on:
       - "conformance/evidence-sufficiency-v1.1/**"
       - "conformance/evidence-sufficiency-v1.2/**"
       - "conformance/evidence-sufficiency-v1.3/**"
+      - "conformance/evidence-sufficiency-v1.4/**"
       - "scripts/mutation_evidence_sufficiency.py"
       - "scripts/mutation_evidence_sufficiency_ast.py"
       - "scripts/spec_mutation_evidence_sufficiency.py"
+      - "scripts/rule_coverage_evidence_sufficiency.py"
       - "docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt"
       - "docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt"
       - "docs/assurance/mutation_baseline_evidence_sufficiency_ast_v1.txt"
@@ -109,8 +111,11 @@ jobs:
         run: python scripts/mutation_evidence_sufficiency_ast.py --workers 4 --json mutation-es-ast-results.json
 
       - name: Run the specification mutants of model.json against their baseline
-        # v1.3 spec section 13: mutants of the rules, not of checker.py, each run as a checker.
-        run: python scripts/spec_mutation_evidence_sufficiency.py --workers 4 --json mutation-es-spec-results.json
+        # v1.3 spec sections 13 and 14: mutants of the rules, not of checker.py, each run as a
+        # checker and scored by v1.4; the held-out catalogue is a measurement and is uploaded.
+        run: |
+          python scripts/spec_mutation_evidence_sufficiency.py --workers 4 --json mutation-es-spec-results.json
+          python scripts/spec_mutation_evidence_sufficiency.py --catalogue heldout --workers 4 --json mutation-es-spec-heldout.json
 
       - name: Upload results
         if: always()
@@ -121,4 +126,5 @@ jobs:
             mutation-es-results.txt
             mutation-es-ast-results.json
             mutation-es-spec-results.json
+            mutation-es-spec-heldout.json
           retention-days: 90
