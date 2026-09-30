@@ -30,6 +30,9 @@ A rejection contract, gap `J1`: ten inputs in `cases.json` and ten that JSON can
 Each must be refused with `ValueError`, never assessed and never refused with another exception class.
 They cover an unknown or null claim, non-mapping observations, floats at any depth, a float in the scope and a foreign premise source.
 The runner's own table covers tuples, sets, bytes, non-string keys, NaN and subclasses of `str`, `list` and `dict`.
+The scope is outside this contract: the frozen checker converts it with `dict()`.
+A sequence of pairs is therefore accepted as a scope, and a value `dict()` cannot convert raises `TypeError`, not `ValueError`.
+The run record lists this under `limits`; it is recorded and not repaired, because the checker stays frozen.
 
 A reference model, `model.json`: a table-driven restatement of the rules, interpreted by the runner over every combination of premise values, a typed sweep and every state pair (61,544 documents).
 The checker must agree with it at every point, so a fault that changes any verdict on that lattice is caught whether or not a case reaches it.
@@ -64,6 +67,17 @@ python scripts/mutation_evidence_sufficiency.py
 python scripts/mutation_evidence_sufficiency_ast.py
 ```
 
+The earlier rows of the spec's section 7 have their own commands, and their raw outputs are in `artifacts/evidence-sufficiency-mutation-2026-09-30/`.
+
+```bash
+python scripts/mutation_evidence_sufficiency.py --scoring-suite evidence-sufficiency-v1.2
+python scripts/mutation_evidence_sufficiency_ast.py --corpus first-run
+python scripts/mutation_evidence_sufficiency_ast.py --corpus without-k1
+python scripts/mutation_evidence_sufficiency_ast.py --workers 1   # where a process pool is refused
+```
+
+mutmut refuses native Windows; run the first command in WSL or a Linux container.
+
 ## Non-claims
 
 The I1 cases, the rejection set, the envelope checks and the relations were written after the sweep named the gaps, and the K1 cases were derived from the second operator set.
@@ -71,5 +85,6 @@ Their kills of those mutants are expected by construction and are not independen
 Two operator sets are two samples of the fault space; a mutant neither generates is not measured.
 The reference model shares its author and its specification with the checker, so their agreement cannot catch a misreading both share.
 A killed mutant says nothing about the correctness of the checker, and a relation that holds on this corpus is known to hold only on this corpus.
-No external run of v1.3 has happened; section 8 of the design records the blind protocol for one.
+No run under section 8 of the design has happened.
+An independent analysis chose 43 faults without reading v1.3 but hashed them locally, not publicly, so it does not meet that protocol (`docs/assurance/external_adequacy_evidence_sufficiency_v1.md`).
 Everything under "Non-claims" in the v1.1 and v1.2 READMEs applies here unchanged.

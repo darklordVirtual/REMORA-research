@@ -232,6 +232,9 @@ finding is NEGATIVE_RESULTS.md §65.
 | v1.2 corpus | 489 | 377 | 112 | A 41, B 40, C 12, D 8, E 3, F 7, G 1 |
 | v1.3 corpus | 489 | 469 | 20 | C 12, F 7, G 1 |
 
+The first row reproduces with `python scripts/mutation_evidence_sufficiency.py --scoring-suite evidence-sufficiency-v1.2`.
+The second reproduces with the default command. mutmut refuses native Windows, so both were reproduced in a `python:3.12-slim` container; the raw `mutmut results --all` text of each is in `artifacts/evidence-sufficiency-mutation-2026-09-30/`.
+
 Every survivor of the v1.3 run is named in
 `docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt`, and every one
 is argued equivalent under the contract the corpus pins. The argument is per
@@ -259,10 +262,14 @@ is a text edit on the checker's source, scored in process by the v1.3
 runner. Each kill carries the set of checks that produced it (D-15 of the
 v1.3 spec).
 
-| Run | Mutants | Killed | Survived | Kills resting on one check |
-|---|---:|---:|---:|---|
-| v1.3 before R18-R20 and the K1 cases | 905 | 898 | 7 | 60: reference model 42, rejection contract 17, crash 1 |
-| v1.3 as merged | 905 | 901 | 4 | 18: rejection contract 17, crash 1 |
+| Run | Mutants | Killed | Survived | Kills resting on one check | `--corpus` |
+|---|---:|---:|---:|---|---|
+| v1.3 before R18-R20 and the K1 cases | 905 | 898 | 7 | 57: reference model 42, rejection contract 14, crash 1 | `first-run` |
+| v1.3 with R18-R20, before the K1 cases | 905 | 901 | 4 | 60: reference model 42, rejection contract 17, crash 1 | `without-k1` |
+| v1.3 as merged | 905 | 901 | 4 | 18: rejection contract 17, crash 1 | `merged` (default) |
+
+The first row first read "60: reference model 42, rejection contract 17", the figure of the second row (NEGATIVE_RESULTS.md §67).
+The two middle states were never committed on their own; the script rebuilds each by removal, and the raw output of every row is in `artifacts/evidence-sufficiency-mutation-2026-09-30/`.
 
 Per operator, as merged: delete_statement 86/86, swap_adjacent_guards 21/24,
 comparison_variant 96/96, reason_confusion 236/236, status_polarity 16/16,

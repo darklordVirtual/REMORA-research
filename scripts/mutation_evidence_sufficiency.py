@@ -34,15 +34,26 @@ Usage::
     python scripts/mutation_evidence_sufficiency.py            # sweep, compare, exit 1 on new survivors
     python scripts/mutation_evidence_sufficiency.py --update   # sweep and rewrite the baseline
     python scripts/mutation_evidence_sufficiency.py --results-out mutation-es-results.txt
+    python scripts/mutation_evidence_sufficiency.py --scoring-suite evidence-sufficiency-v1.2
+
+``--scoring-suite evidence-sufficiency-v1.2`` scores the same mutants with the
+v1.2 runner and cases, which is the "before" row of the v1.3 spec's section 7.
+It prints the counts and exits 0: the v1.2 survivors are the gaps v1.3 closed,
+so they have no baseline and no gate. Row 2 compares each mutant's guidance to
+the unmutated checker's guidance on the same case, computed when the sandbox
+is built, because the v1.2 record does not carry per-case guidance.
 """
 from __future__ import annotations
 
 import argparse
+import importlib.util
+import json
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
+from copy import deepcopy
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -50,6 +61,7 @@ BASELINE = ROOT / "docs" / "assurance" / "mutation_baseline_evidence_sufficiency
 CONFORMANCE = ROOT / "conformance"
 SUITES = ("evidence-sufficiency-v1", "evidence-sufficiency-v1.1", "evidence-sufficiency-v1.2", "evidence-sufficiency-v1.3")
 SCORING_SUITE = "evidence-sufficiency-v1.3"
+SCORING_SUITES = ("evidence-sufficiency-v1.2", "evidence-sufficiency-v1.3")
 
 _LINE = re.compile(r"^\s*(\S+__mutmut_\d+): (.+?)\s*$")
 
@@ -89,6 +101,8 @@ RUNNER = _runner()
 CASES = json.loads((SUITE / "cases.json").read_text(encoding="utf-8"))["cases"]
 RECORD = json.loads((SUITE / "run-record.json").read_text(encoding="utf-8"))
 SCOPE = {"kind": "synthetic_fixture", "suite": RECORD["suite"], "bounded": True}
+# Per-case guidance of the unmutated checker, written when the sandbox was built.
+GUIDANCE_BASELINE = json.loads((HERE / "guidance_baseline.json").read_text(encoding="utf-8"))
 
 
 def _verdicts():
@@ -108,7 +122,7 @@ def test_row1_status_and_reason():
 
 
 def test_row2_guidance():
-    baseline = RECORD["case_guidance"]
+    baseline = GUIDANCE_BASELINE
     for case_id, got in _verdicts().items():
         assert got["missing_evidence"] == baseline[case_id]["missing_evidence"], case_id
         assert got.get("decisive_if") == baseline[case_id]["decisive_if"], case_id
@@ -126,7 +140,30 @@ max_children = %(children)d
 """
 
 
-def build_sandbox(workdir: Path, children: int) -> None:
+def guidance_baseline(suite: str) -> dict:
+    """Per-case guidance of the unmutated checker on one suite's cases, as row 2 compares it."""
+    spec = importlib.util.spec_from_file_location(
+        "es_guidance_baseline_checker", CONFORMANCE / "evidence-sufficiency-v1" / "checker.py"
+    )
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    try:
+        spec.loader.exec_module(module)
+        cases = json.loads((CONFORMANCE / suite / "cases.json").read_text(encoding="utf-8"))["cases"]
+        scope = {"kind": "synthetic_fixture", "suite": suite, "bounded": True}
+        out = {}
+        for case in cases:
+            verdict = module.assess(
+                case["claim"], deepcopy(case["observations"]), scope={**scope, "case": case["id"]}
+            ).as_dict()
+            out[case["id"]] = {"missing_evidence": verdict["missing_evidence"], "decisive_if": verdict.get("decisive_if")}
+        return out
+    finally:
+        sys.modules.pop(spec.name, None)
+
+
+def build_sandbox(workdir: Path, children: int, scoring_suite: str = SCORING_SUITE) -> None:
     """Lay out the importable checker, the suites, the patched runner and the scoring tests."""
     (workdir / "es").mkdir(parents=True)
     shutil.copy(CONFORMANCE / "evidence-sufficiency-v1" / "checker.py", workdir / "es" / "checker.py")
@@ -137,7 +174,7 @@ def build_sandbox(workdir: Path, children: int) -> None:
         for path in sorted((CONFORMANCE / suite).iterdir()):
             if path.suffix in (".json", ".py"):
                 shutil.copy(path, target / path.name)
-    runner = workdir / "suite" / SCORING_SUITE / "run_evidence_sufficiency.py"
+    runner = workdir / "suite" / scoring_suite / "run_evidence_sufficiency.py"
     source = runner.read_text(encoding="utf-8")
     start = source.index(_LOADER_ORIGINAL)
     end = source.index("checker = _load_checker()")
@@ -147,7 +184,10 @@ def build_sandbox(workdir: Path, children: int) -> None:
     source = source.replace(_VOCAB_ORIGINAL, _VOCAB_SANDBOX)
     runner.write_text(source, encoding="utf-8")
     (workdir / "tests").mkdir()
-    (workdir / "tests" / "test_scoring.py").write_text(_SCORING_TESTS % {"suite": SCORING_SUITE}, encoding="utf-8")
+    (workdir / "tests" / "test_scoring.py").write_text(_SCORING_TESTS % {"suite": scoring_suite}, encoding="utf-8")
+    (workdir / "tests" / "guidance_baseline.json").write_text(
+        json.dumps(guidance_baseline(scoring_suite), indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     (workdir / "pyproject.toml").write_text(_PYPROJECT % {"children": children}, encoding="utf-8")
 
 
@@ -207,7 +247,11 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--results-in", type=Path, help="compare a saved results file instead of sweeping")
     parser.add_argument("--workdir", type=Path, help="keep the sandbox here instead of a temporary directory")
     parser.add_argument("--children", type=int, default=8, help="mutmut max_children")
+    parser.add_argument("--scoring-suite", choices=SCORING_SUITES, default=SCORING_SUITE,
+                        help="the corpus that scores the mutants; only v1.3 has a baseline and a gate")
     args = parser.parse_args(argv)
+    if args.update and args.scoring_suite != SCORING_SUITE:
+        parser.error("--update rewrites the v1.3 baseline and cannot be combined with another scoring suite")
 
     if args.results_in:
         text = args.results_in.read_text(encoding="utf-8")
@@ -220,7 +264,7 @@ def main(argv: list[str]) -> int:
         else:
             tmp = tempfile.TemporaryDirectory(prefix="es-mutation-")
             workdir = Path(tmp.name) / "sandbox"
-        build_sandbox(workdir, args.children)
+        build_sandbox(workdir, args.children, args.scoring_suite)
         try:
             text = run_sweep(workdir)
         finally:
@@ -240,6 +284,12 @@ def main(argv: list[str]) -> int:
     print(f"mutants {total}: {counts} ({100.0 * killed / total:.1f}% killed)")
 
     survivors = sorted(mid for mid, status in results.items() if status == "survived")
+    if args.scoring_suite != SCORING_SUITE:
+        # The before row: a measurement with no baseline, never the gate.
+        for mid in survivors:
+            print(f"survived {mid}")
+        print(f"[OK] {args.scoring_suite}: {survived} survivor(s); no baseline applies to this corpus")
+        return 0
     if args.update:
         header = [
             "# Surviving mutants of conformance/evidence-sufficiency-v1/checker.py under the",

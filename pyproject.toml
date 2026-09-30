@@ -129,6 +129,9 @@ packages = ["remora", "servers"]
 
 [tool.ruff]
 target-version = "py311"
+# A delivered third-party analysis package, committed byte for byte because its
+# pre-registration hash covers those bytes; it is evidence, not maintained code.
+extend-exclude = ["artifacts/independent-analysis-2026-09-30"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W"]

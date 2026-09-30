@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-09-30: **14 `open`**, **26 `accepted`**, **26 `superseded`**.
+Counts as of 2026-09-30: **14 `open`**, **26 `accepted`**, **27 `superseded`**.
 
 ## The actual backlog
 
@@ -2487,6 +2487,7 @@ sections again.
 | v1.1 evidence-sufficiency corpus misses three state-comparison faults (§64) | evidence-sufficiency v1.2, 2026-09-29 | Cases E18-E20 tell the three faults apart. They were written after the faults were known, so this is the repair, not independent evidence. An external rerun with every fault known (2026-09-30) is private until Rul1an publishes it |
 | Systematic mutation analysis finds 112 faults the v1.2 evidence-sufficiency corpus cannot see (§65) | evidence-sufficiency v1.3, 2026-09-30 | 489 mutmut mutants; v1.2 killed 377. The 112 survivors fell in seven families, four of them real gaps (claim and scope never checked, rejection untested, key order). v1.3 leaves 20, all named and argued equivalent. Written with the survivors in view, so repair, not independent evidence |
 | The v1.1 typed-premise pin covered one premise per claim; 42 typed-premise faults survived every authored case (§66) | evidence-sufficiency v1.3 K1 cases, 2026-09-30 | A second operator set of 905 mutants found 42 `is True` faults read by truthiness or `== True` that only the exhaustive reference model caught, plus three `isinstance` relaxations nothing caught. Now 23 lattice-derived cases and rejections R18-R20; 4 survivors, all argued equivalent |
+| The evidence-sufficiency record carried stale, conflated and unreproducible numbers (§67) | corrected in the same change, 2026-09-30 | An independent analysis found 300 examples stated where the tests run 150, 17 rejections where there are twenty, and historical sweep totals no committed command reproduced. Rerunning each row found the first second-set run credited with 60 one-check kills that belong to a later state (57). Every row now has a command and a committed raw output |
 | Blind-confirmed intermediate rounds (§25, §27, §28, §31) | — | Each records a round that met or missed its pre-registered targets on the way to §34; retained as the pre-registration trail |
 
 ## Resolved Findings Archive
@@ -4104,3 +4105,56 @@ contract, 1 on a crash). The K1 cases were derived from the sweep and are
 not independent evidence. The blind protocol of the v1.3 spec, section 8,
 now also asks for one more thing: a fault killed on the runner row and not on
 the case rows is reported as such.
+
+**Correction (2026-09-30).** "Sixty of the 898 rested on one check only: 42
+on the reference model alone, 17 on the rejection contract alone, 1 on a
+crash" mixes two states. In the first run, before R18 to R20, 57 of the 898
+kills rested on one check (42, 14 and 1). Sixty (42, 17 and 1) is the count
+with R18 to R20 and without the K1 cases, when 901 are killed, because R18 to
+R20 alone kill the three `isinstance` relaxations. The sentence above is kept
+as it was published; §67 records how the error was found.
+
+## §67 The evidence-sufficiency record carried stale, conflated and unreproducible numbers (2026-09-30)
+<!-- finding-status: superseded -->
+
+**Status:** found by an independent analysis of v1.3
+(`docs/assurance/external_adequacy_evidence_sufficiency_v1.md`, package in
+`artifacts/independent-analysis-2026-09-30/`) and by the maintainer's rerun
+of every row it could not reproduce. Corrected in the same change.
+
+**What was found.** RES-021 in the research control matrix said the
+generated-input tests run 300 derandomised examples per property; they run
+150, as the spec says. It said the rejection contract has 17 inputs; it has
+had twenty since R18 to R20. It said one tool with its default operators
+while reporting a second operator set. The CHANGELOG headed the fitted
+reference-model and second-set results "Generalisation measures". The
+historical sweep rows had no raw output in the repository: mutmut on v1.2
+(377 of 489 killed) and the second set before the K1 cases. The commands the
+record named reproduced only the final rows. Rerunning the second set on the
+reconstructed first-run corpus gave 898 of 905 killed and 7 survivors, as
+recorded. It gave 57 kills on one check where §66 and the spec said 60 (see
+the correction under §66).
+
+**Why it matters.** Two of the stale numbers overstated the record: the
+example budget, and the fragility count, which was attached to the wrong
+state. A number that no committed command reproduces cannot be audited. Every
+count had been checked against the final state and none against the state it
+described.
+
+**What this does not establish.** Nothing here changes a checker verdict or a
+survivor list. The v1.3 record, both baselines and every final count
+reproduce exactly, and so do the mutmut rows of v1.2 (377 killed, 112
+survived) and v1.3 (469 and 20). The analysis's own measurement, 43 faults
+killed on the v1.3 runner row, is recorded as locally pre-registered, not as
+a run under section 8 of the v1.3 spec.
+
+**Resolution (2026-09-30).** RES-021, the CHANGELOG, the v1.3 spec section 7,
+`docs/assurance/mutation_testing_v1.md` and the v1.3 README are corrected.
+`scripts/mutation_evidence_sufficiency.py --scoring-suite
+evidence-sufficiency-v1.2` reproduces the v1.2 row, and
+`scripts/mutation_evidence_sufficiency_ast.py --corpus first-run` and
+`--corpus without-k1` rebuild the two intermediate states of the second set
+by removal. The raw output of every row is committed in
+`artifacts/evidence-sufficiency-mutation-2026-09-30/`, and a test pins the
+committed survivors to both baselines, so that a count and its evidence
+cannot drift apart again without a failing test.

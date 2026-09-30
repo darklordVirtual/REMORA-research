@@ -21,7 +21,8 @@ This file lists externally relevant changes by release. Fine-grained development
   the relations on generated inputs with Hypothesis. The new checks were
   written after the sweep named the gaps, so their kills are not independent
   evidence; the spec records a blind external protocol for that.
-  Generalisation measures, same day: `model.json` is a table-driven reference
+  Internal stress tests, same day, fitted and not independent confirmation:
+  `model.json` is a table-driven reference
   model interpreted over the whole premise lattice (61,544 documents), and
   the checker must agree at every point; a second operator set
   (`scripts/mutation_evidence_sufficiency_ast.py`, 705 first-order and 200
@@ -30,6 +31,20 @@ This file lists externally relevant changes by release. Fine-grained development
   lattice-derived K1 cases, and three `isinstance` relaxations became
   rejections R18-R20. The second set leaves 4 named survivors, all argued
   equivalent (NEGATIVE_RESULTS.md §66).
+- An independent analysis of evidence-sufficiency v1.3, recorded in
+  `docs/assurance/external_adequacy_evidence_sufficiency_v1.md` with its
+  package in `artifacts/independent-analysis-2026-09-30/`. 43 faults chosen
+  without reading v1.3: v1.2 kills 42 on the runner row, v1.3 kills 43. The
+  fault list was hashed locally, not committed publicly, so the run does not
+  meet section 8 of the v1.3 spec. It found stale numbers in the record, now
+  corrected (NEGATIVE_RESULTS.md §67). Every historical sweep row now has a
+  command that reproduces it:
+  `scripts/mutation_evidence_sufficiency.py --scoring-suite
+  evidence-sufficiency-v1.2` and
+  `scripts/mutation_evidence_sufficiency_ast.py --corpus first-run` or
+  `--corpus without-k1`. Their raw outputs are committed in
+  `artifacts/evidence-sufficiency-mutation-2026-09-30/`, and `--workers 1`
+  scores the second set without a process pool.
 - Evidence-sufficiency v1.2 (`conformance/evidence-sufficiency-v1.2/`): the
   50 v1.1 cases verbatim plus E18-E20, which tell apart the three withheld
   `canonical()` faults from the external v1.1 run. v1 and v1.1 are frozen.

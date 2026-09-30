@@ -142,3 +142,58 @@ Once the package is public, this section gets the counts and labels, as the v1.1
 Every fault in the run was known before E18-E20 were written, so the run can show the repair against those faults.
 It is not evidence that the corpus generalises, and it does not test checker correctness.
 The maintainer reproduced every mutant verdict with a separate harness at `c1345b1`; that reproduction is not committed and is not evidence on its own.
+
+## Independent analysis of v1.3 (2026-09-30)
+
+### Record
+
+| Field | Value |
+|---|---|
+| Measured by | OpenAI Daybreak, an AI analysis the maintainer commissioned; its output is not evidence on its own (`docs/AI_USE.md`), and the committed package lets anyone rerun it |
+| Date | 2026-09-30 |
+| Subject | `conformance/evidence-sufficiency-v1/` to `-v1.3/` at `c9113a05ad2a8f1dfa35de799d173e0a08cb12f9` |
+| Checker sha256 | `c4ca50aee2b2918b11c6fbde1f8615ca6c6bf1e5b6fa2ac1775f49c5e8c20be0`, unchanged from v1 |
+| Tool | the package's own scripts (`prepare_faults.py`, `run_faults.py`) on CPython 3.14.0 |
+| Fault definitions | `fault-definitions.json`, sha256 `241fe7d878df28021b3ee3294ea780a13a1b12c27fcba6c495fd14fe0c6d1733`: 24 hand-picked single edits and one complete systematic class, the 19 occurrences of `is not True` each turned into `is not False` |
+| Package | `artifacts/independent-analysis-2026-09-30/`, committed unchanged; `python artifacts/independent-analysis-2026-09-30/verify_analysis.py` checks the hash, the row totals and the AST sweep counts |
+
+The faults were chosen from the v1 checker and the v1 cases before any v1.3 file was opened, and the definitions were hashed first.
+The hash was written to a local report, not committed publicly before the run, so this run does not meet item 2 of section 8 of `docs/design/evidence-sufficiency-v1.3.md`.
+It is a locally pre-registered analysis, not the external confirmation that section asks for.
+
+### Result
+
+Rows as in the earlier runs: 1 scores `status` and `reason` against the authored expectations, 2 scores guidance against the unmutated checker, 3 scores the runner's `failures` list or a crash.
+
+| Faults | v1.2 rows 1 / 2 / 3 | v1.3 rows 1 / 2 / 3 |
+|---|---|---|
+| 24 hand-picked | 23 / 22 / 23 | 24 / 23 / 24 |
+| 19 systematic (`is not True` to `is not False`) | 19 / 19 / 19 | 19 / 19 / 19 |
+
+H15 turns `protected_effect_observed is not False` into `is None`, so the integer `0` passes as an observation.
+It survives all three v1.2 rows and is killed by K1 cases B21 and B25 in v1.3.
+H24 (raw `==` for `canonical()`) survives row 2 in both versions, because a decisive verdict carries no guidance (rule R-6); rows 1 and 3 kill it.
+Every one of the 43 faults is killed on the v1.3 runner row, so there is no survivor to label.
+The systematic class adds a denominator and no difference between the versions.
+
+### What it does not show
+
+H15 belongs to the typed-premise family from which the K1 cases were derived, so its kill shows the repair and not transfer to a new family.
+The analysis matched every fault to a family already named in the v1.3 spec and NEGATIVE_RESULTS.md §65 to §66 and found no new one.
+It did not test the four equivalence arguments for the second operator set.
+It does not test the checker's correctness or any deployment path.
+
+### Claim audit
+
+The analysis also audited the numbers in the record. What it found is NEGATIVE_RESULTS.md §67, corrected in the same change:
+
+- RES-021 said 300 generated examples per property; the tests run 150.
+- RES-021 said the rejection contract has 17 inputs; it has twenty since R18 to R20.
+- RES-021 said one tool with its default operators, while reporting a second operator set.
+- The historical sweep totals had no raw output in the repository, and the named commands reproduced only the final rows.
+- The CHANGELOG headed fitted internal measures "Generalisation measures".
+
+The maintainer reran each historical row with a command added for it and found one more error: the first run of the second operator set had 57 kills resting on one check, not 60.
+The raw outputs are in `artifacts/evidence-sufficiency-mutation-2026-09-30/`.
+The mutmut rows of section 7 reproduce exactly (377/112 and 469/20), and so does the AST sweep: the analysis's `ast-sweep.json` equals the maintainer's.
+The analysis proposes a stricter acceptance criterion for a future blind run: at least 30 held-out faults across two operators and one complete operator class, and every non-equivalent fault killed on the v1.3 runner row.
