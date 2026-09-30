@@ -635,6 +635,30 @@ The first probe's 96 faults all die on row 3 of v1.5; that is fitted and reporte
 The specification gate now scores v1.5, and both specification catalogues still leave no survivor on either row.
 The raw scores are in `artifacts/evidence-sufficiency-v1.5-scores-2026-09-30/` and in the probe's `results/`.
 
+## 16. v1.6: the whole public API against an executable contract
+
+Every earlier check reads a verdict through `as_dict()` or `(status, reason)`.
+Held-out probe 2 found a fault outside that view: verdicts that no longer compare equal.
+Adding an equality check would repair that fault and no other, so section 16 of the v1.6 runner compares everything a caller can observe against an executable contract.
+The contract is `reference_envelope`, written from `model.json` and `guidance.json`.
+
+| Projection | What must hold, on each of 2,000 seeded inputs |
+|---|---|
+| `as_dict` | equal to the contract, with exact types (`list` not `tuple`, `bool` not `int`) |
+| fields | `status` is an `EvidenceStatus`, `claim` is the claim, `missing_evidence` is a tuple |
+| equality, repr | two calls on equal inputs give equal verdicts with equal `repr` |
+| copy, pickle | a copied, deep-copied or pickled and restored verdict equals the original |
+| input_mutated | observations and scope are unchanged after the call, at every depth |
+| order | the same inputs in another order give the same verdicts |
+| module_state | every module-level container is unchanged by the whole run |
+| enum | `EvidenceStatus` has its three members, each equal to its string value |
+
+The inputs mix one-deviation configurations (every guard met but one premise, both arms of each branch) with fully random premises, states and scopes of any JSON value.
+Together they reach every reason of every claim.
+`tests/test_evidence_sufficiency_v1_6.py` shows the projections catching faults of four classes.
+The contract shares its author with the checker, so a shared misreading is not caught.
+Held-out probe 3 was locked in `00aa914` before v1.6 was committed; it tests whether the projections reach classes nobody named.
+
 ## Deliverables
 
 - This spec.
@@ -646,3 +670,4 @@ The raw scores are in `artifacts/evidence-sufficiency-v1.5-scores-2026-09-30/` a
 - `scripts/spec_mutation_evidence_sufficiency.py` and section 13.
 - `scripts/rule_coverage_evidence_sufficiency.py`, section 14 and `conformance/evidence-sufficiency-v1.4/`.
 - Section 15 and `conformance/evidence-sufficiency-v1.5/`.
+- Section 16 and `conformance/evidence-sufficiency-v1.6/`.
