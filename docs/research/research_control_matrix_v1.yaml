@@ -56,7 +56,7 @@
 # is documented, not invisible.
 
 schema_version: "1"
-updated: "2026-09-28"
+updated: "2026-09-30"
 
 maturity_levels:
   - implemented_and_tested
@@ -931,6 +931,79 @@ entries:
     compendium_refs: []
     compendium_note: "Internal design from an owner-supplied SDD; no external result is claimed for it."
 
+  - id: RES-021
+    title: "Test adequacy of the evidence-sufficiency corpus: mutation analysis, metamorphic relations and generated inputs"
+    source:
+      citation: "DeMillo, R. A., Lipton, R. J., Sayward, F. G. (1978). Hints on Test Data Selection: Help for the Practicing Programmer. IEEE Computer 11(4):34-41."
+      sections:
+        - "DeMillo, Lipton and Sayward (1978): mutation analysis, the competent-programmer and coupling hypotheses"
+        - "Chen, Cheung and Yiu (1998), HKUST-CS98-01: metamorphic relations as the oracle for unauthored inputs"
+        - "Claessen and Hughes (2000), ICFP: property-based random testing"
+      builds_on:
+        - "Budd, T. A., Angluin, D. (1982). Two notions of correctness and their relation to testing. Acta Informatica 18(1):31-45 (equivalent mutants are undecidable)."
+        - "Jia, Y., Harman, M. (2011). An Analysis and Survey of the Development of Mutation Testing. IEEE TSE 37(5):649-678."
+        - "Just, R., et al. (2014). Are mutants a valid substitute for real faults in software testing? FSE 2014."
+        - "Papadakis, M., Shin, D., Yoo, S., Bae, D.-H. (2018). Are mutation scores correlated with real fault detection? ICSE 2018."
+        - "Segura, S., Fraser, G., Sanchez, A. B., Ruiz-Cortés, A. (2016). A Survey on Metamorphic Testing. IEEE TSE 42(9):805-824."
+        - "Barr, E. T., Harman, M., McMinn, P., Shahbaz, M., Yoo, S. (2015). The Oracle Problem in Software Testing: A Survey. IEEE TSE 41(5):507-525."
+        - "MacIver, D. R., Hatfield-Dodds, Z., et al. (2019). Hypothesis: A new approach to property-based testing. JOSS 4(43):1891."
+    concepts:
+      - mutation_adequacy
+      - equivalent_mutants
+      - named_survivor_ratchet
+      - metamorphic_relations
+      - property_based_testing
+      - blind_held_out_faults
+    controls:
+      - systematic_mutation_sweep
+      - named_survivor_baseline
+      - rejection_contract
+      - verdict_envelope_check
+      - metamorphic_relation_runner
+      - generated_input_properties
+      - differential_family_test
+      - runner_crash_capture
+    code:
+      - conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py
+      - conformance/evidence-sufficiency-v1.3/invariants.json
+      - conformance/evidence-sufficiency-v1.3/cases.json
+      - conformance/evidence-sufficiency-v1.3/run-record.json
+      - scripts/mutation_evidence_sufficiency.py
+      - docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt
+    tests:
+      - tests/test_evidence_sufficiency_v1_3.py
+    evidence: >-
+      Reproduce with python conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py
+      --check and python scripts/mutation_evidence_sufficiency.py. mutmut 3.8.0
+      generates 489 mutants of the frozen v1 checker. Scored by the v1.2 corpus
+      in the three external projections, 112 survived in seven families
+      (NEGATIVE_RESULTS.md §65). Scored by v1.3, which adds cases E21-E23 for
+      mapping key order, a rejection contract of 17 inputs, verdict-envelope
+      checks and eleven declared metamorphic relations, 20 survive, each named
+      in the baseline and argued equivalent under the pinned contract in
+      docs/assurance/mutation_testing_v1.md. The test module scores one
+      representative fault per real-gap family against both runners (v1.3
+      fails, v1.2 does not, an H1 control fails both) and checks the relations
+      on generated inputs with Hypothesis at 300 derandomised examples per
+      property. The record reproduces byte for byte with no failures and no
+      crashes.
+    maturity: library_only
+    scope_boundary: >-
+      A conformance research artifact, not a governed runtime path: the checker
+      decides nothing in a deployment, and the sweep measures the corpus, never
+      the checker's correctness. One tool with its default operators; a fault
+      mutmut does not generate is unmeasured. The families are a hand
+      classification, not a subsumption graph. Every v1.3 check was written
+      with the survivor list in view, so the sweep shows the repair and not
+      generalisation; only the blind protocol of the v1.3 spec, section 8,
+      could show that, and no such run has happened. The frozen checker's
+      coercion of a scope through dict() is recorded as a limit, not repaired.
+    related_work_section: "docs/09-related-work.md §14"
+    in_code_citation: true
+    citation_anchor: "DeMillo"
+    compendium_refs: []
+    compendium_note: "Software-testing sources outside the compendium's AI-assurance scope; entered from the primary publications named above."
+
 # ── Landscape coverage ──────────────────────────────────────────────────────
 # Whole areas of the local AI-assurance compendium that REMORA deliberately does
 # NOT implement as controls. Recording them here makes the scope boundary
@@ -1212,6 +1285,32 @@ bibliography:
         canonical_tool_call_hash, because rewriting those bytes would make the
         historical audit record unverifiable. runtime_identity.py cites the
         same RFC to record that it deliberately does not use it.
+    - id: demillo-1978-mutation
+      surname: "DeMillo"
+      year: "1978"
+      work: "Hints on Test Data Selection: Help for the Practicing Programmer (IEEE Computer 11(4))"
+      role: grounds_implementation
+      code: [conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py, scripts/mutation_evidence_sufficiency.py]
+      note: >-
+        Source of RES-021; the entry carries it as citation_anchor. The
+        enforcement sweep (docs/assurance/mutation_testing_v1.md) has cited it
+        since 2026-08-25 without a register line; the evidence-sufficiency
+        sweep gives it one.
+    - id: chen-1998-metamorphic
+      surname: "Chen"
+      year: "1998"
+      work: "Metamorphic testing: a new approach for generating next test cases (HKUST-CS98-01)"
+      role: grounds_implementation
+      code: [conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py, conformance/evidence-sufficiency-v1.3/invariants.json]
+      anchor: "Chen, Cheung and Yiu"
+      note: "The eleven relations in invariants.json are metamorphic relations in this sense; RES-021."
+    - id: claessen-2000-quickcheck
+      surname: "Claessen"
+      year: "2000"
+      work: "QuickCheck: a lightweight tool for random testing of Haskell programs (ICFP 2000)"
+      role: grounds_implementation
+      code: [tests/test_evidence_sufficiency_v1_3.py]
+      note: "Generated-input properties for the relations, run with Hypothesis, derandomised; RES-021."
     - id: rfc-3161-timestamping
       surname: "IETF"
       year: "2001"

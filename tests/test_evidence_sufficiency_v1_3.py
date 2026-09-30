@@ -1,0 +1,421 @@
+# Author: Stian Skogbrott
+# SPDX-License-Identifier: BUSL-1.1
+"""Regression tests for the evidence-sufficiency-v1.3 corpus, runner and mutation gate.
+
+Three groups. The first pins the bytes the external runs measured and checks
+that v1.3 carries the earlier corpora verbatim. The second scores deliberately
+faulty checkers: one representative of each survivor family the mutation
+sweep named (docs/assurance/mutation_testing_v1.md) must be told apart by the
+v1.3 runner and, to show that v1.3 adds the power rather than inherits it,
+must survive the v1.2 runner. The third checks the metamorphic relations of
+`invariants.json` on generated inputs with Hypothesis (Claessen and Hughes,
+2000), derandomised so a CI run is reproducible; a relation that holds on the
+authored corpus is only known to hold on the authored corpus.
+"""
+from __future__ import annotations
+
+import hashlib
+import importlib.util
+import json
+import subprocess
+import sys
+from copy import deepcopy
+from pathlib import Path
+
+import pytest
+from hypothesis import HealthCheck, given, settings
+from hypothesis import strategies as st
+
+ROOT = Path(__file__).resolve().parents[1]
+V1 = ROOT / "conformance" / "evidence-sufficiency-v1"
+V11 = ROOT / "conformance" / "evidence-sufficiency-v1.1"
+V12 = ROOT / "conformance" / "evidence-sufficiency-v1.2"
+V13 = ROOT / "conformance" / "evidence-sufficiency-v1.3"
+
+FROZEN_V1 = {
+    "checker.py": "c4ca50aee2b2918b11c6fbde1f8615ca6c6bf1e5b6fa2ac1775f49c5e8c20be0",
+    "cases.json": "a0048cc021ab7cd7f7d1b09a93e13c7dbdee9f7a685ea617a112da8af3c88d7e",
+}
+# v1.1 as merged in 8772d85 and v1.2 as measured at c1345b1 (cases, guidance, ladders;
+# the v1.2 runner and record carry the reworded H1 limit, pinned in test_evidence_sufficiency_v1_2.py).
+FROZEN_V11 = {
+    "cases.json": "ffc453c3f4cf90a39374ee574086827974ad5e0f221e4cfdaef5f9acb5068521",
+    "guidance.json": "eeb951e7073e7cc108a1d4886c4d03080b010287321a934f97ad763bb772542c",
+    "ladders.json": "e5b5cd88356625b0593062736fb2a386fe36e9334004e99f34e5861f10acd400",
+}
+FROZEN_V12 = {
+    "cases.json": "9f0cdd33a2b115e289ac99fe808596ad11ba672aecfc0426a04aa5bf508156ed",
+    "guidance.json": "eeb951e7073e7cc108a1d4886c4d03080b010287321a934f97ad763bb772542c",
+    "ladders.json": "e5b5cd88356625b0593062736fb2a386fe36e9334004e99f34e5861f10acd400",
+}
+
+CANONICAL = 'return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)'
+
+#: One representative per survivor family of the sweep over the v1.2 corpus
+#: (docs/assurance/mutation_testing_v1.md, families A, B, D and E). Each is a
+#: (anchor, replacement) edit of the frozen checker's source.
+FAMILY_FAULTS = {
+    "A_claim_not_echoed": (
+        '    claim = "postcondition_observed"\n',
+        '    claim = None\n',
+    ),
+    "B_scope_not_echoed": (
+        "        scope=_scope(scope),\n",
+        "        scope=_scope(None),\n",
+    ),
+    "B_scope_default_wrong": (
+        '        return {"kind": "synthetic_fixture", "bounded": True}\n',
+        '        return {"kind": "synthetic_fixture", "bounded": False}\n',
+    ),
+    "D_validation_short_circuits": (
+        "    if value is None or type(value) in (str, bool, int):\n",
+        "    if value is not None or type(value) in (str, bool, int):\n",
+    ),
+    "D_malformed_observations_assessed": (
+        "    if claim not in ASSESSORS or not isinstance(observations, Mapping):\n",
+        "    if claim not in ASSESSORS and not isinstance(observations, Mapping):\n",
+    ),
+    "D_nested_values_unvalidated": (
+        "        for item in value:\n            validate_json(item)\n",
+        "        for item in value:\n            validate_json(None)\n",
+    ),
+    "E_key_order_compared": (
+        CANONICAL,
+        'return json.dumps(value, separators=(",", ":"), ensure_ascii=False)',
+    ),
+}
+
+#: Faults the earlier corpora already told apart; kept so the differential test
+#: below cannot pass by accident of a runner that reports failures for everything.
+CONTROL_FAULTS = {
+    "H1_case_folded": (
+        CANONICAL,
+        'return json.dumps(value.casefold() if isinstance(value, str) else value, '
+        'sort_keys=True, separators=(",", ":"), ensure_ascii=False)',
+    ),
+}
+
+
+def _sha(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+
+
+def _load(name: str, path: Path):
+    spec = importlib.util.spec_from_file_location(name, path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+RUNNER = _load("evidence_sufficiency_v1_3_runner", V13 / "run_evidence_sufficiency.py")
+RUNNER_V12 = _load("evidence_sufficiency_v1_2_runner_for_v1_3", V12 / "run_evidence_sufficiency.py")
+CHECKER = RUNNER.checker
+
+
+def _cases(directory: Path) -> list[dict]:
+    return json.loads((directory / "cases.json").read_text(encoding="utf-8"))["cases"]
+
+
+def _faulty_checker(tmp_path: Path, label: str, anchor: str, replacement: str):
+    source = (V1 / "checker.py").read_text(encoding="utf-8")
+    assert source.count(anchor) == 1, label
+    path = tmp_path / f"checker_{label}.py"
+    path.write_text(source.replace(anchor, replacement), encoding="utf-8")
+    return _load(f"faulty_checker_{label}_{tmp_path.name}", path)
+
+
+@pytest.fixture(scope="module")
+def record() -> dict:
+    return RUNNER.build_record()
+
+
+# ── Frozen bytes and verbatim carry-over ───────────────────────────────────────
+
+
+def test_earlier_tested_bytes_are_frozen() -> None:
+    for name, digest in FROZEN_V1.items():
+        assert _sha(V1 / name) == digest, name
+    for name, digest in FROZEN_V11.items():
+        assert _sha(V11 / name) == digest, name
+    for name, digest in FROZEN_V12.items():
+        assert _sha(V12 / name) == digest, name
+
+
+def test_v12_guidance_and_ladders_are_carried_byte_for_byte() -> None:
+    for name in ("guidance.json", "ladders.json"):
+        assert _sha(V13 / name) == _sha(V12 / name), name
+
+
+def test_v12_cases_are_carried_verbatim_and_in_order() -> None:
+    v12 = _cases(V12)
+    v13 = _cases(V13)
+    assert v13[: len(v12)] == v12
+    corpus = json.loads((V13 / "cases.json").read_text(encoding="utf-8"))
+    assert corpus["base_corpus"]["sha256"] == FROZEN_V12["cases.json"]
+    assert corpus["base_corpus"]["cases_carried_verbatim"] == len(v12)
+
+
+def test_new_cases_declare_origin_and_rationale() -> None:
+    new = _cases(V13)[len(_cases(V12)):]
+    assert [case["id"] for case in new] == ["E21", "E22", "E23"]
+    for case in new:
+        assert case["gap"] == "I1", case["id"]
+        assert case["derived_from"], case["id"]
+        assert case["rationale"], case["id"]
+        assert case["claim"] == "postcondition_observed", case["id"]
+
+
+def test_key_order_cases_differ_only_in_key_order_as_loaded() -> None:
+    """The file's key order is the fault E21 and E23 expose; a sorted rewrite would erase it."""
+    by_id = {case["id"]: case for case in _cases(V13)}
+    for case_id in ("E21", "E23"):
+        obs = by_id[case_id]["observations"]
+        assert obs["expected_state"] == obs["observed_state"], case_id
+        exp, seen = obs["expected_state"], obs["observed_state"]
+        while isinstance(exp, dict) and list(exp) == list(seen):
+            exp, seen = next(iter(exp.values())), next(iter(seen.values()))
+        assert isinstance(exp, dict) and list(exp) != list(seen), case_id
+    members = by_id["E22"]["observations"]
+    assert members["expected_state"] != members["observed_state"]
+
+
+def test_rejections_declare_origin_and_a_valueerror() -> None:
+    corpus = json.loads((V13 / "cases.json").read_text(encoding="utf-8"))
+    ids = [r["id"] for r in corpus["rejections"]]
+    assert len(ids) == len(set(ids))
+    for rejection in corpus["rejections"]:
+        assert rejection["gap"] == "J1", rejection["id"]
+        assert rejection["expected"] == {"raises": "ValueError"}, rejection["id"]
+        assert rejection["rationale"], rejection["id"]
+    assert set(RUNNER.NON_JSON_REJECTIONS).isdisjoint(ids)
+
+
+# ── The committed record ───────────────────────────────────────────────────────
+
+
+def test_record_has_no_failures(record: dict) -> None:
+    assert record["failures"] == []
+    assert record["checker_is_frozen_v1"] is True
+    assert record["authored_expectations"]["matched"] == record["authored_expectations"]["total"]
+    assert record["authored_expectations"]["by_origin"]["I1"] == 3
+
+
+def test_v12_runner_properties_carry_over(record: dict) -> None:
+    assert record["reason_coverage"]["unreached"] == []
+    assert record["guidance_contract_failures"] == []
+    assert all(item["holds"] for item in record["precedence_witnesses"])
+    assert all(item["holds"] for item in record["isolation_witnesses"])
+    checks = record["evidence_erasure_checks"]
+    assert checks["inconclusive_strengthening_failures"] == []
+    assert checks["polarity_flip_failures"] == []
+    assert all(item["rejected"] for item in record["wrong_shortcuts"].values())
+
+
+def test_every_rejection_is_refused_with_valueerror(record: dict) -> None:
+    assert record["rejections"], "the rejection set is empty"
+    assert all(item["rejected"] for item in record["rejections"]), record["rejections"]
+
+
+def test_every_declared_relation_is_executed_and_holds(record: dict) -> None:
+    declared = {r["id"] for r in json.loads((V13 / "invariants.json").read_text(encoding="utf-8"))["relations"]}
+    executed = {r["id"] for r in record["metamorphic_relations"]}
+    assert executed == declared
+    for relation in record["metamorphic_relations"]:
+        assert relation["checked"] > 0, relation["id"]
+        assert relation["holds"], relation
+
+
+def test_record_discloses_that_the_new_checks_were_written_after_the_sweep(record: dict) -> None:
+    assert any("mutation sweep" in limit and "not independent evidence" in limit for limit in record["limits"])
+    assert any("dict()" in limit for limit in record["limits"])
+
+
+def test_committed_artifact_reproduces_exactly() -> None:
+    proc = subprocess.run(
+        [sys.executable, str(V13 / "run_evidence_sufficiency.py"), "--check"],
+        capture_output=True,
+        text=True,
+    )
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+
+
+# ── Seeded faults: v1.3 tells the survivor families apart, v1.2 does not ──────
+
+
+@pytest.mark.parametrize("label", sorted(FAMILY_FAULTS))
+def test_each_survivor_family_is_told_apart_by_v1_3(tmp_path: Path, label: str) -> None:
+    anchor, replacement = FAMILY_FAULTS[label]
+    faulty = _faulty_checker(tmp_path, label, anchor, replacement)
+    assert RUNNER.build_record(faulty)["failures"], f"{label} survives the v1.3 corpus"
+
+
+@pytest.mark.parametrize("label", sorted(FAMILY_FAULTS))
+def test_each_survivor_family_survives_v1_2(tmp_path: Path, label: str) -> None:
+    """The differential: these faults are what v1.3 adds. If one is killed by v1.2,
+    it is not a v1.3 gain and the family table in mutation_testing_v1.md is wrong."""
+    anchor, replacement = FAMILY_FAULTS[label]
+    faulty = _faulty_checker(tmp_path, label, anchor, replacement)
+    assert _v12_failures(faulty) == [], f"{label} was already told apart by v1.2"
+
+
+@pytest.mark.parametrize("label", sorted(CONTROL_FAULTS))
+def test_control_fault_is_told_apart_by_both(tmp_path: Path, label: str) -> None:
+    anchor, replacement = CONTROL_FAULTS[label]
+    faulty = _faulty_checker(tmp_path, label, anchor, replacement)
+    assert RUNNER.build_record(faulty)["failures"]
+    assert _v12_failures(faulty)
+
+
+def _v12_failures(faulty) -> list[str]:
+    """Run the v1.2 runner's checks against a faulty checker by swapping its module globals."""
+    saved = {name: getattr(RUNNER_V12, name) for name in ("checker", "EvidenceStatus", "assess", "canonical")}
+    try:
+        RUNNER_V12.checker = faulty
+        RUNNER_V12.EvidenceStatus = faulty.EvidenceStatus
+        RUNNER_V12.assess = faulty.assess
+        RUNNER_V12.canonical = faulty.canonical
+        try:
+            return RUNNER_V12.build_record()["failures"]
+        except Exception as exc:  # noqa: BLE001 - a crash is a kill in the external harness
+            return [f"crash:{type(exc).__name__}"]
+    finally:
+        for name, value in saved.items():
+            setattr(RUNNER_V12, name, value)
+
+
+# ── Metamorphic relations on generated inputs ─────────────────────────────────
+
+INVARIANTS = json.loads((V13 / "invariants.json").read_text(encoding="utf-8"))
+PREMISE_FIELDS = {
+    claim: INVARIANTS["acceptance_premises"][claim] + INVARIANTS["observation_values"][claim]
+    for claim in INVARIANTS["acceptance_premises"]
+}
+DECISIVE = {"established", "violated"}
+
+json_scalars = st.one_of(st.none(), st.booleans(), st.integers(-3, 3), st.sampled_from(["closed", "open", "Closed", "true", ""]))
+json_values = st.recursive(
+    json_scalars,
+    lambda children: st.one_of(
+        st.lists(children, max_size=3),
+        st.dictionaries(st.sampled_from(["state", "lock", "s", "a"]), children, max_size=3),
+    ),
+    max_leaves=6,
+)
+premise_values = st.one_of(json_scalars, st.lists(st.sampled_from(["closed", "open"]), max_size=2))
+
+
+@st.composite
+def claim_and_observations(draw):
+    claim = draw(st.sampled_from(sorted(PREMISE_FIELDS)))
+    fields = PREMISE_FIELDS[claim] + ["unrelated"]
+    keys = draw(st.lists(st.sampled_from(fields), unique=True, max_size=len(fields)))
+    values = [draw(json_values if key in ("expected_state", "observed_state") else premise_values) for key in keys]
+    return claim, dict(zip(keys, values))
+
+
+HYPOTHESIS = settings(max_examples=300, derandomize=True, deadline=None, suppress_health_check=[HealthCheck.too_slow])
+
+
+def _outcome(verdict: dict) -> dict:
+    return {k: v for k, v in verdict.items() if k in ("status", "reason", "missing_evidence", "decisive_if")}
+
+
+@HYPOTHESIS
+@given(json_values, json_values)
+def test_canonical_separates_exactly_the_structurally_distinct_values(a, b) -> None:
+    same = RUNNER._same_json(a, b)
+    assert (CHECKER.canonical(a) == CHECKER.canonical(b)) == same
+
+
+@HYPOTHESIS
+@given(json_values)
+def test_canonical_ignores_mapping_key_order_at_every_depth(value) -> None:
+    assert CHECKER.canonical(value) == CHECKER.canonical(RUNNER._reorder(value))
+
+
+@HYPOTHESIS
+@given(claim_and_observations())
+def test_scope_key_order_and_unrelated_fields_never_change_a_verdict(inputs) -> None:
+    claim, obs = inputs
+    base = CHECKER.assess(claim, deepcopy(obs)).as_dict()
+    outcome = _outcome(base)
+    for scope in INVARIANTS["scopes"]:
+        verdict = CHECKER.assess(claim, deepcopy(obs), scope=deepcopy(scope)).as_dict()
+        assert verdict["claim"] == claim
+        assert verdict["scope"] == (dict(scope) if scope else INVARIANTS["default_scope"])
+        assert _outcome(verdict) == outcome
+    assert _outcome(CHECKER.assess(claim, RUNNER._reorder(obs)).as_dict()) == outcome
+    assert _outcome(CHECKER.assess(claim, {**obs, "another_unrelated_field": 1}).as_dict()) == outcome
+    assert CHECKER.assess(claim, deepcopy(obs)).as_dict() == base
+    assert (base["status"] == "not_established") == bool(base["missing_evidence"]) == ("decisive_if" in base)
+
+
+@HYPOTHESIS
+@given(claim_and_observations())
+def test_removing_evidence_never_strengthens_or_inverts_a_verdict(inputs) -> None:
+    claim, obs = inputs
+    base = CHECKER.assess(claim, deepcopy(obs)).status.value
+    for field in obs:
+        reduced = {k: v for k, v in obs.items() if k != field}
+        after = CHECKER.assess(claim, reduced).status.value
+        if base == "not_established":
+            assert after == "not_established", (obs, field, after)
+        elif after in DECISIVE:
+            assert after == base, (obs, field, after)
+
+
+@HYPOTHESIS
+@given(claim_and_observations())
+def test_flipping_an_acceptance_premise_never_inverts_polarity(inputs) -> None:
+    claim, obs = inputs
+    base = CHECKER.assess(claim, deepcopy(obs)).status.value
+    if base not in DECISIVE:
+        return
+    for field in INVARIANTS["acceptance_premises"][claim]:
+        if field in obs:
+            after = CHECKER.assess(claim, {**obs, field: False}).status.value
+            assert after == base or after == "not_established", (obs, field, after)
+
+
+@HYPOTHESIS
+@given(json_values, json_values)
+def test_state_comparison_is_symmetric(expected, observed) -> None:
+    base = {k: True for k in INVARIANTS["acceptance_premises"]["postcondition_observed"]}
+    one = CHECKER.assess("postcondition_observed", {**base, "expected_state": expected, "observed_state": observed})
+    two = CHECKER.assess("postcondition_observed", {**base, "expected_state": observed, "observed_state": expected})
+    assert one.as_dict() == two.as_dict()
+    assert (one.status.value == "established") == RUNNER._same_json(expected, observed)
+
+
+# ── The mutation gate's own logic ─────────────────────────────────────────────
+
+
+def test_mutation_gate_compares_survivors_against_the_baseline() -> None:
+    gate = _load("mutation_evidence_sufficiency_gate", ROOT / "scripts" / "mutation_evidence_sufficiency.py")
+    results = gate.parse_results(
+        "    es.checker.x_canonical__mutmut_1: killed\n"
+        "    es.checker.x_canonical__mutmut_2: survived\n"
+        "    es.checker.x_assess__mutmut_3: survived\n"
+        "noise line\n"
+    )
+    assert results == {
+        "es.checker.x_canonical__mutmut_1": "killed",
+        "es.checker.x_canonical__mutmut_2": "survived",
+        "es.checker.x_assess__mutmut_3": "survived",
+    }
+    new, dead = gate.compare(results, {"es.checker.x_assess__mutmut_3", "es.checker.x_canonical__mutmut_1"})
+    assert new == ["es.checker.x_canonical__mutmut_2"]
+    assert dead == ["es.checker.x_canonical__mutmut_1"]
+
+
+def test_mutation_baseline_is_well_formed_and_classified() -> None:
+    gate = _load("mutation_evidence_sufficiency_gate_baseline", ROOT / "scripts" / "mutation_evidence_sufficiency.py")
+    baseline = gate.BASELINE
+    assert baseline.exists()
+    ids = gate.read_baseline(baseline)
+    assert ids, "an empty baseline would let every survivor through as expected"
+    assert all(id_.startswith("es.checker.x") and "__mutmut_" in id_ for id_ in ids)
+    text = baseline.read_text(encoding="utf-8")
+    assert "mutmut" in text.splitlines()[3], "the header must record the mutmut version the ids belong to"

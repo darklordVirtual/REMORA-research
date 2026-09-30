@@ -1,0 +1,25 @@
+# Surviving mutants of conformance/evidence-sufficiency-v1/checker.py under the
+# evidence-sufficiency-v1.3 scoring tests. Regenerate with
+#   python scripts/mutation_evidence_sufficiency.py --update
+# python -m mutmut, version 3.8.0; mutant ids are stable only for this version.
+# Every id below is classified in docs/assurance/mutation_testing_v1.md.
+es.checker.x__result__mutmut_3
+es.checker.x_assess__mutmut_10
+es.checker.x_assess__mutmut_14
+es.checker.x_assess__mutmut_15
+es.checker.x_assess__mutmut_16
+es.checker.x_assess__mutmut_6
+es.checker.x_assess__mutmut_7
+es.checker.x_assess__mutmut_8
+es.checker.x_assess__mutmut_9
+es.checker.x_canonical__mutmut_11
+es.checker.x_canonical__mutmut_12
+es.checker.x_canonical__mutmut_13
+es.checker.x_canonical__mutmut_4
+es.checker.x_canonical__mutmut_5
+es.checker.x_canonical__mutmut_8
+es.checker.x_canonical__mutmut_9
+es.checker.x_validate_json__mutmut_15
+es.checker.x_validate_json__mutmut_16
+es.checker.x_validate_json__mutmut_17
+es.checker.x_validate_json__mutmut_18

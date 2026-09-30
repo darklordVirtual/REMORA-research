@@ -324,6 +324,7 @@ When this section was written, v1.2 had had no external run; section 12.5 record
 
 No case pins that key order in a mapping is ignored (`sort_keys`).
 The external runs named no such fault, and adding one here would widen the corpus beyond the finding.
+Reversed in v1.3 (D-6 of `docs/design/evidence-sufficiency-v1.3.md`): a systematic mutation sweep found that removing `sort_keys` survives every v1.2 case, so the fault is no longer hypothetical, and E21 to E23 pin it.
 
 ### 12.5 External rerun
 
