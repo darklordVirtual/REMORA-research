@@ -972,6 +972,9 @@ entries:
       - held_out_specification_catalogue
       - committed_held_out_fault_harness
       - blind_agent_fault_probe
+      - rule_coverage_profile_v2
+      - generated_input_contract
+      - return_isolation_check
     code:
       - conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py
       - conformance/evidence-sufficiency-v1.3/invariants.json
@@ -987,6 +990,10 @@ entries:
       - conformance/evidence-sufficiency-v1.4/run_evidence_sufficiency.py
       - conformance/evidence-sufficiency-v1.4/cases.json
       - conformance/evidence-sufficiency-v1.4/run-record.json
+      - conformance/evidence-sufficiency-v1.5/run_evidence_sufficiency.py
+      - conformance/evidence-sufficiency-v1.5/cases.json
+      - conformance/evidence-sufficiency-v1.5/model.json
+      - conformance/evidence-sufficiency-v1.5/run-record.json
       - docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt
       - docs/assurance/mutation_baseline_evidence_sufficiency_ast_v1.txt
       - docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt
@@ -996,6 +1003,8 @@ entries:
       - tests/test_evidence_sufficiency_rule_coverage.py
       - tests/test_evidence_sufficiency_v1_4.py
       - tests/test_score_heldout_faults.py
+      - tests/test_evidence_sufficiency_v1_5.py
+      - tests/test_evidence_sufficiency_blind_probe.py
     evidence: >-
       The record reproduces with python conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py
       --check. mutmut 3.8.0 generates 489 mutants of the frozen v1 checker.
@@ -1053,7 +1062,14 @@ entries:
       pre-registered) scored 60 code faults and 36 reimplementation variants
       written by context-free agents that did not see the corpus: row 3 of
       v1.4 kills 80 of 83 decision faults and row 1 kills 76, the same as
-      v1.3; six faults survive every row (NEGATIVE_RESULTS.md §70, open).
+      v1.3; six faults survive every row (NEGATIVE_RESULTS.md §70).
+      Evidence-sufficiency v1.5 answers with class-level checks: rule
+      coverage profile v2 (value classes including absence and null, guard
+      precedence, state pairs; 274 derived cases), a wider lattice, and
+      generated input-contract and return-isolation sections. A second probe
+      of 97 faults, locked before v1.5 was committed, went from 74 to 77 of 77
+      decision faults on row 3 (73 to 76 on row 1); one fault, verdict value
+      equality, survives (NEGATIVE_RESULTS.md §71, open).
     maturity: library_only
     scope_boundary: >-
       A conformance research artifact, not a governed runtime path: the checker

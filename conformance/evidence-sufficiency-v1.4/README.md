@@ -2,6 +2,8 @@
 
 **Status:** research/conformance artifact. Synthetic author-run only. Not a standard, certification, production control, APS result or CoSAI deliverable.
 
+[v1.5](../evidence-sufficiency-v1.5/README.md) is now the current corpus and carries v1.4 verbatim. v1.4 is frozen.
+
 v1.4 is an additive corpus for the unchanged v1 checker.
 It exists because pre-registered specification mutation of `model.json` found twelve cross-branch premise faults that no v1.3 case could tell apart ([NEGATIVE_RESULTS.md §68](../../NEGATIVE_RESULTS.md)).
 The design, the pre-registration and the result are sections 13 and 14 of [`docs/design/evidence-sufficiency-v1.3.md`](../../docs/design/evidence-sufficiency-v1.3.md).

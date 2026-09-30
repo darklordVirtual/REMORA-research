@@ -29,6 +29,7 @@ on:
       - "conformance/evidence-sufficiency-v1.2/**"
       - "conformance/evidence-sufficiency-v1.3/**"
       - "conformance/evidence-sufficiency-v1.4/**"
+      - "conformance/evidence-sufficiency-v1.5/**"
       - "scripts/mutation_evidence_sufficiency.py"
       - "scripts/mutation_evidence_sufficiency_ast.py"
       - "scripts/spec_mutation_evidence_sufficiency.py"
@@ -112,7 +113,7 @@ jobs:
 
       - name: Run the specification mutants of model.json against their baseline
         # v1.3 spec sections 13 and 14: mutants of the rules, not of checker.py, each run as a
-        # checker and scored by v1.4; the held-out catalogue is a measurement and is uploaded.
+        # checker and scored by v1.5; the held-out catalogue is a measurement and is uploaded.
         run: |
           python scripts/spec_mutation_evidence_sufficiency.py --workers 4 --json mutation-es-spec-results.json
           python scripts/spec_mutation_evidence_sufficiency.py --catalogue heldout --workers 4 --json mutation-es-spec-heldout.json

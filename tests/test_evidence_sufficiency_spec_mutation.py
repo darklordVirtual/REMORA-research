@@ -176,9 +176,16 @@ def test_committed_v1_3_report_matches_the_published_result() -> None:
 @pytest.mark.docgate
 def test_committed_v1_4_reports_match_the_baseline_and_the_pre_registered_predictions() -> None:
     gated = _artifact("spec-mutation-v1.4.json.gz")
-    assert (gated["suite"], gated["catalogue"]) == (SM.GATED_SUITE, "v1")
+    assert (gated["suite"], gated["catalogue"]) == ("evidence-sufficiency-v1.4", "v1")
+    # The gate has moved on to v1.5; its committed report must match the baseline.
+    import gzip
+
+    current = json.loads(gzip.decompress(
+        (ROOT / "artifacts" / "evidence-sufficiency-v1.5-scores-2026-09-30" / "spec-v15.json.gz").read_bytes()
+    ))
+    assert (current["suite"], current["catalogue"]) == (SM.GATED_SUITE, "v1")
     _, entries = SM.read_baseline(SM.BASELINE)
-    assert SM.survivors(gated) == entries
+    assert SM.survivors(current) == entries == set()
     # H-2 (section 14.5): S-2 met on v1.4.
     assert gated["summary"]["first_order"]["row1_survivors"] == []
     # H-1: every live held-out mutant killed on row 1 by v1.4.

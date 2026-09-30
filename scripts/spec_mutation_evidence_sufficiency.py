@@ -81,7 +81,7 @@ V13 = ROOT / "conformance" / "evidence-sufficiency-v1.3"
 CHECKER = ROOT / "conformance" / "evidence-sufficiency-v1" / "checker.py"
 RUNNER = V13 / "run_evidence_sufficiency.py"
 MODEL = V13 / "model.json"
-DEFAULT_SUITE = "evidence-sufficiency-v1.4"
+DEFAULT_SUITE = "evidence-sufficiency-v1.5"
 #: The corpus the gate and its baseline belong to.
 GATED_SUITE = DEFAULT_SUITE
 AST_SCRIPT = ROOT / "scripts" / "mutation_evidence_sufficiency_ast.py"

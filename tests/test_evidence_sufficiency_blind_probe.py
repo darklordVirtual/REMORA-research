@@ -65,3 +65,21 @@ def test_correct_controls_agree_with_the_model_and_pass_the_runner() -> None:
     assert not result["fault"]
     for rows in result["rows"].values():
         assert not (rows["row1_kill"] or rows["row2_kill"] or rows["row3_kill"])
+
+
+PROBE2 = ROOT / "artifacts" / "evidence-sufficiency-blind-probe-2-2026-09-30"
+
+
+@pytest.mark.docgate
+def test_probe_2_inputs_match_their_digests_and_the_published_counts() -> None:
+    for line in (PROBE2 / "SHA256SUMS").read_text(encoding="utf-8").splitlines():
+        digest, name = line.split("  ", 1)
+        assert hashlib.sha256((PROBE2 / name).read_bytes()).hexdigest() == digest, name
+    tallies = json.loads(gzip.decompress((PROBE2 / "results" / "p2-tallies.json.gz").read_bytes()))["tallies"]
+    v14, v15 = tallies["evidence-sufficiency-v1.4"], tallies["evidence-sufficiency-v1.5"]
+    decision = v15["code_decision"] + v15["impl"]
+    assert decision == 77
+    assert (v14["code_decision_row3"] + v14["impl_row3"], v15["code_decision_row3"] + v15["impl_row3"]) == (74, 77)
+    assert (v14["code_decision_row1"] + v14["impl_row1"], v15["code_decision_row1"] + v15["impl_row1"]) == (73, 76)
+    faults = json.loads(gzip.decompress((PROBE2 / "results" / "p2-faults.json.gz").read_bytes()))
+    assert faults["criterion"]["open_gaps"] == ["P2C-20"]
