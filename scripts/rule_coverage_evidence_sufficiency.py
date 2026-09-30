@@ -44,6 +44,7 @@ import argparse
 import hashlib
 import json
 import sys
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
@@ -226,6 +227,227 @@ def _rationale(obligation: dict, status: str, reason: str) -> str:
             f"`{status}/{reason}`, so the premise must be read exactly on this path too")
 
 
+# ── Profile v2 (v1.3 spec, section 15): value classes, precedence, state classes ──
+#
+# Profile v1 (RC-1 to RC-3) asks for one witness per premise and outcome. The blind
+# probe of 2026-09-30 (NEGATIVE_RESULTS.md §70) found the three shapes it misses:
+# absence as the third arm of a premise, the order of two failing guards, and state
+# values outside the declared vocabulary. Profile v2 replaces the single witness with
+# every value class, adds every ordered pair of guards on a path, and adds a fixed set
+# of state pairs. The obligations still come from the model's ladders alone.
+
+#: The value classes a premise can be in, with one representative each. Every
+#: predicate a guard can apply (identity, equality, truthiness, presence) is constant
+#: on each class, so a witness per class separates every such reading.
+VALUE_CLASSES: dict[str, Any] = {
+    "true": True,
+    "false": False,
+    "absent": None,  # the representative is "leave the key out"
+    "null": None,
+    "one": 1,
+    "zero": 0,
+    "truthy": "true",
+    "falsy": "",
+}
+
+
+def value_class(obs: dict, field: str) -> str:
+    if field not in obs:
+        return "absent"
+    value = obs[field]
+    if value is True:
+        return "true"
+    if value is False:
+        return "false"
+    if value is None:
+        return "null"
+    if type(value) is int and value == 1:
+        return "one"
+    if type(value) is int and value == 0:
+        return "zero"
+    return "truthy" if value else "falsy"
+
+
+def _set_class(obs: dict, field: str, cls: str) -> None:
+    if cls == "absent":
+        obs.pop(field, None)
+    else:
+        obs[field] = VALUE_CLASSES[cls]
+
+
+#: State pairs the postcondition comparison must decide as the model does. Each
+#: pair is a value and a neighbour a normalising, loose or order-blind comparison
+#: would confuse with it, or two spellings of one JSON value it must not tell apart.
+STATE_PAIRS: list[tuple[Any, Any]] = [
+    (None, None), (0, 0), (False, False), ("", ""), ([], []), ({}, {}), ([None], [None]),
+    ({"lock": "held", "state": "closed"}, {"state": "closed", "lock": "held"}),
+    ({"outer": {"x": 1, "y": 2}}, {"outer": {"y": 2, "x": 1}}),
+    ("closed", "Closed"), ("closed", "closed "), (1, True), (True, 1), (0, False), (False, 0),
+    (None, "null"), (None, 0), (None, False), ("", None), ([], {}), (["closed", "locked"], ["locked", "closed"]),
+    ("é", "é"), ({"a": None}, {}), ([1], [True]), ("1", 1), (10**20, 10**20 + 1),
+]
+
+
+def _guard_premises(model: dict) -> list[tuple[str, dict[str, bool], tuple[str, str], list[str]]]:
+    """(claim, path condition, outcome, the first premise of each require step on the path, in order)."""
+    out = []
+
+    def walk(claim: str, steps: list[dict], cond: dict[str, bool], guards: list[str]) -> None:
+        cond, guards = dict(cond), list(guards)
+        for step in steps:
+            if "require" in step:
+                for field in step["require"]:
+                    cond[field] = True
+                guards.append(next(iter(step["require"])))
+                if "then" in step:
+                    out.append((claim, dict(cond), (step["then"]["status"], step["then"]["reason"]), guards))
+                    return
+                continue
+            if "branch" in step:
+                walk(claim, step["when_true"], {**cond, step["branch"]: True}, guards)
+                walk(claim, step["when_false"], {**cond, step["branch"]: False}, guards)
+                return
+            if "compare" in step:
+                out.append((claim, dict(cond), (step["equal"]["status"], step["equal"]["reason"]), guards))
+                return
+            if "terminal" in step:
+                out.append((claim, dict(cond), (step["terminal"]["status"], step["terminal"]["reason"]), guards))
+                return
+
+    for claim, spec in model["claims"].items():
+        walk(claim, spec["steps"], {}, [])
+    return out
+
+
+def obligations_v2(model: dict) -> list[dict]:
+    """RC-V (value classes), RC-P (guard precedence) and RC-S (state pairs), in a fixed order."""
+    out: list[dict] = []
+    for claim, cond, states, outcome in decisive_paths(model):
+        for field in model["claims"][claim]["fields"]:
+            base_class = "true" if field not in cond else ("true" if cond[field] else "false")
+            for cls in VALUE_CLASSES:
+                if cls == base_class:
+                    continue
+                out.append({"rule": "RC-V", "claim": claim, "outcome": list(outcome), "premise": field,
+                            "class": cls, "path": cond, "states": states})
+    seen: set[tuple] = set()
+    for claim, cond, outcome, guards in _guard_premises(model):
+        for i, first in enumerate(guards):
+            for second in guards[i + 1:]:
+                key = (claim, tuple(sorted(cond.items())), first, second)
+                if key in seen:
+                    continue
+                seen.add(key)
+                out.append({"rule": "RC-P", "claim": claim, "outcome": list(outcome), "premise": first,
+                            "second": second, "path": cond, "states": None})
+    for claim, cond, states, outcome in decisive_paths(model):
+        if not states or outcome[0] != "established":
+            continue
+        a, b = list(states)
+        for left, right in STATE_PAIRS:
+            out.append({"rule": "RC-S", "claim": claim, "outcome": list(outcome), "premise": a,
+                        "pair": [left, right], "path": cond, "states": {a: left, b: right}})
+    return out
+
+
+def _same(a: Any, b: Any) -> bool:
+    if type(a) is not type(b):
+        return False
+    if isinstance(a, dict):
+        return a.keys() == b.keys() and all(_same(a[k], b[k]) for k in a)
+    if isinstance(a, list):
+        return len(a) == len(b) and all(_same(x, y) for x, y in zip(a, b))
+    return bool(a == b)
+
+
+def covered_v2(obligation: dict, cases: list[dict]) -> bool:
+    claim, cond = obligation["claim"], obligation["path"]
+    for case in cases:
+        if case["claim"] != claim:
+            continue
+        obs = case["observations"]
+        expected = (case["expected"]["status"], case["expected"]["reason"])
+        if obligation["rule"] == "RC-V":
+            premise, cls = obligation["premise"], obligation["class"]
+            if value_class(obs, premise) != cls:
+                continue
+            if premise in cond:
+                if _meets(obs, cond, premise):
+                    return True
+            elif expected == tuple(obligation["outcome"]) and _meets(obs, cond, premise):
+                return True
+        elif obligation["rule"] == "RC-P":
+            first, second = obligation["premise"], obligation["second"]
+            rest = {f: v for f, v in cond.items() if f not in (first, second)}
+            if obs.get(first) is False and obs.get(second) is False and all(
+                f in obs and obs[f] is v for f, v in rest.items()
+            ):
+                return True
+        elif obligation["rule"] == "RC-S":
+            (a, left), (b, right) = obligation["states"].items()
+            if a in obs and b in obs and _meets(obs, cond, "") and _same(obs[a], left) and _same(obs[b], right):
+                return True
+    return False
+
+
+def uncovered_v2(model: dict, cases: list[dict]) -> list[dict]:
+    return [o for o in obligations_v2(model) if not covered_v2(o, cases)]
+
+
+def _label_v2(o: dict) -> str:
+    if o["rule"] == "RC-V":
+        return f"RC-V {o['outcome'][1]} {o['premise']}={o['class']}"
+    if o["rule"] == "RC-P":
+        return f"RC-P {o['claim']} {o['premise']}>{o['second']}"
+    return f"RC-S {o['claim']} {json.dumps(o['pair'])}"
+
+
+def derive_v2(model: dict, cases: list[dict], gap: str = "N1") -> list[dict]:
+    """One case per open profile-v2 obligation, by the same construction rule as ``derive``."""
+    next_number = {claim: 0 for claim in PREFIX}
+    for case in cases:
+        prefix = PREFIX[case["claim"]]
+        if case["id"].startswith(prefix) and case["id"][1:].isdigit():
+            next_number[case["claim"]] = max(next_number[case["claim"]], int(case["id"][1:]))
+    derived: list[dict] = []
+    by_obs: dict[str, dict] = {}
+    for o in uncovered_v2(model, cases):
+        claim, cond = o["claim"], o["path"]
+        fields = model["claims"][claim]["fields"]
+        obs: dict[str, Any] = {field: cond.get(field, True) for field in fields}
+        if o["rule"] == "RC-V":
+            if o["states"]:
+                obs.update(o["states"])
+            _set_class(obs, o["premise"], o["class"])
+        elif o["rule"] == "RC-P":
+            if claim == "postcondition_observed":
+                obs.update({"expected_state": "closed", "observed_state": "closed"})
+            obs[o["premise"]] = False
+            obs[o["second"]] = False
+        else:
+            obs.update(deepcopy(o["states"]))
+        key = claim + json.dumps(obs, sort_keys=True)
+        label = _label_v2(o)
+        if key in by_obs:
+            by_obs[key]["obligations"].append(label)
+            continue
+        next_number[claim] += 1
+        status, reason = _interpret(model, claim, obs)
+        case = {
+            "id": f"{PREFIX[claim]}{next_number[claim]:02d}",
+            "claim": claim,
+            "gap": gap,
+            "derived_from": "model.json rule-coverage profile v2 (v1.3 spec, section 15)",
+            "observations": dict(sorted(obs.items())),
+            "expected": {"status": status, "reason": reason},
+            "obligations": [label],
+            "rationale": f"derived to discharge {label}; the expected verdict is the model's",
+        }
+        by_obs[key] = case
+        derived.append(case)
+    return derived
+
+
 def load_cases(suite: str) -> list[dict]:
     return json.loads((CONFORMANCE / suite / "cases.json").read_text(encoding="utf-8"))["cases"]
 
@@ -242,20 +464,25 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--suite", default="evidence-sufficiency-v1.3")
     parser.add_argument("--derive", action="store_true", help="print the cases that close every open obligation")
     parser.add_argument("--sha256", action="store_true", help="with --derive, print only the digest of the derived cases")
+    parser.add_argument("--profile", choices=("v1", "v2"), default="v1",
+                        help="v1: RC-1 to RC-3 (section 14); v2: RC-V, RC-P and RC-S (section 15)")
     args = parser.parse_args(argv)
     model, cases = load_model(args.suite), load_cases(args.suite)
     if args.derive:
-        text = json.dumps(derive(model, cases), indent=2, ensure_ascii=False) + "\n"
+        rows = derive(model, cases) if args.profile == "v1" else derive_v2(model, cases)
+        text = json.dumps(rows, indent=2, ensure_ascii=False) + "\n"
         if args.sha256:
             print(hashlib.sha256(text.encode("utf-8")).hexdigest())
         else:
-            sys.stdout.write(text)
+            sys.stdout.buffer.write(text.encode("utf-8"))
         return 0
-    total = obligations(model)
-    missing = uncovered(model, cases)
-    print(f"{args.suite}: {len(total)} obligations, {len(total) - len(missing)} discharged, {len(missing)} open")
+    if args.profile == "v2":
+        total, missing = obligations_v2(model), uncovered_v2(model, cases)
+    else:
+        total, missing = obligations(model), uncovered(model, cases)
+    print(f"{args.suite} ({args.profile}): {len(total)} obligations, {len(total) - len(missing)} discharged, {len(missing)} open")
     for o in missing:
-        print(f"  {o['rule']} {o['claim']} {o['outcome'][1]} {o['premise']}")
+        print(f"  {o['rule']} {o['claim']} {o['outcome'][1]} {o['premise']}" if args.profile == "v1" else f"  {_label_v2(o)}")
     return 1 if missing else 0
 
 
