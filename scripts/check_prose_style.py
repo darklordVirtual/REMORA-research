@@ -79,6 +79,7 @@ EXCLUDE_PREFIXES = (
     "artifacts/independent-analysis-2026-09-30/",  # third-party report, committed unchanged
     "artifacts/evidence-sufficiency-blind-probe-2026-09-30/",  # generated probe inputs, committed unchanged
     "artifacts/evidence-sufficiency-blind-probe-2-2026-09-30/",  # generated probe inputs, committed unchanged
+    "artifacts/evidence-sufficiency-blind-probe-3-2026-09-30/",  # generated probe inputs, committed unchanged
     "CHANGELOG.md",  # historical record
 )
 

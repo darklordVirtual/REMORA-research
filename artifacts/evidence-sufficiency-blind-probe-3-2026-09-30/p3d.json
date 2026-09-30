@@ -1,0 +1,129 @@
+{
+  "selector": "p3d-side-fixes",
+  "files_read": [
+    "C:/users/Stian/REMORA-research/conformance/evidence-sufficiency-v1/checker.py",
+    "C:/users/Stian/REMORA-research/conformance/evidence-sufficiency-v1/README.md"
+  ],
+  "faults": [
+    {
+      "id": "P3D-01",
+      "old": "if o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True:",
+      "new": "if o.get(\"effect_source_accepted\") is True or o.get(\"effect_seen\") is not True:",
+      "rationale": "Developer accidentally removed 'not' while refactoring condition, now fails when source IS accepted"
+    },
+    {
+      "id": "P3D-02",
+      "old": "if o.get(\"scope_accepted\") is not True:",
+      "new": "if o.get(\"scope_accepted\") is True:",
+      "rationale": "Negation removed during logic simplification attempt"
+    },
+    {
+      "id": "P3D-03",
+      "old": "if o.get(\"admission_present\") is True:",
+      "new": "if o.get(\"admission_present\") is False:",
+      "rationale": "Boolean check inverted when copy-pasting similar condition"
+    },
+    {
+      "id": "P3D-04",
+      "old": "if o.get(\"admission_source_accepted\") is not True:",
+      "new": "if o.get(\"admission_source_accepted\") is True:",
+      "rationale": "Negation accidentally removed during refactoring"
+    },
+    {
+      "id": "P3D-05",
+      "old": "if o.get(\"admission_matches\") is True:",
+      "new": "if o.get(\"admission_matches\") is False:",
+      "rationale": "Condition inverted while fixing similar check"
+    },
+    {
+      "id": "P3D-06",
+      "old": "if o.get(\"admission_present\") is not False:",
+      "new": "if o.get(\"admission_present\") is False:",
+      "rationale": "Double negative removed incorrectly"
+    },
+    {
+      "id": "P3D-07",
+      "old": "if o.get(\"mandatory_admission\") is not True:",
+      "new": "if o.get(\"mandatory_admission\") is True:",
+      "rationale": "Negation removed while simplifying guard clause"
+    },
+    {
+      "id": "P3D-08",
+      "old": "if o.get(\"window_finalized\") is not True:",
+      "new": "if o.get(\"window_finalized\") is True:",
+      "rationale": "Boolean check inverted during copy-paste refactoring"
+    },
+    {
+      "id": "P3D-09",
+      "old": "if o.get(\"admission_coverage_complete\") is not True:",
+      "new": "if o.get(\"admission_coverage_complete\") is True:",
+      "rationale": "Negation accidentally removed from completeness check"
+    },
+    {
+      "id": "P3D-10",
+      "old": "if o.get(\"route_observation_accepted\") is not True:",
+      "new": "if o.get(\"route_observation_accepted\") is True:",
+      "rationale": "Developer inverted condition logic while fixing similar check"
+    },
+    {
+      "id": "P3D-11",
+      "old": "if o.get(\"same_protected_operation\") is not True:",
+      "new": "if o.get(\"same_protected_operation\") is True:",
+      "rationale": "Negation removed during guard clause simplification"
+    },
+    {
+      "id": "P3D-12",
+      "old": "if o.get(\"outside_required_pep\") is not True:",
+      "new": "if o.get(\"outside_required_pep\") is True:",
+      "rationale": "Boolean negation accidentally removed"
+    },
+    {
+      "id": "P3D-13",
+      "old": "if o.get(\"effect_observation_accepted\") is not True:",
+      "new": "if o.get(\"effect_observation_accepted\") is True:",
+      "rationale": "Condition inverted while refactoring acceptance checks"
+    },
+    {
+      "id": "P3D-14",
+      "old": "if o.get(\"protected_effect_observed\") is True:",
+      "new": "if o.get(\"protected_effect_observed\") is False:",
+      "rationale": "Effect check inverted; now passes when effect is absent"
+    },
+    {
+      "id": "P3D-15",
+      "old": "if o.get(\"protected_effect_observed\") is not False:",
+      "new": "if o.get(\"protected_effect_observed\") is True:",
+      "rationale": "Double negative simplified incorrectly"
+    },
+    {
+      "id": "P3D-16",
+      "old": "if o.get(\"effect_window_complete\") is not True:",
+      "new": "if o.get(\"effect_window_complete\") is True:",
+      "rationale": "Negation removed from completeness guard"
+    },
+    {
+      "id": "P3D-17",
+      "old": "if o.get(\"valid_control_same_context\") is not True:",
+      "new": "if o.get(\"valid_control_same_context\") is True:",
+      "rationale": "Boolean check inverted during logic simplification"
+    },
+    {
+      "id": "P3D-18",
+      "old": "if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):",
+      "new": "if canonical(o[\"expected_state\"]) != canonical(o[\"observed_state\"]):",
+      "rationale": "Comparison operator typo; now fails when states match"
+    },
+    {
+      "id": "P3D-19",
+      "old": "if value is None or type(value) in (str, bool, int):",
+      "new": "if value is not None or type(value) in (str, bool, int):",
+      "rationale": "Null check operator inverted, now rejects None values"
+    },
+    {
+      "id": "P3D-20",
+      "old": "if premise_source != \"synthetic_fixture\":",
+      "new": "if premise_source == \"synthetic_fixture\":",
+      "rationale": "Security check inverted; now rejects valid synthetic fixtures"
+    }
+  ]
+}

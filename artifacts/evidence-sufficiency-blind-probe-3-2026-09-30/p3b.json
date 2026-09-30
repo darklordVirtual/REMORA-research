@@ -1,0 +1,129 @@
+{
+  "selector": "p3b-modernisation",
+  "files_read": [
+    "conformance/evidence-sufficiency-v1/checker.py",
+    "conformance/evidence-sufficiency-v1/README.md"
+  ],
+  "faults": [
+    {
+      "id": "P3B-01",
+      "old": "    if not scope:\n",
+      "new": "    if scope is None:\n",
+      "rationale": "Tightening Optional handling to an explicit None check: an empty scope {} is no longer replaced by the default bounded synthetic scope."
+    },
+    {
+      "id": "P3B-02",
+      "old": "        if self.decisive_if is not None:\n            out[\"decisive_if\"] = self.decisive_if\n",
+      "new": "        out[\"decisive_if\"] = self.decisive_if\n",
+      "rationale": "Stable-schema refactor of as_dict always emits decisive_if, so decisive verdicts gain a decisive_if: null key."
+    },
+    {
+      "id": "P3B-03",
+      "old": "    if value is None or type(value) in (str, bool, int):\n",
+      "new": "    if value is None or isinstance(value, (str, int)):\n",
+      "rationale": "isinstance modernisation of the scalar check accepts str/int subclasses (e.g. StrEnum/IntEnum members) that were rejected before."
+    },
+    {
+      "id": "P3B-04",
+      "old": "    if value is None or type(value) in (str, bool, int):\n",
+      "new": "    if value is None or type(value) in (str, bool, int, float):\n",
+      "rationale": "New capability 'allow numeric fixture values' makes floats acceptable, so float observations no longer raise ValueError."
+    },
+    {
+      "id": "P3B-05",
+      "old": "    if type(value) is dict and all(type(key) is str for key in value):\n",
+      "new": "    if type(value) is dict:\n",
+      "rationale": "Simplified dict branch drops the string-key requirement; dicts with non-string keys are now accepted."
+    },
+    {
+      "id": "P3B-06",
+      "old": "    if type(value) is list:\n",
+      "new": "    if isinstance(value, (list, tuple)):\n",
+      "rationale": "Sequence generalisation accepts tuples as JSON arrays; tuple values previously raised ValueError."
+    },
+    {
+      "id": "P3B-07",
+      "old": "sort_keys=True, ",
+      "new": "",
+      "rationale": "Encoding cleanup drops sort_keys; key order now matters so equal-content dicts with different insertion order compare unequal (postcondition VIOLATED)."
+    },
+    {
+      "id": "P3B-08",
+      "old": "    if \"expected_state\" not in o or \"observed_state\" not in o:\n",
+      "new": "    if o.get(\"expected_state\") is None or o.get(\"observed_state\") is None:\n",
+      "rationale": "Idiomatic .get() rewrite treats an explicit null state as missing; null==null previously ESTABLISHED, now state_value_missing."
+    },
+    {
+      "id": "P3B-09",
+      "old": "    if o.get(\"admission_present\") is not False:\n",
+      "new": "    if o.get(\"admission_present\") is None:\n",
+      "rationale": "Presence check rewritten as a None test; non-boolean values like 0 or 'no' now fall through to the closed-world branch and can yield VIOLATED."
+    },
+    {
+      "id": "P3B-10",
+      "old": "    if o.get(\"protected_effect_observed\") is True:\n",
+      "new": "    if o.get(\"protected_effect_observed\"):\n",
+      "rationale": "Truthiness shortcut: a truthy non-boolean such as 'yes' or 1 now yields VIOLATED instead of protected_effect_unknown."
+    },
+    {
+      "id": "P3B-11",
+      "old": "    if claim not in ASSESSORS or not isinstance(observations, Mapping):\n",
+      "new": "    if claim not in ASSESSORS:\n",
+      "rationale": "Relying on type hints instead of a runtime check: a list of pairs is no longer rejected with ValueError but reaches the assessor and raises AttributeError."
+    },
+    {
+      "id": "P3B-12",
+      "old": "    validate_json(dict(observations))\n",
+      "new": "    validate_json(observations)\n",
+      "rationale": "Removing a 'redundant' dict() copy: non-dict Mappings (MappingProxyType) are now rejected by validate_json with ValueError."
+    },
+    {
+      "id": "P3B-13",
+      "old": "    if premise_source != \"synthetic_fixture\":\n",
+      "new": "    if not premise_source.startswith(\"synthetic\"):\n",
+      "rationale": "Prefix-based guard to allow future synthetic variants; 'synthetic_production' is now accepted instead of raising."
+    },
+    {
+      "id": "P3B-14",
+      "old": "            \"status\": self.status.value,\n",
+      "new": "            \"status\": self.status.name,\n",
+      "rationale": "Enum serialisation change emits the member name ('ESTABLISHED') instead of the value ('established')."
+    },
+    {
+      "id": "P3B-15",
+      "old": "            \"scope\": dict(self.scope),\n",
+      "new": "            \"scope\": self.scope,\n",
+      "rationale": "Dropping a defensive copy in as_dict: returned scope aliases the verdict's scope, so mutating the dict mutates the verdict."
+    },
+    {
+      "id": "P3B-16",
+      "old": "    return dict(scope)\n",
+      "new": "    return scope\n",
+      "rationale": "Dropping a defensive copy in _scope: verdict.scope aliases the caller's mapping and changes when the caller mutates it afterwards."
+    },
+    {
+      "id": "P3B-17",
+      "old": "            \"missing_evidence\": list(self.missing_evidence),\n",
+      "new": "            \"missing_evidence\": self.missing_evidence,\n",
+      "rationale": "Returning the tuple directly: as_dict()['missing_evidence'] is a tuple, not a list, so it no longer equals the expected list."
+    },
+    {
+      "id": "P3B-18",
+      "old": "    if o.get(\"window_finalized\") is not True:\n        return _unknown(claim, \"observation_window_open\", scope)\n    if o.get(\"admission_coverage_complete\") is not True:\n        return _unknown(claim, \"admission_coverage_incomplete\", scope)\n",
+      "new": "    if o.get(\"admission_coverage_complete\") is not True:\n        return _unknown(claim, \"admission_coverage_incomplete\", scope)\n    if o.get(\"window_finalized\") is not True:\n        return _unknown(claim, \"observation_window_open\", scope)\n",
+      "rationale": "Reordering guard clauses: with both window open and coverage incomplete the reported reason and guidance change."
+    },
+    {
+      "id": "P3B-19",
+      "old": "@dataclass(frozen=True)\n",
+      "new": "@dataclass(frozen=True, kw_only=True)\n",
+      "rationale": "Data-model modernisation to keyword-only fields breaks positional construction of EvidenceVerdict (TypeError)."
+    },
+    {
+      "id": "P3B-20",
+      "old": "    if o.get(\"effect_observation_accepted\") is not True:\n        return _unknown(claim, \"protected_effect_observation_unaccepted\", scope)\n    if o.get(\"protected_effect_observed\") is True:\n",
+      "new": "    if o.get(\"protected_effect_observed\") is True:\n",
+      "rationale": "Collapsing guard clauses loses the effect-acceptance check: an unaccepted effect observation now yields VIOLATED."
+    }
+  ]
+}
