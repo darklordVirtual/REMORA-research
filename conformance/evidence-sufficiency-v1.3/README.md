@@ -2,6 +2,8 @@
 
 **Status:** research/conformance artifact. Synthetic author-run only. Not a standard, certification, production control, APS result or CoSAI deliverable.
 
+[v1.4](../evidence-sufficiency-v1.4/README.md) is now the current corpus and carries v1.3 verbatim. v1.3 is frozen.
+
 v1.3 is an additive corpus for the unchanged v1 checker.
 It exists because a systematic mutation sweep over `checker.py` found 112 mutants that no v1.2 check could tell apart ([NEGATIVE_RESULTS.md §65](../../NEGATIVE_RESULTS.md)).
 The design, the decisions and the research grounding are in [`docs/design/evidence-sufficiency-v1.3.md`](../../docs/design/evidence-sufficiency-v1.3.md).
@@ -59,7 +61,8 @@ It leaves 4 survivors, named in `docs/assurance/mutation_baseline_evidence_suffi
 Both gates fail on a survivor that is in neither place.
 `scripts/spec_mutation_evidence_sufficiency.py` mutates the rules in `model.json` instead of the code, and runs each mutant model as a checker.
 Twelve of its 392 live mutants survive the authored cases and die only on the runner's reference model (NEGATIVE_RESULTS.md §68).
-They are named in `docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt`.
+v1.4 closes them with cases derived from a rule-coverage criterion.
+The v1.3 result reproduces with `--suite evidence-sufficiency-v1.3`.
 
 ## Run
 

@@ -24,11 +24,11 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-09-30: **15 `open`**, **26 `accepted`**, **27 `superseded`**.
+Counts as of 2026-09-30: **14 `open`**, **27 `accepted`**, **28 `superseded`**.
 
 ## The actual backlog
 
-Nine themes, all research gaps; the one production gap (CI gates that ran
+Eight themes, all research gaps; the one production gap (CI gates that ran
 without blocking, §55) is closed and struck from this list; a backlog that
 keeps closed items is the drift the status gate exists to prevent. The section numbers
 after each theme are where its evidence lives, and CI checks that every theme
@@ -96,11 +96,6 @@ cites only `open` sections and that no `open` section is missing a theme.
    were 68 of 70 correct, more accurate than the ones kept. Whether the
    exclusion belongs on this path needs an out-of-sample test; until then v5
    stays as the conservative choice.
-9. **Evidence-sufficiency cases that miss rule-level faults** (§68):
-   pre-registered specification mutation of the reference model found twelve
-   cross-branch premise faults that no authored case separates; the runner's
-   lattice differential kills them all. A new corpus version can add the
-   cases, labelled as fitted.
 
 <!-- backlog-end -->
 
@@ -2462,7 +2457,6 @@ sections again.
 | MCE bucket bias and absent cross-domain episodes (§15, §16) | Structural AROMER ceilings: the buckets get no organic traffic and crossDomainCases=0. Needs diverse deployment context | Medium |
 | Authoritative tool metadata still caller-supplied on the advisory path (§14/M4) | Raise-only clamp shipped 2026-08-05 (declared risk cannot undercut the heuristic floor; clamps recorded, unset stays unset). Full authority still needs the signed ToolSpec registry (FT-03) | Medium |
 | External replication, REM-021, field evidence (§1, §4) | Cannot be closed from inside this repository | Medium |
-| Twelve cross-branch premise faults survive every authored evidence-sufficiency case (§68) | Found by pre-registered specification mutation; the runner's reference model kills all twelve, the authored cases none. Closing it needs a new corpus version, which will be fitted | Medium |
 
 ### Accepted negative results — do not "fix" these
 
@@ -2474,6 +2468,7 @@ sections again.
 | Consensus temperature failed fresh-data confirmation (§18) | AURC 0.0954 vs 0.0664 for calibrated confidence, paired CI excludes zero, zero SGR-certifiable coverage. The hypothesis was pre-registered and it failed. Temperature stays diagnostic; reviving it needs entirely new evidence, not a threshold | **High (falsifies the thermodynamic-selection hypothesis)** |
 | AgentHarm cannot measure resolver friction (§19) | FAR=0.0% met; FBR=100% not met, because every source verdict is ESCALATE and the control protocols act on VERIFY. Rewriting ESCALATE→VERIFY moved 19 harmful and 0 benign. A different dataset is required | Medium |
 | Registry coverage without outcome change (§20) | 38 → 85 signatures moved no routing metric; `arguments_satisfiable` is orthogonal to call correctness. More signatures will not produce semantic correctness | Medium |
+| The pre-registered held-out test of rule coverage had little power (§69) | v1.3 already killed 318 of the 319 held-out mutants; 17 of the 22 derived cases kill nothing another case does not. The criterion is kept for what it gates, not tuned to look stronger | Low (methodological) |
 | Track A did not test its hypothesis (§29) | 836/942 wrong-argument episodes were unjudgeable because the index did not cover the arguments the tasks used. The set is spent; the lesson is the admission criterion added in §30 | Medium (methodological) |
 
 ### Superseded — resolved by a later section, kept for the causal chain
@@ -2493,6 +2488,7 @@ sections again.
 | v1.1 evidence-sufficiency corpus misses three state-comparison faults (§64) | evidence-sufficiency v1.2, 2026-09-29 | Cases E18-E20 tell the three faults apart. They were written after the faults were known, so this is the repair, not independent evidence. An external rerun with every fault known (2026-09-30) is private until Rul1an publishes it |
 | Systematic mutation analysis finds 112 faults the v1.2 evidence-sufficiency corpus cannot see (§65) | evidence-sufficiency v1.3, 2026-09-30 | 489 mutmut mutants; v1.2 killed 377. The 112 survivors fell in seven families, four of them real gaps (claim and scope never checked, rejection untested, key order). v1.3 leaves 20, all named and argued equivalent. Written with the survivors in view, so repair, not independent evidence |
 | The v1.1 typed-premise pin covered one premise per claim; 42 typed-premise faults survived every authored case (§66) | evidence-sufficiency v1.3 K1 cases, 2026-09-30 | A second operator set of 905 mutants found 42 `is True` faults read by truthiness or `== True` that only the exhaustive reference model caught, plus three `isinstance` relaxations nothing caught. Now 23 lattice-derived cases and rejections R18-R20; 4 survivors, all argued equivalent |
+| Twelve cross-branch premise faults survived every authored evidence-sufficiency case (§68) | evidence-sufficiency v1.4, 2026-09-30 | Rule coverage (RC-1) derived five cases that kill all twelve; v1.4 kills every live specification mutant on row 1. The five were fitted: the family was named before the criterion was written |
 | The evidence-sufficiency record carried stale, conflated and unreproducible numbers (§67) | corrected in the same change, 2026-09-30 | An independent analysis found 300 examples stated where the tests run 150, 17 rejections where there are twenty, and historical sweep totals no committed command reproduced. Rerunning each row found the first second-set run credited with 60 one-check kills that belong to a later state (57). Every row now has a command and a committed raw output |
 | Blind-confirmed intermediate rounds (§25, §27, §28, §31) | — | Each records a round that met or missed its pre-registered targets on the way to §34; retained as the pre-registration trail |
 
@@ -4166,13 +4162,15 @@ committed survivors to both baselines, so that a count and its evidence
 cannot drift apart again without a failing test.
 
 ## §68 Twelve cross-branch premise faults survive every authored evidence-sufficiency case (2026-09-30)
-<!-- finding-status: open -->
+<!-- finding-status: superseded -->
 
 **Status:** measured by the maintainer with specification mutation of
 `conformance/evidence-sufficiency-v1.3/model.json`
 (`scripts/spec_mutation_evidence_sufficiency.py`), pre-registered in section
 13 of `docs/design/evidence-sufficiency-v1.3.md`. The catalogue digest and the
-criterion were pushed in `37b1aac` before any mutant was scored. Open.
+criterion was pushed in `37b1aac` before any mutant was scored. Superseded by
+evidence-sufficiency v1.4 (see the end of this section). The finding about
+v1.3 stands.
 
 **What was measured.** Nine operators produce 446 first-order mutants of the
 rules and a fixed-seed sample of 300 second-order pairs. Each mutant model runs
@@ -4208,3 +4206,46 @@ is about what the authored cases can tell apart.
 this list, as the K1 cases were. The v1.3 spec records the gap as task T-20,
 and `docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt` names
 the twelve until then.
+
+**Resolution (2026-09-30).** Section 14 of the v1.3 spec does not write five
+cases for twelve mutant ids. It defines rule coverage from `model.json` alone
+and derives one case per open obligation, by a rule pushed before the cases
+were scored (`f3ba6d0`). `conformance/evidence-sufficiency-v1.4/` is
+v1.3 plus those 22 cases, and its runner fails on any open obligation. v1.4
+kills all 392 live first-catalogue mutants on row 1, and the gate's baseline
+is empty. The cases that kill the twelve are A26 to A28 and A32 to A33; they
+are fitted, and §69 records how little the rest of the criterion added.
+
+## §69 The pre-registered held-out test of rule coverage had little power (2026-09-30)
+<!-- finding-status: accepted -->
+
+**Status:** measured by the maintainer under the predictions pre-registered in
+section 14.5 of `docs/design/evidence-sufficiency-v1.3.md` (`f3ba6d0`).
+Accepted: the predictions were met, and the result is kept at its measured
+size rather than restated.
+
+**What was measured.** A held-out catalogue of specification mutants was
+fixed before v1.4 existed. It holds two guard-placement operators (19
+mutants) that the first catalogue cannot express, and 300 third-order
+mutants. As H-1 predicted, v1.4 kills all of them on row 1. But v1.3 already
+killed 318 of the 319.
+The one it missed is of the §68 family. Of the 22 derived cases, five kill a
+mutant of either specification catalogue on row 1 that no other case kills,
+and all five are RC-1 cases for the §68 family. The other seventeen (two
+RC-1 cases on the route claim, eight RC-2 and seven RC-3 cases) kill nothing
+another case does not.
+
+**Why it matters.** A met prediction reads as confirmation, and here it
+confirms little. The held-out catalogue separated v1.4 from v1.3 on one
+mutant, and the criterion's added value against every fault list measured so
+far is the five fitted cases. The guard-placement faults that RC-2 aims at
+were already killed by cases that cross the same guards for other reasons.
+That is the coverage-effectiveness gap of Inozemtseva and Holmes (2014) seen
+from the other side: a stricter criterion than the faults need.
+
+**What this does not establish.** It does not show that the seventeen cases
+are useless. They discharge obligations a future change to `model.json`
+could make load-bearing, and a fault family none of the catalogues expresses
+could need them. It does not show the criterion generalises either. That
+still needs faults chosen by someone who has not seen it, under section 8 of
+the spec.

@@ -143,19 +143,22 @@ def test_gate_fails_on_a_new_survivor_on_either_row_and_on_a_changed_catalogue()
 def test_baseline_header_carries_the_pre_registered_digest() -> None:
     digest, entries = SM.read_baseline(SM.BASELINE)
     assert digest == SM.catalogue_sha256()
-    assert entries and all(e.split(" ", 1)[0] in ("row1", "row3") for e in entries)
+    assert all(e.split(" ", 1)[0] in ("row1", "row3") for e in entries)
+    assert SM.GATED_SUITE in SM.BASELINE.read_text(encoding="utf-8")
+
+
+def _artifact(name: str) -> dict:
+    import gzip
+
+    return json.loads(gzip.decompress(
+        (ROOT / "artifacts" / "evidence-sufficiency-spec-mutation-2026-09-30" / name).read_bytes()
+    ))
 
 
 @pytest.mark.docgate
-def test_committed_report_matches_the_baseline_and_the_published_result() -> None:
-    import gzip
-
-    report = json.loads(gzip.decompress(
-        (ROOT / "artifacts" / "evidence-sufficiency-spec-mutation-2026-09-30" / "spec-mutation.json.gz").read_bytes()
-    ))
+def test_committed_v1_3_report_matches_the_published_result() -> None:
+    report = _artifact("spec-mutation.json.gz")
     assert report["catalogue_sha256"] == SM.catalogue_sha256()
-    _, entries = SM.read_baseline(SM.BASELINE)
-    assert SM.survivors(report) == entries
     # Section 13.6 and NEGATIVE_RESULTS.md §68 publish these; a rerun that moves them must
     # move the record with it.
     first, second = report["summary"]["first_order"], report["summary"]["second_order"]
@@ -165,14 +168,39 @@ def test_committed_report_matches_the_baseline_and_the_published_result() -> Non
     assert first["equivalent_killed_on_row3"] == second["equivalent_killed_on_row3"] == []
     # Every row-1 survivor is a cross-branch premise added to the admission ladder (§68).
     survivors = [r for r in report["rows"] if r["id"] in first["row1_survivors"]]
-    assert survivors and all(r["operator"] == "add_premise" and r["claim"] == "admission_accounting" for r in survivors)
+    assert len(survivors) == 12
+    assert all(r["operator"] == "add_premise" and r["claim"] == "admission_accounting" for r in survivors)
     assert all(r["row3_labels"] == ["reference_model"] for r in survivors)
 
 
-def test_a_cross_branch_premise_survives_the_authored_cases_but_not_the_runner() -> None:
-    # One §68 survivor, scored live: the authored cases cannot see it, the runner can.
+@pytest.mark.docgate
+def test_committed_v1_4_reports_match_the_baseline_and_the_pre_registered_predictions() -> None:
+    gated = _artifact("spec-mutation-v1.4.json.gz")
+    assert (gated["suite"], gated["catalogue"]) == (SM.GATED_SUITE, "v1")
+    _, entries = SM.read_baseline(SM.BASELINE)
+    assert SM.survivors(gated) == entries
+    # H-2 (section 14.5): S-2 met on v1.4.
+    assert gated["summary"]["first_order"]["row1_survivors"] == []
+    # H-1: every live held-out mutant killed on row 1 by v1.4.
+    heldout = _artifact("heldout-v1.4.json.gz")
+    assert heldout["catalogue_sha256"] == SM.catalogue_sha256(name="heldout")
+    for order in ("first_order", "third_order"):
+        block = heldout["summary"][order]
+        assert block["non_equivalent"] > 0 and block["row1_survivors"] == [] and block["row3_survivors"] == []
+    # H-3, reported: v1.3 misses one held-out mutant on row 1, of the §68 family.
+    before = _artifact("heldout-v1.3.json.gz")
+    assert before["summary"]["first_order"]["row1_survivors"] == ["guard_hoist:admission_accounting:0"]
+    assert before["summary"]["third_order"]["row1_survivors"] == []
+
+
+def test_a_cross_branch_premise_survives_v1_3_but_not_v1_4() -> None:
+    # One §68 survivor, scored live: v1.3's authored cases cannot see it, the runner can,
+    # and v1.4's RC-1 case A26 does.
     original = SM.load_model()
     mutant = next(m for m in SM.catalogue(original) if m["id"] == "add_premise:admission_accounting:20")
-    row = SM.score(({k: v for k, v in mutant.items() if k != "_edit"}, original))
-    assert not row["equivalent"]
-    assert row["row1_cases"] == [] and row["row3_kill"]
+    job = {k: v for k, v in mutant.items() if k != "_edit"}
+    before = SM.score((job, original, "evidence-sufficiency-v1.3"))
+    assert not before["equivalent"]
+    assert before["row1_cases"] == [] and before["row3_kill"]
+    after = SM.score((job, original, "evidence-sufficiency-v1.4"))
+    assert after["row1_cases"] == ["A26"]

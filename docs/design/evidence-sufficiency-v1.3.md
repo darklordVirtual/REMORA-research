@@ -343,7 +343,8 @@ For v1.3 the run must be blind, and the record says beforehand what would count.
 | T-17 | The second operator set with second-order sampling, the redundancy reading and its baseline (D-15) | T-11 | done |
 | T-18 | The K1 cases derived from the lattice, and R18 to R20 (D-16) | T-17 | done |
 | T-19 | Pre-register and run specification mutation of `model.json` (section 13) | T-16 | done; S-2 not met, twelve row-1 survivors (NEGATIVE_RESULTS.md §68) |
-| T-20 | Close the §68 gap in a new corpus version, labelled as fitted | T-19 | open |
+| T-20 | Close the §68 gap in a new corpus version, labelled as fitted | T-19 | done: v1.4 (section 14.6) |
+| T-21 | Rule coverage (RC-1 to RC-3), the derivation rule and the held-out catalogue (section 14) | T-19 | done; H-1 to H-3 as in section 14.6, with the power caveat of NEGATIVE_RESULTS.md §69 |
 
 ## 11. Risks
 
@@ -377,6 +378,7 @@ Each source is listed with what this spec takes from it and what it leaves.
 - McKeeman (1998), *Differential Testing for Software*, Digital Technical Journal 10(1). Two implementations of one specification disagree where one is wrong. Taken: D-14, the reference model over the lattice. Left: random differential inputs; the lattice is enumerated.
 - Jia and Harman (2009), *Higher Order Mutation Testing*, Information and Software Technology 51(10). Pairs of faults can mask each other. Taken: the fixed-seed second-order sample of D-15. Left: the search for subsuming higher-order mutants.
 - Budd and Gopal (1985), *Program testing by specification mutation*, Computer Languages 10(1). Mutate the specification, not the program, and ask whether the tests tell the mutant specification apart. Taken: section 13. Left: specification languages; the specification here is `model.json`.
+- Chilenski and Miller (1994), *Applicability of modified condition/decision coverage to software testing*, Software Engineering Journal 9(5). Each condition must be shown to affect its decision independently. Taken: RC-2 and RC-3 of section 14, applied per decisive outcome. Added: RC-1, the dual, that a condition off an outcome's path does not affect it.
 - Offutt, Lee, Rothermel, Untch and Zapf (1996), *An experimental determination of sufficient mutant operators*, ACM TOSEM 5(2). A small operator set can stand in for a large one. Taken: section 13 names its operators before the run and does not add operators after it.
 
 ## 13. Specification mutation, pre-registered
@@ -473,7 +475,97 @@ None of them is killed on row 3, which is the consistency check the computation 
 Row 2 misses 36 live mutants: the twelve above, and 24 that change only a decisive verdict, which carries no guidance under rule R-6.
 
 As section 13.4 item 5 requires, no corpus file changed in the change that reports this.
-`scripts/spec_mutation_evidence_sufficiency.py` now runs in the mutation workflow against `docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt`, which names the twelve as `row1` survivors.
+`scripts/spec_mutation_evidence_sufficiency.py` now runs in the mutation workflow against `docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt`, which named the twelve as `row1` survivors until v1.4 emptied it (section 14.6).
+The v1.3 row reproduces with `--suite evidence-sufficiency-v1.3`.
+
+## 14. Rule coverage and v1.4, pre-registered
+
+### 14.1 Why a criterion and not another case list
+
+Every repair so far has been a list of cases written against a list of faults: G1 to G5, H1, I1, K1.
+Section 13 found a family none of those lists contained, and killing its twelve mutants by name would repeat the pattern.
+This section defines adequacy from the specification alone, with no fault list, and derives the missing cases from it by a fixed rule.
+It then tests the criterion on faults it was not built from.
+
+### 14.2 The criterion
+
+`scripts/rule_coverage_evidence_sufficiency.py` reads the decision ladders of `model.json`.
+Every decisive outcome has a path condition: the premises read on the way to it, each with the boolean it must have.
+Three obligations follow for the authored cases, in the manner of modified condition/decision coverage (Chilenski and Miller, 1994), per outcome rather than per decision:
+
+| Rule | Obligation |
+|---|---|
+| RC-1, off-path independence | for every premise the path to an outcome does not read, a case expecting that outcome sets it to `false` |
+| RC-2, on-path necessity | for every premise on the path, a case meets the rest of the path condition and has this premise at the opposite boolean or absent |
+| RC-3, on-path typing | the same, with the premise at a non-boolean value |
+
+The model has 80 obligations. The 79 cases of v1.3 discharge 58 and leave 22 open.
+Five of the open ones are the §68 family (RC-1 on the two admission outcomes).
+The other seventeen name faults no catalogue has generated.
+For example, no case meets the VIOLATED admission path with the execution observation unaccepted.
+So no case was built to tell apart a checker that checks execution and scope acceptance only before ESTABLISHED; whether some case does so by accident is H-3 below.
+
+### 14.3 The derivation rule, fixed now
+
+For each open obligation, `--derive` builds one case from the configuration that meets the path condition with every off-path premise `true`.
+It then sets the one premise to `false` (RC-1), to the opposite boolean (RC-2), or to `1` for a `true` requirement and `0` for a `false` one (RC-3).
+The expected verdict is the model's; identical observation sets merge; ids continue each claim's numbering; the cases carry gap `L1`.
+On the v1.3 corpus the rule yields 22 cases, A26 to A36 and B27 to B37.
+Their digest (`python scripts/rule_coverage_evidence_sufficiency.py --suite evidence-sufficiency-v1.3 --derive --sha256`) is `2b1838624cdacdf29a0fff461fcb5913497eebec8c5f5a31bb24e2d4c5b361df`.
+`conformance/evidence-sufficiency-v1.4/` will be the v1.3 corpus verbatim plus exactly these cases.
+Its runner will add one section that fails on any open obligation, so a later change to `model.json` creates its own obligations without a new fault list.
+
+### 14.4 The held-out catalogue
+
+`python scripts/spec_mutation_evidence_sufficiency.py --catalogue heldout` adds two operators section 13 does not have, and a third-order sample.
+
+| Operator | Mutants | What it seeds |
+|---|---:|---|
+| `guard_sink` | 12 | a guard that precedes a branch applies to one arm only |
+| `guard_hoist` | 7 | a guard inside one arm moves above the branch, so both arms need it |
+| third order | 300 | a fixed-seed (20261002) sample of triples on one claim, drawn from both catalogues, whose edits compose on three distinct steps |
+
+Its digest is `8723a9d11601a2c58a2dc105d11d0f38eead9339ab0d1200e6d609a62078d7aa`.
+No mutant of it has been scored against any corpus at the commit that adds this section.
+
+### 14.5 Pre-registered predictions
+
+1. H-1, the test of the criterion: v1.4 kills every live mutant of the held-out catalogue on row 1, by the authored cases alone.
+2. H-2: v1.4 leaves no rule-coverage obligation open, and meets S-2 of section 13 on the first catalogue. Both hold by construction, and the §68 cases are fitted.
+3. H-3, reported and not a criterion: row 1 of the held-out catalogue on v1.3.
+4. If H-1 fails, its survivors are published as open gaps, and the derivation rule does not change in the change that reports them.
+
+For the 19 first-order held-out mutants, the criterion predicts H-1 by argument.
+A guard that sinks into one arm leaves a premise off that arm's path, and an RC-2 case on that arm's outcome tells it apart.
+A guard that is hoisted puts a premise on the other arm's path, and an RC-1 case tells that apart.
+So the run tests the argument and its implementation. The 300 third-order mutants have no such argument.
+The criterion was written after section 13 had named the §68 family, by the corpus's author; it is pre-registered, not blind.
+
+### 14.6 Result (2026-09-30)
+
+The criterion, the derivation digest and the held-out catalogue were pushed in `f3ba6d0` at 20:31:19 +02:00, before v1.4 existed and before any held-out mutant was scored.
+`conformance/evidence-sufficiency-v1.4/` was then built by the derivation, and its cases hash to the pre-registered digest.
+The raw reports are in `artifacts/evidence-sufficiency-spec-mutation-2026-09-30/`.
+
+| Prediction | Result |
+|---|---|
+| H-1, v1.4 kills every live held-out mutant on row 1 | met: 19 of 19 first-order, 300 of 300 third-order |
+| H-2, v1.4 discharges every obligation and meets S-2 | met: 80 of 80 obligations; 392 of 392 live first-catalogue mutants on row 1, 298 of 298 second-order |
+| H-3, v1.3 on the held-out catalogue, reported | 18 of 19 first-order and 300 of 300 third-order on row 1 |
+
+H-1 is weak evidence, and this section says so rather than letting the table say otherwise.
+v1.3 already killed 318 of the 319 held-out mutants on row 1.
+The one it missed, `guard_hoist:admission_accounting:0`, makes the absence arm require an accepted admission source, a member of the §68 family.
+So the held-out catalogue could separate v1.4 from v1.3 on one mutant, and it was not the family the criterion's other obligations aim at.
+The guard-placement mutants that RC-2 was expected to need were already killed by v1.3 cases that happen to cross the same guards.
+
+The derived cases split the same way.
+On row 1, only five of the 22 L1 cases kill a mutant of either specification catalogue that no other case kills.
+They are A26, A27 and A28 (RC-1 on ESTABLISHED) and A32 and A33 (RC-1 on VIOLATED), the §68 family.
+The other seventeen are required by the criterion and are redundant against every fault list measured so far.
+The AST operator set of section 6.8, rerun with the v1.4 runner, gives the same 901 of 905, and no kill in it rests on an L1 case alone.
+NEGATIVE_RESULTS.md §69 records both points.
+The criterion stays, because it needs no fault list and gates the runner, but its measured value is those five cases.
 
 ## Deliverables
 
@@ -484,3 +576,4 @@ As section 13.4 item 5 requires, no corpus file changed in the change that repor
 - `tests/test_evidence_sufficiency_v1_3.py`.
 - The `evidence-sufficiency` job in `.github/workflows/mutation.yml`.
 - `scripts/spec_mutation_evidence_sufficiency.py` and section 13.
+- `scripts/rule_coverage_evidence_sufficiency.py`, section 14 and `conformance/evidence-sufficiency-v1.4/`.

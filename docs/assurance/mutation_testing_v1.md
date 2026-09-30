@@ -301,6 +301,22 @@ The catalogue and the pass criterion were pre-registered in section 13 of the v1
 The twelve row-1 survivors are named in `docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt`.
 They are open gaps, not equivalence labels (NEGATIVE_RESULTS.md §68). The gate fails on a new survivor on either row, and on a catalogue whose digest differs from the baseline header.
 
+Evidence-sufficiency v1.4 adds the cases a rule-coverage criterion derives from `model.json` (v1.3 spec, section 14).
+On v1.4 the same catalogue leaves no survivor on either row, and the gate now scores v1.4 against an empty baseline.
+A held-out catalogue, pushed before v1.4 existed, adds two guard-placement operators and 300 third-order mutants.
+
+| Catalogue | Corpus | Live | Row 1 | Row 3 |
+|---|---|---:|---:|---:|
+| first, first order | v1.3 | 392 | 380 | 392 |
+| first, first order | v1.4 | 392 | 392 | 392 |
+| held-out, first order | v1.3 | 19 | 18 | 19 |
+| held-out, first order | v1.4 | 19 | 19 | 19 |
+| held-out, third order | v1.3 | 300 | 300 | 300 |
+| held-out, third order | v1.4 | 300 | 300 | 300 |
+
+The held-out rows show how little that catalogue could tell the two corpora apart (NEGATIVE_RESULTS.md §69).
+The two code-level gates above still score v1.3; v1.4 runs every v1.3 check on a superset of its cases.
+
 ## CI integration (wired)
 
 The scheduled job `.github/workflows/mutation.yml` (Mondays 05:00 UTC +
