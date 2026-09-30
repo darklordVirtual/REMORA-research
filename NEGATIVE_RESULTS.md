@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-09-29: **14 `open`**, **26 `accepted`**, **24 `superseded`**.
+Counts as of 2026-09-30: **14 `open`**, **26 `accepted`**, **25 `superseded`**.
 
 ## The actual backlog
 
@@ -2485,6 +2485,7 @@ sections again.
 | Benchmark v2 leakage and overstated effective N (§17) | Fixed 2026-07-20 | Gate and baselines restricted to the observable surface; effective N=70 not 700; the "0% vs 10–20%" claim withdrawn |
 | AROMER seeding, regression and recovery chronicle (§§5–13) | §11, §12, §13 | Kept in sequence because the recovery evidence is only meaningful next to the failure. Architectural finding preserved: stage seeding ≤25 per batch, or implement an EMA dual window |
 | v1.1 evidence-sufficiency corpus misses three state-comparison faults (§64) | evidence-sufficiency v1.2, 2026-09-29 | Cases E18-E20 tell the three faults apart. They were written after the faults were known, so this is the repair, not independent evidence. An external rerun with every fault known (2026-09-30) is private until Rul1an publishes it |
+| Systematic mutation analysis finds 112 faults the v1.2 evidence-sufficiency corpus cannot see (§65) | evidence-sufficiency v1.3, 2026-09-30 | 489 mutmut mutants; v1.2 killed 377. The 112 survivors fell in seven families, four of them real gaps (claim and scope never checked, rejection untested, key order). v1.3 leaves 20, all named and argued equivalent. Written with the survivors in view, so repair, not independent evidence |
 | Blind-confirmed intermediate rounds (§25, §27, §28, §31) | — | Each records a round that met or missed its pre-registered targets on the way to §34; retained as the pre-registration trail |
 
 ## Resolved Findings Archive
@@ -4002,3 +4003,55 @@ review. The maintainer found no factual corrections and agreed to publication
 stated here; the record is
 `docs/assurance/external_adequacy_evidence_sufficiency_v1.md`. With every
 fault known, the run can show the repair and is not independent evidence.
+
+
+## §65 Systematic mutation analysis finds 112 faults the v1.2 evidence-sufficiency corpus cannot see (2026-09-30)
+<!-- finding-status: superseded -->
+
+**Status:** measured by the maintainer with mutmut 3.8.0 over
+`conformance/evidence-sufficiency-v1/checker.py` (sha256 `c4ca50ae…`,
+unchanged since v1), scored by the v1.2 corpus in the three projections of the
+external runs. Superseded by evidence-sufficiency v1.3 in the same change (see
+the end of this section). The finding about v1.2 stands.
+
+**What was measured.** mutmut applied its default operators to the checker
+and produced 489 mutants. The v1.2 cases, guidance and runner killed 377 and
+missed 112. Every mutant in the decision paths of the three assessors was
+killed; the survivors sat beside those paths, in seven families:
+
+| Family | Survivors | What no v1.2 check read | Real gap |
+|---|---:|---|---|
+| A | 41 | the `claim` field of a verdict | yes |
+| B | 40 | the `scope` field of a verdict | yes |
+| C | 12 | the text of a `ValueError` message | no |
+| D | 8 | input rejection: `validate_json`, `canonical`'s own validation, the guard in `assess` | yes |
+| E | 3 | `canonical()` without `sort_keys`: mapping key order would count | yes |
+| F | 7 | `canonical()` separators and `ensure_ascii` | no |
+| G | 1 | `and` for `or` in `_result`, unreachable under the reason-table invariants | no |
+
+**Why it matters.** Three external rounds with hand-picked faults had covered
+the decision logic and nothing else. A checker that named the wrong claim, or
+dropped the scope a caller bound the verdict to, passed every v1.2 check, and a
+consumer of `run-record.json` reads both fields. The premise boundary in the
+v1 README promised that non-JSON values are refused; nothing exercised the
+refusal. The key-order fault that section 12.4 of the v1.1 spec declined to
+pin as hypothetical survived, three times.
+
+**What this does not establish.** One tool with one operator set; a fault
+mutmut never generates was not measured. A kill says nothing about the
+correctness of the checker (Budd and Angluin, 1982; Just et al., 2014). The
+families were classified by hand, and the 20 survivors that remain are argued
+equivalent under the pinned contract, not proven equivalent.
+
+**Resolution (2026-09-30).** `conformance/evidence-sufficiency-v1.3/` carries
+the 53 v1.2 cases verbatim and adds E21 to E23 for key order, a rejection
+contract of 17 inputs, verdict-envelope checks and eleven metamorphic
+relations declared in `invariants.json`. The same sweep now kills 469 of 489;
+the 20 survivors are named in
+`docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt` and classified
+in `docs/assurance/mutation_testing_v1.md`, and
+`scripts/mutation_evidence_sufficiency.py` fails on a new one. The v1.3 tests
+score one representative fault per family against both runners: v1.3 fails,
+v1.2 does not. That result is fitted: the checks were written with the
+survivor list in view. v1.3 has had no external run; the design records a
+blind protocol for one (`docs/design/evidence-sufficiency-v1.3.md` section 8).

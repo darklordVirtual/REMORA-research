@@ -215,6 +215,41 @@ defect the paper's wire-format claims depend on.
   review 2026-08-26 caught exactly that drift here).
 - Coverage gap to the 95% targets for `remora/enforcement` (84.9) and
   `remora/execution` (93.7); floors are pinned at measured levels.
+## Evidence-sufficiency checker sweep (2026-09-30)
+
+A second subject, measured the same way and ratcheted the same way. The
+subject is `conformance/evidence-sufficiency-v1/checker.py` (341 lines, sha256
+`c4ca50ae…`, frozen since v1). The runner is the v1.3 corpus in the three
+projections of the external runs. The tool is mutmut 3.8.0 with default
+operators, in a sandbox that `scripts/mutation_evidence_sufficiency.py`
+builds. The checker is imported by path rather than as a package, so it needs
+its own sandbox and cannot use the `[tool.mutmut]` block above. The design
+and the decisions are in `docs/design/evidence-sufficiency-v1.3.md`; the
+finding is NEGATIVE_RESULTS.md §65.
+
+| Run | Mutants | Killed | Survived | Survivors by family |
+|---|---:|---:|---:|---|
+| v1.2 corpus | 489 | 377 | 112 | A 41, B 40, C 12, D 8, E 3, F 7, G 1 |
+| v1.3 corpus | 489 | 469 | 20 | C 12, F 7, G 1 |
+
+Every survivor of the v1.3 run is named in
+`docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt`, and every one
+is argued equivalent under the contract the corpus pins. The argument is per
+family, so a reviewer can test the clause rather than the count:
+
+| Family | Mutant ids | Why it is equivalent under the pinned contract |
+|---|---|---|
+| C, message text | `x_assess__mutmut_6` to `_10`, `_14` to `_16`; `x_validate_json__mutmut_15` to `_18` | D-7 pins the exception class for malformed input, not the message. A test that asserted the wording would pin prose, and the corpus refuses to |
+| F, canonical string form | `x_canonical__mutmut_4`, `_5`, `_8`, `_9`, `_11`, `_12`, `_13` | `canonical()` is used for equality only. Separators and `ensure_ascii` change the text of the encoding and never the equality relation on JSON values; MR-11 pins the relation, not the text |
+| G, `and` for `or` in `_result` | `x__result__mutmut_3` | reachable only when an inconclusive reason is missing from the guidance table or a decisive reason is present in it. R-5 (`undeclared_guidance`, `orphan_guidance`) fails on either, so the branch the mutant changes is dead under the corpus's own invariant |
+
+The four families that were real gaps (A, B, D, E, 92 mutants) are killed by
+the v1.3 additions. `tests/test_evidence_sufficiency_v1_3.py` keeps one
+representative of each as a fault that v1.3 must fail and v1.2 must not.
+The remaining caveat is the one at the top of this document: the sweep
+measures the corpus against mutmut's operators, and a fault the tool never
+generates is not measured.
+
 ## CI integration (wired)
 
 The scheduled job `.github/workflows/mutation.yml` (Mondays 05:00 UTC +

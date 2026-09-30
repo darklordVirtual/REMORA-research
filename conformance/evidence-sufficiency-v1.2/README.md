@@ -44,4 +44,6 @@ That run can show the repair against known faults; it cannot show that the corpu
 The maintainer agreed to publication on #629, and the package is private until Rul1an publishes it, so no counts are stated here.
 The record is [`docs/assurance/external_adequacy_evidence_sufficiency_v1.md`](../../docs/assurance/external_adequacy_evidence_sufficiency_v1.md).
 Before that run this section read: "v1.2 has had no external run."
+
+v1.3 (`../evidence-sufficiency-v1.3/`) carries these cases verbatim. It adds the checks a mutation sweep showed this corpus could not make. This directory stays frozen.
 Everything under "Non-claims" in the v1.1 README applies here unchanged.

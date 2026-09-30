@@ -612,6 +612,41 @@ built for, and that no layer blocks a legitimate one. Its corpus is
 author-written. Whether exposing fewer tools changes what a model proposes
 in the first place is a question about models, and it needs a live run.
 
+## 14. Test Adequacy for Conformance Corpora
+
+The evidence-sufficiency corpora (`conformance/evidence-sufficiency-v1*`)
+are tests of a checker, and a test of a checker needs its own measure of
+adequacy. Three external runs with hand-picked faults answered one question: does the
+corpus catch these faults. RES-021 answers the other: which faults can it not
+catch. The method is that of DeMillo, Lipton and Sayward (1978): seed small
+faults into the checker and count the ones no case tells apart. Budd and
+Angluin (1982) showed that deciding whether a surviving mutant is equivalent
+is undecidable. REMORA therefore keeps a named list of survivors that may only
+shrink, never a score, the discipline `docs/assurance/mutation_testing_v1.md`
+adopted for the enforcement paths. Just et al. (2014) and Papadakis et al.
+(2018) bound what a kill means: mutants stand in for real faults to a measured
+degree, and much of that correlation is suite size. Andrews, Briand and
+Labiche (2005) support the use REMORA makes of them, as a comparator between
+two versions of the same corpus.
+
+Authored cases carry one oracle each. For inputs nobody authored, the corpus
+uses metamorphic relations (Chen, Cheung and Yiu, 1998; Segura et al., 2016;
+Chen et al., 2018). A relation names a transformation of the input and the
+part of the verdict that must not change under it. That answers the oracle
+problem described by Barr et al. (2015) without naming the right verdict. The
+relations are declared as data in `invariants.json` and executed by the
+runner. The same relations are checked on generated inputs with Hypothesis
+(Claessen and Hughes, 2000; MacIver et al., 2019), derandomised so a failure
+is a counterexample.
+
+What this line does not take. Coverage is not used as the adequacy measure
+(Zhu, Hall and May, 1997; Inozemtseva and Holmes, 2014). Subsumption between
+mutants (Kurtz et al., 2016) is not computed; the families in the v1.3 spec
+are a hand classification. Nothing here is evidence that the checker is
+correct, and a corpus written with a survivor list in view shows the repair,
+not generalisation. The blind protocol in `docs/design/evidence-
+sufficiency-v1.3.md` section 8 is what could show that.
+
 ## Positioning Statement
 
 REMORA is a nested governance control plane for long-running agentic AI:

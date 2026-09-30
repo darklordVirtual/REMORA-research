@@ -6,6 +6,21 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Added
 
+- Evidence-sufficiency v1.3 (`conformance/evidence-sufficiency-v1.3/`,
+  `docs/design/evidence-sufficiency-v1.3.md`). A systematic mutation sweep
+  (mutmut, 489 mutants of the frozen checker) found 112 mutants the v1.2
+  corpus could not tell apart, in seven families (NEGATIVE_RESULTS.md §65).
+  v1.3 carries the 53 v1.2 cases verbatim and adds cases E21-E23 for mapping
+  key order, a rejection contract for malformed input, verdict-envelope checks
+  and eleven metamorphic relations declared in `invariants.json`. The sweep
+  now leaves 20 survivors, every one named and classified as equivalent under
+  the pinned contract in `docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt`;
+  `scripts/mutation_evidence_sufficiency.py` fails on a new survivor and runs
+  in the scheduled mutation workflow. `tests/test_evidence_sufficiency_v1_3.py`
+  scores one representative fault per family against both runners and checks
+  the relations on generated inputs with Hypothesis. The new checks were
+  written after the sweep named the gaps, so their kills are not independent
+  evidence; the spec records a blind external protocol for that.
 - Evidence-sufficiency v1.2 (`conformance/evidence-sufficiency-v1.2/`): the
   50 v1.1 cases verbatim plus E18-E20, which tell apart the three withheld
   `canonical()` faults from the external v1.1 run. v1 and v1.1 are frozen.
