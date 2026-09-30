@@ -525,3 +525,114 @@ def test_second_operator_set_baseline_is_well_formed() -> None:
     ids = gate.read_baseline(gate.BASELINE)
     assert all(":" in i for i in ids)
     assert "checker sha256" in gate.BASELINE.read_text(encoding="utf-8")
+
+
+# ── Reproducing the section 7 rows (independent analysis, 2026-09-30) ────────
+
+
+def test_reconstructed_corpora_remove_only_the_derived_additions() -> None:
+    gate = _ast_gate()
+    expected = {
+        "merged": (True, True),
+        "without-k1": (False, True),
+        "first-run": (False, False),
+    }
+    for corpus, (has_k1, has_later_rejections) in expected.items():
+        runner = gate._runner(corpus)
+        cases = runner.load_json(runner.HERE / "cases.json")["cases"]
+        assert any(c.get("gap") == "K1" for c in cases) is has_k1, corpus
+        assert [c["id"] for c in cases if c.get("gap") != "K1"] == [
+            c["id"] for c in json.loads((V13 / "cases.json").read_text(encoding="utf-8"))["cases"] if c.get("gap") != "K1"
+        ], corpus
+        later = set(gate.LATER_REJECTIONS) <= set(runner.NON_JSON_REJECTIONS)
+        assert later is has_later_rejections, corpus
+        assert set(runner.NON_JSON_REJECTIONS) >= {k for k in RUNNER.NON_JSON_REJECTIONS if k not in gate.LATER_REJECTIONS}
+    # Reconstructing a corpus must not leak into the runner the gate scores with.
+    assert len(gate._runner("merged").NON_JSON_REJECTIONS) == len(RUNNER.NON_JSON_REJECTIONS)
+
+
+def test_first_run_corpus_lets_the_isinstance_relaxations_survive() -> None:
+    # Guards the correction of spec section 7: the 60 one-check kills (17 on the
+    # rejection contract) belong to the corpus with R18-R20 and without K1, not to
+    # the first run. These three mutants are killed by R18-R20 alone.
+    gate = _ast_gate()
+    source = gate.Source((V1 / "checker.py").read_text(encoding="utf-8"))
+    by_id = {m["id"]: m for m in gate.catalogue(source)}
+    for mutant_id in ("type_vocabulary:validate_json:0", "type_vocabulary:validate_json:1", "type_vocabulary:validate_json:6"):
+        text = gate.mutated_source(source, by_id[mutant_id])
+        _, first_run, _ = gate.score((mutant_id, text, "first-run"))
+        _, without_k1, _ = gate.score((mutant_id, text, "without-k1"))
+        assert first_run == [], mutant_id
+        assert {gate.label_of(f) for f in without_k1} == {"rejection"}, mutant_id
+
+
+def test_in_process_sweep_scores_without_a_process_pool() -> None:
+    gate = _ast_gate()
+    report = gate.sweep(1, 0, gate.SEED, only="status_polarity:postcondition_observed", corpus="merged")
+    assert report["corpus"] == "merged"
+    assert report["mutants"] > 0 and report["killed"] == report["mutants"]
+
+
+def test_mutmut_guidance_baseline_equals_the_committed_v1_3_record(record: dict) -> None:
+    gate = _load("mutation_evidence_sufficiency_gate_guidance", ROOT / "scripts" / "mutation_evidence_sufficiency.py")
+    assert gate.guidance_baseline("evidence-sufficiency-v1.3") == record["case_guidance"]
+    v12_ids = [c["id"] for c in json.loads((V12 / "cases.json").read_text(encoding="utf-8"))["cases"]]
+    assert sorted(gate.guidance_baseline("evidence-sufficiency-v1.2")) == sorted(v12_ids)
+
+
+def test_mutmut_sandbox_can_score_with_the_v1_2_corpus(tmp_path: Path) -> None:
+    gate = _load("mutation_evidence_sufficiency_gate_v12", ROOT / "scripts" / "mutation_evidence_sufficiency.py")
+    gate.build_sandbox(tmp_path / "sandbox", 1, "evidence-sufficiency-v1.2")
+    runner = (tmp_path / "sandbox" / "suite" / "evidence-sufficiency-v1.2" / "run_evidence_sufficiency.py").read_text(encoding="utf-8")
+    assert "import es.checker as module" in runner
+    assert 'reason_vocabulary((V1 / "checker.py")' in runner
+    tests = (tmp_path / "sandbox" / "tests" / "test_scoring.py").read_text(encoding="utf-8")
+    assert '"evidence-sufficiency-v1.2"' in tests
+    assert (tmp_path / "sandbox" / "tests" / "guidance_baseline.json").exists()
+    with pytest.raises(SystemExit):
+        gate.main(["--update", "--scoring-suite", "evidence-sufficiency-v1.2"])
+
+
+@pytest.mark.docgate
+def test_committed_sweep_outputs_match_the_baselines_and_the_reported_rows() -> None:
+    # The raw outputs behind spec section 7 (NEGATIVE_RESULTS.md §67). A count and its
+    # evidence must not drift apart: the survivors in each committed output equal the
+    # baseline or the published row they back.
+    import gzip
+
+    out = ROOT / "artifacts" / "evidence-sufficiency-mutation-2026-09-30"
+    mutmut = _load("mutation_evidence_sufficiency_gate_artifacts", ROOT / "scripts" / "mutation_evidence_sufficiency.py")
+    v12 = mutmut.parse_results((out / "mutmut-results-v1.2.txt").read_text(encoding="utf-8"))
+    v13 = mutmut.parse_results((out / "mutmut-results-v1.3.txt").read_text(encoding="utf-8"))
+    survived = {name: {m for m, s in rows.items() if s == "survived"} for name, rows in (("v1.2", v12), ("v1.3", v13))}
+    assert v12.keys() == v13.keys()
+    assert survived["v1.3"] == mutmut.read_baseline(mutmut.BASELINE)
+    assert survived["v1.3"] < survived["v1.2"]
+    # Published row: v1.2 kills 377 of 489 (spec section 7, NEGATIVE_RESULTS.md §65).
+    assert (len(v12), len(v12) - len(survived["v1.2"])) == (489, 377)
+    ast_gate = _ast_gate()
+    reports = {
+        corpus: json.loads(gzip.decompress((out / f"ast-{corpus}.json.gz").read_bytes()))
+        for corpus in ast_gate.CORPORA
+    }
+    assert set(reports["merged"]["survived"]) == ast_gate.read_baseline(ast_gate.BASELINE)
+    for corpus, report in reports.items():
+        assert report["corpus"] == corpus
+        assert report["killed"] + len(report["survived"]) == report["mutants"]
+        assert report["checker_sha256"] == FROZEN_V1["checker.py"]
+    # Published rows of spec section 7, including the §67 correction (57, not 60).
+    fragile = {c: (r["killed"], len(r["redundancy"]["fragile"])) for c, r in reports.items()}
+    assert fragile == {"first-run": (898, 57), "without-k1": (901, 60), "merged": (901, 18)}
+
+
+@pytest.mark.docgate
+def test_independent_analysis_package_matches_its_recorded_hash() -> None:
+    # The record names the fault-definition hash the analysis wrote before it opened v1.3;
+    # the committed package must carry those exact bytes (.gitattributes keeps them -text).
+    package = ROOT / "artifacts" / "independent-analysis-2026-09-30"
+    digest = hashlib.sha256((package / "fault-definitions.json").read_bytes()).hexdigest()
+    record = (ROOT / "docs" / "assurance" / "external_adequacy_evidence_sufficiency_v1.md").read_text(encoding="utf-8")
+    assert f"sha256 `{digest}`" in record
+    definitions = json.loads((package / "fault-definitions.json").read_text(encoding="utf-8"))
+    assert definitions["source_commit"].startswith("c9113a0")
+    assert len(definitions["faults"]) == len({f["id"] for f in definitions["faults"]})

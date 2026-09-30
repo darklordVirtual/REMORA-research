@@ -280,12 +280,17 @@ Each case names the mutants it separates in a `separates` field, and its expecta
 
 ## 7. Pre-flight, not evidence
 
-| Sweep | Mutants | Killed | Survived | Survivors by family |
-|---|---:|---:|---:|---|
-| mutmut, v1.2 corpus, three projections | 489 | 377 | 112 | A 41, B 40, C 12, D 8, E 3, F 7, G 1 |
-| mutmut, v1.3 corpus, three projections | 489 | 469 | 20 | C 12, F 7, G 1 |
-| second operator set, v1.3 before R18-R20 and K1 | 905 | 898 | 7 | 3 `isinstance` relaxations (real), 4 equivalent |
-| second operator set, v1.3 as merged | 905 | 901 | 4 | 4 equivalent: a stripped canonical string, and three swaps of mutually exclusive guards |
+| Sweep | Mutants | Killed | Survived | Survivors by family | Reproduce with |
+|---|---:|---:|---:|---|---|
+| mutmut, v1.2 corpus, three projections | 489 | 377 | 112 | A 41, B 40, C 12, D 8, E 3, F 7, G 1 | `scripts/mutation_evidence_sufficiency.py --scoring-suite evidence-sufficiency-v1.2` |
+| mutmut, v1.3 corpus, three projections | 489 | 469 | 20 | C 12, F 7, G 1 | `scripts/mutation_evidence_sufficiency.py` |
+| second operator set, v1.3 before R18-R20 and K1 | 905 | 898 | 7 | 3 `isinstance` relaxations (real), 4 equivalent | `scripts/mutation_evidence_sufficiency_ast.py --corpus first-run` |
+| second operator set, v1.3 with R18-R20, before K1 | 905 | 901 | 4 | 4 equivalent, as below | `scripts/mutation_evidence_sufficiency_ast.py --corpus without-k1` |
+| second operator set, v1.3 as merged | 905 | 901 | 4 | 4 equivalent: a stripped canonical string, and three swaps of mutually exclusive guards | `scripts/mutation_evidence_sufficiency_ast.py` |
+
+The two middle states of the second set were never committed on their own; `--corpus` rebuilds each by removing what the sweep led to.
+The raw output of every row is in `artifacts/evidence-sufficiency-mutation-2026-09-30/`.
+mutmut refuses native Windows; the mutmut rows were reproduced in a `python:3.12-slim` container.
 
 The 20 mutmut survivors and the 4 survivors of the second set are named in their baselines. Each is argued equivalent under the pinned contract in `docs/assurance/mutation_testing_v1.md`; none is proven equivalent, because that is undecidable.
 The family test passes: each of seven representative faults fails v1.3 and survives v1.2, and the H1 control fails both.
@@ -293,7 +298,9 @@ The Hypothesis tests pass at 150 examples per property, derandomised.
 The reference model agrees with the checker on all 61,544 lattice and typed documents and on all 79 authored cases.
 
 The redundancy reading of the second set is the part worth keeping.
-Before the K1 cases, 60 of 898 kills rested on one label: 42 on the reference model alone, 17 on the rejection contract alone, 1 on a crash.
+In the first run, 57 of 898 kills rested on one label: 42 on the reference model alone, 14 on the rejection contract alone, 1 on a crash.
+With R18 to R20 and before the K1 cases, 60 of 901 did: 42, 17 and 1, because R18 to R20 alone kill the three `isinstance` relaxations.
+This section first gave 60 for the first run, which mixed the two states; NEGATIVE_RESULTS.md §67 records the correction.
 The 42 were typed-premise faults on premises no authored case had typed; without the lattice they would have survived, which is what D-16 answers.
 After the K1 cases, 18 kills rest on one label, none of them on the model alone, because every lattice-only kill now has an authored witness as well.
 
@@ -330,7 +337,7 @@ For v1.3 the run must be blind, and the record says beforehand what would count.
 | T-11 | The gate script, the baseline, the workflow job | T-10 | done |
 | T-12 | The test module: pins, family differential, generated inputs | T-10 | done |
 | T-13 | Register the method: RES-021, related-work section 14, `mutation_testing_v1.md`, CHANGELOG, index | T-10 | done |
-| T-14 | Ask for a blind external run under section 8 | T-13 | open |
+| T-14 | Ask for a blind external run under section 8 | T-13 | open; an independent analysis on 2026-09-30 selected its faults blind but hashed them locally, not publicly (`docs/assurance/external_adequacy_evidence_sufficiency_v1.md`) |
 | T-15 | Label the survivors of that run before any corpus change; open v1.4 only for open gaps | T-14 | open |
 | T-16 | The reference model, its lattice and the coherence checks (D-14) | T-10 | done |
 | T-17 | The second operator set with second-order sampling, the redundancy reading and its baseline (D-15) | T-11 | done |

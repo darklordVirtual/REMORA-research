@@ -42,6 +42,16 @@ Usage::
     python scripts/mutation_evidence_sufficiency_ast.py --update        # rewrite the baseline
     python scripts/mutation_evidence_sufficiency_ast.py --json out.json # full report
     python scripts/mutation_evidence_sufficiency_ast.py --list          # print the mutant catalogue only
+    python scripts/mutation_evidence_sufficiency_ast.py --corpus first-run   # before R18-R20 and K1
+    python scripts/mutation_evidence_sufficiency_ast.py --corpus without-k1  # R18-R20 in, K1 not yet
+    python scripts/mutation_evidence_sufficiency_ast.py --workers 1          # in process, no process pool
+
+``--corpus`` reconstructs the two intermediate states the v1.3 spec reports in
+section 7 by removing what the sweep led to (spec D-16). ``first-run`` is the
+merged corpus without the 23 K1 cases and without rejections R18 to R20;
+``without-k1`` keeps R18 to R20 and removes only the K1 cases. Neither state
+was committed on its own, so both are reconstructed by removal. They have no
+baseline, and the gate is not applied to them.
 """
 from __future__ import annotations
 
@@ -66,6 +76,19 @@ TARGET_FUNCTIONS = ASSESSORS + ("validate_json", "canonical", "assess", "_result
 STATUSES = ("ESTABLISHED", "VIOLATED", "NOT_ESTABLISHED")
 SECOND_ORDER_SAMPLE = 200
 SEED = 20260930
+#: The additions the first run led to (spec D-16), removed again by ``--corpus``.
+DERIVED_GAP = "K1"
+LATER_REJECTIONS = (
+    "R18_list_subclass_state",
+    "R19_dict_subclass_state",
+    "R20_str_subclass_key_in_nested_mapping",
+)
+#: corpus -> (drop the K1 cases, rejections to drop)
+CORPORA = {
+    "merged": (False, ()),
+    "without-k1": (True, ()),
+    "first-run": (True, LATER_REJECTIONS),
+}
 
 
 # ── Source spans ──────────────────────────────────────────────────────────────
@@ -347,18 +370,40 @@ def mutated_source(source: Source, mutant: dict) -> str:
 
 # ── Scoring ───────────────────────────────────────────────────────────────────
 
-_RUNNER = None
+_RUNNERS: dict = {}
 
 
-def _runner():
-    global _RUNNER
-    if _RUNNER is None:
-        spec = importlib.util.spec_from_file_location("evidence_sufficiency_v1_3_runner_for_ast", RUNNER)
+def _runner(corpus: str = "merged"):
+    """The v1.3 runner, loaded once per process and corpus, with the corpus's D-16 additions removed."""
+    if corpus not in CORPORA:
+        raise ValueError(f"unknown corpus {corpus!r}")
+    if corpus not in _RUNNERS:
+        spec = importlib.util.spec_from_file_location(
+            "evidence_sufficiency_v1_3_runner_for_ast_" + corpus.replace("-", "_"), RUNNER
+        )
+        assert spec and spec.loader
         module = importlib.util.module_from_spec(spec)
         sys.modules[spec.name] = module
         spec.loader.exec_module(module)
-        _RUNNER = module
-    return _RUNNER
+        drop_k1, drop_rejections = CORPORA[corpus]
+        if drop_k1:
+            load = getattr(module, "load_json")
+
+            def load_without_k1(path: Path):
+                data = load(path)
+                if path.name == "cases.json":
+                    data = {**data, "cases": [c for c in data["cases"] if c.get("gap") != DERIVED_GAP]}
+                return data
+
+            setattr(module, "load_json", load_without_k1)
+        if drop_rejections:
+            missing = set(drop_rejections) - set(getattr(module, "NON_JSON_REJECTIONS"))
+            if missing:
+                raise SystemExit(f"runner layout changed: rejections {sorted(missing)} not found")
+            kept = {k: v for k, v in getattr(module, "NON_JSON_REJECTIONS").items() if k not in drop_rejections}
+            setattr(module, "NON_JSON_REJECTIONS", kept)
+        _RUNNERS[corpus] = module
+    return _RUNNERS[corpus]
 
 
 def load_mutant(mutant_id: str, text: str):
@@ -376,13 +421,17 @@ def load_mutant(mutant_id: str, text: str):
     return name, module
 
 
-def score(job: tuple[str, str]) -> tuple[str, list[str], list[str]]:
-    """(mutant id, failure labels, reference-model disagreements) for one mutated source."""
-    mutant_id, text = job
+def score(job: tuple[str, ...]) -> tuple[str, list[str], list[str]]:
+    """(mutant id, failure labels, reference-model disagreements) for one mutated source.
+
+    ``job`` is (mutant id, source) or (mutant id, source, corpus); the corpus defaults to ``merged``.
+    """
+    mutant_id, text, *rest = job
+    corpus = rest[0] if rest else "merged"
     try:
         name, module = load_mutant(mutant_id, text)
         try:
-            record = _runner().build_record(module)
+            record = _runner(corpus).build_record(module)
         finally:
             sys.modules.pop(name, None)
         return mutant_id, list(record["failures"]), list(record["reference_model"]["disagreements"])
@@ -404,20 +453,25 @@ def label_of(failure: str) -> str:
     return head  # a case id, a witness id, a wrong-shortcut name or a guidance label
 
 
-def sweep(workers: int, sample: int, seed: int, only: str | None = None) -> dict:
+def sweep(workers: int, sample: int, seed: int, only: str | None = None, corpus: str = "merged") -> dict:
     source = Source(CHECKER.read_text(encoding="utf-8"))
     first = catalogue(source)
     second = second_order(first, sample, seed)
     mutants = [m for m in first + second if not only or m["id"].startswith(only)]
-    jobs = [(m["id"], mutated_source(source, m)) for m in mutants]
+    jobs = [(m["id"], mutated_source(source, m), corpus) for m in mutants]
     # The unmutated checker must pass, or every kill below is meaningless.
-    _, baseline_failures, _ = score(("original", source.text))
+    _, baseline_failures, _ = score(("original", source.text, corpus))
     if baseline_failures:
         raise SystemExit(f"the unmutated checker fails the runner: {baseline_failures[:5]}")
     results: dict[str, tuple[list[str], list[str]]] = {}
-    with ProcessPoolExecutor(max_workers=workers) as pool:
-        for mutant_id, failures, points in pool.map(score, jobs, chunksize=4):
+    if workers <= 1:
+        # The same scoring function in process, for hosts that refuse a process pool.
+        for mutant_id, failures, points in map(score, jobs):
             results[mutant_id] = (failures, points)
+    else:
+        with ProcessPoolExecutor(max_workers=workers) as pool:
+            for mutant_id, failures, points in pool.map(score, jobs, chunksize=4):
+                results[mutant_id] = (failures, points)
     rows = []
     for m in mutants:
         failures, points = results[m["id"]]
@@ -439,6 +493,7 @@ def sweep(workers: int, sample: int, seed: int, only: str | None = None) -> dict
         entry["killed"] += r["status"] == "killed"
     return {
         "checker_sha256": hashlib.sha256(source.data.replace(b"\r\n", b"\n")).hexdigest(),
+        "corpus": corpus,
         "seed": seed,
         "mutants": len(rows),
         "first_order": sum(1 for m in mutants if m["order"] == 1),
@@ -527,7 +582,9 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--update", action="store_true")
     parser.add_argument("--json", type=Path)
     parser.add_argument("--list", action="store_true", help="print the first-order catalogue and exit")
-    parser.add_argument("--workers", type=int, default=8)
+    parser.add_argument("--workers", type=int, default=8, help="process pool size; 1 scores in process")
+    parser.add_argument("--corpus", choices=tuple(CORPORA), default="merged",
+                        help="score a reconstructed intermediate corpus of spec section 7; no gate")
     parser.add_argument("--sample", type=int, default=SECOND_ORDER_SAMPLE, help="second-order pairs")
     parser.add_argument("--seed", type=int, default=SEED)
     parser.add_argument("--only", help="score only mutants whose id starts with this prefix (no gate)")
@@ -538,13 +595,22 @@ def main(argv: list[str]) -> int:
         for m in catalogue(source):
             print(f"{m['id']}\t{m['description']}")
         return 0
-    report = sweep(args.workers, args.sample, args.seed, args.only)
+    report = sweep(args.workers, args.sample, args.seed, args.only, args.corpus)
     if args.json:
         args.json.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     if args.derive_cases:
         cases = derive_cases(report, Source(CHECKER.read_text(encoding="utf-8")))
         args.derive_cases.write_text(json.dumps(cases, indent=2) + "\n", encoding="utf-8")
         print(f"derived {len(cases)} candidate case(s) covering {sum(1 for r in report['rows'] if r['model_only'])} model-only kills")
+    if args.corpus != "merged":
+        # A reconstructed historical corpus is a measurement, not the gate.
+        red = report["redundancy"]
+        print(f"corpus {args.corpus}: mutants {report['mutants']}, {report['killed']} killed, "
+              f"{len(report['survived'])} survived; fragile (one label): {len(red['fragile'])}; "
+              f"load-bearing labels: {red['load_bearing_labels']}")
+        for mid in report["survived"]:
+            print(f"survived {mid}")
+        return 0
     if args.only:
         for row in report["rows"]:
             print(f"{row['status']:8} {row['id']}  {row['labels'][:6]}")

@@ -2584,8 +2584,8 @@ documents:
   topic: docs_assurance_external_adequacy_evidence_sufficiency_v1_md
   code_synced: verified
   verdict: current
-  last_audited: '2026-09-29'
-  last_reviewed: '2026-09-29'
+  last_audited: '2026-09-30'
+  last_reviewed: '2026-09-30'
   audience:
   - maintainers
   - evaluators
