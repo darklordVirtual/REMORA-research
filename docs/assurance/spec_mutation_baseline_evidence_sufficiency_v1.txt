@@ -1,0 +1,18 @@
+# Live specification mutants of conformance/evidence-sufficiency-v1.3/model.json that a
+# row misses (scripts/spec_mutation_evidence_sufficiency.py). `row1` = no authored case
+# separates the mutant; `row3` = the v1.3 runner does not. Regenerate with --update.
+# catalogue sha256 2fbf983a5b29f7f6c2b4bba8319fd8c8d7a59105651f38e11b4e6b3d8c5bd5a8; model sha256 861e5dc80ff1983e2b3a640ad0f20b340fb0157c6ecfc6df259d1c2083dba201.
+# Every entry is an open gap recorded in NEGATIVE_RESULTS.md, not an equivalence label:
+# equivalent mutants are computed and never listed here.
+row1 add_premise:admission_accounting:20
+row1 add_premise:admission_accounting:21
+row1 add_premise:admission_accounting:22
+row1 add_premise:admission_accounting:28
+row1 add_premise:admission_accounting:29
+row1 add_premise:admission_accounting:30
+row1 add_premise:admission_accounting:35
+row1 add_premise:admission_accounting:36
+row1 add_premise:admission_accounting:43
+row1 add_premise:admission_accounting:44
+row1 add_premise:admission_accounting:51
+row1 add_premise:admission_accounting:52

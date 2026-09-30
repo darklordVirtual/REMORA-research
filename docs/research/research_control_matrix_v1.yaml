@@ -967,6 +967,7 @@ entries:
       - second_operator_set_with_second_order_sample
       - kill_redundancy_reading
       - lattice_derived_cases
+      - specification_mutation
     code:
       - conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py
       - conformance/evidence-sufficiency-v1.3/invariants.json
@@ -975,10 +976,13 @@ entries:
       - conformance/evidence-sufficiency-v1.3/run-record.json
       - scripts/mutation_evidence_sufficiency.py
       - scripts/mutation_evidence_sufficiency_ast.py
+      - scripts/spec_mutation_evidence_sufficiency.py
       - docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt
       - docs/assurance/mutation_baseline_evidence_sufficiency_ast_v1.txt
+      - docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt
     tests:
       - tests/test_evidence_sufficiency_v1_3.py
+      - tests/test_evidence_sufficiency_spec_mutation.py
     evidence: >-
       The record reproduces with python conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py
       --check. mutmut 3.8.0 generates 489 mutants of the frozen v1 checker.
@@ -1010,13 +1014,23 @@ entries:
       43 faults chosen without reading v1.3, hashed locally but not committed
       publicly, found v1.2 killing 42 on the runner row and v1.3 killing 43
       (docs/assurance/external_adequacy_evidence_sufficiency_v1.md).
+      Specification mutation of model.json (python
+      scripts/spec_mutation_evidence_sufficiency.py; 446 first-order and 300
+      second-order mutants, equivalence computed over eight premise value
+      classes) was pre-registered in section 13 of the v1.3 spec before any
+      score was read. The runner kills all 392 live first-order mutants; the
+      authored cases kill 380, so the pre-registered criterion S-2 is not met.
+      The twelve survivors are cross-branch premise faults
+      (NEGATIVE_RESULTS.md §68, open).
     maturity: library_only
     scope_boundary: >-
       A conformance research artifact, not a governed runtime path: the checker
       decides nothing in a deployment, and the sweep measures the corpus, never
       the checker's correctness. Two operator sets, mutmut 3.8.0 with its
       default operators and nine authored operators; a fault neither
-      generates is unmeasured. The families are a hand
+      generates is unmeasured. The specification operators were written by
+      the corpus's author after v1.3 and are pre-registered, not blind; their
+      state comparison is decided on the declared state values only. The families are a hand
       classification, not a subsumption graph. Every v1.3 check was written
       with the survivor list in view, so the sweep shows the repair and not
       generalisation; only the blind protocol of the v1.3 spec, section 8,

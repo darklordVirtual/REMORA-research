@@ -287,6 +287,20 @@ the exact type checks; rejections R18 to R20 kill them.
 | `swap_adjacent_guards:validate_json:0` | the scalar guard and the list guard are mutually exclusive on `type(value)`, so their order cannot change any outcome |
 | `swap_adjacent_guards:validate_json:1` | the list guard and the mapping guard are mutually exclusive in the same way |
 
+### Specification mutation (2026-09-30)
+
+Both sets above mutate `checker.py`. `scripts/spec_mutation_evidence_sufficiency.py` mutates the rules in `model.json` instead and runs each mutant model as a checker.
+Equivalence is computed, not argued: the script enumerates eight premise value classes, three for premises no edit touches.
+The catalogue and the pass criterion were pre-registered in section 13 of the v1.3 spec and pushed before the first score.
+
+| Set | Mutants | Equivalent | Live | Row 1 | Row 3 |
+|---|---:|---:|---:|---:|---:|
+| first order | 446 | 54 | 392 | 380 | 392 |
+| second order | 300 | 2 | 298 | 298 | 298 |
+
+The twelve row-1 survivors are named in `docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt`.
+They are open gaps, not equivalence labels (NEGATIVE_RESULTS.md §68). The gate fails on a new survivor on either row, and on a catalogue whose digest differs from the baseline header.
+
 ## CI integration (wired)
 
 The scheduled job `.github/workflows/mutation.yml` (Mondays 05:00 UTC +

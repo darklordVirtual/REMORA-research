@@ -57,6 +57,9 @@ On this corpus 489 mutants leave 20 survivors, each named in the baseline and cl
 `scripts/mutation_evidence_sufficiency_ast.py` applies a second operator set that mutmut does not have, 705 first-order and 200 second-order mutants, scores them in process, and reports which checks each kill rests on.
 It leaves 4 survivors, named in `docs/assurance/mutation_baseline_evidence_sufficiency_ast_v1.txt`.
 Both gates fail on a survivor that is in neither place.
+`scripts/spec_mutation_evidence_sufficiency.py` mutates the rules in `model.json` instead of the code, and runs each mutant model as a checker.
+Twelve of its 392 live mutants survive the authored cases and die only on the runner's reference model (NEGATIVE_RESULTS.md §68).
+They are named in `docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt`.
 
 ## Run
 

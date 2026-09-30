@@ -37,12 +37,21 @@ The operator catalogue is fixed before any score is read: ``--list`` prints it
 and ``--catalogue-sha256`` its digest, which the v1.3 spec records (section 13)
 together with the pass criterion.
 
+The survivors are ratcheted like those of the two code-level sweeps.
+``docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt`` names
+every live mutant that survives row 1 and every one that survives row 3. The
+gate fails on a survivor absent from it, and on a catalogue whose digest
+differs from the one in its header, because a changed catalogue changes what
+the counts mean.
+
 Usage::
 
+    python scripts/spec_mutation_evidence_sufficiency.py                  # sweep, compare, exit 1 on new survivors
+    python scripts/spec_mutation_evidence_sufficiency.py --update         # rewrite the baseline
+    python scripts/spec_mutation_evidence_sufficiency.py --json out.json  # also write the full report
     python scripts/spec_mutation_evidence_sufficiency.py --list
     python scripts/spec_mutation_evidence_sufficiency.py --catalogue-sha256
-    python scripts/spec_mutation_evidence_sufficiency.py --json out.json   # score everything
-    python scripts/spec_mutation_evidence_sufficiency.py --workers 1       # in process
+    python scripts/spec_mutation_evidence_sufficiency.py --workers 1      # in process
 """
 from __future__ import annotations
 
@@ -66,6 +75,7 @@ CHECKER = ROOT / "conformance" / "evidence-sufficiency-v1" / "checker.py"
 RUNNER = V13 / "run_evidence_sufficiency.py"
 MODEL = V13 / "model.json"
 AST_SCRIPT = ROOT / "scripts" / "mutation_evidence_sufficiency_ast.py"
+BASELINE = ROOT / "docs" / "assurance" / "spec_mutation_baseline_evidence_sufficiency_v1.txt"
 
 SECOND_ORDER_SAMPLE = 300
 SEED = 20261001
@@ -386,18 +396,19 @@ def op_verdict_swap(claim: str, spec: dict):
                 if status == step[key]["status"]:
                     continue
 
-                def edit(m: dict, sid: str = path, k: str = key, st: str = status) -> None:
+                def edit_status(m: dict, sid: str = path, k: str = key, st: str = status) -> None:
                     _, _, s = _find(m, sid)
                     s[k] = {**s[k], "status": st}
-                yield path, (), f"`{step[key]['reason']}` gets status `{status}`", edit
+                yield path, (), f"`{step[key]['reason']}` gets status `{status}`", edit_status
             for other_status, other_reason in decisive:
                 if other_reason == step[key]["reason"]:
                     continue
 
-                def edit(m: dict, sid: str = path, k: str = key, st: str = other_status, r: str = other_reason) -> None:
+                def edit_verdict(m: dict, sid: str = path, k: str = key, st: str = other_status,
+                                 r: str = other_reason) -> None:
                     _, _, s = _find(m, sid)
                     s[k] = {"status": st, "reason": r}
-                yield path, (), f"`{step[key]['reason']}` becomes `{other_status}/{other_reason}`", edit
+                yield path, (), f"`{step[key]['reason']}` becomes `{other_status}/{other_reason}`", edit_verdict
 
 
 COMPARE_MODES = ("python_eq", "casefold", "unordered_lists", "keys_only", "string_form")
@@ -408,15 +419,15 @@ def op_state_comparison(claim: str, spec: dict):
         if "compare" not in step:
             continue
         for mode in COMPARE_MODES:
-            def edit(m: dict, sid: str = path, md: str = mode) -> None:
+            def edit_mode(m: dict, sid: str = path, md: str = mode) -> None:
                 _, _, s = _find(m, sid)
                 s["mode"] = md
-            yield path, (), f"compare states by `{mode}`", edit
+            yield path, (), f"compare states by `{mode}`", edit_mode
         for outcome in ("equal", "different"):
-            def edit(m: dict, sid: str = path, o: str = outcome) -> None:
+            def edit_missing(m: dict, sid: str = path, o: str = outcome) -> None:
                 _, _, s = _find(m, sid)
                 s["missing_as"] = o
-            yield path, (), f"a missing state counts as `{outcome}`", edit
+            yield path, (), f"a missing state counts as `{outcome}`", edit_missing
 
         def invert(m: dict, sid: str = path) -> None:
             _, _, s = _find(m, sid)
@@ -588,7 +599,7 @@ def model_checker(model: dict, name: str) -> ModuleType:
             return module._result(claim, module.EvidenceStatus(status), reason, scope)
         return assess
 
-    module.ASSESSORS = {claim: assessor(claim) for claim in module.ASSESSORS}
+    setattr(module, "ASSESSORS", {claim: assessor(claim) for claim in getattr(module, "ASSESSORS")})
     return module
 
 
@@ -700,6 +711,38 @@ def runner_failures_of(model: dict) -> list[str]:
         sys.modules.pop(name, None)
 
 
+def survivors(report: dict) -> set[str]:
+    """``row1 <id>`` and ``row3 <id>`` for every live mutant a row misses, first and second order."""
+    out: set[str] = set()
+    for order in ("first_order", "second_order"):
+        out |= {f"row1 {mid}" for mid in report["summary"][order]["row1_survivors"]}
+        out |= {f"row3 {mid}" for mid in report["summary"][order]["row3_survivors"]}
+    return out
+
+
+def read_baseline(path: Path) -> tuple[str | None, set[str]]:
+    """(catalogue digest from the header, survivor lines)."""
+    if not path.exists():
+        return None, set()
+    digest = None
+    entries: set[str] = set()
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("# catalogue sha256 "):
+            digest = line.split()[3].rstrip(";")
+        elif line.strip() and not line.startswith("#"):
+            entries.add(line.strip())
+    return digest, entries
+
+
+def compare(report: dict, digest: str | None, baseline: set[str]) -> tuple[list[str], list[str], list[str]]:
+    """(errors, new survivors, baseline entries now killed)."""
+    errors = []
+    if digest != report["catalogue_sha256"]:
+        errors.append(f"catalogue digest {report['catalogue_sha256']} differs from the baseline's {digest}")
+    found = survivors(report)
+    return errors, sorted(found - baseline), sorted(baseline - found)
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--list", action="store_true", help="print the catalogue and exit")
@@ -708,7 +751,8 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--workers", type=int, default=8, help="process pool size; 1 scores in process")
     parser.add_argument("--sample", type=int, default=SECOND_ORDER_SAMPLE, help="second-order pairs")
     parser.add_argument("--seed", type=int, default=SEED)
-    parser.add_argument("--only", help="score only mutants whose id starts with this prefix")
+    parser.add_argument("--only", help="score only mutants whose id starts with this prefix (no gate)")
+    parser.add_argument("--update", action="store_true", help="rewrite the baseline from this sweep")
     args = parser.parse_args(argv)
     if args.list or args.catalogue_sha256:
         first = catalogue()
@@ -730,6 +774,33 @@ def main(argv: list[str]) -> int:
             print(f"  row-3 survivor {mid}")
         for mid in s["row1_survivors"]:
             print(f"  row-1 survivor {mid}")
+    if args.only:
+        return 0
+    if args.update:
+        header = [
+            "# Live specification mutants of conformance/evidence-sufficiency-v1.3/model.json that a",
+            "# row misses (scripts/spec_mutation_evidence_sufficiency.py). `row1` = no authored case",
+            "# separates the mutant; `row3` = the v1.3 runner does not. Regenerate with --update.",
+            f"# catalogue sha256 {report['catalogue_sha256']}; model sha256 {report['model_sha256']}.",
+            "# Every entry is an open gap recorded in NEGATIVE_RESULTS.md, not an equivalence label:",
+            "# equivalent mutants are computed and never listed here.",
+        ]
+        BASELINE.write_text("\n".join(header + sorted(survivors(report))) + "\n", encoding="utf-8", newline="\n")
+        print(f"[OK] baseline updated: {len(survivors(report))} survivor(s) recorded")
+        return 0
+    digest, baseline = read_baseline(BASELINE)
+    errors, new, dead = compare(report, digest, baseline)
+    for entry in dead:
+        print(f"[HINT] baseline survivor now killed (remove it from the baseline): {entry}")
+    for error in errors:
+        print(f"[FAIL] {error}", file=sys.stderr)
+    if new:
+        print(f"[FAIL] {len(new)} surviving specification mutant(s) absent from the baseline:", file=sys.stderr)
+        for entry in new:
+            print(f"  {entry}", file=sys.stderr)
+    if errors or new:
+        return 1
+    print(f"[OK] no new survivors ({len(baseline)} in the baseline)")
     return 0
 
 

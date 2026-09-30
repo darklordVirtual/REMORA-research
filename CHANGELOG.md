@@ -45,6 +45,15 @@ This file lists externally relevant changes by release. Fine-grained development
   `--corpus without-k1`. Their raw outputs are committed in
   `artifacts/evidence-sufficiency-mutation-2026-09-30/`, and `--workers 1`
   scores the second set without a process pool.
+- Specification mutation of the evidence-sufficiency model
+  (`scripts/spec_mutation_evidence_sufficiency.py`, v1.3 spec section 13):
+  446 first-order and 300 second-order mutants of the rules in `model.json`,
+  each run as a checker, with equivalence computed by enumeration. The
+  catalogue and criterion were pushed before the first score. The runner
+  kills every live mutant; the authored cases miss twelve cross-branch
+  premise faults, so the pre-registered criterion S-2 is not met
+  (NEGATIVE_RESULTS.md §68, open). The corpus is unchanged. The sweep runs in
+  the mutation workflow against a baseline that names the twelve.
 - Evidence-sufficiency v1.2 (`conformance/evidence-sufficiency-v1.2/`): the
   50 v1.1 cases verbatim plus E18-E20, which tell apart the three withheld
   `canonical()` faults from the external v1.1 run. v1 and v1.1 are frozen.

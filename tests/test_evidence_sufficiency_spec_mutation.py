@@ -118,3 +118,61 @@ def test_an_unchanged_model_is_found_equivalent() -> None:
     original = SM.load_model()
     mutant = {"claim": "admission_accounting", "touched": [], "model": SM.load_model()}
     assert SM.equivalence_witness(original, mutant) is None
+
+
+# ── The gate and the recorded result ─────────────────────────────────────────
+
+
+def _report(row1: list[str], row3: list[str], digest: str = "d") -> dict:
+    empty = {"row1_survivors": [], "row3_survivors": []}
+    return {
+        "catalogue_sha256": digest,
+        "summary": {"first_order": {"row1_survivors": row1, "row3_survivors": row3}, "second_order": empty},
+    }
+
+
+def test_gate_fails_on_a_new_survivor_on_either_row_and_on_a_changed_catalogue() -> None:
+    baseline = {"row1 a", "row3 b"}
+    assert SM.compare(_report(["a"], ["b"]), "d", baseline) == ([], [], [])
+    errors, new, dead = SM.compare(_report(["a", "c"], []), "d", baseline)
+    assert (errors, new, dead) == ([], ["row1 c"], ["row3 b"])
+    errors, _, _ = SM.compare(_report(["a"], ["b"], digest="other"), "d", baseline)
+    assert errors and "differs" in errors[0]
+
+
+def test_baseline_header_carries_the_pre_registered_digest() -> None:
+    digest, entries = SM.read_baseline(SM.BASELINE)
+    assert digest == SM.catalogue_sha256()
+    assert entries and all(e.split(" ", 1)[0] in ("row1", "row3") for e in entries)
+
+
+@pytest.mark.docgate
+def test_committed_report_matches_the_baseline_and_the_published_result() -> None:
+    import gzip
+
+    report = json.loads(gzip.decompress(
+        (ROOT / "artifacts" / "evidence-sufficiency-spec-mutation-2026-09-30" / "spec-mutation.json.gz").read_bytes()
+    ))
+    assert report["catalogue_sha256"] == SM.catalogue_sha256()
+    _, entries = SM.read_baseline(SM.BASELINE)
+    assert SM.survivors(report) == entries
+    # Section 13.6 and NEGATIVE_RESULTS.md §68 publish these; a rerun that moves them must
+    # move the record with it.
+    first, second = report["summary"]["first_order"], report["summary"]["second_order"]
+    assert (first["mutants"], first["equivalent"], first["row1_killed"], first["row3_killed"]) == (446, 54, 380, 392)
+    assert (second["mutants"], second["equivalent"], second["row1_killed"], second["row3_killed"]) == (300, 2, 298, 298)
+    # Consistency the computation allows: no mutant the domain calls equivalent fails the runner.
+    assert first["equivalent_killed_on_row3"] == second["equivalent_killed_on_row3"] == []
+    # Every row-1 survivor is a cross-branch premise added to the admission ladder (§68).
+    survivors = [r for r in report["rows"] if r["id"] in first["row1_survivors"]]
+    assert survivors and all(r["operator"] == "add_premise" and r["claim"] == "admission_accounting" for r in survivors)
+    assert all(r["row3_labels"] == ["reference_model"] for r in survivors)
+
+
+def test_a_cross_branch_premise_survives_the_authored_cases_but_not_the_runner() -> None:
+    # One §68 survivor, scored live: the authored cases cannot see it, the runner can.
+    original = SM.load_model()
+    mutant = next(m for m in SM.catalogue(original) if m["id"] == "add_premise:admission_accounting:20")
+    row = SM.score(({k: v for k, v in mutant.items() if k != "_edit"}, original))
+    assert not row["equivalent"]
+    assert row["row1_cases"] == [] and row["row3_kill"]

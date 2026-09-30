@@ -342,6 +342,8 @@ For v1.3 the run must be blind, and the record says beforehand what would count.
 | T-16 | The reference model, its lattice and the coherence checks (D-14) | T-10 | done |
 | T-17 | The second operator set with second-order sampling, the redundancy reading and its baseline (D-15) | T-11 | done |
 | T-18 | The K1 cases derived from the lattice, and R18 to R20 (D-16) | T-17 | done |
+| T-19 | Pre-register and run specification mutation of `model.json` (section 13) | T-16 | done; S-2 not met, twelve row-1 survivors (NEGATIVE_RESULTS.md §68) |
+| T-20 | Close the §68 gap in a new corpus version, labelled as fitted | T-19 | open |
 
 ## 11. Risks
 
@@ -442,6 +444,36 @@ A pass shows that the corpus separates the specification from every single wrong
 The operators were written by the corpus's author, after v1.3; they are pre-registered, not blind.
 The domain argument covers premise values. State values are bounded to the declared vocabulary.
 A misreading the operators cannot express, or one that `model.json` shares with the checker, is not measured.
+
+### 13.6 Result (2026-09-30)
+
+The criterion and the catalogue were pushed in `37b1aac` at 20:08:58 +02:00 before any mutant was scored.
+The run followed on the same commit's code; the raw report is `artifacts/evidence-sufficiency-spec-mutation-2026-09-30/spec-mutation.json.gz`.
+
+| Set | Mutants | Equivalent on the domain | Live | Row 1 | Row 2 | Row 3 |
+|---|---:|---:|---:|---:|---:|---:|
+| first order | 446 | 54 | 392 | 380 | 356 | 392 |
+| second order | 300 | 2 | 298 | 298 | 294 | 298 |
+
+| Criterion | Result |
+|---|---|
+| S-1, every live first-order mutant killed on row 3 | met, 392 of 392 |
+| S-2, every live first-order mutant killed on row 1 | **not met**, 380 of 392 |
+| S-3, every live second-order mutant killed on row 3 | met, 298 of 298; row 1 also 298 |
+
+Every live mutant of eight operators dies on row 1; the twelve that do not are all `add_premise` on the admission claim.
+Each makes one arm of the `admission_present` branch require a premise of the other arm.
+Six make a present, accepted and matching admission also depend on `mandatory_admission`, `window_finalized` or `admission_coverage_complete`.
+The other six make the absence arm also depend on `admission_source_accepted` or `admission_matches` before it can return VIOLATED.
+The only decisive admission cases, A01 and A03, set every premise of both arms to `true`, so the cases cannot see the leak.
+Row 3 kills all twelve, and only through the reference model; they are NEGATIVE_RESULTS.md §68, an open gap.
+
+All 54 equivalent mutants are `add_premise` edits that require a premise an earlier guard on the same path already requires.
+None of them is killed on row 3, which is the consistency check the computation allows: a mutant the domain calls equivalent must not fail the runner.
+Row 2 misses 36 live mutants: the twelve above, and 24 that change only a decisive verdict, which carries no guidance under rule R-6.
+
+As section 13.4 item 5 requires, no corpus file changed in the change that reports this.
+`scripts/spec_mutation_evidence_sufficiency.py` now runs in the mutation workflow against `docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt`, which names the twelve as `row1` survivors.
 
 ## Deliverables
 
