@@ -318,7 +318,7 @@ def build_record() -> dict:
                 "their kills of those faults are not independent evidence."
             ),
             (
-                "Cases H1 were written after an external run with withheld faults named the gap; "
+                "Cases E18-E20 (gap H1) were written after an external run with withheld faults named the gap; "
                 "their kills of those faults are not independent evidence."
             ),
         ],

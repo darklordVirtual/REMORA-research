@@ -2484,7 +2484,7 @@ sections again.
 | Coverage loss degrades discrimination (§32) | §35 | Wrong-argument accepts in the UNKNOWN regime 50% → 0% with value grounding, all pre-registered expectations still met |
 | Benchmark v2 leakage and overstated effective N (§17) | Fixed 2026-07-20 | Gate and baselines restricted to the observable surface; effective N=70 not 700; the "0% vs 10–20%" claim withdrawn |
 | AROMER seeding, regression and recovery chronicle (§§5–13) | §11, §12, §13 | Kept in sequence because the recovery evidence is only meaningful next to the failure. Architectural finding preserved: stage seeding ≤25 per batch, or implement an EMA dual window |
-| v1.1 evidence-sufficiency corpus misses three state-comparison faults (§64) | evidence-sufficiency v1.2, 2026-09-29 | Cases E18-E20 tell the three faults apart. They were written after the faults were known, so this is the repair, not independent evidence; no external rerun of v1.2 |
+| v1.1 evidence-sufficiency corpus misses three state-comparison faults (§64) | evidence-sufficiency v1.2, 2026-09-29 | Cases E18-E20 tell the three faults apart. They were written after the faults were known, so this is the repair, not independent evidence. An external rerun with every fault known (2026-09-30) is private until Rul1an publishes it |
 | Blind-confirmed intermediate rounds (§25, §27, §28, §31) | — | Each records a round that met or missed its pre-registered targets on the way to §34; retained as the pre-registration trail |
 
 ## Resolved Findings Archive
@@ -3993,3 +3993,12 @@ and another value. Against the frozen checker, the v1.2 runner reports
 failures under each of the three faults, and still under every known fault
 from the external manifests. That result is fitted: the cases were written
 with these faults in view. v1.2 has had no external run.
+
+**External rerun (2026-09-30).** Rul1an reran the published v1.1 fault
+definitions, controls and projections against v1.2 at `c1345b1`, with every
+fault known in advance, and delivered the package privately for factual
+review. The maintainer found no factual corrections and agreed to publication
+(#629). The package is private until Rul1an publishes it, so no counts are
+stated here; the record is
+`docs/assurance/external_adequacy_evidence_sufficiency_v1.md`. With every
+fault known, the run can show the repair and is not independent evidence.
