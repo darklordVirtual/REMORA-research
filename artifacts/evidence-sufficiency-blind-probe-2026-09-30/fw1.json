@@ -1,0 +1,129 @@
+{
+  "selector": "fw1-refactor-slips",
+  "files_read": [
+    "conformance/evidence-sufficiency-v1/checker.py",
+    "conformance/evidence-sufficiency-v1/README.md"
+  ],
+  "faults": [
+    {
+      "id": "FW1-01",
+      "old": "if o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True:",
+      "new": "if o.get(\"effect_source_accepted\") is not True and o.get(\"effect_seen\") is not True:",
+      "rationale": "or/and slip in the execution-observation guard lets an execution with only one of accepted-source/seen proceed to admission inference."
+    },
+    {
+      "id": "FW1-02",
+      "old": "if o.get(\"scope_accepted\") is not True:",
+      "new": "if o.get(\"effect_source_accepted\") is not True:",
+      "rationale": "Key copied from the line above replaces the scope guard, so an unaccepted scope no longer blocks admission verdicts."
+    },
+    {
+      "id": "FW1-03",
+      "old": "if o.get(\"admission_matches\") is True:",
+      "new": "if o.get(\"admission_matches\") is not False:",
+      "rationale": "Loosened identity check treats a missing or unknown admission_matches as a match and returns ESTABLISHED."
+    },
+    {
+      "id": "FW1-04",
+      "old": "    if o.get(\"mandatory_admission\") is not True:\n        return _unknown(claim, \"admission_requirement_not_defined\", scope)\n",
+      "new": "",
+      "rationale": "Mandatory-admission guard lost in a refactor, so absence of admission becomes VIOLATED even when no admission rule is defined."
+    },
+    {
+      "id": "FW1-05",
+      "old": "if o.get(\"window_finalized\") is not True:",
+      "new": "if o.get(\"admission_coverage_complete\") is not True:",
+      "rationale": "Neighbouring key pasted into the window guard, so an open observation window no longer blocks a VIOLATED verdict."
+    },
+    {
+      "id": "FW1-06",
+      "old": "EvidenceStatus.VIOLATED,\n        \"mandatory_admission_absent_in_complete_bounded_history\",",
+      "new": "EvidenceStatus.ESTABLISHED,\n        \"mandatory_admission_absent_in_complete_bounded_history\",",
+      "rationale": "Return block copy-pasted from the ESTABLISHED branch keeps the wrong status, so closed-world absence reports ESTABLISHED instead of VIOLATED."
+    },
+    {
+      "id": "FW1-07",
+      "old": "    if o.get(\"effect_observation_accepted\") is not True:\n        return _unknown(claim, \"protected_effect_observation_unaccepted\", scope)\n    if o.get(\"protected_effect_observed\") is True:\n        return _result(\n            claim,\n            EvidenceStatus.VIOLATED,\n            \"accepted_effect_observed_outside_required_pep\",\n            scope,\n        )\n",
+      "new": "    if o.get(\"protected_effect_observed\") is True:\n        return _result(\n            claim,\n            EvidenceStatus.VIOLATED,\n            \"accepted_effect_observed_outside_required_pep\",\n            scope,\n        )\n    if o.get(\"effect_observation_accepted\") is not True:\n        return _unknown(claim, \"protected_effect_observation_unaccepted\", scope)\n",
+      "rationale": "Reordered blocks let an unaccepted effect observation produce a VIOLATED verdict before the acceptance guard runs."
+    },
+    {
+      "id": "FW1-08",
+      "old": "if o.get(\"protected_effect_observed\") is not False:",
+      "new": "if o.get(\"protected_effect_observed\") is None:",
+      "rationale": "Guard narrowed to None, so non-boolean values such as \"unknown\" fall through toward ESTABLISHED instead of protected_effect_unknown."
+    },
+    {
+      "id": "FW1-09",
+      "old": "    if o.get(\"effect_window_complete\") is not True:\n        return _unknown(claim, \"no_effect_observation_not_complete\", scope)\n",
+      "new": "",
+      "rationale": "Downstream-window completeness guard dropped, so no-effect in an incomplete window can reach ESTABLISHED."
+    },
+    {
+      "id": "FW1-10",
+      "old": "if o.get(\"valid_control_same_context\") is not True:",
+      "new": "if o.get(\"same_protected_operation\") is not True:",
+      "rationale": "Key copied from the earlier binding guard, so a missing comparable valid control no longer blocks ESTABLISHED."
+    },
+    {
+      "id": "FW1-11",
+      "old": "if o.get(\"required_boundary_refusal_accepted\") is not True:",
+      "new": "if o.get(\"required_boundary_refusal_accepted\") is False:",
+      "rationale": "Guard rewritten as 'is False' so an absent boundary-attribution field is treated as accepted and yields ESTABLISHED."
+    },
+    {
+      "id": "FW1-12",
+      "old": "if o.get(\"source_accepted\") is not True:",
+      "new": "if o.get(\"readback_available\") is not True:",
+      "rationale": "Key duplicated from the previous line, so an unaccepted read-back source no longer blocks postcondition verdicts."
+    },
+    {
+      "id": "FW1-13",
+      "old": "if \"expected_state\" not in o or \"observed_state\" not in o:",
+      "new": "if \"expected_state\" not in o and \"observed_state\" not in o:",
+      "rationale": "or/and slip lets a case with only one state value through, raising KeyError instead of state_value_missing."
+    },
+    {
+      "id": "FW1-14",
+      "old": "if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):",
+      "new": "if canonical(o[\"expected_state\"]) == canonical(o[\"expected_state\"]):",
+      "rationale": "Copy-paste compares expected_state with itself, so every disagreement is reported ESTABLISHED."
+    },
+    {
+      "id": "FW1-15",
+      "old": "    if o.get(\"settlement_reached\") is not True:\n        return _unknown(claim, \"declared_settlement_point_not_reached\", scope)\n",
+      "new": "",
+      "rationale": "Settlement-point guard lost, so a read-back before the declared settlement point yields a decisive verdict."
+    },
+    {
+      "id": "FW1-16",
+      "old": "missing, decisive_if = _REASON_GUIDANCE[reason]",
+      "new": "decisive_if, missing = _REASON_GUIDANCE[reason]",
+      "rationale": "Tuple-unpack order swapped, so missing_evidence becomes the guidance string (split into characters) and decisive_if becomes a tuple."
+    },
+    {
+      "id": "FW1-17",
+      "old": "    if not scope:\n        return {\"kind\": \"synthetic_fixture\", \"bounded\": True}",
+      "new": "    if scope is None:\n        return {\"kind\": \"synthetic_fixture\", \"bounded\": True}",
+      "rationale": "Refactor to 'is None' means an empty scope mapping is no longer replaced by the default bounded synthetic scope."
+    },
+    {
+      "id": "FW1-18",
+      "old": "    if type(value) is list:\n        for item in value:\n            validate_json(item)\n        return\n",
+      "new": "    if type(value) is list:\n        for item in value:\n            validate_json(item)\n",
+      "rationale": "Early return lost after the list branch, so any list value falls through to the raise and valid fixtures with lists are rejected."
+    },
+    {
+      "id": "FW1-19",
+      "old": "if claim not in ASSESSORS or not isinstance(observations, Mapping):",
+      "new": "if claim not in ASSESSORS and not isinstance(observations, Mapping):",
+      "rationale": "or/and slip means an unknown claim with valid observations escapes the ValueError and fails with KeyError instead."
+    },
+    {
+      "id": "FW1-20",
+      "old": "json.dumps(value, sort_keys=True, separators=(\",\", \":\"), ensure_ascii=False)",
+      "new": "json.dumps(value, separators=(\",\", \":\"), ensure_ascii=False)",
+      "rationale": "sort_keys dropped in a refactor, so equal objects with different key order compare unequal and yield VIOLATED."
+    }
+  ]
+}

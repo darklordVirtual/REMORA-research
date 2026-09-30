@@ -1,0 +1,129 @@
+{
+  "selector": "fw3-python-json-pitfalls",
+  "files_read": [
+    "conformance/evidence-sufficiency-v1/checker.py",
+    "conformance/evidence-sufficiency-v1/README.md"
+  ],
+  "faults": [
+    {
+      "id": "FW3-01",
+      "old": "    if not scope:\n",
+      "new": "    if scope is None:\n",
+      "rationale": "Identity check replaces truthiness: an empty scope mapping {} is now returned as-is instead of the default synthetic_fixture scope."
+    },
+    {
+      "id": "FW3-02",
+      "old": "    return dict(scope)\n",
+      "new": "    return scope\n",
+      "rationale": "Reuses the caller's mapping instead of copying it, so the verdict scope aliases the caller's object and later caller mutation changes the verdict."
+    },
+    {
+      "id": "FW3-03",
+      "old": "o.get(\"effect_source_accepted\") is not True",
+      "new": "not o.get(\"effect_source_accepted\")",
+      "rationale": "Truthiness instead of `is True`: effect_source_accepted values like 1 or \"yes\" now count as accepted."
+    },
+    {
+      "id": "FW3-04",
+      "old": "    if o.get(\"admission_present\") is True:\n",
+      "new": "    if o.get(\"admission_present\") == True:  # noqa: E712\n",
+      "rationale": "`1 == True` pitfall: admission_present=1 is now treated as a present admission and can yield ESTABLISHED."
+    },
+    {
+      "id": "FW3-05",
+      "old": "    if o.get(\"admission_present\") is not False:\n",
+      "new": "    if o.get(\"admission_present\") != False:  # noqa: E712\n",
+      "rationale": "`0 == False` pitfall: admission_present=0 is now treated as absent and can reach the closed-world VIOLATED verdict."
+    },
+    {
+      "id": "FW3-06",
+      "old": "o.get(\"mandatory_admission\") is not True",
+      "new": "not o.get(\"mandatory_admission\")",
+      "rationale": "Truthiness instead of identity: a non-boolean truthy mandatory_admission (1, \"true\") now satisfies the closed-world premise."
+    },
+    {
+      "id": "FW3-07",
+      "old": "    if o.get(\"protected_effect_observed\") is True:\n",
+      "new": "    if o.get(\"protected_effect_observed\"):\n",
+      "rationale": "Truthiness instead of `is True`: protected_effect_observed values like 1 or \"false\" now produce VIOLATED instead of NOT_ESTABLISHED."
+    },
+    {
+      "id": "FW3-08",
+      "old": "    if o.get(\"protected_effect_observed\") is not False:\n",
+      "new": "    if o.get(\"protected_effect_observed\", False) is not False:\n",
+      "rationale": "Missing key conflated with False via a .get default: an absent protected_effect_observed is treated as an observed no-effect and can reach ESTABLISHED."
+    },
+    {
+      "id": "FW3-09",
+      "old": "    if \"expected_state\" not in o or \"observed_state\" not in o:\n",
+      "new": "    if o.get(\"expected_state\") is None or o.get(\"observed_state\") is None:\n",
+      "rationale": "None vs missing key: an explicitly null expected/observed state is now reported as state_value_missing instead of being compared."
+    },
+    {
+      "id": "FW3-10",
+      "old": "    if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):\n",
+      "new": "    if o[\"expected_state\"] == o[\"observed_state\"]:\n",
+      "rationale": "Python equality instead of canonical JSON comparison: 1 == True and 0 == False so expected 1 vs observed true is ESTABLISHED, and non-JSON state is no longer validated here."
+    },
+    {
+      "id": "FW3-11",
+      "old": "    if value is None or type(value) in (str, bool, int):\n",
+      "new": "    if value is None or isinstance(value, (str, bool, int, float)):\n",
+      "rationale": "Float handling pitfall: floats (including NaN/inf) and str/int subclasses are now accepted as fixture values instead of raising ValueError."
+    },
+    {
+      "id": "FW3-12",
+      "old": "    if type(value) is list:\n",
+      "new": "    if isinstance(value, (list, tuple)):\n",
+      "rationale": "Tuples are accepted as JSON arrays, so non-JSON tuple fixture values pass validation and compare equal to lists."
+    },
+    {
+      "id": "FW3-13",
+      "old": "    if type(value) is dict and all(type(key) is str for key in value):\n",
+      "new": "    if type(value) is dict:\n",
+      "rationale": "Dropped key-type check: dicts with non-string keys (int, bool, None) are accepted, which JSON would coerce or collide (1 vs \"1\") or fail later with TypeError."
+    },
+    {
+      "id": "FW3-14",
+      "old": "    raise ValueError(\n        \"fixture values must be",
+      "new": "    raise TypeError(\n        \"fixture values must be",
+      "rationale": "Exception type change: invalid fixture values raise TypeError instead of the documented ValueError."
+    },
+    {
+      "id": "FW3-15",
+      "old": "sort_keys=True, separators",
+      "new": "sort_keys=False, separators",
+      "rationale": "Key order becomes significant: dicts with the same content but different insertion order no longer compare equal in postcondition_observed."
+    },
+    {
+      "id": "FW3-16",
+      "old": "    return json.dumps(value, sort_keys=True, separators=(\",\", \":\"), ensure_ascii=False)\n",
+      "new": "    return json.dumps(value, sort_keys=True, separators=(\",\", \":\"), ensure_ascii=False).strip().casefold()\n",
+      "rationale": "Over-eager string normalisation: case-differing states (\"Active\" vs \"active\") and keys now canonicalise identically, turning VIOLATED into ESTABLISHED."
+    },
+    {
+      "id": "FW3-17",
+      "old": "    validate_json(dict(observations))\n",
+      "new": "    validate_json(observations)\n",
+      "rationale": "Missing dict() copy: a non-dict Mapping (e.g. MappingProxyType) of observations is now rejected with ValueError despite passing the Mapping check."
+    },
+    {
+      "id": "FW3-18",
+      "old": "    if claim not in ASSESSORS or",
+      "new": "    claim = claim.strip().lower()\n    if claim not in ASSESSORS or",
+      "rationale": "String normalisation of the claim name: \" Admission_Accounting \" is accepted instead of rejected, and a non-str claim raises AttributeError instead of ValueError."
+    },
+    {
+      "id": "FW3-19",
+      "old": "    if premise_source != \"synthetic_fixture\":\n",
+      "new": "    if premise_source.strip().lower() != \"synthetic_fixture\":\n",
+      "rationale": "String normalisation weakens the premise guard: \"Synthetic_Fixture \" is accepted, and a non-str premise_source raises AttributeError instead of ValueError."
+    },
+    {
+      "id": "FW3-20",
+      "old": "            \"scope\": dict(self.scope),\n",
+      "new": "            \"scope\": self.scope,\n",
+      "rationale": "Frozen-dataclass aliasing: as_dict returns the verdict's own scope mapping, so mutating the returned dict mutates the supposedly frozen verdict (and the caller's scope)."
+    }
+  ]
+}

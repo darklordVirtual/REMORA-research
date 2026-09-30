@@ -1,0 +1,57 @@
+{
+  "implementer": "mr1",
+  "style": "early-return",
+  "files_read": [
+    "SPEC.md"
+  ],
+  "variants": [
+    {
+      "file": "variant_01.py",
+      "misreading": "Reads every premise by Python truthiness, so 1, 'true' or a non-empty list count as holding."
+    },
+    {
+      "file": "variant_02.py",
+      "misreading": "admission_accounting guard 1 checks only effect_source_accepted and drops the conjoined effect_seen premise."
+    },
+    {
+      "file": "variant_03.py",
+      "misreading": "admission_accounting treats a null or absent admission_present like false, entering the closed-world absence branch."
+    },
+    {
+      "file": "variant_04.py",
+      "misreading": "admission_accounting returns the neighbouring reason admission_observation_unaccepted when a candidate admission does not match."
+    },
+    {
+      "file": "variant_05.py",
+      "misreading": "admission_accounting checks window_finalized before mandatory_admission in the absence branch."
+    },
+    {
+      "file": "variant_06.py",
+      "misreading": "tested_route_enforcement applies the effect_observation_accepted guard only in the no-effect branch, so an unaccepted effect observation still yields violated."
+    },
+    {
+      "file": "variant_07.py",
+      "misreading": "tested_route_enforcement tests protected_effect_observed with == True, so the integer 1 counts as an observed effect."
+    },
+    {
+      "file": "variant_08.py",
+      "misreading": "tested_route_enforcement omits the valid_control_same_context requirement before crediting a refusal."
+    },
+    {
+      "file": "variant_09.py",
+      "misreading": "tested_route_enforcement treats any protected_effect_observed that does not hold (including null or absent) as refuted, so unknown effects can be credited as established."
+    },
+    {
+      "file": "variant_10.py",
+      "misreading": "postcondition_observed compares states with Python ==, so True equals 1 and 1 equals 1.0 regardless of JSON type."
+    },
+    {
+      "file": "variant_11.py",
+      "misreading": "postcondition_observed treats a missing expected_state or observed_state as a disagreement (violated) instead of state_value_missing."
+    },
+    {
+      "file": "variant_12.py",
+      "misreading": "postcondition_observed compares the two states as strings, so key order matters and 1 equals '1'."
+    }
+  ]
+}
