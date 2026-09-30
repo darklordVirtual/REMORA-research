@@ -44,6 +44,12 @@ gate fails on a survivor absent from it, and on a catalogue whose digest
 differs from the one in its header, because a changed catalogue changes what
 the counts mean.
 
+A second catalogue, ``--catalogue heldout``, was pre-registered in section 14
+of the spec before the v1.4 cases existed: two operators that move a guard
+across a branch (``guard_sink``, ``guard_hoist``), which no operator of the
+first catalogue can express, and a fixed-seed sample of third-order mutants
+drawn from both catalogues. ``--suite`` names the corpus that scores them.
+
 Usage::
 
     python scripts/spec_mutation_evidence_sufficiency.py                  # sweep, compare, exit 1 on new survivors
@@ -52,6 +58,7 @@ Usage::
     python scripts/spec_mutation_evidence_sufficiency.py --list
     python scripts/spec_mutation_evidence_sufficiency.py --catalogue-sha256
     python scripts/spec_mutation_evidence_sufficiency.py --workers 1      # in process
+    python scripts/spec_mutation_evidence_sufficiency.py --catalogue heldout --suite evidence-sufficiency-v1.3 --json h.json
 """
 from __future__ import annotations
 
@@ -74,11 +81,17 @@ V13 = ROOT / "conformance" / "evidence-sufficiency-v1.3"
 CHECKER = ROOT / "conformance" / "evidence-sufficiency-v1" / "checker.py"
 RUNNER = V13 / "run_evidence_sufficiency.py"
 MODEL = V13 / "model.json"
+DEFAULT_SUITE = "evidence-sufficiency-v1.3"
+#: The corpus the gate and its baseline belong to.
+GATED_SUITE = DEFAULT_SUITE
 AST_SCRIPT = ROOT / "scripts" / "mutation_evidence_sufficiency_ast.py"
 BASELINE = ROOT / "docs" / "assurance" / "spec_mutation_baseline_evidence_sufficiency_v1.txt"
 
 SECOND_ORDER_SAMPLE = 300
 SEED = 20261001
+THIRD_ORDER_SAMPLE = 300
+HELDOUT_SEED = 20261002
+CATALOGUES = ("v1", "heldout")
 STATUSES = ("established", "violated", "not_established")
 
 
@@ -448,16 +461,60 @@ OPERATORS = {
 }
 
 
+def _branch_parents(spec: dict, claim: str):
+    """(branch step id, guard step ids before it in the same ladder) for every branch."""
+    for path, body, index, step in _walk(spec["steps"], claim):
+        if "branch" in step:
+            guards = [b.get("_id") for b in body[:index] if "require" in b and "then" not in b]
+            yield step.get("_id", path), step, guards
+
+
+def op_guard_sink(claim: str, spec: dict):
+    """A guard that precedes a branch applies to one arm only."""
+    for branch_id, branch, guards in _branch_parents(spec, claim):
+        for guard_id in guards:
+            _, _, guard = _find({"claims": {claim: spec}}, guard_id)
+            for arm in ("when_true", "when_false"):
+                def edit(m: dict, g: str = guard_id, b: str = branch_id, a: str = arm) -> None:
+                    body, index, step = _find(m, g)
+                    del body[index]
+                    _, _, target = _find(m, b)
+                    target[a].insert(0, step)
+                yield guard_id, (), f"the guard failing with `{guard['else']}` applies only when `{branch['branch']}` takes `{arm}`", edit
+
+
+def op_guard_hoist(claim: str, spec: dict):
+    """A guard inside one arm of a branch is lifted above the branch, so both arms need it."""
+    for branch_id, branch, _ in _branch_parents(spec, claim):
+        for arm in ("when_true", "when_false"):
+            for step in branch[arm]:
+                if "require" not in step or "then" in step:
+                    continue
+
+                def edit(m: dict, g: str = step["_id"], b: str = branch_id) -> None:
+                    body, index, guard = _find(m, g)
+                    del body[index]
+                    parent, position, _ = _find(m, b)
+                    parent.insert(position, guard)
+                yield step["_id"], (), f"the guard failing with `{step['else']}` moves above the `{branch['branch']}` branch", edit
+
+
+HELDOUT_OPERATORS = {
+    "guard_sink": op_guard_sink,
+    "guard_hoist": op_guard_hoist,
+}
+
+
 def load_model() -> dict:
     return json.loads(MODEL.read_text(encoding="utf-8"))
 
 
-def catalogue(model: dict | None = None) -> list[dict]:
+def catalogue(model: dict | None = None, operators: dict | None = None) -> list[dict]:
     """Every first-order mutant: id, operator, claim, touched premises, the mutated model."""
     base = tag(model or load_model())
     mutants: list[dict] = []
     for claim, spec in base["claims"].items():
-        for op_name, op in OPERATORS.items():
+        for op_name, op in (operators or OPERATORS).items():
             for index, (step_id, touched, description, edit) in enumerate(op(claim, spec)):
                 mutated = deepcopy(base)
                 edit(mutated)
@@ -513,6 +570,61 @@ def second_order(first: list[dict], sample: int, seed: int, model: dict | None =
     return pairs
 
 
+def third_order(pool: list[dict], sample: int, seed: int, model: dict | None = None) -> list[dict]:
+    """A fixed-seed sample of triples on one claim whose edits compose on three distinct steps."""
+    base = tag(model or load_model())
+    rng = random.Random(seed)
+    by_claim: dict[str, list[dict]] = {}
+    for m in pool:
+        by_claim.setdefault(m["claim"], []).append(m)
+    claims = sorted(by_claim)
+    triples: list[dict] = []
+    seen: set[tuple[str, ...]] = set()
+    attempts = 0
+    while len(triples) < sample and attempts < sample * 50:
+        attempts += 1
+        claim = rng.choice(claims)
+        parts = rng.sample(by_claim[claim], 3)
+        key = tuple(sorted(m["id"] for m in parts))
+        if key in seen or len({m["step"] for m in parts}) < 3:
+            continue
+        seen.add(key)
+        mutated = deepcopy(base)
+        try:
+            for m in parts:
+                m["_edit"](mutated)
+        except KeyError:
+            continue
+        touched: set[str] = set()
+        for m in parts:
+            touched |= set(m["touched"])
+        triples.append({
+            "id": "third:" + "+".join(key),
+            "operator": "third_order",
+            "claim": claim,
+            "step": "+".join(m["step"] for m in parts),
+            "touched": sorted(touched),
+            "description": " and ".join(m["description"] for m in parts),
+            "order": 3,
+            "model": untag(mutated),
+        })
+    return triples
+
+
+def build_catalogue(name: str, sample: int | None = None, seed: int | None = None) -> list[dict]:
+    """The named catalogue: ``v1`` (section 13) or ``heldout`` (section 14)."""
+    if name == "v1":
+        first = catalogue()
+        return first + second_order(first, SECOND_ORDER_SAMPLE if sample is None else sample,
+                                    SEED if seed is None else seed)
+    if name == "heldout":
+        heldout = catalogue(operators=HELDOUT_OPERATORS)
+        pool = catalogue() + heldout
+        return heldout + third_order(pool, THIRD_ORDER_SAMPLE if sample is None else sample,
+                                     HELDOUT_SEED if seed is None else seed)
+    raise ValueError(f"unknown catalogue {name!r}")
+
+
 def _canonical_catalogue(mutants: list[dict]) -> str:
     lines = []
     for m in mutants:
@@ -521,10 +633,12 @@ def _canonical_catalogue(mutants: list[dict]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def catalogue_sha256(sample: int = SECOND_ORDER_SAMPLE, seed: int = SEED) -> str:
-    first = catalogue()
-    text = _canonical_catalogue(first + second_order(first, sample, seed))
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+def catalogue_sha256(sample: int = SECOND_ORDER_SAMPLE, seed: int = SEED, name: str = "v1") -> str:
+    if name == "v1":
+        mutants = build_catalogue("v1", sample, seed)
+    else:
+        mutants = build_catalogue(name)
+    return hashlib.sha256(_canonical_catalogue(mutants).encode("utf-8")).hexdigest()
 
 
 # ── Equivalence on the complete value-class domain ──────────────────────────
@@ -577,10 +691,12 @@ def _load(name: str, path: Path) -> ModuleType:
     return module
 
 
-def _runner() -> ModuleType:
-    if "runner" not in _CACHE:
-        _CACHE["runner"] = _load("es_v1_3_runner_for_spec_mutation", RUNNER)
-    return _CACHE["runner"]
+def _runner(suite: str = DEFAULT_SUITE) -> ModuleType:
+    key = "runner:" + suite
+    if key not in _CACHE:
+        path = ROOT / "conformance" / suite / "run_evidence_sufficiency.py"
+        _CACHE[key] = _load("es_runner_for_spec_mutation_" + suite.replace("-", "_").replace(".", "_"), path)
+    return _CACHE[key]
 
 
 def _label_of() -> Callable[[str], str]:
@@ -622,11 +738,12 @@ def _case_rows(module: ModuleType, base: ModuleType, cases: list[dict]) -> tuple
     return row1, row2
 
 
-def score(job: tuple[dict, dict]) -> dict:
-    """All rows and the equivalence verdict for one mutant."""
-    mutant, original = job
-    runner = _runner()
-    cases = runner.load_json(V13 / "cases.json")["cases"]
+def score(job: tuple) -> dict:
+    """All rows and the equivalence verdict for one mutant; ``job`` is (mutant, model[, suite])."""
+    mutant, original, *rest = job
+    suite = rest[0] if rest else DEFAULT_SUITE
+    runner = _runner(suite)
+    cases = runner.load_json(runner.HERE / "cases.json")["cases"]
     name = "es_spec_mutant_" + hashlib.sha256(mutant["id"].encode()).hexdigest()[:16]
     module = model_checker(mutant["model"], name)
     try:
@@ -661,7 +778,7 @@ def _summarise(rows: list[dict]) -> dict:
         }
 
     by_operator = {}
-    for op in list(OPERATORS) + ["second_order"]:
+    for op in list(OPERATORS) + list(HELDOUT_OPERATORS) + ["second_order", "third_order"]:
         selected = [r for r in rows if r["operator"] == op]
         if selected:
             b = block(selected)
@@ -670,6 +787,7 @@ def _summarise(rows: list[dict]) -> dict:
     return {
         "first_order": block([r for r in rows if r["order"] == 1]),
         "second_order": block([r for r in rows if r["order"] == 2]),
+        "third_order": block([r for r in rows if r["order"] == 3]),
         "by_operator": by_operator,
         "row3_labels_of_kills_missed_on_row1": dict(Counter(
             label for r in live_row3 if not r["row1_kill"] for label in r["row3_labels"]
@@ -677,14 +795,17 @@ def _summarise(rows: list[dict]) -> dict:
     }
 
 
-def sweep(workers: int, sample: int = SECOND_ORDER_SAMPLE, seed: int = SEED, only: str | None = None) -> dict:
+def sweep(workers: int, sample: int = SECOND_ORDER_SAMPLE, seed: int = SEED, only: str | None = None,
+          suite: str = DEFAULT_SUITE, name: str = "v1") -> dict:
     original = load_model()
-    first = catalogue(original)
-    second = second_order(first, sample, seed, original)
-    mutants = [m for m in first + second if not only or m["id"].startswith(only)]
-    jobs = [({k: v for k, v in m.items() if k != "_edit"}, original) for m in mutants]
+    if name == "v1":
+        catalogued = build_catalogue("v1", sample, seed)
+    else:
+        catalogued = build_catalogue(name)
+    mutants = [m for m in catalogued if not only or m["id"].startswith(only)]
+    jobs = [({k: v for k, v in m.items() if k != "_edit"}, original, suite) for m in mutants]
     # The unmutated model, as a checker, must pass the runner; otherwise no kill means anything.
-    control = runner_failures_of(original)
+    control = runner_failures_of(original, suite)
     if control:
         raise SystemExit(f"the unmutated model fails the runner: {control[:5]}")
     if workers <= 1:
@@ -693,8 +814,10 @@ def sweep(workers: int, sample: int = SECOND_ORDER_SAMPLE, seed: int = SEED, onl
         with ProcessPoolExecutor(max_workers=workers) as pool:
             rows = list(pool.map(score, jobs, chunksize=4))
     return {
+        "suite": suite,
+        "catalogue": name,
         "model_sha256": hashlib.sha256(MODEL.read_bytes().replace(b"\r\n", b"\n")).hexdigest(),
-        "catalogue_sha256": catalogue_sha256(sample, seed),
+        "catalogue_sha256": catalogue_sha256(sample, seed, name),
         "seed": seed,
         "second_order_sample": sample,
         "summary": _summarise(rows),
@@ -702,11 +825,11 @@ def sweep(workers: int, sample: int = SECOND_ORDER_SAMPLE, seed: int = SEED, onl
     }
 
 
-def runner_failures_of(model: dict) -> list[str]:
+def runner_failures_of(model: dict, suite: str = DEFAULT_SUITE) -> list[str]:
     name = "es_spec_mutation_control"
     module = model_checker(model, name)
     try:
-        return list(_runner().build_record(module)["failures"])
+        return list(_runner(suite).build_record(module)["failures"])
     finally:
         sys.modules.pop(name, None)
 
@@ -714,7 +837,9 @@ def runner_failures_of(model: dict) -> list[str]:
 def survivors(report: dict) -> set[str]:
     """``row1 <id>`` and ``row3 <id>`` for every live mutant a row misses, first and second order."""
     out: set[str] = set()
-    for order in ("first_order", "second_order"):
+    for order in ("first_order", "second_order", "third_order"):
+        if order not in report["summary"]:
+            continue
         out |= {f"row1 {mid}" for mid in report["summary"][order]["row1_survivors"]}
         out |= {f"row3 {mid}" for mid in report["summary"][order]["row3_survivors"]}
     return out
@@ -753,20 +878,25 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--seed", type=int, default=SEED)
     parser.add_argument("--only", help="score only mutants whose id starts with this prefix (no gate)")
     parser.add_argument("--update", action="store_true", help="rewrite the baseline from this sweep")
+    parser.add_argument("--suite", default=DEFAULT_SUITE, help="the corpus that scores the mutants")
+    parser.add_argument("--catalogue", choices=CATALOGUES, default="v1",
+                        help="v1 (section 13, gated) or heldout (section 14, a measurement)")
     args = parser.parse_args(argv)
     if args.list or args.catalogue_sha256:
-        first = catalogue()
-        mutants = first + second_order(first, args.sample, args.seed)
+        mutants = build_catalogue(args.catalogue, args.sample if args.catalogue == "v1" else None,
+                                  args.seed if args.catalogue == "v1" else None)
         if args.list:
             sys.stdout.write(_canonical_catalogue(mutants))
         else:
             print(hashlib.sha256(_canonical_catalogue(mutants).encode("utf-8")).hexdigest())
         return 0
-    report = sweep(args.workers, args.sample, args.seed, args.only)
+    report = sweep(args.workers, args.sample, args.seed, args.only, args.suite, args.catalogue)
     if args.json:
         args.json.write_text(json.dumps(report, indent=1, sort_keys=True) + "\n", encoding="utf-8")
-    for order in ("first_order", "second_order"):
+    for order in ("first_order", "second_order", "third_order"):
         s = report["summary"][order]
+        if not s["mutants"]:
+            continue
         print(f"{order}: {s['mutants']} mutants, {s['equivalent']} equivalent on the domain, "
               f"{s['non_equivalent']} live; killed on row 1 {s['row1_killed']}, row 2 {s['row2_killed']}, "
               f"row 3 {s['row3_killed']}")
@@ -774,7 +904,8 @@ def main(argv: list[str]) -> int:
             print(f"  row-3 survivor {mid}")
         for mid in s["row1_survivors"]:
             print(f"  row-1 survivor {mid}")
-    if args.only:
+    if args.only or args.catalogue != "v1" or args.suite != GATED_SUITE:
+        # A partial sweep, the held-out catalogue or another corpus is a measurement, not the gate.
         return 0
     if args.update:
         header = [
