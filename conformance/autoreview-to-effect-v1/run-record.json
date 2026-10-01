@@ -1,0 +1,90 @@
+{
+  "adapter": "remora",
+  "adapter_sha256": "c3ae0f5a2b4108fb3abeeb1d4cc6c68a9290798cb2d1a489b5064000dd70689d",
+  "adapter_version": "0.11.0",
+  "counts": {
+    "divergent": 0,
+    "error": 0,
+    "match": 6,
+    "total": 6,
+    "unsupported": 0
+  },
+  "results": [
+    {
+      "executions": 1,
+      "expected": "EFFECT_VERIFIED",
+      "expected_executions": 1,
+      "expected_verdict": "ALLOW_VERIFIED",
+      "id": "AR-00",
+      "observed": "EFFECT_VERIFIED",
+      "property": "control",
+      "status": "MATCH",
+      "title": "control: approved call dispatches and the effect verifies",
+      "verdict": "ALLOW_VERIFIED"
+    },
+    {
+      "executions": 0,
+      "expected": "CALL_BINDING_MISMATCH",
+      "expected_executions": 0,
+      "expected_verdict": "BLOCK",
+      "id": "AR-01",
+      "observed": "CALL_BINDING_MISMATCH",
+      "property": "call binding",
+      "status": "MATCH",
+      "title": "approval, then arguments mutated",
+      "verdict": "BLOCK"
+    },
+    {
+      "executions": 0,
+      "expected": "IDENTITY_MISMATCH",
+      "expected_executions": 0,
+      "expected_verdict": "BLOCK",
+      "id": "AR-02",
+      "observed": "IDENTITY_MISMATCH",
+      "property": "identity binding",
+      "status": "MATCH",
+      "title": "approval, then identity/authority changes",
+      "verdict": "BLOCK"
+    },
+    {
+      "executions": 0,
+      "expected": "CALL_BINDING_MISMATCH",
+      "expected_executions": 0,
+      "expected_verdict": "BLOCK",
+      "id": "AR-03",
+      "observed": "CALL_BINDING_MISMATCH",
+      "property": "tool binding",
+      "status": "MATCH",
+      "title": "approval, then semantically equivalent alternate tool",
+      "verdict": "BLOCK"
+    },
+    {
+      "executions": 0,
+      "expected": "CONTEXT_CHANGED",
+      "expected_executions": 0,
+      "expected_verdict": "BLOCK",
+      "id": "AR-04",
+      "observed": "CONTEXT_CHANGED",
+      "property": "decision freshness",
+      "status": "MATCH",
+      "title": "approval, then policy becomes stale",
+      "verdict": "BLOCK"
+    },
+    {
+      "executions": 1,
+      "expected": "EFFECT_MISMATCH",
+      "expected_executions": 1,
+      "expected_verdict": "EFFECT_MISMATCH",
+      "id": "AR-05",
+      "observed": "EFFECT_MISMATCH",
+      "property": "effect verification",
+      "status": "MATCH",
+      "title": "approved execution, then claimed success differs from authoritative state",
+      "verdict": "EFFECT_MISMATCH"
+    }
+  ],
+  "run_kind": "author-run",
+  "runner_sha256": "706f814c9e297d92a72dfa307bc29d3d59b79bc86e79b6dc09ea8c1146707364",
+  "suite": "autoreview-to-effect-v1",
+  "suite_sha256": "f896178eac35aab8843f0902934f1433eb6dccb2a212fc4139a67890faaabd27"
+}
