@@ -10,7 +10,7 @@
     "db:init:remote": "wrangler d1 execute aromer-episodes --remote --file=src/schema.sql"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250430.0",
+    "@cloudflare/workers-types": "^5.20260928.1",
     "typescript": "^6.0.3",
     "wrangler": "^4.145.0"
   }
