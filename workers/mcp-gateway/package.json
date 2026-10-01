@@ -14,10 +14,10 @@
     "@cloudflare/containers": "^0.3.0"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260820.1",
-    "typescript": "^5.9.3",
+    "@cloudflare/workers-types": "^5.20260928.1",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.7",
-    "wrangler": "^4.125.0",
+    "wrangler": "^4.142.0",
     "@types/node": "^26.6.3"
   }
 }
