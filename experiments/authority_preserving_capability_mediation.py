@@ -254,7 +254,7 @@ def run_in_process(arm: str) -> dict:
 
     dispatcher = GovernedToolDispatcher("study-bundle")
     if arm == "A":
-        dispatcher.register(TOOL, lambda arguments: report_generate(arguments))
+        dispatcher.register(TOOL, report_generate)
     else:
         dispatcher.register(TOOL, report_generate, mediated=True)
         dispatcher.bind_downstream_ceilings(_ceiling())
