@@ -1,0 +1,57 @@
+{
+  "implementer": "p3e",
+  "style": "state-machine",
+  "files_read": [
+    "SPEC.md"
+  ],
+  "variants": [
+    {
+      "file": "variant_01.py",
+      "misreading": "A premise is treated as holding when it compares equal to true, so 1 (and 1.0) count as true."
+    },
+    {
+      "file": "variant_02.py",
+      "misreading": "A premise is treated as refuted whenever it is falsy, so absent, null, 0 and empty values count as refuted."
+    },
+    {
+      "file": "variant_03.py",
+      "misreading": "A candidate admission with an admission_matches value that is neither true nor false is treated as covering."
+    },
+    {
+      "file": "variant_04.py",
+      "misreading": "Guard 1 of admission_accounting only checks effect_seen and ignores effect_source_accepted."
+    },
+    {
+      "file": "variant_05.py",
+      "misreading": "The window_finalized guard is checked before the mandatory_admission guard in the absent-admission branch."
+    },
+    {
+      "file": "variant_06.py",
+      "misreading": "An unknown admission_present is treated as no admission observed and routed into the closed-world absence checks."
+    },
+    {
+      "file": "variant_07.py",
+      "misreading": "The effect_window_complete guard is omitted from the no-effect branch of tested_route_enforcement."
+    },
+    {
+      "file": "variant_08.py",
+      "misreading": "An unknown protected_effect_observed is treated as no effect, so it can earn refusal credit."
+    },
+    {
+      "file": "variant_09.py",
+      "misreading": "The outside_required_pep guard is checked before same_protected_operation in tested_route_enforcement."
+    },
+    {
+      "file": "variant_10.py",
+      "misreading": "State values are compared with numeric coercion, so true equals 1 and false equals 0."
+    },
+    {
+      "file": "variant_11.py",
+      "misreading": "A state value that is present but null is treated as missing instead of being compared."
+    },
+    {
+      "file": "variant_12.py",
+      "misreading": "Lists are compared as multisets, ignoring element order."
+    }
+  ]
+}

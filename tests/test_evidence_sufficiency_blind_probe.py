@@ -65,3 +65,40 @@ def test_correct_controls_agree_with_the_model_and_pass_the_runner() -> None:
     assert not result["fault"]
     for rows in result["rows"].values():
         assert not (rows["row1_kill"] or rows["row2_kill"] or rows["row3_kill"])
+
+
+PROBE2 = ROOT / "artifacts" / "evidence-sufficiency-blind-probe-2-2026-09-30"
+
+
+@pytest.mark.docgate
+def test_probe_2_inputs_match_their_digests_and_the_published_counts() -> None:
+    for line in (PROBE2 / "SHA256SUMS").read_text(encoding="utf-8").splitlines():
+        digest, name = line.split("  ", 1)
+        assert hashlib.sha256((PROBE2 / name).read_bytes()).hexdigest() == digest, name
+    tallies = json.loads(gzip.decompress((PROBE2 / "results" / "p2-tallies.json.gz").read_bytes()))["tallies"]
+    v14, v15 = tallies["evidence-sufficiency-v1.4"], tallies["evidence-sufficiency-v1.5"]
+    decision = v15["code_decision"] + v15["impl"]
+    assert decision == 77
+    assert (v14["code_decision_row3"] + v14["impl_row3"], v15["code_decision_row3"] + v15["impl_row3"]) == (74, 77)
+    assert (v14["code_decision_row1"] + v14["impl_row1"], v15["code_decision_row1"] + v15["impl_row1"]) == (73, 76)
+    faults = json.loads(gzip.decompress((PROBE2 / "results" / "p2-faults.json.gz").read_bytes()))
+    assert faults["criterion"]["open_gaps"] == ["P2C-20"]
+
+
+PROBE3 = ROOT / "artifacts" / "evidence-sufficiency-blind-probe-3-2026-09-30"
+
+
+@pytest.mark.docgate
+def test_probe_3_inputs_match_their_digests_and_the_published_counts() -> None:
+    for line in (PROBE3 / "SHA256SUMS").read_text(encoding="utf-8").splitlines():
+        digest, name = line.split("  ", 1)
+        if name.startswith("./SHA256SUMS"):
+            continue  # the digest file was being written when it was listed
+        assert hashlib.sha256((PROBE3 / name).read_bytes()).hexdigest() == digest, name
+    tallies = json.loads(gzip.decompress((PROBE3 / "results" / "p3-tallies.json.gz").read_bytes()))["tallies"]
+    v15, v16 = tallies["evidence-sufficiency-v1.5"], tallies["evidence-sufficiency-v1.6"]
+    assert v16["code_decision"] + v16["impl"] == 61
+    assert v16["code_decision_row3"] + v16["impl_row3"] == 61 == v16["code_decision_row1"] + v16["impl_row1"]
+    assert (v15["code_row3"] + v15["impl_row3"], v16["code_row3"] + v16["impl_row3"]) == (94, 97)
+    faults = json.loads(gzip.decompress((PROBE3 / "results" / "p3-faults.json.gz").read_bytes()))
+    assert faults["criterion"]["row3_survivors"] == ["P3A-18", "P3B-19", "P3C-02", "P3C-05", "P3C-09", "P3C-15", "P3C-19"]

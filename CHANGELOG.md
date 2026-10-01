@@ -75,8 +75,26 @@ This file lists externally relevant changes by release. Fine-grained development
   context-free agents wrote 60 checker faults and 36 reimplementation
   variants without seeing the corpus. Row 3 of v1.4 kills 80 of 83 decision
   faults and row 1 kills 76, the same as v1.3. Six faults survive every row,
-  three of them a `null` state value (NEGATIVE_RESULTS.md §70, open). The
+  three of them a `null` state value (NEGATIVE_RESULTS.md §70). The
   corpus is unchanged.
+- Evidence-sufficiency v1.5 (`conformance/evidence-sufficiency-v1.5/`):
+  classes instead of fault lists. Rule-coverage profile v2 derives 274 cases
+  (every value class of every premise, including absence and `null`; every
+  pair of failing guards; 26 state pairs); the model lattice is wider; new
+  runner sections generate the input contract (container types, 24 non-JSON
+  value classes, near misses of `premise_source` and claims) and check that
+  no returned value aliases the verdict. Measured on a second blind probe
+  locked before v1.5 existed: 77 of 77 decision faults on row 3 (v1.4: 74),
+  one survivor in a new class (NEGATIVE_RESULTS.md §71). Found on the way:
+  the frozen checker copies a scope shallowly (recorded as a limit).
+- Evidence-sufficiency v1.6 (`conformance/evidence-sufficiency-v1.6/`): v1.5
+  plus a differential test of the whole public API against an executable
+  contract (2,000 seeded inputs; exact types, value semantics, copy and
+  pickle, deep input non-mutation, order, module state, the enum contract).
+  On a third blind probe locked before v1.6: all 61 decision faults killed,
+  97 of 104 faults in all (v1.5: 94); two new kills are in classes no probe
+  had named; five faults on the API surface survive (NEGATIVE_RESULTS.md
+  §72, open).
 - Evidence-sufficiency v1.2 (`conformance/evidence-sufficiency-v1.2/`): the
   50 v1.1 cases verbatim plus E18-E20, which tell apart the three withheld
   `canonical()` faults from the external v1.1 run. v1 and v1.1 are frozen.

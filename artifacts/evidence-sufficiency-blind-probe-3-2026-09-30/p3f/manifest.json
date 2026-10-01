@@ -1,0 +1,57 @@
+{
+ "implementer": "p3f",
+ "style": "data-driven-engine",
+ "files_read": [
+  "SPEC.md"
+ ],
+ "variants": [
+  {
+   "file": "variant_01.py",
+   "misreading": "Checked admission_coverage_complete before window_finalized in the closed-world absence branch."
+  },
+  {
+   "file": "variant_02.py",
+   "misreading": "Required only effect_source_accepted in the first admission guard, forgetting effect_seen."
+  },
+  {
+   "file": "variant_03.py",
+   "misreading": "Treated any truthy value as a holding premise instead of exactly JSON true."
+  },
+  {
+   "file": "variant_04.py",
+   "misreading": "Treated any non-holding premise (absent, null, etc.) as refuted."
+  },
+  {
+   "file": "variant_05.py",
+   "misreading": "Let a boolean compare equal to the number 1 or 0 in state comparison."
+  },
+  {
+   "file": "variant_06.py",
+   "misreading": "Compared lists without regard to element order."
+  },
+  {
+   "file": "variant_07.py",
+   "misreading": "Treated a state key with null value as missing rather than only an absent key."
+  },
+  {
+   "file": "variant_08.py",
+   "misreading": "Swapped the order of the same_protected_operation and outside_required_pep guards."
+  },
+  {
+   "file": "variant_09.py",
+   "misreading": "Checked refusal attribution before the valid-control guard."
+  },
+  {
+   "file": "variant_10.py",
+   "misreading": "Only a refuted admission_matches blocked establishment; absent or non-boolean values counted as a match."
+  },
+  {
+   "file": "variant_11.py",
+   "misreading": "Omitted the freshness guard from the postcondition rules."
+  },
+  {
+   "file": "variant_12.py",
+   "misreading": "Compared mappings with key order significant."
+  }
+ ]
+}

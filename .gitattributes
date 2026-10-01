@@ -41,3 +41,7 @@ artifacts/independent-analysis-2026-09-30/** -text
 
 # Blind probe outputs, committed byte for byte (pre-registered by SHA256SUMS).
 artifacts/evidence-sufficiency-blind-probe-2026-09-30/** -text
+
+artifacts/evidence-sufficiency-blind-probe-2-2026-09-30/** -text
+
+artifacts/evidence-sufficiency-blind-probe-3-2026-09-30/** -text

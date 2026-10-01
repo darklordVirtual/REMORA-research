@@ -23,7 +23,11 @@ jobs:
     # green. The master push for #637 (run 36617592241) and the #644 pull
     # request run (36730336077) were both cancelled by the limit during the
     # frontend steps after the coverage pass took 7:03 and 7:29.
-    timeout-minutes: 15
+    # 20, not 15 (2026-10-01): the coverage pass reached 10:41 (8133 tests) with
+    # the evidence-sufficiency v1.5-v1.7 suites, and #650's run 36832213464 was
+    # cancelled by the limit in the documentation-gate step with every earlier
+    # step green.
+    timeout-minutes: 20
 
     # Real Postgres alongside the coverage run (2026-08-26, external review):
     # the Postgres adapters in enforcement/gate.py and enforcement/outbox.py
