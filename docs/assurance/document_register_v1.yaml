@@ -2613,6 +2613,17 @@ documents:
   audience:
   - evaluators
   - integrators
+- id: DOC-352
+  path: conformance/safety-case-evidence-profile-v0.1/README.md
+  status: canonical
+  topic: conformance_safety-case-evidence-profile-v0.1_readme_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-10-01'
+  last_reviewed: '2026-10-01'
+  audience:
+  - evaluators
+  - integrators
 topics:
 - docs_integrations_jev_decision_provider_md
 - docs_integrations_mcp-gateway_md
@@ -2897,3 +2908,4 @@ topics:
 - docs_assurance_external_adequacy_evidence_sufficiency_v1_md
 - docs_design_evidence-sufficiency-v1.3_md
 - conformance_autoreview-to-effect-v1_readme_md
+- conformance_safety-case-evidence-profile-v0.1_readme_md
