@@ -519,7 +519,8 @@ moved, not against a different plan presented later.
 bearer token to a fixed tenant and role; callers cannot forge either.
 Single-token mode (`REMORA_API_BEARER_TOKEN`) reads tenant/role from
 caller-asserted headers and therefore has **no role separation**; in
-`REMORA_ENV=production` the role header is ignored and pinned to
+`REMORA_ENV` values other than `development`/`dev` (including `production`
+and `staging`) the role header is ignored and pinned to
 `operator`, so approval-role gating cannot be satisfied in this mode (see
 SECURITY.md). Dev mode (no credentials + `REMORA_ENV=development`) runs
 without auth; production without credentials is a startup error.

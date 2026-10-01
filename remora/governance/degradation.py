@@ -37,9 +37,14 @@ from pathlib import Path
 from typing import Any
 
 from remora.policy.decision_engine import (
-    _MUTATING_TYPES,
+    _NON_ACTUATING_TYPES,
     _PROD_ENVS,
+    _READ_ONLY_TYPES,
 )
+
+# G4 is an allowlist: only positively known read-only / non-actuating types
+# may proceed. Unknown or missing action types are not known to be safe.
+_G4_ALLOWED_TYPES: frozenset[str] = _READ_ONLY_TYPES | _NON_ACTUATING_TYPES
 
 # ---------------------------------------------------------------------------
 # Links and modes
@@ -81,14 +86,15 @@ MODE_SEVERITY: dict[GovernanceMode, int] = {
 def g4_refuses(action_type: str | None, target_environment: str | None) -> bool:
     """G4 policy: does this action stop when the control plane is unreachable?
 
-    Mutating action types and production-targeting environments refuse;
-    everything else may proceed with a warning. Vocabulary is imported from
-    the decision engine so this cannot drift from the engine's own
-    classification.
+    Default-deny: only action types in the decision engine's read-only or
+    non-actuating vocabulary may proceed (with a warning), and only outside
+    production environments. Unknown, empty and missing action types refuse,
+    matching the engine's "unknown must mean not authorized" rule. Vocabulary
+    is imported from the engine so this cannot drift from it.
     """
     normalized_type = (action_type or "").strip().lower()
     normalized_env = (target_environment or "").strip().lower()
-    return normalized_type in _MUTATING_TYPES or normalized_env in _PROD_ENVS
+    return normalized_type not in _G4_ALLOWED_TYPES or normalized_env in _PROD_ENVS
 
 
 # ---------------------------------------------------------------------------

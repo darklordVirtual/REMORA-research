@@ -9,9 +9,9 @@ planned against revision 7 of a work order executed just as readily when the
 work order was at revision 9, because nothing recorded that the plan had
 read revision 7.
 
-Chen, Wang and Brinton (2026), *Fresh Memory, Stale Plans:
-Dependency-Scoped Validation for Distributed LLM-Agent Memory*
-(arXiv:2609.03340, SHELF-032), make the case for validating a plan against
+Chen, Wang and Brinton (2026), *Fresh Memory, Stale Plans: Derivation
+Currency for Distributed LLM-Agent Memory* (arXiv:2609.03340, SHELF-032;
+v1 was titled "Dependency-Scoped Validation ..."), make the case for validating a plan against
 the specific state it depends on rather than against everything, so that a
 change elsewhere does not invalidate it. This module takes that rule:
 

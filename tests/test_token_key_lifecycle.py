@@ -83,6 +83,28 @@ def test_revoked_kid_refuses_even_with_key_present(env) -> None:
     assert result.reason == "kid_revoked"
 
 
+def test_revoked_previous_key_does_not_verify_a_kidless_token(env) -> None:
+    # A leaked key that was revoked must not forge tokens by omitting the kid.
+    env.setenv("REMORA_PDP_SIGNING_KEY", "leaked-key")
+    forged = _issue()  # signed with the leaked key, no kid
+    assert forged.kid == ""
+    env.setenv("REMORA_PDP_SIGNING_KEY", "key-new")
+    env.setenv("REMORA_PDP_SIGNING_KID", "k-new")
+    env.setenv("REMORA_PDP_PREVIOUS_KEYS", "k-leaked=leaked-key")
+    assert forged.verify(OBS, now=NOW).verified is True  # overlap, not yet revoked
+    env.setenv("REMORA_PDP_REVOKED_KIDS", "k-leaked")
+    result = forged.verify(OBS, now=NOW)
+    assert result.verified is False
+    assert result.reason == "signature_invalid"
+
+
+def test_revoked_current_kid_refuses_a_kidless_token(env) -> None:
+    env.setenv("REMORA_PDP_SIGNING_KID", "k-cur")
+    kidless = PolicyDecisionToken.from_dict({**_issue().to_dict(), "kid": ""})
+    env.setenv("REMORA_PDP_REVOKED_KIDS", "k-cur")
+    assert kidless.verify(OBS, now=NOW).verified is False
+
+
 def test_unknown_kid_refuses(env) -> None:
     env.setenv("REMORA_PDP_SIGNING_KID", "k-x")
     token = _issue()

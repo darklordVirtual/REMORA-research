@@ -61,6 +61,7 @@ answers, latency or availability. It is evidence about the parsing.
 from __future__ import annotations
 
 import json
+import math
 import os
 import time
 import urllib.error
@@ -124,6 +125,23 @@ def _error_detail(exc: urllib.error.HTTPError) -> str:
             code = error.get("code")
             parts.append(f"{message} (code {code})" if code is not None else str(message))
     return "; ".join(parts) or "no detail"
+
+
+def _finite(value: Any, what: str) -> float:
+    """A real, finite number; bool, text and None are refused, not coerced."""
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise DecisionProviderError(f"{what} is not a number: {value!r}")
+    number = float(value)
+    if not math.isfinite(number):
+        raise DecisionProviderError(f"{what} is not finite: {value!r}")
+    return number
+
+
+def _unit_interval(value: Any, what: str) -> float:
+    number = _finite(value, what)
+    if not 0.0 <= number <= 1.0:
+        raise DecisionProviderError(f"{what} is outside [0, 1]: {value!r}")
+    return number
 
 
 class CloudflareJevProvider:
@@ -199,7 +217,7 @@ class CloudflareJevProvider:
         if kind == "noul":
             if "noul" not in raw:
                 raise DecisionProviderError(f"noul answer for {question.id!r} has no value")
-            probability = float(raw["noul"])
+            probability = _unit_interval(raw["noul"], f"noul answer for {question.id!r}")
             return DecisionAnswer(
                 question_id=question.id,
                 value=probability,
@@ -228,7 +246,7 @@ class CloudflareJevProvider:
             labels = question.legend
         return DecisionAnswer(
             question_id=question.id,
-            value=float(raw["score"]),
+            value=_finite(raw["score"], f"score answer for {question.id!r}"),
             probabilities=dict(probabilities) if probabilities else None,
             confidence=raw.get("confidence"),
             legend=labels or None,
@@ -287,7 +305,20 @@ class CloudflareJevProvider:
         for question in questions:
             if question.id not in raw_answers:
                 raise DecisionProviderError(f"no answer for question {question.id!r}")
-            answers.append(self._answer(question, raw_answers[question.id]))
+            raw_answer = raw_answers[question.id]
+            if not isinstance(raw_answer, Mapping):
+                raise DecisionProviderError(
+                    f"answer for question {question.id!r} is not an object"
+                )
+            try:
+                answers.append(self._answer(question, raw_answer))
+            except DecisionProviderError:
+                raise
+            except (TypeError, ValueError, KeyError, AttributeError) as exc:
+                raise DecisionProviderError(
+                    f"malformed answer for question {question.id!r}: "
+                    f"{type(exc).__name__}: {exc}"
+                ) from exc
 
         return DecisionEvidence(
             provider=self.provider_name,
@@ -303,14 +334,20 @@ class CloudflareJevProvider:
     def _fetch(
         self, url: str, payload: bytes, headers: Mapping[str, str], timeout_s: float
     ) -> Mapping[str, Any]:
+        # ``timeout_s`` is an overall deadline across all attempts and backoff.
+        deadline = time.monotonic() + timeout_s
         last: Exception | None = None
         for attempt in range(self._max_attempts):
+            remaining = deadline - time.monotonic()
+            if attempt > 0 and remaining <= 0:
+                break
             try:
-                return self._transport(url, payload, headers, timeout_s)
+                return self._transport(url, payload, headers, max(remaining, 0.001))
             except urllib.error.HTTPError as exc:
                 last = exc
                 if exc.code in _RETRYABLE and attempt < self._max_attempts - 1:
-                    time.sleep(2**attempt)
+                    if not _backoff(2**attempt, deadline):
+                        break
                     continue
                 raise DecisionProviderError(
                     f"Workers AI returned HTTP {exc.code}: {_error_detail(exc)}"
@@ -318,7 +355,16 @@ class CloudflareJevProvider:
             except (urllib.error.URLError, TimeoutError, OSError, ValueError) as exc:
                 last = exc
                 if attempt < self._max_attempts - 1:
-                    time.sleep(2**attempt)
+                    if not _backoff(2**attempt, deadline):
+                        break
                     continue
                 raise DecisionProviderError(f"Workers AI request failed: {exc}") from exc
         raise DecisionProviderError(f"Workers AI request failed: {last}")
+
+
+def _backoff(delay_s: float, deadline: float) -> bool:
+    """Sleep ``delay_s`` only if it ends before ``deadline``; False if it cannot."""
+    if time.monotonic() + delay_s >= deadline:
+        return False
+    time.sleep(delay_s)
+    return True

@@ -210,7 +210,9 @@ class DomainCoverageOptimizer:
     def threshold(self, domain: str) -> float:
         """Return the optimal accept threshold for *domain*.
 
-        Falls back to the global threshold for unknown domains.
+        Unknown domains get ``fallback_threshold`` (the constructor value,
+        0.65 by default). The threshold fitted on all data is stored in
+        ``_global_threshold`` but is not consulted here.
         """
         return self._thresholds.get(domain, self.fallback_threshold)
 

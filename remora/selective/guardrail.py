@@ -497,6 +497,9 @@ class PhaseAwareGuardrail:
                     if accepted else None
                 ),
             }
+        else:
+            # Too few items to fit: a refit must not keep a stale threshold.
+            self._ordered_threshold = UNATTAINABLE_THRESHOLD
 
         # Critical phase: calibrate on *inverted* score (1 - tau) after hard
         # filtering out high-tau items (the groupthink errors)
@@ -524,6 +527,8 @@ class PhaseAwareGuardrail:
                     if accepted else None
                 ),
             }
+        else:
+            self._critical_inv_threshold = UNATTAINABLE_THRESHOLD
 
         self._fitted = True
         return summary

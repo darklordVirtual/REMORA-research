@@ -17,6 +17,9 @@ RiskLevel = Literal["low", "medium", "high", "critical"]
 GovernanceRoute = Literal["ACCEPT", "VERIFY", "ABSTAIN", "ESCALATE"]
 
 
+_NON_AGENT_ACTORS = frozenset({"human", "service"})
+
+
 @dataclass(frozen=True)
 class GovernanceLayer:
     """One memory/control layer in a nested governance model."""
@@ -102,7 +105,10 @@ class NestedGovernanceModel:
             )
 
         reasons: list[str] = []
-        actor_is_agent = request.actor.lower() in {"agent", "assistant", "model", "llm"}
+        # Default-deny: only explicitly human/approved actors are non-agents.
+        # Any other actor string (e.g. "claude-subagent", "bot") is treated as
+        # an agent, so it cannot write layers that are closed to agents.
+        actor_is_agent = request.actor.strip().lower() not in _NON_AGENT_ACTORS
 
         if actor_is_agent and not layer.writable_by_agent:
             reasons.append("agent_write_not_allowed")

@@ -10,6 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
+from remora.selective.conformal import UNATTAINABLE_THRESHOLD
+
 
 def risk_coverage_curve(scores: list[float], labels: list[bool]) -> list[dict]:
     """Return a monotonic coverage sweep with empirical risk.
@@ -50,7 +52,14 @@ def threshold_for_target_risk(scores: list[float], labels: list[bool], target_ri
     If no threshold satisfies the target, return >1.0 to force abstention.
     """
     curve = risk_coverage_curve(scores, labels)
-    eligible = [row for row in curve if row["risk"] <= target_risk]
+    # A threshold admits every item scoring >= it, so only the LAST row of a
+    # tied score block describes a realisable operating point.
+    eligible = [
+        row
+        for i, row in enumerate(curve)
+        if row["risk"] <= target_risk
+        and (i + 1 == len(curve) or curve[i + 1]["threshold"] != row["threshold"])
+    ]
     if not eligible:
         return 1.01
     return min(row["threshold"] for row in eligible)
@@ -77,7 +86,8 @@ class SelectiveRouter:
     """Simple target-risk router for confidence scores in [0, 1]."""
 
     target_risk: float = 0.05
-    threshold: float = 0.5
+    # Unfitted routers abstain: an unattainable threshold, not 0.5.
+    threshold: float = UNATTAINABLE_THRESHOLD
     verify_margin: float = 0.05
 
     def fit(self, calibration_scores: list[float], calibration_labels: list[bool]) -> float:

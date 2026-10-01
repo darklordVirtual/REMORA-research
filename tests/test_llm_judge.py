@@ -105,3 +105,21 @@ class TestLLMJudge:
         v_low = JudgeVerdict(JudgeOutcome.SUPPORTED, 0.69, "ok")
         assert v_high.is_trustworthy
         assert not v_low.is_trustworthy
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["the claim is unsupported", "this is not supported by the evidence", "claim is not supported"],
+)
+def test_negated_support_in_free_text_is_not_supported(text):
+    assert _parse_verdict(text).outcome != JudgeOutcome.SUPPORTED
+
+
+def test_refuted_in_free_text_beats_supported_word():
+    assert _parse_verdict("evidence supported at first but the claim is refuted").outcome == JudgeOutcome.REFUTED
+
+
+@pytest.mark.parametrize("conf", ['"nan"', "NaN", "Infinity", '"inf"'])
+def test_non_finite_judge_confidence_is_zero(conf):
+    v = _parse_verdict('{"verdict": "supported", "confidence": %s}' % conf)
+    assert v.confidence == 0.0

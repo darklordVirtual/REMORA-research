@@ -23,10 +23,13 @@ Semantics, in the order an item lives through them:
      gate's own recomputation;
    - the engine re-decides on the fresh observation. The approval survives
      only an equal-or-safer world:
-     ``severity(fresh) <= severity(approved)`` → execute; otherwise the
-     approval is void (``approval_invalidated``) and the item re-enters the
-     queue carrying the fresh, stricter action. Decision monotonicity
-     applied over time.
+     ``severity(fresh) <= severity(approved)`` AND the fresh action is
+     executable (ACCEPT or VERIFY) → execute; otherwise the approval is void
+     (``approval_invalidated``) and the item re-enters the queue carrying the
+     fresh action. That includes a fresh ESCALATE or ABSTAIN even when its
+     severity equals or is below the approval's: those never execute, so an
+     approved ESCALATE re-decided as ESCALATE is voided, not "stricter".
+     Decision monotonicity applied over time.
 
 All state changes append to a hash-chained :class:`ChainedEventLog`
 (tamper-evident; same discipline as the decision audit chain). The queue is
@@ -516,7 +519,7 @@ class ReviewQueue:
             )
 
         # World got riskier: void the approval, re-enter the queue with the
-        # fresh (stricter) action.
+        # fresh action (stricter, or a non-executable outcome at any severity).
         item.status = ItemStatus.PENDING
         item.approval = None
         item.requested_action = fresh.action
@@ -534,8 +537,9 @@ class ReviewQueue:
         return ExecutionOutcome(
             ExecutionDecision.APPROVAL_INVALIDATED,
             fresh.action,
-            "fresh decision is stricter than the approval; approval voided "
-            "and item re-queued",
+            "fresh decision is stricter than the approval, or is not an "
+            "executable outcome (ABSTAIN/ESCALATE never execute, even at "
+            "equal severity); approval voided and item re-queued",
         )
 
     # ------------------------------------------------------------------

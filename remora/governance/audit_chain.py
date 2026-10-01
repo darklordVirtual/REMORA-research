@@ -42,6 +42,7 @@ Persistence::
 """
 from __future__ import annotations
 
+import dataclasses
 import hashlib
 import hmac
 import json
@@ -51,7 +52,7 @@ from pathlib import Path
 from collections.abc import Iterator
 from typing import Any
 
-from remora.governance.envelope import AuditBlock, DecisionEnvelope
+from remora.governance.envelope import DecisionEnvelope
 
 # ---------------------------------------------------------------------------
 # Chain entry
@@ -180,23 +181,15 @@ class RemoraAuditChain:
         self._entries.append(entry)
         self._prev_hash = entry_hash
 
-        # Return a sealed copy of the envelope
-        sealed_audit = AuditBlock(
+        # Return a sealed copy: only the chain-derived audit fields change.
+        sealed_audit = dataclasses.replace(
+            envelope.audit,
             policy_version=policy_version,
             hash=entry_hash,
             previous_hash=entry.previous_hash,
             signature=signature,
         )
-        return DecisionEnvelope(
-            request=envelope.request,
-            assessment=envelope.assessment,
-            gate=envelope.gate,
-            reviewer_context=envelope.reviewer_context,
-            follow_up=envelope.follow_up,
-            history=envelope.history,
-            policy_learning=envelope.policy_learning,
-            audit=sealed_audit,
-        )
+        return dataclasses.replace(envelope, audit=sealed_audit)
 
     def verify(self) -> tuple[bool, list[str]]:
         """Verify integrity of the entire chain.
@@ -238,8 +231,13 @@ class RemoraAuditChain:
                     f"expected {expected[:16]}… got {entry.hash[:16]}…"
                 )
 
-            # Verify signature if present
-            if entry.signature is not None and self._secret is not None:
+            # A keyed chain must carry a valid signature on every entry;
+            # a stripped signature is tampering, not an unsigned entry.
+            if self._secret is not None and entry.signature is None:
+                violations.append(
+                    f"[{entry.index}] signature_missing"
+                )
+            elif entry.signature is not None and self._secret is not None:
                 expected_sig = self._sign(entry.hash)
                 if not hmac.compare_digest(entry.signature, expected_sig):
                     violations.append(

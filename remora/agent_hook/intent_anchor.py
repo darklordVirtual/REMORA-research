@@ -17,6 +17,28 @@ def default_session_dir() -> Path:
     return Path(os.environ.get("REMORA_SESSION_DIR", ".remora_session"))
 
 
+def atomic_write_text(path: Path, text: str) -> None:
+    """Write ``text`` to ``path`` via temp file + os.replace (never truncates in place)."""
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f"{path.name}.{os.getpid()}.{time.monotonic_ns()}.tmp")
+    try:
+        tmp.write_text(text, encoding="utf-8")
+        os.replace(tmp, path)
+    finally:
+        if tmp.exists():
+            tmp.unlink()
+
+
+def quarantine_file(path: Path) -> None:
+    """Move an unreadable state file aside so its bytes are kept for forensics."""
+
+    try:
+        os.replace(path, path.with_name(f"{path.name}.corrupt-{time.time_ns()}"))
+    except OSError:
+        pass
+
+
 class IntentAnchor:
     """Persistent intent store for one local agent session.
 
@@ -35,17 +57,32 @@ class IntentAnchor:
         if not self.intent_file.exists():
             return
         try:
-            self._data = json.loads(self.intent_file.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            self._data = {}
+            data = json.loads(self.intent_file.read_text(encoding="utf-8"))
+            if not isinstance(data, dict):
+                raise ValueError("intent state is not an object")
+            self._data = data
+        except (OSError, ValueError):
+            # Fail closed: an unreadable anchor must not silently become "no
+            # anchor". Keep the bytes, and mark the session as anchored-but-
+            # unreadable so drift_score() reports maximal drift until the
+            # session is explicitly re-anchored.
+            quarantine_file(self.intent_file)
+            self._data = {"corrupt": True, "tool_call_count": 0}
+            try:
+                self._save()
+            except OSError:
+                pass
 
     def _save(self) -> None:
-        self.session_dir.mkdir(parents=True, exist_ok=True)
-        self.intent_file.write_text(json.dumps(self._data, indent=2), encoding="utf-8")
+        atomic_write_text(self.intent_file, json.dumps(self._data, indent=2))
+
+    @property
+    def corrupt(self) -> bool:
+        return bool(self._data.get("corrupt"))
 
     @property
     def anchored(self) -> bool:
-        return bool(self._data.get("intent"))
+        return bool(self._data.get("intent")) or self.corrupt
 
     @property
     def intent(self) -> str:
@@ -87,6 +124,8 @@ class IntentAnchor:
         should be replaced or augmented by embeddings in live deployments.
         """
 
+        if self.corrupt:
+            return 1.0
         if not self.intent:
             return 0.0
 
