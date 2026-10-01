@@ -70,6 +70,13 @@ This file lists externally relevant changes by release. Fine-grained development
   the fault file against its public digest, scores v1.2 to v1.4 in the three
   rows, and applies the pre-registered criterion. It reproduces the
   independent analysis's own raw rows for all 43 of its faults.
+- A pre-registered blind probe of evidence-sufficiency v1.4
+  (`artifacts/evidence-sufficiency-blind-probe-2026-09-30/`): six
+  context-free agents wrote 60 checker faults and 36 reimplementation
+  variants without seeing the corpus. Row 3 of v1.4 kills 80 of 83 decision
+  faults and row 1 kills 76, the same as v1.3. Six faults survive every row,
+  three of them a `null` state value (NEGATIVE_RESULTS.md §70, open). The
+  corpus is unchanged.
 - Evidence-sufficiency v1.2 (`conformance/evidence-sufficiency-v1.2/`): the
   50 v1.1 cases verbatim plus E18-E20, which tell apart the three withheld
   `canonical()` faults from the external v1.1 run. v1 and v1.1 are frozen.

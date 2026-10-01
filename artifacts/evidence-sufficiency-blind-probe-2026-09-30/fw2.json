@@ -1,0 +1,129 @@
+{
+  "selector": "fw2-semantic-misreadings",
+  "files_read": [
+    "conformance/evidence-sufficiency-v1/checker.py",
+    "conformance/evidence-sufficiency-v1/README.md"
+  ],
+  "faults": [
+    {
+      "id": "FW2-01",
+      "old": "    if o.get(\"window_finalized\") is not True:\n        return _unknown(claim, \"observation_window_open\", scope)\n",
+      "new": "",
+      "rationale": "Treats a missing admission in a still-open window as final, so absence in an unfinalized window becomes VIOLATED instead of NOT_ESTABLISHED."
+    },
+    {
+      "id": "FW2-02",
+      "old": "if o.get(\"admission_coverage_complete\") is not True:",
+      "new": "if o.get(\"admission_coverage_complete\") is False:",
+      "rationale": "Assumes coverage is complete unless explicitly flagged incomplete, so unknown coverage lets absence refute the claim."
+    },
+    {
+      "id": "FW2-03",
+      "old": "if o.get(\"mandatory_admission\") is not True:",
+      "new": "if o.get(\"mandatory_admission\") is False:",
+      "rationale": "Assumes every action class requires admission unless told otherwise, so an undefined requirement makes absence decisive."
+    },
+    {
+      "id": "FW2-04",
+      "old": "if o.get(\"admission_present\") is not False:",
+      "new": "if o.get(\"admission_present\", False) is not False:",
+      "rationale": "Treats an unreported admission presence as 'no admission present', conflating absence of evidence with evidence of absence."
+    },
+    {
+      "id": "FW2-05",
+      "old": "        if o.get(\"admission_source_accepted\") is not True:\n            return _unknown(claim, \"admission_observation_unaccepted\", scope)\n",
+      "new": "",
+      "rationale": "Lets an unaccepted admission record count, so a matching but unaccepted admission yields ESTABLISHED."
+    },
+    {
+      "id": "FW2-06",
+      "old": "        return _unknown(claim, \"candidate_admission_does_not_establish_a_covering_admission\", scope)",
+      "new": "        return _result(claim, EvidenceStatus.VIOLATED, \"candidate_admission_does_not_establish_a_covering_admission\", scope)",
+      "rationale": "Reads a non-matching candidate admission as proof of a bypass, returning VIOLATED where the evidence is only inconclusive."
+    },
+    {
+      "id": "FW2-07",
+      "old": "if o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True:",
+      "new": "if o.get(\"effect_seen\") is not True:",
+      "rationale": "Trusts an execution observation without its source being accepted, so unaccepted executions proceed to decisive verdicts."
+    },
+    {
+      "id": "FW2-08",
+      "old": "if o.get(\"scope_accepted\") is not True:",
+      "new": "if o.get(\"scope_accepted\") is False:",
+      "rationale": "Treats an unstated scope as accepted, so evidence without a bound scope can still establish or refute."
+    },
+    {
+      "id": "FW2-09",
+      "old": "if o.get(\"protected_effect_observed\") is not False:",
+      "new": "if o.get(\"protected_effect_observed\", False) is not False:",
+      "rationale": "Treats an unreported protected effect as 'no effect', letting a missing observation support positive enforcement credit."
+    },
+    {
+      "id": "FW2-10",
+      "old": "    if o.get(\"effect_window_complete\") is not True:\n        return _unknown(claim, \"no_effect_observation_not_complete\", scope)\n",
+      "new": "",
+      "rationale": "Conflates 'no effect observed yet' with 'no effect occurred', so a refusal in an open downstream window becomes ESTABLISHED."
+    },
+    {
+      "id": "FW2-11",
+      "old": "    if o.get(\"valid_control_same_context\") is not True:\n        return _unknown(claim, \"valid_control_missing_or_incomparable\", scope)\n",
+      "new": "",
+      "rationale": "Gives positive credit for a refusal without a comparable valid control, so a route that is simply broken looks enforced."
+    },
+    {
+      "id": "FW2-12",
+      "old": "    if o.get(\"required_boundary_refusal_accepted\") is not True:\n        return _unknown(claim, \"refusal_not_attributed_to_required_boundary\", scope)\n",
+      "new": "",
+      "rationale": "Infers the required boundary caused the refusal from 403/no-effect alone, yielding ESTABLISHED without accepted attribution."
+    },
+    {
+      "id": "FW2-13",
+      "old": "if o.get(\"effect_observation_accepted\") is not True:",
+      "new": "if o.get(\"effect_observation_accepted\") is False:",
+      "rationale": "Treats an effect observation of unknown acceptance as accepted, so unaccepted downstream evidence can refute or establish."
+    },
+    {
+      "id": "FW2-14",
+      "old": "    if o.get(\"scope_accepted\") is not True:\n        return _unknown(claim, \"scope_unaccepted_or_missing\", scope)\n    if o.get(\"admission_present\") is True:",
+      "new": "    if o.get(\"admission_present\") is True and o.get(\"admission_matches\") is True and o.get(\"admission_source_accepted\") is True:\n        return _result(claim, EvidenceStatus.ESTABLISHED, \"covering_admission_observed_for_this_execution\", scope)\n    if o.get(\"scope_accepted\") is not True:\n        return _unknown(claim, \"scope_unaccepted_or_missing\", scope)\n    if o.get(\"admission_present\") is True:",
+      "rationale": "Short-circuits to ESTABLISHED on a matching accepted admission before checking the scope premise, crediting admissions outside the bounded scope."
+    },
+    {
+      "id": "FW2-15",
+      "old": "    if o.get(\"same_protected_operation\") is not True:\n        return _unknown(claim, \"target_or_operation_not_bound\", scope)\n",
+      "new": "",
+      "rationale": "Forgets that route evidence must bind to the same protected operation, so an effect or refusal on a different operation decides the claim."
+    },
+    {
+      "id": "FW2-16",
+      "old": "            EvidenceStatus.VIOLATED,\n            \"accepted_effect_observed_outside_required_pep\",",
+      "new": "            EvidenceStatus.ESTABLISHED,\n            \"accepted_effect_observed_outside_required_pep\",",
+      "rationale": "Reads an observed effect via the alternative route as 'the route works' and returns ESTABLISHED for the decisive counterexample."
+    },
+    {
+      "id": "FW2-17",
+      "old": "if o.get(\"fresh_in_declared_window\") is not True:",
+      "new": "if o.get(\"fresh_in_declared_window\") is False:",
+      "rationale": "Assumes a read-back is fresh unless flagged stale, so time-unbound read-backs establish or refute the postcondition."
+    },
+    {
+      "id": "FW2-18",
+      "old": "        return _unknown(claim, \"declared_settlement_point_not_reached\", scope)",
+      "new": "        return _result(claim, EvidenceStatus.VIOLATED, \"declared_settlement_point_not_reached\", scope)",
+      "rationale": "Treats a postcondition checked before its settlement point as failed, returning VIOLATED instead of NOT_ESTABLISHED."
+    },
+    {
+      "id": "FW2-19",
+      "old": "    if \"expected_state\" not in o or \"observed_state\" not in o:\n        return _unknown(claim, \"state_value_missing\", scope)\n",
+      "new": "    if \"expected_state\" not in o:\n        return _unknown(claim, \"state_value_missing\", scope)\n    if \"observed_state\" not in o:\n        return _result(claim, EvidenceStatus.VIOLATED, \"declared_postcondition_disagreed_at_named_point\", scope)\n",
+      "rationale": "Treats a missing observed state as disagreement with the expected state, turning absence of evidence into refutation."
+    },
+    {
+      "id": "FW2-20",
+      "old": "if o.get(\"source_accepted\") is not True:",
+      "new": "if o.get(\"source_accepted\") is False:",
+      "rationale": "Credits a read-back whose source acceptance is unstated (e.g. tool self-report), so it can establish or refute the postcondition."
+    }
+  ]
+}
