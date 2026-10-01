@@ -134,6 +134,36 @@ updates:
       - dependency-name: "eslint-plugin-react-refresh"
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
 
+  # The five Cloudflare Workers. Until 2026-10-01 they had no entry at all, so
+  # their lockfiles never received an update and 70+ advisories accumulated in
+  # their (development-scope) toolchains: undici, ws, sharp, esbuild, vitest.
+  # Same risk-class principle as the frontend: security fixes grouped, the
+  # Workers toolchain grouped, everything else as its own PR.
+  - package-ecosystem: "npm"
+    directories:
+      - "/workers/agent-control"
+      - "/workers/aromer"
+      - "/workers/law-search"
+      - "/workers/mcp-gateway"
+      - "/workers/rag-oracle"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    groups:
+      security-fixes:
+        applies-to: security-updates
+        patterns: ["*"]
+      workers-toolchain:
+        applies-to: version-updates
+        patterns:
+          - "wrangler"
+          - "miniflare"
+          - "@cloudflare/*"
+          - "vitest*"
+          - "@vitest/*"
+          - "typescript*"
+          - "esbuild"
+
   # Keep the SHA-pinned GitHub Actions current (security hardening).
   - package-ecosystem: "github-actions"
     directory: "/"
