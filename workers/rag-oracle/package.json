@@ -17,6 +17,8 @@
  "overrides": {
   "@emnapi/core": "1.10.0",
   "@emnapi/runtime": "1.10.0",
-  "@emnapi/wasi-threads": "1.2.3"
+  "@emnapi/wasi-threads": "1.2.3",
+  "sharp": "0.35.4",
+  "undici": "7.29.1"
  }
 }
