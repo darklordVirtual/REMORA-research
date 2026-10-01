@@ -6,6 +6,290 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Added
 
+- Evidence-sufficiency v1.3 (`conformance/evidence-sufficiency-v1.3/`,
+  `docs/design/evidence-sufficiency-v1.3.md`). A systematic mutation sweep
+  (mutmut, 489 mutants of the frozen checker) found 112 mutants the v1.2
+  corpus could not tell apart, in seven families (NEGATIVE_RESULTS.md §65).
+  v1.3 carries the 53 v1.2 cases verbatim and adds cases E21-E23 for mapping
+  key order, a rejection contract for malformed input, verdict-envelope checks
+  and eleven metamorphic relations declared in `invariants.json`. The sweep
+  now leaves 20 survivors, every one named and classified as equivalent under
+  the pinned contract in `docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt`;
+  `scripts/mutation_evidence_sufficiency.py` fails on a new survivor and runs
+  in the scheduled mutation workflow. `tests/test_evidence_sufficiency_v1_3.py`
+  scores one representative fault per family against both runners and checks
+  the relations on generated inputs with Hypothesis. The new checks were
+  written after the sweep named the gaps, so their kills are not independent
+  evidence; the spec records a blind external protocol for that.
+  Internal stress tests, same day, fitted and not independent confirmation:
+  `model.json` is a table-driven reference
+  model interpreted over the whole premise lattice (61,544 documents), and
+  the checker must agree at every point; a second operator set
+  (`scripts/mutation_evidence_sufficiency_ast.py`, 705 first-order and 200
+  second-order mutants) is scored in process with a per-mutant redundancy
+  reading; 42 typed-premise faults that only the model caught became the 23
+  lattice-derived K1 cases, and three `isinstance` relaxations became
+  rejections R18-R20. The second set leaves 4 named survivors, all argued
+  equivalent (NEGATIVE_RESULTS.md §66).
+- An independent analysis of evidence-sufficiency v1.3, recorded in
+  `docs/assurance/external_adequacy_evidence_sufficiency_v1.md` with its
+  package in `artifacts/independent-analysis-2026-09-30/`. 43 faults chosen
+  without reading v1.3: v1.2 kills 42 on the runner row, v1.3 kills 43. The
+  fault list was hashed locally, not committed publicly, so the run does not
+  meet section 8 of the v1.3 spec. It found stale numbers in the record, now
+  corrected (NEGATIVE_RESULTS.md §67). Every historical sweep row now has a
+  command that reproduces it:
+  `scripts/mutation_evidence_sufficiency.py --scoring-suite
+  evidence-sufficiency-v1.2` and
+  `scripts/mutation_evidence_sufficiency_ast.py --corpus first-run` or
+  `--corpus without-k1`. Their raw outputs are committed in
+  `artifacts/evidence-sufficiency-mutation-2026-09-30/`, and `--workers 1`
+  scores the second set without a process pool.
+- Specification mutation of the evidence-sufficiency model
+  (`scripts/spec_mutation_evidence_sufficiency.py`, v1.3 spec section 13):
+  446 first-order and 300 second-order mutants of the rules in `model.json`,
+  each run as a checker, with equivalence computed by enumeration. The
+  catalogue and criterion were pushed before the first score. The runner
+  kills every live mutant; the authored cases miss twelve cross-branch
+  premise faults, so the pre-registered criterion S-2 is not met
+  (NEGATIVE_RESULTS.md §68). The corpus is unchanged in that change. The sweep
+  runs in the mutation workflow.
+- Evidence-sufficiency v1.4 (`conformance/evidence-sufficiency-v1.4/`): v1.3
+  verbatim plus 22 cases derived from a rule-coverage criterion
+  (`scripts/rule_coverage_evidence_sufficiency.py`, v1.3 spec section 14)
+  that defines adequacy from `model.json` alone, MC/DC-style per decisive
+  outcome. The runner fails on any of its 80 obligations left open. The
+  derivation rule, its output digest and a held-out mutant catalogue were
+  pushed before v1.4 existed. v1.4 kills every live specification mutant of
+  both catalogues on the authored cases alone, and the specification gate
+  now scores v1.4 against an empty baseline. The held-out test had little
+  power, and 17 of the 22 cases kill nothing another case does not in any
+  catalogue measured (NEGATIVE_RESULTS.md §69).
+- A committed harness for blind external runs of the evidence-sufficiency
+  corpus (`scripts/score_heldout_faults.py`, v1.3 spec section 8). It checks
+  the fault file against its public digest, scores v1.2 to v1.4 in the three
+  rows, and applies the pre-registered criterion. It reproduces the
+  independent analysis's own raw rows for all 43 of its faults.
+- A pre-registered blind probe of evidence-sufficiency v1.4
+  (`artifacts/evidence-sufficiency-blind-probe-2026-09-30/`): six
+  context-free agents wrote 60 checker faults and 36 reimplementation
+  variants without seeing the corpus. Row 3 of v1.4 kills 80 of 83 decision
+  faults and row 1 kills 76, the same as v1.3. Six faults survive every row,
+  three of them a `null` state value (NEGATIVE_RESULTS.md §70). The
+  corpus is unchanged.
+- Evidence-sufficiency v1.5 (`conformance/evidence-sufficiency-v1.5/`):
+  classes instead of fault lists. Rule-coverage profile v2 derives 274 cases
+  (every value class of every premise, including absence and `null`; every
+  pair of failing guards; 26 state pairs); the model lattice is wider; new
+  runner sections generate the input contract (container types, 24 non-JSON
+  value classes, near misses of `premise_source` and claims) and check that
+  no returned value aliases the verdict. Measured on a second blind probe
+  locked before v1.5 existed: 77 of 77 decision faults on row 3 (v1.4: 74),
+  one survivor in a new class (NEGATIVE_RESULTS.md §71). Found on the way:
+  the frozen checker copies a scope shallowly (recorded as a limit).
+- Evidence-sufficiency v1.6 (`conformance/evidence-sufficiency-v1.6/`): v1.5
+  plus a differential test of the whole public API against an executable
+  contract (2,000 seeded inputs; exact types, value semantics, copy and
+  pickle, deep input non-mutation, order, module state, the enum contract).
+  On a third blind probe locked before v1.6: all 61 decision faults killed,
+  97 of 104 faults in all (v1.5: 94); two new kills are in classes no probe
+  had named; five faults on the API surface survive (NEGATIVE_RESULTS.md
+  §72).
+- Evidence-sufficiency v1.7 (`conformance/evidence-sufficiency-v1.7/`): v1.6
+  plus a public API surface snapshot, 300 seeded call sequences that mutate
+  every object a caller holds between calls, and the input contract crossed
+  with every claim and observation shape. On a fourth blind probe locked
+  before v1.7: all 63 decision faults killed, 93 of 104 faults in all (v1.6:
+  90); five open survivors on input sizes and public-type behaviour
+  (NEGATIVE_RESULTS.md §73, open).
+- Evidence-sufficiency v1.2 (`conformance/evidence-sufficiency-v1.2/`): the
+  50 v1.1 cases verbatim plus E18-E20, which tell apart the three withheld
+  `canonical()` faults from the external v1.1 run. v1 and v1.1 are frozen.
+  The cases were written after the faults were known, so their kills show the
+  repair and are not independent evidence; NEGATIVE_RESULTS.md §64 is
+  superseded.
+- The external v1.1 seeded-fault run over evidence-sufficiency, recorded in
+  `docs/assurance/external_adequacy_evidence_sufficiency_v1.md`. The known
+  faults are all killed on the runner row, which shows the repair and is not
+  evidence of generalisation. Of six withheld faults, the three in
+  `canonical()` survived every row; recorded as open in NEGATIVE_RESULTS.md
+  §64 for v1.2.
+- The pre-registered capability-mediation study (NTA-2,
+  `experiments/authority_preserving_capability_mediation.py`,
+  `results/authority_preserving_capability_mediation_v1.json`). Registered and
+  merged before the code existed; first run committed as the result. With
+  capability minimization alone every unsafe class produced its effect; the
+  in-process mediator stopped all but direct use of the credential in the
+  tool's process; the three-domain split, with the tool in a separate process
+  holding no credential, stopped all eight unsafe classes. No legitimate
+  nested effect was blocked. Seven of eight predictions met; P6 (mediated
+  effect coverage 1.0 in arm B) missed at 0.6667 and is recorded in
+  NEGATIVE_RESULTS.md §63. Author-written corpus; not a real-world rate.
+
+- NTA-2 phase 3: a three-domain custody split for mediated effects. A process
+  with `REMORA_EXECUTION_DOMAIN_ROLE=effect` holds the effect credentials and
+  serves only `/v1/execution/effects` and `/effects/close`; an executor with
+  `REMORA_EFFECT_ENDPOINT` set must then hold no declared effect credential
+  (custody K12 to K19). The effect domain verifies the lease with
+  verification material only (`ExecutionLease.verify_authenticity`), refuses
+  a lease the durable nonce store says was never dispatched
+  (`consumed()`, read-only), derives the effect authority from its own signed
+  ceiling, and keeps closure and the budget in the same store (AST-014).
+  Under a strict profile a mediated tool without a declared ceiling is
+  refused. `scripts/check_credential_topology.py` gains a direct-access gate
+  over governed tool modules. The experiment of the design's section 25 is
+  pre-registered in `experiments/authority_preserving_capability_mediation/`.
+
+- NTA-2 phase 2: capability mediation wired through the signed ToolSpec, the
+  dispatcher and the evidence. ToolSpec schema version 2 adds an optional
+  `downstream_capabilities` ceiling (`schemas/tool_spec_v2.yaml`); the
+  bundle's signed `schema_version` is now checked. A tool registered with
+  `mediated=True` is called with a `CapabilityMediator` that
+  `GovernedToolDispatcher` builds from the lease-bound capability set and the
+  tool's ceiling, before the nonce is spent. Nested effects are recorded as a
+  bounded `ResolvedEffectGraph` in the dispatch result, the `execution_result`
+  chain record and the outbox projection, and `success_established_v2`
+  requires them settled (v1 is unchanged). CAP-024 is `WIRED_API_PATH`, opt-in
+  and research profile; the runtime property stays `NOT_ESTABLISHED`.
+
+- Authority-Preserving Capability Mediation, NTA-2 phase 1
+  (`docs/design/authority-preserving-capability-mediation-v1.md`, status
+  proposed). Authorization of a tool does not authorize the privileged effects
+  its implementation can reach. Phase 1 is a library in the research profile:
+  canonical resource identities that refuse ambiguous forms rather than
+  normalise them (`remora/capabilities/resource.py`), a `within` constraint
+  operator, a ToolSpec-shaped `DownstreamCeiling` that is a limit and not a
+  grant, `derive_effect_authority` chaining a tool's effect authority to the
+  caller's set, and a fail-closed `CapabilityMediator` that records every
+  request. The conformance suite gains NTA2-01 to NTA2-11 (24 of 24 match).
+  Registered as CAP-024 at `IMPLEMENTED_LIBRARY`; the runtime property
+  `implementation_effect_non_transitivity` is registered as `NOT_ESTABLISHED`,
+  because the mediator runs in-process and does not stop direct client use.
+
+- Non-Transitivity of Authority (NTA-1) is a named principle with one
+  canonical page, `docs/security/non-transitivity-of-authority.md`. It gathers
+  what Q8.4, Q8.5, the lease binding and the "confused deputy" tests each
+  enforced under separate names into three forms (reachability, argument
+  authority, delegation transitivity), maps each to its code, and states the
+  limits: enforcement ends at REMORA's PEP, the capability layer is opt-in,
+  and no HTTP route derives a delegation. `conformance/non-transitivity-of-authority-v1`
+  states NTA-1 as 13 implementation-agnostic vectors with an adapter contract.
+  REMORA matches all 13, and `tests/test_conformance_non_transitivity.py`
+  shows that weakening each guard diverges on the vectors that name it.
+  CAP-023 is re-audited with the suite as evidence.
+
+- Utility floors in the claim register. Every active safety claim now declares
+  its pre-registered utility bars (`utility_floors`: metric, min or max,
+  source, met or missed) or a reason none applies (`utility_floor_exempt`).
+  `scripts/check_claim_utility_floors.py` recomputes each status and runs in
+  the quality gates and `make audit`. Five floors are declared and four are
+  missed: AgentHarm benign false-block 100% against a 40% ceiling (CLAIM-002),
+  and BFCL C-ext3 read autonomy, obtainable VERIFY and unobtainable ABSTAIN
+  (CLAIM-019). The last two C-ext3 metrics are now bound to their artifact, so
+  the unbound-metric baseline falls from 17 to 15.
+
+- Verify-only replication pack. `artifacts/replication-pack/replication_pack_v1.json`
+  lists each active headline claim with its artifacts, their LF SHA-256, their
+  results-manifest class, the metric values and the JSON fields they must
+  equal, and the offline commands that regenerate or validate them; active
+  claims it leaves out are listed with a reason. It also pins the environment:
+  the `requirements-lock.txt` hash and the reference Dockerfile's base image
+  digest, with `image: null` because no REMORA image is published.
+  `scripts/verify_replication_pack.py --check` verifies all of it offline and
+  fails when the pack drifts from the claim register or the results manifest;
+  `--regenerate` re-runs the regenerable entries in a temporary worktree of
+  HEAD and compares metric fields, ignoring only the named volatile fields.
+  `--check` runs in CI, in `make audit` and `make claim-check`, and first in
+  `artifacts/reproduce.sh`. Documented in `docs/06-reproducibility.md`.
+- `remora.decision_providers`: the contract through which an external source
+  of typed semantic judgment is admitted as evidence, and only as evidence.
+  A provider answers narrow typed questions (choice, score, boolean) with
+  calibrated probabilities; `DecisionEvidence` records the answers together
+  with the question-set version, the model alias, the separately-recorded
+  resolved model, and hashes of both the state shown and the response. The
+  alias and the resolved model are separate fields because an alias can be
+  repointed at a new model without a code change, which moves every threshold
+  calibrated against the old one.
+  `project()` is the only supported route from evidence to an observation, and
+  it writes model-signal fields exclusively. That confinement is what makes a
+  provider inherit the existing execution-profile invariant that no
+  combination of model signals reaches ACCEPT. The projectable set is pinned
+  against the model-signal class of the `whatif` lever catalogue rather than
+  copied from it, so the two cannot drift apart.
+  The danger this guards is specific. The questions such a model answers best
+  are intent match, target match and scope drift, and the observation fields
+  that look like the place for those answers are `tool_matches_goal`,
+  `expected_effect_matches` and `argument_values_grounded`. All three are
+  deployment facts, which can reach ACCEPT. `project()` refuses them rather
+  than dropping them silently.
+  Ships a deterministic reference provider and no network adapter. A hosted
+  provider is an adapter implementing the protocol, and the properties above
+  hold for any adapter because they are properties of the projection.
+  `tests/test_decision_providers.py` records a declared limit alongside the
+  guarantee: the ACCEPT bound is a property of the execution profile, and the
+  same favourable signals do reach ACCEPT on an engine configured without it.
+- `remora.decision_providers.cloudflare`: an adapter for the `typesafe/jev`
+  model served through Cloudflare Workers AI, reached at
+  `POST /accounts/{account}/ai/run`. Routing through the Cloudflare account
+  means no separate vendor key. Writing the adapter corrected two things in
+  the contract above, which is why it ships with it rather than after it. A
+  `noul` answer is a probability rather than a boolean, so the answer value
+  stays a probability and `as_bool` demands an explicit threshold instead of
+  assuming one; a 0.51 and a 0.99 must not become the same record. A `score`
+  answer indexes a legend in the legend's own units rather than [0, 1], so the
+  value and its labels travel together and neither is normalised away. The
+  adapter records the resolved version from the response rather than the alias
+  from the request, refuses a choice outside the declared options, refuses a
+  response that names no model version, and maps every transport failure to a
+  refusal rather than a favourable default. It is exercised against the
+  documented response shape through an injected transport and has not been run
+  against the live service, so it is evidence about parsing and about nothing
+  else.
+- `remora.decision_providers.questions` and `remora.decision_providers.enrich`
+  complete the provider integration end to end. The question set is versioned
+  (`remora-semantic-v1`) because thresholds are calibrated against a specific
+  wording, and it deliberately carries no `recommended_route` question: a model
+  that names a route starts to look like the thing that decides. `enrich` is
+  the one place provider answers meet an observation, and it can do two things
+  only. Favourable `intent_match` and `target_matches_request` answers, with
+  `scope_drift` below its threshold, become the engine's evidence signal, which
+  under the execution profile stops at VERIFY. A likely `possible_injection`
+  raises `adversarial_detected` through the new `project_narrowing`, which can
+  raise a declared safety flag and never clear one. Reversibility and risk
+  scores are recorded in the evidence and never projected, because the fields
+  that look right for them are deployment facts. Thresholds have no defaults;
+  a threshold is a calibrated policy decision and belongs in reviewed
+  configuration. `semantic_state` refuses credential-shaped keys rather than
+  redacting them. Failure is structural: a provider that cannot answer leaves
+  the observation untouched, and a test holds that the decision without the
+  provider is never more permissive than the decision with it, which is why
+  no per-tier failure table is offered. `docs/integrations/jev_decision_provider.md`
+  is the integration guide. Nothing in the shipped execution path calls
+  `enrich`; wiring it into governed dispatch is a separate change that should
+  follow a calibration study in the deployment's language.
+- The Cloudflare adapter was run against the live service on 2026-09-24. The
+  account token, the endpoint and the request shape are confirmed correct: a
+  native model on the same endpoint answered 200. `typesafe/jev` itself
+  answered 402 with Cloudflare code 2021, "Insufficient balance", because a
+  partner model is paid for from prepaid AI Gateway credits rather than the
+  standard plan. Two changes follow. `DecisionProviderError` now carries
+  Cloudflare's own error message, so the refusal names the operational cause
+  instead of a bare status. The adapter takes a `gateway_id`
+  (`CLOUDFLARE_AI_GATEWAY_ID`) and sends it as the documented
+  `cf-aig-gateway-id` header, which is what routes the spend to the credit
+  balance. The integration guide records the prerequisite and the three
+  steps that clear it. No answer from the model has been observed yet; the
+  claim boundary is unchanged.
+- A second live prerequisite, learned once a unified-billing gateway existed
+  (`remora-jev`, created 2026-09-24 with authentication on): `/ai/run`
+  answers 403 code 2049 unless the bearer token carries the AI Gateway Run
+  permission, which an account token with Workers AI and gateway read and
+  edit rights does not. The adapter takes `gateway_token`
+  (`CLOUDFLARE_AI_GATEWAY_TOKEN`) and uses it in place of the account token
+  for the run call. The token is declared in the credential topology with
+  the note that Cloudflare scopes Run to the whole account. Still no answer
+  from the model observed; both remaining steps are dashboard actions.
+
 - What-if decision-boundary analysis (`remora.policy.whatif`, `remora whatif`,
   `remora.what_if_tool_call`, `remora.shadow.boundary`). For any observation
   it searches every combination of a fixed lever catalogue against the real
@@ -54,6 +338,140 @@ This file lists externally relevant changes by release. Fine-grained development
   projection paths were covered only on the in-process and SQLite stores.
   No adapter code changed. Scope stated in the module docstring: backend
   and transaction faults, not OS process kills or network partitions.
+
+### Fixed
+
+- The H1 sentence in the evidence-sufficiency v1.2 runner's `limits` list
+  named only the gap label ("Cases H1 were written..."); it now names cases
+  E18-E20, and `run-record.json` is regenerated with no other change. An
+  external rerun measured v1.2 at `c1345b1` before the rewording, so a test
+  pins the measured bytes and checks that this sentence is the only
+  difference.
+- Five register findings from the replication pack.
+  `effective_n` in the tool-call scorers counted domains, not templates: task
+  ids are `<domain>_<seq>`, so stripping the last segment left 7 "clusters".
+  `remora.toolcall.scoring.template_cluster_key` now counts harmful template
+  clusters (56 for v2 and blind v3, 21 for v1), and the 13 affected regenerable
+  results are re-issued with no other field changed (artifact manifest
+  revision note, tag `effective-n-reissue-2026-09-28`). CLAIM-001's effective
+  N = 70 was always computed correctly by the significance analysis.
+  `results/sap_v3_round_results.json` is re-analysed: it predated the issue
+  #85 fix, so four uncertified SGR `risk_bound` fields still held the old
+  sentinel (0.99 and 0.996667 instead of 0.084, 0.093 and 0.060). Certified
+  flags and coverages are unchanged. It and `system_demonstration_v1.json`
+  are reclassed from live to regenerable, because both reproduce offline and
+  are now byte-compared in CI. CLAIM-001's Wilson bound is bound to the
+  significance file, which lowers the unbound baseline from 15 to 14.
+  `docs/06-reproducibility.md` now uses CLAIM-001's registered commands.
+
+- The MCP gateway verifies the Cloudflare Access assertion on `/mcp` itself
+  (`workers/mcp-gateway/src/admission.ts`: RS256 against the team key set,
+  AUD, issuer, expiry) and answers 503 while `ACCESS_TEAM_DOMAIN` and
+  `ACCESS_AUD` are unset, instead of relying on an edge policy configured
+  outside the repository. `REMORA_DEPLOYMENT_PROFILE=production` refuses `/mcp`
+  until `REMORA_PG_DSN`, the custody split and Access verification are all
+  configured, and `/health` no longer reports a D1 binding as a durable audit
+  chain. The deployed staging gateway needs the two Access settings before its
+  next deploy.
+- Agent-control's administrative reads (`/envelopes`, `/envelopes/verify`,
+  `/envelopes/<request_id>`, `/audit`) are bound to the deployment's
+  `TENANT_ID`. A query naming another tenant is refused with 403, and the
+  single-envelope lookup matches the tenant as well as the request id.
+
+- The synchronous `/v1/execution/execute` path now claims the dispatch intent
+  before it mints and consumes the grant and before it appends
+  `execution_authorized`, the order issue #417 set for the async worker. A
+  request that loses the claim consumes no grant and leaves no authorization
+  event for a dispatch it never performs.
+- `scripts/check_results_manifest.py` compares each sidecar's
+  `artifact_sha256` with the LF hash of its result. Eleven sidecars carried a
+  hash over CRLF bytes; they are corrected, and each keeps the old value under
+  `artifact_sha256_correction`. No result file changed.
+- CLAIM-006 no longer cites `artifacts/aromer/intelligence_after_v020.json`,
+  a 2026-06-09 snapshot that predates the TRAINED run and reads AII=0.5165.
+  The statement now matches the NEGATIVE_RESULTS.md §11 table (0.8412 at cycle
+  8, peak 0.844 at cycle 12, regression to CAPABLE the same day) and says the
+  values are live telemetry no gate can bind.
+- README and the executive one-pager pair the AgentHarm 0/208 false-accept
+  result with its 100% false-block rate on the benign twins.
+  `docs/EVIDENCE_OF_CAPABILITY.md` describes the execution kernel instead of
+  the earlier cascade framing.
+
+- The REM-047 transactional audit outbox is wired to production writes. It
+  was implemented and had no caller outside its own test, so every
+  state-transition audit event was appended after the transaction recording
+  the transition had already committed. Two atomic writes are not one atomic
+  write: a crash in between left a transition with no audit event, which a
+  verifier holding the chain cannot distinguish from a chain nobody wrote to.
+  `revoke-principal` was the plainest case, committing the revocation inside
+  the state transaction and appending `principal_revoked` outside it. Four
+  appends now issue inside the state transaction under a deterministic
+  idempotency key and are projected by the existing lazy drain. The API
+  contract states the consequence rather than hiding it: an `AuditRef` for a
+  deferred event carries `deferred: true`, null `sequence_no` and
+  `entry_hash`, and the `idempotency_key` the event will be appended under.
+  Inventing an index the chain does not yet contain would be worse than
+  saying the index does not exist yet.
+- Seven CI review scripts could be made to pass on input they exist to
+  refuse. A 2026-09-02 audit imported each script's own regex and ran bypass
+  strings through it. Each fix is test-first, with a seeded-bypass meta-test
+  in `tests/meta/test_check_script_bypasses.py` that writes the evading
+  string into a temporary tree, runs the gate against it, and asserts
+  failure. No gate was weakened, and where a repaired scanner surfaced
+  something real in the repository the finding is recorded rather than
+  scanned around.
+
+- Reversibility classification in the risk model is now total and fails
+  closed. `remora.credal` weighed worst-case loss by membership in a frozen
+  set of eleven `action_type` spellings, and every other string, including
+  every string nobody had anticipated, took the reversible weight of 0.30.
+  That weight reaches a decision: `worst_case_loss` drives the minimax
+  escalation gate at 0.8. Of the 20 distinct `action_type` values in
+  committed corpora, 18 sat outside the set, among them
+  `financial_transaction`, `approve_payment`, `db_migration`,
+  `schema_change`, `security_change` and `configuration_change`, each a
+  near-synonym of a string that was inside it. Measured over a uniform grid
+  of (p_harm_upper, severity), 40 of 231 points changed the gate's verdict on
+  the spelling alone. End to end at `risk_tier="critical"`:
+  `config_overwrite` escalated at 1.0 while `configuration_change` did not at
+  0.71. `remora.action_semantics` now classifies three ways (irreversible,
+  declared reversible, unknown) and unknown carries the irreversible weight,
+  so only explicitly declared non-mutating actions keep the discount. The
+  full suite passes unchanged, so no committed result artifact depended on
+  the previous weighting. `tests/test_reversibility_fail_closed.py` holds the
+  contract, including a guard against widening the reversible set to recover
+  utility.
+
+### Verification and CI
+
+- Repaired `requirements-lock.txt`, which had stopped being resolvable. The
+  lock is applied as pip *constraints*, so a pin is only checked when pip is
+  asked to install that distribution: two pins can contradict each other for
+  months while every pull request stays green. The weekly NLI parity run hit
+  the first contradiction on 2026-09-21 (`click==8.1.8` against
+  `huggingface_hub==1.28.0`, which requires `click>=8.4.2`), and resolving
+  each install set in turn uncovered five more, every one introduced by a
+  single-line dependency bump: `setuptools` against torch, `tokenizers`
+  against transformers (via a version that has no files on PyPI),
+  `agent-client-protocol` and `jiter` against inspect-ai and openai, and
+  `botocore` against aiobotocore. Eight pins moved; no source changed.
+- `scripts/check_lock_resolvable.py` and the `lock-resolvable` leg of the
+  Supply Chain workflow now resolve every declared install set against the
+  lock with `pip install --dry-run` on pull requests, master pushes and
+  daily, so the next contradiction fails in review rather than in a weekly
+  job. The gate is part of the `supply-chain-required` aggregate context.
+  Scope is stated in the script docstring: resolvability of the declared
+  sets, not that the resolved versions are the pinned ones.
+- The scheduled mutation sweep uninstalled `remora`, a distribution name that
+  has not existed since the project became `remora-assurance`. pip skipped it
+  silently, the installed package kept shadowing the mutated sources, and the
+  workflow's own guard correctly refused to run a sweep that would have
+  reported every mutant as surviving.
+- `tests/test_ci_dependency_pinning.py` and `tests/test_lock_resolvable_gate.py`
+  hold both defects in place: the sweep must uninstall the distribution name
+  `pyproject.toml` actually declares, the two pins that collided must stay
+  mutually satisfiable, and an install set a workflow uses under the lock must
+  be one the resolvability gate declares.
 
 ### Documentation
 

@@ -68,15 +68,25 @@ def _all_at(gate, pct: float) -> dict[str, float]:
 
 
 def test_every_enforcement_source_file_has_a_floor(gate) -> None:
-    """No file in the package may sit outside the per-file gate unnoticed."""
-    on_disk = {
+    """No file in the package may sit outside the per-file gate unnoticed.
+
+    The RES-013 runtime-surface modules carry per-file floors too (quality
+    program Q5.3); they are pinned the same way, so a new surface module
+    cannot land without one and no other file can slip into the list.
+    """
+    enforcement = {
         f"remora/enforcement/{p.name}"
         for p in (ROOT / "remora" / "enforcement").glob("*.py")
         if p.name != "__init__.py"
     }
-    assert on_disk == set(gate.FILE_THRESHOLDS), (
-        "add or remove a FILE_THRESHOLDS entry when an enforcement module is "
-        "added or deleted"
+    surface = {
+        f"remora/toolcall/{p.name}"
+        for p in (ROOT / "remora" / "toolcall").glob("*.py")
+        if p.name == "runtime_surface.py" or "surface_" in p.name
+    }
+    assert enforcement | surface == set(gate.FILE_THRESHOLDS), (
+        "add or remove a FILE_THRESHOLDS entry when an enforcement or "
+        "runtime-surface module is added or deleted"
     )
 
 

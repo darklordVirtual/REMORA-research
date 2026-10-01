@@ -188,6 +188,13 @@ reason_codes:
     meaning: the call's arguments do not validate against argument_schema
   - code: toolspec_changed_between_assess_and_dispatch
     meaning: the spec hash at dispatch differs from the one assessed
+  # Additive (2026-09-29, schema version 2; see tool_spec_v2.yaml).
+  - code: toolspec_schema_version_unsupported
+    meaning: the bundle's signed schema_version is not one this loader understands
+  - code: toolspec_downstream_requires_v2
+    meaning: a spec declares downstream_capabilities in a schema_version 1 bundle
+  - code: toolspec_downstream_declaration_invalid
+    meaning: the downstream_capabilities declaration is malformed or ambiguous
 
 # ── Binding chain (handoff gate §1.3/§1.5) ─────────────────────────────────
 # The same ToolSpec hash must appear at every stage. Any difference means

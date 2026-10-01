@@ -245,6 +245,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/execution/capabilities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Capability Projection
+         * @description The agent-facing tool list for one task (WS8 Q8.3).
+         *
+         *     Resolved from the deployment's capability policy for the AUTHENTICATED
+         *     principal and tenant, exactly as the execution routes resolve it, and
+         *     projected as an OpenAI tool list. Everything outside the set is absent.
+         *     The same set is enforced again on every call, so a client that ignores
+         *     this list gains nothing.
+         */
+        get: operations["capability_projection_v1_execution_capabilities_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/execution/dispatch-leased": {
         parameters: {
             query?: never;
@@ -271,6 +297,52 @@ export interface paths {
          *     presented for a different call is refused here.
          */
         post: operations["dispatch_leased_v1_execution_dispatch_leased_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/execution/effects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Serve Effect
+         * @description One mediated effect, served by the effect domain (NTA-2 phase 3).
+         *
+         *     The body carries the lease, the lease-bound capability set, the
+         *     capability, the resource and the arguments. The effect domain verifies
+         *     the lease, checks it was dispatched, derives the authority from its own
+         *     ToolSpec ceiling and answers REFUSED or EXECUTED; it never raises for a
+         *     refusal.
+         */
+        post: operations["serve_effect_v1_execution_effects_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/execution/effects/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Close Effects
+         * @description End a mediated execution in the effect domain.
+         */
+        post: operations["close_effects_v1_execution_effects_close_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -338,6 +410,51 @@ export interface paths {
          *     binding exists to prevent. Freshness is the token's TTL.
          */
         post: operations["execute_accepted_v1_execution_execute_accepted_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/execution/loop-safety/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Loop Safety Reset
+         * @description Reset a context's loop safety count under a named policy decision.
+         *
+         *     Reviewer capability, as for revoking a principal: it is a human decision
+         *     about authority. The store keeps the earlier events, and the reset is
+         *     appended to the tenant chain with the reviewer, the policy reference and
+         *     the reason. The agent whose history it is has no route to this.
+         */
+        post: operations["loop_safety_reset_v1_execution_loop_safety_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/execution/loop-safety/{context_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Loop Safety State
+         * @description Read a context's loop safety state (Q7.2). Reviewer capability.
+         */
+        get: operations["loop_safety_state_v1_execution_loop_safety__context_id__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -744,12 +861,40 @@ export interface components {
             /** Untrusted Context */
             untrusted_context?: string | null;
         };
-        /** AuditRef */
+        /**
+         * AuditRef
+         * @description Where this response's audit event is, or where it will be.
+         *
+         *     A state-transition event is enqueued on the SAME transaction as the
+         *     transition (REM-047), so at response time it is durable but not yet
+         *     projected into the chain and has no index. That case is stated rather than
+         *     papered over: ``deferred`` is true, ``sequence_no`` and ``entry_hash`` are
+         *     null, and ``idempotency_key`` is the key the event will be appended under.
+         *     Inventing an index the chain does not contain would be worse than saying
+         *     the index does not exist yet.
+         */
         AuditRef: {
-            /** Entry Hash */
-            entry_hash: string;
-            /** Sequence No */
-            sequence_no: number;
+            /**
+             * Deferred
+             * @description True when the event is enqueued on the state transaction and awaits projection by the drain.
+             * @default false
+             */
+            deferred: boolean;
+            /**
+             * Entry Hash
+             * @description Chain entry hash; null when deferred is true.
+             */
+            entry_hash?: string | null;
+            /**
+             * Idempotency Key
+             * @description Present only when deferred: the key the event will be appended under, and the join to the chain entry once projected.
+             */
+            idempotency_key?: string | null;
+            /**
+             * Sequence No
+             * @description Chain index; null when deferred is true.
+             */
+            sequence_no?: number | null;
         };
         /**
          * DerivationProposal
@@ -820,6 +965,10 @@ export interface components {
          *     its own transport credential remains open (CAP-013).
          */
         DispatchLeasedRequest: {
+            /** Capability Set */
+            capability_set?: {
+                [key: string]: unknown;
+            } | null;
             /** Lease */
             lease: {
                 [key: string]: unknown;
@@ -1150,6 +1299,23 @@ export interface components {
             /** Version */
             version: string;
         };
+        /**
+         * LoopSafetyResetRequest
+         * @description Start a context's loop safety count again, under a named policy decision.
+         *
+         *     ``policy_ref`` names the decision that authorised the reset (a review item,
+         *     decision envelope or ticket id). The earlier events stay in the store and
+         *     the reset itself is appended to the tenant chain, so a reset can always be
+         *     traced to the person and the decision behind it.
+         */
+        LoopSafetyResetRequest: {
+            /** Context Id */
+            context_id: string;
+            /** Policy Ref */
+            policy_ref: string;
+            /** Reason */
+            reason: string;
+        };
         /** PepResult */
         PepResult: {
             /** Allowed */
@@ -1159,6 +1325,25 @@ export interface components {
              * @description e.g. accept, token_already_consumed
              */
             reason: string;
+        };
+        /**
+         * PlanProposal
+         * @description The premises a write's plan rests on (Q7.5).
+         *
+         *     ``reads`` maps each resource the plan read to the revision it saw;
+         *     ``depends_on`` names the reads this write depends on. The server signs
+         *     the plan into the lease and re-reads the dependencies immediately before
+         *     the write, so a plan whose premises moved is refused as ``stale_plan``.
+         */
+        PlanProposal: {
+            /** Depends On */
+            depends_on?: string[];
+            /** Plan Id */
+            plan_id: string;
+            /** Reads */
+            reads: {
+                [key: string]: string;
+            };
         };
         /** PolicyDecision */
         PolicyDecision: {
@@ -1314,12 +1499,15 @@ export interface components {
             arguments?: {
                 [key: string]: unknown;
             };
+            /** Context Id */
+            context_id?: string | null;
             /** Derivations */
             derivations?: components["schemas"]["DerivationProposal"][] | null;
             /** Idempotency Key */
             idempotency_key?: string | null;
             /** Intent Ref */
             intent_ref?: string | null;
+            plan?: components["schemas"]["PlanProposal"] | null;
             /** Rollback Available */
             rollback_available?: boolean | null;
             /** Schema Valid */
@@ -1329,6 +1517,10 @@ export interface components {
              * @default prod
              */
             target_environment: string;
+            /** Task Id */
+            task_id?: string | null;
+            /** Task Type */
+            task_type?: string | null;
             /** Tool Name */
             tool_name: string;
             /** Untrusted Context */
@@ -1743,6 +1935,67 @@ export interface operations {
             };
         };
     };
+    capability_projection_v1_execution_capabilities_get: {
+        parameters: {
+            query?: {
+                task_type?: string;
+                target_environment?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The tools this principal may see for the task, projected for an agent. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Missing or invalid bearer token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Role lacks the required capability for this tenant. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description No capability policy is configured. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     dispatch_leased_v1_execution_dispatch_leased_post: {
         parameters: {
             query?: never;
@@ -1790,6 +2043,80 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    serve_effect_v1_execution_effects_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    close_effects_v1_execution_effects_close_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    [key: string]: unknown;
+                };
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
             /** @description Validation Error */
@@ -1937,6 +2264,128 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    loop_safety_reset_v1_execution_loop_safety_reset_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoopSafetyResetRequest"];
+            };
+        };
+        responses: {
+            /** @description Reset recorded; the context's count starts again. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Missing or invalid bearer token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Role lacks the required capability for this tenant. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Loop safety store unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+        };
+    };
+    loop_safety_state_v1_execution_loop_safety__context_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                context_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description What this context has accumulated since its last reset. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Missing or invalid bearer token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Role lacks the required capability for this tenant. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description Loop safety store unavailable. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
                 };
             };
         };

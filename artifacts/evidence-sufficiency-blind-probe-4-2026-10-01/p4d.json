@@ -1,0 +1,129 @@
+{
+  "selector": "p4d-refactors",
+  "files_read": [
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\checker.py",
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\README.md"
+  ],
+  "faults": [
+    {
+      "id": "P4D-01",
+      "old": "if o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True:",
+      "new": "if o.get(\"effect_source_accepted\") is True or o.get(\"effect_seen\") is not True:",
+      "rationale": "Inverts effect_source_accepted check, rejecting valid observations"
+    },
+    {
+      "id": "P4D-02",
+      "old": "if o.get(\"scope_accepted\") is not True:",
+      "new": "if o.get(\"scope_accepted\") is True:",
+      "rationale": "Inverts scope_accepted condition, rejecting accepted scopes"
+    },
+    {
+      "id": "P4D-03",
+      "old": "if o.get(\"admission_source_accepted\") is not True:\n            return _unknown(claim, \"admission_observation_unaccepted\", scope)",
+      "new": "if o.get(\"admission_source_accepted\") is True:\n            return _unknown(claim, \"admission_observation_unaccepted\", scope)",
+      "rationale": "Inverts admission source check, rejects valid sources"
+    },
+    {
+      "id": "P4D-04",
+      "old": "EvidenceStatus.ESTABLISHED,\n                \"covering_admission_observed_for_this_execution\",",
+      "new": "EvidenceStatus.VIOLATED,\n                \"covering_admission_observed_for_this_execution\",",
+      "rationale": "Uses VIOLATED when should be ESTABLISHED for matching admission"
+    },
+    {
+      "id": "P4D-05",
+      "old": "if o.get(\"route_observation_accepted\") is not True:",
+      "new": "if o.get(\"route_observation_accepted\") is True:",
+      "rationale": "Inverts route observation check, rejects accepted observations"
+    },
+    {
+      "id": "P4D-06",
+      "old": "if o.get(\"same_protected_operation\") is not True:",
+      "new": "if o.get(\"same_protected_operation\") is True:",
+      "rationale": "Inverts operation binding, rejects when operations match"
+    },
+    {
+      "id": "P4D-07",
+      "old": "if o.get(\"outside_required_pep\") is not True:",
+      "new": "if o.get(\"outside_required_pep\") is True:",
+      "rationale": "Inverts PEP check, rejects routes outside required enforcement point"
+    },
+    {
+      "id": "P4D-08",
+      "old": "if o.get(\"effect_observation_accepted\") is not True:",
+      "new": "if o.get(\"effect_observation_accepted\") is True:",
+      "rationale": "Inverts effect observation acceptance check"
+    },
+    {
+      "id": "P4D-09",
+      "old": "if o.get(\"protected_effect_observed\") is True:\n        return _result(\n            claim,\n            EvidenceStatus.VIOLATED,\n            \"accepted_effect_observed_outside_required_pep\",",
+      "new": "if o.get(\"protected_effect_observed\") is not True:\n        return _result(\n            claim,\n            EvidenceStatus.VIOLATED,\n            \"accepted_effect_observed_outside_required_pep\",",
+      "rationale": "Inverts effect observation condition, reports violation when absent"
+    },
+    {
+      "id": "P4D-10",
+      "old": "if o.get(\"readback_available\") is not True:",
+      "new": "if o.get(\"readback_available\") is True:",
+      "rationale": "Inverts readback availability check"
+    },
+    {
+      "id": "P4D-11",
+      "old": "if o.get(\"source_accepted\") is not True:",
+      "new": "if o.get(\"source_accepted\") is True:",
+      "rationale": "Inverts source acceptance check in postcondition"
+    },
+    {
+      "id": "P4D-12",
+      "old": "if o.get(\"same_target_and_predicate\") is not True:",
+      "new": "if o.get(\"same_target_and_predicate\") is True:",
+      "rationale": "Inverts target and predicate binding check"
+    },
+    {
+      "id": "P4D-13",
+      "old": "if o.get(\"fresh_in_declared_window\") is not True:",
+      "new": "if o.get(\"fresh_in_declared_window\") is True:",
+      "rationale": "Inverts freshness check, accepts stale observations"
+    },
+    {
+      "id": "P4D-14",
+      "old": "if o.get(\"settlement_reached\") is not True:",
+      "new": "if o.get(\"settlement_reached\") is True:",
+      "rationale": "Inverts settlement point reached check"
+    },
+    {
+      "id": "P4D-15",
+      "old": "if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):",
+      "new": "if canonical(o[\"expected_state\"]) != canonical(o[\"observed_state\"]):",
+      "rationale": "Inverts equality check, establishes when states disagree"
+    },
+    {
+      "id": "P4D-16",
+      "old": "EvidenceStatus.VIOLATED,\n        \"declared_postcondition_disagreed_at_named_point\",",
+      "new": "EvidenceStatus.ESTABLISHED,\n        \"declared_postcondition_disagreed_at_named_point\",",
+      "rationale": "Uses ESTABLISHED when postconditions disagree"
+    },
+    {
+      "id": "P4D-17",
+      "old": "if status is EvidenceStatus.NOT_ESTABLISHED and reason in _REASON_GUIDANCE:",
+      "new": "if reason in _REASON_GUIDANCE:",
+      "rationale": "Removes status check, applies guidance lookup to all verdict statuses"
+    },
+    {
+      "id": "P4D-18",
+      "old": "if o.get(\"mandatory_admission\") is not True:",
+      "new": "if o.get(\"mandatory_admission\") is True:",
+      "rationale": "Inverts mandatory admission check, rejects non-mandatory admissions"
+    },
+    {
+      "id": "P4D-19",
+      "old": "if o.get(\"window_finalized\") is not True:",
+      "new": "if o.get(\"window_finalized\") is True:",
+      "rationale": "Inverts window finalization check"
+    },
+    {
+      "id": "P4D-20",
+      "old": "if o.get(\"valid_control_same_context\") is not True:",
+      "new": "if o.get(\"valid_control_same_context\") is True:",
+      "rationale": "Inverts valid control check"
+    }
+  ]
+}

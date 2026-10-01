@@ -60,7 +60,7 @@ def test_write_split_writes_prompt_completion_jsonl(tmp_path):
     assert manifest["n_total"] == 5
     assert manifest["n_train"] == 4
     assert manifest["n_heldout"] == 1
-    train_row = json.loads((tmp_path / "train.jsonl").read_text().splitlines()[0])
+    train_row = json.loads((tmp_path / "train.jsonl").read_text(encoding="utf-8").splitlines()[0])
     assert set(train_row) == {"prompt", "completion"}
     assert isinstance(json.loads(train_row["completion"]), dict)
 

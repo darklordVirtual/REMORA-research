@@ -77,3 +77,27 @@ Deployments that need role separation must use the token-table mode
 A report demonstrating that either gap is worse than documented is in scope
 and welcome. A report that only re-derives the gap as documented will be
 answered with a pointer to the register.
+
+## Third-party scanner findings
+
+Automated scanners read this repository without its context, and much of it
+is adversarial test data by design. Each finding is checked against the code.
+A finding that is not a vulnerability is recorded here with what makes it
+inert. A test pins that property, so a later change cannot quietly break it. The guards are in `tests/test_external_scan_findings.py`.
+
+AgentAvow scan, 2026-10-01 (12 findings, none a vulnerability):
+
+| Finding | Location | Why it is inert | Guard |
+|---|---|---|---|
+| curl or wget piped to a shell (6, critical) | `artifacts/benchmarks/toolcall_benchmark_v1.json` (moved from `artifacts/` byte for byte) | Labelled attack cases (`expected_failure_mode: remote_code_execution`) in a dry-run simulator; the URLs use the reserved `.invalid` domain. The benchmark measures that governance blocks them, and the file is a claim-bound artifact, so its content is not edited | every such payload must stay dry-run, labelled and on a reserved domain |
+| Instruction-override phrase (3, high) | `remora/cli.py`, `eval_pack/run_validation.py` | Inputs to the prompt-injection detector and to the CLI demo of a blocked action, not tool descriptions | the tool descriptions served by `servers/mcp_remora.py` and the MCP gateway must contain no override phrase; a control shows the check catches a poisoned one |
+| Generic API key assignment (high) | `experiments/authority_preserving_capability_mediation.py` | A synthetic label the study uses to show the worker never sees a credential; renamed to `STUDY_CREDENTIAL_VALUE` | its value must stay a word label, not key material |
+| `subprocess.Popen` (2, high) | the same study | Launches `sys.executable` on the study's own file with constant flags; no caller input, no shell | every launch must stay that shape, and no Python code in the repository may pass `shell=True` |
+
+These six were the whole reason for the scan's Blocked verdict. The scanner
+deducts 22 points per critical in shipped code, uncapped, from a start of 68,
+and counts findings in benchmark, test or fixture directories at 15 percent.
+`artifacts/` is not one of those directories, so the benchmark data counted
+as shipped code. Moving the file under `artifacts/benchmarks/` classifies it
+as what it is. A local run of the scanner (`agentavow scan .`) went from 0
+(Blocked) to 61 (Standard) on that move alone.

@@ -32,9 +32,10 @@ from __future__ import annotations
 
 from contextlib import AbstractContextManager
 from datetime import UTC, datetime, timedelta
+from types import SimpleNamespace
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from remora.enforcement.gate import EnforcementGate
@@ -70,6 +71,13 @@ from remora.governance.revocation_store import (
     RevocationStoreUnavailable,
 )
 from remora.governance import audit_outbox as _audit_outbox
+from remora.governance.loop_safety import (
+    DurableLoopSafetyStore,
+    InMemoryLoopSafetyStore,
+    LoopSafetyMonitor,
+    LoopSafetyStoreUnavailable,
+)
+from remora.governance.task_identity import TaskIdentity
 from remora.governance.tenant_chain import TenantAuditChain
 from remora.policy.decision_engine import RemoraDecisionEngine
 from remora.policy.observation import PolicyObservation, canonical_tool_call_hash
@@ -113,6 +121,7 @@ from servers.execution_contracts import (  # noqa: F401
     ToolExecutionResult,
     ToolResultEnvelopeModel,
     RevokePrincipalRequest,
+    LoopSafetyResetRequest,
 )
 
 #: The only path the execution domain serves.
@@ -123,6 +132,9 @@ from servers.execution_contracts import (  # noqa: F401
 #: (NEGATIVE_RESULTS section 51). A prefix test here would admit
 #: /dispatch-leased-anything.
 _EXECUTOR_PATHS = frozenset({"/v1/execution/dispatch-leased"})
+#: The only routes the effect domain serves (NTA-2 phase 3), and the only
+#: domain that serves them. Exact equality, for the reason above.
+_EFFECT_PATHS = frozenset({"/v1/execution/effects", "/v1/execution/effects/close"})
 
 #: Which half of the custody split this process is.
 #:
@@ -134,18 +146,19 @@ _EXECUTOR_PATHS = frozenset({"/v1/execution/dispatch-leased"})
 #: so an unconfigured deployment behaves as it always did.
 _DOMAIN_AUTHORITY = "authority"
 _DOMAIN_EXECUTOR = "executor"
+_DOMAIN_EFFECT = "effect"
 
 
 def _execution_domain() -> str:
     value = (_os.getenv("REMORA_EXECUTION_DOMAIN_ROLE") or "").strip().lower()
-    if value in (_DOMAIN_AUTHORITY, _DOMAIN_EXECUTOR):
+    if value in (_DOMAIN_AUTHORITY, _DOMAIN_EXECUTOR, _DOMAIN_EFFECT):
         return value
     if value:
         # An unrecognised role is a configuration error, and guessing which
-        # half was meant is the wrong way to resolve it.
+        # domain was meant is the wrong way to resolve it.
         raise RuntimeError(
-            f"REMORA_EXECUTION_DOMAIN_ROLE={value!r} is neither "
-            f"{_DOMAIN_AUTHORITY!r} nor {_DOMAIN_EXECUTOR!r}")
+            f"REMORA_EXECUTION_DOMAIN_ROLE={value!r} is not one of "
+            f"{_DOMAIN_AUTHORITY!r}, {_DOMAIN_EXECUTOR!r}, {_DOMAIN_EFFECT!r}")
     return _DOMAIN_AUTHORITY
 
 
@@ -156,9 +169,18 @@ def _enforce_execution_domain(request: Request) -> None:
     a list that a new endpoint silently fails to join, and that failure mode is
     an authority route quietly reachable from the execution domain.
     """
-    if _execution_domain() != _DOMAIN_EXECUTOR:
+    role = _execution_domain()
+    path = request.url.path
+    if role == _DOMAIN_EFFECT:
+        if path in _EFFECT_PATHS:
+            return
+        raise HTTPException(status_code=404, detail="not served by the effect domain")
+    if path in _EFFECT_PATHS:
+        # Effects run only where the effect credentials are.
+        raise HTTPException(status_code=404, detail="served only by the effect domain")
+    if role != _DOMAIN_EXECUTOR:
         return
-    if request.url.path in _EXECUTOR_PATHS:
+    if path in _EXECUTOR_PATHS:
         return
     raise HTTPException(
         status_code=404,
@@ -184,12 +206,15 @@ def _engine_from_env() -> RemoraDecisionEngine:
     """
     import os as _env
 
-    def _flag(name: str) -> bool:
-        return _env.environ.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
+    def _on(value: str) -> bool:
+        # Takes the value, not the name: each variable is read below by its
+        # literal name, so the credential topology scanner sees every read
+        # without a line-pinned exception that moves with every edit.
+        return value.strip().lower() in {"1", "true", "yes", "on"}
 
     return RemoraDecisionEngine(
-        low_consequence_accept=_flag("REMORA_LOW_CONSEQUENCE_ACCEPT"),
-        grounded_read_accept=_flag("REMORA_GROUNDED_READ_ACCEPT"),
+        low_consequence_accept=_on(_env.environ.get("REMORA_LOW_CONSEQUENCE_ACCEPT", "")),
+        grounded_read_accept=_on(_env.environ.get("REMORA_GROUNDED_READ_ACCEPT", "")),
         # Issue #35: the enforcing surface runs the execution profile — a
         # probabilistic signal (conformal/temperature/evidence/ordered-trust)
         # can STRUCTURALLY never produce ACCEPT here, independent of what a
@@ -843,6 +868,261 @@ def _revocation_store() -> RevocationStore | None:
 # it instead of implying execution.
 
 _DISPATCHER: GovernedToolDispatcher | None = None
+_LOOP_SAFETY: LoopSafetyMonitor | None = None
+
+
+def _loop_safety_monitor() -> LoopSafetyMonitor:
+    """The loop safety monitor, over durable state when the deployment has it.
+
+    The same three switches as ``_revocation_store`` and the durability guard,
+    for the reason recorded there: a switch the guard admits and this store
+    did not read would leave that deployment's loop history per-process.
+    Without any of them the in-process store is used, which keeps a context's
+    history for the life of this worker only (AST-012).
+    """
+    global _LOOP_SAFETY
+    if _LOOP_SAFETY is None:
+        with _LAZY_INIT_LOCK:
+            if _LOOP_SAFETY is None:
+                dsn = _os.environ.get("REMORA_PG_DSN", "").strip()
+                db_path = _os.environ.get("REMORA_CHAIN_DB", "").strip()
+                endpoint = _os.environ.get("REMORA_STATE_ENDPOINT", "").strip()
+                store = (
+                    DurableLoopSafetyStore(dsn=dsn, db_path=db_path,
+                                           state_endpoint=endpoint)
+                    if (dsn or db_path or endpoint) else InMemoryLoopSafetyStore()
+                )
+                _LOOP_SAFETY = LoopSafetyMonitor(store)
+    return _LOOP_SAFETY
+
+
+_EFFECT_RESOLVER: Any = None
+
+
+def _deployment_module(spec: str) -> Any:
+    """The module a deployment names, or None when the setting is unset.
+
+    Callers read the variable by its literal name, so the credential
+    topology scanner can see every setting this process reads.
+    """
+    spec = spec.strip()
+    if not spec:
+        return None
+    import importlib
+
+    return importlib.import_module(spec)
+
+
+def _effect_resolver() -> Any:
+    """The deployment's closed effect registry (Q7.4), or None.
+
+    ``REMORA_EFFECT_REGISTRY_MODULE`` names a module exposing
+    ``build_resolver()``. Unset means no resolved-effect binding, which is
+    the behaviour before Q7.4.
+    """
+    global _EFFECT_RESOLVER
+    if _EFFECT_RESOLVER is None:
+        module = _deployment_module(
+            _os.environ.get("REMORA_EFFECT_REGISTRY_MODULE", ""))
+        if module is None:
+            return None
+        _EFFECT_RESOLVER = module.build_resolver()
+    return _EFFECT_RESOLVER
+
+
+def _bind_premise_checks(dispatcher: GovernedToolDispatcher) -> None:
+    """Bind the WS7 pre-dispatch checks a deployment configured. Each is
+    opt-in; an unset variable leaves the dispatcher as it was.
+
+    ``REMORA_EFFECT_REGISTRY_MODULE``   resolved-effect binding (Q7.4)
+    ``REMORA_STATE_REVISION_MODULE``    ``read_revision(resource)`` for plans (Q7.5)
+    ``REMORA_RECORDER_ADDRESS``         independent recorder host:port (Q7.6), with
+    ``REMORA_RECORDER_MANDATORY_TOOLS`` comma-separated tools, or ``*`` for all
+    ``REMORA_PROCEDURE_MODULE``         ``contract()`` and ``trace_for(lease)`` (Q7.7)
+    """
+    resolver = _effect_resolver()
+    if resolver is not None:
+        dispatcher.bind_effect_resolver(resolver)
+    state_reader = _capability_state_reader()
+    if state_reader is not None:
+        dispatcher.bind_capability_state(state_reader)
+    epoch_source = _capability_epoch_source()
+    if epoch_source is not None:
+        dispatcher.bind_capability_epochs(epoch_source)
+    revisions = _deployment_module(
+        _os.environ.get("REMORA_STATE_REVISION_MODULE", ""))
+    if revisions is not None:
+        dispatcher.bind_state_revisions(revisions.read_revision)
+    address = _os.environ.get("REMORA_RECORDER_ADDRESS", "").strip()
+    if address:
+        from remora.audit.recorder import RecorderClient
+
+        named = {t.strip() for t in _os.environ.get(
+            "REMORA_RECORDER_MANDATORY_TOOLS", "").split(",") if t.strip()}
+        dispatcher.bind_recorder(
+            RecorderClient(address),
+            mandatory_for=lambda tool: "*" in named or tool in named)
+    procedure = _deployment_module(
+        _os.environ.get("REMORA_PROCEDURE_MODULE", ""))
+    if procedure is not None:
+        dispatcher.bind_procedure(procedure.contract(), procedure.trace_for)
+
+
+_CAPABILITY_RESOLVER: Any = None
+
+
+def _capability_resolver() -> Any:
+    """The deployment's capability resolver (Q8.2), or None when unset.
+
+    ``REMORA_CAPABILITY_POLICY_FILE`` names a YAML or JSON capability policy
+    (``CapabilityPolicy.from_dict``). Unset means no capability minimization,
+    which is the behaviour before WS8.
+    """
+    global _CAPABILITY_RESOLVER
+    path = _os.environ.get("REMORA_CAPABILITY_POLICY_FILE", "").strip()
+    if not path:
+        return None
+    if _CAPABILITY_RESOLVER is None:
+        import yaml
+
+        from remora.capabilities import CapabilityPolicy, CapabilityResolver
+
+        with open(path, encoding="utf-8") as handle:
+            _CAPABILITY_RESOLVER = CapabilityResolver(
+                CapabilityPolicy.from_dict(yaml.safe_load(handle)))
+    return _CAPABILITY_RESOLVER
+
+
+def _resolve_capability(tool_call: Any, principal: str, tenant: str,
+                        now: "_dt.datetime | None" = None) -> Any:
+    """A fresh capability set for this call, or None without a policy.
+
+    Resolved from the deployment's policy for the AUTHENTICATED principal,
+    never from anything in the request but the task type, which can only
+    narrow (see ToolCallRequest.task_type).
+    """
+    resolver = _capability_resolver()
+    if resolver is None:
+        return None
+    source = _capability_epoch_source()
+    # Issued under the epochs in force now; a source that cannot answer is
+    # raised to the caller, which refuses (capability_epoch_unverifiable).
+    epochs = source.current(tenant, principal) if source is not None else None
+    return resolver.resolve(
+        epochs=epochs,
+        principal_id=principal, tenant_id=tenant,
+        environment=tool_call.target_environment or "",
+        # A call that names no task type gets one the policy never names, so
+        # it resolves to no tools: default deny, not an error.
+        task_type=getattr(tool_call, "task_type", None) or "unspecified",
+        now=now or _dt.datetime.now(_dt.UTC))
+
+
+def _capability_epoch_source() -> Any:
+    """The deployment's revocation epochs (Q8.6), or None.
+
+    ``REMORA_CAPABILITY_EPOCH_MODULE`` names a module exposing
+    ``current(tenant_id, principal_id) -> CapabilityEpochs`` and
+    ``revoked(capability_set_id) -> bool``; the module itself is the source.
+    """
+    return _deployment_module(_os.environ.get("REMORA_CAPABILITY_EPOCH_MODULE", ""))
+
+
+def _capability_state_reader() -> Any:
+    """``read(source, arguments)`` from ``REMORA_CAPABILITY_STATE_MODULE`` (Q8.4),
+    or None. Capability constraints read trusted state only through it."""
+    module = _deployment_module(_os.environ.get("REMORA_CAPABILITY_STATE_MODULE", ""))
+    return module.read if module is not None else None
+
+
+def _capability_block(tool_call: Any, principal: str, tenant: str) -> dict[str, Any] | None:
+    """What /assess records about the capability check (Q8.2)."""
+    try:
+        capability_set = _resolve_capability(tool_call, principal, tenant)
+    except Exception:  # noqa: BLE001 - an unreadable epoch source refuses, never allows
+        return {"allowed": False, "refusal": "capability_epoch_unverifiable",
+                "requested_tool": tool_call.tool_name}
+    if capability_set is None:
+        return None
+    refusal = capability_set.check(
+        tool_call.tool_name, principal_id=principal, tenant_id=tenant,
+        environment=tool_call.target_environment or "",
+        now=_dt.datetime.now(_dt.UTC)) or capability_set.check_arguments(
+        tool_call.tool_name, tool_call.arguments, _capability_state_reader())
+    return {
+        "capability_set_id": capability_set.capability_set_id,
+        "capability_digest": capability_set.digest,
+        "task_type": capability_set.task_type,
+        "requested_tool": tool_call.tool_name,
+        "allowed": refusal is None,
+        "refusal": refusal.value if refusal is not None else None,
+        "allowed_tools": list(capability_set.allowed_tools),
+        "policy_version": capability_set.policy_version,
+    }
+
+
+def _capability_or_refuse(tool_call: Any, principal: str, tenant: str) -> None:
+    """Refuse an execution whose tool is outside a fresh capability set,
+    before anything is decided or consumed (409, reason in the detail)."""
+    block = _capability_block(tool_call, principal, tenant)
+    if block is not None and not block["allowed"]:
+        raise HTTPException(status_code=409, detail=str(block["refusal"]))
+
+
+def _require_capability_set() -> bool:
+    """``REMORA_REQUIRE_CAPABILITY_SET``: refuse any lease without a capability digest."""
+    return _os.environ.get("REMORA_REQUIRE_CAPABILITY_SET", "").strip().lower() in {
+        "1", "true", "yes", "on"}
+
+
+def _require_task_identity() -> bool:
+    """Whether this deployment refuses calls that name no task (Q7.2).
+
+    Off unless ``REMORA_REQUIRE_TASK_IDENTITY`` is set, because a caller that
+    does not yet send ``context_id`` and ``task_id`` would otherwise be
+    refused on every call.
+    """
+    return _os.environ.get("REMORA_REQUIRE_TASK_IDENTITY", "").strip().lower() in {
+        "1", "true", "yes", "on"}
+
+
+def _presented_capability_set(raw: Any) -> Any:
+    """The capability set sent with a leased dispatch; a set whose content no
+    longer matches its own digest is a 409."""
+    if raw is None:
+        return None
+    from remora.capabilities import EffectiveCapabilitySet
+
+    try:
+        return EffectiveCapabilitySet.from_dict(raw)
+    except (KeyError, TypeError, ValueError) as exc:
+        raise HTTPException(status_code=409, detail=f"capability set refused: {exc}") from exc
+
+
+def _plan_or_refuse(tool_call: Any) -> Any:
+    """The plan a call carries (Q7.5); a malformed one is a 422."""
+    from remora.execution.service import plan_binding_of
+
+    try:
+        return plan_binding_of(tool_call)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=f"malformed plan: {exc}") from exc
+
+
+def _task_or_refuse(tool_call: Any) -> TaskIdentity | None:
+    """The task a call names; a 409 when the deployment requires one and it
+    names none. Checked before anything is decided or consumed, so a refused
+    call spends no grant and records no loop state."""
+    task = TaskIdentity.from_fields({
+        "context_id": getattr(tool_call, "context_id", None),
+        "task_id": getattr(tool_call, "task_id", None),
+    })
+    if task is None and _require_task_identity():
+        raise HTTPException(
+            status_code=409,
+            detail="task_identity_required: this deployment requires "
+                   "context_id and task_id on every call")
+    return task
 
 
 def _policy_coverage() -> dict[str, Any]:
@@ -900,6 +1180,8 @@ def _tool_dispatcher() -> GovernedToolDispatcher | None:
                 dispatcher = GovernedToolDispatcher(
                     expected_policy_bundle_hash=bundle,
                     nonce_store=_lease_nonce_store(),
+                    require_task_identity=_require_task_identity(),
+                    require_capability_set=_require_capability_set(),
                 )
                 # RMR-004: the lease has always carried the signed spec
                 # identity and verify() has always been able to check it.
@@ -908,13 +1190,32 @@ def _tool_dispatcher() -> GovernedToolDispatcher | None:
                 # spec THIS process would run, at the moment of dispatch, so a
                 # bundle that moved between approval and execution refuses.
                 dispatcher.bind_toolspec_identity(_toolspec_identity)
+                # NTA-2: a mediated tool's downstream ceiling is the one its
+                # signed ToolSpec declares, resolved in this process.
+                dispatcher.bind_downstream_ceilings(_downstream_ceiling)
+                _bind_premise_checks(dispatcher)
                 spec = _os.environ.get("REMORA_TOOL_REGISTRY_MODULE", "").strip()
                 if spec:
                     import importlib
 
-                    importlib.import_module(spec).register_tools(
-                        dispatcher.register
-                    )
+                    registry = importlib.import_module(spec)
+                    registry.register_tools(dispatcher.register)
+                    if _os.environ.get("REMORA_EFFECT_ENDPOINT", "").strip():
+                        # Three domains (NTA-2 phase 3): mediated effects go to
+                        # the effect domain; this process holds no executor.
+                        from remora.enforcement.effect_client import (
+                            RemoteEffectClient,
+                            http_post_from_env,
+                        )
+
+                        dispatcher.bind_effect_domain(
+                            RemoteEffectClient(post=http_post_from_env()))
+                    elif hasattr(registry, "register_effect_executors"):
+                        # Optional: the primitives mediated effects run on,
+                        # registered like tool callables because they close
+                        # over the same kind of credential.
+                        registry.register_effect_executors(
+                            dispatcher.bind_effect_executors)
                 _DISPATCHER = dispatcher
     return _DISPATCHER
 
@@ -935,10 +1236,104 @@ def _toolspec_identity(tool_name: str) -> tuple[str, int] | None:
     return spec.toolspec_hash, int(spec.version)
 
 
+_EFFECT_DOMAIN: Any = None
+#: The raw JSON body of an effect request; the effect domain parses and
+#: refuses it itself, so no request model sits in front of its own checks.
+_EFFECT_BODY = Body(...)
+
+
+def _effect_domain() -> Any:
+    """This process's EffectDomain (NTA-2 phase 3), built once.
+
+    Its effect executors come from the registry module's
+    ``register_effect_executors``; whether a lease was dispatched is read from
+    the durable nonce store the executor consumed it in. Without a durable
+    store this process cannot tell, and every effect refuses as
+    ``execution_state_unverifiable``: the executor's in-process ledger is in
+    another process.
+    """
+    global _EFFECT_DOMAIN
+    if _EFFECT_DOMAIN is None:
+        from remora.enforcement.custody import assert_may_hold_effect_executors
+        from remora.enforcement.effect_domain import EffectDomain
+
+        executors: dict[str, Any] = {}
+
+        def collect(mapping: Any) -> None:
+            assert_may_hold_effect_executors()
+            executors.update(mapping)
+
+        spec = _os.environ.get("REMORA_TOOL_REGISTRY_MODULE", "").strip()
+        if spec:
+            import importlib
+
+            registry = importlib.import_module(spec)
+            if hasattr(registry, "register_effect_executors"):
+                registry.register_effect_executors(collect)
+        store = _lease_nonce_store()
+
+        def started(lease: ExecutionLease) -> bool:
+            if store is None or not hasattr(store, "consumed"):
+                raise RuntimeError("no durable nonce store shared with the executor")
+            return bool(store.consumed(lease.nonce, tenant_id=lease.tenant_id))
+
+        _EFFECT_DOMAIN = EffectDomain(
+            ceilings=_downstream_ceiling, executors=executors, execution_started=started,
+            epochs=_capability_epoch_source(), ledger=store)
+    return _EFFECT_DOMAIN
+
+
+def _effect_request(payload: dict[str, Any], request: Request) -> Any:
+    tenant, role, _ = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "execute")
+    lease = payload.get("lease") if isinstance(payload, dict) else None
+    if not isinstance(lease, dict) or lease.get("tenant_id") != tenant:
+        raise HTTPException(status_code=409,
+                            detail="effect refused: the lease is not for the authenticated tenant")
+    return _effect_domain()
+
+
+@router.post("/effects")
+def serve_effect(request: Request, payload: dict[str, Any] = _EFFECT_BODY) -> dict[str, Any]:
+    """One mediated effect, served by the effect domain (NTA-2 phase 3).
+
+    The body carries the lease, the lease-bound capability set, the
+    capability, the resource and the arguments. The effect domain verifies
+    the lease, checks it was dispatched, derives the authority from its own
+    ToolSpec ceiling and answers REFUSED or EXECUTED; it never raises for a
+    refusal.
+    """
+    return dict(_effect_request(payload, request).serve(payload))
+
+
+@router.post("/effects/close")
+def close_effects(request: Request, payload: dict[str, Any] = _EFFECT_BODY) -> dict[str, Any]:
+    """End a mediated execution in the effect domain."""
+    return dict(_effect_request(payload, request).close(payload))
+
+
+def _downstream_ceiling(tool_name: str) -> Any:
+    """The signed ToolSpec's downstream ceiling for ``tool_name`` (NTA-2).
+
+    ``None`` when no bundle is configured or the spec declares none; a
+    mediated tool then runs with no effect authority at all. A configured
+    bundle that cannot answer raises, and the dispatcher refuses on a raise.
+    """
+    bundle = _authz_load_bundle(_os.environ)
+    if bundle is None:
+        return None
+    return bundle.get(tool_name).downstream_capabilities
+
+
 def _reset_tool_dispatcher() -> None:
     """Test hook: drop the cached dispatcher (e.g. after env changes)."""
-    global _DISPATCHER
+    global _DISPATCHER, _EFFECT_RESOLVER, _CAPABILITY_RESOLVER, _EFFECT_DOMAIN
     _DISPATCHER = None
+    _EFFECT_DOMAIN = None
+    _EFFECT_RESOLVER = None
+    _CAPABILITY_RESOLVER = None
 
 
 # ── Semantic bundle (SHELF-020) ────────────────────────────────────────────
@@ -1291,13 +1686,34 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "assess")
+    _task_or_refuse(req)
     # FT-02 lazy sweep (same discipline as REM-032's TTL sweep): a dispatch
     # whose worker never reported back is settled as UNKNOWN before new
     # work is considered, so a stranded intent cannot linger unnoticed.
     reconcile_stale_dispatches(tenant)
     # Orchestration lives in remora.execution.service (issue #241, slice 7);
     # this route binds the module's ambient state and stays HTTP conversion.
-    response = _assess_proposal(
+    try:
+        response = _assess_proposal_with_loop_state(
+            tenant=tenant, principal=principal, req=req)
+    except LoopSafetyStoreUnavailable as exc:
+        # 503 and no decision. Assessing without the context's history
+        # would read an outage as "nothing accumulated".
+        raise HTTPException(
+            status_code=503,
+            detail="loop safety store unavailable; nothing was assessed "
+                   "and this call must be retried") from exc
+    api_mod.record_execution_assess(response["decision"])
+
+    if idemp_key:
+        _idempotency_put(tenant, idemp_key, response)
+    return response
+
+
+def _assess_proposal_with_loop_state(
+    *, tenant: str, principal: str, req: "ToolCallRequest",
+) -> dict[str, Any]:
+    return _assess_proposal(
         tenant=tenant, principal=principal, proposal=req,
         engine=_ENGINE, chain=_CHAIN,
         transaction=db_transaction_state, item_tenant=_ITEM_TENANT,
@@ -1309,12 +1725,10 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
         token_audience=PEP_AUDIENCE,
         token_ttl_seconds=EXECUTION_TOKEN_TTL_SECONDS,
         policy_bundle_hash=_current_policy_bundle_hash,
+        loop_safety=_loop_safety_monitor(),
+        capability_gate=(lambda proposal: _capability_block(proposal, principal, tenant))
+        if _capability_resolver() is not None else None,
     )
-    api_mod.record_execution_assess(response["decision"])
-
-    if idemp_key:
-        _idempotency_put(tenant, idemp_key, response)
-    return response
 
 
 @router.post("/approve", responses={
@@ -1364,6 +1778,7 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
             chain=_CHAIN, authorize_approval=_authorize_approval,
             lifecycle_guard=_lifecycle_guard,
             note_proposal_id=_note_proposal_id,
+            transactional_append=chain_append_transactional,
         )
     except ReviewNotFound as exc:
         raise HTTPException(status_code=404, detail="review item not found") from exc
@@ -1371,6 +1786,117 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
         raise HTTPException(status_code=409, detail=exc.reason) from exc
     api_mod.record_execution_approval()
     return response
+
+
+@router.get("/capabilities", responses={
+    200: {"description": "The tools this principal may see for the task, projected for an agent."},
+    **_AUTH_RESPONSES,
+    404: {"model": ErrorDetail, "description": "No capability policy is configured."},
+})
+def capability_projection(request: Request, task_type: str = "",
+                          target_environment: str = "prod") -> dict[str, Any]:
+    """The agent-facing tool list for one task (WS8 Q8.3).
+
+    Resolved from the deployment's capability policy for the AUTHENTICATED
+    principal and tenant, exactly as the execution routes resolve it, and
+    projected as an OpenAI tool list. Everything outside the set is absent.
+    The same set is enforced again on every call, so a client that ignores
+    this list gains nothing.
+    """
+    tenant, role, principal = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "assess")
+    call = SimpleNamespace(target_environment=target_environment, task_type=task_type or None)
+    try:
+        capability_set = _resolve_capability(call, principal, tenant)
+    except Exception as exc:  # noqa: BLE001 - same fail-closed rule as the execution paths
+        raise HTTPException(status_code=503,
+                            detail="capability_epoch_unverifiable") from exc
+    if capability_set is None:
+        raise HTTPException(status_code=404, detail="no capability policy is configured")
+    from remora.capabilities import CapabilityProjector
+
+    bundle = _toolspec_bundle()
+    specs: dict[str, dict[str, Any]] = {}
+    for name, entry in TOOL_REGISTRY.items():
+        schema: Any = None
+        if bundle is not None:
+            try:
+                schema = dict(bundle.get(name).argument_schema)
+            except Exception:  # noqa: BLE001 - no signed spec: no schema is invented
+                schema = None
+        specs[name] = {"description": f"{entry.get('action_type', '')} "
+                                      f"({entry.get('risk_tier', '')} risk)".strip(),
+                       "parameters": schema}
+    projector = CapabilityProjector(capability_set)
+    return {"capability_set": capability_set.to_dict(),
+            "projection": projector.project(specs).to_dict(),
+            "tools": projector.for_openai(specs)}
+
+
+@router.get("/loop-safety/{context_id}", responses={
+    200: {"description": "What this context has accumulated since its last reset."},
+    **_AUTH_RESPONSES,
+    503: {"model": ErrorDetail, "description": "Loop safety store unavailable."},
+})
+def loop_safety_state(context_id: str, request: Request) -> dict[str, Any]:
+    """Read a context's loop safety state (Q7.2). Reviewer capability."""
+    tenant, role, _principal = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "review")
+    try:
+        verdict = _loop_safety_monitor().assess(tenant, context_id)
+    except LoopSafetyStoreUnavailable as exc:
+        raise HTTPException(status_code=503,
+                            detail="loop safety store unavailable") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    state = verdict.state
+    return {
+        "context_id": context_id,
+        "action": verdict.action,
+        "reached": list(verdict.reached),
+        "counts": dict(state.counts),
+        "tasks": list(state.tasks),
+        "events_since_reset": state.events_since_reset,
+    }
+
+
+@router.post("/loop-safety/reset", responses={
+    200: {"description": "Reset recorded; the context's count starts again."},
+    **_AUTH_RESPONSES,
+    503: {"model": ErrorDetail, "description": "Loop safety store unavailable."},
+})
+def loop_safety_reset(req: LoopSafetyResetRequest, request: Request) -> dict[str, Any]:
+    """Reset a context's loop safety count under a named policy decision.
+
+    Reviewer capability, as for revoking a principal: it is a human decision
+    about authority. The store keeps the earlier events, and the reset is
+    appended to the tenant chain with the reviewer, the policy reference and
+    the reason. The agent whose history it is has no route to this.
+    """
+    tenant, role, reviewer = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "review")
+    try:
+        _loop_safety_monitor().reset(tenant, req.context_id,
+                                     policy_ref=req.policy_ref, reason=req.reason)
+    except LoopSafetyStoreUnavailable as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="loop safety store unavailable; the context was NOT reset",
+        ) from exc
+    _CHAIN.append(tenant, {
+        "event": "loop_safety_reset",
+        "context_id": req.context_id,
+        "reset_by": reviewer,
+        "policy_ref": req.policy_ref,
+        "reason": req.reason,
+    })
+    return {"context_id": req.context_id, "reset_by": reviewer, "status": "reset"}
 
 
 @router.post("/revoke-principal", responses={
@@ -1392,9 +1918,24 @@ def revoke_principal(req: RevokePrincipalRequest, request: Request) -> dict[str,
     api_mod._require_tenant_capability(role, tenant, "review")
     if req.principal == revoker:
         raise HTTPException(status_code=409, detail="a principal cannot revoke themself")
+    # REM-047: the revocation and the record of it commit together. This was
+    # the plainest case of the defect — the revocation committed inside the
+    # transaction and ``principal_revoked`` was appended after it, so a crash
+    # in that window left a principal revoked with nothing saying who did it
+    # or why. The reason is part of the key: a re-revocation carrying a
+    # different reason is a different event, and an identical repeat is the
+    # same one.
+    revocation_key = _audit_outbox.encode_key(
+        tenant, "principal_revoked", req.principal, revoker, req.reason or "")
     try:
         with db_transaction_state(tenant) as q:
             q.revoke_principal(req.principal, reason=req.reason or "")
+            chain_append_transactional(tenant, {
+                "event": "principal_revoked",
+                "principal": req.principal,
+                "revoked_by": revoker,
+                "reason": req.reason or "",
+            }, key=revocation_key)
     except RevocationStoreUnavailable as exc:
         # 503, not 500, and emphatically not a success body. A caller told
         # "revoked" by a route that could not record it would stop chasing a
@@ -1406,12 +1947,6 @@ def revoke_principal(req: RevokePrincipalRequest, request: Request) -> dict[str,
                 "and this call must be retried"
             ),
         ) from exc
-    _CHAIN.append(tenant, {
-        "event": "principal_revoked",
-        "principal": req.principal,
-        "revoked_by": revoker,
-        "reason": req.reason or "",
-    })
     return {"principal": req.principal, "revoked_by": revoker, "status": "revoked"}
 
 
@@ -1500,6 +2035,9 @@ def _dispatch_under_lease(
     proposal_id: str = "",
     grant_jti: str = "",
     presented_lease: Any = None,
+    task_identity: TaskIdentity | None = None,
+    plan: Any = None,
+    capability_set: Any = None,
 ) -> dict[str, Any]:
     """Governed dispatch (see remora.execution.dispatch); binds this module's
     dispatcher and current policy bundle hash. Shared by /execute,
@@ -1512,6 +2050,40 @@ def _dispatch_under_lease(
     (issue #45 gap 6). The span carries the proposal id as the tool-call id,
     so a trace joins the audit chain on the same key everything else uses.
     """
+    if presented_lease is None:
+        # Q8.2, the fresh check of SDD §15: resolved again at the moment the
+        # lease is minted, and signed into it.
+        # Resolved on the clock the dispatch is judged by. Resolving on a
+        # later clock made issued_at fall after the dispatch time, and every
+        # lease refused as capability_not_yet_valid.
+        try:
+            capability_set = _resolve_capability(tool_call, principal, tenant, now=now)
+        except Exception:  # noqa: BLE001 - unknown epochs are not current ones
+            return {"executed": False, "refusal_reason": "capability_epoch_unverifiable",
+                    "proposal_id": proposal_id}
+        if capability_set is not None:
+            refusal = capability_set.check(
+                tool_call.tool_name, principal_id=principal, tenant_id=tenant,
+                environment=tool_call.target_environment or "", now=now,
+            ) or capability_set.check_arguments(
+                tool_call.tool_name, tool_call.arguments, _capability_state_reader())
+            if refusal is not None:
+                return {"executed": False, "refusal_reason": refusal.value,
+                        "proposal_id": proposal_id}
+    resolved_effect = None
+    resolver = _effect_resolver() if presented_lease is None else None
+    if resolver is not None:
+        from remora.enforcement.resolved_effect import UnresolvedReference
+
+        try:
+            resolved_effect = resolver.resolve(
+                tool_call.tool_name, tool_call.arguments,
+                tool_call.target_environment or "")
+        except UnresolvedReference:
+            # Closed world: a reference the registry does not know is not
+            # authorised by guessing what it probably meant.
+            return {"executed": False, "refusal_reason": "unresolved_reference",
+                    "proposal_id": proposal_id}
     with _EXEC_TRACER.tool_governance_span(
         tool_call.tool_name,
         invocation_id=proposal_id or None,
@@ -1531,6 +2103,10 @@ def _dispatch_under_lease(
             proposal_id=proposal_id,
             grant_jti=grant_jti,
             presented_lease=presented_lease,
+            task_identity=task_identity,
+            resolved_effect=resolved_effect,
+            plan=plan,
+            capability_set=capability_set,
         )
         _span.set_attribute("remora.executed", bool(result.get("executed")))
         if result.get("refusal_reason"):
@@ -1568,6 +2144,8 @@ def execute(req: ExecuteRequest, request: Request) -> "dict[str, Any] | JSONResp
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "execute")
+    _task_or_refuse(req.tool_call)
+    _capability_or_refuse(req.tool_call, principal, tenant)
     reconcile_stale_dispatches(tenant)  # FT-02 lazy sweep (see assess)
     # Issue #82: async mode answers 202 after durable authorization; the
     # dispatch half belongs to the standalone worker
@@ -1596,6 +2174,7 @@ def execute(req: ExecuteRequest, request: Request) -> "dict[str, Any] | JSONResp
             policy_coverage=_policy_coverage,
             policy_bundle_hash=_current_policy_bundle_hash,
             async_dispatch=async_mode,
+            transactional_append=chain_append_transactional,
         )
     except ToolSpecChanged as exc:
         raise HTTPException(status_code=409, detail=exc.reason) from exc
@@ -1654,6 +2233,8 @@ def execute_accepted(req: ExecuteAcceptedRequest, request: Request) -> dict[str,
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "execute")
+    _task_or_refuse(req.tool_call)
+    _capability_or_refuse(req.tool_call, principal, tenant)
     reconcile_stale_dispatches(tenant)
 
     try:
@@ -1721,6 +2302,7 @@ def dispatch_leased(req: DispatchLeasedRequest, request: Request) -> dict[str, A
     from servers import api as api_mod
 
     api_mod._require_tenant_capability(role, tenant, "execute")
+    task = _task_or_refuse(req.tool_call)
 
     try:
         lease = ExecutionLease.from_dict(req.lease)
@@ -1760,6 +2342,14 @@ def dispatch_leased(req: DispatchLeasedRequest, request: Request) -> dict[str, A
         proposal_id=lease.proposal_id,
         grant_jti=lease.grant_jti,
         presented_lease=lease,
+        # From the call being executed, checked against the task the signed
+        # lease was granted under: a lease from another task refuses.
+        task_identity=task,
+        # The plan the lease was signed over; its premises are re-read here.
+        plan=_plan_or_refuse(req.tool_call),
+        # The capability set the lease was minted under, checked against its
+        # signed digest and against this call by the dispatcher.
+        capability_set=_presented_capability_set(req.capability_set),
     )
     api_mod.record_execution_execute(
         executed=bool(tool_execution["executed"]),
@@ -1796,6 +2386,7 @@ def reject(req: RejectRequest, request: Request) -> dict[str, Any]:
             transaction=db_transaction_state, item_tenant=_ITEM_TENANT,
             chain=_CHAIN, lifecycle_guard=_lifecycle_guard,
             note_proposal_id=_note_proposal_id,
+            transactional_append=chain_append_transactional,
         )
     except ReviewNotFound as exc:
         raise HTTPException(status_code=404, detail="review item not found") from exc
@@ -2158,6 +2749,11 @@ def export_evidence(proposal_id: str, request: Request) -> dict[str, Any]:
             "problems": problems,
             "records_checked": len(_CHAIN.entries(tenant)),
         },
+        # Q7.3: authentic is not complete. Each contract names the evidence
+        # its claim needs; the verdict says whether this proposal has it.
+        "evidence_coverage": _evidence_coverage(events, problems),
+        # Q8.7: which capability set each assessment was checked against.
+        "capability_decision": _capability_decision(events),
     }
 
     def _digest(value: Any) -> str:
@@ -2176,6 +2772,38 @@ def export_evidence(proposal_id: str, request: Request) -> dict[str, Any]:
         "section_sha256": {name: _digest(v) for name, v in sections.items()},
     }
     return bundle
+
+
+def _evidence_coverage(events: list[dict[str, Any]],
+                       problems: list[str]) -> dict[str, Any]:
+    """Coverage of this proposal's chain entries against the two claims a
+    reader usually makes about an execution (remora/governance/evidence_coverage.py)."""
+    from remora.governance.evidence_coverage import (
+        AUTHORIZED_EXECUTION,
+        EXECUTED_EFFECT,
+        SUCCESS_ESTABLISHED,
+        SUCCESS_ESTABLISHED_V2,
+        assess_coverage,
+        chain_event_items,
+    )
+
+    items = chain_event_items(events, problems)
+    return {contract.contract_id: assess_coverage(contract, items).to_dict()
+            for contract in (AUTHORIZED_EXECUTION, EXECUTED_EFFECT, SUCCESS_ESTABLISHED,
+                             SUCCESS_ESTABLISHED_V2)}
+
+
+def _capability_decision(events: list[dict[str, Any]]) -> dict[str, Any]:
+    """The capability checks recorded for one proposal (Q8.7), latest last.
+
+    Always present, even when empty: an absent capability decision must be
+    distinguishable from an export that predates the section.
+    """
+    decisions = [dict(e["payload"]["capability"]) for e in events
+                 if e.get("event") == "assessed"
+                 and isinstance((e.get("payload") or {}).get("capability"), dict)]
+    return {"decisions": decisions,
+            "latest": decisions[-1] if decisions else None}
 
 
 def _remora_version() -> str:

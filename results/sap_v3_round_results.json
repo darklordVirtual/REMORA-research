@@ -23,13 +23,13 @@
       "signal": "neg_temperature",
       "sgr": {
         "certified": false,
-        "risk_bound": 0.99,
+        "risk_bound": 0.084398,
         "certified_coverage_riskcal": 0.0,
         "empirical_risk_riskcal": 0.0
       },
       "sgr_family_wise_bonferroni3": {
         "certified": false,
-        "risk_bound": 0.996667,
+        "risk_bound": 0.093327,
         "certified_coverage_riskcal": 0.0,
         "note": "delta/3 per arm; the marginal per-arm claim above is the pre-registered one, this row answers whether the arm also survives selection-among-three at the same overall level"
       },
@@ -74,7 +74,7 @@
       },
       "sgr_family_wise_bonferroni3": {
         "certified": false,
-        "risk_bound": 0.996667,
+        "risk_bound": 0.060115,
         "certified_coverage_riskcal": 0.0,
         "note": "delta/3 per arm; the marginal per-arm claim above is the pre-registered one, this row answers whether the arm also survives selection-among-three at the same overall level"
       },
@@ -119,7 +119,7 @@
       },
       "sgr_family_wise_bonferroni3": {
         "certified": false,
-        "risk_bound": 0.996667,
+        "risk_bound": 0.060115,
         "certified_coverage_riskcal": 0.0,
         "note": "delta/3 per arm; the marginal per-arm claim above is the pre-registered one, this row answers whether the arm also survives selection-among-three at the same overall level"
       },

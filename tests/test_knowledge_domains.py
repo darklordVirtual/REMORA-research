@@ -26,7 +26,7 @@ RESULTS = ROOT / "results" / "knowledge_domains"
 
 
 def _result(name: str) -> dict:
-    data = json.loads((RESULTS / f"{name}.json").read_text())
+    data = json.loads((RESULTS / f"{name}.json").read_text(encoding="utf-8"))
     assert data["status"] == "ok"
     assert data["provenance"]["schema"] == "result_provenance_v1"
     return data["result"]

@@ -1,0 +1,29 @@
+# Experiment manifest — spec: docs/assurance/experiment_manifest_spec_v1.md
+experiment_id: EXP-CAPABILITY-MEDIATION-01
+title: Authority-preserving capability mediation v1 (NTA-2, design section 25)
+status: completed
+hypothesis: >
+  Capability minimization alone does not stop a governed tool's
+  implementation from exercising effects its caller never authorized. The
+  in-process mediator stops every such class except direct use of an ambient
+  credential, and the three-domain split, in which the tool's process holds no
+  effect credential, stops that too. No arm blocks a legitimate nested effect.
+baseline: arm A, Q8 capability minimization with an unmediated tool
+policy_configuration:
+  arms: [A, B, C]
+seeds: [0]
+datasets:
+  - deterministic corpus built in experiments/authority_preserving_capability_mediation.py
+result_artifacts:
+  - results/authority_preserving_capability_mediation_v1.json
+promotion_target: none
+notes: >
+  Pre-registered 2026-09-29 and merged (#636) before the study code existed.
+  First run: seven of eight predictions met. P6 (mediated effect coverage 1.0
+  in arm B) missed at 0.6667, because the registration counts the four
+  unmediated direct_sdk_access effects in its denominator; recorded in
+  NEGATIVE_RESULTS.md §63. No deviations: the first run is the result.
+known_limitations:
+  - Author-written corpus, labels and primitives; each class probes one mechanism.
+  - Arm C separates processes on one machine, not a deployment's containers or network.
+  - Measures mechanism efficacy, not a real-world rate.

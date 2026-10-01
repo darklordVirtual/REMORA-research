@@ -25,7 +25,7 @@ def test_whatif_presets_artifact_is_current(repo_root):
 def test_whatif_presets_artifact_states_the_boundary(repo_root):
     """The front page says a critical production write cannot be lifted by a
     model; the committed artifact must carry that statement for the preset."""
-    data = json.loads((repo_root / "artifacts/demo/whatif_presets_v1.json").read_text())
+    data = json.loads((repo_root / "artifacts/demo/whatif_presets_v1.json").read_text(encoding="utf-8"))
     assert data["regenerate"] == "python scripts/generate_whatif_presets.py"
     by_name = {p["call"]["name"]: p for p in data["presets"]}
     drop = by_name["drop_database"]["what_if"]
@@ -39,7 +39,7 @@ def test_whatif_presets_artifact_states_the_boundary(repo_root):
 
 
 def test_whatif_boundary_artifact_reports_no_model_liftable_block(repo_root):
-    data = json.loads((repo_root / "artifacts/demo/whatif_boundary_sample_v1.json").read_text())
+    data = json.loads((repo_root / "artifacts/demo/whatif_boundary_sample_v1.json").read_text(encoding="utf-8"))
     assert data["regenerate"] == "python scripts/generate_whatif_presets.py"
     for profile in ("default", "execution_profile"):
         b = data["boundary"][profile]

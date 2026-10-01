@@ -34,3 +34,16 @@
 *.parquet binary
 *.pt binary
 *.onnx binary
+
+# A delivered third-party package, committed byte for byte: its pre-registration
+# hash covers the CRLF bytes of fault-definitions.json.
+artifacts/independent-analysis-2026-09-30/** -text
+
+# Blind probe outputs, committed byte for byte (pre-registered by SHA256SUMS).
+artifacts/evidence-sufficiency-blind-probe-2026-09-30/** -text
+
+artifacts/evidence-sufficiency-blind-probe-2-2026-09-30/** -text
+
+artifacts/evidence-sufficiency-blind-probe-3-2026-09-30/** -text
+
+artifacts/evidence-sufficiency-blind-probe-4-2026-10-01/** -text

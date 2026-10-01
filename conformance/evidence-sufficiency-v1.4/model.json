@@ -1,0 +1,77 @@
+{
+  "artifact": "evidence-sufficiency-v1.3",
+  "rule": "A table-driven reference model of the v1 checker, written from the v1 README and the declared ladders rather than from checker.py, for differential testing (McKeeman, 1998). The runner interprets these tables over every combination of premise values and requires the checker to agree on status and reason. The model shares its author and its specification with the checker, so agreement catches an implementation slip in either and cannot catch a misreading both share.",
+  "semantics": {
+    "is_true": "the field is present and its value is exactly the boolean true",
+    "is_false": "the field is present and its value is exactly the boolean false",
+    "steps": "steps run in order; the first failing step yields not_established with its reason; a branch step selects a sub-ladder on an exact boolean, and any other value yields the branch's otherwise reason; a compare step yields established when the two fields are structurally equal as JSON values (booleans are never equal to integers), violated when both are present and differ, and its missing reason when either is absent",
+    "guidance": "every not_established reason carries the guidance declared in guidance.json; decisive verdicts carry none"
+  },
+  "lattice": {
+    "premise_values": [true, false, "absent"],
+    "typed_values": [1, 0, "true", "", null, [true], {"value": true}],
+    "state_values": ["absent", "closed", "open", "Closed", 1, true, ["closed", "locked"], ["locked", "closed"], {"state": "closed"}, {"state": "open"}, {"lock": "held", "state": "closed"}, {"state": "closed", "lock": "held"}]
+  },
+  "claims": {
+    "admission_accounting": {
+      "fields": ["effect_source_accepted", "effect_seen", "scope_accepted", "admission_present", "admission_source_accepted", "admission_matches", "mandatory_admission", "window_finalized", "admission_coverage_complete"],
+      "steps": [
+        {"require": {"effect_source_accepted": "is_true", "effect_seen": "is_true"}, "else": "execution_observation_unaccepted_or_missing"},
+        {"require": {"scope_accepted": "is_true"}, "else": "scope_unaccepted_or_missing"},
+        {
+          "branch": "admission_present",
+          "when_true": [
+            {"require": {"admission_source_accepted": "is_true"}, "else": "admission_observation_unaccepted"},
+            {"require": {"admission_matches": "is_true"}, "then": {"status": "established", "reason": "covering_admission_observed_for_this_execution"}, "else": "candidate_admission_does_not_establish_a_covering_admission"}
+          ],
+          "when_false": [
+            {"require": {"mandatory_admission": "is_true"}, "else": "admission_requirement_not_defined"},
+            {"require": {"window_finalized": "is_true"}, "else": "observation_window_open"},
+            {"require": {"admission_coverage_complete": "is_true"}, "else": "admission_coverage_incomplete"},
+            {"terminal": {"status": "violated", "reason": "mandatory_admission_absent_in_complete_bounded_history"}}
+          ],
+          "otherwise": "admission_presence_unknown"
+        }
+      ]
+    },
+    "tested_route_enforcement": {
+      "fields": ["route_observation_accepted", "same_protected_operation", "outside_required_pep", "effect_observation_accepted", "protected_effect_observed", "effect_window_complete", "valid_control_same_context", "required_boundary_refusal_accepted"],
+      "steps": [
+        {"require": {"route_observation_accepted": "is_true"}, "else": "route_observation_unaccepted_or_missing"},
+        {"require": {"same_protected_operation": "is_true"}, "else": "target_or_operation_not_bound"},
+        {"require": {"outside_required_pep": "is_true"}, "else": "alternative_route_not_established"},
+        {"require": {"effect_observation_accepted": "is_true"}, "else": "protected_effect_observation_unaccepted"},
+        {
+          "branch": "protected_effect_observed",
+          "when_true": [
+            {"terminal": {"status": "violated", "reason": "accepted_effect_observed_outside_required_pep"}}
+          ],
+          "when_false": [
+            {"require": {"effect_window_complete": "is_true"}, "else": "no_effect_observation_not_complete"},
+            {"require": {"valid_control_same_context": "is_true"}, "else": "valid_control_missing_or_incomparable"},
+            {"require": {"required_boundary_refusal_accepted": "is_true"}, "else": "refusal_not_attributed_to_required_boundary"},
+            {"terminal": {"status": "established", "reason": "named_route_refused_at_required_boundary_in_test_scope"}}
+          ],
+          "otherwise": "protected_effect_unknown"
+        }
+      ]
+    },
+    "postcondition_observed": {
+      "fields": ["readback_available", "source_accepted", "same_target_and_predicate", "fresh_in_declared_window", "settlement_reached"],
+      "state_fields": ["expected_state", "observed_state"],
+      "steps": [
+        {"require": {"readback_available": "is_true"}, "else": "readback_unavailable"},
+        {"require": {"source_accepted": "is_true"}, "else": "readback_source_not_accepted"},
+        {"require": {"same_target_and_predicate": "is_true"}, "else": "target_or_predicate_not_bound"},
+        {"require": {"fresh_in_declared_window": "is_true"}, "else": "readback_stale_or_time_unbound"},
+        {"require": {"settlement_reached": "is_true"}, "else": "declared_settlement_point_not_reached"},
+        {
+          "compare": ["expected_state", "observed_state"],
+          "missing": "state_value_missing",
+          "equal": {"status": "established", "reason": "declared_postcondition_observed_at_named_point"},
+          "different": {"status": "violated", "reason": "declared_postcondition_disagreed_at_named_point"}
+        }
+      ]
+    }
+  }
+}

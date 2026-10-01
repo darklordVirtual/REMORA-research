@@ -43,6 +43,8 @@ to ``audit_detail``, the internal audit channel.
 """
 from __future__ import annotations
 
+from itertools import pairwise
+
 import os
 from collections.abc import Sequence
 from dataclasses import dataclass, field
@@ -286,7 +288,7 @@ def resolve_verify(
         # verdicts is the suppression signature — escalate despite unanimity.
         suspicions = [v.suspicion for v in trusted_verdicts]
         if len(suspicions) > config.resample_k and all(
-            later <= earlier for earlier, later in zip(suspicions, suspicions[1:])
+            later <= earlier for earlier, later in pairwise(suspicions)
         ):
             return _escalate("suspicion_suppression_guard", guard=True)
 

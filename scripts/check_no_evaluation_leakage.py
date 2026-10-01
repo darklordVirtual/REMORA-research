@@ -17,11 +17,30 @@ for references to evaluation-only fields. These fields must ONLY appear in:
 """
 from __future__ import annotations
 
+import argparse
 import ast
 import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+
+#: Runtime packages, relative to whichever root is scanned.
+RUNTIME_SCAN_RELDIRS = (
+    "remora/policy",
+    "remora/toolcall",
+    "remora/governance",
+    "remora/governance_intelligence",
+    "remora/shadow",
+    "remora/selective",
+    "remora/causal",
+)
+
+
+def set_root(root: Path) -> None:
+    """Point the gate at another tree (``--root``, and the meta-tests)."""
+    global REPO_ROOT, RUNTIME_SCAN_DIRS
+    REPO_ROOT = root.resolve()
+    RUNTIME_SCAN_DIRS = [REPO_ROOT / rel for rel in RUNTIME_SCAN_RELDIRS]
 
 # Fields that are evaluation-only: must not appear in runtime/policy code.
 # These fields are in ToolCallTask but should never be read by the gate.
@@ -49,12 +68,25 @@ FORBIDDEN_RUNTIME_FIELDS = {
 }
 
 # Files where these fields ARE allowed (evaluators, scorers, test fixtures).
+# Matched as a directory prefix or an exact path, never as a substring: until
+# 2026-09-03 `pattern in rel` exempted any runtime file whose path merely
+# CONTAINED one of these, so a hypothetical remora/toolcall/benchmark_runtime.py
+# was outside the gate purely because its name starts with "benchmark".
 ALLOWLIST_PATTERNS = [
     "experiments/",
     "tests/",
     "remora/toolcall/scoring.py",
     "remora/toolcall/simulators.py",
-    "remora/toolcall/benchmark",
+    # Benchmark loaders: the versioned modules, named exactly. A prefix here
+    # would re-open the substring hole for anything named benchmark*.
+    "remora/toolcall/benchmark.py",
+    "remora/toolcall/benchmark_v2.py",
+    "remora/toolcall/benchmark_v3.py",
+    # The blinded v3 loader and scorer (REM-009). It is the file that
+    # SEPARATES CandidateAction from EvaluationTruth, so it necessarily
+    # touches the truth fields; it was exempt only by the substring match
+    # until 2026-09-03, and is now named.
+    "remora/toolcall/benchmark_blind_v3.py",
     "remora/toolcall/schema.py",
     "remora/toolcall/schema_v3.py",
     "remora/aromer/evals/",
@@ -74,15 +106,7 @@ FORBIDDEN_ANNOTATION_FIELDS = {"severity", "tags"}
 ANNOTATION_SCAN_DIRS_NAMES = ("toolcall", "policy")
 
 # Runtime packages that must NOT reference evaluation fields.
-RUNTIME_SCAN_DIRS = [
-    REPO_ROOT / "remora" / "policy",
-    REPO_ROOT / "remora" / "toolcall",
-    REPO_ROOT / "remora" / "governance",
-    REPO_ROOT / "remora" / "governance_intelligence",
-    REPO_ROOT / "remora" / "shadow",
-    REPO_ROOT / "remora" / "selective",
-    REPO_ROOT / "remora" / "causal",
-]
+RUNTIME_SCAN_DIRS = [REPO_ROOT / rel for rel in RUNTIME_SCAN_RELDIRS]
 
 # Runtime toolcall files to exclude (evaluation-layer, not runtime-gate)
 RUNTIME_EXCLUDED_FILES = {
@@ -141,9 +165,24 @@ class LeakageVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
 
-def is_allowlisted(filepath: Path) -> bool:
-    rel = str(filepath.relative_to(REPO_ROOT)).replace("\\", "/")
-    return any(pattern in rel for pattern in ALLOWLIST_PATTERNS)
+def is_allowlisted(filepath: Path, repo_root: Path | None = None) -> bool:
+    """True if the file is an evaluator, scorer or fixture, by path.
+
+    A pattern ending in "/" is a directory prefix; anything else must match
+    the path exactly. Substring matching was the bypass.
+    """
+    root = repo_root or REPO_ROOT
+    try:
+        rel = filepath.resolve().relative_to(root.resolve()).as_posix()
+    except ValueError:
+        rel = filepath.as_posix()
+    for pattern in ALLOWLIST_PATTERNS:
+        if pattern.endswith("/"):
+            if rel.startswith(pattern):
+                return True
+        elif rel == pattern:
+            return True
+    return False
 
 
 def is_evaluation_subdir(filepath: Path) -> bool:
@@ -191,7 +230,16 @@ def scan_file(filepath: Path) -> list[tuple[Path, int, str, str]]:
     return [(filepath, line, field, kind) for line, field, kind in visitor.violations]
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description="evaluator leakage detector")
+    parser.add_argument(
+        "--root", type=Path, default=None,
+        help="scan this tree instead of the repository root",
+    )
+    args = parser.parse_args(argv)
+    if args.root is not None:
+        set_root(args.root)
+
     violations: list[tuple[Path, int, str, str]] = []
     scanned = 0
 
@@ -209,7 +257,10 @@ def main() -> int:
     if violations:
         print(f"\n[LEAKAGE DETECTOR] FAIL — {len(violations)} evaluator field reference(s) in runtime code\n")
         for filepath, line, field, kind in violations:
-            rel = str(filepath.relative_to(REPO_ROOT)).replace("\\", "/")
+            try:
+                rel = filepath.resolve().relative_to(REPO_ROOT.resolve()).as_posix()
+            except ValueError:
+                rel = filepath.as_posix()
             print(f"  {rel}:{line}: '{field}' ({kind})")
         print(
             "\nRuntime packages must not reference evaluation-only fields."

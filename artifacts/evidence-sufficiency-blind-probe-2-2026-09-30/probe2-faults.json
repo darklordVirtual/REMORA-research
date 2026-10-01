@@ -1,0 +1,568 @@
+{
+ "source_commit": "bb3a2ea",
+ "selectors": [
+  {
+   "selector": "p2a-feature-prs",
+   "files_read": [
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\checker.py",
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\README.md"
+   ]
+  },
+  {
+   "selector": "p2b-maintenance",
+   "files_read": [
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\checker.py",
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\README.md"
+   ]
+  },
+  {
+   "selector": "p2c-adversarial",
+   "files_read": [
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\checker.py",
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\README.md"
+   ]
+  }
+ ],
+ "faults": [
+  {
+   "id": "P2A-01",
+   "class": "hand_picked",
+   "selector": "p2a-feature-prs",
+   "offset": 5866,
+   "old": "    if not scope:\n",
+   "new": "    if scope is None:\n",
+   "rationale": "empty-dict scope treated as given"
+  },
+  {
+   "id": "P2A-02",
+   "class": "hand_picked",
+   "selector": "p2a-feature-prs",
+   "offset": 6261,
+   "old": "missing, decisive_if = _REASON_GUIDANCE[reason]",
+   "new": "missing, decisive_if = (_REASON_GUIDANCE[reason][0][:1], _REASON_GUIDANCE[reason][1])",
+   "rationale": "trim missing list; drops items"
+  },
+  {
+   "id": "P2A-03",
+   "class": "hand_picked",
+   "selector": "p2a-feature-prs",
+   "offset": 1479,
+   "old": "\"status\": self.status.value,",
+   "new": "\"status\": self.status.name,",
+   "rationale": "serialize enum name not value"
+  },
+  {
+   "id": "P2A-04",
+   "class": "hand_picked",
+   "selector": "p2a-feature-prs",
+   "offset": 7110,
+   "old": "o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True",
+   "new": "o.get(\"effect_source_accepted\") is not True and o.get(\"effect_seen\") is not True",
+   "rationale": "or->and"
+  },
+  {
+   "id": "P2A-05",
+   "class": "hand_picked",
+   "selector": "p2a-feature-prs",
+   "offset": 7280,
+   "old": "if o.get(\"scope_accepted\") is not True:",
+   "new": "if o.get(\"scope_accepted\") is False:",
+   "rationale": "missing scope tolerated"
+  },
+  {
+   "id": "P2A-06",
+   "class": "hand_picked",
+   "selector": "p2a-feature-prs",
+   "offset": 7919,
+   "old": "if o.get(\"admission_present\") is not False:",
+   "new": "if o.get(\"admission_present\") is None:",
+   "rationale": "non-bool presence tolerated"
+  },
+  {
+   "id": "P2A-07",
+   "class": "hand_picked",
+   "selector": "p2a-feature-prs",
+   "offset": 7577,
+   "old": "if o.get(\"admission_matches\") is True:",
+   "new": "if o.get(\"admission_matches\") is not False:",
+   "rationale": "missing match treated as match"
+  },
+  {
+   "id": "P2A-08",
+   "class": "hand_picked",
+   "selector": "p2a-feature-prs",
+   "offset": 8159,
+   "old": "if o.get(\"window_finalized\") is not True:",
+   "new": "if o.get(\"window_finalized\") is False:",
+   "rationale": "missing finalization tolerated"
+  },
+  {
+   "id": "P2A-09",
+   "class": "hand_picked",
+   "selector": "p2a-feature-prs",
+   "offset": 8270,
+   "old": "if o.get(\"admission_coverage_complete\") is not True:",
+   "new": "if o.get(\"admission_coverage_complete\") is None:",
+   "rationale": "false coverage no longer blocks"
+  },
+  {
+   "id": "P2A-10",
+   "class": "hand_picked",
+   "selector": "p2a-feature-prs",
+   "offset": 9269,
+   "old": "if o.get(\"outside_required_pep\") is not True:",
+   "new": "if o.get(\"outside_required_pep\") is False:",
+   "rationale": "missing tolerated"
+  },
+  {
+   "id": "P2A-11",
+   "class": "hand_picked",
+   "selector": "p2a-feature-prs",
+   "offset": 9532,
+   "old": "if o.get(\"protected_effect_observed\") is True:",
+   "new": "if o.get(\"protected_effect_observed\"):",
+   "rationale": "truthy non-bool counts as effect"
+  },
+  {
+   "id": "P2A-12",
+   "class": "hand_picked",
+   "selector": "p2a-feature-prs",
+   "offset": 10003,
+   "old": "if o.get(\"valid_control_same_context\") is not True:",
+   "new": "if o.get(\"valid_control_same_context\") is False:",
+   "rationale": "missing control tolerated"
+  },
+  {
+   "id": "P2A-13",
+   "class": "hand_picked",
+   "selector": "p2a-feature-prs",
+   "offset": 9394,
+   "old": "if o.get(\"effect_observation_accepted\") is not True:",
+   "new": "if o.get(\"effect_observation_accepted\") is None:",
+   "rationale": "False accepted tolerated"
+  },
+  {
+   "id": "P2A-14",
+   "class": "hand_picked",
+   "selector": "p2a-feature-prs",
+   "offset": 11182,
+   "old": "if o.get(\"fresh_in_declared_window\") is not True:",
+   "new": "if o.get(\"fresh_in_declared_window\") is False:",
+   "rationale": "missing freshness tolerated"
+  },
+  {
+   "id": "P2A-15",
+   "class": "hand_picked",
+   "selector": "p2a-feature-prs",
+   "offset": 11435,
+   "old": "if \"expected_state\" not in o or \"observed_state\" not in o:",
+   "new": "if \"expected_state\" not in o and \"observed_state\" not in o:",
+   "rationale": "one-sided missing raises KeyError"
+  },
+  {
+   "id": "P2A-16",
+   "class": "hand_picked",
+   "selector": "p2a-feature-prs",
+   "offset": 11562,
+   "old": "canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"])",
+   "new": "o[\"expected_state\"] == o[\"observed_state\"]",
+   "rationale": "python equality, True==1 and no validation"
+  },
+  {
+   "id": "P2A-17",
+   "class": "hand_picked",
+   "selector": "p2a-feature-prs",
+   "offset": 11995,
+   "old": "if value is None or type(value) in (str, bool, int):",
+   "new": "if value is None or isinstance(value, (str, bool, int, float)):",
+   "rationale": "floats accepted"
+  },
+  {
+   "id": "P2A-18",
+   "class": "hand_picked",
+   "selector": "p2a-feature-prs",
+   "offset": 12196,
+   "old": "all(type(key) is str for key in value)",
+   "new": "all(isinstance(key, (str, int)) for key in value)",
+   "rationale": "int keys accepted"
+  },
+  {
+   "id": "P2A-19",
+   "class": "hand_picked",
+   "selector": "p2a-feature-prs",
+   "offset": 12592,
+   "old": "json.dumps(value, sort_keys=True, ",
+   "new": "json.dumps(value, ",
+   "rationale": "key order affects equality"
+  },
+  {
+   "id": "P2A-20",
+   "class": "hand_picked",
+   "selector": "p2a-feature-prs",
+   "offset": 13363,
+   "old": "if premise_source != \"synthetic_fixture\":",
+   "new": "if premise_source not in (\"synthetic_fixture\", \"production\"):",
+   "rationale": "accept production source"
+  },
+  {
+   "id": "P2B-01",
+   "class": "hand_picked",
+   "selector": "p2b-maintenance",
+   "offset": 5866,
+   "old": "    if not scope:",
+   "new": "    if scope:",
+   "rationale": "Inverted scope check logic; returns default scope when scope is truthy instead of falsy"
+  },
+  {
+   "id": "P2B-02",
+   "class": "hand_picked",
+   "selector": "p2b-maintenance",
+   "offset": 7667,
+   "old": "                EvidenceStatus.ESTABLISHED,\n                \"covering_admission_observed_for_this_execution\",",
+   "new": "                EvidenceStatus.VIOLATED,\n                \"covering_admission_observed_for_this_execution\",",
+   "rationale": "Returns VIOLATED instead of ESTABLISHED when covering admission matches; inverts claim verdict"
+  },
+  {
+   "id": "P2B-03",
+   "class": "hand_picked",
+   "selector": "p2b-maintenance",
+   "offset": 7432,
+   "old": "        if o.get(\"admission_source_accepted\") is not True:",
+   "new": "        if o.get(\"admission_source_accepted\") is True:",
+   "rationale": "Inverted admission source acceptance check; early return logic reversed"
+  },
+  {
+   "id": "P2B-04",
+   "class": "hand_picked",
+   "selector": "p2b-maintenance",
+   "offset": 7915,
+   "old": "    if o.get(\"admission_present\") is not False:",
+   "new": "    if o.get(\"admission_present\") is False:",
+   "rationale": "Inverted absent-admission check; treats definite absence as unknown"
+  },
+  {
+   "id": "P2B-05",
+   "class": "hand_picked",
+   "selector": "p2b-maintenance",
+   "offset": 8031,
+   "old": "    if o.get(\"mandatory_admission\") is not True:",
+   "new": "    if o.get(\"mandatory_admission\") is True:",
+   "rationale": "Inverted mandatory admission check; treats mandatory as missing when present"
+  },
+  {
+   "id": "P2B-06",
+   "class": "hand_picked",
+   "selector": "p2b-maintenance",
+   "offset": 9622,
+   "old": "            EvidenceStatus.VIOLATED,\n            \"accepted_effect_observed_outside_required_pep\",",
+   "new": "            EvidenceStatus.ESTABLISHED,\n            \"accepted_effect_observed_outside_required_pep\",",
+   "rationale": "Returns ESTABLISHED instead of VIOLATED when effect observed outside PEP; inverts security verdict"
+  },
+  {
+   "id": "P2B-07",
+   "class": "hand_picked",
+   "selector": "p2b-maintenance",
+   "offset": 9003,
+   "old": "    if o.get(\"route_observation_accepted\") is not True:",
+   "new": "    if o.get(\"route_observation_accepted\") is True:",
+   "rationale": "Inverted route observation acceptance check; exits early on accepted observations"
+  },
+  {
+   "id": "P2B-08",
+   "class": "hand_picked",
+   "selector": "p2b-maintenance",
+   "offset": 9140,
+   "old": "    if o.get(\"same_protected_operation\") is not True:",
+   "new": "    if o.get(\"same_protected_operation\") is True:",
+   "rationale": "Inverted protected operation binding check; exits when operations match"
+  },
+  {
+   "id": "P2B-09",
+   "class": "hand_picked",
+   "selector": "p2b-maintenance",
+   "offset": 9265,
+   "old": "    if o.get(\"outside_required_pep\") is not True:",
+   "new": "    if o.get(\"outside_required_pep\") is True:",
+   "rationale": "Inverted scope boundary check; exits when route is provably outside PEP"
+  },
+  {
+   "id": "P2B-10",
+   "class": "hand_picked",
+   "selector": "p2b-maintenance",
+   "offset": 9390,
+   "old": "    if o.get(\"effect_observation_accepted\") is not True:",
+   "new": "    if o.get(\"effect_observation_accepted\") is True:",
+   "rationale": "Inverted effect observation acceptance; exits early when observation is accepted"
+  },
+  {
+   "id": "P2B-11",
+   "class": "hand_picked",
+   "selector": "p2b-maintenance",
+   "offset": 9871,
+   "old": "    if o.get(\"effect_window_complete\") is not True:",
+   "new": "    if o.get(\"effect_window_complete\") is True:",
+   "rationale": "Inverted observation window completeness check; exits when window is closed"
+  },
+  {
+   "id": "P2B-12",
+   "class": "hand_picked",
+   "selector": "p2b-maintenance",
+   "offset": 9999,
+   "old": "    if o.get(\"valid_control_same_context\") is not True:",
+   "new": "    if o.get(\"valid_control_same_context\") is True:",
+   "rationale": "Inverted valid control presence check; exits when control is present and comparable"
+  },
+  {
+   "id": "P2B-13",
+   "class": "hand_picked",
+   "selector": "p2b-maintenance",
+   "offset": 10134,
+   "old": "    if o.get(\"required_boundary_refusal_accepted\") is not True:",
+   "new": "    if o.get(\"required_boundary_refusal_accepted\") is True:",
+   "rationale": "Inverted boundary attribution check; exits when refusal is attributed to boundary"
+  },
+  {
+   "id": "P2B-14",
+   "class": "hand_picked",
+   "selector": "p2b-maintenance",
+   "offset": 11671,
+   "old": "            EvidenceStatus.ESTABLISHED,\n            \"declared_postcondition_observed_at_named_point\",",
+   "new": "            EvidenceStatus.VIOLATED,\n            \"declared_postcondition_observed_at_named_point\",",
+   "rationale": "Returns VIOLATED instead of ESTABLISHED when postcondition matches; inverts claim verdict"
+  },
+  {
+   "id": "P2B-15",
+   "class": "hand_picked",
+   "selector": "p2b-maintenance",
+   "offset": 11555,
+   "old": "    if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):",
+   "new": "    if canonical(o[\"expected_state\"]) != canonical(o[\"observed_state\"]):",
+   "rationale": "Inverted state comparison operator; returns ESTABLISHED when states diverge"
+  },
+  {
+   "id": "P2B-16",
+   "class": "hand_picked",
+   "selector": "p2b-maintenance",
+   "offset": 11431,
+   "old": "    if \"expected_state\" not in o or \"observed_state\" not in o:",
+   "new": "    if \"expected_state\" not in o and \"observed_state\" not in o:",
+   "rationale": "Changed OR to AND in missing-value check; requires both values absent to return unknown"
+  },
+  {
+   "id": "P2B-17",
+   "class": "hand_picked",
+   "selector": "p2b-maintenance",
+   "offset": 6173,
+   "old": "    if status is EvidenceStatus.NOT_ESTABLISHED and reason in _REASON_GUIDANCE:",
+   "new": "    if status is not EvidenceStatus.NOT_ESTABLISHED and reason in _REASON_GUIDANCE:",
+   "rationale": "Inverted status filter; applies guidance only when status is ESTABLISHED or VIOLATED"
+  },
+  {
+   "id": "P2B-18",
+   "class": "hand_picked",
+   "selector": "p2b-maintenance",
+   "offset": 13747,
+   "old": "    validate_json(dict(observations))\n    if scope is not None:",
+   "new": "    if scope is not None:",
+   "rationale": "Removes validation of observations; allows malformed JSON to pass to assessor functions"
+  },
+  {
+   "id": "P2B-19",
+   "class": "hand_picked",
+   "selector": "p2b-maintenance",
+   "offset": 10827,
+   "old": "    if o.get(\"readback_available\") is not True:",
+   "new": "    if o.get(\"readback_available\") is True:",
+   "rationale": "Inverted readback availability check; exits when readback is present"
+  },
+  {
+   "id": "P2B-20",
+   "class": "hand_picked",
+   "selector": "p2b-maintenance",
+   "offset": 8155,
+   "old": "    if o.get(\"window_finalized\") is not True:",
+   "new": "    if o.get(\"window_finalized\") is True:",
+   "rationale": "Inverted window finalization check; exits when observation window is finalized"
+  },
+  {
+   "id": "P2C-01",
+   "class": "hand_picked",
+   "selector": "p2c-adversarial",
+   "offset": 12015,
+   "old": "type(value) in (str, bool, int)",
+   "new": "type(value) in (str, bool, int, float)",
+   "rationale": "validate_json/canonical accept floats; canonical(1.5) returns '1.5' instead of raising ValueError"
+  },
+  {
+   "id": "P2C-02",
+   "class": "hand_picked",
+   "selector": "p2c-adversarial",
+   "offset": 12196,
+   "old": "all(type(key) is str for key in value)",
+   "new": "all(isinstance(key, str) for key in value)",
+   "rationale": "str-subclass dict keys (e.g. a StrEnum member) are accepted; validate_json({EvidenceStatus.ESTABLISHED: 1}) no longer raises"
+  },
+  {
+   "id": "P2C-03",
+   "class": "hand_picked",
+   "selector": "p2c-adversarial",
+   "offset": 12610,
+   "old": "sort_keys=True",
+   "new": "sort_keys=False",
+   "rationale": "canonical becomes key-order dependent; postcondition with expected {'a':1,'b':2} vs observed {'b':2,'a':1} becomes VIOLATED instead of ESTABLISHED"
+  },
+  {
+   "id": "P2C-04",
+   "class": "hand_picked",
+   "selector": "p2c-adversarial",
+   "offset": 5870,
+   "old": "if not scope:",
+   "new": "if scope is None:",
+   "rationale": "an explicit empty scope {} is kept as {} instead of being replaced by the default synthetic_fixture scope"
+  },
+  {
+   "id": "P2C-05",
+   "class": "hand_picked",
+   "selector": "p2c-adversarial",
+   "offset": 5946,
+   "old": "    return dict(scope)",
+   "new": "    return scope",
+   "rationale": "verdict scope aliases the caller's scope mapping; mutating the caller dict after assess changes verdict.scope"
+  },
+  {
+   "id": "P2C-06",
+   "class": "hand_picked",
+   "selector": "p2c-adversarial",
+   "offset": 5681,
+   "old": "(\"expected state\", \"observed state\"),",
+   "new": "(\"observed state\", \"expected state\"),",
+   "rationale": "missing_evidence order for state_value_missing is swapped; readback fixture without states returns ('observed state','expected state')"
+  },
+  {
+   "id": "P2C-07",
+   "class": "hand_picked",
+   "selector": "p2c-adversarial",
+   "offset": 13819,
+   "old": "validate_json(dict(scope))",
+   "new": "validate_json(list(scope))",
+   "rationale": "scope values are no longer validated (only keys); assess(..., scope={'a': 1.5}) returns a verdict instead of raising ValueError"
+  },
+  {
+   "id": "P2C-08",
+   "class": "hand_picked",
+   "selector": "p2c-adversarial",
+   "offset": 13751,
+   "old": "validate_json(dict(observations))",
+   "new": "validate_json(list(observations.values()))",
+   "rationale": "non-string observation keys are no longer rejected; assess('postcondition_observed', {1: True}) returns a verdict instead of raising"
+  },
+  {
+   "id": "P2C-09",
+   "class": "hand_picked",
+   "selector": "p2c-adversarial",
+   "offset": 13640,
+   "old": "not isinstance(observations, Mapping)",
+   "new": "type(observations) is not dict",
+   "rationale": "non-dict Mappings are rejected; assess with MappingProxyType({}) raises ValueError instead of returning not_established"
+  },
+  {
+   "id": "P2C-10",
+   "class": "hand_picked",
+   "selector": "p2c-adversarial",
+   "offset": 13363,
+   "old": "if premise_source != \"synthetic_fixture\":",
+   "new": "if not premise_source.startswith(\"synthetic_fixture\"):",
+   "rationale": "premise guard accepts any prefix-extended source; premise_source='synthetic_fixture_production' no longer raises"
+  },
+  {
+   "id": "P2C-11",
+   "class": "hand_picked",
+   "selector": "p2c-adversarial",
+   "offset": 7919,
+   "old": "if o.get(\"admission_present\") is not False:",
+   "new": "if o.get(\"admission_present\") != False:  # noqa: E712",
+   "rationale": "integer 0 is treated as admission absence; closed-world fixture with admission_present=0 becomes VIOLATED instead of not_established"
+  },
+  {
+   "id": "P2C-12",
+   "class": "hand_picked",
+   "selector": "p2c-adversarial",
+   "offset": 8159,
+   "old": "if o.get(\"window_finalized\") is not True:",
+   "new": "if o.get(\"window_finalized\") != True:  # noqa: E712",
+   "rationale": "integer 1 counts as a finalized window; closed-world fixture with window_finalized=1 becomes VIOLATED instead of not_established"
+  },
+  {
+   "id": "P2C-13",
+   "class": "hand_picked",
+   "selector": "p2c-adversarial",
+   "offset": 9532,
+   "old": "if o.get(\"protected_effect_observed\") is True:",
+   "new": "if o.get(\"protected_effect_observed\") == True:  # noqa: E712",
+   "rationale": "integer 1 counts as an observed effect; route fixture with protected_effect_observed=1 becomes VIOLATED instead of not_established/protected_effect_unknown"
+  },
+  {
+   "id": "P2C-14",
+   "class": "hand_picked",
+   "selector": "p2c-adversarial",
+   "offset": 9871,
+   "old": "    if o.get(\"effect_window_complete\") is not True:\n        return _unknown(claim, \"no_effect_observation_not_complete\", scope)\n    if o.get(\"valid_control_same_context\") is not True:\n        return _unknown(claim, \"valid_control_missing_or_incomparable\", scope)",
+   "new": "    if o.get(\"valid_control_same_context\") is not True:\n        return _unknown(claim, \"valid_control_missing_or_incomparable\", scope)\n    if o.get(\"effect_window_complete\") is not True:\n        return _unknown(claim, \"no_effect_observation_not_complete\", scope)",
+   "rationale": "check order swapped; with both effect_window_complete and valid_control missing the reason/missing_evidence is valid_control_* instead of no_effect_observation_not_complete"
+  },
+  {
+   "id": "P2C-15",
+   "class": "hand_picked",
+   "selector": "p2c-adversarial",
+   "offset": 11178,
+   "old": "    if o.get(\"fresh_in_declared_window\") is not True:\n        return _unknown(claim, \"readback_stale_or_time_unbound\", scope)\n    if o.get(\"settlement_reached\") is not True:\n        return _unknown(claim, \"declared_settlement_point_not_reached\", scope)",
+   "new": "    if o.get(\"settlement_reached\") is not True:\n        return _unknown(claim, \"declared_settlement_point_not_reached\", scope)\n    if o.get(\"fresh_in_declared_window\") is not True:\n        return _unknown(claim, \"readback_stale_or_time_unbound\", scope)",
+   "rationale": "check order swapped; with both freshness and settlement missing the reason is declared_settlement_point_not_reached instead of readback_stale_or_time_unbound"
+  },
+  {
+   "id": "P2C-16",
+   "class": "hand_picked",
+   "selector": "p2c-adversarial",
+   "offset": 11435,
+   "old": "if \"expected_state\" not in o or \"observed_state\" not in o:",
+   "new": "if o.get(\"expected_state\") is None or o.get(\"observed_state\") is None:",
+   "rationale": "a present JSON-null state is treated as missing; expected_state=None, observed_state=None gives not_established instead of ESTABLISHED"
+  },
+  {
+   "id": "P2C-17",
+   "class": "hand_picked",
+   "selector": "p2c-adversarial",
+   "offset": 11559,
+   "old": "if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):",
+   "new": "if o[\"expected_state\"] == o[\"observed_state\"]:",
+   "rationale": "Python equality conflates True and 1; expected_state=True, observed_state=1 gives ESTABLISHED instead of VIOLATED"
+  },
+  {
+   "id": "P2C-18",
+   "class": "hand_picked",
+   "selector": "p2c-adversarial",
+   "offset": 1594,
+   "old": "\"missing_evidence\": list(self.missing_evidence),",
+   "new": "\"missing_evidence\": self.missing_evidence,",
+   "rationale": "as_dict returns missing_evidence as a tuple (JSON serialisation identical); as_dict()['missing_evidence'] == ['accepted bounded scope'] becomes False"
+  },
+  {
+   "id": "P2C-19",
+   "class": "hand_picked",
+   "selector": "p2c-adversarial",
+   "offset": 10063,
+   "old": "return _unknown(claim, \"valid_control_missing_or_incomparable\", scope)",
+   "new": "return _unknown(claim, \"valid_control_missing_or_incomparable\", None)",
+   "rationale": "caller scope dropped on the valid-control path; with scope={'t':'x'} the verdict scope is the default synthetic scope"
+  },
+  {
+   "id": "P2C-20",
+   "class": "hand_picked",
+   "selector": "p2c-adversarial",
+   "offset": 1148,
+   "old": "@dataclass(frozen=True)",
+   "new": "@dataclass(frozen=True, eq=False)",
+   "rationale": "verdict value equality lost; two identical assess() calls return verdicts that compare unequal"
+  }
+ ]
+}

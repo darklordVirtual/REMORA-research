@@ -50,14 +50,25 @@ __all__ = [
     "custody_is_enforced",
     "assert_custody_split",
     "assert_may_hold_tool_callables",
+    "assert_may_hold_effect_executors",
     "assert_may_mint_authority",
+    "effect_domain_split",
 ]
 
 ENV_DOMAIN_ROLE = "REMORA_EXECUTION_DOMAIN_ROLE"
 ENV_EFFECT_CREDENTIALS = "REMORA_EFFECT_CREDENTIAL_ENV_NAMES"
+#: Set on the executor when a separate effect domain holds the effect
+#: credentials (NTA-2 phase 3). Its presence is what turns the two-domain split
+#: into three: the executor then runs tool code and must hold no effect
+#: credential, and mediated effects go to this endpoint.
+ENV_EFFECT_ENDPOINT = "REMORA_EFFECT_ENDPOINT"
 
 DOMAIN_AUTHORITY = "authority"
 DOMAIN_EXECUTOR = "executor"
+#: Holds the effect credentials and runs the primitives mediated effects need.
+#: It verifies leases, derives effect authority itself, and runs no tool code.
+DOMAIN_EFFECT = "effect"
+_ROLES = (DOMAIN_AUTHORITY, DOMAIN_EXECUTOR, DOMAIN_EFFECT)
 
 #: Material that lets a process mint its own authorization. An executor
 #: holding any of these has renamed the split rather than made one.
@@ -97,6 +108,11 @@ def declared_effect_credentials() -> tuple[str, ...]:
     return tuple(sorted({part.strip() for part in raw.split(",") if part.strip()}))
 
 
+def effect_domain_split() -> bool:
+    """True when this deployment runs effects in a separate effect domain."""
+    return _present(ENV_EFFECT_ENDPOINT)
+
+
 def domain_role(*, strict: bool | None = None) -> str:
     """The declared role of this process.
 
@@ -106,12 +122,11 @@ def domain_role(*, strict: bool | None = None) -> str:
     """
     enforced = custody_is_enforced() if strict is None else strict
     value = os.environ.get(ENV_DOMAIN_ROLE, "").strip().lower()
-    if value in (DOMAIN_AUTHORITY, DOMAIN_EXECUTOR):
+    if value in _ROLES:
         return value
     if value:
         raise CustodyViolation(
-            f"{ENV_DOMAIN_ROLE}={value!r} is neither {DOMAIN_AUTHORITY!r} "
-            f"nor {DOMAIN_EXECUTOR!r}"
+            f"{ENV_DOMAIN_ROLE}={value!r} is not one of {', '.join(map(repr, _ROLES))}"
         )
     if enforced:
         raise CustodyViolation(
@@ -152,27 +167,40 @@ def assert_custody_split(*, strict: bool | None = None) -> str:
                 "bypass path to be bypassed"
             )
     else:
+        domain = "effect domain" if role == DOMAIN_EFFECT else "execution domain"
         signing = [name for name in _SIGNING_ENVS if _present(name)]
         if signing:
             problems.append(
-                "the execution domain holds lease signing material "
+                f"the {domain} holds lease signing material "
                 + ", ".join(signing)
                 + "; a process that can sign its own authorization verifies "
                 "nothing"
             )
         if not _present(_VERIFY_ENV):
             problems.append(
-                f"the execution domain must hold {_VERIFY_ENV} to verify "
+                f"the {domain} must hold {_VERIFY_ENV} to verify "
                 "leases it did not mint"
             )
-        absent = [name for name in declared if not _present(name)]
-        if absent:
-            problems.append(
-                "the execution domain is missing effect credential(s) "
-                + ", ".join(absent)
-                + "; it cannot be the only holder of a credential it does "
-                "not have"
-            )
+        if role == DOMAIN_EXECUTOR and effect_domain_split():
+            # Three domains: tool code runs here, so no effect credential may.
+            # This is what narrows credential topology L3.
+            held = [name for name in declared if _present(name)]
+            if held:
+                problems.append(
+                    "the execution domain holds effect credential(s) "
+                    + ", ".join(held)
+                    + f" although {ENV_EFFECT_ENDPOINT} names an effect domain; "
+                    "tool code running here could use them without the mediator"
+                )
+        else:
+            absent = [name for name in declared if not _present(name)]
+            if absent:
+                problems.append(
+                    f"the {domain} is missing effect credential(s) "
+                    + ", ".join(absent)
+                    + "; it cannot be the only holder of a credential it does "
+                    "not have"
+                )
 
     if problems:
         raise CustodyViolation(
@@ -192,6 +220,12 @@ def assert_may_hold_tool_callables() -> None:
     if not custody_is_enforced():
         return
     role = domain_role(strict=True)
+    if role == DOMAIN_EFFECT:
+        raise CustodyViolation(
+            "the effect domain must not register tool callables: it runs the "
+            "primitives mediated effects need and no tool code, so a tool "
+            "never shares a process with the effect credentials."
+        )
     if role == DOMAIN_AUTHORITY:
         raise CustodyViolation(
             "the authority domain must not register tool callables: under a "
@@ -207,9 +241,36 @@ def assert_may_mint_authority() -> None:
     if not custody_is_enforced():
         return
     role = domain_role(strict=True)
+    if role == DOMAIN_EFFECT:
+        raise CustodyViolation(
+            "the effect domain must not mint leases: it verifies authority it "
+            "did not issue, like the execution domain."
+        )
     if role == DOMAIN_EXECUTOR:
         raise CustodyViolation(
             "the execution domain must not mint leases: it verifies "
             "authority it did not issue. A lease minted here would be a "
             "lease the executor authorized for itself."
+        )
+
+
+def assert_may_hold_effect_executors() -> None:
+    """Refuse effect executors in a process that must not hold effect credentials.
+
+    Effect executors close over effect credentials. Under a strict profile the
+    authority never holds them; with a separate effect domain only that domain
+    does, and the executor sends mediated effects to it instead.
+    """
+    if not custody_is_enforced():
+        return
+    role = domain_role(strict=True)
+    if role == DOMAIN_AUTHORITY:
+        raise CustodyViolation(
+            "the authority domain must not hold effect executors: they close "
+            "over effect credentials."
+        )
+    if role == DOMAIN_EXECUTOR and effect_domain_split():
+        raise CustodyViolation(
+            f"{ENV_EFFECT_ENDPOINT} names an effect domain, so effect executors "
+            "belong there; the execution domain sends mediated effects to it."
         )

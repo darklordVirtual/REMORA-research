@@ -1,0 +1,755 @@
+{
+ "source_commit": "bb3a2ea",
+ "selectors": [
+  {
+   "selector": "p3a-performance",
+   "files_read": [
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\checker.py",
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\README.md"
+   ]
+  },
+  {
+   "selector": "p3b-modernisation",
+   "files_read": [
+    "conformance/evidence-sufficiency-v1/checker.py",
+    "conformance/evidence-sufficiency-v1/README.md"
+   ]
+  },
+  {
+   "selector": "p3c-thorough-suite-evasion",
+   "files_read": [
+    "conformance/evidence-sufficiency-v1/checker.py",
+    "conformance/evidence-sufficiency-v1/README.md"
+   ]
+  },
+  {
+   "selector": "p3d-side-fixes",
+   "files_read": [
+    "C:/users/Stian/REMORA-research/conformance/evidence-sufficiency-v1/checker.py",
+    "C:/users/Stian/REMORA-research/conformance/evidence-sufficiency-v1/README.md"
+   ]
+  }
+ ],
+ "faults": [
+  {
+   "id": "P3A-01",
+   "class": "hand_picked",
+   "selector": "p3a-performance",
+   "offset": 5946,
+   "old": "    return dict(scope)\n",
+   "new": "    return scope\n",
+   "rationale": "avoid copying caller scope; verdict aliases later-mutated dict"
+  },
+  {
+   "id": "P3A-02",
+   "class": "hand_picked",
+   "selector": "p3a-performance",
+   "offset": 5866,
+   "old": "    if not scope:\n",
+   "new": "    if scope is None:\n",
+   "rationale": "short-circuit on None only; empty scope no longer defaults"
+  },
+  {
+   "id": "P3A-03",
+   "class": "hand_picked",
+   "selector": "p3a-performance",
+   "offset": 6309,
+   "old": "    return EvidenceVerdict(\n        claim=claim,\n        status=status,\n        reason=reason,\n        scope=_scope(scope),\n        missing_evidence=missing,\n        decisive_if=decisive_if,\n    )\n",
+   "new": "    _c = _result.__dict__.setdefault(\"c\", {})\n    _k = (claim, status, reason)\n    if _k not in _c:\n        _c[_k] = EvidenceVerdict(\n            claim=claim,\n            status=status,\n            reason=reason,\n            scope=_scope(scope),\n            missing_evidence=missing,\n            decisive_if=decisive_if,\n        )\n    return _c[_k]\n",
+   "rationale": "memoise verdicts by (claim,status,reason) ignoring scope"
+  },
+  {
+   "id": "P3A-04",
+   "class": "hand_picked",
+   "selector": "p3a-performance",
+   "offset": 12626,
+   "old": "separators=(\",\", \":\"), ensure_ascii=False)",
+   "new": "separators=(\",\", \":\"), ensure_ascii=False) if False else json.dumps(value, separators=(\",\", \":\"), ensure_ascii=False)",
+   "rationale": "skip key sorting; dict order now matters for comparison"
+  },
+  {
+   "id": "P3A-05",
+   "class": "hand_picked",
+   "selector": "p3a-performance",
+   "offset": 11555,
+   "old": "    if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):",
+   "new": "    if o[\"expected_state\"] == o[\"observed_state\"]:",
+   "rationale": "avoid serialisation; True==1 and other py-equal values match"
+  },
+  {
+   "id": "P3A-06",
+   "class": "hand_picked",
+   "selector": "p3a-performance",
+   "offset": 12091,
+   "old": "        for item in value:\n            validate_json(item)\n",
+   "new": "        if value:\n            validate_json(value[0])\n",
+   "rationale": "validate only first list element"
+  },
+  {
+   "id": "P3A-07",
+   "class": "hand_picked",
+   "selector": "p3a-performance",
+   "offset": 12196,
+   "old": "all(type(key) is str for key in value)",
+   "new": "type(next(iter(value), \"\")) is str",
+   "rationale": "check only first dict key type"
+  },
+  {
+   "id": "P3A-08",
+   "class": "hand_picked",
+   "selector": "p3a-performance",
+   "offset": 13747,
+   "old": "    validate_json(dict(observations))\n",
+   "new": "    pass\n",
+   "rationale": "skip redundant observation validation"
+  },
+  {
+   "id": "P3A-09",
+   "class": "hand_picked",
+   "selector": "p3a-performance",
+   "offset": 13785,
+   "old": "    if scope is not None:\n        validate_json(dict(scope))\n",
+   "new": "",
+   "rationale": "skip scope validation"
+  },
+  {
+   "id": "P3A-10",
+   "class": "hand_picked",
+   "selector": "p3a-performance",
+   "offset": 13640,
+   "old": "not isinstance(observations, Mapping)",
+   "new": "not isinstance(observations, dict)",
+   "rationale": "faster concrete-type check rejects non-dict Mappings"
+  },
+  {
+   "id": "P3A-11",
+   "class": "hand_picked",
+   "selector": "p3a-performance",
+   "offset": 13359,
+   "old": "    if premise_source != \"synthetic_fixture\":",
+   "new": "    if not premise_source.startswith(\"synthetic\"):",
+   "rationale": "prefix check accepts other premise sources"
+  },
+  {
+   "id": "P3A-12",
+   "class": "hand_picked",
+   "selector": "p3a-performance",
+   "offset": 7915,
+   "old": "    if o.get(\"admission_present\") is not False:\n        return _unknown(claim, \"admission_presence_unknown\", scope)",
+   "new": "    if o.get(\"admission_present\") is None:\n        return _unknown(claim, \"admission_presence_unknown\", scope)",
+   "rationale": "None-only unknown check; non-bool values treated as absent"
+  },
+  {
+   "id": "P3A-13",
+   "class": "hand_picked",
+   "selector": "p3a-performance",
+   "offset": 7110,
+   "old": "o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True",
+   "new": "not (o.get(\"effect_source_accepted\") and o.get(\"effect_seen\"))",
+   "rationale": "truthiness shortcut accepts non-True values"
+  },
+  {
+   "id": "P3A-14",
+   "class": "hand_picked",
+   "selector": "p3a-performance",
+   "offset": 9390,
+   "old": "    if o.get(\"effect_observation_accepted\") is not True:\n        return _unknown(claim, \"protected_effect_observation_unaccepted\", scope)\n",
+   "new": "",
+   "rationale": "drop acceptance check so unaccepted effect observation can violate"
+  },
+  {
+   "id": "P3A-15",
+   "class": "hand_picked",
+   "selector": "p3a-performance",
+   "offset": 11431,
+   "old": "    if \"expected_state\" not in o or \"observed_state\" not in o:",
+   "new": "    if o.get(\"expected_state\") is None or o.get(\"observed_state\") is None:",
+   "rationale": "null states treated as missing"
+  },
+  {
+   "id": "P3A-16",
+   "class": "hand_picked",
+   "selector": "p3a-performance",
+   "offset": 1594,
+   "old": "\"missing_evidence\": list(self.missing_evidence),",
+   "new": "\"missing_evidence\": self.missing_evidence,",
+   "rationale": "avoid list copy; returns tuple"
+  },
+  {
+   "id": "P3A-17",
+   "class": "hand_picked",
+   "selector": "p3a-performance",
+   "offset": 1555,
+   "old": "\"scope\": dict(self.scope),",
+   "new": "\"scope\": self.scope,",
+   "rationale": "avoid copy in as_dict; aliasing"
+  },
+  {
+   "id": "P3A-18",
+   "class": "hand_picked",
+   "selector": "p3a-performance",
+   "offset": 5884,
+   "old": "        return {\"kind\": \"synthetic_fixture\", \"bounded\": True}",
+   "new": "        return _scope.__dict__.setdefault(\"d\", {\"kind\": \"synthetic_fixture\", \"bounded\": True})",
+   "rationale": "reuse one default scope object shared across verdicts"
+  },
+  {
+   "id": "P3A-19",
+   "class": "hand_picked",
+   "selector": "p3a-performance",
+   "offset": 7432,
+   "old": "        if o.get(\"admission_source_accepted\") is not True:\n            return _unknown(claim, \"admission_observation_unaccepted\", scope)\n",
+   "new": "",
+   "rationale": "skip admission source acceptance check"
+  },
+  {
+   "id": "P3A-20",
+   "class": "hand_picked",
+   "selector": "p3a-performance",
+   "offset": 9999,
+   "old": "    if o.get(\"valid_control_same_context\") is not True:",
+   "new": "    if o.get(\"valid_control_same_context\") is False:",
+   "rationale": "missing control no longer blocks"
+  },
+  {
+   "id": "P3B-01",
+   "class": "hand_picked",
+   "selector": "p3b-modernisation",
+   "offset": 5866,
+   "old": "    if not scope:\n",
+   "new": "    if scope is None:\n",
+   "rationale": "Tightening Optional handling to an explicit None check: an empty scope {} is no longer replaced by the default bounded synthetic scope."
+  },
+  {
+   "id": "P3B-02",
+   "class": "hand_picked",
+   "selector": "p3b-modernisation",
+   "offset": 1653,
+   "old": "        if self.decisive_if is not None:\n            out[\"decisive_if\"] = self.decisive_if\n",
+   "new": "        out[\"decisive_if\"] = self.decisive_if\n",
+   "rationale": "Stable-schema refactor of as_dict always emits decisive_if, so decisive verdicts gain a decisive_if: null key."
+  },
+  {
+   "id": "P3B-03",
+   "class": "hand_picked",
+   "selector": "p3b-modernisation",
+   "offset": 11991,
+   "old": "    if value is None or type(value) in (str, bool, int):\n",
+   "new": "    if value is None or isinstance(value, (str, int)):\n",
+   "rationale": "isinstance modernisation of the scalar check accepts str/int subclasses (e.g. StrEnum/IntEnum members) that were rejected before."
+  },
+  {
+   "id": "P3B-04",
+   "class": "hand_picked",
+   "selector": "p3b-modernisation",
+   "offset": 11991,
+   "old": "    if value is None or type(value) in (str, bool, int):\n",
+   "new": "    if value is None or type(value) in (str, bool, int, float):\n",
+   "rationale": "New capability 'allow numeric fixture values' makes floats acceptable, so float observations no longer raise ValueError."
+  },
+  {
+   "id": "P3B-05",
+   "class": "hand_picked",
+   "selector": "p3b-modernisation",
+   "offset": 12165,
+   "old": "    if type(value) is dict and all(type(key) is str for key in value):\n",
+   "new": "    if type(value) is dict:\n",
+   "rationale": "Simplified dict branch drops the string-key requirement; dicts with non-string keys are now accepted."
+  },
+  {
+   "id": "P3B-06",
+   "class": "hand_picked",
+   "selector": "p3b-modernisation",
+   "offset": 12063,
+   "old": "    if type(value) is list:\n",
+   "new": "    if isinstance(value, (list, tuple)):\n",
+   "rationale": "Sequence generalisation accepts tuples as JSON arrays; tuple values previously raised ValueError."
+  },
+  {
+   "id": "P3B-07",
+   "class": "hand_picked",
+   "selector": "p3b-modernisation",
+   "offset": 12610,
+   "old": "sort_keys=True, ",
+   "new": "",
+   "rationale": "Encoding cleanup drops sort_keys; key order now matters so equal-content dicts with different insertion order compare unequal (postcondition VIOLATED)."
+  },
+  {
+   "id": "P3B-08",
+   "class": "hand_picked",
+   "selector": "p3b-modernisation",
+   "offset": 11431,
+   "old": "    if \"expected_state\" not in o or \"observed_state\" not in o:\n",
+   "new": "    if o.get(\"expected_state\") is None or o.get(\"observed_state\") is None:\n",
+   "rationale": "Idiomatic .get() rewrite treats an explicit null state as missing; null==null previously ESTABLISHED, now state_value_missing."
+  },
+  {
+   "id": "P3B-09",
+   "class": "hand_picked",
+   "selector": "p3b-modernisation",
+   "offset": 7915,
+   "old": "    if o.get(\"admission_present\") is not False:\n",
+   "new": "    if o.get(\"admission_present\") is None:\n",
+   "rationale": "Presence check rewritten as a None test; non-boolean values like 0 or 'no' now fall through to the closed-world branch and can yield VIOLATED."
+  },
+  {
+   "id": "P3B-10",
+   "class": "hand_picked",
+   "selector": "p3b-modernisation",
+   "offset": 9528,
+   "old": "    if o.get(\"protected_effect_observed\") is True:\n",
+   "new": "    if o.get(\"protected_effect_observed\"):\n",
+   "rationale": "Truthiness shortcut: a truthy non-boolean such as 'yes' or 1 now yields VIOLATED instead of protected_effect_unknown."
+  },
+  {
+   "id": "P3B-11",
+   "class": "hand_picked",
+   "selector": "p3b-modernisation",
+   "offset": 13607,
+   "old": "    if claim not in ASSESSORS or not isinstance(observations, Mapping):\n",
+   "new": "    if claim not in ASSESSORS:\n",
+   "rationale": "Relying on type hints instead of a runtime check: a list of pairs is no longer rejected with ValueError but reaches the assessor and raises AttributeError."
+  },
+  {
+   "id": "P3B-12",
+   "class": "hand_picked",
+   "selector": "p3b-modernisation",
+   "offset": 13747,
+   "old": "    validate_json(dict(observations))\n",
+   "new": "    validate_json(observations)\n",
+   "rationale": "Removing a 'redundant' dict() copy: non-dict Mappings (MappingProxyType) are now rejected by validate_json with ValueError."
+  },
+  {
+   "id": "P3B-13",
+   "class": "hand_picked",
+   "selector": "p3b-modernisation",
+   "offset": 13359,
+   "old": "    if premise_source != \"synthetic_fixture\":\n",
+   "new": "    if not premise_source.startswith(\"synthetic\"):\n",
+   "rationale": "Prefix-based guard to allow future synthetic variants; 'synthetic_production' is now accepted instead of raising."
+  },
+  {
+   "id": "P3B-14",
+   "class": "hand_picked",
+   "selector": "p3b-modernisation",
+   "offset": 1467,
+   "old": "            \"status\": self.status.value,\n",
+   "new": "            \"status\": self.status.name,\n",
+   "rationale": "Enum serialisation change emits the member name ('ESTABLISHED') instead of the value ('established')."
+  },
+  {
+   "id": "P3B-15",
+   "class": "hand_picked",
+   "selector": "p3b-modernisation",
+   "offset": 1543,
+   "old": "            \"scope\": dict(self.scope),\n",
+   "new": "            \"scope\": self.scope,\n",
+   "rationale": "Dropping a defensive copy in as_dict: returned scope aliases the verdict's scope, so mutating the dict mutates the verdict."
+  },
+  {
+   "id": "P3B-16",
+   "class": "hand_picked",
+   "selector": "p3b-modernisation",
+   "offset": 5946,
+   "old": "    return dict(scope)\n",
+   "new": "    return scope\n",
+   "rationale": "Dropping a defensive copy in _scope: verdict.scope aliases the caller's mapping and changes when the caller mutates it afterwards."
+  },
+  {
+   "id": "P3B-17",
+   "class": "hand_picked",
+   "selector": "p3b-modernisation",
+   "offset": 1582,
+   "old": "            \"missing_evidence\": list(self.missing_evidence),\n",
+   "new": "            \"missing_evidence\": self.missing_evidence,\n",
+   "rationale": "Returning the tuple directly: as_dict()['missing_evidence'] is a tuple, not a list, so it no longer equals the expected list."
+  },
+  {
+   "id": "P3B-18",
+   "class": "hand_picked",
+   "selector": "p3b-modernisation",
+   "offset": 8155,
+   "old": "    if o.get(\"window_finalized\") is not True:\n        return _unknown(claim, \"observation_window_open\", scope)\n    if o.get(\"admission_coverage_complete\") is not True:\n        return _unknown(claim, \"admission_coverage_incomplete\", scope)\n",
+   "new": "    if o.get(\"admission_coverage_complete\") is not True:\n        return _unknown(claim, \"admission_coverage_incomplete\", scope)\n    if o.get(\"window_finalized\") is not True:\n        return _unknown(claim, \"observation_window_open\", scope)\n",
+   "rationale": "Reordering guard clauses: with both window open and coverage incomplete the reported reason and guidance change."
+  },
+  {
+   "id": "P3B-19",
+   "class": "hand_picked",
+   "selector": "p3b-modernisation",
+   "offset": 1148,
+   "old": "@dataclass(frozen=True)\n",
+   "new": "@dataclass(frozen=True, kw_only=True)\n",
+   "rationale": "Data-model modernisation to keyword-only fields breaks positional construction of EvidenceVerdict (TypeError)."
+  },
+  {
+   "id": "P3B-20",
+   "class": "hand_picked",
+   "selector": "p3b-modernisation",
+   "offset": 9390,
+   "old": "    if o.get(\"effect_observation_accepted\") is not True:\n        return _unknown(claim, \"protected_effect_observation_unaccepted\", scope)\n    if o.get(\"protected_effect_observed\") is True:\n",
+   "new": "    if o.get(\"protected_effect_observed\") is True:\n",
+   "rationale": "Collapsing guard clauses loses the effect-acceptance check: an unaccepted effect observation now yields VIOLATED."
+  },
+  {
+   "id": "P3C-01",
+   "class": "hand_picked",
+   "selector": "p3c-thorough-suite-evasion",
+   "offset": 5866,
+   "old": "    if not scope:\n        return {\"kind\"",
+   "new": "    if scope is None:\n        return {\"kind\"",
+   "rationale": "Empty scope mapping is no longer replaced by the default bounded synthetic scope. Witness: assess('admission_accounting', {}, scope={}).scope is {} instead of the default."
+  },
+  {
+   "id": "P3C-02",
+   "class": "hand_picked",
+   "selector": "p3c-thorough-suite-evasion",
+   "offset": 5800,
+   "old": "def _scope(scope: Mapping[str, Any] | None) -> Mapping[str, Any]:\n    if not scope:\n        return {\"kind\": \"synthetic_fixture\", \"bounded\": True}",
+   "new": "def _scope(scope: Mapping[str, Any] | None, _default: dict[str, Any] = {\"kind\": \"synthetic_fixture\", \"bounded\": True}) -> Mapping[str, Any]:\n    if not scope:\n        return _default",
+   "rationale": "Default scope is one shared mutable dict, so mutating one verdict's scope leaks into every later default-scope verdict. Witness: v=assess(...); v.scope['kind']='x'; a second assess(...) reports kind 'x'."
+  },
+  {
+   "id": "P3C-03",
+   "class": "hand_picked",
+   "selector": "p3c-thorough-suite-evasion",
+   "offset": 5946,
+   "old": "    return dict(scope)\n",
+   "new": "    return scope\n",
+   "rationale": "Verdict scope aliases the caller's scope mapping, so a later caller mutation changes an already-returned verdict. Witness: s={'a':1}; v=assess(..., scope=s); s['a']=2; v.as_dict()['scope']['a']==2."
+  },
+  {
+   "id": "P3C-04",
+   "class": "hand_picked",
+   "selector": "p3c-thorough-suite-evasion",
+   "offset": 1543,
+   "old": "            \"scope\": dict(self.scope),",
+   "new": "            \"scope\": self.scope,",
+   "rationale": "as_dict returns the verdict's own scope object instead of a copy; mutating the returned dict mutates the frozen verdict. Witness: d=v.as_dict(); d['scope']['x']=1; 'x' in v.scope."
+  },
+  {
+   "id": "P3C-05",
+   "class": "hand_picked",
+   "selector": "p3c-thorough-suite-evasion",
+   "offset": 1653,
+   "old": "        if self.decisive_if is not None:",
+   "new": "        if self.decisive_if:",
+   "rationale": "An empty-string decisive_if is silently dropped from as_dict. Witness: EvidenceVerdict('c', EvidenceStatus.ESTABLISHED, 'r', {}, (), '').as_dict() lacks 'decisive_if'."
+  },
+  {
+   "id": "P3C-06",
+   "class": "hand_picked",
+   "selector": "p3c-thorough-suite-evasion",
+   "offset": 1148,
+   "old": "@dataclass(frozen=True)",
+   "new": "@dataclass",
+   "rationale": "EvidenceVerdict is no longer immutable. Witness: setattr(v, 'reason', 'tampered') succeeds instead of raising FrozenInstanceError."
+  },
+  {
+   "id": "P3C-07",
+   "class": "hand_picked",
+   "selector": "p3c-thorough-suite-evasion",
+   "offset": 1148,
+   "old": "@dataclass(frozen=True)",
+   "new": "@dataclass(frozen=True, eq=False)",
+   "rationale": "Verdicts lose value equality (and become identity-hashable). Witness: assess(c, o) == assess(c, o) is False."
+  },
+  {
+   "id": "P3C-08",
+   "class": "hand_picked",
+   "selector": "p3c-thorough-suite-evasion",
+   "offset": 1017,
+   "old": "class EvidenceStatus(StrEnum):",
+   "new": "class EvidenceStatus(str, __import__(\"enum\").Enum):",
+   "rationale": "Status loses StrEnum str()/format semantics while .value and == 'established' still hold. Witness: str(EvidenceStatus.ESTABLISHED) is 'EvidenceStatus.ESTABLISHED'; f'{status}' changes."
+  },
+  {
+   "id": "P3C-09",
+   "class": "hand_picked",
+   "selector": "p3c-thorough-suite-evasion",
+   "offset": 1106,
+   "old": "    NOT_ESTABLISHED = \"not_established\"\n",
+   "new": "    NOT_ESTABLISHED = \"not_established\"\n    UNKNOWN = \"not_established\"\n",
+   "rationale": "Adds a hidden alias member; iteration is unchanged but EvidenceStatus['UNKNOWN'] and __members__ gain an entry. Witness: list(EvidenceStatus.__members__)."
+  },
+  {
+   "id": "P3C-10",
+   "class": "hand_picked",
+   "selector": "p3c-thorough-suite-evasion",
+   "offset": 6253,
+   "old": "        missing, decisive_if = _REASON_GUIDANCE[reason]",
+   "new": "        guidance_missing, decisive_if = _REASON_GUIDANCE[reason]\n        missing = list(guidance_missing)",
+   "rationale": "missing_evidence on the verdict becomes a list, not the declared tuple (as_dict unchanged). Witness: assess('admission_accounting', {}).missing_evidence == ('accepted execution/effect observation',) is False."
+  },
+  {
+   "id": "P3C-11",
+   "class": "hand_picked",
+   "selector": "p3c-thorough-suite-evasion",
+   "offset": 11991,
+   "old": "    if value is None or type(value) in (str, bool, int):",
+   "new": "    if value is None or isinstance(value, (str, bool, int)):",
+   "rationale": "Scalar subclasses (StrEnum/IntEnum members, custom str/int subclasses) now pass validation. Witness: validate_json(EvidenceStatus.VIOLATED) returns instead of ValueError."
+  },
+  {
+   "id": "P3C-12",
+   "class": "hand_picked",
+   "selector": "p3c-thorough-suite-evasion",
+   "offset": 12165,
+   "old": "    if type(value) is dict and all(",
+   "new": "    if isinstance(value, dict) and all(",
+   "rationale": "dict subclasses (OrderedDict, defaultdict) nested in fixtures are accepted. Witness: validate_json(OrderedDict(a=1)) returns instead of ValueError."
+  },
+  {
+   "id": "P3C-13",
+   "class": "hand_picked",
+   "selector": "p3c-thorough-suite-evasion",
+   "offset": 12063,
+   "old": "    if type(value) is list:",
+   "new": "    if type(value) in (list, tuple):",
+   "rationale": "Tuples are accepted as JSON arrays. Witness: postcondition with expected_state=(1,) and observed_state=[1] becomes established instead of ValueError."
+  },
+  {
+   "id": "P3C-14",
+   "class": "hand_picked",
+   "selector": "p3c-thorough-suite-evasion",
+   "offset": 12091,
+   "old": "        for item in value:\n            validate_json(item)",
+   "new": "        for item in value:\n            if type(item) is not list:\n                validate_json(item)",
+   "rationale": "Items of a directly nested list are not validated. Witness: validate_json([[1.5]]) returns instead of ValueError; so does assess with a state [[1.5]]."
+  },
+  {
+   "id": "P3C-15",
+   "class": "hand_picked",
+   "selector": "p3c-thorough-suite-evasion",
+   "offset": 12649,
+   "old": "ensure_ascii=False",
+   "new": "ensure_ascii=True",
+   "rationale": "canonical() output changes for non-ASCII text (escaped), though comparisons stay equal. Witness: canonical('é') returns an escaped \\u00e9 string."
+  },
+  {
+   "id": "P3C-16",
+   "class": "hand_picked",
+   "selector": "p3c-thorough-suite-evasion",
+   "offset": 11555,
+   "old": "    if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):",
+   "new": "    if o[\"expected_state\"] == o[\"observed_state\"]:",
+   "rationale": "Postcondition uses Python equality instead of the canonical encoding, so True==1 agree. Witness: expected_state=True, observed_state=1 is established instead of violated."
+  },
+  {
+   "id": "P3C-17",
+   "class": "hand_picked",
+   "selector": "p3c-thorough-suite-evasion",
+   "offset": 11431,
+   "old": "    if \"expected_state\" not in o or \"observed_state\" not in o:",
+   "new": "    if o.get(\"expected_state\") is None or o.get(\"observed_state\") is None:",
+   "rationale": "An explicit null state is treated as missing. Witness: expected_state=None, observed_state=None gives not_established/state_value_missing instead of established."
+  },
+  {
+   "id": "P3C-18",
+   "class": "hand_picked",
+   "selector": "p3c-thorough-suite-evasion",
+   "offset": 13640,
+   "old": "not isinstance(observations, Mapping)",
+   "new": "not isinstance(observations, dict)",
+   "rationale": "Non-dict Mapping observations are rejected. Witness: assess('admission_accounting', MappingProxyType({})) raises ValueError instead of returning not_established."
+  },
+  {
+   "id": "P3C-19",
+   "class": "hand_picked",
+   "selector": "p3c-thorough-suite-evasion",
+   "offset": 13785,
+   "old": "    if scope is not None:\n",
+   "new": "    if scope is not None and observations:\n",
+   "rationale": "Scope is not validated when observations are empty. Witness: assess('admission_accounting', {}, scope={'x': 1.5}) returns a verdict instead of ValueError."
+  },
+  {
+   "id": "P3C-20",
+   "class": "hand_picked",
+   "selector": "p3c-thorough-suite-evasion",
+   "offset": 13846,
+   "old": "    return ASSESSORS[claim](observations, scope)\n",
+   "new": "    cache = globals().setdefault(\"_VERDICT_CACHE\", {})\n    key = (claim, id(observations), id(scope))\n    if key not in cache:\n        cache[key] = ASSESSORS[claim](observations, scope)\n    return cache[key]\n",
+   "rationale": "Verdicts are memoised by object identity, so reassessing a mutated observations dict returns a stale verdict (and module state grows). Witness: o={}; assess(c,o); o.update(effect_source_accepted=True, effect_seen=True); assess(c,o).reason is still execution_observation_unaccepted_or_missing."
+  },
+  {
+   "id": "P3D-01",
+   "class": "hand_picked",
+   "selector": "p3d-side-fixes",
+   "offset": 7107,
+   "old": "if o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True:",
+   "new": "if o.get(\"effect_source_accepted\") is True or o.get(\"effect_seen\") is not True:",
+   "rationale": "Developer accidentally removed 'not' while refactoring condition, now fails when source IS accepted"
+  },
+  {
+   "id": "P3D-02",
+   "class": "hand_picked",
+   "selector": "p3d-side-fixes",
+   "offset": 7280,
+   "old": "if o.get(\"scope_accepted\") is not True:",
+   "new": "if o.get(\"scope_accepted\") is True:",
+   "rationale": "Negation removed during logic simplification attempt"
+  },
+  {
+   "id": "P3D-03",
+   "class": "hand_picked",
+   "selector": "p3d-side-fixes",
+   "offset": 7393,
+   "old": "if o.get(\"admission_present\") is True:",
+   "new": "if o.get(\"admission_present\") is False:",
+   "rationale": "Boolean check inverted when copy-pasting similar condition"
+  },
+  {
+   "id": "P3D-04",
+   "class": "hand_picked",
+   "selector": "p3d-side-fixes",
+   "offset": 7440,
+   "old": "if o.get(\"admission_source_accepted\") is not True:",
+   "new": "if o.get(\"admission_source_accepted\") is True:",
+   "rationale": "Negation accidentally removed during refactoring"
+  },
+  {
+   "id": "P3D-05",
+   "class": "hand_picked",
+   "selector": "p3d-side-fixes",
+   "offset": 7577,
+   "old": "if o.get(\"admission_matches\") is True:",
+   "new": "if o.get(\"admission_matches\") is False:",
+   "rationale": "Condition inverted while fixing similar check"
+  },
+  {
+   "id": "P3D-06",
+   "class": "hand_picked",
+   "selector": "p3d-side-fixes",
+   "offset": 7919,
+   "old": "if o.get(\"admission_present\") is not False:",
+   "new": "if o.get(\"admission_present\") is False:",
+   "rationale": "Double negative removed incorrectly"
+  },
+  {
+   "id": "P3D-07",
+   "class": "hand_picked",
+   "selector": "p3d-side-fixes",
+   "offset": 8035,
+   "old": "if o.get(\"mandatory_admission\") is not True:",
+   "new": "if o.get(\"mandatory_admission\") is True:",
+   "rationale": "Negation removed while simplifying guard clause"
+  },
+  {
+   "id": "P3D-08",
+   "class": "hand_picked",
+   "selector": "p3d-side-fixes",
+   "offset": 8159,
+   "old": "if o.get(\"window_finalized\") is not True:",
+   "new": "if o.get(\"window_finalized\") is True:",
+   "rationale": "Boolean check inverted during copy-paste refactoring"
+  },
+  {
+   "id": "P3D-09",
+   "class": "hand_picked",
+   "selector": "p3d-side-fixes",
+   "offset": 8270,
+   "old": "if o.get(\"admission_coverage_complete\") is not True:",
+   "new": "if o.get(\"admission_coverage_complete\") is True:",
+   "rationale": "Negation accidentally removed from completeness check"
+  },
+  {
+   "id": "P3D-10",
+   "class": "hand_picked",
+   "selector": "p3d-side-fixes",
+   "offset": 9007,
+   "old": "if o.get(\"route_observation_accepted\") is not True:",
+   "new": "if o.get(\"route_observation_accepted\") is True:",
+   "rationale": "Developer inverted condition logic while fixing similar check"
+  },
+  {
+   "id": "P3D-11",
+   "class": "hand_picked",
+   "selector": "p3d-side-fixes",
+   "offset": 9144,
+   "old": "if o.get(\"same_protected_operation\") is not True:",
+   "new": "if o.get(\"same_protected_operation\") is True:",
+   "rationale": "Negation removed during guard clause simplification"
+  },
+  {
+   "id": "P3D-12",
+   "class": "hand_picked",
+   "selector": "p3d-side-fixes",
+   "offset": 9269,
+   "old": "if o.get(\"outside_required_pep\") is not True:",
+   "new": "if o.get(\"outside_required_pep\") is True:",
+   "rationale": "Boolean negation accidentally removed"
+  },
+  {
+   "id": "P3D-13",
+   "class": "hand_picked",
+   "selector": "p3d-side-fixes",
+   "offset": 9394,
+   "old": "if o.get(\"effect_observation_accepted\") is not True:",
+   "new": "if o.get(\"effect_observation_accepted\") is True:",
+   "rationale": "Condition inverted while refactoring acceptance checks"
+  },
+  {
+   "id": "P3D-14",
+   "class": "hand_picked",
+   "selector": "p3d-side-fixes",
+   "offset": 9532,
+   "old": "if o.get(\"protected_effect_observed\") is True:",
+   "new": "if o.get(\"protected_effect_observed\") is False:",
+   "rationale": "Effect check inverted; now passes when effect is absent"
+  },
+  {
+   "id": "P3D-15",
+   "class": "hand_picked",
+   "selector": "p3d-side-fixes",
+   "offset": 9753,
+   "old": "if o.get(\"protected_effect_observed\") is not False:",
+   "new": "if o.get(\"protected_effect_observed\") is True:",
+   "rationale": "Double negative simplified incorrectly"
+  },
+  {
+   "id": "P3D-16",
+   "class": "hand_picked",
+   "selector": "p3d-side-fixes",
+   "offset": 9875,
+   "old": "if o.get(\"effect_window_complete\") is not True:",
+   "new": "if o.get(\"effect_window_complete\") is True:",
+   "rationale": "Negation removed from completeness guard"
+  },
+  {
+   "id": "P3D-17",
+   "class": "hand_picked",
+   "selector": "p3d-side-fixes",
+   "offset": 10003,
+   "old": "if o.get(\"valid_control_same_context\") is not True:",
+   "new": "if o.get(\"valid_control_same_context\") is True:",
+   "rationale": "Boolean check inverted during logic simplification"
+  },
+  {
+   "id": "P3D-18",
+   "class": "hand_picked",
+   "selector": "p3d-side-fixes",
+   "offset": 11559,
+   "old": "if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):",
+   "new": "if canonical(o[\"expected_state\"]) != canonical(o[\"observed_state\"]):",
+   "rationale": "Comparison operator typo; now fails when states match"
+  },
+  {
+   "id": "P3D-19",
+   "class": "hand_picked",
+   "selector": "p3d-side-fixes",
+   "offset": 11995,
+   "old": "if value is None or type(value) in (str, bool, int):",
+   "new": "if value is not None or type(value) in (str, bool, int):",
+   "rationale": "Null check operator inverted, now rejects None values"
+  },
+  {
+   "id": "P3D-20",
+   "class": "hand_picked",
+   "selector": "p3d-side-fixes",
+   "offset": 13363,
+   "old": "if premise_source != \"synthetic_fixture\":",
+   "new": "if premise_source == \"synthetic_fixture\":",
+   "rationale": "Security check inverted; now rejects valid synthetic fixtures"
+  }
+ ]
+}

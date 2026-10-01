@@ -22,7 +22,10 @@ ESCALATE technically unexecutable:
 
 Signed binding set (REM-024): tenant_id, actor_identity, tool_name,
 tool_args_hash (canonical, full arguments), target_environment,
-policy_bundle_hash, decision, nonce, issued_at, expires_at.
+policy_bundle_hash, decision, nonce, issued_at, expires_at. When the
+authorization was granted under a task, also context_id and task_id (quality
+program Q7.2); an unbound lease signs exactly the bytes it signed before
+those fields existed.
 
 Key management: ``REMORA_LEASE_SIGNING_KEY`` (falls back to
 ``REMORA_PDP_SIGNING_KEY``). Without a key, issued leases are unsigned and the
@@ -47,14 +50,22 @@ import logging
 import os
 import threading
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
-from typing import Any, Callable
+from typing import TYPE_CHECKING, Any, Callable, ContextManager, Mapping, Sequence
 
 from remora.enforcement import lease_signing as _signing
 from remora.enforcement.nonce_store import NonceStore, NonceStoreUnavailable
 from remora.observability.events import governance_event
 from remora.policy.observation import canonical_tool_call_hash
+
+if TYPE_CHECKING:
+    from remora.audit.recorder import RecorderClient
+    from remora.capabilities.model import EffectiveCapabilitySet
+    from remora.enforcement.resolved_effect import EffectResolver, ResolvedEffect
+    from remora.governance.plan_binding import PlanBinding, RevisionReader
+    from remora.governance.procedure import ProcedureContract, Step
+    from remora.governance.task_identity import TaskIdentity
 
 _ENV_KEY = "REMORA_LEASE_SIGNING_KEY"
 _FALLBACK_ENV_KEY = "REMORA_PDP_SIGNING_KEY"
@@ -85,6 +96,10 @@ class ToolExecutionStateUnknown(RemoraError, RuntimeError):
         self.proposal_id = proposal_id
         self.tenant_id = tenant_id
         self.tool_name = tool_name
+        #: The effects a mediated tool requested before it raised (NTA-2): an
+        #: unknown parent can still carry which children executed.
+        self.nested_effects: dict[str, Any] = dict(_UNMEDIATED)
+        self.effect_graph: Any = None
 
 
 class LeaseRefused(RemoraError):
@@ -95,11 +110,11 @@ class LeaseRefused(RemoraError):
 
 
 def _get_signing_key() -> bytes | None:
-    for env in (_ENV_KEY, _FALLBACK_ENV_KEY):
-        val = os.environ.get(env, "").strip()
-        if val:
-            return val.encode()
-    return None
+    # Each name read directly rather than in a loop, so the credential
+    # topology scanner resolves both reads (scripts/check_credential_topology.py).
+    val = (os.environ.get(_ENV_KEY, "").strip()
+           or os.environ.get(_FALLBACK_ENV_KEY, "").strip())
+    return val.encode() if val else None
 
 
 def _parse_utc(ts: str) -> datetime:
@@ -170,6 +185,28 @@ class ExecutionLease:
     #: implementation nobody authorized. Empty string means the authorizing
     #: side declared no runtime; it is carried, never invented here.
     runtime_identity_hash: str = ""
+    #: Q7.2: the task this authorization was granted under
+    #: (:mod:`remora.governance.task_identity`). Signed only when set, so an
+    #: unbound lease signs byte-identical bytes to one issued before these
+    #: fields existed and every issued lease still verifies. Both halves or
+    #: neither: a lease carrying one is refused at verification.
+    context_id: str = ""
+    task_id: str = ""
+    #: Q7.4: digest of the effect the call resolved to when authorised
+    #: (:mod:`remora.enforcement.resolved_effect`). Signed only when set, like
+    #: the task fields; the dispatcher resolves again and compares.
+    resolved_effect_hash: str = ""
+    #: Q7.5: digest of the plan binding (:mod:`remora.governance.plan_binding`)
+    #: whose premises this write depends on. Signed only when set.
+    plan_binding_hash: str = ""
+    #: Q3.2: digest of the tool surface observed at assessment
+    #: (``RuntimeToolSurface.digest``). Signed only when set; the dispatcher
+    #: compares it with the surface it observes at dispatch.
+    surface_digest: str = ""
+    #: Q8.2: digest of the EffectiveCapabilitySet the call was authorised
+    #: under (:mod:`remora.capabilities`). Signed only when set; the
+    #: dispatcher requires the matching set and checks the tool against it.
+    capability_digest: str = ""
 
     @classmethod
     def issue(
@@ -191,6 +228,11 @@ class ExecutionLease:
         proposal_id: str = "",
         grant_jti: str = "",
         runtime_identity_hash: str = "",
+        task_identity: "TaskIdentity | None" = None,
+        resolved_effect: ResolvedEffect | None = None,
+        plan: PlanBinding | None = None,
+        surface_digest: str = "",
+        capability_set: EffectiveCapabilitySet | None = None,
     ) -> ExecutionLease:
         """Issue a lease for an ACCEPTED decision; refuse everything else.
 
@@ -239,6 +281,20 @@ class ExecutionLease:
             "grant_jti": grant_jti,
             "runtime_identity_hash": runtime_identity_hash,
         }
+        # Omitted when absent, never defaulted to "": a present key changes
+        # the signed bytes exactly as much as a populated one.
+        from remora.governance.task_identity import task_fields
+
+        fields.update(task_fields(task_identity))
+        if resolved_effect is not None:
+            fields["resolved_effect_hash"] = resolved_effect.digest()
+        if plan is not None:
+            fields["plan_binding_hash"] = plan.digest()
+        if surface_digest:
+            fields["surface_digest"] = surface_digest
+        if capability_set is not None:
+            fields["capability_digest"] = capability_set.digest
+        task_event_fields: dict[str, Any] = dict(task_fields(task_identity))
         alg = _signing.issuer_algorithm()
         if alg:
             # sig_alg and kid are inside the payload the signature covers.
@@ -276,6 +332,7 @@ class ExecutionLease:
             signed=lease.is_signed,
             proposal_id=lease.proposal_id,
             grant_jti=lease.grant_jti,
+            **task_event_fields,
         )
         return lease
 
@@ -297,8 +354,19 @@ class ExecutionLease:
             key, ExecutionLease._canonical_payload(fields), hashlib.sha256
         ).hexdigest()
 
+    def digest(self) -> str:
+        """Identity of this exact lease: its signed fields and its signature.
+
+        What a nested execution names as its parent (NTA-2): two leases for
+        the same call differ by nonce, so they never share a digest.
+        """
+        return hashlib.sha256(
+            ExecutionLease._canonical_payload(self._signed_fields())
+            + b"." + self.signature.encode()
+        ).hexdigest()
+
     def _signed_fields(self) -> dict[str, Any]:
-        return {
+        fields: dict[str, Any] = {
             "decision": self.decision,
             "tenant_id": self.tenant_id,
             "actor_identity": self.actor_identity,
@@ -319,32 +387,37 @@ class ExecutionLease:
             "sig_alg": self.sig_alg,
             "kid": self.kid,
         }
+        # Each half is signed when set, so a lease carrying only one is still
+        # covered by its signature and is refused as malformed in verify().
+        if self.context_id:
+            fields["context_id"] = self.context_id
+        if self.task_id:
+            fields["task_id"] = self.task_id
+        if self.resolved_effect_hash:
+            fields["resolved_effect_hash"] = self.resolved_effect_hash
+        if self.plan_binding_hash:
+            fields["plan_binding_hash"] = self.plan_binding_hash
+        if self.surface_digest:
+            fields["surface_digest"] = self.surface_digest
+        if self.capability_digest:
+            fields["capability_digest"] = self.capability_digest
+        return fields
 
-    def verify(
-        self,
-        *,
-        tool_name: str,
-        arguments: Any,
-        tenant_id: str,
-        target_environment: str,
-        now: str | None = None,
-        expected_policy_bundle_hash: str | None = None,
-        actor_identity: str | None = None,
-        toolspec_hash: str | None = None,
-        toolspec_version: int | None = None,
-        expected_proposal_id: str | None = None,
-    ) -> LeaseVerificationResult:
-        """Verify signature, expiry, and the full binding against a concrete call.
+    def task_identity(self) -> "TaskIdentity | None":
+        """The bound task, or None. Raises ValueError when only one half is set."""
+        from remora.governance.task_identity import TaskIdentity
 
-        Every check fails closed; the first failed check names the reason.
+        return TaskIdentity.from_fields({
+            "context_id": self.context_id or None,
+            "task_id": self.task_id or None,
+        })
 
-        ``actor_identity`` is the authenticated identity of the caller
-        presenting the lease. A lease issued to a named actor is enforced:
-        presenting it without an actor identity, or with a different one,
-        is refused. The identity string must come from an authenticated
-        transport context, never from the request body; transport-anchored
-        workload identity (credential/key ID binding) is REM-024 residual
-        scope.
+    def verify_authenticity(self, *, now: str | None = None) -> LeaseVerificationResult:
+        """Signature, decision and validity window, without the call binding.
+
+        The first half of :meth:`verify`, shared so the two cannot drift. The
+        effect domain (NTA-2 phase 3) uses it on its own: it serves effects
+        for an execution, not a call, so it has no arguments to bind.
         """
         if not self.is_signed or not self.signature:
             return LeaseVerificationResult(False, "lease_not_signed")
@@ -387,6 +460,46 @@ class ExecutionLease:
             return LeaseVerificationResult(False, "lease_not_yet_valid")
         if current >= expiry:
             return LeaseVerificationResult(False, "lease_expired")
+        return LeaseVerificationResult(True, "authentic")
+
+    def verify(
+        self,
+        *,
+        tool_name: str,
+        arguments: Any,
+        tenant_id: str,
+        target_environment: str,
+        now: str | None = None,
+        expected_policy_bundle_hash: str | None = None,
+        actor_identity: str | None = None,
+        toolspec_hash: str | None = None,
+        toolspec_version: int | None = None,
+        expected_proposal_id: str | None = None,
+        task_identity: "TaskIdentity | None" = None,
+    ) -> LeaseVerificationResult:
+        """Verify signature, expiry, and the full binding against a concrete call.
+
+        Every check fails closed; the first failed check names the reason.
+
+        ``actor_identity`` is the authenticated identity of the caller
+        presenting the lease. A lease issued to a named actor is enforced:
+        presenting it without an actor identity, or with a different one,
+        is refused. The identity string must come from an authenticated
+        transport context, never from the request body; transport-anchored
+        workload identity (credential/key ID binding) is REM-024 residual
+        scope.
+
+        ``task_identity`` is the task the call is being made under now. When
+        given, the lease must have been granted under exactly that task: an
+        unbound lease is ``task_unbound`` and a different task is
+        ``task_mismatch``, so a caller can tell a missing binding from a
+        replay into another task. When omitted, the task is not checked, the
+        same convention as ``toolspec_hash``; a dispatcher that must always
+        check refuses the omission itself (``require_task_identity``).
+        """
+        authenticity = self.verify_authenticity(now=now)
+        if not authenticity.verified:
+            return authenticity
         if tool_name != self.tool_name:
             return LeaseVerificationResult(False, "tool_name_mismatch")
         if tenant_id != self.tenant_id:
@@ -444,6 +557,15 @@ class ExecutionLease:
                 expected_proposal_id.encode(), self.proposal_id.encode()
             ):
                 return LeaseVerificationResult(False, "proposal_mismatch")
+        try:
+            bound_task = self.task_identity()
+        except (TypeError, ValueError):
+            return LeaseVerificationResult(False, "task_identity_malformed")
+        if task_identity is not None:
+            if bound_task is None:
+                return LeaseVerificationResult(False, "task_unbound")
+            if not task_identity.matches(bound_task):
+                return LeaseVerificationResult(False, "task_mismatch")
         return LeaseVerificationResult(True, "ok")
 
     def to_dict(self) -> dict[str, Any]:
@@ -456,6 +578,8 @@ class ExecutionLease:
         "tool_contract_bundle_hash", "intent_authority_hash",
         "toolspec_hash", "toolspec_version",
         "proposal_id", "grant_jti", "runtime_identity_hash", "sig_alg", "kid",
+        "context_id", "task_id", "resolved_effect_hash", "plan_binding_hash",
+        "surface_digest", "capability_digest",
     })
 
     @classmethod
@@ -527,6 +651,11 @@ class NonceLedger:
             return self._failed.get(nonce)
 
 
+#: The nested-effect summary of a tool that was not mediated. A statement
+#: about the mediator, not about what the implementation did on its own.
+_UNMEDIATED: dict[str, Any] = {"mediated": False, "count": 0, "settled": True}
+
+
 @dataclass(frozen=True)
 class DispatchResult:
     """Outcome of a GovernedToolDispatcher.dispatch() call."""
@@ -548,6 +677,14 @@ class DispatchResult:
     #: from — a missing lease has no identity to report, and inventing one here
     #: would be worse than the gap.
     proposal_id: str = ""
+    #: Q7.6: the independent recorder's sequence number for this dispatch's
+    #: intent, when recording was mandatory for the tool. None otherwise.
+    recorder_seq: int | None = None
+    #: NTA-2: what a mediated tool asked for through its CapabilityMediator.
+    #: ``nested_effects`` is the summary the audit chain carries;
+    #: ``effect_graph`` the full, bounded ResolvedEffectGraph.
+    nested_effects: Mapping[str, Any] = field(default_factory=lambda: dict(_UNMEDIATED))
+    effect_graph: Any = None
 
 
 class GovernedToolDispatcher:
@@ -566,8 +703,22 @@ class GovernedToolDispatcher:
         expected_policy_bundle_hash: str,
         ledger: NonceLedger | None = None,
         nonce_store: "NonceStore | None" = None,
+        *,
+        require_task_identity: bool = False,
+        require_capability_set: bool = False,
+        require_downstream_declaration: bool | None = None,
     ) -> None:
         """
+        ``require_capability_set`` (Q8.2) refuses a lease that carries no
+        capability digest, so every dispatch runs under a capability set.
+        Off by default for the same reason as ``require_task_identity``.
+
+        ``require_task_identity`` (Q7.2) refuses any dispatch that does not
+        present the current task, and any lease not granted under one. Off by
+        default, because a caller that sends no task would be refused on
+        every call; ``REMORA_REQUIRE_TASK_IDENTITY`` turns it on for the
+        execution API.
+
         ``nonce_store`` (ADR-B) makes single-use consumption durable and
         tenant-scoped. When supplied it REPLACES the in-process ledger for the
         consume decision: a lease then spends exactly once across restarts,
@@ -580,11 +731,39 @@ class GovernedToolDispatcher:
         """
         if not expected_policy_bundle_hash:
             raise ValueError("expected_policy_bundle_hash is mandatory to prevent stale policy execution")
-        self._tools: dict[str, Callable[[Any], Any]] = {}
+        self._tools: dict[str, Callable[..., Any]] = {}
+        self._mediated: set[str] = set()
+        self._downstream_ceilings: Callable[[str], Any] | None = None
+        self._effect_executors: dict[str, Callable[[str, Mapping[str, Any]], Any]] = {}
+        self._registry_lock = threading.RLock()
+        self._registry_versions: dict[str, int] = {}
         self._expected_bundle = expected_policy_bundle_hash
         self._ledger = ledger or NonceLedger()
         self._nonce_store = nonce_store
         self._spec_identity: Callable[[str], tuple[str, int] | None] | None = None
+        self._require_task = require_task_identity
+        self._require_capability = require_capability_set
+        # NTA-2 phase 3: under a strict profile a mediated tool whose spec
+        # declares no downstream ceiling is refused rather than run with none.
+        if require_downstream_declaration is None:
+            from remora.enforcement.custody import custody_is_enforced
+
+            require_downstream_declaration = custody_is_enforced()
+        self._require_declaration = require_downstream_declaration
+        self._effect_domain: Any = None
+        self._capability_state: Callable[[str, Any], Any] | None = None
+        self._capability_epochs: Any = None
+        self._effect_resolver: "EffectResolver | None" = None
+        self._revisions: "RevisionReader | None" = None
+        self._recorder: "RecorderClient | None" = None
+        self._surface_observer: Callable[[], str] | None = None
+        self._surface_enforced = False
+        #: Q3.2 shadow metrics: how many bound leases were compared with the
+        #: observed surface, and how many found it changed.
+        self.surface_checks = 0
+        self.surface_changes = 0
+        self._procedure: "tuple[ProcedureContract, Callable[[ExecutionLease], Sequence[Step]]] | None" = None
+        self._recording_mandatory: Callable[[str], bool] = lambda _tool: False
 
     def bind_toolspec_identity(
         self, resolver: "Callable[[str], tuple[str, int] | None]"
@@ -606,7 +785,229 @@ class GovernedToolDispatcher:
         """
         self._spec_identity = resolver
 
-    def register(self, tool_name: str, fn: Callable[[Any], Any]) -> None:
+    def bind_effect_resolver(self, resolver: "EffectResolver") -> None:
+        """Resolve every call again immediately before it runs (Q7.4).
+
+        A lease carrying ``resolved_effect_hash`` must resolve to the same
+        effect now, or it refuses as ``resolved_effect_mismatch``. A reference
+        the resolver does not know refuses as ``unresolved_reference``; a
+        resolver that fails otherwise refuses as
+        ``resolved_effect_unresolvable``, never as "nothing to check". A lease
+        with no resolved effect is refused under a strict runtime profile and
+        allowed, with an event, outside one.
+        """
+        self._effect_resolver = resolver
+
+    def _effect_refusal(self, lease: ExecutionLease, tool_name: str,
+                        arguments: Any, target_environment: str) -> str | None:
+        from remora.enforcement.custody import custody_is_enforced
+        from remora.enforcement.resolved_effect import UnresolvedReference
+
+        if self._effect_resolver is None:
+            if lease.resolved_effect_hash:
+                governance_event(
+                    "dispatch.resolved_effect_unchecked", tenant_id=lease.tenant_id,
+                    tool_name=tool_name, proposal_id=lease.proposal_id)
+            return None
+        try:
+            current = self._effect_resolver.resolve(tool_name, arguments, target_environment)
+        except UnresolvedReference:
+            return "unresolved_reference"
+        except Exception:  # noqa: BLE001 - a failed lookup is not an absent one
+            return "resolved_effect_unresolvable"
+        if lease.resolved_effect_hash:
+            if not hmac.compare_digest(current.digest(), lease.resolved_effect_hash):
+                return "resolved_effect_mismatch"
+            return None
+        if custody_is_enforced():
+            return "resolved_effect_unbound"
+        governance_event(
+            "dispatch.resolved_effect_unbound", tenant_id=lease.tenant_id,
+            tool_name=tool_name, proposal_id=lease.proposal_id)
+        return None
+
+    def bind_recorder(self, recorder: "RecorderClient",
+                      mandatory_for: Callable[[str], bool]) -> None:
+        """Record outside this process before a named tool runs (Q7.6).
+
+        For every tool ``mandatory_for`` accepts, the dispatch intent is
+        appended to the independent recorder BEFORE the nonce is consumed. If
+        the recorder cannot confirm the append the call refuses as
+        ``recorder_unavailable``: an action that could not be recorded
+        outside the agent's control does not happen. The outcome is appended
+        afterwards; a failure there cannot undo the effect and is reported as
+        an ERROR event instead.
+        """
+        self._recorder = recorder
+        self._recording_mandatory = mandatory_for
+
+    def _record(self, lease: ExecutionLease, tool_name: str, phase: str,
+                **detail: Any) -> int | None:
+        if self._recorder is None or not self._recording_mandatory(tool_name):
+            return None
+        receipt = self._recorder.append("dispatch", {
+            "phase": phase, "tenant_id": lease.tenant_id, "tool_name": tool_name,
+            "proposal_id": lease.proposal_id, "grant_jti": lease.grant_jti,
+            "tool_args_hash": lease.tool_args_hash, "nonce": lease.nonce, **detail})
+        return receipt.seq
+
+    def bind_procedure(self, contract: "ProcedureContract",
+                       trace_for: "Callable[[ExecutionLease], Sequence[Step]]") -> None:
+        """Refuse a step that would violate the procedure's safety obligations (Q7.7).
+
+        ``trace_for`` returns the steps already executed in the lease's
+        context, from the deployment's own record. The contract is replayed
+        over them and the proposed step is checked with the same automata the
+        replay uses. A trace that cannot be read refuses as
+        ``procedure_trace_unavailable``; a step that would violate refuses as
+        ``procedure_violation``. Liveness obligations never block a step.
+        """
+        self._procedure = (contract, trace_for)
+
+    def _procedure_refusal(self, lease: ExecutionLease, tool_name: str,
+                           arguments: Any) -> str | None:
+        if self._procedure is None:
+            return None
+        from remora.governance.procedure import Step, replay
+
+        contract, trace_for = self._procedure
+        try:
+            trace = trace_for(lease)
+        except Exception:  # noqa: BLE001 - an unreadable history is not an empty one
+            return "procedure_trace_unavailable"
+        refused = replay(contract, trace).admits(
+            Step(tool_name, arguments if isinstance(arguments, dict) else {}))
+        if not refused:
+            return None
+        governance_event(
+            "dispatch.procedure_refused", level=logging.WARNING,
+            tenant_id=lease.tenant_id, tool_name=tool_name,
+            proposal_id=lease.proposal_id, contract_id=contract.contract_id,
+            obligations=list(refused))
+        return "procedure_violation"
+
+    def bind_capability_epochs(self, source: Any) -> None:
+        """Read the current revocation epochs at dispatch (Q8.6).
+
+        A set issued under an older principal, tenant, policy or ToolSpec
+        epoch refuses as ``capability_stale``, a revoked set as
+        ``capability_revoked``, and a source that cannot answer as
+        ``capability_epoch_unverifiable``.
+        """
+        self._capability_epochs = source
+
+    def bind_capability_state(self, reader: Callable[[str, Any], Any]) -> None:
+        """Supply the trusted-state reader capability constraints use (Q8.4)."""
+        self._capability_state = reader
+
+    def _capability_refusal(self, lease: ExecutionLease, tool_name: str,
+                            tenant_id: str, target_environment: str,
+                            capability_set: EffectiveCapabilitySet | None,
+                            now: str | None, arguments: Any = None) -> str | None:
+        """Q8.2. A lease that names a capability set runs only under that set.
+
+        The set travels with the call and is checked against the signed
+        digest, then against the call itself: the lease's actor, the tenant,
+        the target environment, the set's validity window and membership.
+        A lease with no digest is refused only when the dispatcher requires
+        capability sets.
+        """
+        if not lease.capability_digest:
+            return "capability_set_required" if self._require_capability else None
+        if capability_set is None:
+            return "capability_set_required"
+        if not hmac.compare_digest(capability_set.digest, lease.capability_digest):
+            return "capability_digest_mismatch"
+        moment = _parse_utc(now) if now is not None else datetime.now(UTC)
+        refusal = capability_set.check(
+            tool_name, principal_id=lease.actor_identity, tenant_id=tenant_id,
+            environment=target_environment, now=moment) or capability_set.check_arguments(
+            tool_name, arguments, self._capability_state)
+        if refusal is None:
+            from remora.capabilities.revocation import revocation_refusal
+
+            refusal = revocation_refusal(capability_set, self._capability_epochs)
+        return refusal.value if refusal is not None else None
+
+    def bind_surface_observer(self, observer: Callable[[], str], *,
+                              enforce: bool = False) -> None:
+        """Compare the tool surface a lease was granted under with the one
+        observed now (Q3.2).
+
+        ``observer`` returns the digest of the currently offered surface. In
+        shadow (``enforce=False``, the default) a changed surface is counted
+        and recorded but not refused, which is the measuring period the
+        design asks for before enforcement. Enforced, or under a strict
+        runtime profile, a changed surface refuses as ``surface_changed`` and
+        an observer that fails refuses as ``surface_unobservable``.
+        """
+        self._surface_observer = observer
+        self._surface_enforced = enforce
+
+    def _surface_refusal(self, lease: ExecutionLease) -> str | None:
+        if self._surface_observer is None or not lease.surface_digest:
+            return None
+        from remora.enforcement.custody import custody_is_enforced
+
+        enforcing = self._surface_enforced or custody_is_enforced()
+        try:
+            current = self._surface_observer()
+        except Exception:  # noqa: BLE001 - an unobservable surface is not an unchanged one
+            return "surface_unobservable" if enforcing else None
+        self.surface_checks += 1
+        if hmac.compare_digest(current, lease.surface_digest):
+            return None
+        self.surface_changes += 1
+        governance_event(
+            "dispatch.surface_changed", level=logging.WARNING,
+            tenant_id=lease.tenant_id, tool_name=lease.tool_name,
+            proposal_id=lease.proposal_id, enforced=enforcing)
+        return "surface_changed" if enforcing else None
+
+    def bind_state_revisions(self, reader: "RevisionReader") -> None:
+        """Supply current state revisions, so a plan's premises are re-read
+        immediately before the write it justified (Q7.5)."""
+        self._revisions = reader
+
+    def _plan_refusal(self, lease: ExecutionLease,
+                      plan: PlanBinding | None) -> str | None:
+        from remora.governance.plan_binding import revalidate
+
+        if not lease.plan_binding_hash:
+            return None
+        if plan is None:
+            return "plan_binding_required"
+        if not hmac.compare_digest(plan.digest(), lease.plan_binding_hash):
+            return "plan_binding_mismatch"
+        if self._revisions is None:
+            # The lease asserts premises and this process cannot read them.
+            return "plan_state_unverifiable"
+        check = revalidate(plan, self._revisions)
+        if check.refusal is not None:
+            governance_event(
+                "dispatch.plan_refused", level=logging.WARNING,
+                tenant_id=lease.tenant_id, tool_name=lease.tool_name,
+                proposal_id=lease.proposal_id, plan_id=plan.plan_id,
+                reason=check.refusal, moved=list(check.moved_dependencies),
+                unreadable=list(check.unreadable))
+        return check.refusal
+
+    def registered_tool_names(self) -> tuple[str, ...]:
+        """A detached view of this executor's registry, not agent visibility."""
+        with self._registry_lock:
+            return tuple(sorted(self._tools))
+
+    def registry_guard(self) -> ContextManager[bool]:
+        """Serialize a local observation/dispatch transaction with registration."""
+        return self._registry_lock
+
+    def registration_versions(self) -> dict[str, int]:
+        """Process-local generations detect replacement, including the same name."""
+        with self._registry_lock:
+            return dict(self._registry_versions)
+
+    def register(self, tool_name: str, fn: Callable[..., Any], *,
+                 mediated: bool = False) -> None:
         """Register the callable that actually executes ``tool_name``.
 
         Under a strict runtime profile the authority domain is refused here
@@ -618,7 +1019,110 @@ class GovernedToolDispatcher:
         from remora.enforcement.custody import assert_may_hold_tool_callables
 
         assert_may_hold_tool_callables()
-        self._tools[tool_name] = fn
+        with self._registry_lock:
+            self._tools[tool_name] = fn
+            if mediated:
+                self._mediated.add(tool_name)
+            else:
+                self._mediated.discard(tool_name)
+            self._registry_versions[tool_name] = self._registry_versions.get(tool_name, 0) + 1
+
+    def bind_downstream_ceilings(self, resolver: Callable[[str], Any]) -> None:
+        """Supply each tool's declared downstream ceiling (NTA-2).
+
+        ``resolver(tool_name)`` returns the signed ToolSpec's
+        ``DownstreamCeiling``, or None when the spec declares none. A mediated
+        tool without one may run, and every effect it requests refuses.
+        """
+        self._downstream_ceilings = resolver
+
+    def bind_effect_executors(
+            self, executors: Mapping[str, Callable[[str, Mapping[str, Any]], Any]]) -> None:
+        """Register the primitives mediated effects run on (NTA-2).
+
+        Each executor closes over the client or credential its effect needs,
+        so this is refused where tool callables are (custody property E).
+        """
+        from remora.enforcement.custody import assert_may_hold_effect_executors
+
+        assert_may_hold_effect_executors()
+        with self._registry_lock:
+            self._effect_executors = dict(executors)
+
+    def bind_effect_domain(self, client: Any) -> None:
+        """Send mediated effects to a separate effect domain (NTA-2 phase 3).
+
+        ``client`` is a ``RemoteEffectClient``. With it bound, a mediated
+        tool's effects run in the effect domain, which re-verifies the lease
+        and derives the authority itself; this process then needs no effect
+        credential. Local effect executors are not used.
+        """
+        self._effect_domain = client
+
+    def _prepare_mediation(self, lease: ExecutionLease, tool_name: str,
+                           capability_set: EffectiveCapabilitySet | None,
+                           now: str | None) -> tuple[Any, str | None]:
+        """The mediator for a mediated tool, or why the call is refused.
+
+        Runs before the nonce is spent. The effect authority is derived from
+        the capability set the lease is bound to, so a lease without one has
+        nothing to derive from and refuses rather than running unmediated.
+        """
+        if tool_name not in self._mediated:
+            return None, None
+        if capability_set is None or not lease.capability_digest:
+            return None, "capability_set_required"
+        from remora.capabilities.ceiling import DownstreamCeiling
+        from remora.capabilities.delegation import DelegationDenied
+        from remora.enforcement.capability_mediator import CapabilityMediator
+        from remora.enforcement.effect_capability import derive_effect_authority
+        from remora.enforcement.execution_context import ExecutionContext
+
+        try:
+            ceiling = (self._downstream_ceilings(tool_name)
+                       if self._downstream_ceilings is not None else None)
+        except Exception:  # noqa: BLE001 - an unreadable ceiling is not an empty one
+            return None, "downstream_ceiling_unavailable"
+        if ceiling is None:
+            if self._require_declaration:
+                return None, "downstream_declaration_required"
+            ceiling = DownstreamCeiling(tool=tool_name, capabilities=())
+        moment = _parse_utc(now) if now is not None else datetime.now(UTC)
+        try:
+            authority = derive_effect_authority(capability_set, tool_name=tool_name,
+                                                ceiling=ceiling, now=moment)
+        except DelegationDenied:
+            return None, "capability_delegation_denied"
+        context = ExecutionContext.for_dispatch(
+            tool_name=tool_name, capability_set=capability_set,
+            proposal_id=lease.proposal_id, policy_bundle_hash=lease.policy_bundle_hash,
+            toolspec_hash=lease.toolspec_hash, lease_digest=lease.digest(),
+            context_id=lease.context_id, task_id=lease.task_id,
+            runtime_identity_hash=getattr(lease, "runtime_identity_hash", "") or "")
+        executors = (self._effect_domain.executors_for(
+                         lease, capability_set, [c.capability for c in ceiling.capabilities])
+                     if self._effect_domain is not None else self._effect_executors)
+        return CapabilityMediator(
+            context, authority, executors=executors,
+            epochs=self._capability_epochs, state_reader=self._capability_state), None
+
+    def _record_outcome(self, lease: ExecutionLease, tool_name: str,
+                        intent_seq: int | None, outcome: str) -> None:
+        """Append the outcome after the effect. Cannot refuse any more, so a
+        failure is surfaced as an ERROR event rather than raised."""
+        if intent_seq is None:
+            return
+        from remora.audit.recorder import RecorderUnavailable
+
+        try:
+            self._record(lease, tool_name, "outcome", intent_seq=intent_seq,
+                         outcome=outcome)
+        except RecorderUnavailable as exc:
+            governance_event(
+                "dispatch.recorder_outcome_unrecorded", level=logging.ERROR,
+                tenant_id=lease.tenant_id, tool_name=tool_name,
+                proposal_id=lease.proposal_id, intent_seq=intent_seq,
+                outcome=outcome, detail=str(exc))
 
     @staticmethod
     def _runtime_refusal(lease: ExecutionLease) -> str | None:
@@ -665,6 +1169,9 @@ class GovernedToolDispatcher:
         target_environment: str | None = None,
         now: str | None = None,
         actor_identity: str | None = None,
+        task_identity: "TaskIdentity | None" = None,
+        plan: PlanBinding | None = None,
+        capability_set: EffectiveCapabilitySet | None = None,
     ) -> DispatchResult:
         """Execute ``tool_name`` iff the lease covers this exact call.
 
@@ -672,6 +1179,10 @@ class GovernedToolDispatcher:
         (transport/session context), never taken from the payload the agent
         controls. A lease issued to a named actor refuses to dispatch without
         a matching identity.
+
+        ``task_identity`` is the task the call is made under, from the
+        orchestration context rather than the lease; the lease is checked
+        against it. See ``ExecutionLease.verify``.
         """
         if lease is None:
             governance_event(
@@ -719,6 +1230,18 @@ class GovernedToolDispatcher:
             if identity is not None:
                 spec_hash, spec_version = identity[0], int(identity[1])
 
+        if self._require_task and task_identity is None:
+            governance_event(
+                "dispatch.refused", level=logging.WARNING,
+                reason="task_identity_required", tenant_id=tenant_id,
+                tool_name=tool_name, proposal_id=proposal_id,
+                grant_jti=lease.grant_jti,
+            )
+            return DispatchResult(
+                executed=False, refusal_reason="task_identity_required",
+                proposal_id=proposal_id,
+            )
+
         verdict = lease.verify(
             tool_name=tool_name, arguments=arguments,
             tenant_id=tenant_id,
@@ -728,6 +1251,7 @@ class GovernedToolDispatcher:
             actor_identity=actor_identity,
             toolspec_hash=spec_hash,
             toolspec_version=spec_version,
+            task_identity=task_identity,
         )
         if not verdict.verified:
             governance_event(
@@ -739,12 +1263,30 @@ class GovernedToolDispatcher:
                 executed=False, refusal_reason=verdict.reason,
                 proposal_id=proposal_id,
             )
+        if task_identity is None and (lease.context_id or lease.task_id):
+            # Allowed, because the caller opted out of the check, but recorded:
+            # a task-bound authorization that ran with no task compared is the
+            # case an auditor needs to find.
+            governance_event(
+                "dispatch.task_unchecked", tenant_id=tenant_id,
+                tool_name=tool_name, proposal_id=proposal_id,
+                grant_jti=lease.grant_jti, context_id=lease.context_id,
+                task_id=lease.task_id,
+            )
         # ADR-D. The runtime binding is checked HERE rather than in verify():
         # this is a property of the place the action is performed, and verify()
         # may legitimately run anywhere. It is checked BEFORE the nonce is
         # consumed, so a rejected runtime does not burn a single-use nonce and
         # turn an authorization failure into an unknown-state incident.
-        runtime_refusal = self._runtime_refusal(lease)
+        runtime_refusal = (
+            self._capability_refusal(lease, tool_name, tenant_id,
+                                     target_environment or "", capability_set, now,
+                                     arguments)
+            or self._runtime_refusal(lease)
+            or self._effect_refusal(lease, tool_name, arguments, target_environment or "")
+            or self._plan_refusal(lease, plan)
+            or self._procedure_refusal(lease, tool_name, arguments)
+            or self._surface_refusal(lease))
         if runtime_refusal is not None:
             governance_event(
                 "dispatch.refused", level=logging.WARNING,
@@ -754,6 +1296,40 @@ class GovernedToolDispatcher:
             )
             return DispatchResult(
                 executed=False, refusal_reason=runtime_refusal,
+                proposal_id=proposal_id,
+            )
+
+        # NTA-2: the mediated execution's authority, prepared before anything
+        # is spent so a refusal here leaves the nonce unspent too.
+        mediator, mediation_refusal = self._prepare_mediation(
+            lease, tool_name, capability_set, now)
+        if mediation_refusal is not None:
+            governance_event(
+                "dispatch.refused", level=logging.WARNING,
+                reason=mediation_refusal, tenant_id=tenant_id,
+                tool_name=tool_name, proposal_id=proposal_id,
+                grant_jti=lease.grant_jti,
+            )
+            return DispatchResult(
+                executed=False, refusal_reason=mediation_refusal,
+                proposal_id=proposal_id,
+            )
+
+        # Q7.6: recorded outside this process before anything is spent. A
+        # refusal here leaves the nonce unspent, like every refusal above.
+        from remora.audit.recorder import RecorderUnavailable
+
+        try:
+            recorder_seq = self._record(lease, tool_name, "intent")
+        except RecorderUnavailable as exc:
+            governance_event(
+                "dispatch.refused", level=logging.ERROR,
+                reason="recorder_unavailable", tenant_id=tenant_id,
+                tool_name=tool_name, proposal_id=proposal_id,
+                grant_jti=lease.grant_jti, detail=str(exc),
+            )
+            return DispatchResult(
+                executed=False, refusal_reason="recorder_unavailable",
                 proposal_id=proposal_id,
             )
 
@@ -822,8 +1398,28 @@ class GovernedToolDispatcher:
             )
 
         # execution
+        def _nested() -> tuple[dict[str, Any], Any]:
+            if mediator is None:
+                return dict(_UNMEDIATED), None
+            from remora.enforcement.effect_graph import ResolvedEffectGraph
+
+            mediator.close()
+            if self._effect_domain is not None:
+                try:
+                    self._effect_domain.close(lease)
+                except Exception as exc:  # noqa: BLE001 - it expires with its authority
+                    governance_event(
+                        "dispatch.effect_domain_close_failed", level=logging.WARNING,
+                        tenant_id=lease.tenant_id, tool_name=tool_name,
+                        proposal_id=lease.proposal_id, error_type=type(exc).__name__)
+            graph = ResolvedEffectGraph.from_mediator(
+                mediator, root_effect_digest=lease.resolved_effect_hash or None)
+            return graph.summary(), graph
+
         try:
-            res = fn(arguments)
+            res = fn(arguments, mediator) if mediator is not None else fn(arguments)
+            nested_effects, effect_graph = _nested()
+            self._record_outcome(lease, tool_name, recorder_seq, "executed")
             governance_event(
                 "dispatch.executed",
                 tenant_id=tenant_id, tool_name=tool_name,
@@ -832,13 +1428,15 @@ class GovernedToolDispatcher:
             )
             return DispatchResult(
                 executed=True, result=res, proposal_id=proposal_id,
-                dispatch_began=True,
+                dispatch_began=True, recorder_seq=recorder_seq,
+                nested_effects=nested_effects, effect_graph=effect_graph,
             )
         except Exception as e:
             # Burn is recorded with its reason so failure() can surface it;
             # the nonce stays consumed — state at the tool is unknown.
             if hasattr(self._ledger, "fail_consume"):
                 self._ledger.fail_consume(lease.nonce, str(e))
+            self._record_outcome(lease, tool_name, recorder_seq, "state_unknown")
             # The single most alert-worthy condition in the system used to
             # raise a bare RuntimeError with no log line and no distinct type
             # (issue #45 item 2). It is now both: an ERROR-level governance
@@ -850,9 +1448,11 @@ class GovernedToolDispatcher:
                 proposal_id=proposal_id, grant_jti=lease.grant_jti,
                 nonce_burned=True, error_type=type(e).__name__,
             )
-            raise ToolExecutionStateUnknown(
+            unknown = ToolExecutionStateUnknown(
                 f"Tool execution failed, nonce burned and state unknown/failed: {e}",
                 proposal_id=proposal_id,
                 tenant_id=tenant_id,
                 tool_name=tool_name,
-            ) from e
+            )
+            unknown.nested_effects, unknown.effect_graph = _nested()
+            raise unknown from e

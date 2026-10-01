@@ -1,0 +1,57 @@
+{
+  "implementer": "mr2",
+  "style": "table-driven",
+  "files_read": [
+    "SPEC.md"
+  ],
+  "variants": [
+    {
+      "file": "variant_01.py",
+      "misreading": "Rule 1 of admission only requires effect_source_accepted; effect_seen was dropped from the premise tuple."
+    },
+    {
+      "file": "variant_02.py",
+      "misreading": "Closed-world absence table checks admission_coverage_complete before window_finalized."
+    },
+    {
+      "file": "variant_03.py",
+      "misreading": "Unknown admission_present is routed to the absent (closed-world) arm instead of admission_presence_unknown."
+    },
+    {
+      "file": "variant_04.py",
+      "misreading": "admission_source_accepted is only checked on the matching arm, so unaccepted non-matching candidates get the does-not-establish reason."
+    },
+    {
+      "file": "variant_05.py",
+      "misreading": "The premise helper uses truthiness, so values like 1 or \"true\" count as holding."
+    },
+    {
+      "file": "variant_06.py",
+      "misreading": "Route table checks effect_observation_accepted before outside_required_pep."
+    },
+    {
+      "file": "variant_07.py",
+      "misreading": "The no-effect credit table omits the required_boundary_refusal_accepted guard."
+    },
+    {
+      "file": "variant_08.py",
+      "misreading": "The refuted helper tests membership in (False,), so the integer 0 counts as refuted."
+    },
+    {
+      "file": "variant_09.py",
+      "misreading": "State comparison uses plain Python ==, so True equals 1 and 1 equals 1.0 regardless of JSON type."
+    },
+    {
+      "file": "variant_10.py",
+      "misreading": "List comparison ignores element order (compares sorted serialisations)."
+    },
+    {
+      "file": "variant_11.py",
+      "misreading": "A state key that is present with value null is treated as missing."
+    },
+    {
+      "file": "variant_12.py",
+      "misreading": "Postcondition table checks source_accepted before readback_available."
+    }
+  ]
+}

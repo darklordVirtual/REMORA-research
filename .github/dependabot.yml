@@ -66,9 +66,17 @@ updates:
     # 2.13.4). Bumping it on its own makes the lockfile unresolvable, which is
     # what took every install-based job down in PR #311. The version is owned
     # by the pydantic release, so it only moves when pydantic itself moves.
+    #
+    # huggingface-hub 2: sentence-transformers 6.1 and datasets 4.8 both
+    # declare huggingface-hub<2.0, so the lock cannot resolve the dev,nli
+    # and agentharm install sets (PR #664). Lift when both widen the range.
     ignore:
       - dependency-name: "pydantic-core"
       - dependency-name: "pydantic_core"
+      - dependency-name: "huggingface-hub"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "huggingface_hub"
+        update-types: ["version-update:semver-major"]
 
   # Frontend dependencies, same risk-class principle.
   - package-ecosystem: "npm"
@@ -133,6 +141,46 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "eslint-plugin-react-refresh"
         update-types: ["version-update:semver-major", "version-update:semver-minor"]
+
+  # The five Cloudflare Workers. Until 2026-10-01 they had no entry at all, so
+  # their lockfiles never received an update and 70+ advisories accumulated in
+  # their (development-scope) toolchains: undici, ws, sharp, esbuild, vitest.
+  # Same risk-class principle as the frontend: security fixes grouped, the
+  # Workers toolchain grouped, everything else as its own PR.
+  - package-ecosystem: "npm"
+    directories:
+      - "/workers/agent-control"
+      - "/workers/aromer"
+      - "/workers/law-search"
+      - "/workers/mcp-gateway"
+      - "/workers/rag-oracle"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    groups:
+      security-fixes:
+        applies-to: security-updates
+        patterns: ["*"]
+      workers-toolchain:
+        applies-to: version-updates
+        patterns:
+          - "wrangler"
+          - "miniflare"
+          - "@cloudflare/*"
+          - "vitest*"
+          - "@vitest/*"
+          - "typescript*"
+          - "esbuild"
+
+    # vitest 5: @cloudflare/vitest-pool-workers (0.22.0, the latest) declares
+    #   `vitest: ^4.1.0` as a peer, so rag-oracle cannot install vitest 5 at
+    #   all; npm ci fails with ERESOLVE (PR #667). Lift when the pool widens
+    #   its peer range.
+    ignore:
+      - dependency-name: "vitest"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitest/*"
+        update-types: ["version-update:semver-major"]
 
   # Keep the SHA-pinned GitHub Actions current (security hardening).
   - package-ecosystem: "github-actions"

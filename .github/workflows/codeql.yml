@@ -35,13 +35,20 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        uses: github/codeql-action/init@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1
         with:
           languages: ${{ matrix.language }}
           queries: security-and-quality
+          # Frozen evidence, committed byte for byte under pre-registered digests: the blind
+          # probes' fault variants are faulty on purpose, and the independent-analysis package
+          # is a third party's delivery. Scanning them reports the faults they were made to carry.
+          config: |
+            paths-ignore:
+              - artifacts/independent-analysis-2026-09-30/**
+              - artifacts/evidence-sufficiency-blind-probe-*/**
 
       - name: Analyze
-        uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        uses: github/codeql-action/analyze@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1
         with:
           category: "/language:${{ matrix.language }}"
 

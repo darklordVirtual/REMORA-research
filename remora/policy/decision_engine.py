@@ -16,6 +16,7 @@ from __future__ import annotations
 import dataclasses
 import logging
 from dataclasses import dataclass, replace
+from typing import ClassVar
 
 from remora.credal import (
     MINIMAX_ESCALATE_THRESHOLD,
@@ -739,14 +740,17 @@ class RemoraDecisionEngine:
         self.conformal_trust_threshold = conformal_trust_threshold
         self.conformal_phase_thresholds = conformal_phase_thresholds
 
-    _PROD_ENVIRONMENTS = {"prod", "production", "live"}
-    _PROD_WRITE_ACTION_TYPES = {
+    # Frozen: these sets decide what counts as a production write, so no
+    # caller may widen or narrow them at runtime (trap_classifier's copy is
+    # frozen for the same reason).
+    _PROD_ENVIRONMENTS: ClassVar[frozenset[str]] = frozenset({"prod", "production", "live"})
+    _PROD_WRITE_ACTION_TYPES: ClassVar[frozenset[str]] = frozenset({
         "production_write",
         "destructive_write",
         "emergency_write",
         "financial_write",
         "delete",
-    }
+    })
 
     @classmethod
     def _is_production_write(cls, obs: PolicyObservation) -> bool:

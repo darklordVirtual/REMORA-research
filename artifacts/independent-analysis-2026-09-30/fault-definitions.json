@@ -1,0 +1,1986 @@
+{
+  "source_commit": "c9113a0",
+  "source_files": [
+    "conformance\\evidence-sufficiency-v1\\checker.py",
+    "conformance\\evidence-sufficiency-v1\\cases.json"
+  ],
+  "systematic_operator": "each occurrence of `is not True` replaced by `is not False`",
+  "systematic_denominator": 19,
+  "faults": [
+    {
+      "id": "H01",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True",
+      "new": "o.get(\"effect_seen\") is not True or o.get(\"effect_seen\") is not True",
+      "offset": 7110,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -182,7 +182,7 @@\n     admission coverage for the bounded scope.\n     \"\"\"\n     claim = \"admission_accounting\"\n-    if o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True:\n+    if o.get(\"effect_seen\") is not True or o.get(\"effect_seen\") is not True:\n         return _unknown(claim, \"execution_observation_unaccepted_or_missing\", scope)\n     if o.get(\"scope_accepted\") is not True:\n         return _unknown(claim, \"scope_unaccepted_or_missing\", scope)\n",
+      "witness_input": {
+        "claim": "admission_accounting",
+        "observations": {
+          "admission_coverage_complete": true,
+          "admission_matches": true,
+          "admission_present": true,
+          "admission_source_accepted": true,
+          "effect_seen": true,
+          "effect_source_accepted": false,
+          "mandatory_admission": true,
+          "scope_accepted": true,
+          "window_finalized": true
+        }
+      },
+      "original_output": {
+        "claim": "admission_accounting",
+        "status": "not_established",
+        "reason": "execution_observation_unaccepted_or_missing",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted execution/effect observation"
+        ],
+        "decisive_if": "supply an independently accepted observation of the execution or effect"
+      },
+      "expected_wrong_output": {
+        "claim": "admission_accounting",
+        "status": "established",
+        "reason": "covering_admission_observed_for_this_execution",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      }
+    },
+    {
+      "id": "H02",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "o.get(\"effect_seen\") is not True:",
+      "new": "o.get(\"effect_source_accepted\") is not True:",
+      "offset": 7157,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -182,7 +182,7 @@\n     admission coverage for the bounded scope.\n     \"\"\"\n     claim = \"admission_accounting\"\n-    if o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True:\n+    if o.get(\"effect_source_accepted\") is not True or o.get(\"effect_source_accepted\") is not True:\n         return _unknown(claim, \"execution_observation_unaccepted_or_missing\", scope)\n     if o.get(\"scope_accepted\") is not True:\n         return _unknown(claim, \"scope_unaccepted_or_missing\", scope)\n",
+      "witness_input": {
+        "claim": "admission_accounting",
+        "observations": {
+          "admission_coverage_complete": true,
+          "admission_matches": true,
+          "admission_present": true,
+          "admission_source_accepted": true,
+          "effect_seen": false,
+          "effect_source_accepted": true,
+          "mandatory_admission": true,
+          "scope_accepted": true,
+          "window_finalized": true
+        }
+      },
+      "original_output": {
+        "claim": "admission_accounting",
+        "status": "not_established",
+        "reason": "execution_observation_unaccepted_or_missing",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted execution/effect observation"
+        ],
+        "decisive_if": "supply an independently accepted observation of the execution or effect"
+      },
+      "expected_wrong_output": {
+        "claim": "admission_accounting",
+        "status": "established",
+        "reason": "covering_admission_observed_for_this_execution",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      }
+    },
+    {
+      "id": "H03",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"scope_accepted\") is not True:",
+      "new": "if o.get(\"effect_source_accepted\") is not True:",
+      "offset": 7280,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -184,7 +184,7 @@\n     claim = \"admission_accounting\"\n     if o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True:\n         return _unknown(claim, \"execution_observation_unaccepted_or_missing\", scope)\n-    if o.get(\"scope_accepted\") is not True:\n+    if o.get(\"effect_source_accepted\") is not True:\n         return _unknown(claim, \"scope_unaccepted_or_missing\", scope)\n     if o.get(\"admission_present\") is True:\n         if o.get(\"admission_source_accepted\") is not True:\n",
+      "witness_input": {
+        "claim": "admission_accounting",
+        "observations": {
+          "admission_coverage_complete": true,
+          "admission_matches": true,
+          "admission_present": true,
+          "admission_source_accepted": true,
+          "effect_seen": true,
+          "effect_source_accepted": true,
+          "mandatory_admission": true,
+          "scope_accepted": false,
+          "window_finalized": true
+        }
+      },
+      "original_output": {
+        "claim": "admission_accounting",
+        "status": "not_established",
+        "reason": "scope_unaccepted_or_missing",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted bounded scope"
+        ],
+        "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval"
+      },
+      "expected_wrong_output": {
+        "claim": "admission_accounting",
+        "status": "established",
+        "reason": "covering_admission_observed_for_this_execution",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      }
+    },
+    {
+      "id": "H04",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"admission_source_accepted\") is not True:",
+      "new": "if o.get(\"scope_accepted\") is not True:",
+      "offset": 7440,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -187,7 +187,7 @@\n     if o.get(\"scope_accepted\") is not True:\n         return _unknown(claim, \"scope_unaccepted_or_missing\", scope)\n     if o.get(\"admission_present\") is True:\n-        if o.get(\"admission_source_accepted\") is not True:\n+        if o.get(\"scope_accepted\") is not True:\n             return _unknown(claim, \"admission_observation_unaccepted\", scope)\n         if o.get(\"admission_matches\") is True:\n             return _result(\n",
+      "witness_input": {
+        "claim": "admission_accounting",
+        "observations": {
+          "admission_coverage_complete": true,
+          "admission_matches": true,
+          "admission_present": true,
+          "admission_source_accepted": false,
+          "effect_seen": true,
+          "effect_source_accepted": true,
+          "mandatory_admission": true,
+          "scope_accepted": true,
+          "window_finalized": true
+        }
+      },
+      "original_output": {
+        "claim": "admission_accounting",
+        "status": "not_established",
+        "reason": "admission_observation_unaccepted",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted admission observation"
+        ],
+        "decisive_if": "establish provenance and acceptance for the candidate admission record"
+      },
+      "expected_wrong_output": {
+        "claim": "admission_accounting",
+        "status": "established",
+        "reason": "covering_admission_observed_for_this_execution",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      }
+    },
+    {
+      "id": "H05",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"admission_matches\") is True:",
+      "new": "if o.get(\"admission_present\") is True:",
+      "offset": 7577,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -189,7 +189,7 @@\n     if o.get(\"admission_present\") is True:\n         if o.get(\"admission_source_accepted\") is not True:\n             return _unknown(claim, \"admission_observation_unaccepted\", scope)\n-        if o.get(\"admission_matches\") is True:\n+        if o.get(\"admission_present\") is True:\n             return _result(\n                 claim,\n                 EvidenceStatus.ESTABLISHED,\n",
+      "witness_input": {
+        "claim": "admission_accounting",
+        "observations": {
+          "admission_coverage_complete": true,
+          "admission_matches": false,
+          "admission_present": true,
+          "admission_source_accepted": true,
+          "effect_seen": true,
+          "effect_source_accepted": true,
+          "mandatory_admission": true,
+          "scope_accepted": true,
+          "window_finalized": true
+        }
+      },
+      "original_output": {
+        "claim": "admission_accounting",
+        "status": "not_established",
+        "reason": "candidate_admission_does_not_establish_a_covering_admission",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "covering admission bound to this execution"
+        ],
+        "decisive_if": "supply a candidate admission that joins to the same bounded action context"
+      },
+      "expected_wrong_output": {
+        "claim": "admission_accounting",
+        "status": "established",
+        "reason": "covering_admission_observed_for_this_execution",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      }
+    },
+    {
+      "id": "H06",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"admission_present\") is not False:",
+      "new": "if o.get(\"admission_present\") is not None:",
+      "offset": 7919,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -197,7 +197,7 @@\n                 scope,\n             )\n         return _unknown(claim, \"candidate_admission_does_not_establish_a_covering_admission\", scope)\n-    if o.get(\"admission_present\") is not False:\n+    if o.get(\"admission_present\") is not None:\n         return _unknown(claim, \"admission_presence_unknown\", scope)\n     if o.get(\"mandatory_admission\") is not True:\n         return _unknown(claim, \"admission_requirement_not_defined\", scope)\n",
+      "witness_input": {
+        "claim": "admission_accounting",
+        "observations": {
+          "admission_coverage_complete": true,
+          "admission_matches": true,
+          "admission_present": false,
+          "admission_source_accepted": true,
+          "effect_seen": true,
+          "effect_source_accepted": true,
+          "mandatory_admission": true,
+          "scope_accepted": true,
+          "window_finalized": true
+        }
+      },
+      "original_output": {
+        "claim": "admission_accounting",
+        "status": "violated",
+        "reason": "mandatory_admission_absent_in_complete_bounded_history",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      },
+      "expected_wrong_output": {
+        "claim": "admission_accounting",
+        "status": "not_established",
+        "reason": "admission_presence_unknown",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "admission presence/absence observation"
+        ],
+        "decisive_if": "determine whether a candidate covering admission is present in the observation set"
+      }
+    },
+    {
+      "id": "H07",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"mandatory_admission\") is not True:",
+      "new": "if o.get(\"window_finalized\") is not True:",
+      "offset": 8035,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -199,7 +199,7 @@\n         return _unknown(claim, \"candidate_admission_does_not_establish_a_covering_admission\", scope)\n     if o.get(\"admission_present\") is not False:\n         return _unknown(claim, \"admission_presence_unknown\", scope)\n-    if o.get(\"mandatory_admission\") is not True:\n+    if o.get(\"window_finalized\") is not True:\n         return _unknown(claim, \"admission_requirement_not_defined\", scope)\n     if o.get(\"window_finalized\") is not True:\n         return _unknown(claim, \"observation_window_open\", scope)\n",
+      "witness_input": {
+        "claim": "admission_accounting",
+        "observations": {
+          "admission_coverage_complete": true,
+          "admission_matches": true,
+          "admission_present": false,
+          "admission_source_accepted": true,
+          "effect_seen": true,
+          "effect_source_accepted": true,
+          "mandatory_admission": false,
+          "scope_accepted": true,
+          "window_finalized": true
+        }
+      },
+      "original_output": {
+        "claim": "admission_accounting",
+        "status": "not_established",
+        "reason": "admission_requirement_not_defined",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "mandatory-admission rule"
+        ],
+        "decisive_if": "state the rule requiring a covering admission for this action class"
+      },
+      "expected_wrong_output": {
+        "claim": "admission_accounting",
+        "status": "violated",
+        "reason": "mandatory_admission_absent_in_complete_bounded_history",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      }
+    },
+    {
+      "id": "H08",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"window_finalized\") is not True:",
+      "new": "if o.get(\"admission_coverage_complete\") is not True:",
+      "offset": 8159,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -201,7 +201,7 @@\n         return _unknown(claim, \"admission_presence_unknown\", scope)\n     if o.get(\"mandatory_admission\") is not True:\n         return _unknown(claim, \"admission_requirement_not_defined\", scope)\n-    if o.get(\"window_finalized\") is not True:\n+    if o.get(\"admission_coverage_complete\") is not True:\n         return _unknown(claim, \"observation_window_open\", scope)\n     if o.get(\"admission_coverage_complete\") is not True:\n         return _unknown(claim, \"admission_coverage_incomplete\", scope)\n",
+      "witness_input": {
+        "claim": "admission_accounting",
+        "observations": {
+          "admission_coverage_complete": false,
+          "admission_matches": true,
+          "admission_present": false,
+          "admission_source_accepted": true,
+          "effect_seen": true,
+          "effect_source_accepted": true,
+          "mandatory_admission": true,
+          "scope_accepted": true,
+          "window_finalized": true
+        }
+      },
+      "original_output": {
+        "claim": "admission_accounting",
+        "status": "not_established",
+        "reason": "admission_coverage_incomplete",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "complete admission coverage for the bounded scope"
+        ],
+        "decisive_if": "justify capture/export completeness for every admission stream in scope"
+      },
+      "expected_wrong_output": {
+        "claim": "admission_accounting",
+        "status": "not_established",
+        "reason": "observation_window_open",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "finalized observation interval"
+        ],
+        "decisive_if": "close the interval under a stated finalization/watermark rule"
+      }
+    },
+    {
+      "id": "H09",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"admission_coverage_complete\") is not True:",
+      "new": "if o.get(\"window_finalized\") is not True:",
+      "offset": 8270,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -203,7 +203,7 @@\n         return _unknown(claim, \"admission_requirement_not_defined\", scope)\n     if o.get(\"window_finalized\") is not True:\n         return _unknown(claim, \"observation_window_open\", scope)\n-    if o.get(\"admission_coverage_complete\") is not True:\n+    if o.get(\"window_finalized\") is not True:\n         return _unknown(claim, \"admission_coverage_incomplete\", scope)\n     return _result(\n         claim,\n",
+      "witness_input": {
+        "claim": "admission_accounting",
+        "observations": {
+          "admission_coverage_complete": false,
+          "admission_matches": true,
+          "admission_present": false,
+          "admission_source_accepted": true,
+          "effect_seen": true,
+          "effect_source_accepted": true,
+          "mandatory_admission": true,
+          "scope_accepted": true,
+          "window_finalized": true
+        }
+      },
+      "original_output": {
+        "claim": "admission_accounting",
+        "status": "not_established",
+        "reason": "admission_coverage_incomplete",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "complete admission coverage for the bounded scope"
+        ],
+        "decisive_if": "justify capture/export completeness for every admission stream in scope"
+      },
+      "expected_wrong_output": {
+        "claim": "admission_accounting",
+        "status": "violated",
+        "reason": "mandatory_admission_absent_in_complete_bounded_history",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      }
+    },
+    {
+      "id": "H10",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"route_observation_accepted\") is not True:",
+      "new": "if o.get(\"effect_observation_accepted\") is not True:",
+      "offset": 9007,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -221,7 +221,7 @@\n     downstream observation and accepted attribution to the required boundary.\n     \"\"\"\n     claim = \"tested_route_enforcement\"\n-    if o.get(\"route_observation_accepted\") is not True:\n+    if o.get(\"effect_observation_accepted\") is not True:\n         return _unknown(claim, \"route_observation_unaccepted_or_missing\", scope)\n     if o.get(\"same_protected_operation\") is not True:\n         return _unknown(claim, \"target_or_operation_not_bound\", scope)\n",
+      "witness_input": {
+        "claim": "tested_route_enforcement",
+        "observations": {
+          "effect_observation_accepted": false,
+          "effect_window_complete": true,
+          "outside_required_pep": true,
+          "protected_effect_observed": true,
+          "required_boundary_refusal_accepted": false,
+          "route_observation_accepted": true,
+          "same_protected_operation": true,
+          "valid_control_same_context": true
+        }
+      },
+      "original_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "protected_effect_observation_unaccepted",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted protected-effect observation"
+        ],
+        "decisive_if": "supply accepted downstream evidence for the protected effect"
+      },
+      "expected_wrong_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "route_observation_unaccepted_or_missing",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted alternative-route observation"
+        ],
+        "decisive_if": "supply accepted evidence that the named route was actually exercised"
+      }
+    },
+    {
+      "id": "H11",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"same_protected_operation\") is not True:",
+      "new": "if o.get(\"outside_required_pep\") is not True:",
+      "offset": 9144,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -223,7 +223,7 @@\n     claim = \"tested_route_enforcement\"\n     if o.get(\"route_observation_accepted\") is not True:\n         return _unknown(claim, \"route_observation_unaccepted_or_missing\", scope)\n-    if o.get(\"same_protected_operation\") is not True:\n+    if o.get(\"outside_required_pep\") is not True:\n         return _unknown(claim, \"target_or_operation_not_bound\", scope)\n     if o.get(\"outside_required_pep\") is not True:\n         return _unknown(claim, \"alternative_route_not_established\", scope)\n",
+      "witness_input": {
+        "claim": "tested_route_enforcement",
+        "observations": {
+          "effect_observation_accepted": true,
+          "effect_window_complete": true,
+          "outside_required_pep": false,
+          "protected_effect_observed": true,
+          "required_boundary_refusal_accepted": false,
+          "route_observation_accepted": true,
+          "same_protected_operation": true,
+          "valid_control_same_context": true
+        }
+      },
+      "original_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "alternative_route_not_established",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "route outside the required PEP"
+        ],
+        "decisive_if": "establish that the tested route is genuinely outside the required enforcement point"
+      },
+      "expected_wrong_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "target_or_operation_not_bound",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "same protected target and operation"
+        ],
+        "decisive_if": "bind the route/control evidence to the same protected operation"
+      }
+    },
+    {
+      "id": "H12",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"outside_required_pep\") is not True:",
+      "new": "if o.get(\"same_protected_operation\") is not True:",
+      "offset": 9269,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -225,7 +225,7 @@\n         return _unknown(claim, \"route_observation_unaccepted_or_missing\", scope)\n     if o.get(\"same_protected_operation\") is not True:\n         return _unknown(claim, \"target_or_operation_not_bound\", scope)\n-    if o.get(\"outside_required_pep\") is not True:\n+    if o.get(\"same_protected_operation\") is not True:\n         return _unknown(claim, \"alternative_route_not_established\", scope)\n     if o.get(\"effect_observation_accepted\") is not True:\n         return _unknown(claim, \"protected_effect_observation_unaccepted\", scope)\n",
+      "witness_input": {
+        "claim": "tested_route_enforcement",
+        "observations": {
+          "effect_observation_accepted": true,
+          "effect_window_complete": true,
+          "outside_required_pep": false,
+          "protected_effect_observed": true,
+          "required_boundary_refusal_accepted": false,
+          "route_observation_accepted": true,
+          "same_protected_operation": true,
+          "valid_control_same_context": true
+        }
+      },
+      "original_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "alternative_route_not_established",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "route outside the required PEP"
+        ],
+        "decisive_if": "establish that the tested route is genuinely outside the required enforcement point"
+      },
+      "expected_wrong_output": {
+        "claim": "tested_route_enforcement",
+        "status": "violated",
+        "reason": "accepted_effect_observed_outside_required_pep",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      }
+    },
+    {
+      "id": "H13",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"effect_observation_accepted\") is not True:",
+      "new": "if o.get(\"route_observation_accepted\") is not True:",
+      "offset": 9394,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -227,7 +227,7 @@\n         return _unknown(claim, \"target_or_operation_not_bound\", scope)\n     if o.get(\"outside_required_pep\") is not True:\n         return _unknown(claim, \"alternative_route_not_established\", scope)\n-    if o.get(\"effect_observation_accepted\") is not True:\n+    if o.get(\"route_observation_accepted\") is not True:\n         return _unknown(claim, \"protected_effect_observation_unaccepted\", scope)\n     if o.get(\"protected_effect_observed\") is True:\n         return _result(\n",
+      "witness_input": {
+        "claim": "tested_route_enforcement",
+        "observations": {
+          "effect_observation_accepted": false,
+          "effect_window_complete": true,
+          "outside_required_pep": true,
+          "protected_effect_observed": true,
+          "required_boundary_refusal_accepted": false,
+          "route_observation_accepted": true,
+          "same_protected_operation": true,
+          "valid_control_same_context": true
+        }
+      },
+      "original_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "protected_effect_observation_unaccepted",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted protected-effect observation"
+        ],
+        "decisive_if": "supply accepted downstream evidence for the protected effect"
+      },
+      "expected_wrong_output": {
+        "claim": "tested_route_enforcement",
+        "status": "violated",
+        "reason": "accepted_effect_observed_outside_required_pep",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      }
+    },
+    {
+      "id": "H14",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"protected_effect_observed\") is True:",
+      "new": "if o.get(\"effect_window_complete\") is True:",
+      "offset": 9532,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -229,7 +229,7 @@\n         return _unknown(claim, \"alternative_route_not_established\", scope)\n     if o.get(\"effect_observation_accepted\") is not True:\n         return _unknown(claim, \"protected_effect_observation_unaccepted\", scope)\n-    if o.get(\"protected_effect_observed\") is True:\n+    if o.get(\"effect_window_complete\") is True:\n         return _result(\n             claim,\n             EvidenceStatus.VIOLATED,\n",
+      "witness_input": {
+        "claim": "tested_route_enforcement",
+        "observations": {
+          "effect_observation_accepted": true,
+          "effect_window_complete": false,
+          "outside_required_pep": true,
+          "protected_effect_observed": true,
+          "required_boundary_refusal_accepted": false,
+          "route_observation_accepted": true,
+          "same_protected_operation": true,
+          "valid_control_same_context": true
+        }
+      },
+      "original_output": {
+        "claim": "tested_route_enforcement",
+        "status": "violated",
+        "reason": "accepted_effect_observed_outside_required_pep",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      },
+      "expected_wrong_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "protected_effect_unknown",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "decisive protected-effect observation"
+        ],
+        "decisive_if": "observe whether the protected effect occurred for the named attempt"
+      }
+    },
+    {
+      "id": "H15",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"protected_effect_observed\") is not False:",
+      "new": "if o.get(\"protected_effect_observed\") is None:",
+      "offset": 9753,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -236,7 +236,7 @@\n             \"accepted_effect_observed_outside_required_pep\",\n             scope,\n         )\n-    if o.get(\"protected_effect_observed\") is not False:\n+    if o.get(\"protected_effect_observed\") is None:\n         return _unknown(claim, \"protected_effect_unknown\", scope)\n     if o.get(\"effect_window_complete\") is not True:\n         return _unknown(claim, \"no_effect_observation_not_complete\", scope)\n",
+      "witness_input": {
+        "claim": "tested_route_enforcement",
+        "observations": {
+          "effect_observation_accepted": true,
+          "effect_window_complete": true,
+          "outside_required_pep": true,
+          "protected_effect_observed": 0,
+          "required_boundary_refusal_accepted": false,
+          "route_observation_accepted": true,
+          "same_protected_operation": true,
+          "valid_control_same_context": true
+        }
+      },
+      "original_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "protected_effect_unknown",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "decisive protected-effect observation"
+        ],
+        "decisive_if": "observe whether the protected effect occurred for the named attempt"
+      },
+      "expected_wrong_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "refusal_not_attributed_to_required_boundary",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted boundary-attribution evidence"
+        ],
+        "decisive_if": "identify the required boundary as the cause of refusal rather than inferring it from 403/no-effect"
+      }
+    },
+    {
+      "id": "H16",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"effect_window_complete\") is not True:",
+      "new": "if o.get(\"valid_control_same_context\") is not True:",
+      "offset": 9875,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -238,7 +238,7 @@\n         )\n     if o.get(\"protected_effect_observed\") is not False:\n         return _unknown(claim, \"protected_effect_unknown\", scope)\n-    if o.get(\"effect_window_complete\") is not True:\n+    if o.get(\"valid_control_same_context\") is not True:\n         return _unknown(claim, \"no_effect_observation_not_complete\", scope)\n     if o.get(\"valid_control_same_context\") is not True:\n         return _unknown(claim, \"valid_control_missing_or_incomparable\", scope)\n",
+      "witness_input": {
+        "claim": "tested_route_enforcement",
+        "observations": {
+          "effect_observation_accepted": true,
+          "effect_window_complete": false,
+          "outside_required_pep": true,
+          "protected_effect_observed": false,
+          "required_boundary_refusal_accepted": false,
+          "route_observation_accepted": true,
+          "same_protected_operation": true,
+          "valid_control_same_context": true
+        }
+      },
+      "original_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "no_effect_observation_not_complete",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "complete downstream effect window"
+        ],
+        "decisive_if": "close the downstream observation window before inferring non-occurrence"
+      },
+      "expected_wrong_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "refusal_not_attributed_to_required_boundary",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted boundary-attribution evidence"
+        ],
+        "decisive_if": "identify the required boundary as the cause of refusal rather than inferring it from 403/no-effect"
+      }
+    },
+    {
+      "id": "H17",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"valid_control_same_context\") is not True:",
+      "new": "if o.get(\"effect_window_complete\") is not True:",
+      "offset": 10003,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -240,7 +240,7 @@\n         return _unknown(claim, \"protected_effect_unknown\", scope)\n     if o.get(\"effect_window_complete\") is not True:\n         return _unknown(claim, \"no_effect_observation_not_complete\", scope)\n-    if o.get(\"valid_control_same_context\") is not True:\n+    if o.get(\"effect_window_complete\") is not True:\n         return _unknown(claim, \"valid_control_missing_or_incomparable\", scope)\n     if o.get(\"required_boundary_refusal_accepted\") is not True:\n         return _unknown(claim, \"refusal_not_attributed_to_required_boundary\", scope)\n",
+      "witness_input": {
+        "claim": "tested_route_enforcement",
+        "observations": {
+          "effect_observation_accepted": true,
+          "effect_window_complete": true,
+          "outside_required_pep": true,
+          "protected_effect_observed": false,
+          "required_boundary_refusal_accepted": false,
+          "route_observation_accepted": true,
+          "same_protected_operation": true,
+          "valid_control_same_context": false
+        }
+      },
+      "original_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "valid_control_missing_or_incomparable",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "comparable valid control"
+        ],
+        "decisive_if": "show the same route and operation succeeds when the tested boundary condition is absent"
+      },
+      "expected_wrong_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "refusal_not_attributed_to_required_boundary",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted boundary-attribution evidence"
+        ],
+        "decisive_if": "identify the required boundary as the cause of refusal rather than inferring it from 403/no-effect"
+      }
+    },
+    {
+      "id": "H18",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"required_boundary_refusal_accepted\") is not True:",
+      "new": "if o.get(\"valid_control_same_context\") is not True:",
+      "offset": 10138,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -242,7 +242,7 @@\n         return _unknown(claim, \"no_effect_observation_not_complete\", scope)\n     if o.get(\"valid_control_same_context\") is not True:\n         return _unknown(claim, \"valid_control_missing_or_incomparable\", scope)\n-    if o.get(\"required_boundary_refusal_accepted\") is not True:\n+    if o.get(\"valid_control_same_context\") is not True:\n         return _unknown(claim, \"refusal_not_attributed_to_required_boundary\", scope)\n     return _result(\n         claim,\n",
+      "witness_input": {
+        "claim": "tested_route_enforcement",
+        "observations": {
+          "effect_observation_accepted": true,
+          "effect_window_complete": true,
+          "outside_required_pep": true,
+          "protected_effect_observed": false,
+          "required_boundary_refusal_accepted": false,
+          "route_observation_accepted": true,
+          "same_protected_operation": true,
+          "valid_control_same_context": true
+        }
+      },
+      "original_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "refusal_not_attributed_to_required_boundary",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted boundary-attribution evidence"
+        ],
+        "decisive_if": "identify the required boundary as the cause of refusal rather than inferring it from 403/no-effect"
+      },
+      "expected_wrong_output": {
+        "claim": "tested_route_enforcement",
+        "status": "established",
+        "reason": "named_route_refused_at_required_boundary_in_test_scope",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      }
+    },
+    {
+      "id": "H19",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"readback_available\") is not True:",
+      "new": "if o.get(\"source_accepted\") is not True:",
+      "offset": 10831,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -259,7 +259,7 @@\n     correctness. Tool self-report is irrelevant to the predicate.\n     \"\"\"\n     claim = \"postcondition_observed\"\n-    if o.get(\"readback_available\") is not True:\n+    if o.get(\"source_accepted\") is not True:\n         return _unknown(claim, \"readback_unavailable\", scope)\n     if o.get(\"source_accepted\") is not True:\n         return _unknown(claim, \"readback_source_not_accepted\", scope)\n",
+      "witness_input": {
+        "claim": "postcondition_observed",
+        "observations": {
+          "expected_state": "closed",
+          "fresh_in_declared_window": true,
+          "observed_state": "closed",
+          "readback_available": false,
+          "same_target_and_predicate": true,
+          "settlement_reached": true,
+          "source_accepted": true,
+          "tool_reports_success": true
+        }
+      },
+      "original_output": {
+        "claim": "postcondition_observed",
+        "status": "not_established",
+        "reason": "readback_unavailable",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "authoritative read-back"
+        ],
+        "decisive_if": "obtain a read-back from the declared observation source"
+      },
+      "expected_wrong_output": {
+        "claim": "postcondition_observed",
+        "status": "established",
+        "reason": "declared_postcondition_observed_at_named_point",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      }
+    },
+    {
+      "id": "H20",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"source_accepted\") is not True:",
+      "new": "if o.get(\"readback_available\") is not True:",
+      "offset": 10941,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -261,7 +261,7 @@\n     claim = \"postcondition_observed\"\n     if o.get(\"readback_available\") is not True:\n         return _unknown(claim, \"readback_unavailable\", scope)\n-    if o.get(\"source_accepted\") is not True:\n+    if o.get(\"readback_available\") is not True:\n         return _unknown(claim, \"readback_source_not_accepted\", scope)\n     if o.get(\"same_target_and_predicate\") is not True:\n         return _unknown(claim, \"target_or_predicate_not_bound\", scope)\n",
+      "witness_input": {
+        "claim": "postcondition_observed",
+        "observations": {
+          "expected_state": "closed",
+          "fresh_in_declared_window": true,
+          "observed_state": "closed",
+          "readback_available": true,
+          "same_target_and_predicate": true,
+          "settlement_reached": true,
+          "source_accepted": false,
+          "tool_reports_success": true
+        }
+      },
+      "original_output": {
+        "claim": "postcondition_observed",
+        "status": "not_established",
+        "reason": "readback_source_not_accepted",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted read-back source"
+        ],
+        "decisive_if": "establish provenance/trust for the read-back source"
+      },
+      "expected_wrong_output": {
+        "claim": "postcondition_observed",
+        "status": "established",
+        "reason": "declared_postcondition_observed_at_named_point",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      }
+    },
+    {
+      "id": "H21",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"same_target_and_predicate\") is not True:",
+      "new": "if o.get(\"fresh_in_declared_window\") is not True:",
+      "offset": 11056,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -263,7 +263,7 @@\n         return _unknown(claim, \"readback_unavailable\", scope)\n     if o.get(\"source_accepted\") is not True:\n         return _unknown(claim, \"readback_source_not_accepted\", scope)\n-    if o.get(\"same_target_and_predicate\") is not True:\n+    if o.get(\"fresh_in_declared_window\") is not True:\n         return _unknown(claim, \"target_or_predicate_not_bound\", scope)\n     if o.get(\"fresh_in_declared_window\") is not True:\n         return _unknown(claim, \"readback_stale_or_time_unbound\", scope)\n",
+      "witness_input": {
+        "claim": "postcondition_observed",
+        "observations": {
+          "expected_state": "closed",
+          "fresh_in_declared_window": false,
+          "observed_state": "closed",
+          "readback_available": true,
+          "same_target_and_predicate": true,
+          "settlement_reached": true,
+          "source_accepted": true,
+          "tool_reports_success": true
+        }
+      },
+      "original_output": {
+        "claim": "postcondition_observed",
+        "status": "not_established",
+        "reason": "readback_stale_or_time_unbound",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "fresh read-back in the declared window"
+        ],
+        "decisive_if": "obtain a fresh observation bound to the declared settlement interval"
+      },
+      "expected_wrong_output": {
+        "claim": "postcondition_observed",
+        "status": "not_established",
+        "reason": "target_or_predicate_not_bound",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "same target and declared postcondition predicate"
+        ],
+        "decisive_if": "bind expected and observed state to the same target and predicate"
+      }
+    },
+    {
+      "id": "H22",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"fresh_in_declared_window\") is not True:",
+      "new": "if o.get(\"settlement_reached\") is not True:",
+      "offset": 11182,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -265,7 +265,7 @@\n         return _unknown(claim, \"readback_source_not_accepted\", scope)\n     if o.get(\"same_target_and_predicate\") is not True:\n         return _unknown(claim, \"target_or_predicate_not_bound\", scope)\n-    if o.get(\"fresh_in_declared_window\") is not True:\n+    if o.get(\"settlement_reached\") is not True:\n         return _unknown(claim, \"readback_stale_or_time_unbound\", scope)\n     if o.get(\"settlement_reached\") is not True:\n         return _unknown(claim, \"declared_settlement_point_not_reached\", scope)\n",
+      "witness_input": {
+        "claim": "postcondition_observed",
+        "observations": {
+          "expected_state": "closed",
+          "fresh_in_declared_window": false,
+          "observed_state": "closed",
+          "readback_available": true,
+          "same_target_and_predicate": true,
+          "settlement_reached": true,
+          "source_accepted": true,
+          "tool_reports_success": true
+        }
+      },
+      "original_output": {
+        "claim": "postcondition_observed",
+        "status": "not_established",
+        "reason": "readback_stale_or_time_unbound",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "fresh read-back in the declared window"
+        ],
+        "decisive_if": "obtain a fresh observation bound to the declared settlement interval"
+      },
+      "expected_wrong_output": {
+        "claim": "postcondition_observed",
+        "status": "established",
+        "reason": "declared_postcondition_observed_at_named_point",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      }
+    },
+    {
+      "id": "H23",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "if o.get(\"settlement_reached\") is not True:",
+      "new": "if o.get(\"fresh_in_declared_window\") is not True:",
+      "offset": 11308,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -267,7 +267,7 @@\n         return _unknown(claim, \"target_or_predicate_not_bound\", scope)\n     if o.get(\"fresh_in_declared_window\") is not True:\n         return _unknown(claim, \"readback_stale_or_time_unbound\", scope)\n-    if o.get(\"settlement_reached\") is not True:\n+    if o.get(\"fresh_in_declared_window\") is not True:\n         return _unknown(claim, \"declared_settlement_point_not_reached\", scope)\n     if \"expected_state\" not in o or \"observed_state\" not in o:\n         return _unknown(claim, \"state_value_missing\", scope)\n",
+      "witness_input": {
+        "claim": "postcondition_observed",
+        "observations": {
+          "expected_state": "closed",
+          "fresh_in_declared_window": true,
+          "observed_state": "closed",
+          "readback_available": true,
+          "same_target_and_predicate": true,
+          "settlement_reached": false,
+          "source_accepted": true,
+          "tool_reports_success": true
+        }
+      },
+      "original_output": {
+        "claim": "postcondition_observed",
+        "status": "not_established",
+        "reason": "declared_settlement_point_not_reached",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "settlement point reached"
+        ],
+        "decisive_if": "wait for the declared deadline/settlement point before appraising the postcondition"
+      },
+      "expected_wrong_output": {
+        "claim": "postcondition_observed",
+        "status": "established",
+        "reason": "declared_postcondition_observed_at_named_point",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      }
+    },
+    {
+      "id": "H24",
+      "class": "hand_picked",
+      "operator": "single replacement",
+      "old": "canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"])",
+      "new": "o[\"expected_state\"] == o[\"observed_state\"]",
+      "offset": 11562,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -271,7 +271,7 @@\n         return _unknown(claim, \"declared_settlement_point_not_reached\", scope)\n     if \"expected_state\" not in o or \"observed_state\" not in o:\n         return _unknown(claim, \"state_value_missing\", scope)\n-    if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):\n+    if o[\"expected_state\"] == o[\"observed_state\"]:\n         return _result(\n             claim,\n             EvidenceStatus.ESTABLISHED,\n",
+      "witness_input": {
+        "claim": "postcondition_observed",
+        "observations": {
+          "expected_state": 1,
+          "fresh_in_declared_window": true,
+          "observed_state": true,
+          "readback_available": true,
+          "same_target_and_predicate": true,
+          "settlement_reached": true,
+          "source_accepted": true,
+          "tool_reports_success": true
+        }
+      },
+      "original_output": {
+        "claim": "postcondition_observed",
+        "status": "violated",
+        "reason": "declared_postcondition_disagreed_at_named_point",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      },
+      "expected_wrong_output": {
+        "claim": "postcondition_observed",
+        "status": "established",
+        "reason": "declared_postcondition_observed_at_named_point",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      }
+    },
+    {
+      "id": "S01",
+      "class": "systematic",
+      "operator": "is not True -> is not False",
+      "old": "is not True",
+      "new": "is not False",
+      "offset": 7142,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -182,7 +182,7 @@\n     admission coverage for the bounded scope.\n     \"\"\"\n     claim = \"admission_accounting\"\n-    if o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True:\n+    if o.get(\"effect_source_accepted\") is not False or o.get(\"effect_seen\") is not True:\n         return _unknown(claim, \"execution_observation_unaccepted_or_missing\", scope)\n     if o.get(\"scope_accepted\") is not True:\n         return _unknown(claim, \"scope_unaccepted_or_missing\", scope)\n",
+      "witness_input": {
+        "claim": "admission_accounting",
+        "observations": {
+          "admission_coverage_complete": true,
+          "admission_matches": true,
+          "admission_present": true,
+          "admission_source_accepted": true,
+          "effect_seen": true,
+          "effect_source_accepted": true,
+          "mandatory_admission": true,
+          "scope_accepted": true,
+          "window_finalized": true
+        }
+      },
+      "original_output": {
+        "claim": "admission_accounting",
+        "status": "established",
+        "reason": "covering_admission_observed_for_this_execution",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      },
+      "expected_wrong_output": {
+        "claim": "admission_accounting",
+        "status": "not_established",
+        "reason": "execution_observation_unaccepted_or_missing",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted execution/effect observation"
+        ],
+        "decisive_if": "supply an independently accepted observation of the execution or effect"
+      }
+    },
+    {
+      "id": "S02",
+      "class": "systematic",
+      "operator": "is not True -> is not False",
+      "old": "is not True",
+      "new": "is not False",
+      "offset": 7178,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -182,7 +182,7 @@\n     admission coverage for the bounded scope.\n     \"\"\"\n     claim = \"admission_accounting\"\n-    if o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True:\n+    if o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not False:\n         return _unknown(claim, \"execution_observation_unaccepted_or_missing\", scope)\n     if o.get(\"scope_accepted\") is not True:\n         return _unknown(claim, \"scope_unaccepted_or_missing\", scope)\n",
+      "witness_input": {
+        "claim": "admission_accounting",
+        "observations": {
+          "admission_coverage_complete": true,
+          "admission_matches": true,
+          "admission_present": true,
+          "admission_source_accepted": true,
+          "effect_seen": true,
+          "effect_source_accepted": true,
+          "mandatory_admission": true,
+          "scope_accepted": true,
+          "window_finalized": true
+        }
+      },
+      "original_output": {
+        "claim": "admission_accounting",
+        "status": "established",
+        "reason": "covering_admission_observed_for_this_execution",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      },
+      "expected_wrong_output": {
+        "claim": "admission_accounting",
+        "status": "not_established",
+        "reason": "execution_observation_unaccepted_or_missing",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted execution/effect observation"
+        ],
+        "decisive_if": "supply an independently accepted observation of the execution or effect"
+      }
+    },
+    {
+      "id": "S03",
+      "class": "systematic",
+      "operator": "is not True -> is not False",
+      "old": "is not True",
+      "new": "is not False",
+      "offset": 7307,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -184,7 +184,7 @@\n     claim = \"admission_accounting\"\n     if o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True:\n         return _unknown(claim, \"execution_observation_unaccepted_or_missing\", scope)\n-    if o.get(\"scope_accepted\") is not True:\n+    if o.get(\"scope_accepted\") is not False:\n         return _unknown(claim, \"scope_unaccepted_or_missing\", scope)\n     if o.get(\"admission_present\") is True:\n         if o.get(\"admission_source_accepted\") is not True:\n",
+      "witness_input": {
+        "claim": "admission_accounting",
+        "observations": {
+          "admission_coverage_complete": true,
+          "admission_matches": true,
+          "admission_present": true,
+          "admission_source_accepted": true,
+          "effect_seen": true,
+          "effect_source_accepted": true,
+          "mandatory_admission": true,
+          "scope_accepted": true,
+          "window_finalized": true
+        }
+      },
+      "original_output": {
+        "claim": "admission_accounting",
+        "status": "established",
+        "reason": "covering_admission_observed_for_this_execution",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      },
+      "expected_wrong_output": {
+        "claim": "admission_accounting",
+        "status": "not_established",
+        "reason": "scope_unaccepted_or_missing",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted bounded scope"
+        ],
+        "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval"
+      }
+    },
+    {
+      "id": "S04",
+      "class": "systematic",
+      "operator": "is not True -> is not False",
+      "old": "is not True",
+      "new": "is not False",
+      "offset": 7478,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -187,7 +187,7 @@\n     if o.get(\"scope_accepted\") is not True:\n         return _unknown(claim, \"scope_unaccepted_or_missing\", scope)\n     if o.get(\"admission_present\") is True:\n-        if o.get(\"admission_source_accepted\") is not True:\n+        if o.get(\"admission_source_accepted\") is not False:\n             return _unknown(claim, \"admission_observation_unaccepted\", scope)\n         if o.get(\"admission_matches\") is True:\n             return _result(\n",
+      "witness_input": {
+        "claim": "admission_accounting",
+        "observations": {
+          "admission_coverage_complete": true,
+          "admission_matches": true,
+          "admission_present": true,
+          "admission_source_accepted": true,
+          "effect_seen": true,
+          "effect_source_accepted": true,
+          "mandatory_admission": true,
+          "scope_accepted": true,
+          "window_finalized": true
+        }
+      },
+      "original_output": {
+        "claim": "admission_accounting",
+        "status": "established",
+        "reason": "covering_admission_observed_for_this_execution",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      },
+      "expected_wrong_output": {
+        "claim": "admission_accounting",
+        "status": "not_established",
+        "reason": "admission_observation_unaccepted",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted admission observation"
+        ],
+        "decisive_if": "establish provenance and acceptance for the candidate admission record"
+      }
+    },
+    {
+      "id": "S05",
+      "class": "systematic",
+      "operator": "is not True -> is not False",
+      "old": "is not True",
+      "new": "is not False",
+      "offset": 8067,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -199,7 +199,7 @@\n         return _unknown(claim, \"candidate_admission_does_not_establish_a_covering_admission\", scope)\n     if o.get(\"admission_present\") is not False:\n         return _unknown(claim, \"admission_presence_unknown\", scope)\n-    if o.get(\"mandatory_admission\") is not True:\n+    if o.get(\"mandatory_admission\") is not False:\n         return _unknown(claim, \"admission_requirement_not_defined\", scope)\n     if o.get(\"window_finalized\") is not True:\n         return _unknown(claim, \"observation_window_open\", scope)\n",
+      "witness_input": {
+        "claim": "admission_accounting",
+        "observations": {
+          "admission_coverage_complete": true,
+          "admission_matches": true,
+          "admission_present": false,
+          "admission_source_accepted": true,
+          "effect_seen": true,
+          "effect_source_accepted": true,
+          "mandatory_admission": true,
+          "scope_accepted": true,
+          "window_finalized": true
+        }
+      },
+      "original_output": {
+        "claim": "admission_accounting",
+        "status": "violated",
+        "reason": "mandatory_admission_absent_in_complete_bounded_history",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      },
+      "expected_wrong_output": {
+        "claim": "admission_accounting",
+        "status": "not_established",
+        "reason": "admission_requirement_not_defined",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "mandatory-admission rule"
+        ],
+        "decisive_if": "state the rule requiring a covering admission for this action class"
+      }
+    },
+    {
+      "id": "S06",
+      "class": "systematic",
+      "operator": "is not True -> is not False",
+      "old": "is not True",
+      "new": "is not False",
+      "offset": 8188,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -201,7 +201,7 @@\n         return _unknown(claim, \"admission_presence_unknown\", scope)\n     if o.get(\"mandatory_admission\") is not True:\n         return _unknown(claim, \"admission_requirement_not_defined\", scope)\n-    if o.get(\"window_finalized\") is not True:\n+    if o.get(\"window_finalized\") is not False:\n         return _unknown(claim, \"observation_window_open\", scope)\n     if o.get(\"admission_coverage_complete\") is not True:\n         return _unknown(claim, \"admission_coverage_incomplete\", scope)\n",
+      "witness_input": {
+        "claim": "admission_accounting",
+        "observations": {
+          "admission_coverage_complete": true,
+          "admission_matches": true,
+          "admission_present": false,
+          "admission_source_accepted": true,
+          "effect_seen": true,
+          "effect_source_accepted": true,
+          "mandatory_admission": true,
+          "scope_accepted": true,
+          "window_finalized": true
+        }
+      },
+      "original_output": {
+        "claim": "admission_accounting",
+        "status": "violated",
+        "reason": "mandatory_admission_absent_in_complete_bounded_history",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      },
+      "expected_wrong_output": {
+        "claim": "admission_accounting",
+        "status": "not_established",
+        "reason": "observation_window_open",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "finalized observation interval"
+        ],
+        "decisive_if": "close the interval under a stated finalization/watermark rule"
+      }
+    },
+    {
+      "id": "S07",
+      "class": "systematic",
+      "operator": "is not True -> is not False",
+      "old": "is not True",
+      "new": "is not False",
+      "offset": 8310,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -203,7 +203,7 @@\n         return _unknown(claim, \"admission_requirement_not_defined\", scope)\n     if o.get(\"window_finalized\") is not True:\n         return _unknown(claim, \"observation_window_open\", scope)\n-    if o.get(\"admission_coverage_complete\") is not True:\n+    if o.get(\"admission_coverage_complete\") is not False:\n         return _unknown(claim, \"admission_coverage_incomplete\", scope)\n     return _result(\n         claim,\n",
+      "witness_input": {
+        "claim": "admission_accounting",
+        "observations": {
+          "admission_coverage_complete": true,
+          "admission_matches": true,
+          "admission_present": false,
+          "admission_source_accepted": true,
+          "effect_seen": true,
+          "effect_source_accepted": true,
+          "mandatory_admission": true,
+          "scope_accepted": true,
+          "window_finalized": true
+        }
+      },
+      "original_output": {
+        "claim": "admission_accounting",
+        "status": "violated",
+        "reason": "mandatory_admission_absent_in_complete_bounded_history",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      },
+      "expected_wrong_output": {
+        "claim": "admission_accounting",
+        "status": "not_established",
+        "reason": "admission_coverage_incomplete",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "complete admission coverage for the bounded scope"
+        ],
+        "decisive_if": "justify capture/export completeness for every admission stream in scope"
+      }
+    },
+    {
+      "id": "S08",
+      "class": "systematic",
+      "operator": "is not True -> is not False",
+      "old": "is not True",
+      "new": "is not False",
+      "offset": 9046,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -221,7 +221,7 @@\n     downstream observation and accepted attribution to the required boundary.\n     \"\"\"\n     claim = \"tested_route_enforcement\"\n-    if o.get(\"route_observation_accepted\") is not True:\n+    if o.get(\"route_observation_accepted\") is not False:\n         return _unknown(claim, \"route_observation_unaccepted_or_missing\", scope)\n     if o.get(\"same_protected_operation\") is not True:\n         return _unknown(claim, \"target_or_operation_not_bound\", scope)\n",
+      "witness_input": {
+        "claim": "tested_route_enforcement",
+        "observations": {
+          "effect_observation_accepted": true,
+          "effect_window_complete": true,
+          "outside_required_pep": true,
+          "protected_effect_observed": true,
+          "required_boundary_refusal_accepted": false,
+          "route_observation_accepted": true,
+          "same_protected_operation": true,
+          "valid_control_same_context": true
+        }
+      },
+      "original_output": {
+        "claim": "tested_route_enforcement",
+        "status": "violated",
+        "reason": "accepted_effect_observed_outside_required_pep",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      },
+      "expected_wrong_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "route_observation_unaccepted_or_missing",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted alternative-route observation"
+        ],
+        "decisive_if": "supply accepted evidence that the named route was actually exercised"
+      }
+    },
+    {
+      "id": "S09",
+      "class": "systematic",
+      "operator": "is not True -> is not False",
+      "old": "is not True",
+      "new": "is not False",
+      "offset": 9181,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -223,7 +223,7 @@\n     claim = \"tested_route_enforcement\"\n     if o.get(\"route_observation_accepted\") is not True:\n         return _unknown(claim, \"route_observation_unaccepted_or_missing\", scope)\n-    if o.get(\"same_protected_operation\") is not True:\n+    if o.get(\"same_protected_operation\") is not False:\n         return _unknown(claim, \"target_or_operation_not_bound\", scope)\n     if o.get(\"outside_required_pep\") is not True:\n         return _unknown(claim, \"alternative_route_not_established\", scope)\n",
+      "witness_input": {
+        "claim": "tested_route_enforcement",
+        "observations": {
+          "effect_observation_accepted": true,
+          "effect_window_complete": true,
+          "outside_required_pep": true,
+          "protected_effect_observed": true,
+          "required_boundary_refusal_accepted": false,
+          "route_observation_accepted": true,
+          "same_protected_operation": true,
+          "valid_control_same_context": true
+        }
+      },
+      "original_output": {
+        "claim": "tested_route_enforcement",
+        "status": "violated",
+        "reason": "accepted_effect_observed_outside_required_pep",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      },
+      "expected_wrong_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "target_or_operation_not_bound",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "same protected target and operation"
+        ],
+        "decisive_if": "bind the route/control evidence to the same protected operation"
+      }
+    },
+    {
+      "id": "S10",
+      "class": "systematic",
+      "operator": "is not True -> is not False",
+      "old": "is not True",
+      "new": "is not False",
+      "offset": 9302,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -225,7 +225,7 @@\n         return _unknown(claim, \"route_observation_unaccepted_or_missing\", scope)\n     if o.get(\"same_protected_operation\") is not True:\n         return _unknown(claim, \"target_or_operation_not_bound\", scope)\n-    if o.get(\"outside_required_pep\") is not True:\n+    if o.get(\"outside_required_pep\") is not False:\n         return _unknown(claim, \"alternative_route_not_established\", scope)\n     if o.get(\"effect_observation_accepted\") is not True:\n         return _unknown(claim, \"protected_effect_observation_unaccepted\", scope)\n",
+      "witness_input": {
+        "claim": "tested_route_enforcement",
+        "observations": {
+          "effect_observation_accepted": true,
+          "effect_window_complete": true,
+          "outside_required_pep": true,
+          "protected_effect_observed": true,
+          "required_boundary_refusal_accepted": false,
+          "route_observation_accepted": true,
+          "same_protected_operation": true,
+          "valid_control_same_context": true
+        }
+      },
+      "original_output": {
+        "claim": "tested_route_enforcement",
+        "status": "violated",
+        "reason": "accepted_effect_observed_outside_required_pep",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      },
+      "expected_wrong_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "alternative_route_not_established",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "route outside the required PEP"
+        ],
+        "decisive_if": "establish that the tested route is genuinely outside the required enforcement point"
+      }
+    },
+    {
+      "id": "S11",
+      "class": "systematic",
+      "operator": "is not True -> is not False",
+      "old": "is not True",
+      "new": "is not False",
+      "offset": 9434,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -227,7 +227,7 @@\n         return _unknown(claim, \"target_or_operation_not_bound\", scope)\n     if o.get(\"outside_required_pep\") is not True:\n         return _unknown(claim, \"alternative_route_not_established\", scope)\n-    if o.get(\"effect_observation_accepted\") is not True:\n+    if o.get(\"effect_observation_accepted\") is not False:\n         return _unknown(claim, \"protected_effect_observation_unaccepted\", scope)\n     if o.get(\"protected_effect_observed\") is True:\n         return _result(\n",
+      "witness_input": {
+        "claim": "tested_route_enforcement",
+        "observations": {
+          "effect_observation_accepted": true,
+          "effect_window_complete": true,
+          "outside_required_pep": true,
+          "protected_effect_observed": true,
+          "required_boundary_refusal_accepted": false,
+          "route_observation_accepted": true,
+          "same_protected_operation": true,
+          "valid_control_same_context": true
+        }
+      },
+      "original_output": {
+        "claim": "tested_route_enforcement",
+        "status": "violated",
+        "reason": "accepted_effect_observed_outside_required_pep",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      },
+      "expected_wrong_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "protected_effect_observation_unaccepted",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted protected-effect observation"
+        ],
+        "decisive_if": "supply accepted downstream evidence for the protected effect"
+      }
+    },
+    {
+      "id": "S12",
+      "class": "systematic",
+      "operator": "is not True -> is not False",
+      "old": "is not True",
+      "new": "is not False",
+      "offset": 9910,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -238,7 +238,7 @@\n         )\n     if o.get(\"protected_effect_observed\") is not False:\n         return _unknown(claim, \"protected_effect_unknown\", scope)\n-    if o.get(\"effect_window_complete\") is not True:\n+    if o.get(\"effect_window_complete\") is not False:\n         return _unknown(claim, \"no_effect_observation_not_complete\", scope)\n     if o.get(\"valid_control_same_context\") is not True:\n         return _unknown(claim, \"valid_control_missing_or_incomparable\", scope)\n",
+      "witness_input": {
+        "claim": "tested_route_enforcement",
+        "observations": {
+          "effect_observation_accepted": true,
+          "effect_window_complete": true,
+          "outside_required_pep": true,
+          "protected_effect_observed": false,
+          "required_boundary_refusal_accepted": false,
+          "route_observation_accepted": true,
+          "same_protected_operation": true,
+          "valid_control_same_context": true
+        }
+      },
+      "original_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "refusal_not_attributed_to_required_boundary",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted boundary-attribution evidence"
+        ],
+        "decisive_if": "identify the required boundary as the cause of refusal rather than inferring it from 403/no-effect"
+      },
+      "expected_wrong_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "no_effect_observation_not_complete",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "complete downstream effect window"
+        ],
+        "decisive_if": "close the downstream observation window before inferring non-occurrence"
+      }
+    },
+    {
+      "id": "S13",
+      "class": "systematic",
+      "operator": "is not True -> is not False",
+      "old": "is not True",
+      "new": "is not False",
+      "offset": 10042,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -240,7 +240,7 @@\n         return _unknown(claim, \"protected_effect_unknown\", scope)\n     if o.get(\"effect_window_complete\") is not True:\n         return _unknown(claim, \"no_effect_observation_not_complete\", scope)\n-    if o.get(\"valid_control_same_context\") is not True:\n+    if o.get(\"valid_control_same_context\") is not False:\n         return _unknown(claim, \"valid_control_missing_or_incomparable\", scope)\n     if o.get(\"required_boundary_refusal_accepted\") is not True:\n         return _unknown(claim, \"refusal_not_attributed_to_required_boundary\", scope)\n",
+      "witness_input": {
+        "claim": "tested_route_enforcement",
+        "observations": {
+          "effect_observation_accepted": true,
+          "effect_window_complete": true,
+          "outside_required_pep": true,
+          "protected_effect_observed": false,
+          "required_boundary_refusal_accepted": false,
+          "route_observation_accepted": true,
+          "same_protected_operation": true,
+          "valid_control_same_context": true
+        }
+      },
+      "original_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "refusal_not_attributed_to_required_boundary",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted boundary-attribution evidence"
+        ],
+        "decisive_if": "identify the required boundary as the cause of refusal rather than inferring it from 403/no-effect"
+      },
+      "expected_wrong_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "valid_control_missing_or_incomparable",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "comparable valid control"
+        ],
+        "decisive_if": "show the same route and operation succeeds when the tested boundary condition is absent"
+      }
+    },
+    {
+      "id": "S14",
+      "class": "systematic",
+      "operator": "is not True -> is not False",
+      "old": "is not True",
+      "new": "is not False",
+      "offset": 10185,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -242,7 +242,7 @@\n         return _unknown(claim, \"no_effect_observation_not_complete\", scope)\n     if o.get(\"valid_control_same_context\") is not True:\n         return _unknown(claim, \"valid_control_missing_or_incomparable\", scope)\n-    if o.get(\"required_boundary_refusal_accepted\") is not True:\n+    if o.get(\"required_boundary_refusal_accepted\") is not False:\n         return _unknown(claim, \"refusal_not_attributed_to_required_boundary\", scope)\n     return _result(\n         claim,\n",
+      "witness_input": {
+        "claim": "tested_route_enforcement",
+        "observations": {
+          "effect_observation_accepted": true,
+          "effect_window_complete": true,
+          "outside_required_pep": true,
+          "protected_effect_observed": false,
+          "required_boundary_refusal_accepted": false,
+          "route_observation_accepted": true,
+          "same_protected_operation": true,
+          "valid_control_same_context": true
+        }
+      },
+      "original_output": {
+        "claim": "tested_route_enforcement",
+        "status": "not_established",
+        "reason": "refusal_not_attributed_to_required_boundary",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted boundary-attribution evidence"
+        ],
+        "decisive_if": "identify the required boundary as the cause of refusal rather than inferring it from 403/no-effect"
+      },
+      "expected_wrong_output": {
+        "claim": "tested_route_enforcement",
+        "status": "established",
+        "reason": "named_route_refused_at_required_boundary_in_test_scope",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      }
+    },
+    {
+      "id": "S15",
+      "class": "systematic",
+      "operator": "is not True -> is not False",
+      "old": "is not True",
+      "new": "is not False",
+      "offset": 10862,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -259,7 +259,7 @@\n     correctness. Tool self-report is irrelevant to the predicate.\n     \"\"\"\n     claim = \"postcondition_observed\"\n-    if o.get(\"readback_available\") is not True:\n+    if o.get(\"readback_available\") is not False:\n         return _unknown(claim, \"readback_unavailable\", scope)\n     if o.get(\"source_accepted\") is not True:\n         return _unknown(claim, \"readback_source_not_accepted\", scope)\n",
+      "witness_input": {
+        "claim": "postcondition_observed",
+        "observations": {
+          "expected_state": "closed",
+          "fresh_in_declared_window": true,
+          "observed_state": "closed",
+          "readback_available": true,
+          "same_target_and_predicate": true,
+          "settlement_reached": true,
+          "source_accepted": true,
+          "tool_reports_success": true
+        }
+      },
+      "original_output": {
+        "claim": "postcondition_observed",
+        "status": "established",
+        "reason": "declared_postcondition_observed_at_named_point",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      },
+      "expected_wrong_output": {
+        "claim": "postcondition_observed",
+        "status": "not_established",
+        "reason": "readback_unavailable",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "authoritative read-back"
+        ],
+        "decisive_if": "obtain a read-back from the declared observation source"
+      }
+    },
+    {
+      "id": "S16",
+      "class": "systematic",
+      "operator": "is not True -> is not False",
+      "old": "is not True",
+      "new": "is not False",
+      "offset": 10969,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -261,7 +261,7 @@\n     claim = \"postcondition_observed\"\n     if o.get(\"readback_available\") is not True:\n         return _unknown(claim, \"readback_unavailable\", scope)\n-    if o.get(\"source_accepted\") is not True:\n+    if o.get(\"source_accepted\") is not False:\n         return _unknown(claim, \"readback_source_not_accepted\", scope)\n     if o.get(\"same_target_and_predicate\") is not True:\n         return _unknown(claim, \"target_or_predicate_not_bound\", scope)\n",
+      "witness_input": {
+        "claim": "postcondition_observed",
+        "observations": {
+          "expected_state": "closed",
+          "fresh_in_declared_window": true,
+          "observed_state": "closed",
+          "readback_available": true,
+          "same_target_and_predicate": true,
+          "settlement_reached": true,
+          "source_accepted": true,
+          "tool_reports_success": true
+        }
+      },
+      "original_output": {
+        "claim": "postcondition_observed",
+        "status": "established",
+        "reason": "declared_postcondition_observed_at_named_point",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      },
+      "expected_wrong_output": {
+        "claim": "postcondition_observed",
+        "status": "not_established",
+        "reason": "readback_source_not_accepted",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "accepted read-back source"
+        ],
+        "decisive_if": "establish provenance/trust for the read-back source"
+      }
+    },
+    {
+      "id": "S17",
+      "class": "systematic",
+      "operator": "is not True -> is not False",
+      "old": "is not True",
+      "new": "is not False",
+      "offset": 11094,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -263,7 +263,7 @@\n         return _unknown(claim, \"readback_unavailable\", scope)\n     if o.get(\"source_accepted\") is not True:\n         return _unknown(claim, \"readback_source_not_accepted\", scope)\n-    if o.get(\"same_target_and_predicate\") is not True:\n+    if o.get(\"same_target_and_predicate\") is not False:\n         return _unknown(claim, \"target_or_predicate_not_bound\", scope)\n     if o.get(\"fresh_in_declared_window\") is not True:\n         return _unknown(claim, \"readback_stale_or_time_unbound\", scope)\n",
+      "witness_input": {
+        "claim": "postcondition_observed",
+        "observations": {
+          "expected_state": "closed",
+          "fresh_in_declared_window": true,
+          "observed_state": "closed",
+          "readback_available": true,
+          "same_target_and_predicate": true,
+          "settlement_reached": true,
+          "source_accepted": true,
+          "tool_reports_success": true
+        }
+      },
+      "original_output": {
+        "claim": "postcondition_observed",
+        "status": "established",
+        "reason": "declared_postcondition_observed_at_named_point",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      },
+      "expected_wrong_output": {
+        "claim": "postcondition_observed",
+        "status": "not_established",
+        "reason": "target_or_predicate_not_bound",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "same target and declared postcondition predicate"
+        ],
+        "decisive_if": "bind expected and observed state to the same target and predicate"
+      }
+    },
+    {
+      "id": "S18",
+      "class": "systematic",
+      "operator": "is not True -> is not False",
+      "old": "is not True",
+      "new": "is not False",
+      "offset": 11219,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -265,7 +265,7 @@\n         return _unknown(claim, \"readback_source_not_accepted\", scope)\n     if o.get(\"same_target_and_predicate\") is not True:\n         return _unknown(claim, \"target_or_predicate_not_bound\", scope)\n-    if o.get(\"fresh_in_declared_window\") is not True:\n+    if o.get(\"fresh_in_declared_window\") is not False:\n         return _unknown(claim, \"readback_stale_or_time_unbound\", scope)\n     if o.get(\"settlement_reached\") is not True:\n         return _unknown(claim, \"declared_settlement_point_not_reached\", scope)\n",
+      "witness_input": {
+        "claim": "postcondition_observed",
+        "observations": {
+          "expected_state": "closed",
+          "fresh_in_declared_window": true,
+          "observed_state": "closed",
+          "readback_available": true,
+          "same_target_and_predicate": true,
+          "settlement_reached": true,
+          "source_accepted": true,
+          "tool_reports_success": true
+        }
+      },
+      "original_output": {
+        "claim": "postcondition_observed",
+        "status": "established",
+        "reason": "declared_postcondition_observed_at_named_point",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      },
+      "expected_wrong_output": {
+        "claim": "postcondition_observed",
+        "status": "not_established",
+        "reason": "readback_stale_or_time_unbound",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "fresh read-back in the declared window"
+        ],
+        "decisive_if": "obtain a fresh observation bound to the declared settlement interval"
+      }
+    },
+    {
+      "id": "S19",
+      "class": "systematic",
+      "operator": "is not True -> is not False",
+      "old": "is not True",
+      "new": "is not False",
+      "offset": 11339,
+      "unified_diff": "--- checker.py\n+++ checker.py\n@@ -267,7 +267,7 @@\n         return _unknown(claim, \"target_or_predicate_not_bound\", scope)\n     if o.get(\"fresh_in_declared_window\") is not True:\n         return _unknown(claim, \"readback_stale_or_time_unbound\", scope)\n-    if o.get(\"settlement_reached\") is not True:\n+    if o.get(\"settlement_reached\") is not False:\n         return _unknown(claim, \"declared_settlement_point_not_reached\", scope)\n     if \"expected_state\" not in o or \"observed_state\" not in o:\n         return _unknown(claim, \"state_value_missing\", scope)\n",
+      "witness_input": {
+        "claim": "postcondition_observed",
+        "observations": {
+          "expected_state": "closed",
+          "fresh_in_declared_window": true,
+          "observed_state": "closed",
+          "readback_available": true,
+          "same_target_and_predicate": true,
+          "settlement_reached": true,
+          "source_accepted": true,
+          "tool_reports_success": true
+        }
+      },
+      "original_output": {
+        "claim": "postcondition_observed",
+        "status": "established",
+        "reason": "declared_postcondition_observed_at_named_point",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": []
+      },
+      "expected_wrong_output": {
+        "claim": "postcondition_observed",
+        "status": "not_established",
+        "reason": "declared_settlement_point_not_reached",
+        "scope": {
+          "kind": "synthetic_fixture",
+          "bounded": true
+        },
+        "missing_evidence": [
+          "settlement point reached"
+        ],
+        "decisive_if": "wait for the declared deadline/settlement point before appraising the postcondition"
+      }
+    }
+  ]
+}

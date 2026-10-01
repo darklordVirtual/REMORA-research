@@ -12,5 +12,10 @@
   "command": "python experiments/ablation_v2.py --benchmark-module remora.benchmarks.extended_v2_n500",
   "generated_at": "2026-07-27T10:43:56.118583+00:00",
   "artifact": "ablation_v2_n500_results.json",
-  "artifact_sha256": "753979b1cc097ff1ef52f4b3992df01111e0fbb9c478ad3e316a645e813bb0be"
+  "artifact_sha256": "f9d48da3bd45759323022afe11b87e52dfe96ff525f871f2d21ac36290c3eff7",
+  "artifact_sha256_correction": {
+    "date": "2026-09-28",
+    "previous_value": "753979b1cc097ff1ef52f4b3992df01111e0fbb9c478ad3e316a645e813bb0be",
+    "reason": "previous value hashed CRLF bytes; the result file is unchanged and this is its LF hash per docs/assurance/artifact_manifest_v1.md. Detected by the sidecar hash check in scripts/check_results_manifest.py."
+  }
 }

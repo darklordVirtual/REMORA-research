@@ -1,0 +1,877 @@
+{
+  "suite": "non-transitivity-of-authority-v1",
+  "description": "NTA-1: authorization of one capability does not authorize any capability reachable through it. NTA-2: authorization of a tool does not authorize the privileged effects its implementation can reach. Each vector is a step programme over a fixed world and a normalized expected outcome. Implementation-agnostic: nothing here names a REMORA type.",
+  "world": {
+    "tenant": "acme",
+    "environment": "prod",
+    "principal": "agent-42",
+    "tools": {
+      "wrapper": "report.generate",
+      "downstream": "email.send",
+      "read": "database.read",
+      "unrelated": "shell.execute"
+    },
+    "tasks": {
+      "monthly_report": [
+        "report.generate",
+        "database.read",
+        "email.send"
+      ],
+      "read_only": [
+        "report.generate",
+        "database.read"
+      ],
+      "no_report": [
+        "database.read"
+      ]
+    },
+    "constraints": {
+      "email.send": {
+        "allowed_fields": [
+          "to",
+          "subject",
+          "body"
+        ],
+        "conditions": [
+          {
+            "argument": "to",
+            "in": [
+              "ops@acme",
+              "user@acme"
+            ]
+          }
+        ]
+      }
+    },
+    "downstream_ceilings": {
+      "report.generate": [
+        {
+          "capability": "database.read",
+          "resources": [
+            "database://reporting-eu/*"
+          ],
+          "purpose": "generate_report"
+        },
+        {
+          "capability": "filesystem.read",
+          "resources": [
+            "workspace://reports/*",
+            "workspace://templates/report.html"
+          ],
+          "purpose": "render_report"
+        }
+      ]
+    },
+    "effect_capabilities": [
+      "database.read",
+      "filesystem.read",
+      "network.http.post"
+    ]
+  },
+  "outcome_classes": {
+    "EXECUTED": "the call ran",
+    "REFUSED_BINDING": "the authority presented was issued for a different call (tool or arguments)",
+    "REFUSED_NOT_AUTHORIZED": "the capability is outside the presenting principal's authority",
+    "REFUSED_ARGUMENT_SCOPE": "the capability is authorized, these arguments are not",
+    "REFUSED_REVOKED": "the authority, or one it was derived from, was revoked",
+    "DELEGATED": "a derived authority was issued",
+    "DELEGATION_DENIED": "a derived authority was refused",
+    "OPENED": "a governed execution with effect authority was opened",
+    "REFUSED_RESOURCE_SCOPE": "the effect capability is authorized, this resource is not",
+    "REFUSED_DEFAULT_UNRESOLVED": "the effect names no resource, so nothing can authorize it",
+    "REFUSED_CONTEXT": "the effect was requested outside an open governed execution"
+  },
+  "vectors": [
+    {
+      "id": "NTA-01",
+      "form": "reachability",
+      "title": "authority for the wrapper does not dispatch the downstream capability",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "authorize",
+          "as": "L",
+          "set": "P",
+          "tool": "report.generate",
+          "arguments": {
+            "month": "2026-09"
+          }
+        },
+        {
+          "op": "dispatch",
+          "authority": "L",
+          "set": "P",
+          "tool": "email.send",
+          "arguments": {
+            "to": "user@acme",
+            "body": "r"
+          }
+        }
+      ],
+      "expect": "REFUSED_BINDING"
+    },
+    {
+      "id": "NTA-02",
+      "form": "reachability",
+      "title": "a wrapper cannot obtain a downstream capability its caller lacks (confused deputy)",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "read_only"
+        },
+        {
+          "op": "delegate",
+          "as": "C",
+          "from": "P",
+          "delegatee": "report.generate",
+          "tools": [
+            "email.send"
+          ]
+        }
+      ],
+      "expect": "DELEGATION_DENIED"
+    },
+    {
+      "id": "NTA-03",
+      "form": "reachability",
+      "title": "a capability outside the principal's set is refused even with a call-bound authority",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "read_only"
+        },
+        {
+          "op": "authorize",
+          "as": "L",
+          "set": "P",
+          "tool": "email.send",
+          "arguments": {
+            "to": "user@acme",
+            "body": "r"
+          }
+        },
+        {
+          "op": "dispatch",
+          "authority": "L",
+          "set": "P",
+          "tool": "email.send",
+          "arguments": {
+            "to": "user@acme",
+            "body": "r"
+          }
+        }
+      ],
+      "expect": "REFUSED_NOT_AUTHORIZED"
+    },
+    {
+      "id": "NTA-04",
+      "form": "argument",
+      "title": "an authorized downstream capability with out-of-scope arguments is refused",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "delegate",
+          "as": "C",
+          "from": "P",
+          "delegatee": "report.generate",
+          "tools": [
+            "email.send"
+          ]
+        },
+        {
+          "op": "authorize",
+          "as": "L",
+          "set": "C",
+          "actor": "report.generate",
+          "tool": "email.send",
+          "arguments": {
+            "to": "attacker@evil",
+            "body": "r"
+          }
+        },
+        {
+          "op": "dispatch",
+          "authority": "L",
+          "set": "C",
+          "actor": "report.generate",
+          "tool": "email.send",
+          "arguments": {
+            "to": "attacker@evil",
+            "body": "r"
+          }
+        }
+      ],
+      "expect": "REFUSED_ARGUMENT_SCOPE"
+    },
+    {
+      "id": "NTA-05",
+      "form": "argument",
+      "title": "authority for B(X) does not dispatch B(Y)",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "authorize",
+          "as": "L",
+          "set": "P",
+          "tool": "email.send",
+          "arguments": {
+            "to": "user@acme",
+            "body": "r"
+          }
+        },
+        {
+          "op": "dispatch",
+          "authority": "L",
+          "set": "P",
+          "tool": "email.send",
+          "arguments": {
+            "to": "ops@acme",
+            "body": "r"
+          }
+        }
+      ],
+      "expect": "REFUSED_BINDING"
+    },
+    {
+      "id": "NTA-06",
+      "form": "argument",
+      "title": "a delegation can narrow fields but never add one",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "delegate",
+          "as": "C",
+          "from": "P",
+          "delegatee": "report.generate",
+          "tools": [
+            "email.send"
+          ],
+          "extra_constraints": {
+            "email.send": {
+              "allowed_fields": [
+                "to",
+                "body",
+                "bcc"
+              ]
+            }
+          }
+        },
+        {
+          "op": "authorize",
+          "as": "L",
+          "set": "C",
+          "actor": "report.generate",
+          "tool": "email.send",
+          "arguments": {
+            "to": "user@acme",
+            "body": "r",
+            "bcc": "x@evil"
+          }
+        },
+        {
+          "op": "dispatch",
+          "authority": "L",
+          "set": "C",
+          "actor": "report.generate",
+          "tool": "email.send",
+          "arguments": {
+            "to": "user@acme",
+            "body": "r",
+            "bcc": "x@evil"
+          }
+        }
+      ],
+      "expect": "REFUSED_ARGUMENT_SCOPE"
+    },
+    {
+      "id": "NTA-07",
+      "form": "delegation",
+      "title": "a delegated authority cannot be delegated again by default",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "delegate",
+          "as": "C",
+          "from": "P",
+          "delegatee": "report.generate",
+          "tools": [
+            "email.send"
+          ]
+        },
+        {
+          "op": "delegate",
+          "as": "G",
+          "from": "C",
+          "delegatee": "email.worker",
+          "tools": [
+            "email.send"
+          ]
+        }
+      ],
+      "expect": "DELEGATION_DENIED"
+    },
+    {
+      "id": "NTA-08",
+      "form": "delegation",
+      "title": "re-delegation is possible only where the link opted in, and stays a subset",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "delegate",
+          "as": "C",
+          "from": "P",
+          "delegatee": "report.generate",
+          "tools": [
+            "email.send"
+          ],
+          "transitive": true
+        },
+        {
+          "op": "delegate",
+          "as": "G",
+          "from": "C",
+          "delegatee": "email.worker",
+          "tools": [
+            "email.send"
+          ]
+        }
+      ],
+      "expect": "DELEGATED"
+    },
+    {
+      "id": "NTA-09",
+      "form": "delegation",
+      "title": "a re-delegation cannot add a capability the link above lacked",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "delegate",
+          "as": "C",
+          "from": "P",
+          "delegatee": "report.generate",
+          "tools": [
+            "email.send"
+          ],
+          "transitive": true
+        },
+        {
+          "op": "delegate",
+          "as": "G",
+          "from": "C",
+          "delegatee": "email.worker",
+          "tools": [
+            "email.send",
+            "database.read"
+          ]
+        }
+      ],
+      "expect": "DELEGATION_DENIED"
+    },
+    {
+      "id": "NTA-10",
+      "form": "delegation",
+      "title": "delegation depth is bounded even when every link opts in",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "delegate",
+          "as": "C1",
+          "from": "P",
+          "delegatee": "d1",
+          "tools": [
+            "email.send"
+          ],
+          "transitive": true
+        },
+        {
+          "op": "delegate",
+          "as": "C2",
+          "from": "C1",
+          "delegatee": "d2",
+          "tools": [
+            "email.send"
+          ],
+          "transitive": true
+        },
+        {
+          "op": "delegate",
+          "as": "C3",
+          "from": "C2",
+          "delegatee": "d3",
+          "tools": [
+            "email.send"
+          ],
+          "transitive": true
+        },
+        {
+          "op": "delegate",
+          "as": "C4",
+          "from": "C3",
+          "delegatee": "d4",
+          "tools": [
+            "email.send"
+          ],
+          "transitive": true
+        }
+      ],
+      "expect": "DELEGATION_DENIED"
+    },
+    {
+      "id": "NTA-11",
+      "form": "delegation",
+      "title": "a derived authority is bound to its delegatee",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "delegate",
+          "as": "C",
+          "from": "P",
+          "delegatee": "report.generate",
+          "tools": [
+            "email.send"
+          ]
+        },
+        {
+          "op": "authorize",
+          "as": "L",
+          "set": "C",
+          "actor": "other.tool",
+          "tool": "email.send",
+          "arguments": {
+            "to": "user@acme",
+            "body": "r"
+          }
+        },
+        {
+          "op": "dispatch",
+          "authority": "L",
+          "set": "C",
+          "actor": "other.tool",
+          "tool": "email.send",
+          "arguments": {
+            "to": "user@acme",
+            "body": "r"
+          }
+        }
+      ],
+      "expect": "REFUSED_NOT_AUTHORIZED"
+    },
+    {
+      "id": "NTA-12",
+      "form": "delegation",
+      "title": "revoking the parent revokes what was derived from it",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "delegate",
+          "as": "C",
+          "from": "P",
+          "delegatee": "report.generate",
+          "tools": [
+            "email.send"
+          ]
+        },
+        {
+          "op": "revoke",
+          "set": "P"
+        },
+        {
+          "op": "authorize",
+          "as": "L",
+          "set": "C",
+          "actor": "report.generate",
+          "tool": "email.send",
+          "arguments": {
+            "to": "user@acme",
+            "body": "r"
+          }
+        },
+        {
+          "op": "dispatch",
+          "authority": "L",
+          "set": "C",
+          "actor": "report.generate",
+          "tool": "email.send",
+          "arguments": {
+            "to": "user@acme",
+            "body": "r"
+          }
+        }
+      ],
+      "expect": "REFUSED_REVOKED"
+    },
+    {
+      "id": "NTA-13",
+      "form": "baseline",
+      "title": "an explicitly delegated, in-scope downstream call executes",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "delegate",
+          "as": "C",
+          "from": "P",
+          "delegatee": "report.generate",
+          "tools": [
+            "email.send"
+          ]
+        },
+        {
+          "op": "authorize",
+          "as": "L",
+          "set": "C",
+          "actor": "report.generate",
+          "tool": "email.send",
+          "arguments": {
+            "to": "user@acme",
+            "body": "r"
+          }
+        },
+        {
+          "op": "dispatch",
+          "authority": "L",
+          "set": "C",
+          "actor": "report.generate",
+          "tool": "email.send",
+          "arguments": {
+            "to": "user@acme",
+            "body": "r"
+          }
+        }
+      ],
+      "expect": "EXECUTED"
+    },
+    {
+      "id": "NTA2-01",
+      "form": "implementation",
+      "title": "an effect the tool's ceiling does not declare is refused",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "open_execution",
+          "as": "E",
+          "set": "P",
+          "tool": "report.generate"
+        },
+        {
+          "op": "mediate",
+          "execution": "E",
+          "capability": "network.http.post",
+          "resource": "https://billing.example/api/invoice",
+          "arguments": {
+            "body": "x"
+          }
+        }
+      ],
+      "expect": "REFUSED_NOT_AUTHORIZED"
+    },
+    {
+      "id": "NTA2-02",
+      "form": "implementation",
+      "title": "a declared effect on a resource outside its patterns is refused",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "open_execution",
+          "as": "E",
+          "set": "P",
+          "tool": "report.generate"
+        },
+        {
+          "op": "mediate",
+          "execution": "E",
+          "capability": "filesystem.read",
+          "resource": "secrets://production/db-password"
+        }
+      ],
+      "expect": "REFUSED_RESOURCE_SCOPE"
+    },
+    {
+      "id": "NTA2-03",
+      "form": "implementation",
+      "title": "path traversal out of an authorized subtree is refused",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "open_execution",
+          "as": "E",
+          "set": "P",
+          "tool": "report.generate"
+        },
+        {
+          "op": "mediate",
+          "execution": "E",
+          "capability": "filesystem.read",
+          "resource": "workspace://reports/../secrets/key"
+        }
+      ],
+      "expect": "REFUSED_RESOURCE_SCOPE"
+    },
+    {
+      "id": "NTA2-04",
+      "form": "implementation",
+      "title": "a switched provider is a different resource and is refused",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "open_execution",
+          "as": "E",
+          "set": "P",
+          "tool": "report.generate"
+        },
+        {
+          "op": "mediate",
+          "execution": "E",
+          "capability": "database.read",
+          "resource": "database://billing-us/monthly"
+        }
+      ],
+      "expect": "REFUSED_RESOURCE_SCOPE"
+    },
+    {
+      "id": "NTA2-05",
+      "form": "implementation",
+      "title": "an effect with no resolved resource is refused",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "open_execution",
+          "as": "E",
+          "set": "P",
+          "tool": "report.generate"
+        },
+        {
+          "op": "mediate",
+          "execution": "E",
+          "capability": "database.read",
+          "resource": null
+        }
+      ],
+      "expect": "REFUSED_DEFAULT_UNRESOLVED"
+    },
+    {
+      "id": "NTA2-06",
+      "form": "implementation",
+      "title": "effect authority cannot be delegated on",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "open_execution",
+          "as": "E",
+          "set": "P",
+          "tool": "report.generate"
+        },
+        {
+          "op": "delegate",
+          "as": "G",
+          "from": "E",
+          "delegatee": "helper",
+          "tools": [
+            "database.read"
+          ]
+        }
+      ],
+      "expect": "DELEGATION_DENIED"
+    },
+    {
+      "id": "NTA2-07",
+      "form": "implementation",
+      "title": "a tool outside the caller's set yields no effect authority",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "no_report"
+        },
+        {
+          "op": "open_execution",
+          "as": "E",
+          "set": "P",
+          "tool": "report.generate"
+        }
+      ],
+      "expect": "DELEGATION_DENIED"
+    },
+    {
+      "id": "NTA2-08",
+      "form": "implementation",
+      "title": "an execution that has ended mediates nothing",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "open_execution",
+          "as": "E",
+          "set": "P",
+          "tool": "report.generate"
+        },
+        {
+          "op": "close_execution",
+          "execution": "E"
+        },
+        {
+          "op": "mediate",
+          "execution": "E",
+          "capability": "filesystem.read",
+          "resource": "workspace://reports/a.pdf"
+        }
+      ],
+      "expect": "REFUSED_CONTEXT"
+    },
+    {
+      "id": "NTA2-09",
+      "form": "implementation",
+      "title": "revoking the caller's set revokes the tool's effect authority",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "open_execution",
+          "as": "E",
+          "set": "P",
+          "tool": "report.generate"
+        },
+        {
+          "op": "revoke",
+          "set": "P"
+        },
+        {
+          "op": "mediate",
+          "execution": "E",
+          "capability": "filesystem.read",
+          "resource": "workspace://reports/a.pdf"
+        }
+      ],
+      "expect": "REFUSED_REVOKED"
+    },
+    {
+      "id": "NTA2-10",
+      "form": "implementation",
+      "title": "deployment policy can narrow the ceiling but not widen it",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "open_execution",
+          "as": "E",
+          "set": "P",
+          "tool": "report.generate",
+          "policy_allows": [
+            "filesystem.read",
+            "network.http.post"
+          ]
+        },
+        {
+          "op": "mediate",
+          "execution": "E",
+          "capability": "database.read",
+          "resource": "database://reporting-eu/monthly"
+        }
+      ],
+      "expect": "REFUSED_NOT_AUTHORIZED"
+    },
+    {
+      "id": "NTA2-11",
+      "form": "baseline",
+      "title": "a declared effect on an authorized resource executes",
+      "steps": [
+        {
+          "op": "resolve",
+          "as": "P",
+          "task": "monthly_report"
+        },
+        {
+          "op": "open_execution",
+          "as": "E",
+          "set": "P",
+          "tool": "report.generate"
+        },
+        {
+          "op": "mediate",
+          "execution": "E",
+          "capability": "filesystem.read",
+          "resource": "workspace://reports/september.pdf"
+        }
+      ],
+      "expect": "EXECUTED"
+    }
+  ]
+}

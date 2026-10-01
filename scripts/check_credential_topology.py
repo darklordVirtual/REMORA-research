@@ -38,6 +38,7 @@ credential topology and claims nothing wider.
 """
 from __future__ import annotations
 
+import argparse
 import ast
 import re
 import sys
@@ -47,6 +48,16 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTER = ROOT / "docs" / "assurance" / "credential_topology.yaml"
+
+#: Relative location of the register under whichever root is scanned.
+REGISTER_REL = Path("docs") / "assurance" / "credential_topology.yaml"
+
+
+def set_root(root: Path) -> None:
+    """Point the gate at another tree (``--root``, and the meta-tests)."""
+    global ROOT, REGISTER
+    ROOT = root.resolve()
+    REGISTER = ROOT / REGISTER_REL
 
 #: A name matching this is treated as secret-bearing and MUST be declared.
 #: Widening it is safe (more declarations); narrowing it is a weakening of
@@ -84,14 +95,90 @@ def _module_consts(tree: ast.Module) -> dict[str, str]:
     return out
 
 
-def _is_environ_call(node: ast.Call) -> bool:
+def _environ_bindings(tree: ast.Module) -> tuple[set[str], set[str]]:
+    """Names bound to ``os.environ`` and to ``os.getenv`` in this module.
+
+    Before 2026-09 the scanner recognised only the attribute spellings
+    (``os.getenv(...)``, ``<x>.environ.get(...)``), so ``from os import
+    environ`` followed by ``environ.get("REMORA_SIGNING_KEY")`` was an
+    invisible read of a secret. Resolving the import aliases closes that
+    hole; it can only widen what the gate sees.
+    """
+    environ_names: set[str] = {"environ"}
+    getenv_names: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom) and node.module == "os":
+            for alias in node.names:
+                if alias.name == "environ":
+                    environ_names.add(alias.asname or alias.name)
+                elif alias.name == "getenv":
+                    getenv_names.add(alias.asname or alias.name)
+        elif isinstance(node, ast.Assign):
+            value = node.value
+            is_environ = (
+                isinstance(value, ast.Attribute) and value.attr == "environ"
+            ) or (isinstance(value, ast.Name) and value.id in environ_names)
+            if is_environ:
+                for target in node.targets:
+                    if isinstance(target, ast.Name):
+                        environ_names.add(target.id)
+    return environ_names, getenv_names
+
+
+def _injected_environ_args(tree: ast.Module) -> dict[str, set[str]]:
+    """Function parameters named ``environ``: the mapping is caller-supplied.
+
+    A dependency-injected mapping is opaque to a static scan by
+    construction: this scanner cannot know whether the caller passes
+    ``os.environ`` or a fixture. Reads through such a parameter are
+    therefore reported as dynamic read sites, which must be declared with a
+    reason, rather than being silently resolved or silently missed.
+    """
+    out: dict[str, set[str]] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            args = node.args
+            names = {
+                a.arg
+                for a in (
+                    *args.posonlyargs,
+                    *args.args,
+                    *args.kwonlyargs,
+                    *([args.vararg] if args.vararg else []),
+                    *([args.kwarg] if args.kwarg else []),
+                )
+                if a.arg == "environ"
+            }
+            if names:
+                out.setdefault(node.name, set()).update(names)
+    return out
+
+
+def _is_environ_call(
+    node: ast.Call,
+    environ_names: frozenset[str] = frozenset({"environ"}),
+    getenv_names: frozenset[str] = frozenset(),
+) -> bool:
     func = node.func
+    if isinstance(func, ast.Name):
+        return func.id in getenv_names
     if not isinstance(func, ast.Attribute):
         return False
     if func.attr == "getenv":
         return True
-    if func.attr == "get" and isinstance(func.value, ast.Attribute):
-        return func.value.attr == "environ"
+    if func.attr == "get":
+        if isinstance(func.value, ast.Attribute):
+            return func.value.attr == "environ"
+        if isinstance(func.value, ast.Name):
+            return func.value.id in environ_names
+    return False
+
+
+def _is_environ_target(node: ast.expr, environ_names: set[str]) -> bool:
+    if isinstance(node, ast.Attribute):
+        return node.attr == "environ"
+    if isinstance(node, ast.Name):
+        return node.id in environ_names
     return False
 
 
@@ -106,30 +193,50 @@ def scan_env_reads(path: Path) -> tuple[dict[str, set[str]], list[str]]:
     found: dict[str, set[str]] = {}
     dynamic: list[str] = []
 
+    environ_names, getenv_names = _environ_bindings(tree)
+    injected = _injected_environ_args(tree)
+    # A parameter named ``environ`` shadows any module-level binding inside
+    # its function, and the mapping it carries is unknown to this scan.
+    injected_names = {n for names in injected.values() for n in names}
+
     def record(name: str) -> None:
         found.setdefault(name, set()).add(rel)
 
+    def read(node: ast.AST, key: ast.expr | None, opaque: bool) -> None:
+        if opaque:
+            # The key is statically visible, so the credential is still
+            # declarable and still subject to the drift check; what is
+            # opaque is WHICH mapping the caller passed in. Both facts are
+            # recorded: the reader, and the opacity of the site.
+            dynamic.append(f"{rel}:{node.lineno}")  # type: ignore[attr-defined]
+        if isinstance(key, ast.Constant) and isinstance(key.value, str):
+            record(key.value)
+        elif isinstance(key, ast.Name) and key.id in consts:
+            record(consts[key.id])
+        elif not opaque:
+            dynamic.append(f"{rel}:{node.lineno}")  # type: ignore[attr-defined]
+
     for node in ast.walk(tree):
-        if isinstance(node, ast.Call) and _is_environ_call(node):
+        if isinstance(node, ast.Call) and _is_environ_call(
+            node, frozenset(environ_names), frozenset(getenv_names)
+        ):
             if not node.args:
                 continue
-            arg = node.args[0]
-            if isinstance(arg, ast.Constant) and isinstance(arg.value, str):
-                record(arg.value)
-            elif isinstance(arg, ast.Name) and arg.id in consts:
-                record(consts[arg.id])
-            else:
-                dynamic.append(f"{rel}:{node.lineno}")
-        elif isinstance(node, ast.Subscript):
-            value = node.value
-            if isinstance(value, ast.Attribute) and value.attr == "environ":
-                if isinstance(node.slice, ast.Constant) and isinstance(
-                    node.slice.value, str
-                ):
-                    record(node.slice.value)
-                else:
-                    dynamic.append(f"{rel}:{node.lineno}")
-    return found, dynamic
+            opaque = (
+                isinstance(node.func, ast.Attribute)
+                and isinstance(node.func.value, ast.Name)
+                and node.func.value.id in injected_names
+            )
+            read(node, node.args[0], opaque)
+        elif isinstance(node, ast.Subscript) and _is_environ_target(
+            node.value, environ_names | injected_names
+        ):
+            opaque = (
+                isinstance(node.value, ast.Name)
+                and node.value.id in injected_names
+            )
+            read(node, node.slice, opaque)
+    return found, sorted(set(dynamic))
 
 
 _IMPORT_MODULE = re.compile(
@@ -199,8 +306,97 @@ def collect(register: dict) -> tuple[dict[str, set[str]], list[str], list[Path]]
     return reads, sorted(set(dynamic)), files
 
 
-def check(register: dict) -> list[str]:
+#: Privileged interfaces a governed tool implementation can reach directly
+#: (NTA-2, design section 16). Imports name the interface; calls catch the
+#: two forms an import does not reveal.
+PRIVILEGED_IMPORTS: dict[str, str] = {
+    "socket": "network", "ssl": "network", "urllib": "network", "http": "network",
+    "requests": "network", "httpx": "network", "aiohttp": "network",
+    "smtplib": "network", "ftplib": "network", "paramiko": "network",
+    "subprocess": "process", "multiprocessing": "process", "pty": "process",
+    "sqlite3": "database", "psycopg": "database", "psycopg2": "database",
+    "pymysql": "database", "redis": "database", "pymongo": "database",
+    "sqlalchemy": "database",
+    "boto3": "cloud", "botocore": "cloud", "google": "cloud", "azure": "cloud",
+    "shutil": "filesystem",
+}
+_PROCESS_CALLS = {"system", "popen", "execv", "execve", "execvp", "spawnv", "spawnl"}
+_FILESYSTEM_METHODS = {"write_text", "write_bytes", "read_text", "read_bytes", "unlink",
+                       "mkdir", "rmdir", "rename", "replace", "touch", "chmod"}
+
+
+def privileged_interfaces(path: Path) -> set[str]:
+    """The privileged interface classes ``path`` reaches directly.
+
+    Evidence of conformance, not proof of absence: dynamic imports, native
+    extensions and clients handed in from elsewhere are invisible here.
+    """
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    found: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                top = alias.name.split(".")[0]
+                if top in PRIVILEGED_IMPORTS:
+                    found.add(PRIVILEGED_IMPORTS[top])
+        elif isinstance(node, ast.ImportFrom) and node.module and node.level == 0:
+            top = node.module.split(".")[0]
+            if top in PRIVILEGED_IMPORTS:
+                found.add(PRIVILEGED_IMPORTS[top])
+        elif isinstance(node, ast.Call):
+            func = node.func
+            if isinstance(func, ast.Name) and func.id == "open":
+                found.add("filesystem")
+            elif isinstance(func, ast.Attribute):
+                if (func.attr in _PROCESS_CALLS and isinstance(func.value, ast.Name)
+                        and func.value.id == "os"):
+                    found.add("process")
+                elif func.attr in _FILESYSTEM_METHODS:
+                    found.add("filesystem")
+    return found
+
+
+def governed_tool_modules(direct: dict) -> list[str]:
+    """Listed tool modules plus every file the discovery globs match, so a new
+    tool registry is scanned whether or not anybody listed it."""
+    modules = set(direct.get("governed_tool_modules") or ())
+    for pattern in direct.get("discovery_globs") or ():
+        modules.update(_rel(p) for p in ROOT.glob(pattern) if p.is_file())
+    return sorted(modules)
+
+
+def direct_access_findings(register: dict) -> list[str]:
+    direct = register.get("direct_access")
+    if not direct:
+        return ["direct_access: the register declares no direct-access section; "
+                "governed tool code would go unscanned"]
     failures: list[str] = []
+    declared: dict[tuple[str, str], dict] = {}
+    for entry in direct.get("declared") or ():
+        key = (str(entry.get("module")), str(entry.get("interface")))
+        declared[key] = entry
+        if not str(entry.get("reason") or "").strip():
+            failures.append(f"direct_access: {key[0]} {key[1]}: a declaration needs a reason")
+    seen: set[tuple[str, str]] = set()
+    for module in governed_tool_modules(direct):
+        path = ROOT / module
+        if not path.exists():
+            failures.append(f"direct_access: governed tool module {module} does not exist")
+            continue
+        for interface in sorted(privileged_interfaces(path)):
+            seen.add((module, interface))
+            if (module, interface) not in declared:
+                failures.append(
+                    f"direct_access: {module} reaches {interface} directly, undeclared. "
+                    "Route it through a CapabilityMediator, or declare it with a reason.")
+    for module, interface in sorted(set(declared) - seen):
+        failures.append(f"direct_access: stale declaration {module} {interface}: "
+                        "the module no longer reaches it")
+    return failures
+
+
+def check(register: dict) -> list[str]:
+    failures: list[str] = direct_access_findings(register)
     reads, dynamic, files = collect(register)
     declared = {c["name"]: c for c in register["credentials"]}
     secrets = {n: m for n, m in reads.items() if SECRET.search(n)}
@@ -277,7 +473,18 @@ def check(register: dict) -> list[str]:
     return failures
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=None,
+        help="scan this tree instead of the repository root",
+    )
+    args = parser.parse_args(argv)
+    if args.root is not None:
+        set_root(args.root)
+
     if not REGISTER.exists():
         print(f"[FAIL] credential topology: missing {_rel(REGISTER)}", file=sys.stderr)
         return 1

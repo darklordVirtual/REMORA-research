@@ -310,11 +310,18 @@ def verify_legal_principle(citation: str, attributed_principle: str) -> dict:
 LAW_SEARCH_WORKER = _ENDPOINTS["law"]
 
 
+def _http_only(url: str) -> bool:
+    """Configured endpoints are http(s); a file: or custom scheme would read local content."""
+    return urllib.parse.urlparse(url).scheme.lower() in ("http", "https")
+
+
 def _post(url: str, payload: dict, timeout: int = 90) -> dict:
     if not url:
         # Empty endpoint = the active profile provides none. Refuse without
         # touching the network — this is the guard the zero-egress test pins.
         return {"error": LOCAL_REFUSAL}
+    if not _http_only(url):
+        return {"error": "endpoint must be an http or https URL"}
     body = json.dumps(payload).encode()
     req  = urllib.request.Request(
         url, data=body,
@@ -333,6 +340,8 @@ def _post(url: str, payload: dict, timeout: int = 90) -> dict:
 def _get(url: str, timeout: int = 15) -> dict:
     if not url:
         return {"error": LOCAL_REFUSAL}
+    if not _http_only(url):
+        return {"error": "endpoint must be an http or https URL"}
     req = urllib.request.Request(url, headers={"User-Agent": UA}, method="GET")
     try:
         with urllib.request.urlopen(req, context=SSL_CTX, timeout=timeout) as r:
@@ -494,10 +503,11 @@ TOOLS = [
         "name": "remora_analyze_document",
         "description": (
             "Analyze a text document, letter, or passage using REMORA multi-oracle consensus. "
-            "Sends the text to 3 independent AI models (Groq LLaMA 8B, 70B, OpenRouter Mistral) "
-            "and returns a consensus verdict with confidence score and supporting claim. "
+            "Sends the text to the REMORA worker's /assess endpoint and returns its consensus "
+            "verdict with confidence score and supporting claim. "
             "Use this to get a calibrated, multi-source assessment of any text. "
-            "The domain parameter focuses the analysis: 'legal', 'science', 'general', 'specialised'."
+            "Only the first 3000 characters of the text are analyzed. The analysis always runs "
+            "with the general use case; domain is reported back but does not change the analysis."
         ),
         "inputSchema": {
             "type": "object",
@@ -512,7 +522,7 @@ TOOLS = [
                 },
                 "domain": {
                     "type": "string",
-                    "description": "Analysis domain: 'legal', 'science', 'general', 'specialised'. Default: 'general'",
+                    "description": "Label echoed in the result: 'legal', 'science', 'general', 'specialised'. Not sent to the analysis. Default: 'general'",
                     "enum": ["legal", "science", "general", "specialised"]
                 },
             },
@@ -525,7 +535,9 @@ TOOLS = [
             "Verify a single specific factual or legal claim using REMORA consensus. "
             "Returns: verdict (true/false/uncertain), confidence score, supporting claim text, "
             "and whether the answer is reliably grounded (ETR). "
-            "Best for yes/no questions about facts, regulations, or legal requirements."
+            "Best for yes/no questions about facts, regulations, or legal requirements. "
+            "The claim always runs with the general use case; domain is reported back but "
+            "does not change the verification."
         ),
         "inputSchema": {
             "type": "object",
@@ -540,7 +552,7 @@ TOOLS = [
                 },
                 "domain": {
                     "type": "string",
-                    "description": "Knowledge domain: 'legal', 'science', 'general', 'specialised'",
+                    "description": "Label echoed in the result: 'legal', 'science', 'general', 'specialised'. Not sent to the verification.",
                     "enum": ["legal", "science", "general", "specialised"]
                 },
             },
@@ -627,14 +639,15 @@ TOOLS = [
     {
         "name": "remora_verify_legal_citations",
         "description": (
-            "KRITISK SJEKK: Verifiser alle juridiske referanser (dommer, lover) i et dokument. "
+            "Verifiser alle juridiske referanser (dommer, lover) i et dokument. "
             "Oppdager hallusinerte (falske) Høyesterettsdommer og lovhenvisninger. "
             "Sjekker tre ting for hvert sitat: "
             "(1) Finnes dommen i DCE sin database over norske dommer og lover? "
             "(2) Stemmer det juridiske prinsippet som tilskrives dommen med norsk rett? "
             "(3) Er det konsensus mellom uavhengige orakler om dommens innhold? "
             "Returnerer: VERIFISERT / MISTENKELIG / SANNSYNLIG_HALLUSINERT / KAN_IKKE_VERIFISERES "
-            "for hvert sitat. Bruk alltid dette verktøyet ved juridiske brev, kontrakter og krav."
+            "for hvert sitat. Bruk dette verktøyet når et dokument siterer norske dommer eller lover "
+            "og sitatene må kontrolleres."
         ),
         "inputSchema": {
             "type": "object",
@@ -681,7 +694,8 @@ TOOLS = [
         "description": (
             "Stiller et faktaspørsmål mot REMORA kunnskapsbase med full syntese og reranking. "
             "Kunnskapsbasen inneholder: GDPR-regelverk, WHO-retningslinjer, ISO/IEC-standarder "
-            "og vitenskapelig konsensus. Svaret er alltid forankret i databasen — ikke modellens prior. "
+            "og vitenskapelig konsensus. Syntesemodellen instrueres til å svare bare ut fra de hentede "
+            "dokumentene og returnere answer=null ved for lite evidens; dette håndheves ikke i kode. "
             "Bruk domain=specialised for GDPR/ISO, domain=science for helse/vitenskap. "
             "Sett use_case=legal for juridiske spørsmål (aktiverer dual_consensus + 70B automatisk). "
             "Sett dual_consensus=true eksplisitt for høyrisiko-spørsmål."
@@ -731,11 +745,11 @@ TOOLS = [
             "properties": {
                 "query": {
                     "type": "string",
-                    "description": "Optional search terms like 'MCP', 'Cloudflare', 'counterfactual', or 'worker'",
+                    "description": "Optional search terms like 'MCP', 'Cloudflare', 'counterfactual', or 'worker'. Ignored by the local fallback.",
                 },
                 "limit": {
                     "type": "integer",
-                    "description": "Maximum number of relevant files to return (1-25, default 8)",
+                    "description": "Maximum number of relevant files to return (1-25, default 8). Ignored by the local fallback, which returns the whole scope file.",
                     "default": 8,
                 },
             },
@@ -864,6 +878,10 @@ TOOLS = [
 
 # ── Tool handlers ──────────────────────────────────────────────────────────────
 
+#: remora_analyze_document sends at most this many characters of the input.
+_ANALYZE_MAX_CHARS = 3000
+
+
 def handle_remora_analyze_document(args: dict) -> str:
     text     = args.get("text", "").strip()
     question = args.get("question", "").strip()
@@ -873,8 +891,9 @@ def handle_remora_analyze_document(args: dict) -> str:
         return "Error: both 'text' and 'question' are required."
 
     # Build the prompt: inject document as context
+    truncated = len(text) > _ANALYZE_MAX_CHARS
     context_prompt = (
-        f"Document/text:\n---\n{text[:3000]}\n---\n\n"
+        f"Document/text:\n---\n{text[:_ANALYZE_MAX_CHARS]}\n---\n\n"
         f"Question about this document: {question}"
     )
 
@@ -912,13 +931,15 @@ def handle_remora_analyze_document(args: dict) -> str:
         f"**Supporting claim:** {claim}",
         "",
         "**How it was determined:**",
-        f"- {oracle_calls} oracle calls across 3 independent AI models",
+        f"- {oracle_calls} oracle calls",
         f"- {'Fast-path consensus (oracles agreed immediately)' if routed else 'Full Lyapunov iteration (required deeper analysis)'}",
     ]
 
     if dual:
         agreed_txt = "agreed" if models_ok else "disagreed"
         lines.append(f"- Dual consensus: 8B + 70B models {agreed_txt}")
+    if truncated:
+        lines.append(f"- Only the first {_ANALYZE_MAX_CHARS} of {len(text)} characters were analyzed")
 
     lines += [
         "",
@@ -979,7 +1000,7 @@ def handle_remora_verify_claim(args: dict) -> str:
         agreed_txt = "agreed" if models_ok else "disagreed"
         lines += [f"*Dual consensus: 8B + 70B models {agreed_txt}*", ""]
 
-    lines.append(f"*(Consensus from 3 independent AI oracles — {summary})*")
+    lines.append(f"*(REMORA consensus — {summary})*")
     return "\n".join(lines)
 
 
@@ -1388,6 +1409,8 @@ def _agent_post(path: str, payload: dict, timeout: int = 60) -> dict:
     if not AGENT_CONTROL:
         return {"error": "AGENT_CONTROL_URL is not set. Deploy workers/agent-control and set the env var."}
     url = AGENT_CONTROL.rstrip("/") + path
+    if not _http_only(url):
+        return {"error": "AGENT_CONTROL_URL must be an http or https URL"}
     data = json.dumps(payload).encode()
     req = urllib.request.Request(
         url,
@@ -1489,7 +1512,12 @@ def handle_agent_audit_log(args: dict) -> str:
     if not AGENT_CONTROL:
         return "⚠️ AGENT_CONTROL_URL er ikke satt."
 
-    url  = AGENT_CONTROL.rstrip("/") + f"/audit?session_id={session_id}&limit={limit}"
+    # Encoded: session_id comes from tool arguments, and a raw "&" would let
+    # it add query parameters of its own.
+    query = urllib.parse.urlencode({"session_id": session_id, "limit": limit})
+    url  = AGENT_CONTROL.rstrip("/") + f"/audit?{query}"
+    if not _http_only(url):
+        return "⚠️ AGENT_CONTROL_URL must be an http or https URL."
     req  = urllib.request.Request(url, headers={"User-Agent": UA}, method="GET")
     try:
         with urllib.request.urlopen(req, context=SSL_CTX, timeout=15) as r:

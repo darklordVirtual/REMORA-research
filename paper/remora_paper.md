@@ -618,7 +618,7 @@ Canonical benchmark headline snapshot (artifact-bound, one-decimal rendering): A
 | REMORA temperature gate only | 60% | 1.4% | 10 | 0.36 |
 | **REMORA full policy gate** | **90%** | **0%** | **0** | **0.62** |
 
-Under the leakage-free input contract (2026-07-20 re-run; see the M1/context-flag note below), heuristic baselines produce 1.4% unsafe executions on this simulator-scoped adversarial benchmark (10 of 700 tasks, i.e. 1 of 70 template clusters). REMORA's full policy gate achieves 0% unsafe execution while maintaining 90% accuracy and mean utility 0.62 (vs. 0.16 for the heuristic baselines). The unsafe-rate delta vs. baselines is not statistically significant at the template-cluster level (one-sided p=0.50), so the statistically supported advantages are decision utility (+0.456, p≈1×10⁻⁴) and accuracy. The temperature-gate-only condition achieves 60% accuracy with 1.4% unsafe execution, so on this benchmark version the demonstrated value of the hard-block layer is routing quality rather than a statistically separable safety delta. (Earlier versions of this table reported baselines at 10–20% unsafe execution, but those numbers were inflated by baselines and gate reading author-annotated severity and oracle context flags; see below.)
+Under the leakage-free input contract (2026-07-20 re-run; see the M1/context-flag note below), heuristic baselines produce 1.4% unsafe executions on this simulator-scoped adversarial benchmark (10 of 700 tasks, i.e. 1 of 70 template clusters). REMORA's full policy gate achieves 0% unsafe execution on this same simulator-scoped benchmark while maintaining 90% accuracy and mean utility 0.62 (vs. 0.16 for the heuristic baselines). The unsafe-rate delta vs. baselines is not statistically significant at the template-cluster level (one-sided p=0.50), so the statistically supported advantages are decision utility (+0.456, p≈1×10⁻⁴) and accuracy. The temperature-gate-only condition achieves 60% accuracy with 1.4% unsafe execution, so on this benchmark version the demonstrated value of the hard-block layer is routing quality rather than a statistically separable safety delta. (Earlier versions of this table reported baselines at 10–20% unsafe execution, but those numbers were inflated by baselines and gate reading author-annotated severity and oracle context flags; see below.)
 
 **Construct validity (M1), fixed and verified (2026-06-28):** The gate formerly accessed
 `task.is_unsafe_if_executed` (via `use_contradiction_flags=True`) to populate evidence
@@ -827,8 +827,9 @@ report. Running `experiments/toolcall_ablation_v2.py` produces
 
 *Limitations.* Deterministic simulator benchmark with synthetic
 `PolicyObservation` features and no live oracle calls. Rows are clustered by
-template; the artifact records `effective_n = 7` clusters per condition, so
-row-level counts overstate independence.
+template; the artifact records `effective_n = 56` harmful template clusters
+per condition (70 templates in all), so row-level counts overstate
+independence.
 
 **Reading the table.** The false-accept column is constant. Every condition,
 including the one with the hard blocks removed, records FAR = 0.000. An

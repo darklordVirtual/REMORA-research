@@ -1,0 +1,129 @@
+{
+ "selector": "p3a-performance",
+ "files_read": [
+  "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\checker.py",
+  "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\README.md"
+ ],
+ "faults": [
+  {
+   "id": "P3A-01",
+   "old": "    return dict(scope)\n",
+   "new": "    return scope\n",
+   "rationale": "avoid copying caller scope; verdict aliases later-mutated dict"
+  },
+  {
+   "id": "P3A-02",
+   "old": "    if not scope:\n",
+   "new": "    if scope is None:\n",
+   "rationale": "short-circuit on None only; empty scope no longer defaults"
+  },
+  {
+   "id": "P3A-03",
+   "old": "    return EvidenceVerdict(\n        claim=claim,\n        status=status,\n        reason=reason,\n        scope=_scope(scope),\n        missing_evidence=missing,\n        decisive_if=decisive_if,\n    )\n",
+   "new": "    _c = _result.__dict__.setdefault(\"c\", {})\n    _k = (claim, status, reason)\n    if _k not in _c:\n        _c[_k] = EvidenceVerdict(\n            claim=claim,\n            status=status,\n            reason=reason,\n            scope=_scope(scope),\n            missing_evidence=missing,\n            decisive_if=decisive_if,\n        )\n    return _c[_k]\n",
+   "rationale": "memoise verdicts by (claim,status,reason) ignoring scope"
+  },
+  {
+   "id": "P3A-04",
+   "old": "separators=(\",\", \":\"), ensure_ascii=False)",
+   "new": "separators=(\",\", \":\"), ensure_ascii=False) if False else json.dumps(value, separators=(\",\", \":\"), ensure_ascii=False)",
+   "rationale": "skip key sorting; dict order now matters for comparison"
+  },
+  {
+   "id": "P3A-05",
+   "old": "    if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):",
+   "new": "    if o[\"expected_state\"] == o[\"observed_state\"]:",
+   "rationale": "avoid serialisation; True==1 and other py-equal values match"
+  },
+  {
+   "id": "P3A-06",
+   "old": "        for item in value:\n            validate_json(item)\n",
+   "new": "        if value:\n            validate_json(value[0])\n",
+   "rationale": "validate only first list element"
+  },
+  {
+   "id": "P3A-07",
+   "old": "all(type(key) is str for key in value)",
+   "new": "type(next(iter(value), \"\")) is str",
+   "rationale": "check only first dict key type"
+  },
+  {
+   "id": "P3A-08",
+   "old": "    validate_json(dict(observations))\n",
+   "new": "    pass\n",
+   "rationale": "skip redundant observation validation"
+  },
+  {
+   "id": "P3A-09",
+   "old": "    if scope is not None:\n        validate_json(dict(scope))\n",
+   "new": "",
+   "rationale": "skip scope validation"
+  },
+  {
+   "id": "P3A-10",
+   "old": "not isinstance(observations, Mapping)",
+   "new": "not isinstance(observations, dict)",
+   "rationale": "faster concrete-type check rejects non-dict Mappings"
+  },
+  {
+   "id": "P3A-11",
+   "old": "    if premise_source != \"synthetic_fixture\":",
+   "new": "    if not premise_source.startswith(\"synthetic\"):",
+   "rationale": "prefix check accepts other premise sources"
+  },
+  {
+   "id": "P3A-12",
+   "old": "    if o.get(\"admission_present\") is not False:\n        return _unknown(claim, \"admission_presence_unknown\", scope)",
+   "new": "    if o.get(\"admission_present\") is None:\n        return _unknown(claim, \"admission_presence_unknown\", scope)",
+   "rationale": "None-only unknown check; non-bool values treated as absent"
+  },
+  {
+   "id": "P3A-13",
+   "old": "o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True",
+   "new": "not (o.get(\"effect_source_accepted\") and o.get(\"effect_seen\"))",
+   "rationale": "truthiness shortcut accepts non-True values"
+  },
+  {
+   "id": "P3A-14",
+   "old": "    if o.get(\"effect_observation_accepted\") is not True:\n        return _unknown(claim, \"protected_effect_observation_unaccepted\", scope)\n",
+   "new": "",
+   "rationale": "drop acceptance check so unaccepted effect observation can violate"
+  },
+  {
+   "id": "P3A-15",
+   "old": "    if \"expected_state\" not in o or \"observed_state\" not in o:",
+   "new": "    if o.get(\"expected_state\") is None or o.get(\"observed_state\") is None:",
+   "rationale": "null states treated as missing"
+  },
+  {
+   "id": "P3A-16",
+   "old": "\"missing_evidence\": list(self.missing_evidence),",
+   "new": "\"missing_evidence\": self.missing_evidence,",
+   "rationale": "avoid list copy; returns tuple"
+  },
+  {
+   "id": "P3A-17",
+   "old": "\"scope\": dict(self.scope),",
+   "new": "\"scope\": self.scope,",
+   "rationale": "avoid copy in as_dict; aliasing"
+  },
+  {
+   "id": "P3A-18",
+   "old": "        return {\"kind\": \"synthetic_fixture\", \"bounded\": True}",
+   "new": "        return _scope.__dict__.setdefault(\"d\", {\"kind\": \"synthetic_fixture\", \"bounded\": True})",
+   "rationale": "reuse one default scope object shared across verdicts"
+  },
+  {
+   "id": "P3A-19",
+   "old": "        if o.get(\"admission_source_accepted\") is not True:\n            return _unknown(claim, \"admission_observation_unaccepted\", scope)\n",
+   "new": "",
+   "rationale": "skip admission source acceptance check"
+  },
+  {
+   "id": "P3A-20",
+   "old": "    if o.get(\"valid_control_same_context\") is not True:",
+   "new": "    if o.get(\"valid_control_same_context\") is False:",
+   "rationale": "missing control no longer blocks"
+  }
+ ]
+}

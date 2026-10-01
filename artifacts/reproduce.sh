@@ -4,6 +4,9 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
+echo "[0/4] Verify the replication pack against the committed artifacts"
+python scripts/verify_replication_pack.py --check
+
 echo "[1/4] Generate canonical results snapshot"
 python scripts/generate_results_snapshot.py
 

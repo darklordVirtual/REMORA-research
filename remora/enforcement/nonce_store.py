@@ -106,6 +106,11 @@ class InMemoryNonceStore:
             self._consumed.add(key)
             return True
 
+    def consumed(self, nonce: str, *, tenant_id: str) -> bool:
+        """Whether (tenant_id, nonce) has been consumed. Never consumes."""
+        with self._lock:
+            return (tenant_id, nonce) in self._consumed
+
 
 class DurableNonceStore:
     """Nonce consumption over REMORA's existing durable state backends.
@@ -226,6 +231,25 @@ class DurableNonceStore:
                 f"lease nonce store unreachable: {exc}"
             ) from exc
         return not duplicate
+
+    def consumed(self, nonce: str, *, tenant_id: str) -> bool:
+        """Whether (tenant_id, nonce) has been consumed. Never consumes.
+
+        The effect domain's question (NTA-2 phase 3): a lease whose nonce was
+        never consumed was never dispatched, so no execution exists for
+        effects to belong to. Raises ``NonceStoreUnavailable`` when it cannot
+        tell; an unknown answer is not a "no".
+        """
+        ph = self._placeholder()
+        sql = ("SELECT 1 FROM lease_nonce_consumed WHERE tenant_id = "
+               f"{ph} AND nonce = {ph}")
+        try:
+            with self._connect() as conn:
+                self._ensure_table(conn)
+                row = conn.execute(sql, (tenant_id, nonce)).fetchone()
+        except Exception as exc:  # noqa: BLE001
+            raise NonceStoreUnavailable(str(exc)) from exc
+        return row is not None
 
     def consumed_count(self, *, tenant_id: str) -> int:
         """Rows for one tenant. For operator verification, not for decisions."""

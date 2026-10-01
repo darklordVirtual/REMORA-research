@@ -1,0 +1,30 @@
+# Experiment manifest — spec: docs/assurance/experiment_manifest_spec_v1.md
+experiment_id: EXP-CAPABILITY-MINIMIZATION-01
+title: Capability-minimization layer attribution v1 (quality program WS8 Q8.8)
+status: completed
+hypothesis: >
+  Each assurance layer stops the proposal class it was built for and no
+  earlier layer stops it: the name allowlist stops foreign-principal tools,
+  task-scoped capability sets stop hidden tools, constraints and delegation
+  stop argument escalation and confused-deputy calls, the lease with
+  revocation epochs stops replay and stale authority, and only effect
+  verification stops an effect mismatch. No arm blocks a legitimate proposal.
+baseline: arm A, every registered tool visible and callable
+policy_configuration:
+  arms: [A, B, C, D, E, F]
+  capability_policy: defined in experiments/capability_minimization_study.py
+seeds: [0]
+datasets:
+  - deterministic proposal corpus built in experiments/capability_minimization_study.py
+result_artifacts:
+  - results/capability_minimization_study_v1.json
+promotion_target: none
+notes: >
+  Pre-registered before the first run. Seven of eight predictions met; P8
+  (exposure ratio at most 0.25) missed at 0.2545 and is recorded in
+  NEGATIVE_RESULTS.md §62. The first execution crashed in the executor stub
+  before producing a result; the deviation is recorded in the artifact.
+known_limitations:
+  - Author-written corpus and labels; each class is built to probe one layer.
+  - Measures layer attribution, not real-world rates or model behaviour.
+  - RQ1 to RQ3 of the design need a live model (owner decision 2).

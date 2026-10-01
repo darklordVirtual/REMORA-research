@@ -15,10 +15,6 @@
       "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
     },
     {
-      "error_id": "sidecar-missing:CLAIM-006:artifacts/aromer/intelligence_after_v020.json",
-      "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
-    },
-    {
       "error_id": "sidecar-missing:CLAIM-007:artifacts/aromer/component_ablation_results.json",
       "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
     },
@@ -47,7 +43,7 @@
       "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
     },
     {
-      "error_id": "sidecar-missing:CLAIM-011:results/longitudinal_stability_v1.json",
+      "error_id": "sidecar-missing:CLAIM-011:results/superseded_rem020_cycle_window_2026-06-30/longitudinal_stability_v1.json",
       "reason": "claim-bound artifact produced before the .provenance.json protocol (2026-07-27); not backfilled, leaves the list when regenerated under the rebenchmark protocol with a real sidecar"
     },
     {

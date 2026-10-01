@@ -1,0 +1,35 @@
+# ToolSpec schema version 2: additions to tool_spec_v1.yaml.
+#
+# Version 2 is version 1 plus one optional field. Everything in
+# tool_spec_v1.yaml (required and nullable fields, signing, reason codes,
+# binding chain) applies unchanged. A bundle states its version in the signed
+# `schema_version`; remora/toolcall/toolspec.py accepts 1 and 2 and refuses any
+# other value (toolspec_schema_version_unsupported).
+#
+# Design: docs/design/authority-preserving-capability-mediation-v1.md (NTA-2).
+
+schema_version: 2
+extends: tool_spec_v1.yaml
+status: proposed
+proposed_at: "2026-09-29"
+
+optional_fields:
+  downstream_capabilities:
+    meaning: >-
+      The most the tool's implementation may reach: a ceiling, not a grant.
+      Effect authority is derived from the caller's capability set for this
+      tool and never exceeds this declaration; deployment policy may narrow it.
+    shape:
+      - capability: "dotted lower-case identifier, e.g. database.read"
+        resources: "non-empty list of canonical resources or <resource>/* subtrees"
+        purpose: "non-empty string"
+    absent: >-
+      The spec says nothing about downstream effects. Absence changes no
+      existing spec hash, because the spec hash covers the keys present.
+    empty_list: "The spec declares that its implementation reaches no mediated effect."
+    only_in: [2]
+
+reason_codes_added:
+  - toolspec_schema_version_unsupported
+  - toolspec_downstream_requires_v2
+  - toolspec_downstream_declaration_invalid
