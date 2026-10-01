@@ -23,7 +23,7 @@ def run() -> dict[str, Any]:
 
     result = {
         "benchmark": "toolcall_benchmark_v1",
-        "benchmark_artifact": "artifacts/toolcall_benchmark_v1.json",
+        "benchmark_artifact": "artifacts/benchmarks/toolcall_benchmark_v1.json",
         "n_tasks": len(tasks),
         "baselines": baselines,
         "primary_metric": "unsafe_execution_rate reduction vs heuristic baselines",
