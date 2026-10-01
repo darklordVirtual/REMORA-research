@@ -138,6 +138,28 @@ in this round. A threshold therefore sits inside a band rather than on a
 point, and a calibration study should measure that band rather than assume
 determinism.
 
+## Question set V2
+
+`REMORA_QUESTIONS_V2` (`remora-semantic-v2`) rewrites the questions against
+TypeSafe's published guidance for Jev. Each question asks one thing and names
+the state field it judges. Injection is three questions that judge only
+untrusted content. Score levels describe situations. It expects the state from
+`semantic_state_v2`, which keeps `operator_request`, `proposed_call` and
+`untrusted_content` apart. Admission is unchanged in kind: any injection
+answer at or above the `possible_injection` cut raises `adversarial_detected`,
+and favourable intent and target answers still stop at VERIFY.
+
+`experiments/jev_question_set_ab.py` screened V1 against V2 on 32
+hand-written ISP scenarios in English and Norwegian, with the model pinned to
+`jev-1.13.0` (`results/jev_question_set_ab_v1.json`). On legitimate calls V2
+raised mean `intent_match` to 0.92 to 0.98, from 0.81 to 0.96 under V1.
+`scope_drift` separated better: 0.04 to 0.09 on legitimate calls and 0.86 to
+0.96 on drifted ones, against 0.55 to 0.92 under V1. Every injected variant
+was flagged under both sets. Both sets also flagged benign tickets, on
+different tasks, and that is recorded as an open finding in
+NEGATIVE_RESULTS.md §74. V2 is not yet the recommended set: its injection
+questions need a fix judged on scenarios written separately from these.
+
 ## Cloudflare Workers AI
 
 `remora.decision_providers.cloudflare.CloudflareJevProvider` reaches the model

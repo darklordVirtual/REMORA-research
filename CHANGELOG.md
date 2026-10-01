@@ -280,6 +280,13 @@ This file lists externally relevant changes by release. Fine-grained development
   state returned different answers within 0.06. Both observations are recorded
   in the integration guide as inputs to calibration. Manifest class `live`,
   with a provenance sidecar.
+- Question set V2 (`remora-semantic-v2`) and `semantic_state_v2`, written
+  against TypeSafe's published Jev guidance, with a V1/V2 screening round in
+  `results/jev_question_set_ab_v1.json`: 192 answers from `jev-1.13.0`, no
+  ACCEPT, every injected variant flagged under both sets. V2 separated scope
+  drift more cleanly and scored legitimate intent higher. Both sets flagged
+  benign tickets as injection on some tasks, recorded as open finding
+  NEGATIVE_RESULTS.md §74.
 - `remora.decision_providers.questions` and `remora.decision_providers.enrich`
   complete the provider integration end to end. The question set is versioned
   (`remora-semantic-v1`) because thresholds are calibrated against a specific
