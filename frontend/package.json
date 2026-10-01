@@ -83,7 +83,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@lovable.dev/vite-tanstack-config": "2.25.1",
-    "@types/node": "^26.1.2",
+    "@types/node": "^26.6.3",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
