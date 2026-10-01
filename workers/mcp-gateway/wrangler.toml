@@ -73,6 +73,15 @@ REMORA_KG_TENANT = "luftfiber"
 # the data it reads: a production deployment sets "prod" and the ACCEPT paths
 # exclude it again for disclosure blast radius.
 REMORA_TARGET_ENVIRONMENT = "staging"
+# Deployment profile checked by src/admission.ts. "production" refuses /mcp
+# until REMORA_PG_DSN, the custody split (EXECUTION + both Ed25519 keys) and
+# Access verification are all configured; /health lists what is missing.
+REMORA_DEPLOYMENT_PROFILE = "staging"
+# /mcp verifies the Cloudflare Access assertion itself and answers 503 while
+# these two are unset. Set them to the team domain and the AUD tag of the
+# Access application in front of /mcp (Zero Trust > Access > Applications).
+# ACCESS_TEAM_DOMAIN = "<team>.cloudflareaccess.com"
+# ACCESS_AUD = "<application AUD tag>"
 
 [[durable_objects.bindings]]
 name = "REMORA"

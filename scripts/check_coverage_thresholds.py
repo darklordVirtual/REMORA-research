@@ -21,9 +21,17 @@ Usage::
 """
 from __future__ import annotations
 
+import argparse
+import ast
 import json
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _baseline_ratchet import base_blob, is_gated_ci, skip_note  # noqa: E402
+
+ROOT = Path(__file__).resolve().parents[1]
+SELF_REL = "scripts/check_coverage_thresholds.py"
 
 #: package prefix → minimum percent of (statements + branches) covered.
 #: Raise a floor when the real number rises; never lower one to make a
@@ -87,6 +95,7 @@ FILE_THRESHOLDS: dict[str, float] = {
     # ADR-B. Same shape as gate.py: the Postgres and D1 backend branches are
     # not reachable in this run, and the in-process logic around them is.
     "remora/enforcement/nonce_store.py": 80.5,  # 80.67
+    "remora/enforcement/resolved_effect.py": 96.0,  # 96.30 measured 2026-09-28 (Q7.4)
     # ADR-A. The uncovered remainder is the import-error path for the optional
     # 'cryptography' extra, which is exercised by monkeypatch rather than by
     # actually uninstalling the package mid-run.
@@ -98,6 +107,25 @@ FILE_THRESHOLDS: dict[str, float] = {
     # tests/test_runtime_trust_base_binding.py; a gap here means a runtime
     # the binding no longer distinguishes.
     "remora/enforcement/runtime_identity.py": 98.0,
+    # NTA-2 phase 1 (docs/design/authority-preserving-capability-mediation-v1.md).
+    # 100.00 measured 2026-09-29: every refusal of the mediator and every bound
+    # of derive_effect_authority is a named test or conformance vector, so a
+    # gap here means a request the mediator no longer refuses.
+    "remora/enforcement/capability_mediator.py": 98.0,
+    "remora/enforcement/effect_capability.py": 98.0,
+    "remora/enforcement/execution_context.py": 98.0,
+    "remora/enforcement/effect_graph.py": 98.0,  # 100.00 measured 2026-09-29 (NTA-2 phase 2)
+    # NTA-2 phase 3: every refusal of the effect domain is a named test.
+    "remora/enforcement/effect_domain.py": 98.0,  # 100.00 measured 2026-09-29
+    "remora/enforcement/effect_client.py": 98.0,  # 100.00 measured 2026-09-29
+    # RES-013 runtime surface (quality program Q5.3). Measured 2026-09-28 on
+    # the full local suite; floors sit half a point under the measurement.
+    "remora/toolcall/runtime_surface.py": 92.5,  # 92.98
+    "remora/toolcall/signed_surface_runtime.py": 93.5,  # 94.12
+    "remora/toolcall/surface_authority.py": 92.0,  # 92.55
+    "remora/toolcall/surface_effect_evidence.py": 91.5,  # 92.06
+    "remora/toolcall/surface_evaluation.py": 99.0,  # 100.00
+    "remora/toolcall/surface_runtime.py": 90.5,  # 91.30
 }
 
 #: Global floor over everything measured, including branches.
@@ -106,6 +134,70 @@ GLOBAL_THRESHOLD = 80.5
 
 def _norm(path: str) -> str:
     return path.replace("\\", "/")
+
+
+#: Floor names this gate refuses to see lowered without the base branch
+#: agreeing. The floors are literals in THIS file, so the pull request that
+#: fails the gate is also the pull request that can edit the gate: until
+#: 2026-09-03 lowering a number here was a one-line, self-approving way to
+#: make a coverage regression pass. In CI the floors are read back from
+#: origin/master and any drop is refused.
+_FLOOR_NAMES = ("THRESHOLDS", "FILE_THRESHOLDS", "GLOBAL_THRESHOLD")
+
+
+def _floors_from_source(source: str) -> dict[str, dict[str, float]]:
+    """Read the floor literals out of a version of this file, by AST.
+
+    Parsing rather than importing: the base branch's file is data here, and
+    executing it would be running code from another revision to decide
+    whether this revision passes.
+    """
+    out: dict[str, dict[str, float]] = {n: {} for n in _FLOOR_NAMES}
+    tree = ast.parse(source)
+    for node in tree.body:
+        targets: list[ast.expr] = []
+        value: ast.expr | None = None
+        if isinstance(node, ast.Assign):
+            targets, value = list(node.targets), node.value
+        elif isinstance(node, ast.AnnAssign) and node.value is not None:
+            targets, value = [node.target], node.value
+        if value is None:
+            continue
+        for target in targets:
+            if not isinstance(target, ast.Name) or target.id not in _FLOOR_NAMES:
+                continue
+            try:
+                literal = ast.literal_eval(value)
+            except (ValueError, SyntaxError):
+                continue
+            if isinstance(literal, dict):
+                out[target.id] = {str(k): float(v) for k, v in literal.items()}
+            elif isinstance(literal, (int, float)):
+                out[target.id] = {"": float(literal)}
+    return out
+
+
+def lowered_floors(base_source: str) -> list[str]:
+    """Floors this revision sets below the base branch's."""
+    base = _floors_from_source(base_source)
+    here = {
+        "THRESHOLDS": {k: float(v) for k, v in THRESHOLDS.items()},
+        "FILE_THRESHOLDS": {k: float(v) for k, v in FILE_THRESHOLDS.items()},
+        "GLOBAL_THRESHOLD": {"": float(GLOBAL_THRESHOLD)},
+    }
+    dropped: list[str] = []
+    for name in _FLOOR_NAMES:
+        for key, base_floor in base[name].items():
+            if key not in here[name]:
+                dropped.append(
+                    f"{name}[{key or 'TOTAL'}] floor {base_floor} was REMOVED"
+                )
+            elif here[name][key] < base_floor:
+                dropped.append(
+                    f"{name}[{key or 'TOTAL'}] floor lowered "
+                    f"{base_floor} -> {here[name][key]}"
+                )
+    return sorted(dropped)
 
 
 def package_coverage(report: dict) -> dict[str, tuple[int, int]]:
@@ -140,13 +232,42 @@ def file_coverage(report: dict) -> dict[str, tuple[int, int]]:
 
 
 def main(argv: list[str]) -> int:
-    path = Path(argv[1] if len(argv) > 1 else "coverage.json")
-    if not path.exists():
-        print(f"ERROR: {path} not found — run pytest with "
-              f"--cov-report=json:{path} first", file=sys.stderr)
+    parser = argparse.ArgumentParser(description="per-package coverage floors")
+    parser.add_argument("report", nargs="?", default="coverage.json")
+    parser.add_argument(
+        "--root", type=Path, default=None,
+        help="resolve the report and the base comparison against this tree",
+    )
+    args = parser.parse_args(argv[1:])
+    root = (args.root.resolve() if args.root is not None else ROOT)
+    report_path = Path(args.report)
+    if not report_path.is_absolute() and args.root is not None:
+        report_path = root / args.report
+
+    # The floors live in this file, so the change that fails them can lower
+    # them. In CI they are compared with the base branch's.
+    base_source = base_blob(SELF_REL, root)
+    if base_source is None:
+        print(skip_note(SELF_REL))
+        if is_gated_ci():
+            print("[FAIL] cannot read the base floors in CI", file=sys.stderr)
+            return 1
+    else:
+        dropped = lowered_floors(base_source)
+        if dropped:
+            print("[FAIL] coverage floors were lowered relative to "
+                  "origin/master:", file=sys.stderr)
+            for line in dropped:
+                print(f"  - {line}", file=sys.stderr)
+            print("Cover the code; do not lower the floor.", file=sys.stderr)
+            return 1
+
+    if not report_path.exists():
+        print(f"ERROR: {report_path} not found — run pytest with "
+              f"--cov-report=json:{report_path} first", file=sys.stderr)
         return 2
 
-    report = json.loads(path.read_text(encoding="utf-8"))
+    report = json.loads(report_path.read_text(encoding="utf-8"))
     failures: list[str] = []
 
     overall = report["totals"]["percent_covered"]

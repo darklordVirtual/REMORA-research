@@ -50,11 +50,11 @@ from remora.thermodynamics import predict_trust_before_iteration
 
 from experiments.ablation_v2 import ORACLE_MODELS, build_eval_prompt
 from experiments.thermodynamic_eval import (
-    load_benchmark_module,
-    hydrate_meta,
+    load_meta,
     mean_rho,
     parse_confidence,
 )
+from experiments.thermodynamic_router_eval import load_benchmark_module
 
 ROUND1_RESULTS = ROOT / "results" / "thermodynamic_eval_results.json"
 
@@ -190,7 +190,9 @@ def run(
     items = benchmark_module.load_all_extended_v2()
     if max_items is not None:
         items = items[:max_items]
-    meta = hydrate_meta(items, benchmark_module)
+    # load_benchmark_module guarantees _ITEMS; hydrate_meta never existed in
+    # this repository, so the script could not start until 2026-09-28.
+    meta = load_meta(items, {row["item_id"]: row for row in benchmark_module._ITEMS})
     n = len(items)
 
     # ── load round-1 reference η and phase per item_id ─────────────────────

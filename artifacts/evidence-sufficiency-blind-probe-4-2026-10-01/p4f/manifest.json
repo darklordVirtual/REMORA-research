@@ -1,0 +1,57 @@
+{
+  "implementer": "p4f",
+  "style": "validation-first",
+  "files_read": [
+    "SPEC.md"
+  ],
+  "variants": [
+    {
+      "file": "variant_01.py",
+      "misreading": "effect_source_accepted and effect_seen read as either-suffices rather than both required."
+    },
+    {
+      "file": "variant_02.py",
+      "misreading": "A premise holds when it equals true under Python equality, so integer 1 counted as true."
+    },
+    {
+      "file": "variant_03.py",
+      "misreading": "admission_present that is not true was read as refuted rather than unknown."
+    },
+    {
+      "file": "variant_04.py",
+      "misreading": "Window-finalized guard checked before the mandatory-admission guard."
+    },
+    {
+      "file": "variant_05.py",
+      "misreading": "A matching admission was accepted without requiring the admission source to be accepted."
+    },
+    {
+      "file": "variant_06.py",
+      "misreading": "Anything other than an observed effect (including unknown) was treated as no effect."
+    },
+    {
+      "file": "variant_07.py",
+      "misreading": "Refusal-attribution guard checked before the valid-control guard."
+    },
+    {
+      "file": "variant_08.py",
+      "misreading": "Outside-required-PEP guard checked before the same-operation guard."
+    },
+    {
+      "file": "variant_09.py",
+      "misreading": "An observed effect was reported as a violation before checking that the effect observation was accepted."
+    },
+    {
+      "file": "variant_10.py",
+      "misreading": "A null state value was treated as a missing key."
+    },
+    {
+      "file": "variant_11.py",
+      "misreading": "States compared with Python equality, so true equals 1 and 0 equals false."
+    },
+    {
+      "file": "variant_12.py",
+      "misreading": "Lists compared as unordered collections rather than element by element in order."
+    }
+  ]
+}

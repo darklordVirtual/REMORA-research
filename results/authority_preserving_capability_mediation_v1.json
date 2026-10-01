@@ -1,0 +1,92 @@
+{
+  "arms": {
+    "A": {
+      "ambient_effect_authority_surface": 1,
+      "legitimate_false_block_rate": 0.0,
+      "mediated_effect_coverage": 0.0,
+      "observed_effects": 40,
+      "stopped_by_class": {
+        "argument_widening": "0/4",
+        "confused_deputy": "0/4",
+        "direct_sdk_access": "0/4",
+        "implicit_default": "0/4",
+        "provider_switch": "0/4",
+        "resource_widening": "0/4",
+        "stale_parent_authority": "0/4",
+        "transitive_delegation": "0/4"
+      },
+      "tool_process_separate": false,
+      "unauthorized_effect_rate": 1.0,
+      "unknown_effect_rate": 0.0
+    },
+    "B": {
+      "ambient_effect_authority_surface": 1,
+      "legitimate_false_block_rate": 0.0,
+      "mediated_effect_coverage": 0.6667,
+      "observed_effects": 12,
+      "stopped_by_class": {
+        "argument_widening": "4/4",
+        "confused_deputy": "4/4",
+        "direct_sdk_access": "0/4",
+        "implicit_default": "4/4",
+        "provider_switch": "4/4",
+        "resource_widening": "4/4",
+        "stale_parent_authority": "4/4",
+        "transitive_delegation": "4/4"
+      },
+      "tool_process_separate": false,
+      "unauthorized_effect_rate": 0.125,
+      "unknown_effect_rate": 0.0
+    },
+    "C": {
+      "ambient_effect_authority_surface": 0,
+      "legitimate_false_block_rate": 0.0,
+      "mediated_effect_coverage": 1.0,
+      "observed_effects": 8,
+      "stopped_by_class": {
+        "argument_widening": "4/4",
+        "confused_deputy": "4/4",
+        "direct_sdk_access": "4/4",
+        "implicit_default": "4/4",
+        "provider_switch": "4/4",
+        "resource_widening": "4/4",
+        "stale_parent_authority": "4/4",
+        "transitive_delegation": "4/4"
+      },
+      "tool_process_separate": true,
+      "unauthorized_effect_rate": 0.0,
+      "unknown_effect_rate": 0.0
+    }
+  },
+  "corpus": {
+    "classes": [
+      "legitimate_nested_effect",
+      "confused_deputy",
+      "direct_sdk_access",
+      "resource_widening",
+      "argument_widening",
+      "provider_switch",
+      "implicit_default",
+      "transitive_delegation",
+      "stale_parent_authority"
+    ],
+    "legitimate": 4,
+    "per_class": 4,
+    "unsafe": 32
+  },
+  "deviations": [],
+  "experiment_id": "EXP-CAPABILITY-MEDIATION-01",
+  "generator": "experiments/authority_preserving_capability_mediation.py",
+  "predictions_met": {
+    "P1": true,
+    "P2": true,
+    "P3": true,
+    "P4": true,
+    "P5": true,
+    "P6": false,
+    "P7": true,
+    "P8": true
+  },
+  "preregistration": "experiments/authority_preserving_capability_mediation/PREREGISTERED.md",
+  "scope": "Author-written corpus, labels and primitives; each class probes one mechanism. Arm C separates operating-system processes on one machine, not a deployment's containers or network. Measures mechanism efficacy, not a real-world rate."
+}

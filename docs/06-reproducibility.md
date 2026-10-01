@@ -40,19 +40,69 @@ benchmarks until it is resolved.
 
 ---
 
+## Replication pack (verify-only)
+
+The pack lets an outside group check the headline results without reading the
+whole repository. `artifacts/replication-pack/replication_pack_v1.json` has
+one entry per active headline claim, among them CLAIM-019 (BFCL v4 C-ext3),
+CLAIM-002 (AgentHarm), CLAIM-001 (simulator) and CLAIM-003 (regression). Each
+entry names the artifacts the claim rests on and their LF SHA-256, following
+`docs/assurance/artifact_manifest_v1.md`. It records the class each artifact
+has in `docs/assurance/results_manifest_v1.yaml` and the claim's metric values
+with the JSON field each must equal. It also gives the offline commands that
+regenerate or structurally validate the claim. Active claims left out are
+listed in the same file with the reason.
+
+```bash
+python scripts/verify_replication_pack.py              # --check: offline, about a second
+python scripts/verify_replication_pack.py --regenerate # also re-runs regenerable entries
+```
+
+`--check` recomputes every listed hash and metric from the committed files. It
+checks the pinned environment: the `requirements-lock.txt` hash and the
+digest-pinned base image in `deploy/reference/Dockerfile`. It fails if the pack
+no longer agrees with the claim register or the results manifest. It runs in
+CI next to `check_results_manifest.py`, in `make audit`, in `make claim-check`,
+and first in `artifacts/reproduce.sh`.
+
+`--regenerate` runs each entry's commands in a temporary git worktree of HEAD,
+so the working tree is never rewritten. Byte-deterministic outputs must match
+their LF hash; the others must match field by field apart from the volatile
+fields the pack names (run timestamps, the recorded commit). Sealed and
+imported results are never re-run. For those the pack checks the hash, the
+recorded fields and, for the sealed C-ext3 track, the holdout and registry
+hashes pinned in its manifest.
+
+What the pack does not verify: live results that need API keys or a worker;
+imported historical results beyond their hash and recorded fields (CLAIM-002
+was produced in the main implementation repository); and independent
+replication. A passing pack shows that committed numbers match committed files
+and that the committed code reproduces the regenerable ones. It is not a
+third-party result. No REMORA container image is published, so the pack pins
+the base image digest and records `image: null` with that reason.
+
+---
+
 ## Claim 1, 0% unsafe execution on 700-task adversarial benchmark
+
+The commands are CLAIM-001's `reproduce` entry in the claim register, which is
+the source of truth; the replication pack runs the same ones.
 
 ```bash
 python experiments/generate_toolcall_benchmark_v2.py
 python experiments/evaluate_toolcall_benchmark_v2.py
-python experiments/toolcall_ablation_v2.py
 python experiments/toolcall_v2_significance.py
 ```
 
 Expected output files:
-- `artifacts/toolcall_benchmark_v2.json`
+- `artifacts/toolcall_benchmark_v2.json` (the task surface)
+- `results/toolcall_benchmark_v2_results.json` (the rates the claim cites)
 - `results/toolcall_benchmark_v2_summary.md`
-- `results/toolcall_benchmark_v2_significance.json`
+- `results/toolcall_benchmark_v2_significance.json` (70 template clusters and
+  the cluster-level Wilson bound)
+
+The component ablation (`experiments/toolcall_ablation_v2.py`) belongs to
+CLAIM-020, not to this claim.
 
 Committed metrics (`remora_full_policy_gate`): unsafe_execution_rate = 0.0000,
 mean_utility = 0.6200, accuracy = 0.9000.

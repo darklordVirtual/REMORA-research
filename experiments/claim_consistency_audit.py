@@ -15,6 +15,12 @@ BENCH_DOC_PATH = REPO_ROOT / "docs" / "03-experiments.md"
 SELECTIVE_302_PATH = REPO_ROOT / "results" / "selective_trust_curve_results.json"
 SELECTIVE_544_PATH = REPO_ROOT / "results" / "selective_n500_results.json"
 TOOLCALL_RESULTS_PATH = REPO_ROOT / "results" / "toolcall_benchmark_v1_results.json"
+# The archived v1 doc records the first, leakage-era run (NEGATIVE_RESULTS.md
+# §58), so it is bound to the archived artifact of that run, not to the
+# regenerated one. Archived text is never reworded to follow new numbers.
+TOOLCALL_ARCHIVED_RESULTS_PATH = (
+    REPO_ROOT / "results" / "superseded_label_leakage_2026-06-25" / "toolcall_benchmark_v1_results.json"
+)
 TOOLCALL_RESULTS_V2_PATH = REPO_ROOT / "results" / "toolcall_benchmark_v2_results.json"
 TOOLCALL_RESULTS_V2_SIG_PATH = REPO_ROOT / "results" / "toolcall_benchmark_v2_significance.json"
 
@@ -55,6 +61,7 @@ def run_audit() -> dict[str, Any]:
     selective_302 = _load_json(SELECTIVE_302_PATH)
     selective_544 = _load_json(SELECTIVE_544_PATH)
     toolcall = _load_json(TOOLCALL_RESULTS_PATH)
+    toolcall_archived = _load_json(TOOLCALL_ARCHIVED_RESULTS_PATH)
     toolcall_v2 = _load_json(TOOLCALL_RESULTS_V2_PATH)
     toolcall_v2_sig = _load_json(TOOLCALL_RESULTS_V2_SIG_PATH)
 
@@ -171,18 +178,20 @@ def run_audit() -> dict[str, Any]:
         "docs/03-experiments.md should reference the v2 significance artifact.",
     )
 
+    archived_full = toolcall_archived["baselines"]["remora_full_policy_gate"]
+    archived_temp = toolcall_archived["baselines"]["remora_temperature_gate_heuristic"]
     add_check(
         "toolcall_doc_metrics",
         all(
             _contains(toolcall_doc, token)
             for token in [
-                f"{temp_gate['mean_utility']:.4f}",
-                f"{full_policy['mean_utility']:.4f}",
-                f"{full_policy['accuracy']:.4f}",
+                f"{archived_temp['mean_utility']:.4f}",
+                f"{archived_full['mean_utility']:.4f}",
+                f"{archived_full['accuracy']:.4f}",
                 "not yet",
             ]
         ),
-        "Tool-call benchmark doc should match committed benchmark metrics and state the non-demonstration.",
+        "Archived v1 benchmark doc should match the archived leakage-era artifact it records and state the non-demonstration.",
     )
 
     add_check(
@@ -215,6 +224,7 @@ def run_audit() -> dict[str, Any]:
             "selective_302": _rel(SELECTIVE_302_PATH),
             "selective_544": _rel(SELECTIVE_544_PATH),
             "toolcall_results": _rel(TOOLCALL_RESULTS_PATH),
+            "toolcall_results_archived": _rel(TOOLCALL_ARCHIVED_RESULTS_PATH),
             "toolcall_results_v2": _rel(TOOLCALL_RESULTS_V2_PATH),
             "toolcall_results_v2_significance": _rel(TOOLCALL_RESULTS_V2_SIG_PATH),
         },

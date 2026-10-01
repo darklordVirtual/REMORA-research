@@ -1,0 +1,8 @@
+# Surviving mutants of conformance/evidence-sufficiency-v1/checker.py under the second
+# operator set (scripts/mutation_evidence_sufficiency_ast.py), scored by the v1.3 runner.
+# checker sha256 c4ca50aee2b2918b11c6fbde1f8615ca6c6bf1e5b6fa2ac1775f49c5e8c20be0; second-order seed 20260930.
+# Every id below is classified in docs/assurance/mutation_testing_v1.md.
+state_comparison:postcondition_observed:5
+swap_adjacent_guards:assess:0
+swap_adjacent_guards:validate_json:0
+swap_adjacent_guards:validate_json:1

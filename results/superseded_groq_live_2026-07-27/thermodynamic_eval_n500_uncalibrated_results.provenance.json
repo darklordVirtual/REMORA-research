@@ -12,5 +12,10 @@
   "command": "python experiments/thermodynamic_eval.py --benchmark-module remora.benchmarks.extended_v2_n500 (uncalibrated)",
   "generated_at": "2026-07-27T10:43:56.170428+00:00",
   "artifact": "thermodynamic_eval_n500_uncalibrated_results.json",
-  "artifact_sha256": "80455afc877d7af686a893cf3500044006891f6069178d88b9898f39d3a578ee"
+  "artifact_sha256": "7612ae3f08fc94b1d6cd8ebfd3045a0b39aebc116d87252945cbcd85bbcb0c33",
+  "artifact_sha256_correction": {
+    "date": "2026-09-28",
+    "previous_value": "80455afc877d7af686a893cf3500044006891f6069178d88b9898f39d3a578ee",
+    "reason": "previous value hashed CRLF bytes; the result file is unchanged and this is its LF hash per docs/assurance/artifact_manifest_v1.md. Detected by the sidecar hash check in scripts/check_results_manifest.py."
+  }
 }

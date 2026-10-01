@@ -11,23 +11,29 @@ from remora.adapters.llm import LLMAdapter, LLMResponse
 
 
 class AnthropicAdapter(LLMAdapter):
-    """Adapter for the Anthropic Messages API."""
+    """Adapter for the Anthropic Messages API.
 
-    def __init__(self, model: str = "claude-sonnet-4-20250514", api_key: str | None = None):
+    ``temperature`` is accepted for LLMAdapter compatibility and not sent:
+    current Claude models reject sampling parameters with a 400.
+    """
+
+    def __init__(self, model: str = "claude-opus-5", api_key: str | None = None):
         self._model = model
         self._api_key = api_key
 
-    def complete(self, prompt: str, *, max_tokens: int = 512, temperature: float = 0.0) -> LLMResponse:
+    def complete(self, prompt: str, *, max_tokens: int = 16000, temperature: float = 0.0) -> LLMResponse:
         import anthropic
 
+        del temperature  # not sent; see class docstring
         client = anthropic.Anthropic(api_key=self._api_key)
         resp = client.messages.create(
             model=self._model,
             max_tokens=max_tokens,
-            temperature=temperature,
             messages=[{"role": "user", "content": prompt}],
         )
-        text = getattr(resp.content[0], "text", "") if resp.content else ""
+        if resp.stop_reason == "refusal":
+            raise RuntimeError(f"Claude declined the request: {resp.stop_details}")
+        text = "".join(b.text for b in resp.content if b.type == "text")
         return LLMResponse(
             text=text,
             model=resp.model,

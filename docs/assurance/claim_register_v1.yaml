@@ -39,6 +39,12 @@
 #   these via claim anchors (<!-- claim:CLAIM-004 accuracy_pct n -->) checked
 #   by scripts/check_claim_provenance.py. Update numbers HERE first; the gate
 #   fails any anchored doc paragraph that no longer contains the value.
+#   utility_floors — pre-registered utility bars for a safety claim: metric (a
+#   bound key in metrics), exactly one of min/max, source (the committed file
+#   that fixed the bar) and status (met | missed). A missed floor stays in the
+#   register as missed. utility_floor_exempt — the reason no floor applies.
+#   Every active safety claim (a false-accept style metric) declares one or the
+#   other; scripts/check_claim_utility_floors.py recomputes each status.
 
 schema_version: "1"
 generated: "2026-07-31"
@@ -70,6 +76,9 @@ claims:
     n_detail: >
       560 harmful, 140 benign; deterministic synthetic benchmark;
       70 unique templates x 10 near-duplicate variants, so effective N=70
+    # Q2.1: the independent harmful units the FAR rests on. 560 harmful tasks
+    # collapse to 70 template clusters, so the effective denominator is 70.
+    far_denominator: 70
     metrics:
       far_pct: 0.0
       far_ci_high_pct: 5.2
@@ -82,8 +91,15 @@ claims:
         path_rationale: >-
           FAR is the false-accept rate of REMORA's own full policy gate, which the artifact stores as a fraction under that baseline key.
       far_ci_high_pct:
-        unbound: >-
-          Wilson upper bound, computed for the register from the counts in the artifact; the artifact stores the counts, not the interval.
+        path: "results/toolcall_benchmark_v2_significance.json#remora_unsafe_rate.cluster_level_wilson_ci95[1]"
+        scale: 100
+        rounded_to: 1
+        path_rationale: >-
+          The significance file stores the cluster-level Wilson interval for the
+          gate's unsafe rate (0 of 70 template clusters). False accepts are also
+          0 of 700 tasks in results/toolcall_benchmark_v2_results.json, so the
+          interval over the 70 clusters is the same one. This was declared
+          unbound until 2026-09-28 on the belief that the artifact held only counts.
       n_effective:
         path: "results/toolcall_benchmark_v2_significance.json#n_template_clusters"
         path_rationale: >-
@@ -94,6 +110,11 @@ claims:
         rounded_to: 1
         path_rationale: >-
           the heuristic baselines' false-accept rate, 10 of 700 tasks = 1.428...%, published to one decimal as 1.4% here and in the paper.
+    utility_floor_exempt: >-
+      No absolute utility floor was pre-registered for this benchmark. Utility
+      is reported only as a delta against heuristic baselines (the statement's
+      +0.46), and the full gate sends half of the benign rows to review
+      (review_friction_benign 0.5 in results/toolcall_benchmark_v2_results.json).
     caveat: >
       Simulator-scoped: no real shell, network, database, or file mutations execute.
       Benchmark is synthetic and adversarial patterns are designed in-distribution.
@@ -109,7 +130,9 @@ claims:
     reproduce: >
       python experiments/generate_toolcall_benchmark_v2.py
       python experiments/evaluate_toolcall_benchmark_v2.py
-      Compare to results/toolcall_benchmark_v2_results.json
+      python experiments/toolcall_v2_significance.py
+      Compare to results/toolcall_benchmark_v2_results.json (rates) and
+      results/toolcall_benchmark_v2_significance.json (70 clusters, Wilson bound).
 
   - id: CLAIM-002
     title: "FAR=0% on external AgentHarm benchmark (N=208)"
@@ -124,6 +147,7 @@ claims:
       - "results/external_benchmark_agentharm_v1.json"
     n: 208
     n_detail: "208 harmful scenarios from ai-safety-institute/AgentHarm; peer-reviewed dataset"
+    far_denominator: 208
     metrics:
       far_pct: 0.0
       far_ci_high_pct: 1.81
@@ -142,6 +166,14 @@ claims:
         scale: 100
         path_rationale: >-
           FBR is the false-block rate; the artifact stores it as a fraction under that key.
+    utility_floors:
+      - metric: fbr_pct
+        max: 40.0
+        source: "artifacts/verify_protocols/agentharm_rescore_v1.json"
+        source_detail: >-
+          fbr_target "<=40%", pre-registered for the re-scoring of the same
+          208 benign scenarios (NEGATIVE_RESULTS.md section 19).
+        status: missed
     caveat: >
       Stage 1 hard-block policy invariants account for this result. The multi-oracle
       consensus machinery contributes VERIFY/ABSTAIN routing quality only; it does not
@@ -168,18 +200,28 @@ claims:
     artifact:
       - "results/false_accept_regression_v1.json"
     n: 167
+    far_denominator: 167
     n_detail: >
       169 original episodes minus 2 corpus artifacts excluded:
       aradhye-0060 (benign school-outing query, mislabeled in aradhye dataset);
       caizhitech-1059 (conversational AI safety case, out of scope for agent action governance).
     metrics:
       far_pct: 0.0
+      far_ci_high_pct: 2.25
     metric_bindings:
       far_pct:
         path: "results/false_accept_regression_v1.json#false_accept_rate"
         scale: 100
         path_rationale: >-
           FAR is the false-accept rate; the artifact stores it as a fraction under that key.
+      far_ci_high_pct:
+        derived: "wilson_upper(results/false_accept_regression_v1.json#n_false_accept, results/false_accept_regression_v1.json#n_scenarios)"
+        scale: 100
+        path_rationale: >-
+          Wilson 95% upper bound at 0/167, recomputed by the gate from the artifact's own counts (added 2026-09-28, Q2.1).
+    utility_floor_exempt: >-
+      The corpus holds only previously observed false accepts. It has no
+      benign items, so it cannot measure what the gate costs legitimate calls.
     caveat: >
       Corpus is internal — episodes authored within the project context (AROMER D1).
       2 exclusions documented with rationale in results/false_accept_regression_v1.json.
@@ -281,14 +323,14 @@ claims:
   - id: CLAIM-006
     title: "AROMER reached AII=0.8412 TRAINED status (shadow-mode only)"
     statement: >
-      AROMER's Autonomous Intelligence Index (AII) reached 0.8412 in the TRAINED
-      band (>=0.80) after 12+ consecutive organic adapt cycles with FAR=0 throughout.
-      Peak: AII=0.844, T2=1.000, T3=0.800 (milestone) at cycle 12.
+      AROMER's Autonomous Intelligence Index (AII) was in the TRAINED band (>=0.80)
+      for 12 consecutive organic adapt cycles on 2026-06-28, with FAR=0 throughout.
+      It read 0.8412 at cycle 8 and peaked at AII=0.844, T2=1.000, T3=0.800
+      (milestone) at cycle 12, then regressed to CAPABLE (AII=0.7885) the same day.
     evidence_level: internal_simulation
     status: active
     artifact:
       - "NEGATIVE_RESULTS.md"
-      - "artifacts/aromer/intelligence_after_v020.json"
     n: null
     n_detail: "15306+ episodes in AROMER D1 as of 2026-06-28"
     caveat: >
@@ -301,11 +343,16 @@ claims:
       review) and REM-023, per release_profiles_v1.yaml CONTROLLED_PILOT. Do not cite AII as
       a safety proof. AROMER is NOT the core governance system; AII metrics do not
       imply safety for the REMORA decision engine.
+      The AII values are live D1 telemetry transcribed into the NEGATIVE_RESULTS.md
+      §11 table; no committed machine-readable artifact carries them, so no gate
+      can bind them. The committed snapshot artifacts/aromer/intelligence_after_v020.json
+      (2026-06-09) predates this run and reads AII=0.5165 (history peak 0.6497,
+      trend degraded_from_peak); it was listed as evidence until 2026-09-28 and
+      does not support this claim.
     reproduce: >
-      Live AROMER endpoint: GET /intelligence (requires AROMER worker access).
-      Historical snapshots: artifacts/aromer/intelligence_before_v020.json,
-      artifacts/aromer/intelligence_after_v020.json.
-      NEGATIVE_RESULTS.md §11-§13 documents the full recovery trajectory.
+      Not reproducible from this repository. Live AROMER endpoint: GET /intelligence
+      (requires AROMER worker access). NEGATIVE_RESULTS.md §11-§13 documents the
+      full recovery trajectory and the regression that followed.
 
   - id: CLAIM-007
     title: "Five-condition component ablation: REMORA full gate dominates"
@@ -427,9 +474,9 @@ claims:
     status: active
     artifact:
       - "results/far_confidence_sequence_v1.json"
-      - "results/longitudinal_stability_v1.json"
+      - "results/superseded_rem020_cycle_window_2026-06-30/longitudinal_stability_v1.json"
     n: 168
-    n_detail: "168 adapt cycles from the REM-020 window (longitudinal_stability_v1)"
+    n_detail: "168 adapt cycles from the REM-020 window (longitudinal_stability_v1 as of 2026-06-30, archived when the live record moved to the 7-day criterion on 2026-07-17)"
     metrics:
       upper_bound_pct: 4.72
     metric_bindings:
@@ -596,7 +643,10 @@ claims:
       read_utility_with_validators: 1.0
       seeded_corruption_forms_n: 139
       corrupt_accept_rate: 0.0
+      valid_id_completion_read: 1.0
     metric_bindings:
+      valid_id_completion_read:
+        path: "results/system_demonstration_v1.json#validator_study.targets.valid_id_completion_read.value"
       degradation_conditions_n:
         path: "results/system_demonstration_v1.json#degradation_study.n_conditions"
       validator_targets_n:
@@ -611,6 +661,14 @@ claims:
           count of seeded forms in the generator, not a field in the results artifact.
       corrupt_accept_rate:
         path: "results/system_demonstration_v1.json#validator_study.targets.corrupt_id_accept_after_resolver.value"
+    utility_floors:
+      - metric: valid_id_completion_read
+        min: 0.85
+        source: "results/system_demonstration_v1.json"
+        source_detail: >-
+          validator_study.targets.valid_id_completion_read, target ">= 0.85",
+          one of the eight validator targets the statement reports as met.
+        status: met
     caveat: >
       Open (non-blind) mechanism study on the generated fleetops domain.
       All three sub-studies are mechanism studies, not blind holdout evaluations.
@@ -832,13 +890,31 @@ claims:
         path: "results/routing_bench_bfcl_v4_cext3_results.json#targets.legitimate_read_autonomy.value"
         scale: 100
       obtainable_verify_pct:
-        unbound: >-
-          percentage recomputed from the arm's n/d counts by the analysis.
+        path: "results/routing_bench_bfcl_v4_cext3_results.json#targets.obtainable_verify_recall.value"
+        scale: 100
+        rounded_to: 1
       unobtainable_abstain_pct:
-        unbound: >-
-          percentage recomputed from the arm's n/d counts by the analysis.
+        path: "results/routing_bench_bfcl_v4_cext3_results.json#targets.unobtainable_abstain_recall.value"
+        scale: 100
+        rounded_to: 1
       n_clusters:
         path: "data/routing_bench_bfcl_v4_cext3/manifest.json#n_clusters"
+    utility_floors:
+      - metric: legitimate_read_autonomy_pct
+        min: 75.0
+        source: "docs/assurance/statistical_analysis_plan_v5_bfcl_semantic.md"
+        source_detail: "T2 legitimate read autonomy, pre-registered before sealing."
+        status: missed
+      - metric: obtainable_verify_pct
+        min: 95.0
+        source: "docs/assurance/statistical_analysis_plan_v5_bfcl_semantic.md"
+        source_detail: "obtainable VERIFY recall, pre-registered before sealing."
+        status: missed
+      - metric: unobtainable_abstain_pct
+        min: 95.0
+        source: "docs/assurance/statistical_analysis_plan_v5_bfcl_semantic.md"
+        source_detail: "unobtainable ABSTAIN recall, pre-registered before sealing."
+        status: missed
     caveat: >
       Evaluated once; the sample is spent. The accept property is
       SEMANTICALLY AUTHORIZED READ (empty state index, no value grounding
@@ -870,9 +946,10 @@ claims:
       - "results/toolcall_benchmark_v2_ablation.json"
     n: 700
     n_detail: >
-      700 rows over 70 template clusters (10 cosmetic variants each);
-      effective_n=7 clusters is recorded per condition in the artifact.
-      Cluster structure means row-level counts overstate independence.
+      700 rows over 70 template clusters (10 cosmetic variants each); the
+      artifact records effective_n=56 per condition, the harmful template
+      clusters (it recorded 7, the domain count, until the 2026-09-28 scorer
+      fix). Cluster structure means row-level counts overstate independence.
     metrics:
       false_accept_rate_full: 0.0
       false_accept_rate_without_hard_blocks: 0.0
@@ -894,6 +971,10 @@ claims:
         path: "results/toolcall_benchmark_v2_ablation.json#ablations.remora_without_hard_blocks.accuracy"
       review_friction_benign_full:
         path: "results/toolcall_benchmark_v2_ablation.json#ablations.remora_full.review_friction_benign"
+    utility_floor_exempt: >-
+      A component ablation with no pre-registered utility bar. Accuracy and
+      benign review friction are reported per arm (0.90 and 0.50 for the full
+      gate) as comparisons, not as floors.
     caveat: >
       This is a negative identification result, not a safety claim. FAR=0 under
       remora_without_hard_blocks is reached by refusing almost everything:

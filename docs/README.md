@@ -48,6 +48,8 @@ Several topics have more than one document. This table says which to open.
 | [11-benchmark-validation-plan.md](11-benchmark-validation-plan.md) | External benchmark validation plan |
 | [12-agentharm-validation.md](12-agentharm-validation.md) | AgentHarm validation |
 | [13-research-frontier-roadmap.md](13-research-frontier-roadmap.md) | Research work packages |
+| [14-remora-prime-architecture.md](14-remora-prime-architecture.md) | Gap analysis and proposed next-generation architecture (proposal) |
+| [integrations/jev_decision_provider.md](integrations/jev_decision_provider.md) | Jev as a decision provider: evidence, never authority (experimental) |
 | [AI_USE.md](AI_USE.md) | AI-assisted development disclosure |
 
 </details>
@@ -95,6 +97,10 @@ Several topics have more than one document. This table says which to open.
 | [TOGAF enterprise architecture (PDF)](enterprise/no/REMORA_TOGAF_Enterprise_Architecture_v1.0.pdf) | Norwegian TOGAF-aligned architecture PDF |
 | [security/pre-deployment-review.md](security/pre-deployment-review.md) | Pre-deployment security review |
 | [security/owasp_genai_mapping.md](security/owasp_genai_mapping.md) | OWASP GenAI mapping |
+| [security/non-transitivity-of-authority.md](security/non-transitivity-of-authority.md) | Non-Transitivity of Authority (NTA-1, NTA-2): principle, enforcement, conformance vectors, limits |
+| [design/authority-preserving-capability-mediation-v1.md](design/authority-preserving-capability-mediation-v1.md) | Authority-Preserving Capability Mediation (NTA-2): proposed design, phase 1 implemented |
+| [design/evidence-sufficiency-v1.1.md](design/evidence-sufficiency-v1.1.md) | Evidence-sufficiency v1.1: closing the gaps found by external seeded-fault testing; decisions, requirements, rerun protocol |
+| [design/evidence-sufficiency-v1.3.md](design/evidence-sufficiency-v1.3.md) | Evidence-sufficiency v1.3: systematic mutation analysis, the rejection contract, metamorphic relations, the named-survivor gate and the blind external protocol |
 | [governance/eu_ai_act_nsm_mapping.md](governance/eu_ai_act_nsm_mapping.md) | EU AI Act / NSM mapping |
 | [governance/nist_ai_rmf_mapping.md](governance/nist_ai_rmf_mapping.md) | NIST AI RMF mapping |
 | [reference_architecture.md](reference_architecture.md) | Compact architecture overview |
@@ -152,6 +158,7 @@ Several topics have more than one document. This table says which to open.
 | [capability_register_v1.yaml](assurance/capability_register_v1.yaml) | Capability wiring status |
 | [credential_topology.yaml](assurance/credential_topology.yaml) | Credential custody and agent-zone reachability (Agent Authority property E) |
 | [authority_state_topology.yaml](assurance/authority_state_topology.yaml) | Every in-process store whose loss changes an authority decision, and whether losing it re-authorizes or only loses evidence |
+| [results_manifest_v1.yaml](assurance/results_manifest_v1.yaml) | Measured reproduction class of every committed result (regenerable, drifted, live, unverified, frozen), from an offline rerun of each generator |
 | [fasttrack_register_v1.yaml](assurance/fasttrack_register_v1.yaml) | Fast-track work-package status |
 | [release_profiles_v1.yaml](assurance/release_profiles_v1.yaml) | Deployment maturity profiles |
 | [release_gates.md](assurance/release_gates.md) | Profile gate status |
@@ -162,6 +169,8 @@ Several topics have more than one document. This table says which to open.
 | [claim_provenance_baseline.json](assurance/claim_provenance_baseline.json) | Grandfathered provenance exceptions |
 | [claim_metric_binding_baseline.json](assurance/claim_metric_binding_baseline.json) | Published numbers not stored in their artifact, with reasons; shrink-only |
 | [prose_style_baseline.json](assurance/prose_style_baseline.json) | Shrink-only per-file counts of structural prose tells (`scripts/check_prose_style.py`) |
+| [ledger_binding_baseline.json](assurance/ledger_binding_baseline.json) | Shrink-only list of thermodynamics-ledger numbers not yet bound to an artifact field (`scripts/check_ledger_bindings.py`) |
+| [far_claim_size_baseline.json](assurance/far_claim_size_baseline.json) | Shrink-only list of FAR claims resting on fewer than 299 independent harmful units, each with its reason (`scripts/check_far_claim_size.py`, Q2.1) |
 | [ADR: single execution path](architecture/ADR-single-authoritative-execution-path.md) | One authoritative execution path; agent-control is ingress, not an engine |
 | [ADR: tainted arguments](architecture/ADR-tainted-argument-approval.md) | Approval suffices; sanitisation not required, with the residual stated (issue #40) |
 | [ADR: authority custody and lease durability](architecture/ADR-authority-custody-and-lease-durability.md) | A and B implemented (Ed25519 custody split, durable lease nonces); C, D and E accepted as direction only |
@@ -204,6 +213,7 @@ Several topics have more than one document. This table says which to open.
 | [resilience_plan_v1.md](assurance/resilience_plan_v1.md) | Resilience plan |
 | [reproducibility_scorecard_v1.md](assurance/reproducibility_scorecard_v1.md) | Reproducibility scorecard |
 | [mutation_testing_v1.md](assurance/mutation_testing_v1.md) | Measured mutation pass over the grant/lease/PEP paths; kill rates, survivor triage, golden-vector fix (issue #280) |
+| [external_adequacy_evidence_sufficiency_v1.md](assurance/external_adequacy_evidence_sufficiency_v1.md) | External seeded-fault adequacy run over evidence-sufficiency-v1 (issue #629): counts, crash kills, survivor labels |
 | [domain_pack_governance_v1.md](assurance/domain_pack_governance_v1.md) | Domain-pack governance |
 | [aromer_memory_governance_v1.md](assurance/aromer_memory_governance_v1.md) | AROMER memory governance |
 | [validation/EXTERNAL_VALIDATION_PLAN.md](validation/EXTERNAL_VALIDATION_PLAN.md) | External validation plan |
@@ -244,6 +254,8 @@ Design documents describe a proposal at the time it was written; whether it ship
 | [design/runtime-trust-base-identity-v1.md](design/runtime-trust-base-identity-v1.md) | Binding the executing runtime into the execution lease (ADR-D), and what a self-declared identity does not establish (open proposal) |
 | [interop/REMORA-APS-PROFILE-v0.1.md](interop/REMORA-APS-PROFILE-v0.1.md) | APS interop profile v0.1: the term mapping for four conformance families, fixed before the run (open proposal) |
 | [design/task-bound-execution-authority-v1.md](design/task-bound-execution-authority-v1.md) | Binding an authorization to the task it was granted under: the gap, the three lines that found it, and the signature-preserving field rule (open proposal) |
+| [design/capability-minimized-execution-v1.md](design/capability-minimized-execution-v1.md) | Capability minimization before reasoning: the owner's SDD mapped onto existing REMORA code, the four gaps, the deviations, and WS8 Q8.1 to Q8.9 (implemented) |
+| [design/remora-quality-program-v1.md](design/remora-quality-program-v1.md) | Spec-driven quality program: reproducible results, larger and live evaluation, runtime-surface binding in deployments, and the order of the open remediation items (open proposal) |
 | [methods/nested_governance.md](methods/nested_governance.md) | Nested governance model |
 | [methods/architecture_risk_register.md](methods/architecture_risk_register.md) | Architecture risk register |
 | [methods/theoretical_foundations_proposals_v1.md](methods/theoretical_foundations_proposals_v1.md) | Theoretical-foundation proposals |

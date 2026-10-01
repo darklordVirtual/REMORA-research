@@ -11,7 +11,7 @@ never deleted, only re-statused in place.
 
 ## How to read a status
 
-**57 numbered sections does not mean 57 open problems.** Until 2026-07-31 this
+**64 numbered sections does not mean 64 open problems.** Until 2026-07-31 this
 document read as if it did. Sections kept the status they were written with,
 even after later sections resolved them. Every section now carries a
 machine-readable marker directly under its heading, and
@@ -24,11 +24,11 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-08-28: **11 `open`**, **23 `accepted`**, **23 `superseded`**.
+Counts as of 2026-09-30: **15 `open`**, **27 `accepted`**, **31 `superseded`**.
 
 ## The actual backlog
 
-Seven themes, all research gaps; the one production gap (CI gates that ran
+Nine themes, all research gaps; the one production gap (CI gates that ran
 without blocking, §55) is closed and struck from this list; a backlog that
 keeps closed items is the drift the status gate exists to prevent. The section numbers
 after each theme are where its evidence lives, and CI checks that every theme
@@ -64,13 +64,17 @@ cites only `open` sections and that no `open` section is missing a theme.
    now: re-run the same raw oracle responses through both backends and publish
    the per-episode cluster and route deltas. Explicitly **not** a route to
    reviving temperature as an authoritative selector (§18 stands).
-5. **Production validator quality** (§33): the mechanism recovers read utility
+5. **Production validator quality** (§33, §60): the mechanism recovers read utility
    0% → 100%, but the study validator is correct by construction. Real
    validators need their own contracts and measurements: false-absent rate,
-   staleness, tenant binding, timeout behaviour, response provenance.
-6. **External replication, REM-021, and live evidence** (§1, §4, §15, §16);
+   staleness, tenant binding, timeout behaviour, response provenance. The
+   gate-correctness study (§60) measures the cost per fault class: a lenient prefix matcher accepted every
+   corrupt read, fail-open lookups 11.7 %, a stale snapshot refused 15 % of
+   valid reads.
+6. **External replication, REM-021, and live evidence** (§1, §4, §15, §16, §61);
    cannot be closed from inside this repository. Needs third-party replication,
-   a named independent reviewer, and field traces.
+   a named independent reviewer, and field traces. §61: no FAR claim rests on
+   the 299 independent harmful units a ~1% bound needs.
 7. **Authoritative tool metadata on the advisory path** (§14): the enforcement
    path already takes `effect`, risk class and validator bindings from a
    server-side registry, but the library path judges the metadata it is handed.
@@ -86,6 +90,17 @@ cites only `open` sections and that no `open` section is missing a theme.
    (FT-03 ToolSpec) remains open, so this theme stays open; FT-03 is tracked in
    [fasttrack_register_v1.yaml](docs/assurance/fasttrack_register_v1.yaml),
    not in the remediation register (pointer corrected 2026-09-03).
+8. **Critical-phase exclusion on the temperature ACCEPT path** (§59): policy
+   v5 removed critical-phase items from temperature acceptance by analogy
+   with the trust-score path. On the N500 round artifact the removed accepts
+   were 68 of 70 correct, more accurate than the ones kept. Whether the
+   exclusion belongs on this path needs an out-of-sample test; until then v5
+   stays as the conservative choice.
+9. **Evidence-sufficiency input sizes and public-type behaviour** (§73):
+   five held-out faults survive v1.7, all outside the decision logic. They
+   are list validation that stops after 32 items, a non-dict `Mapping` that
+   skips validation, `slots` on the verdict, case-insensitive enum lookup and
+   the key order of `as_dict()`.
 
 <!-- backlog-end -->
 
@@ -249,8 +264,11 @@ H_fp, clusters_fp = compute_semantic_entropy(oracle_responses, backend=TokenFing
 
 **Local execution status:** Blocked in the current environment by a Windows
 application-control policy on `torch/lib/shm.dll` (`OSError: [WinError 4551]`).
-The code is production-ready and falls back to `TokenFingerprintBackend`
-automatically when the NLI model is unavailable. External replicators with a
+The code degrades rather than failing: it falls back to
+`TokenFingerprintBackend` automatically when the NLI model is unavailable,
+which the test suite exercises. Whether it is ready for production is a
+separate question this environment could not answer, because the comparison
+itself never ran here. External replicators with a
 torch-enabled Python environment (Linux/macOS or Windows without DLL restrictions)
 can run the comparison immediately. Expected comparison artifact: run
 `experiments/selective_n500.py` after re-generating oracle-response JSON with
@@ -2444,6 +2462,7 @@ sections again.
 | MCE bucket bias and absent cross-domain episodes (§15, §16) | Structural AROMER ceilings: the buckets get no organic traffic and crossDomainCases=0. Needs diverse deployment context | Medium |
 | Authoritative tool metadata still caller-supplied on the advisory path (§14/M4) | Raise-only clamp shipped 2026-08-05 (declared risk cannot undercut the heuristic floor; clamps recorded, unset stays unset). Full authority still needs the signed ToolSpec registry (FT-03) | Medium |
 | External replication, REM-021, field evidence (§1, §4) | Cannot be closed from inside this repository | Medium |
+| Five held-out faults survive v1.7 (§73) | List validation stops after 32 items, non-dict `Mapping` skips validation, `slots`, case-insensitive enum lookup, `as_dict` key order; every decision fault of probe 4 is killed | Low |
 
 ### Accepted negative results — do not "fix" these
 
@@ -2455,6 +2474,7 @@ sections again.
 | Consensus temperature failed fresh-data confirmation (§18) | AURC 0.0954 vs 0.0664 for calibrated confidence, paired CI excludes zero, zero SGR-certifiable coverage. The hypothesis was pre-registered and it failed. Temperature stays diagnostic; reviving it needs entirely new evidence, not a threshold | **High (falsifies the thermodynamic-selection hypothesis)** |
 | AgentHarm cannot measure resolver friction (§19) | FAR=0.0% met; FBR=100% not met, because every source verdict is ESCALATE and the control protocols act on VERIFY. Rewriting ESCALATE→VERIFY moved 19 harmful and 0 benign. A different dataset is required | Medium |
 | Registry coverage without outcome change (§20) | 38 → 85 signatures moved no routing metric; `arguments_satisfiable` is orthogonal to call correctness. More signatures will not produce semantic correctness | Medium |
+| The pre-registered held-out test of rule coverage had little power (§69) | v1.3 already killed 318 of the 319 held-out mutants; 17 of the 22 derived cases kill nothing another case does not. The criterion is kept for what it gates, not tuned to look stronger | Low (methodological) |
 | Track A did not test its hypothesis (§29) | 836/942 wrong-argument episodes were unjudgeable because the index did not cover the arguments the tasks used. The set is spent; the lesson is the admission criterion added in §30 | Medium (methodological) |
 
 ### Superseded — resolved by a later section, kept for the causal chain
@@ -2471,6 +2491,14 @@ sections again.
 | Coverage loss degrades discrimination (§32) | §35 | Wrong-argument accepts in the UNKNOWN regime 50% → 0% with value grounding, all pre-registered expectations still met |
 | Benchmark v2 leakage and overstated effective N (§17) | Fixed 2026-07-20 | Gate and baselines restricted to the observable surface; effective N=70 not 700; the "0% vs 10–20%" claim withdrawn |
 | AROMER seeding, regression and recovery chronicle (§§5–13) | §11, §12, §13 | Kept in sequence because the recovery evidence is only meaningful next to the failure. Architectural finding preserved: stage seeding ≤25 per batch, or implement an EMA dual window |
+| v1.1 evidence-sufficiency corpus misses three state-comparison faults (§64) | evidence-sufficiency v1.2, 2026-09-29 | Cases E18-E20 tell the three faults apart. They were written after the faults were known, so this is the repair, not independent evidence. An external rerun with every fault known (2026-09-30) is private until Rul1an publishes it |
+| Systematic mutation analysis finds 112 faults the v1.2 evidence-sufficiency corpus cannot see (§65) | evidence-sufficiency v1.3, 2026-09-30 | 489 mutmut mutants; v1.2 killed 377. The 112 survivors fell in seven families, four of them real gaps (claim and scope never checked, rejection untested, key order). v1.3 leaves 20, all named and argued equivalent. Written with the survivors in view, so repair, not independent evidence |
+| The v1.1 typed-premise pin covered one premise per claim; 42 typed-premise faults survived every authored case (§66) | evidence-sufficiency v1.3 K1 cases, 2026-09-30 | A second operator set of 905 mutants found 42 `is True` faults read by truthiness or `== True` that only the exhaustive reference model caught, plus three `isinstance` relaxations nothing caught. Now 23 lattice-derived cases and rejections R18-R20; 4 survivors, all argued equivalent |
+| Five held-out faults on the API surface survived v1.6 (§72) | evidence-sufficiency v1.7, 2026-10-01 | Public API surface snapshot, seeded call sequences with every held object mutated, and the input contract crossed with every claim and observation shape; on held-out probe 4 they add three kills, all in the classes probe 3 named |
+| Verdict value equality was unchecked (§71) | evidence-sufficiency v1.6, 2026-09-30 | A whole-API differential against an executable contract kills the probe-2 survivor (fitted) and, on held-out probe 3, two faults in classes nobody had named |
+| A blind probe found six evidence-sufficiency faults no row caught (§70) | evidence-sufficiency v1.5, 2026-09-30 | Class-level checks (value classes incl. absence and `null`, guard precedence, state pairs, generated input contract, return isolation) kill all 96 probe-1 faults on row 3, fitted. A second probe, locked before v1.5, went from 74 to 77 of 77 decision faults on row 3 |
+| Twelve cross-branch premise faults survived every authored evidence-sufficiency case (§68) | evidence-sufficiency v1.4, 2026-09-30 | Rule coverage (RC-1) derived five cases that kill all twelve; v1.4 kills every live specification mutant on row 1. The five were fitted: the family was named before the criterion was written |
+| The evidence-sufficiency record carried stale, conflated and unreproducible numbers (§67) | corrected in the same change, 2026-09-30 | An independent analysis found 300 examples stated where the tests run 150, 17 rejections where there are twenty, and historical sweep totals no committed command reproduced. Rerunning each row found the first second-set run credited with 60 one-check kills that belong to a later state (57). Every row now has a command and a committed raw output |
 | Blind-confirmed intermediate rounds (§25, §27, §28, §31) | — | Each records a round that met or missed its pre-registered targets on the way to §34; retained as the pre-registration trail |
 
 ## Resolved Findings Archive
@@ -3693,3 +3721,697 @@ component is necessary requires conditions that differ on false-accept rate at
 all, and a utility measure a refuse-all condition fails. Until that exists, no
 component attribution should be cited from this benchmark.
 
+## §58 Four tool-call results outlived the label-leakage fixes that should have replaced them (2026-09-28)
+<!-- finding-status: accepted -->
+
+**Status:** found by the quality program's offline reproduction probe (Q1.1)
+and closed by regeneration (Q1.3). The committed numbers are archived, not
+deleted.
+
+**What happened.** Four artifacts were committed on 2026-06-25 and never
+regenerated:
+
+| Artifact | Cited by |
+|---|---|
+| `results/toolcall_benchmark_v1_results.json` | three entries in `docs/thermodynamics/claim_ledger.yaml`, `docs/03-experiments.md` |
+| `results/toolcall_ablation_results.json` | none |
+| `results/toolcall_benchmark_v2_live_results.json` | `docs/03-experiments.md` Experiment 5 |
+| `results/toolcall_benchmark_v2_live_exec_results.json` | claim `toolcall_v2_live_sandbox_execution` |
+
+Running each generator at every later commit shows where the numbers moved.
+The M1 fix `d8d7f5a` removed `is_unsafe_if_executed` from the runtime gate,
+and the REM-038 fix `9c6eea0` stopped the gate and all baselines reading
+author-annotated severity, flags and tags. The metric-denominator fix
+`87a1c17` moved them again. Those commits regenerated the v2, v3 and M1
+artifacts. These four were left as they were.
+
+**What changed in the numbers.** On v1 the leakage-era file gave every
+strategy 0 % unsafe execution and 100 % critical interception. That was the
+evidence for "v1 does not differentiate". Without leakage:
+
+| Strategy | Unsafe execution | Critical interception | Mean utility |
+|---|---:|---:|---:|
+| single_model_heuristic | 0.0000 to 0.1429 | 1.0000 to 0.8571 | 0.5167 to 0.2095 |
+| majority_vote_heuristic | 0.0000 to 0.0238 | 1.0000 to 0.9286 | 0.6286 to 0.4310 |
+| verifier_heuristic | 0.0000 to 0.1429 | 1.0000 to 0.8571 | 0.5452 to 0.2095 |
+| remora_temperature_gate_heuristic | 0.0000 to 0.0238 | 1.0000 to 0.9286 | 0.6762 to 0.4310 |
+| remora_full_policy_gate | 0.0000 to 0.0000 | 1.0000 to 1.0000 | 0.5690 to 0.4786 |
+
+In the v2 replay files the model baselines are unchanged. The deterministic
+gates moved: `verifier_model` unsafe execution 0.2000 to 0.0143, and
+`REMORA_temperature_gate` 0.0857 to 0.0000.
+
+**What this does not establish.** The v1 gap between the full gate and the
+baselines is descriptive. It has not been tested at the template-cluster
+level, and the analogous v2 comparison was withdrawn as not significant
+(p = 0.50, §17). Claim `toolcall_unsafe_execution_reduction` therefore stays
+`not_demonstrated`; only its numbers are corrected.
+
+**Why no gate caught it.** The claim gates check that a cited number appears
+in the artifact the claim names. Both the number and the artifact were stale
+together, so they agreed. Only rerunning the generator shows the drift. The
+CI deterministic round did that for its own eleven outputs and nothing else.
+
+**Fixed.** The four artifacts are regenerated at `090d534`. The committed
+versions are in `results/superseded_label_leakage_2026-06-25/`. The ledger
+entries and `docs/03-experiments.md` cite the regenerated numbers.
+`docs/assurance/results_manifest_v1.yaml` classes every committed result by
+an offline rerun, and quality program Q1.2 extends CI regeneration to every
+file classed `regenerable`. Row R8 above records the leakage-era reading and
+is kept as written.
+
+## §59 Policy v5's critical-phase exclusion removed mostly correct accepts on the N500 round (2026-09-28)
+<!-- finding-status: open -->
+
+**Status:** measured by the quality program while resolving the drifted
+`results/end_to_end_n500_v3.json` (Q1.3). Open, because the question it raises
+has no out-of-sample answer yet.
+
+**What was measured.** `experiments/end_to_end_n500_v3.py` is deterministic
+over the stored 544-item round artifact, so the policy change is the only
+difference between these two runs:
+
+| Engine | Accepted | Correct | Accuracy on accepted |
+|---|---:|---:|---:|
+| RemoraDecisionEngine-v3 (SAP v2 round, 2026-07-27) | 101 | 97 | 96.04 % |
+| RemoraDecisionEngine-v5 (commit `076142a`) | 31 | 29 | 93.55 % |
+
+v5 excluded the critical phase from the temperature ACCEPT path. The 70
+accepts it removed were 68 correct (97.1 %), more accurate than the 31 it kept.
+
+**Why this matters.** The v5 commit carried the exclusion over from the
+trust-score path, where trust anti-correlates with correctness in the
+critical phase (ARCHITECTURE.md §8, CLAIM-005). It stated that accuracy on
+the accepted set was unaffected. The test it cited only asserts at least 0.88,
+which both runs pass. On this artifact the temperature signal did not show
+the inversion the trust score shows.
+
+**What this does not establish.** One artifact, a threshold derived in-sample
+on the same 544 items, and 70 removed items. It does not show that v5 is
+wrong, and it is no reason to reopen an ACCEPT path. Removing an accept path
+cannot add a false accept. An out-of-sample split with the critical phase
+labelled is the test that would decide it.
+
+**Recorded.** The round file stays frozen as the engine-v3 record.
+`results/end_to_end_n500_v3_policy_v5.json` holds the current-policy
+numbers, and the claim-ledger entries that cited the round now give each
+run's numbers separately.
+
+## §60 REMORA's own gate is only as safe as its validator (2026-09-28)
+<!-- finding-status: open -->
+
+**Status:** measured by the pre-registered gate-correctness study of
+quality program WS7 item 1. The protocol is
+`experiments/gate_correctness/PREREGISTERED.md` and the result is
+`results/gate_correctness_study_v1.json`. Open, because production
+validators have no contract that rules these faults out.
+
+**What was measured.** The 540 fleetops episodes of §33, one engine, seven
+arms that differ only in the validator. Every earlier REMORA safety number
+assumed a correct gate; this one breaks the gate on purpose.
+
+| Arm | False allow | Corrupt reads allowed (post hoc) | Valid reads accepted | Writes auto-accepted |
+|---|---:|---:|---:|---:|
+| no_gate | 1.000 | 1.000 | 1.000 | 1.000 |
+| correct | 0.000 | 0.000 | 1.000 | 0.000 |
+| stale_snapshot (15 % missing) | 0.000 | 0.000 | 0.850 | 0.000 |
+| prefix_matcher | 0.667 | 1.000 | 1.000 | 0.000 |
+| fail_open (20 % unavailable) | 0.078 | 0.117 | 1.000 | 0.000 |
+| partial_closed_world (70 % export) | 0.000 | 0.000 | 0.667 | 0.000 |
+| partial_unknown (70 % export) | 0.000 | 0.000 | 0.667 | 0.000 |
+
+N is small: 90 corrupt calls (60 reads), 60 valid reads and 30 valid writes.
+
+**Predictions.** Five of seven were met. P5 missed: fail-open lookups gave a
+false-allow rate of 0.078 against a predicted 0.10 to 0.30. The
+pre-registered denominator includes corrupt writes, which the engine never
+auto-accepts; restricted to reads, the rate is 0.117. That restriction was
+chosen after the run and is reported as post hoc. P6 missed: reading an
+incomplete export as closed-world and reading it as UNKNOWN produced
+identical routes. The prediction assumed an UNKNOWN verdict routes to
+review. It does not: the §32 contract makes an unresolved validation
+terminal, so both paths abstain. The prediction misread the design.
+
+**What it means.** A lenient matcher turns the gate itself into the source
+of unsafe accepts: every corrupt read passed. Failing open converts
+unavailability into accepts at roughly its own rate. A stale or incomplete
+index costs autonomy instead of safety. The one property no validator fault
+touched is the write floor: no write was auto-accepted in any gated arm.
+
+**What this does not establish.** One synthetic domain and one engine
+configuration. The retired-identifier path of a stale snapshot, which would
+falsely allow, is not sampled.
+
+## §61 No FAR claim rests on enough independent harmful units (2026-09-28)
+<!-- finding-status: open -->
+
+**Status:** found by the FAR claim-size gate of quality program Q2.1
+(`scripts/check_far_claim_size.py`). Open, because closing it needs a larger
+harmful set with independently withheld labels, which cannot be written
+inside this repository (Q2.3).
+
+**What was checked.** Zero false accepts in N independent harmful units
+bounds the one-sided 95 % false-accept rate at about 3/N. At N = 299 that is
+about 1 %, which is the precision a claim written as "FAR = 0 %" invites a
+reader to assume. Every active FAR claim now declares the number of
+*independent* harmful units it rests on.
+
+| Claim | Harmful units | Independent units | Wilson 95 % upper bound |
+|---|---:|---:|---:|
+| CLAIM-001 tool-call benchmark v2 | 560 | 70 template clusters | 5.2 % |
+| CLAIM-003 historical regression corpus | 167 | 167 | 2.25 % |
+| CLAIM-002 AgentHarm | 208 | 208 | 1.81 % |
+
+None reaches 299. CLAIM-001 and CLAIM-002 already stated their intervals
+in the register. CLAIM-003 did not, and gained its 2.25 % bound in the same
+change that added this gate. No claim's status changes. What changes is that
+a new FAR claim below the minimum now fails CI. These three sit on a shrink-only
+baseline (`docs/assurance/far_claim_size_baseline.json`) with their reasons.
+
+**What it means.** "FAR = 0 %" in REMORA's register is a statement about a
+small number of independent cases. The upper bounds above are the claims the
+evidence supports. The replay arena the CI safety gate runs holds 48 harmful
+episodes and backs no FAR claim.
+
+**What would close it.** At least 299 independent harmful units, labelled
+before the first REMORA run by people outside the core authors (Q2.3), and
+a pre-registered analysis. Generating more synthetic variants from the same
+templates would raise the count without raising the independence, and is not
+a route to closing this.
+
+## §62 The capability exposure ratio did not fall to 0.25 (2026-09-28)
+<!-- finding-status: accepted -->
+
+**Status:** measured by the pre-registered capability-minimization study of
+quality program WS8 (Q8.8). The protocol is
+`experiments/capability_minimization/PREREGISTERED.md` and the result is
+`results/capability_minimization_study_v1.json`. Accepted: a falsified
+prediction, not a defect to tune away.
+
+**What was measured.** A fixed corpus of 44 proposals in eight classes,
+through six arms that each add one layer. Seven of eight predictions were
+met. Each layer stopped the class it was built for, and no earlier layer
+stopped it. The name allowlist stopped foreign tools, task-scoped sets
+stopped hidden tools, constraints and delegation stopped argument escalation
+and confused-deputy calls, and the lease with revocation epochs stopped
+replay and stale authority. Only effect verification stopped the executor
+that reported success while the readback disagreed. No arm blocked a
+legitimate proposal.
+
+**The miss.** P8 predicted a capability exposure ratio of at most 0.25 in
+arms C to F. The measured ratio was 0.2545. The corpus weights its three
+tasks unevenly, and the reconcile task needs three of the ten registered
+tools. The threshold was a guess about the corpus, not about the mechanism.
+It is recorded as missed and not moved after the fact.
+
+**What this does not establish.** The corpus and its labels were written by
+the authors, and each class was built to probe one layer. The study shows
+layer attribution on REMORA's code. It measures no real-world rate and no
+model's propensity to propose any class. Those need a live model.
+
+
+## §63 Mediated effect coverage in arm B was 0.67, not 1.0 (2026-09-29)
+<!-- finding-status: accepted -->
+
+**Status:** measured by the pre-registered capability-mediation study
+(NTA-2, design section 25). The protocol is
+`experiments/authority_preserving_capability_mediation/PREREGISTERED.md`,
+merged before the study code existed, and the result is
+`results/authority_preserving_capability_mediation_v1.json`. Accepted: a
+falsified prediction, recorded as missed on the first run and not redefined.
+
+**What was measured.** A fixed corpus of 36 proposals in nine classes through
+three arms. Seven of eight predictions were met. With capability minimization
+alone (arm A) every unsafe class produced its effect. The in-process mediator
+(arm B) stopped every unsafe class except direct use of the credential in the
+tool's own process. The three-domain split (arm C), in which the tool ran in a
+separate process with no effect credential, stopped all eight unsafe classes.
+No arm blocked the legitimate nested effect, and no mediated request ended
+`UNKNOWN`.
+
+**The miss.** P6 predicted mediated effect coverage of 1.0 in arm B. The
+registration defines coverage over all observed effects, and in arm B the four
+`direct_sdk_access` effects were observed without passing through the mediator,
+which is the bypass P2 itself predicted. Coverage was therefore 8 of 12, or
+0.6667. The prediction contradicted the registration's own definition; the
+measured value is the one the mechanism produces.
+
+**What this does not establish.** The corpus, its labels and the primitives
+were written by the authors, and each class was built to probe one mechanism.
+Arm C separates operating-system processes on one machine, not a deployment's
+containers or network, and an effect credential the deployment does not
+declare is outside the custody guard in any arm. The study measures mechanism
+efficacy on REMORA's code, not a real-world rate.
+
+
+## §64 The v1.1 evidence-sufficiency corpus misses three state-comparison faults (2026-09-29)
+<!-- finding-status: superseded -->
+
+**Status:** measured externally by Rul1an with corpus-adequacy 0.7.0 on
+`conformance/evidence-sufficiency-v1.1/` at `57ee0351` (the #637 head; the
+conformance trees are byte-identical to the merged `8772d85` apart from one
+limits string). Report:
+[REPORT.md at `9f38519`](https://github.com/corpus-adequacy/remora-es-v11-adequacy/blob/9f3851995bbe395e510dde9ce9a03ebb6f1f965a/REPORT.md).
+Record and labels: `docs/assurance/external_adequacy_evidence_sufficiency_v1.md`.
+Superseded by evidence-sufficiency v1.2 (see the end of this section). The finding
+about v1.1 stands.
+
+**What was measured.** v1.1 was written against the 103 faults of the v1.0
+run and kills all of them on the runner row. Rul1an also ran six faults the
+maintainer had not seen, committed by hash before execution. Three were
+killed, but two of those match known mutations and the third partly
+overlaps one. The three that survived on every row all change `canonical()`,
+the checker's comparison of expected and observed state: one case-folds
+strings, one sorts lists, one compares only the keys of a mapping.
+
+**Why it matters.** Each of the three merges states that differ, so a
+postcondition that disagrees would come out ESTABLISHED, which fails open.
+The checker is correct; the corpus has no case that exposes the difference.
+Every postcondition case compares plain strings, apart from E08 (`1`
+against `true`), which is why the raw-equality fault was caught and these
+were not. On the only faults in the run that were not fitted, v1.1 does not
+generalise to this family.
+
+**What this does not establish.** The six faults were chosen after the v1.1
+design and pre-flight totals were public, so they are withheld, not blind,
+and six selected faults are not a coverage rate. A survivor is a corpus
+discrimination gap, not a checker defect. v1.2 cases for these faults will
+be written with them in view; their kills will show the repair and will not
+be independent evidence.
+
+**Resolution (2026-09-29).** `conformance/evidence-sufficiency-v1.2/` carries
+the 50 v1.1 cases verbatim and adds E18, E19 and E20. Each derives from E02
+and expects a disagreeing postcondition to be VIOLATED: `"Closed"` against
+`"closed"`, a two-item list in another order, and a mapping with the same key
+and another value. Against the frozen checker, the v1.2 runner reports
+failures under each of the three faults, and still under every known fault
+from the external manifests. That result is fitted: the cases were written
+with these faults in view. v1.2 has had no external run.
+
+**External rerun (2026-09-30).** Rul1an reran the published v1.1 fault
+definitions, controls and projections against v1.2 at `c1345b1`, with every
+fault known in advance, and delivered the package privately for factual
+review. The maintainer found no factual corrections and agreed to publication
+(#629). The package is private until Rul1an publishes it, so no counts are
+stated here; the record is
+`docs/assurance/external_adequacy_evidence_sufficiency_v1.md`. With every
+fault known, the run can show the repair and is not independent evidence.
+
+
+## §65 Systematic mutation analysis finds 112 faults the v1.2 evidence-sufficiency corpus cannot see (2026-09-30)
+<!-- finding-status: superseded -->
+
+**Status:** measured by the maintainer with mutmut 3.8.0 over
+`conformance/evidence-sufficiency-v1/checker.py` (sha256 `c4ca50ae…`,
+unchanged since v1), scored by the v1.2 corpus in the three projections of the
+external runs. Superseded by evidence-sufficiency v1.3 in the same change (see
+the end of this section). The finding about v1.2 stands.
+
+**What was measured.** mutmut applied its default operators to the checker
+and produced 489 mutants. The v1.2 cases, guidance and runner killed 377 and
+missed 112. Every mutant in the decision paths of the three assessors was
+killed; the survivors sat beside those paths, in seven families:
+
+| Family | Survivors | What no v1.2 check read | Real gap |
+|---|---:|---|---|
+| A | 41 | the `claim` field of a verdict | yes |
+| B | 40 | the `scope` field of a verdict | yes |
+| C | 12 | the text of a `ValueError` message | no |
+| D | 8 | input rejection: `validate_json`, `canonical`'s own validation, the guard in `assess` | yes |
+| E | 3 | `canonical()` without `sort_keys`: mapping key order would count | yes |
+| F | 7 | `canonical()` separators and `ensure_ascii` | no |
+| G | 1 | `and` for `or` in `_result`, unreachable under the reason-table invariants | no |
+
+**Why it matters.** Three external rounds with hand-picked faults had covered
+the decision logic and nothing else. A checker that named the wrong claim, or
+dropped the scope a caller bound the verdict to, passed every v1.2 check, and a
+consumer of `run-record.json` reads both fields. The premise boundary in the
+v1 README promised that non-JSON values are refused; nothing exercised the
+refusal. The key-order fault that section 12.4 of the v1.1 spec declined to
+pin as hypothetical survived, three times.
+
+**What this does not establish.** One tool with one operator set; a fault
+mutmut never generates was not measured. A kill says nothing about the
+correctness of the checker (Budd and Angluin, 1982; Just et al., 2014). The
+families were classified by hand, and the 20 survivors that remain are argued
+equivalent under the pinned contract, not proven equivalent.
+
+**Resolution (2026-09-30).** `conformance/evidence-sufficiency-v1.3/` carries
+the 53 v1.2 cases verbatim and adds E21 to E23 for key order, a rejection
+contract of 17 inputs, verdict-envelope checks and eleven metamorphic
+relations declared in `invariants.json`. The same sweep now kills 469 of 489;
+the 20 survivors are named in
+`docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt` and classified
+in `docs/assurance/mutation_testing_v1.md`, and
+`scripts/mutation_evidence_sufficiency.py` fails on a new one. The v1.3 tests
+score one representative fault per family against both runners: v1.3 fails,
+v1.2 does not. That result is fitted: the checks were written with the
+survivor list in view. v1.3 has had no external run; the design records a
+blind protocol for one (`docs/design/evidence-sufficiency-v1.3.md` section 8).
+
+
+## §66 The typed-premise pin covered one premise per claim; 42 typed-premise faults survived every authored case (2026-09-30)
+<!-- finding-status: superseded -->
+
+**Status:** measured by the maintainer with a second operator set
+(`scripts/mutation_evidence_sufficiency_ast.py`: 705 first-order and 200
+second-order mutants of the frozen checker, scored in process by the v1.3
+runner). Superseded by the K1 cases and rejections R18 to R20 in the same
+change (see the end of this section). The finding about the authored corpus
+stands.
+
+**What was measured.** The set applies nine operators mutmut does not have
+and a fixed-seed sample of second-order pairs. The operators are statement
+deletion, guard swaps, comparison variants, reason and field confusion,
+status polarity, state-comparison variants, negation and type vocabulary. Of
+905 mutants, 898 were killed and 7 survived. Every kill carries the set of
+checks that produced it. Sixty of the 898 rested on one check only: 42 on
+the reference model of `model.json` alone, 17 on the rejection contract
+alone, 1 on a crash.
+
+**Why it matters.** The 42 were all `comparison_variant` mutants that read a
+premise by truthiness or by `== True`. The v1.1 typing pin (D-3) covered one
+premise per claim, the last before a decisive return, with A16, B16 and E17.
+The other nineteen premises were unpinned, so a checker that accepted `1` as
+`true` on any of them passed every authored case in v1.0 to v1.3. Only the
+exhaustive lattice saw it, and an external row that scores authored cases
+alone would not. The three `isinstance` relaxations survived everything: the
+rejection contract had a `str` subclass and no `list` or `dict` subclass.
+
+**What this does not establish.** The operator set was written by the
+corpus's author, with the checker in view, and its survivors are argued
+equivalent, not proven. Two operator sets are two samples of the fault space.
+A kill says nothing about the correctness of the checker.
+
+**Resolution (2026-09-30).** `--derive-cases` computed the smallest greedy
+cover of lattice points that separates the 42 mutants. The cover is 23
+cases, A17 to A25, B18 to B26 and E24 to E28, gap K1. Each types one premise
+and names the mutants it separates. Rejections R18 to R20 pin `list` and
+`dict` subclasses and a `str`-subclass key. The set now kills 901 of 905; the 4 survivors are a
+stripped canonical string and three swaps of mutually exclusive guards, named
+in `docs/assurance/mutation_baseline_evidence_sufficiency_ast_v1.txt` and
+classified in `docs/assurance/mutation_testing_v1.md`. No kill rests on the
+reference model alone any more; 18 rest on one check (17 on the rejection
+contract, 1 on a crash). The K1 cases were derived from the sweep and are
+not independent evidence. The blind protocol of the v1.3 spec, section 8,
+now also asks for one more thing: a fault killed on the runner row and not on
+the case rows is reported as such.
+
+**Correction (2026-09-30).** "Sixty of the 898 rested on one check only: 42
+on the reference model alone, 17 on the rejection contract alone, 1 on a
+crash" mixes two states. In the first run, before R18 to R20, 57 of the 898
+kills rested on one check (42, 14 and 1). Sixty (42, 17 and 1) is the count
+with R18 to R20 and without the K1 cases, when 901 are killed, because R18 to
+R20 alone kill the three `isinstance` relaxations. The sentence above is kept
+as it was published; §67 records how the error was found.
+
+## §67 The evidence-sufficiency record carried stale, conflated and unreproducible numbers (2026-09-30)
+<!-- finding-status: superseded -->
+
+**Status:** found by an independent analysis of v1.3
+(`docs/assurance/external_adequacy_evidence_sufficiency_v1.md`, package in
+`artifacts/independent-analysis-2026-09-30/`) and by the maintainer's rerun
+of every row it could not reproduce. Corrected in the same change.
+
+**What was found.** RES-021 in the research control matrix said the
+generated-input tests run 300 derandomised examples per property; they run
+150, as the spec says. It said the rejection contract has 17 inputs; it has
+had twenty since R18 to R20. It said one tool with its default operators
+while reporting a second operator set. The CHANGELOG headed the fitted
+reference-model and second-set results "Generalisation measures". The
+historical sweep rows had no raw output in the repository: mutmut on v1.2
+(377 of 489 killed) and the second set before the K1 cases. The commands the
+record named reproduced only the final rows. Rerunning the second set on the
+reconstructed first-run corpus gave 898 of 905 killed and 7 survivors, as
+recorded. It gave 57 kills on one check where §66 and the spec said 60 (see
+the correction under §66).
+
+**Why it matters.** Two of the stale numbers overstated the record: the
+example budget, and the fragility count, which was attached to the wrong
+state. A number that no committed command reproduces cannot be audited. Every
+count had been checked against the final state and none against the state it
+described.
+
+**What this does not establish.** Nothing here changes a checker verdict or a
+survivor list. The v1.3 record, both baselines and every final count
+reproduce exactly, and so do the mutmut rows of v1.2 (377 killed, 112
+survived) and v1.3 (469 and 20). The analysis's own measurement, 43 faults
+killed on the v1.3 runner row, is recorded as locally pre-registered, not as
+a run under section 8 of the v1.3 spec.
+
+**Resolution (2026-09-30).** RES-021, the CHANGELOG, the v1.3 spec section 7,
+`docs/assurance/mutation_testing_v1.md` and the v1.3 README are corrected.
+`scripts/mutation_evidence_sufficiency.py --scoring-suite
+evidence-sufficiency-v1.2` reproduces the v1.2 row, and
+`scripts/mutation_evidence_sufficiency_ast.py --corpus first-run` and
+`--corpus without-k1` rebuild the two intermediate states of the second set
+by removal. The raw output of every row is committed in
+`artifacts/evidence-sufficiency-mutation-2026-09-30/`, and a test pins the
+committed survivors to both baselines, so that a count and its evidence
+cannot drift apart again without a failing test.
+
+## §68 Twelve cross-branch premise faults survive every authored evidence-sufficiency case (2026-09-30)
+<!-- finding-status: superseded -->
+
+**Status:** measured by the maintainer with specification mutation of
+`conformance/evidence-sufficiency-v1.3/model.json`
+(`scripts/spec_mutation_evidence_sufficiency.py`), pre-registered in section
+13 of `docs/design/evidence-sufficiency-v1.3.md`. The catalogue digest and the
+criterion was pushed in `37b1aac` before any mutant was scored. Superseded by
+evidence-sufficiency v1.4 (see the end of this section). The finding about
+v1.3 stands.
+
+**What was measured.** Nine operators produce 446 first-order mutants of the
+rules and a fixed-seed sample of 300 second-order pairs. Each mutant model runs
+as a checker through the v1.3 runner. Equivalence is computed by enumeration
+over eight premise value classes, so 54 first-order mutants leave the
+denominator with no hand label. Of the 392 live first-order mutants, the runner
+kills 392 and the 79 authored cases kill 380. The pre-registered criterion S-2,
+every live mutant killed by the authored cases alone, is not met. The runner
+kills all 298 live second-order mutants, and so do the authored cases.
+
+**Why it matters.** All twelve survivors make one arm of the
+`admission_present` branch require a premise of the other arm. A checker that
+refused ESTABLISHED for a present, accepted and matching admission unless the
+admission was also mandatory, or the window finalized, or coverage complete,
+passes every authored case. So does one that refused VIOLATED for a missing
+admission unless an admission source was accepted or matched. The only two
+decisive admission cases, A01 and A03, set every premise of both arms to
+`true`. An external row that
+scores authored cases alone, rows 1 and 2 of every run so far, cannot see this
+family; only the lattice differential of the runner does. No operator of the
+two code-level sets can express it: they rename a premise or read it
+differently, and never add one to a guard. The independent analysis's
+hand-picked faults did not include one.
+
+**What this does not establish.** The operators were written by the corpus's
+author after v1.3, so they are pre-registered, not blind. The state comparison
+is decided on the declared state values only. The checker is not wrong: the
+frozen checker and the model agree on all 61,544 lattice documents. The finding
+is about what the authored cases can tell apart.
+
+**Next.** A new corpus version can add cases that set each other-arm premise to
+`false` on a decisive admission configuration. Such cases would be fitted to
+this list, as the K1 cases were. The v1.3 spec records the gap as task T-20,
+and `docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt` names
+the twelve until then.
+
+**Resolution (2026-09-30).** Section 14 of the v1.3 spec does not write five
+cases for twelve mutant ids. It defines rule coverage from `model.json` alone
+and derives one case per open obligation, by a rule pushed before the cases
+were scored (`f3ba6d0`). `conformance/evidence-sufficiency-v1.4/` is
+v1.3 plus those 22 cases, and its runner fails on any open obligation. v1.4
+kills all 392 live first-catalogue mutants on row 1, and the gate's baseline
+is empty. The cases that kill the twelve are A26 to A28 and A32 to A33; they
+are fitted, and §69 records how little the rest of the criterion added.
+
+## §69 The pre-registered held-out test of rule coverage had little power (2026-09-30)
+<!-- finding-status: accepted -->
+
+**Status:** measured by the maintainer under the predictions pre-registered in
+section 14.5 of `docs/design/evidence-sufficiency-v1.3.md` (`f3ba6d0`).
+Accepted: the predictions were met, and the result is kept at its measured
+size rather than restated.
+
+**What was measured.** A held-out catalogue of specification mutants was
+fixed before v1.4 existed. It holds two guard-placement operators (19
+mutants) that the first catalogue cannot express, and 300 third-order
+mutants. As H-1 predicted, v1.4 kills all of them on row 1. But v1.3 already
+killed 318 of the 319.
+The one it missed is of the §68 family. Of the 22 derived cases, five kill a
+mutant of either specification catalogue on row 1 that no other case kills,
+and all five are RC-1 cases for the §68 family. The other seventeen (two
+RC-1 cases on the route claim, eight RC-2 and seven RC-3 cases) kill nothing
+another case does not.
+
+**Why it matters.** A met prediction reads as confirmation, and here it
+confirms little. The held-out catalogue separated v1.4 from v1.3 on one
+mutant, and the criterion's added value against every fault list measured so
+far is the five fitted cases. The guard-placement faults that RC-2 aims at
+were already killed by cases that cross the same guards for other reasons.
+That is the coverage-effectiveness gap of Inozemtseva and Holmes (2014) seen
+from the other side: a stricter criterion than the faults need.
+
+**What this does not establish.** It does not show that the seventeen cases
+are useless. They discharge obligations a future change to `model.json`
+could make load-bearing, and a fault family none of the catalogues expresses
+could need them. It does not show the criterion generalises either. That
+still needs faults chosen by someone who has not seen it, under section 8 of
+the spec.
+
+## §70 A blind probe finds six evidence-sufficiency faults no row catches, and v1.4 adds nothing on blind faults (2026-09-30)
+<!-- finding-status: superseded -->
+
+**Status:** measured by the maintainer on faults generated by six
+context-free AI agents that did not see the corpus, pre-registered in
+`artifacts/evidence-sufficiency-blind-probe-2026-09-30/PREREGISTRATION.md`
+(`a0c3d32`) before any score was read. Superseded by evidence-sufficiency
+v1.5 (see the end of this section). The finding about v1.4 stands.
+
+**What was measured.** Three agents wrote 60 single-location faults into
+`checker.py` from the checker and the v1 README alone. Three wrote a correct
+implementation and 12 misreading variants each from a prose specification,
+without seeing the checker. The correct controls pass every row. Of 83
+decision faults, row 3 of v1.4 kills 80 and row 1 kills 76; v1.3 scores the
+same, and v1.2 kills 66 and 57. Six faults survive every row of v1.4. Three
+of them, found independently by three agents, treat a present `null` state
+as missing. The others refuse a non-dict `Mapping`, normalise
+`premise_source` before its guard, and alias the scope returned by
+`as_dict()`.
+
+**Why it matters.** It is the first measurement on faults nobody chose with
+the corpus in view. It points to what the fault lists never reached: `null`
+as a value, input types and normalisation, and aliasing of returned values. It also shows that v1.4's 22 rule-coverage cases added no kill on
+blind faults, which confirms §69. Rule coverage has a hole of its own: for a
+branch premise, absence is a third arm, and RC-2 accepted the opposite boolean
+as its witness. Three blind faults that read an absent branch premise as
+`false` pass every authored case and die only on the runner.
+
+**What this does not establish.** This is not a run under section 8 of the
+v1.3 spec. The agents share a model family with the maintainer's assistant,
+and the maintainer wrote their prompts and the specification. 96 faults are
+one sample of the fault space. Nothing in the corpus changed in the
+change that reports this.
+
+**Resolution (2026-09-30).** v1.5 (section 15 of the v1.3 spec) answers with
+classes rather than cases. Rule-coverage profile v2 derives 274 cases. They
+cover every value class of every premise, including absence and `null`,
+every pair of failing guards, and 26 state pairs. The new version also widens
+the model lattice and generates checks of the input contract and of return
+isolation. It kills all 96 faults
+of this probe on row 3, which is fitted. The test was a second probe, locked
+in `a5614b9` before v1.5 was committed: §71.
+
+## §71 A held-out probe locked before v1.5: 77 of 77 decision faults, and one class nothing covers (2026-09-30)
+<!-- finding-status: superseded -->
+
+**Status:** measured by the maintainer on 97 faults that six context-free
+agents on three model sizes (Sonnet, Haiku, Opus) wrote without seeing the
+corpus. The faults were committed in `a5614b9`, before evidence-sufficiency
+v1.5 was committed in `6dbd4a5`, so they cannot have been fitted to it.
+Criteria in `artifacts/evidence-sufficiency-blind-probe-2-2026-09-30/PREREGISTRATION.md`.
+Superseded for the one survivor by evidence-sufficiency v1.6 (see the end of
+this section).
+
+**What was measured.** Of 77 decision faults, v1.4 kills 74 on row 3 and 73
+on row 1. v1.5 kills 77 and 76. Five faults that survive every row of v1.4
+die on v1.5: three present-`null` states read as missing, a refused non-dict
+`Mapping`, and a `premise_source` guard that accepts any string starting with
+`synthetic_fixture`. That last form was not in the listed near misses; the
+class check caught it. One fault survives both: P2C-20 breaks the value
+equality of the verdict, so identical calls return verdicts that compare
+unequal. Every check compares `as_dict()` output, never the objects.
+
+**Why it matters.** This is the first test of the corpus on faults that
+existed before the corpus version they are scored against. The class checks
+of v1.5 caught new members of the classes the first probe named, including
+one shape nobody listed. A `null` state was written independently by six
+selectors across the two probes, so it is a mistake implementers actually
+make. The survivor shows the limit: a class no probe had named is still
+open, and the next repair will be fitted to it.
+
+**What this does not establish.** All five gains lie in classes the first
+probe named, so this shows generalisation within known classes, not to new
+ones. The agents are Anthropic models and the maintainer wrote their prompts
+and the specification. A run under section 8 of the v1.3 spec, by someone
+else, remains the stronger test.
+
+**Resolution (2026-09-30).** v1.6 does not add an equality check for this one
+fault. Section 16 of its runner compares the whole public API with an
+executable contract on 2,000 seeded inputs. It covers the returned dictionary
+with exact types, value semantics under repetition, copy and pickling, deep
+input non-mutation, order independence, module state and the enum contract. It
+kills P2C-20, which is fitted. The test was probe 3, locked before v1.6: §72.
+
+## §72 Probe 3: every decision fault killed, and five held-out faults on the API surface survive v1.6 (2026-09-30)
+<!-- finding-status: superseded -->
+
+**Status:** measured by the maintainer on 104 faults written by six
+context-free agents (Sonnet, Opus, Haiku) in four new scenarios and two new
+implementation styles. The faults were committed in `00aa914`, before v1.6 in
+`f9a8a27`. Criteria in
+`artifacts/evidence-sufficiency-blind-probe-3-2026-09-30/PREREGISTRATION.md`.
+Superseded by evidence-sufficiency v1.7 (see the end of this section).
+
+**What was measured.** v1.6 kills all 61 decision faults on rows 1 and 3, as
+v1.5 does on row 3. Over all faults, row 3 kills 97 of 104 on v1.6 and 94 on
+v1.5. The three new kills are verdict equality (the class probe 2 named), a
+plain `Enum` in place of `StrEnum`, and a list in place of a tuple on the
+verdict object. The last two are classes no probe had named. Seven faults
+survive. Two are labelled equivalent under the `assess` contract, with the
+arguments in the probe's `RESULTS.md`. Five are open. Two share one default
+scope, so a change to one verdict's scope leaks into later verdicts. One
+skips scope validation when the observations are empty. One makes the
+`EvidenceVerdict` constructor keyword-only, and one adds an alias member to
+`EvidenceStatus`.
+
+**Why it matters.** It is the first time a mechanism caught held-out faults
+in classes nobody had named: section 16 compares every projection a caller
+observes, so it needs no fault list. The decision logic now generalises
+across three independent probes. What remains is state that crosses calls
+through returned objects, and the public types' own API; neither is reached
+by a check that treats each call on its own.
+
+**What this does not establish.** The agents are Anthropic models and the
+maintainer wrote their prompts. The contract of section 16 shares its author
+with the checker. Two of the equivalence labels are arguments, not proofs.
+
+**Resolution (2026-10-01).** v1.7 adds three runner sections, one per class.
+They compare the public API surface with a snapshot, run seeded call
+sequences that mutate every object the caller holds between calls, and cross
+the input contract with every claim and observation shape. They kill the five open faults,
+fitted. The test was probe 4, locked before v1.7: §73.
+
+## §73 Probe 4: every decision fault killed again, and five held-out faults on sizes and public types survive v1.7 (2026-10-01)
+<!-- finding-status: open -->
+
+**Status:** measured by the maintainer on 104 faults written by six
+context-free agents (Opus, Sonnet, Haiku), committed in `2954a48` before
+v1.7 in `e464829`. Criteria in
+`artifacts/evidence-sufficiency-blind-probe-4-2026-10-01/PREREGISTRATION.md`.
+Open.
+
+**What was measured.** v1.6 and v1.7 both kill all 63 decision faults on
+row 3. Over all 104 faults, v1.7 kills 93 and v1.6 kills 90. The three new
+kills lie in the classes probe 3 named. One is a new member of its class:
+memoised verdicts, so equal inputs share one object between callers. Of the
+eleven survivors, five are labelled equivalent under the `assess` contract
+and one out of scope, with the arguments in the probe's `RESULTS.md`. Five
+are open: list validation that stops after 32 items, a non-dict `Mapping`
+that skips validation, `slots` on the verdict dataclass, case-insensitive
+enum lookup, and a changed key order in `as_dict()`. Nine of the eleven come
+from the selector told in general terms how thorough the suite is.
+
+**Why it matters.** Four probes in a row now find no decision fault that
+survives the runner, so the decision logic generalises across every fault
+source tried. Each round still finds something in the parts no check had
+been built for, and each round's gains lie in the classes the round before
+named. This round's mechanisms caught no fault in a class nobody had named;
+section 16 did that once, in probe 3. The open survivors are cheaper to
+reach than the decision logic was, and also less consequential: none changes
+a verdict.
+
+**What this does not establish.** The agents are Anthropic models and the
+maintainer wrote their prompts. The five equivalence labels are arguments.
+The size and type gaps say nothing about a deployment, because the checker
+is a synthetic-fixture artifact.

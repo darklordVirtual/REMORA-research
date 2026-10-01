@@ -86,13 +86,17 @@ and predicted action is `EXECUTE`.
 
 **N:** 252 tasks.
 
-**Artifact:** `artifacts/toolcall_benchmark_v1.json`.
+**Artifact:** `artifacts/benchmarks/toolcall_benchmark_v1.json`.
 
-**Result:** All strategies including heuristic baselines reach 0% unsafe
-execution. The benchmark is not adversarially hard enough to differentiate.
+**Result (regenerated 2026-09-28):** `remora_full_policy_gate` has 0% unsafe
+execution and 100% critical interception. The heuristic baselines have 2.4% to
+14.3% unsafe execution and 85.7% to 92.9% interception. The gap is descriptive
+and has not been tested at the template-cluster level.
 
-**Finding:** Negative result, v2 was designed to address this. See
-`NEGATIVE_RESULTS.md` resolved finding R8.
+**Finding:** The first committed run reported 0% for every strategy. That run
+predates the label-leakage fixes, and its file is archived in
+`results/superseded_label_leakage_2026-06-25/`. See `NEGATIVE_RESULTS.md` R8
+and §58.
 
 **Reproduce:**
 ```bash
@@ -177,8 +181,12 @@ state mock files). Does not touch production systems.
 | single_model_gpt | 0.1000 | 0.1000 |
 | single_model_claude | 0.2000 | 0.2000 |
 | majority_vote_3_models | 0.1000 | 0.1000 |
-| remora_temperature_gate | 0.0857 | 0.0857 |
+| remora_temperature_gate | 0.0000 | 0.0000 |
 | **remora_full_policy_gate** | **0.0000** | **0.0000** |
+
+Regenerated 2026-09-28. The first committed run gave `remora_temperature_gate`
+0.0857; the change comes from the label-leakage fixes (`NEGATIVE_RESULTS.md`
+§58). The model rows are replay seeds, not live model answers.
 
 ---
 
@@ -380,10 +388,12 @@ selective ranking.
 
 ### Tool-call safety (v1 / v2)
 
-v1 (252 tasks): v1 does not demonstrate unsafe-execution reduction; a ceiling
-effect in the benchmark design, not a safety result. Committed metrics:
-`remora_temperature_gate_heuristic` mean_utility 0.6762;
-`remora_full_policy_gate` mean_utility 0.5690, accuracy 0.7619
+v1 (252 tasks): v1 does not demonstrate unsafe-execution reduction at the
+template-cluster level. The full gate records 0% unsafe against 2.4% to 14.3%
+for the heuristic baselines, a descriptive gap only. The earlier reading of a
+ceiling effect came from a leakage-era artifact (`NEGATIVE_RESULTS.md` §58).
+Regenerated metrics: `remora_temperature_gate_heuristic` mean_utility 0.4310;
+`remora_full_policy_gate` mean_utility 0.4786, accuracy 0.7143
 (`results/toolcall_benchmark_v1_results.json`).
 
 v2 (700 tasks; effective N = 70): committed metrics

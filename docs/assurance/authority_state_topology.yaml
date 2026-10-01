@@ -58,7 +58,7 @@
 # the durable store closes.
 
 schema_version: "1"
-updated: "2026-09-03"
+updated: "2026-09-29"
 
 state:
   - id: AST-001
@@ -156,6 +156,84 @@ state:
       deployment can forward events to durable storage, but the chain itself
       is per-process and this file does not claim otherwise.
 
+  - id: AST-010
+    symbol: "remora/enforcement/lease.py::GovernedToolDispatcher"
+    gates: "Which callable executes a leased tool name, and the process-local registration generation of each name."
+    on_loss: loses_evidence
+    durable_adapter: none
+    tracking: REM-025
+    note: >-
+      Configuration and replacement evidence, not authority. Losing the
+      registry unregisters every callable, so dispatch refuses until host
+      code registers again; single-use execution rests on the lease nonce
+      (AST-002). Generations reset together with the SignedSurfaceRuntime
+      bindings that compare against them, so a restart cannot make an
+      unverified replacement look bound. What is lost is the in-process
+      record of earlier replacements (RES-013).
+
+  - id: AST-011
+    symbol: "remora/toolcall/surface_runtime.py::SurfaceRuntime"
+    gates: "One-use assessment handles, retained postcondition contracts, execution events, effect evidence and the tenant chain of the opt-in reference runtime."
+    on_loss: loses_evidence
+    durable_adapter: "SQLiteTenantChain or PostgresTenantChain passed as SurfaceRuntime(chain=...) (Q3.5)"
+    note: >-
+      Losing a pending assessment makes dispatch refuse (assessment_not_found);
+      it never makes a refused call executable, and the lease nonce still
+      bounds execution to one use. With a durable chain, surface, execution
+      and effect evidence is written through, and a runtime restarted on the
+      same store rebuilds executions, effects and contracts from it
+      (tests/test_surface_evidence_durability.py). Pending one-use handles are
+      deliberately not rebuilt. Without a chain the runtime keeps the
+      in-process one, and a restart loses the evidence (RES-013 scope
+      boundary); that configuration is the control in the same tests.
+
+  - id: AST-012
+    symbol: "remora/governance/loop_safety.py::InMemoryLoopSafetyStore"
+    gates: "Nothing on its own. The in-process control for DurableLoopSafetyStore, which keeps a context's accumulated denials, authority probes, tool switches after a denial and irreversible effects (Q7.2)."
+    on_loss: reauthorizes
+    durable_adapter: "remora/governance/loop_safety.py::DurableLoopSafetyStore"
+    reference_implementation: true
+    wired_at: "servers/execution_api.py::_loop_safety_monitor"
+    note: >-
+      Classed reauthorizes because losing the history lets a context that
+      had reached an escalation limit continue as if it had not: /assess
+      reads it before deciding and downgrades an ACCEPT to ESCALATE at a
+      limit. Wiring point ASW-004.
+
+  - id: AST-013
+    symbol: "remora/enforcement/capability_mediator.py::CapabilityMediator"
+    gates: "Whether one governed execution is still open for mediated effects, and the record of every effect it requested (NTA-2 phase 1)."
+    on_loss: loses_evidence
+    durable_adapter: none
+    tracking: "docs/design/authority-preserving-capability-mediation-v1.md section 15 (per-effect records beyond the chain summary)"
+    note: >-
+      Per execution and in-process by design: the mediator lives only as long
+      as the tool call it mediates. Losing it with its process loses the
+      execution and its effect records; it makes nothing newly executable,
+      because a lost mediator can mediate nothing and a new one needs fresh
+      effect authority derived from a valid parent set. Since phase 2 the
+      execution_result chain record carries the counts, states and the
+      ResolvedEffectGraph digest, so what was requested is durable in
+      summary; the per-effect nodes themselves are in the dispatch response
+      and the outbox projection only.
+
+  - id: AST-014
+    symbol: "remora/enforcement/effect_domain.py::EffectDomain"
+    gates: "Which executions the effect domain has closed, and how many effects each has run against its budget (NTA-2 phase 3)."
+    on_loss: reauthorizes
+    durable_adapter: "remora/enforcement/nonce_store.py::DurableNonceStore, passed as the ledger: closure is the key effects-closed:<lease digest>, each effect claims effect:<lease digest>:<i> below the budget"
+    wired_at: "servers/execution_api.py::_lease_nonce_store"
+    reference_implementation: true
+    note: >-
+      Classed reauthorizes because losing it would let a closed execution
+      reopen, and an exhausted budget start again, for as long as the lease
+      and its effect authority remain valid. With the ledger both are read
+      back from the durable store after a restart
+      (tests/capabilities/test_effect_domain.py::TestDurability). Without a
+      durable store the server's effect domain refuses every effect, because
+      it cannot tell whether the lease was dispatched; ledger=None is the
+      in-process control used in library tests.
+
 # THE SWITCHES
 #
 # `switches` names the environment variables the durability guard in
@@ -189,6 +267,12 @@ wiring:
       The fourth occurrence. REMORA_STATE_ENDPOINT was missing here while
       ASW-001 and ASW-002 had it, which is the whole defect class in one
       diff.
+
+  - id: ASW-004
+    for: AST-012
+    symbol: "servers/execution_api.py::_loop_safety_monitor"
+    selects: "the loop safety store /assess reads before deciding and records into after"
+    switches: [REMORA_PG_DSN, REMORA_CHAIN_DB, REMORA_STATE_ENDPOINT]
 
 # What a PASS from this gate does NOT establish.
 #

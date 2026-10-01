@@ -1,0 +1,396 @@
+{
+  "authored_expectations": {
+    "by_origin": {
+      "G1": 4,
+      "G2": 2,
+      "G3": 14,
+      "G4": 3,
+      "G5": 1,
+      "v1": 26
+    },
+    "matched": 50,
+    "note": "expectation matches are regression checks, not a conformance score",
+    "total": 50
+  },
+  "case_results": {
+    "A01": "MATCH",
+    "A02": "MATCH",
+    "A03": "MATCH",
+    "A04": "MATCH",
+    "A05": "MATCH",
+    "A06": "MATCH",
+    "A07": "MATCH",
+    "A08": "MATCH",
+    "A09": "MATCH",
+    "A10": "MATCH",
+    "A11": "MATCH",
+    "A12": "MATCH",
+    "A13": "MATCH",
+    "A14": "MATCH",
+    "A15": "MATCH",
+    "A16": "MATCH",
+    "B01": "MATCH",
+    "B02": "MATCH",
+    "B03": "MATCH",
+    "B04": "MATCH",
+    "B05": "MATCH",
+    "B06": "MATCH",
+    "B07": "MATCH",
+    "B08": "MATCH",
+    "B09": "MATCH",
+    "B10": "MATCH",
+    "B11": "MATCH",
+    "B12": "MATCH",
+    "B13": "MATCH",
+    "B14": "MATCH",
+    "B15": "MATCH",
+    "B16": "MATCH",
+    "B17": "MATCH",
+    "E01": "MATCH",
+    "E02": "MATCH",
+    "E03": "MATCH",
+    "E04": "MATCH",
+    "E05": "MATCH",
+    "E06": "MATCH",
+    "E07": "MATCH",
+    "E08": "MATCH",
+    "E09": "MATCH",
+    "E10": "MATCH",
+    "E11": "MATCH",
+    "E12": "MATCH",
+    "E13": "MATCH",
+    "E14": "MATCH",
+    "E15": "MATCH",
+    "E16": "MATCH",
+    "E17": "MATCH"
+  },
+  "checker_is_frozen_v1": true,
+  "empty_observations": {
+    "admission_accounting": {
+      "claim": "admission_accounting",
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ],
+      "reason": "execution_observation_unaccepted_or_missing",
+      "scope": {
+        "bounded": true,
+        "kind": "synthetic_fixture",
+        "suite": "evidence-sufficiency-v1.1"
+      },
+      "status": "not_established"
+    },
+    "postcondition_observed": {
+      "claim": "postcondition_observed",
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ],
+      "reason": "readback_unavailable",
+      "scope": {
+        "bounded": true,
+        "kind": "synthetic_fixture",
+        "suite": "evidence-sufficiency-v1.1"
+      },
+      "status": "not_established"
+    },
+    "tested_route_enforcement": {
+      "claim": "tested_route_enforcement",
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ],
+      "reason": "route_observation_unaccepted_or_missing",
+      "scope": {
+        "bounded": true,
+        "kind": "synthetic_fixture",
+        "suite": "evidence-sufficiency-v1.1"
+      },
+      "status": "not_established"
+    }
+  },
+  "evidence_erasure_checks": {
+    "decisive_single_field_removals": 66,
+    "inconclusive_single_field_removals": 348,
+    "inconclusive_strengthening_failures": [],
+    "polarity_flip_failures": []
+  },
+  "failures": [],
+  "guidance_contract_failures": [],
+  "indistinguishable_world_pairs": [
+    {
+      "distinct_hidden_truth": true,
+      "id": "W01",
+      "identical_visible_input": true,
+      "same_nondecisive_verdict": true
+    },
+    {
+      "distinct_hidden_truth": true,
+      "id": "W02",
+      "identical_visible_input": true,
+      "same_nondecisive_verdict": true
+    }
+  ],
+  "inputs_sha256": {
+    "cases.json": "ffc453c3f4cf90a39374ee574086827974ad5e0f221e4cfdaef5f9acb5068521",
+    "checker.py (frozen v1)": "c4ca50aee2b2918b11c6fbde1f8615ca6c6bf1e5b6fa2ac1775f49c5e8c20be0",
+    "guidance.json": "eeb951e7073e7cc108a1d4886c4d03080b010287321a934f97ad763bb772542c",
+    "ladders.json": "e5b5cd88356625b0593062736fb2a386fe36e9334004e99f34e5861f10acd400"
+  },
+  "isolation_witnesses": [
+    {
+      "case": "A05",
+      "holds": true,
+      "reason": "execution_observation_unaccepted_or_missing"
+    },
+    {
+      "case": "A09",
+      "holds": true,
+      "reason": "scope_unaccepted_or_missing"
+    },
+    {
+      "case": "A08",
+      "holds": true,
+      "reason": "admission_observation_unaccepted"
+    },
+    {
+      "case": "A06",
+      "holds": true,
+      "reason": "candidate_admission_does_not_establish_a_covering_admission"
+    },
+    {
+      "case": "A10",
+      "holds": true,
+      "reason": "admission_presence_unknown"
+    },
+    {
+      "case": "A07",
+      "holds": true,
+      "reason": "admission_requirement_not_defined"
+    },
+    {
+      "case": "A04",
+      "holds": true,
+      "reason": "observation_window_open"
+    },
+    {
+      "case": "A02",
+      "holds": true,
+      "reason": "admission_coverage_incomplete"
+    },
+    {
+      "case": "B09",
+      "holds": true,
+      "reason": "route_observation_unaccepted_or_missing"
+    },
+    {
+      "case": "B06",
+      "holds": true,
+      "reason": "target_or_operation_not_bound"
+    },
+    {
+      "case": "B08",
+      "holds": true,
+      "reason": "alternative_route_not_established"
+    },
+    {
+      "case": "B10",
+      "holds": true,
+      "reason": "protected_effect_observation_unaccepted"
+    },
+    {
+      "case": "B07",
+      "holds": true,
+      "reason": "protected_effect_unknown"
+    },
+    {
+      "case": "B05",
+      "holds": true,
+      "reason": "no_effect_observation_not_complete"
+    },
+    {
+      "case": "B17",
+      "holds": true,
+      "reason": "valid_control_missing_or_incomparable"
+    },
+    {
+      "case": "B04",
+      "holds": true,
+      "reason": "refusal_not_attributed_to_required_boundary"
+    },
+    {
+      "case": "E03",
+      "holds": true,
+      "reason": "readback_unavailable"
+    },
+    {
+      "case": "E05",
+      "holds": true,
+      "reason": "readback_source_not_accepted"
+    },
+    {
+      "case": "E06",
+      "holds": true,
+      "reason": "target_or_predicate_not_bound"
+    },
+    {
+      "case": "E04",
+      "holds": true,
+      "reason": "readback_stale_or_time_unbound"
+    },
+    {
+      "case": "E07",
+      "holds": true,
+      "reason": "declared_settlement_point_not_reached"
+    },
+    {
+      "case": "E09",
+      "holds": true,
+      "reason": "state_value_missing"
+    }
+  ],
+  "limits": [
+    "No external implementation was run.",
+    "Evidence acceptance, scope and completeness are synthetic fixture premises.",
+    "No production, cryptographic, APS or CoSAI conformance claim is made.",
+    "No causal effect attribution is implemented.",
+    "ESTABLISHED and VIOLATED are bounded property verdicts, not whole-system grades.",
+    "Cases G1-G5 were written after an external seeded-fault run named the gaps; their kills of those faults are not independent evidence."
+  ],
+  "precedence_witnesses": [
+    {
+      "case": "A12",
+      "earlier": "execution_observation_unaccepted_or_missing",
+      "holds": true,
+      "later": "scope_unaccepted_or_missing"
+    },
+    {
+      "case": "A13",
+      "earlier": "admission_presence_unknown",
+      "holds": true,
+      "later": "admission_requirement_not_defined"
+    },
+    {
+      "case": "A14",
+      "earlier": "admission_requirement_not_defined",
+      "holds": true,
+      "later": "observation_window_open"
+    },
+    {
+      "case": "A15",
+      "earlier": "observation_window_open",
+      "holds": true,
+      "later": "admission_coverage_incomplete"
+    },
+    {
+      "case": "B11",
+      "earlier": "route_observation_unaccepted_or_missing",
+      "holds": true,
+      "later": "target_or_operation_not_bound"
+    },
+    {
+      "case": "B12",
+      "earlier": "target_or_operation_not_bound",
+      "holds": true,
+      "later": "alternative_route_not_established"
+    },
+    {
+      "case": "B13",
+      "earlier": "alternative_route_not_established",
+      "holds": true,
+      "later": "protected_effect_observation_unaccepted"
+    },
+    {
+      "case": "B14",
+      "earlier": "protected_effect_unknown",
+      "holds": true,
+      "later": "no_effect_observation_not_complete"
+    },
+    {
+      "case": "B15",
+      "earlier": "no_effect_observation_not_complete",
+      "holds": true,
+      "later": "valid_control_missing_or_incomparable"
+    },
+    {
+      "case": "B03",
+      "earlier": "valid_control_missing_or_incomparable",
+      "holds": true,
+      "later": "refusal_not_attributed_to_required_boundary"
+    },
+    {
+      "case": "E12",
+      "earlier": "readback_unavailable",
+      "holds": true,
+      "later": "readback_source_not_accepted"
+    },
+    {
+      "case": "E13",
+      "earlier": "readback_source_not_accepted",
+      "holds": true,
+      "later": "target_or_predicate_not_bound"
+    },
+    {
+      "case": "E14",
+      "earlier": "target_or_predicate_not_bound",
+      "holds": true,
+      "later": "readback_stale_or_time_unbound"
+    },
+    {
+      "case": "E15",
+      "earlier": "readback_stale_or_time_unbound",
+      "holds": true,
+      "later": "declared_settlement_point_not_reached"
+    },
+    {
+      "case": "E16",
+      "earlier": "declared_settlement_point_not_reached",
+      "holds": true,
+      "later": "state_value_missing"
+    }
+  ],
+  "property_verdict_distribution": {
+    "established": 4,
+    "not_established": 42,
+    "violated": 4
+  },
+  "purpose": "regression evidence for claim-sufficiency inference rules, not system conformance",
+  "reason_coverage": {
+    "checker_reasons": 28,
+    "orphan_guidance": [],
+    "undeclared_guidance": [],
+    "unreached": []
+  },
+  "record_kind": "synthetic-author-run",
+  "suite": "evidence-sufficiency-v1.1",
+  "wrong_shortcuts": {
+    "absence_always_means_violation": {
+      "rejected": true,
+      "witness": "A02"
+    },
+    "matching_state_always_means_verified": {
+      "rejected": true,
+      "witness": "E04"
+    },
+    "refusal_always_means_enforced": {
+      "rejected": true,
+      "witness": "B03"
+    },
+    "tool_ack_means_postcondition": {
+      "rejected": true,
+      "witness": "E02"
+    },
+    "truthy_premise_means_true": {
+      "rejected": true,
+      "witness": "A16"
+    },
+    "unaccepted_effect_means_violation": {
+      "rejected": true,
+      "witness": "B10"
+    },
+    "unknown_means_success": {
+      "rejected": true,
+      "witness": "E03"
+    }
+  }
+}

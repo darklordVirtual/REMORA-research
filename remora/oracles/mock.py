@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import random
 import time
+import zlib
 from remora.core import Oracle
 
 class MockOracle(Oracle):
@@ -14,7 +15,8 @@ class MockOracle(Oracle):
         self._name = name
         self._bias = bias
         self._noise = noise
-        self._rng = random.Random(abs(hash(name)) % 2 ** 32)
+        # A stable digest: hash(str) is salted per process (PYTHONHASHSEED).
+        self._rng = random.Random(zlib.crc32(name.encode("utf-8")))
 
     @property
     def name(self) -> str:

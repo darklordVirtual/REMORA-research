@@ -68,7 +68,7 @@ Headline values are governed by the [claim register](docs/assurance/claim_regist
 <!-- claim:CLAIM-003 far_pct n -->
 | # | Benchmark | Result | Scope |
 |---|---|---|---|
-| 1 | **AgentHarm** | **0.0%** wrongly allowed (0/208); 95% upper bound 1.81% | Intent classification; harmless-twin refusal **100.0%** |
+| 1 | **AgentHarm** | **0.0%** wrongly allowed (0/208); 95% upper bound 1.81%; false-block rate on the benign twins **100.0%** (208/208 blocked) | Intent classification only. The gate blocked every scenario, harmful or benign, so this measures the hard-block floor, not discrimination between harmful and benign |
 | 2 | **Adversarial simulator** | **0.0%** unsafe runs (0/70 templates; 700 tasks); 95% cluster-level Wilson upper bound **5.2%**; utility +0.456 | Simulated; effective N = 70 (70 templates × 10 cosmetic variants); unsafe-rate gap Δ=0.0143 vs. baseline, not statistically significant |
 | 3 | **BFCL v4 (C-ext3)** | Native wrong-call acceptance **0.0%** (0/500; Wilson 95% upper bound **0.76%**); irrelevant-tool refusal **100.0%** (300/300); required-input guessing **0.0%** (0/398) | Sealed once, 2,799 episodes, frozen semantic bundle + authority floor; utility targets missed; see NEGATIVE_RESULTS §39 |
 | 4 | **Historical regression** | **0.0%** wrongly allowed (0/167) | Previously observed failures only |
@@ -139,6 +139,8 @@ Research modules, AROMER, the older statistical-physics work and historical desi
 The state of the `servers/execution_api.py` decomposition (issue #241, closed) and of the decoupled dispatch worker behind `REMORA_ASYNC_DISPATCH` (issue #82, closed; not enabled in any reference profile) is stated once, in [DEVELOPER_OVERVIEW.md](DEVELOPER_OVERVIEW.md#known-boundary).
 
 For product-oriented integration see [Assured Agent Execution](https://github.com/darklordVirtual/assured-agent-execution), which consumes pinned REMORA artifacts rather than copying the governance core.
+
+Jev as an external decision provider is under trial (experimental, evidence only, never authority): see [integrations/jev_decision_provider.md](docs/integrations/jev_decision_provider.md).
 
 </details>
 

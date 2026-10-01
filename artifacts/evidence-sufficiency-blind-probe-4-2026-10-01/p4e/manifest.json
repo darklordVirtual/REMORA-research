@@ -1,0 +1,57 @@
+{
+  "implementer": "p4e",
+  "style": "rule-dsl",
+  "files_read": [
+    "SPEC.md"
+  ],
+  "variants": [
+    {
+      "file": "variant_01.py",
+      "misreading": "The first admission guard accepts the execution observation when either effect_source_accepted or effect_seen holds, instead of requiring both."
+    },
+    {
+      "file": "variant_02.py",
+      "misreading": "The tokenizer discards parentheses, so 'not (A and B)' parses as '(not A) and B' and the first admission guard only fires when effect_seen holds."
+    },
+    {
+      "file": "variant_03.py",
+      "misreading": "A premise is treated as holding whenever its value is truthy, so 1, \"true\", non-empty lists and dicts count as true."
+    },
+    {
+      "file": "variant_04.py",
+      "misreading": "A premise holds when its value compares equal to True, so the integer 1 (and 1.0) is accepted as the JSON boolean true."
+    },
+    {
+      "file": "variant_05.py",
+      "misreading": "A premise counts as refuted whenever it is falsy, so absent, null, 0 and empty values are treated as an explicit false and absence becomes decisive."
+    },
+    {
+      "file": "variant_06.py",
+      "misreading": "The JSON comparison omits the boolean type check, so true equals 1 and false equals 0."
+    },
+    {
+      "file": "variant_07.py",
+      "misreading": "Lists are compared as unordered collections (each element must appear somewhere in the other list), ignoring element order."
+    },
+    {
+      "file": "variant_08.py",
+      "misreading": "A state key whose value is JSON null is treated as missing, so a null expected or observed state yields state_value_missing instead of being compared."
+    },
+    {
+      "file": "variant_09.py",
+      "misreading": "The protected-effect violation rule is checked before the effect-observation-accepted guard, so an unaccepted effect observation can still yield violated."
+    },
+    {
+      "file": "variant_10.py",
+      "misreading": "The coverage-complete guard is ordered before the window-finalized guard, so an open window with incomplete coverage reports admission_coverage_incomplete."
+    },
+    {
+      "file": "variant_11.py",
+      "misreading": "State values are only reported missing when both keys are absent; with one key absent the comparison treats the missing value as null."
+    },
+    {
+      "file": "variant_12.py",
+      "misreading": "Mapping equality only checks the keys of the first mapping against the second, so a mapping that is a sub-mapping of the other compares equal."
+    }
+  ]
+}

@@ -57,3 +57,11 @@ def test_no_capability_claims_production_or_external_status() -> None:
         assert cap["status"] not in {"ENFORCED_PRODUCTION", "EXTERNALLY_VERIFIED"}, (
             f"{cap['id']} claims {cap['status']} while deployment is SHADOW_ONLY"
         )
+
+
+def test_runtime_surface_gap_is_explicitly_not_established() -> None:
+    gaps = _load()["unestablished_properties"]
+    surface = next(g for g in gaps if g["id"] == "runtime_capability_surface_completeness")
+    assert surface["status"] == "NOT_ESTABLISHED"
+    assert surface["phase"] == "RESEARCH"
+    assert (ROOT / surface["evidence"]).exists()

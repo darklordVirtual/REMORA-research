@@ -151,6 +151,10 @@ EXPECTED_REASON_CODES = {
     "toolspec_target_not_allowed",
     "toolspec_arguments_schema_invalid",
     "toolspec_changed_between_assess_and_dispatch",
+    # Additive for schema version 2 (schemas/tool_spec_v2.yaml).
+    "toolspec_schema_version_unsupported",
+    "toolspec_downstream_requires_v2",
+    "toolspec_downstream_declaration_invalid",
 }
 
 

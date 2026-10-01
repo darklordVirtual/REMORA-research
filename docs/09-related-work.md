@@ -198,6 +198,30 @@ Microsoft AGT is broader in surface. REMORA does not claim trajectory-level
 enforcement; the extension from single-call to path-level enforcement is an open direction
 (see Open Research Gaps), not an implemented capability.
 
+**Internal runtime-surface implementation (RES-013 / RF-13).** Per-call
+binding does not establish that the serving agent process has no additional
+callable tools. REMORA's opt-in local reference runtime now observes its own
+served list and dispatcher, compares assessment/dispatch identities, checks a
+finite authority graph, and records separately recheckable effect evidence.
+`python scripts/evaluate_runtime_surface.py --check` reproduces the committed
+artifact using a real temporary file write and separate readback. The matrix
+binds each module, test and artifact. This is an internal research construct;
+no external work in this section is claimed as implemented by it. Deployment
+providers still supply authority scopes. No external-runtime completeness,
+production containment or independent replication result is claimed.
+
+Quality program Q3.2 to Q3.5 narrowed four of those limits on the same
+reference runtime. The lease now carries the digest of the surface observed
+at assessment, and the dispatcher compares it at dispatch. In a shadow
+measurement the surface did not change in 200 legitimate runs, and every one
+of 20 injected changes was caught. A tool's identity can cover its imported
+modules and installed dependency versions, not only its own source text. The
+credential scope checked against the signed spec can come from an issuer
+REMORA queries, not from the tool provider. Surface and effect evidence can
+be written to a durable chain and rechecked after a restart. All four are
+properties of REMORA's own reference runtime. Measuring them inside an
+external agent host is Q3.1, which waits on the choice of host.
+
 ## 5. Evidence Grounding and Retrieval-Augmented Verification
 
 Relevant ideas:
@@ -459,10 +483,180 @@ empty string. The committed artifact
 pre-change preimages, so a replicator can check that guarantee without
 trusting the test suite.
 
+The same rule now covers the execution lease and the A2A envelope (quality
+program Q7.2). Each carries the pair only when bound, so an unbound lease or
+envelope signs the bytes it signed before, and
+`tests/test_task_bound_lease_and_envelope.py` pins both pre-change key sets.
+Checked against another task, either one refuses as `task_mismatch`; one that
+was never bound refuses as `task_unbound`. The check runs when the executor
+supplies the current task, and a dispatcher built with
+`require_task_identity` refuses a call that supplies none. The execution API
+takes `context_id` and `task_id` on every call and binds them into the token
+and the lease, so a token redeemed under another task is refused before its
+grant is spent. A deployment makes the fields mandatory with
+`REMORA_REQUIRE_TASK_IDENTITY`; without it, a call that names no task behaves
+as before.
+
+`remora/governance/loop_safety.py` keeps the state Wu et al. show must not
+decay. It is keyed on `(tenant_id, context_id)`, so a new task inside the
+same context sees what earlier iterations accumulated: denials, authority
+probes, a switch to another tool straight after a denial, and irreversible
+effects. The store is append-only, and only a reset that names a policy
+decision starts the count again. An unreadable store raises rather than
+reporting an empty history. `POST /v1/execution/assess` reads it before
+deciding and records every decision that names a task. A context at a limit
+cannot ACCEPT, and only a reviewer's reset naming a policy decision clears
+it. The limits are defaults that no study has calibrated.
+
 This is binding, not proof-of-possession. It ties an authorization to a task
 and does not prove the presenter holds a key. Nothing here should be read as
 closing the AGNTCY profile's PoP requirement, and REMORA claims no PoP at
 this revision.
+
+## 12. From Authority to Effect
+
+REMORA's earlier lines bind an authorization to the exact call, and
+recompute that binding before dispatch. Quality program WS7 asks what
+happens between a correct binding and a correct effect. Each item below
+takes one rule from one source, implements it where REMORA already
+enforces, and states what it does not take. RES-014 to RES-019 map the code,
+tests and artifacts.
+
+**When the gate itself is wrong (RES-019).** Zhang, Kweon and Han (2026)
+report that enforcement is bounded by the correctness of its state and of
+the matcher that maps requests to steps. REMORA measured its own version of
+that in a pre-registered study with seven validator faults
+(`NEGATIVE_RESULTS.md` §60). A lenient matcher turned the gate into the
+source of unsafe accepts, and failing open converted unavailability into
+accepts at roughly its own rate. Stale or incomplete state cost autonomy
+instead of safety. No fault let a write through without review.
+
+**Authentic is not complete (RES-014).** An audit chain that verifies says
+nothing about whether it holds enough. The evidence export now reports, per
+claim, whether the evidence is complete, authentic but incomplete,
+inconclusive or tampered. An executed call with no effect observation is
+authentic and incomplete for the claim "it happened as intended". No
+external source is claimed for this; it builds on RES-013's recheckable
+effect evidence.
+
+**The effect the call resolves to (RES-015).** Iyer (2026) resolves a tool
+reference against a closed, known set before acting on it. REMORA applies
+that at both ends of the lease. The resolved implementation, resource and
+effect kind are signed into it, and the executor resolves again. An alias
+retargeted, a resource redirected or an implementation remapped after
+approval refuses, and a reference the registry does not know is refused
+rather than guessed. The committed fixtures
+(`artifacts/resolved_effect/fixtures_v1.json`) reproduce all seven cases.
+
+**The premises of a plan (RES-016).** Chen, Wang and Brinton (2026) validate
+a plan against the state it depends on, not against all state. A REMORA
+lease can now carry the revisions a plan read and name the reads the write
+depends on. A moved dependency refuses as `stale_plan`, and a moved
+irrelevant read does not. Validating against everything would refuse far
+more correct work, and a control that refuses correct work is switched off.
+
+**Evidence outside the agent's process (RES-017).** Qin, Schmotz, Prinzhorn
+et al. (2026) report agents deleting their own traces without tripping
+guardrails. Every REMORA chain was written by the process that acts. The
+reference recorder runs as a separate process with append-only storage and
+no delete operation. For the tools a deployment names, the dispatcher
+records the intent there before anything is spent, and refuses when the
+recorder is down. How separate the process really is depends on the
+deployment's OS boundary, which REMORA does not configure.
+
+**Procedure and completion (RES-018).** Singh, Kumar, Agarwal et al. (2026)
+match procedural obligations against traces. Xiao and Nuzzo (2026)
+supervise tool-call traces with temporal contracts, and Smyth,
+Mantilla-Ramos, Tikeng Notsawo et al. (2026) measure agents claiming
+completion they did not reach. REMORA takes a small finite-state part: four
+obligation shapes, one monitor used both online and in replay, and
+completion derived from the trace. A completion claim the trace does not
+establish is flagged as an overclaim. General temporal logic, and matching
+natural-language procedures, are not implemented.
+
+Every item is strictly narrowing: it adds a refusal before an effect or a
+verdict about evidence, and grants nothing. None of the sources' own
+measurements is reproduced, and none is claimed.
+
+## 13. Capability Minimization Before Reasoning
+
+REMORA's earlier lines judge an action after an agent has proposed it. WS8,
+adopted from an owner-supplied design, reduces what the agent can propose at
+all: an agent is shown, and may call, only the tools its task needs. It is
+opt-in: a deployment turns it on with a capability policy, and no deployment
+is claimed to run one. RES-020 maps the code, tests and artifact. No external
+result is claimed for the design itself.
+
+The set an agent works under is derived from trusted state as an
+intersection. The requested tools, the principal's tools, the task's, the
+tenant's and the environment's are intersected with what the registry holds,
+and anything not named is denied. Visibility is not authorization. The same
+set is signed into the execution lease and checked again at dispatch, so a
+client that ignores the projected tool list gains nothing. An allowed tool is
+held to its argument scope, a nested call needs a delegation that is a subset
+of its caller's, and a set can be revoked by epoch between issuance and
+dispatch. Success is established only when the evidence shows the capability,
+the authorization, the execution and a verified effect.
+
+Debenedetti et al. (2025), *Defeating Prompt Injections by Design (CaMeL)*,
+is the closest published work. It binds capabilities to data values and
+separates a privileged planner from a quarantined model that reads untrusted
+content. REMORA does neither. Its capabilities attach to tools, tasks and
+arguments, and an argument can be required to equal a fact from trusted
+state. That is coarser than CaMeL's data-flow tracking and needs no changes
+to how the agent is built.
+
+The pre-registered layer study (`NEGATIVE_RESULTS.md` §62 records its one
+missed prediction) shows that each layer stops the class of proposal it was
+built for, and that no layer blocks a legitimate one. Its corpus is
+author-written. Whether exposing fewer tools changes what a model proposes
+in the first place is a question about models, and it needs a live run.
+
+## 14. Test Adequacy for Conformance Corpora
+
+The evidence-sufficiency corpora (`conformance/evidence-sufficiency-v1*`)
+are tests of a checker, and a test of a checker needs its own measure of
+adequacy. Three external runs with hand-picked faults answered one question: does the
+corpus catch these faults. RES-021 answers the other: which faults can it not
+catch. The method is that of DeMillo, Lipton and Sayward (1978): seed small
+faults into the checker and count the ones no case tells apart. Budd and
+Angluin (1982) showed that deciding whether a surviving mutant is equivalent
+is undecidable. REMORA therefore keeps a named list of survivors that may only
+shrink, never a score, the discipline `docs/assurance/mutation_testing_v1.md`
+adopted for the enforcement paths. Just et al. (2014) and Papadakis et al.
+(2018) bound what a kill means: mutants stand in for real faults to a measured
+degree, and much of that correlation is suite size. Andrews, Briand and
+Labiche (2005) support the use REMORA makes of them, as a comparator between
+two versions of the same corpus.
+
+Authored cases carry one oracle each. For inputs nobody authored, the corpus
+uses metamorphic relations (Chen, Cheung and Yiu, 1998; Segura et al., 2016;
+Chen et al., 2018). A relation names a transformation of the input and the
+part of the verdict that must not change under it. That answers the oracle
+problem described by Barr et al. (2015) without naming the right verdict. The
+relations are declared as data in `invariants.json` and executed by the
+runner. The same relations are checked on generated inputs with Hypothesis
+(Claessen and Hughes, 2000; MacIver et al., 2019), derandomised so a failure
+is a counterexample.
+
+Authored cases and relations are both samples. The corpus therefore also
+carries a table-driven reference model, interpreted over every combination of
+premise values, and requires the checker to agree at every point: differential
+testing in the sense of McKeeman (1998). A fault that changes any verdict on
+that lattice is caught whether or not a case reaches it. A second operator set,
+with a fixed-seed sample of second-order mutants (Jia and Harman, 2009),
+measures the corpus against faults it was not tuned to, and reports which
+checks each kill rests on. Where a kill rested on the model alone, the lattice
+point that separates the fault was derived into an authored case, so the rows
+that score cases alone see what the lattice sees.
+
+What this line does not take. Coverage is not used as the adequacy measure
+(Zhu, Hall and May, 1997; Inozemtseva and Holmes, 2014). Subsumption between
+mutants (Kurtz et al., 2016) is not computed; the families in the v1.3 spec
+are a hand classification. Nothing here is evidence that the checker is
+correct, and a corpus written with a survivor list in view shows the repair,
+not generalisation. The blind protocol in `docs/design/evidence-
+sufficiency-v1.3.md` section 8 is what could show that.
 
 ## Positioning Statement
 

@@ -285,20 +285,51 @@
         "type": "object"
       },
       "AuditRef": {
+        "description": "Where this response's audit event is, or where it will be.\n\nA state-transition event is enqueued on the SAME transaction as the\ntransition (REM-047), so at response time it is durable but not yet\nprojected into the chain and has no index. That case is stated rather than\npapered over: ``deferred`` is true, ``sequence_no`` and ``entry_hash`` are\nnull, and ``idempotency_key`` is the key the event will be appended under.\nInventing an index the chain does not contain would be worse than saying\nthe index does not exist yet.",
         "properties": {
+          "deferred": {
+            "default": false,
+            "description": "True when the event is enqueued on the state transaction and awaits projection by the drain.",
+            "title": "Deferred",
+            "type": "boolean"
+          },
           "entry_hash": {
-            "title": "Entry Hash",
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Chain entry hash; null when deferred is true.",
+            "title": "Entry Hash"
+          },
+          "idempotency_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Present only when deferred: the key the event will be appended under, and the join to the chain entry once projected.",
+            "title": "Idempotency Key"
           },
           "sequence_no": {
-            "title": "Sequence No",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Chain index; null when deferred is true.",
+            "title": "Sequence No"
           }
         },
-        "required": [
-          "sequence_no",
-          "entry_hash"
-        ],
         "title": "AuditRef",
         "type": "object"
       },
@@ -368,6 +399,18 @@
       "DispatchLeasedRequest": {
         "description": "Dispatch a call under a lease minted by the AUTHORITY domain (ADR-A).\n\nThe execution domain's only inbound execution surface. It receives a lease\nit did not request and did not sign, together with the call that lease is\nsupposed to authorise, and re-verifies the whole binding before anything\nruns.\n\nNothing here is trusted because it arrived. The lease signature is checked\nagainst the PUBLIC verification key -- this domain holds no private key and\nso cannot have produced the lease -- and every bound field is compared to\nthe concrete call. A lease for a different tool, tenant, target or argument\nset is refused here exactly as a forged one is.\n\nFreshness is checked against the EXECUTOR's clock, deliberately. An earlier\nversion of this contract carried a ``now`` field and claimed the authority's\nclock should decide; the endpoint never read it, so the field was dead and\nthe docstring described a behaviour the code did not have.\n\nRemoved rather than wired up, because the claim was also wrong. The\nauthority mints the lease, so letting it also assert the time against which\nits own expiry is judged makes the TTL vacuous from the executor's side. An\nindependent freshness check is one of the few things the second domain can\ncontribute on its own, and it is worth more than agreement between clocks.\n\nThere is deliberately no ``actor_identity`` field. An earlier version had\none and the endpoint preferred it over the authenticated principal, so a\ncaller holding a stolen lease and the hop credential could assert the\nvictim's identity and satisfy the lease's own actor check -- the exact\nbinding that check exists to enforce (NEGATIVE_RESULTS section 48).\n\nThe actor now comes from the lease, where it is inside the Ed25519-signed\npayload. That is authenticated material: only the authority can produce it,\nand it cannot be altered without invalidating the signature.\n\nResidual, and stated rather than implied: the hop's transport authenticates\nthe AUTHORITY, not the end actor. The executor therefore trusts the\nauthority's signed assertion about who acted. Anchoring the end actor to\nits own transport credential remains open (CAP-013).",
         "properties": {
+          "capability_set": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capability Set"
+          },
           "lease": {
             "additionalProperties": true,
             "title": "Lease",
@@ -1029,6 +1072,36 @@
         "title": "HealthResponse",
         "type": "object"
       },
+      "LoopSafetyResetRequest": {
+        "description": "Start a context's loop safety count again, under a named policy decision.\n\n``policy_ref`` names the decision that authorised the reset (a review item,\ndecision envelope or ticket id). The earlier events stay in the store and\nthe reset itself is appended to the tenant chain, so a reset can always be\ntraced to the person and the decision behind it.",
+        "properties": {
+          "context_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Context Id",
+            "type": "string"
+          },
+          "policy_ref": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Policy Ref",
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "context_id",
+          "policy_ref",
+          "reason"
+        ],
+        "title": "LoopSafetyResetRequest",
+        "type": "object"
+      },
       "PepResult": {
         "properties": {
           "allowed": {
@@ -1046,6 +1119,39 @@
           "reason"
         ],
         "title": "PepResult",
+        "type": "object"
+      },
+      "PlanProposal": {
+        "description": "The premises a write's plan rests on (Q7.5).\n\n``reads`` maps each resource the plan read to the revision it saw;\n``depends_on`` names the reads this write depends on. The server signs\nthe plan into the lease and re-reads the dependencies immediately before\nthe write, so a plan whose premises moved is refused as ``stale_plan``.",
+        "properties": {
+          "depends_on": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 256,
+            "title": "Depends On",
+            "type": "array"
+          },
+          "plan_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Plan Id",
+            "type": "string"
+          },
+          "reads": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "maxProperties": 256,
+            "title": "Reads",
+            "type": "object"
+          }
+        },
+        "required": [
+          "plan_id",
+          "reads"
+        ],
+        "title": "PlanProposal",
         "type": "object"
       },
       "PolicyDecision": {
@@ -1359,6 +1465,19 @@
             "title": "Arguments",
             "type": "object"
           },
+          "context_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Context Id"
+          },
           "derivations": {
             "anyOf": [
               {
@@ -1397,6 +1516,16 @@
             ],
             "title": "Intent Ref"
           },
+          "plan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PlanProposal"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "rollback_available": {
             "anyOf": [
               {
@@ -1423,6 +1552,32 @@
             "default": "prod",
             "title": "Target Environment",
             "type": "string"
+          },
+          "task_id": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Id"
+          },
+          "task_type": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Type"
           },
           "tool_name": {
             "maxLength": 200,
@@ -2036,6 +2191,92 @@
         ]
       }
     },
+    "/v1/execution/capabilities": {
+      "get": {
+        "description": "The agent-facing tool list for one task (WS8 Q8.3).\n\nResolved from the deployment's capability policy for the AUTHENTICATED\nprincipal and tenant, exactly as the execution routes resolve it, and\nprojected as an OpenAI tool list. Everything outside the set is absent.\nThe same set is enforced again on every call, so a client that ignores\nthis list gains nothing.",
+        "operationId": "capability_projection_v1_execution_capabilities_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "task_type",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Task Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "target_environment",
+            "required": false,
+            "schema": {
+              "default": "prod",
+              "title": "Target Environment",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Capability Projection V1 Execution Capabilities Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The tools this principal may see for the task, projected for an agent."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Missing or invalid bearer token."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Role lacks the required capability for this tenant."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "No capability policy is configured."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Capability Projection",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
     "/v1/execution/dispatch-leased": {
       "post": {
         "description": "The execution domain's half of the custody split (ADR-A).\n\nThis process holds the PUBLIC lease verification key and the downstream\ncredentials. It cannot mint authority -- ``ExecutionLease.issue`` refuses\nwhen only verification material is present -- and it does not try to. It\nreceives a lease from the authority domain and either dispatches exactly\nwhat that lease binds, or refuses.\n\nThe verification is not a formality and not a signature check alone.\n``GovernedToolDispatcher.dispatch`` re-derives the argument hash, compares\nevery bound field against this concrete call, and consumes the nonce in\ndurable tenant-scoped state before the tool runs. An authority-signed lease\npresented for a different call is refused here.",
@@ -2106,6 +2347,98 @@
           }
         },
         "summary": "Dispatch Leased",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
+    "/v1/execution/effects": {
+      "post": {
+        "description": "One mediated effect, served by the effect domain (NTA-2 phase 3).\n\nThe body carries the lease, the lease-bound capability set, the\ncapability, the resource and the arguments. The effect domain verifies\nthe lease, checks it was dispatched, derives the authority from its own\nToolSpec ceiling and answers REFUSED or EXECUTED; it never raises for a\nrefusal.",
+        "operationId": "serve_effect_v1_execution_effects_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Payload",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Serve Effect V1 Execution Effects Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Serve Effect",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
+    "/v1/execution/effects/close": {
+      "post": {
+        "description": "End a mediated execution in the effect domain.",
+        "operationId": "close_effects_v1_execution_effects_close_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Payload",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Close Effects V1 Execution Effects Close Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Close Effects",
         "tags": [
           "execution"
         ]
@@ -2273,6 +2606,155 @@
           }
         },
         "summary": "Execute Accepted",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
+    "/v1/execution/loop-safety/reset": {
+      "post": {
+        "description": "Reset a context's loop safety count under a named policy decision.\n\nReviewer capability, as for revoking a principal: it is a human decision\nabout authority. The store keeps the earlier events, and the reset is\nappended to the tenant chain with the reviewer, the policy reference and\nthe reason. The agent whose history it is has no route to this.",
+        "operationId": "loop_safety_reset_v1_execution_loop_safety_reset_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoopSafetyResetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Loop Safety Reset V1 Execution Loop Safety Reset Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Reset recorded; the context's count starts again."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Missing or invalid bearer token."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Role lacks the required capability for this tenant."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Loop safety store unavailable."
+          }
+        },
+        "summary": "Loop Safety Reset",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
+    "/v1/execution/loop-safety/{context_id}": {
+      "get": {
+        "description": "Read a context's loop safety state (Q7.2). Reviewer capability.",
+        "operationId": "loop_safety_state_v1_execution_loop_safety__context_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "context_id",
+            "required": true,
+            "schema": {
+              "title": "Context Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Loop Safety State V1 Execution Loop Safety  Context Id  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "What this context has accumulated since its last reset."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Missing or invalid bearer token."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Role lacks the required capability for this tenant."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Loop safety store unavailable."
+          }
+        },
+        "summary": "Loop Safety State",
         "tags": [
           "execution"
         ]

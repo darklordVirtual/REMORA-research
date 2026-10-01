@@ -9,6 +9,57 @@
   runner = the thirteen remora-only enforcement suites (~10 s). Runs on
   Linux/WSL (`mutmut run`); mutmut has no native Windows support.
 
+## Why this metric, and what it cannot say
+
+Mutation testing dates to DeMillo, Lipton and Sayward (1978), who proposed
+seeding small faults into a program and asking whether the existing tests
+notice. Two assumptions carry the method. Competent programmers write code that is
+close to correct, so realistic faults are small edits. Simple faults couple to
+complex ones, so a suite that catches the small edits tends to catch the larger
+ones. Jia and Harman (2011) survey the four decades
+between that paper and modern tooling, including the cost controls this
+configuration relies on (a scoped mutant pool, a selected runner).
+
+Two limits bound what the numbers in this document mean, and both are
+load-bearing for how the gate is written:
+
+- **Equivalent mutants are undecidable in general** (Budd and Angluin, 1982).
+  A mutant that changes no observable behaviour can never be killed, so a
+  100% kill rate is not the target and a surviving mutant is not by itself a
+  defect. This is why the gate ratchets against a committed baseline of named
+  survivors instead of enforcing a score. A number would force the equivalent
+  mutants to be argued away. A named set can simply carry them.
+- **The kill rate is a proxy for fault detection, not a measurement of it.**
+  Just et al. (2014) found mutant detection correlated with real fault
+  detection more strongly than coverage did. Papadakis et al. (2018) then
+  showed that much of that correlation is explained by test-suite size, so the
+  residual signal is weaker than the headline suggests. The honest reading of the tables above is comparative: this suite against
+  itself over time, on one scoped set of modules. It is not a defect-density
+  estimate, and no claim in the claim register derives a guarantee from it.
+
+A third limit is specific to this setup rather than to the method, and it has
+now produced two separate false readings: **the measurement describes the
+runner, not the suite**. A kill test the runner never executes kills nothing
+(round three above), and a test module missing from
+`pytest_add_cli_args_test_selection` makes every mutant it would have killed
+report as a survivor. `tests/test_mutation_sweep_selection.py` turns that
+from a lesson into a gate.
+
+References:
+
+- R. A. DeMillo, R. J. Lipton, F. G. Sayward. "Hints on Test Data Selection:
+  Help for the Practicing Programmer." *IEEE Computer* 11(4):34-41, 1978.
+- T. A. Budd, D. Angluin. "Two notions of correctness and their relation to
+  testing." *Acta Informatica* 18(1):31-45, 1982.
+- Y. Jia, M. Harman. "An Analysis and Survey of the Development of Mutation
+  Testing." *IEEE Transactions on Software Engineering* 37(5):649-678, 2011.
+- R. Just, D. Jalali, L. Inozemtseva, M. D. Ernst, R. Holmes, G. Fraser. "Are
+  mutants a valid substitute for real faults in software testing?" *FSE*,
+  2014.
+- M. Papadakis, D. Shin, S. Yoo, D.-H. Bae. "Are mutation scores correlated
+  with real fault detection? A large scale empirical study on the
+  relationship between mutants and real faults." *ICSE*, 2018.
+
 ## Measured results (2026-08-25)
 
 | Run | Mutants | Killed | Survived | No tests | Kill rate |
@@ -20,6 +71,7 @@
 | Covered lines, after the dispatcher-contract round | 811 | **518** | **293** | 0 | **63.9%** |
 | Baseline sweep for the scheduled job (config committed) | 816 | 525 | **291** | 0 | 64.3% |
 | After the governance-event contract round | 826 | **658** | **168** | 0 | **79.7%** |
+| After the selection repair and the 2026-09-21 rounds | 1,909 | **1,615** | **294** | 0 | **84.6%** |
 
 Round three (`tests/test_dispatcher_contract.py`) is the instructive one to
 read carefully: the headline `dispatch` cluster went 157 → **159** while
@@ -74,6 +126,46 @@ covered-lines rate is the honest test-quality signal for this runner: on
 lines these suites do execute, roughly half of small semantic changes go
 unnoticed.
 
+## The 2026-09-21 re-measurement
+
+The sweep had not executed since the project was renamed to
+`remora-assurance`. Its install step uninstalled a distribution name that no
+longer existed, so the installed package kept shadowing the mutated sources.
+The guard described in caveat 1 then refused to run. The first sweep after
+that fix reported 226 survivors absent from the baseline, which reads as a
+collapse and is not one.
+
+Read the pool, not the count. The mutant pool went 826 to 1,909: the four
+modules acquired task binding, runtime trust identity, toolspec binding and
+proposal binding in the intervening month, and `mutate_only_covered_lines`
+grows the pool as coverage grows. The kill rate went 79.7% to 84.6% across the
+same interval. 145 of the new survivors sat in 13 functions with no baseline
+entry at all, which is new code, not regressed code.
+
+Two repairs and two kill rounds, each re-measured on the runner:
+
+| Step | New survivors vs the old baseline |
+|---|---|
+| Install defect fixed, sweep executes again | 226 |
+| Test selection extended from 17 to 38 modules | 229 |
+| Context/observation golden vectors + `check_bindings` contract | 194 |
+| Lease verification completeness + signed-preimage invariants | 181 |
+
+The selection repair is the instructive one because it did **not** help. The
+frozen 17-file runner was missing 21 modules that import the mutated code.
+Handing them to the mutants moved the count by +3. The hypothesis that the
+survivors were a measurement artefact was wrong, and the measurement says so.
+What did work was the technique this document already recorded. Freeze the
+bytes (`AuthorizationContext.hash`, `_hash_observation`, the lease preimage).
+Assert the exact refusal literal per branch, not the fact of refusal. 48 mutants died across the two rounds, and the clusters they came
+from went to zero or near it.
+
+The residue is the shape described above: governance-event payload literals,
+default parameters callers always override, and exception-message content. The
+baseline now records 294 named survivors rather than 168. That is a larger set
+over a pool more than twice the size, not an accepted regression. The
+per-function breakdown is in the baseline file itself.
+
 ## Survivors on covered lines, by function (pre-#405 baseline, 64.3 %)
 
 Historical table kept for the delta analysis above; the current numbers
@@ -123,6 +215,108 @@ defect the paper's wire-format claims depend on.
   review 2026-08-26 caught exactly that drift here).
 - Coverage gap to the 95% targets for `remora/enforcement` (84.9) and
   `remora/execution` (93.7); floors are pinned at measured levels.
+## Evidence-sufficiency checker sweep (2026-09-30)
+
+A second subject, measured the same way and ratcheted the same way. The
+subject is `conformance/evidence-sufficiency-v1/checker.py` (341 lines, sha256
+`c4ca50ae…`, frozen since v1). The runner is the v1.3 corpus in the three
+projections of the external runs. The tool is mutmut 3.8.0 with default
+operators, in a sandbox that `scripts/mutation_evidence_sufficiency.py`
+builds. The checker is imported by path rather than as a package, so it needs
+its own sandbox and cannot use the `[tool.mutmut]` block above. The design
+and the decisions are in `docs/design/evidence-sufficiency-v1.3.md`; the
+finding is NEGATIVE_RESULTS.md §65.
+
+| Run | Mutants | Killed | Survived | Survivors by family |
+|---|---:|---:|---:|---|
+| v1.2 corpus | 489 | 377 | 112 | A 41, B 40, C 12, D 8, E 3, F 7, G 1 |
+| v1.3 corpus | 489 | 469 | 20 | C 12, F 7, G 1 |
+
+The first row reproduces with `python scripts/mutation_evidence_sufficiency.py --scoring-suite evidence-sufficiency-v1.2`.
+The second reproduces with the default command. mutmut refuses native Windows, so both were reproduced in a `python:3.12-slim` container; the raw `mutmut results --all` text of each is in `artifacts/evidence-sufficiency-mutation-2026-09-30/`.
+
+Every survivor of the v1.3 run is named in
+`docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt`, and every one
+is argued equivalent under the contract the corpus pins. The argument is per
+family, so a reviewer can test the clause rather than the count:
+
+| Family | Mutant ids | Why it is equivalent under the pinned contract |
+|---|---|---|
+| C, message text | `x_assess__mutmut_6` to `_10`, `_14` to `_16`; `x_validate_json__mutmut_15` to `_18` | D-7 pins the exception class for malformed input, not the message. A test that asserted the wording would pin prose, and the corpus refuses to |
+| F, canonical string form | `x_canonical__mutmut_4`, `_5`, `_8`, `_9`, `_11`, `_12`, `_13` | `canonical()` is used for equality only. Separators and `ensure_ascii` change the text of the encoding and never the equality relation on JSON values; MR-11 pins the relation, not the text |
+| G, `and` for `or` in `_result` | `x__result__mutmut_3` | reachable only when an inconclusive reason is missing from the guidance table or a decisive reason is present in it. R-5 (`undeclared_guidance`, `orphan_guidance`) fails on either, so the branch the mutant changes is dead under the corpus's own invariant |
+
+The four families that were real gaps (A, B, D, E, 92 mutants) are killed by
+the v1.3 additions. `tests/test_evidence_sufficiency_v1_3.py` keeps one
+representative of each as a fault that v1.3 must fail and v1.2 must not.
+The remaining caveat is the one at the top of this document: the sweep
+measures the corpus against mutmut's operators, and a fault the tool never
+generates is not measured.
+
+### A second operator set (2026-09-30)
+
+To measure the corpus against faults it was not tuned to,
+`scripts/mutation_evidence_sufficiency_ast.py` applies nine operators mutmut
+does not have and a fixed-seed sample of 200 second-order pairs. Every mutant
+is a text edit on the checker's source, scored in process by the v1.3
+runner. Each kill carries the set of checks that produced it (D-15 of the
+v1.3 spec).
+
+| Run | Mutants | Killed | Survived | Kills resting on one check | `--corpus` |
+|---|---:|---:|---:|---|---|
+| v1.3 before R18-R20 and the K1 cases | 905 | 898 | 7 | 57: reference model 42, rejection contract 14, crash 1 | `first-run` |
+| v1.3 with R18-R20, before the K1 cases | 905 | 901 | 4 | 60: reference model 42, rejection contract 17, crash 1 | `without-k1` |
+| v1.3 as merged | 905 | 901 | 4 | 18: rejection contract 17, crash 1 | `merged` (default) |
+
+The first row first read "60: reference model 42, rejection contract 17", the figure of the second row (NEGATIVE_RESULTS.md §67).
+The two middle states were never committed on their own; the script rebuilds each by removal, and the raw output of every row is in `artifacts/evidence-sufficiency-mutation-2026-09-30/`.
+
+Per operator, as merged: delete_statement 86/86, swap_adjacent_guards 21/24,
+comparison_variant 96/96, reason_confusion 236/236, status_polarity 16/16,
+field_confusion 197/197, state_comparison 9/10, negate_condition 33/33,
+type_vocabulary 7/7, second order 200/200. The 42 kills that rested on the
+reference model alone were typed-premise faults on premises no authored case
+had typed (NEGATIVE_RESULTS.md §66); they became the K1 cases. The three
+`type_vocabulary` survivors of the first run were `isinstance` relaxations of
+the exact type checks; rejections R18 to R20 kill them.
+
+| Mutant id | Why it is equivalent under the pinned contract |
+|---|---|
+| `state_comparison:postcondition_observed:5` | `canonical()` output starts and ends with a JSON token, never whitespace, so `.strip()` on both sides is the identity on every value the vocabulary admits |
+| `swap_adjacent_guards:assess:0` | the premise-source guard and the claim guard both raise `ValueError`; swapping them changes which message is raised when both fail, and D-7 pins the class, not the message |
+| `swap_adjacent_guards:validate_json:0` | the scalar guard and the list guard are mutually exclusive on `type(value)`, so their order cannot change any outcome |
+| `swap_adjacent_guards:validate_json:1` | the list guard and the mapping guard are mutually exclusive in the same way |
+
+### Specification mutation (2026-09-30)
+
+Both sets above mutate `checker.py`. `scripts/spec_mutation_evidence_sufficiency.py` mutates the rules in `model.json` instead and runs each mutant model as a checker.
+Equivalence is computed, not argued: the script enumerates eight premise value classes, three for premises no edit touches.
+The catalogue and the pass criterion were pre-registered in section 13 of the v1.3 spec and pushed before the first score.
+
+| Set | Mutants | Equivalent | Live | Row 1 | Row 3 |
+|---|---:|---:|---:|---:|---:|
+| first order | 446 | 54 | 392 | 380 | 392 |
+| second order | 300 | 2 | 298 | 298 | 298 |
+
+The twelve row-1 survivors are named in `docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt`.
+They are open gaps, not equivalence labels (NEGATIVE_RESULTS.md §68). The gate fails on a new survivor on either row, and on a catalogue whose digest differs from the baseline header.
+
+Evidence-sufficiency v1.4 adds the cases a rule-coverage criterion derives from `model.json` (v1.3 spec, section 14).
+On v1.4 the same catalogue leaves no survivor on either row, and the gate now scores v1.4 against an empty baseline.
+A held-out catalogue, pushed before v1.4 existed, adds two guard-placement operators and 300 third-order mutants.
+
+| Catalogue | Corpus | Live | Row 1 | Row 3 |
+|---|---|---:|---:|---:|
+| first, first order | v1.3 | 392 | 380 | 392 |
+| first, first order | v1.4 | 392 | 392 | 392 |
+| held-out, first order | v1.3 | 19 | 18 | 19 |
+| held-out, first order | v1.4 | 19 | 19 | 19 |
+| held-out, third order | v1.3 | 300 | 300 | 300 |
+| held-out, third order | v1.4 | 300 | 300 | 300 |
+
+The held-out rows show how little that catalogue could tell the two corpora apart (NEGATIVE_RESULTS.md §69).
+The two code-level gates above still score v1.3; v1.4 runs every v1.3 check on a superset of its cases.
+
 ## CI integration (wired)
 
 The scheduled job `.github/workflows/mutation.yml` (Mondays 05:00 UTC +

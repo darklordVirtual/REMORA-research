@@ -98,8 +98,8 @@ documents:
   topic: EVIDENCE_OF_CAPABILITY_md
   code_synced: verified
   verdict: current
-  last_audited: '2026-07-26'
-  last_reviewed: '2026-07-26'
+  last_audited: '2026-09-28'
+  last_reviewed: '2026-09-28'
   audience:
   - researchers
 - id: DOC-017
@@ -2455,7 +2455,155 @@ documents:
   audience:
   - maintainers
   - evaluators
+- id: DOC-338
+  path: docs/14-remora-prime-architecture.md
+  status: proposal
+  code_synced: unreviewed
+  verdict: pending
+  last_reviewed: '2026-09-22'
+  audience:
+  - researchers
+  - maintainers
+- id: DOC-339
+  path: docs/integrations/jev_decision_provider.md
+  status: canonical
+  topic: docs_integrations_jev_decision_provider_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-09-24'
+  last_reviewed: '2026-09-24'
+  audience:
+  - integrators
+  - maintainers
+- id: DOC-340
+  path: docs/design/remora-quality-program-v1.md
+  status: proposal
+  topic: docs_design_remora-quality-program-v1_md
+  code_synced: verified
+  verdict: pending
+  last_reviewed: '2026-09-27'
+  audience:
+  - maintainers
+  - evaluators
+  - integrators
+- id: DOC-341
+  path: docs/assurance/results_manifest_v1.yaml
+  status: canonical
+  topic: docs_assurance_results_manifest_v1_yaml
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-09-28'
+  last_reviewed: '2026-09-28'
+  audience:
+  - maintainers
+  - evaluators
+- id: DOC-342
+  path: docs/assurance/ledger_binding_baseline.json
+  status: generated
+  generated_by: scripts/check_ledger_bindings.py
+  topic: docs_assurance_ledger_binding_baseline_json
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-09-28'
+  last_reviewed: '2026-09-28'
+  audience:
+  - maintainers
+  - evaluators
+- id: DOC-343
+  path: docs/assurance/far_claim_size_baseline.json
+  status: canonical
+  topic: docs_assurance_far_claim_size_baseline_json
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-09-28'
+  last_reviewed: '2026-09-28'
+  audience:
+  - maintainers
+  - evaluators
+- id: DOC-344
+  path: docs/design/capability-minimized-execution-v1.md
+  status: canonical
+  topic: docs_design_capability-minimized-execution-v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-09-28'
+  last_reviewed: '2026-09-28'
+  audience:
+  - maintainers
+  - evaluators
+  - integrators
+- id: DOC-345
+  path: docs/security/non-transitivity-of-authority.md
+  status: canonical
+  topic: docs_security_non-transitivity-of-authority_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-09-29'
+  last_reviewed: '2026-09-29'
+  audience:
+  - maintainers
+  - evaluators
+  - integrators
+- id: DOC-346
+  path: conformance/non-transitivity-of-authority-v1/README.md
+  status: canonical
+  topic: conformance_non-transitivity-of-authority-v1_readme_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-09-29'
+  last_reviewed: '2026-09-29'
+  audience:
+  - evaluators
+  - integrators
+- id: DOC-347
+  path: docs/design/authority-preserving-capability-mediation-v1.md
+  status: proposal
+  topic: docs_design_authority-preserving-capability-mediation-v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-09-29'
+  last_reviewed: '2026-09-29'
+  audience:
+  - maintainers
+  - evaluators
+  - integrators
+- id: DOC-348
+  path: docs/design/evidence-sufficiency-v1.1.md
+  status: canonical
+  topic: docs_design_evidence-sufficiency-v1.1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-09-29'
+  last_reviewed: '2026-09-29'
+  audience:
+  - maintainers
+  - evaluators
+- id: DOC-349
+  path: docs/assurance/external_adequacy_evidence_sufficiency_v1.md
+  status: canonical
+  topic: docs_assurance_external_adequacy_evidence_sufficiency_v1_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-09-30'
+  last_reviewed: '2026-09-30'
+  audience:
+  - maintainers
+  - evaluators
+  - researchers
+- id: DOC-350
+  path: docs/design/evidence-sufficiency-v1.3.md
+  status: canonical
+  topic: docs_design_evidence-sufficiency-v1.3_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-09-30'
+  last_reviewed: '2026-09-30'
+  audience:
+  - maintainers
+  - evaluators
+  - researchers
 topics:
+- docs_integrations_jev_decision_provider_md
 - docs_integrations_mcp-gateway_md
 - docs_design_aps-authority-profile-v0_md
 - docs_design_runtime-trust-base-identity-v1_md
@@ -2726,3 +2874,14 @@ topics:
 - docs_assurance_prose_style_baseline_json
 - docs_assurance_credential_topology_yaml
 - docs_assurance_authority_state_topology_yaml
+- docs_design_remora-quality-program-v1_md
+- docs_assurance_results_manifest_v1_yaml
+- docs_assurance_ledger_binding_baseline_json
+- docs_assurance_far_claim_size_baseline_json
+- docs_design_capability-minimized-execution-v1_md
+- docs_security_non-transitivity-of-authority_md
+- conformance_non-transitivity-of-authority-v1_readme_md
+- docs_design_authority-preserving-capability-mediation-v1_md
+- docs_design_evidence-sufficiency-v1.1_md
+- docs_assurance_external_adequacy_evidence_sufficiency_v1_md
+- docs_design_evidence-sufficiency-v1.3_md

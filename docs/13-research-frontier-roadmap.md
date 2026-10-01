@@ -1,14 +1,11 @@
 # 13 — Research Frontier Roadmap (2026-07)
 
-**Status: proposal, with one exception.** Every work package (WP) below is
-unimplemented **except RF-10 slice 1**, which shipped on 2026-08-03 and is
-recorded as CAP-014 in `docs/assurance/capability_register_v1.yaml`
-(`IMPLEMENTED_LIBRARY`, discrimination unmeasured, so no accuracy number may be
-quoted for it). Nothing else in this document is a claim. Every WP follows the
-repo contract: a claim may only enter
-`README.md` / `docs/EVIDENCE_OF_CAPABILITY.md` after its artifact exists on disk, its
-tests pass under `make test` (deterministic, no API keys), and `make audit`
-verifies claim ↔ artifact consistency. Caveats travel with numbers.
+**Status: research roadmap with dated implementation slices.** Individual
+resolution notes and the capability register determine what has shipped;
+proposal text is not a capability claim. RF-13 records the local runtime
+implementation added on 2026-09-27. A claim may only enter `README.md` or
+`docs/EVIDENCE_OF_CAPABILITY.md` after its artifact exists, its tests pass and
+`make audit` verifies claim-to-artifact consistency. Caveats travel with results.
 
 **Method.** Gap analysis of the five load-bearing pillars (evidence, RAG,
 tool-call gating, uncertainty routing, audit) against published work through
@@ -22,7 +19,7 @@ RF-11 was added on 2026-08-10 (master, SHELF-024 VERIFIED_RETRIEVED). The
 "Already in the repo" subsections record what the draft's gap statements had to
 be corrected against.
 
-**Namespace note.** WP identifiers are RF-01…RF-11 (research frontier). The
+**Namespace note.** WP identifiers are RF-01…RF-13 (research frontier). The
 `REM-` prefix is deliberately not used: it is the namespace of
 `docs/assurance/remediation_register.yaml` (REM-001…REM-046, machine-consumed
 by release-profile gating), and roadmap WPs are not remediation items. Where a
@@ -45,6 +42,9 @@ directions; interface stubs only), `docs/11-benchmark-validation-plan.md`
 (external-validation protocol this roadmap's benchmark WPs extend),
 `docs/methods/theoretical_foundations_proposals_v1.md` (registered proposals
 that RF-05 partially restates; cross-referenced there).
+`docs/14-remora-prime-architecture.md` argues that several work packages here
+share one root cause. It sketches an architecture that would subsume them. It
+is registered as a proposal, and nothing in it is implemented.
 
 ## 0. Coverage assessment
 
@@ -1428,7 +1428,54 @@ that WP rather than given an identifier of its own.
 
 ---
 
-Every WP above is a proposal. The claim-hygiene rule applies to this document
+Unresolved work packages remain proposals. The claim-hygiene rule applies to this document
 too: if a WP ships and misses its pre-committed target, the result goes to
 `NEGATIVE_RESULTS.md` with the number and the caveat, and this roadmap gets a
 dated resolution note rather than a silent edit.
+
+
+## RF-13 — Runtime surface, authority paths and effect evidence `[reference implementation]`
+
+**Numbering (2026-09-28).** This package landed in PR #580 as RF-12, an
+identifier the tenant-isolation package above already held. It is RF-13
+from this date; commit messages and PR titles before it say RF-12.
+
+**Resolution (2026-09-27).** The discussion-derived implementation package is
+wired in REMORA's own opt-in reference runtime. RES-013 in the research control
+matrix maps each module, test and artifact; no external publication is adopted
+for this slice.
+
+| Work package | Implemented behavior | Evidence |
+|---|---|---|
+| P0: explicit completeness gap | Global completeness remains NOT_ESTABLISHED; local observations have a separate verdict | Capability register, negative_cases_v1.json |
+| P1: actual runtime observation | Separate configured/discovered/registered/offered/callable fields; process identity; actual served list and dispatcher generations; extra and missing tool checks | test_runtime_surface.py, test_surface_runtime.py |
+| P2: content and execution continuity | Canonical content digests exclude observation time; signed ToolSpec and lease; expiring one-use action/principal binding; registration serialized through dispatch | test_runtime_surface_continuity.py, test_surface_reference_integration.py |
+| P2: evidence sufficiency | Runtime outcome, receipt binding and effect verdict remain separate; retained maps/rules rechecked against trusted contract and dispatch; positive and negative evidence have the same burden | test_surface_effect_evidence.py, reference_runtime_v1.json |
+| P3: bounded authority analysis | Tool-to-credential/target/network/operation/effect edges; wider scopes and alternate paths detected; incomplete inventory remains unknown | test_surface_authority.py, reference_runtime_v1.json |
+
+**Run and reproduce.** `python scripts/evaluate_runtime_surface.py --check`
+executes the signed reference flow against temporary files and compares its
+verdicts to `artifacts/runtime_surface/reference_runtime_v1.json`. The docgate
+suite independently regenerates this artifact in CI. To inspect a deliberate
+behavior change, run without `--check`, review the resulting diff and run the
+behavior tests; regenerating alone does not establish correctness.
+
+**Integration contract.** `SignedSurfaceRuntime` loads and verifies a deployment
+ToolSpec bundle. The deployment registers an independently observed `RuntimeTool`
+with the actual callable. `offered_tools()` is the list served to the local
+agent; `assess()` creates the action-bound handle, and `dispatch()` still requires
+an `ExecutionLease`. Default `shadow` records findings; explicit `enforce` adds
+surface and authority refusals. `record_effect()` accepts a readback only from
+a configured verifier principal, binds it to the retained postcondition and
+actual execution, and retains the complete evidence for `recheck_effect()`.
+The reference file provider exercises that sequence without external services.
+
+**Boundaries.** This is a reference path, not the default REST API. The host and
+deployment provider remain trusted. Registration generations detect replacement,
+not mutations inside a callable's closure or imported dependency. Authority
+scopes are provider observations, not credential extraction. The finite graph
+can detect an observed alternative path; it cannot prove absence outside the
+inventory. The process-local audit is exportable and tamper-detectable, not
+externally anchored or durable across restart. Production credential separation,
+external runtime adapters and independent deployment validation remain external
+work under the existing remediation gates. No release posture is promoted.

@@ -33,7 +33,11 @@ sys.path.insert(0, str(ROOT))
 
 from remora.selective.confidence_sequence import far_monitoring_report  # noqa: E402
 
-INPUT = ROOT / "results" / "longitudinal_stability_v1.json"
+#: The cycle-level REM-020 window this bound was computed on. The live
+#: record at results/longitudinal_stability_v1.json was rewritten on
+#: 2026-07-17 to the 7-day closure criterion and no longer carries cycle
+#: counts, so the bound reads the archived window it was computed from.
+INPUT = ROOT / "results" / "superseded_rem020_cycle_window_2026-06-30" / "longitudinal_stability_v1.json"
 OUTPUT = ROOT / "results" / "far_confidence_sequence_v1.json"
 
 
@@ -57,6 +61,9 @@ def main() -> int:
     parser.add_argument("--threshold", type=float, default=0.05,
                         help="gate threshold the bound is compared against")
     args = parser.parse_args()
+    if (args.k is None) != (args.n is None):
+        # One override alone would be silently dropped for the artifact value.
+        parser.error("--k and --n must be given together")
 
     if args.k is not None and args.n is not None:
         k, n, source = args.k, args.n, "cli_override"
@@ -65,6 +72,10 @@ def main() -> int:
             print(f"[FAIL] missing input artifact: {INPUT}")
             return 1
         data = json.loads(INPUT.read_text(encoding="utf-8"))
+        if "n_cycles_analyzed" not in data:
+            print(f"[FAIL] {INPUT.relative_to(ROOT)} carries no n_cycles_analyzed; "
+                  "this bound needs the cycle-level window. Pass --k/--n explicitly.")
+            return 1
         n = int(data["n_cycles_analyzed"])
         if float(data.get("far_max", 1.0)) != 0.0:
             print("[FAIL] far_max != 0.0 in input artifact — derive k explicitly "

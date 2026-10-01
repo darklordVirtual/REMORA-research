@@ -1,0 +1,122 @@
+{
+  "artifact": "evidence-sufficiency-v1.3",
+  "rule": "Each relation names a transformation of a verdict's inputs and the part of the verdict that must not change under it. The runner executes every declared relation over the whole corpus and fails on a relation it does not implement or implements without declaring, so this file and the runner cannot drift apart. The relations are metamorphic relations in the sense of Chen, Cheung and Yiu (1998): they check the checker without an oracle for the right answer, by comparing outputs across related inputs.",
+  "scopes": [
+    null,
+    {},
+    {"kind": "synthetic_fixture", "bounded": true},
+    {"kind": "other", "tenant": "t1", "bounded": false, "case": "MR"}
+  ],
+  "default_scope": {"kind": "synthetic_fixture", "bounded": true},
+  "envelope_keys": ["claim", "status", "reason", "scope", "missing_evidence"],
+  "optional_envelope_keys": ["decisive_if"],
+  "acceptance_premises": {
+    "admission_accounting": [
+      "effect_source_accepted",
+      "effect_seen",
+      "scope_accepted",
+      "admission_source_accepted",
+      "admission_matches",
+      "mandatory_admission",
+      "window_finalized",
+      "admission_coverage_complete"
+    ],
+    "tested_route_enforcement": [
+      "route_observation_accepted",
+      "same_protected_operation",
+      "outside_required_pep",
+      "effect_observation_accepted",
+      "effect_window_complete",
+      "valid_control_same_context",
+      "required_boundary_refusal_accepted"
+    ],
+    "postcondition_observed": [
+      "readback_available",
+      "source_accepted",
+      "same_target_and_predicate",
+      "fresh_in_declared_window",
+      "settlement_reached"
+    ]
+  },
+  "observation_values": {
+    "admission_accounting": ["admission_present"],
+    "tested_route_enforcement": ["protected_effect_observed"],
+    "postcondition_observed": ["expected_state", "observed_state", "tool_reports_success"]
+  },
+  "distinct_state_pairs": [
+    [1, true],
+    [0, false],
+    ["1", 1],
+    ["true", true],
+    [null, "null"],
+    ["", null],
+    [[], {}],
+    [[], null],
+    [{"a": 1}, {"a": true}],
+    [{"a": 1}, {"a": "1"}],
+    [{"a": null}, {}],
+    [["a"], "a"],
+    [[1, 2], [2, 1]],
+    [[[1], 2], [1, [2]]],
+    ["closed", "Closed"],
+    ["closed", "closed "],
+    ["é", "é"]
+  ],
+  "relations": [
+    {
+      "id": "MR-1",
+      "name": "claim_is_echoed",
+      "invariant": "verdict.claim equals the claim that was assessed, for every case and every scope"
+    },
+    {
+      "id": "MR-2",
+      "name": "scope_is_echoed_not_consulted",
+      "invariant": "verdict.scope equals the scope given (the default when none or empty is given), and status, reason and guidance are identical across every declared scope"
+    },
+    {
+      "id": "MR-3",
+      "name": "envelope_shape",
+      "invariant": "as_dict() carries exactly the envelope keys, decisive_if only when the status is not_established, missing_evidence as a list of strings and scope as a dict"
+    },
+    {
+      "id": "MR-4",
+      "name": "observation_key_order_is_irrelevant",
+      "invariant": "the observations in reversed insertion order give the same verdict"
+    },
+    {
+      "id": "MR-5",
+      "name": "unrelated_field_is_ignored",
+      "invariant": "an added observation field the checker does not read gives the same verdict"
+    },
+    {
+      "id": "MR-6",
+      "name": "assessment_is_deterministic",
+      "invariant": "assessing the same inputs twice gives equal verdicts"
+    },
+    {
+      "id": "MR-7",
+      "name": "inputs_are_not_mutated_or_aliased",
+      "invariant": "the observations and scope objects are unchanged after assessment, and changing the caller's scope object afterwards does not change the verdict's scope"
+    },
+    {
+      "id": "MR-8",
+      "name": "verdict_is_immutable",
+      "invariant": "assigning to a verdict field raises FrozenInstanceError"
+    },
+    {
+      "id": "MR-9",
+      "name": "state_comparison_is_symmetric",
+      "invariant": "swapping expected_state and observed_state gives the same status and reason"
+    },
+    {
+      "id": "MR-10",
+      "name": "acceptance_premise_flip_never_inverts_polarity",
+      "invariant": "setting one acceptance premise of a decisive case to false never yields the opposite decisive status (it may yield not_established or leave the verdict unchanged)"
+    },
+    {
+      "id": "MR-11",
+      "name": "canonical_separates_distinct_states_and_ignores_key_order",
+      "invariant": "every declared distinct pair has distinct canonical forms, and every mapping state value in the corpus has the same canonical form under any key order at any depth"
+    }
+  ]
+}

@@ -245,3 +245,63 @@ def test_the_gate_never_reads_an_environment_value() -> None:
                 f"environment access at line {node.lineno}: the gate reads "
                 "credential NAMES from source, never values"
             )
+
+
+# -- Direct access from governed tool code (NTA-2 phase 3, design section 16) --
+
+def _direct(register: dict) -> dict:
+    return register["direct_access"]
+
+
+def test_the_research_registry_declares_its_filesystem_access(register: dict) -> None:
+    declared = {(d["module"], d["interface"]) for d in _direct(register)["declared"]}
+    assert ("servers/tool_registry_research.py", "filesystem") in declared
+
+
+def test_undeclared_direct_access_fails(register: dict) -> None:
+    broken = copy.deepcopy(register)
+    _direct(broken)["declared"] = [
+        d for d in _direct(broken)["declared"]
+        if d["module"] != "servers/tool_registry_research.py"]
+    failures = gate.check(broken)
+    assert any("servers/tool_registry_research.py" in f and "filesystem" in f
+               and "undeclared" in f for f in failures), failures
+
+
+def test_a_stale_declaration_fails(register: dict) -> None:
+    broken = copy.deepcopy(register)
+    _direct(broken)["declared"].append({
+        "module": "servers/tool_registry_research.py", "interface": "network",
+        "reason": "pretend"})
+    assert any("stale" in f and "network" in f for f in gate.check(broken))
+
+
+def test_a_declaration_needs_a_reason(register: dict) -> None:
+    broken = copy.deepcopy(register)
+    for d in _direct(broken)["declared"]:
+        d["reason"] = ""
+    assert any("reason" in f for f in gate.check(broken))
+
+
+def test_a_new_registry_cannot_escape_the_scan(register: dict, tmp_path, monkeypatch) -> None:
+    """Discovery is by glob, so a registry nobody listed is still scanned."""
+    found = gate.governed_tool_modules(_direct(register))
+    assert "servers/tool_registry_research.py" in found
+
+
+@pytest.mark.parametrize("source, interfaces", [
+    ("import requests\n", {"network"}),
+    ("from urllib import request\n", {"network"}),
+    ("import subprocess\n", {"process"}),
+    ("import os\nos.system('x')\n", {"process"}),
+    ("import sqlite3\n", {"database"}),
+    ("import boto3\n", {"cloud"}),
+    ("open('f').read()\n", {"filesystem"}),
+    ("from pathlib import Path\nPath('x').write_text('y')\n", {"filesystem"}),
+    ("from pathlib import Path\nPath('x').name\n", set()),
+    ("import json\njson.dumps({})\n", set()),
+])
+def test_the_privileged_interface_scan(tmp_path, source, interfaces) -> None:
+    path = tmp_path / "m.py"
+    path.write_text(source)
+    assert gate.privileged_interfaces(path) == interfaces

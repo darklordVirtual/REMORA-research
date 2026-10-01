@@ -1,0 +1,57 @@
+{
+  "implementer": "mr3",
+  "style": "nested-conditional",
+  "files_read": [
+    "SPEC.md"
+  ],
+  "variants": [
+    {
+      "file": "variant_01.py",
+      "misreading": "admission_accounting guard 1 accepts either effect_source_accepted or effect_seen instead of requiring both."
+    },
+    {
+      "file": "variant_02.py",
+      "misreading": "admission_accounting treats an unknown admission_present as refuted, merging the closed-world absence branch with the unknown case."
+    },
+    {
+      "file": "variant_03.py",
+      "misreading": "admission_accounting checks window_finalized before mandatory_admission in the absence branch."
+    },
+    {
+      "file": "variant_04.py",
+      "misreading": "admission_accounting computes the coverage flag from the copy-pasted window_finalized key."
+    },
+    {
+      "file": "variant_05.py",
+      "misreading": "tested_route_enforcement uses truthiness for protected_effect_observed, so 1 or \"true\" counts as an observed effect."
+    },
+    {
+      "file": "variant_06.py",
+      "misreading": "tested_route_enforcement omits the required_boundary_refusal_accepted guard before crediting a refusal."
+    },
+    {
+      "file": "variant_07.py",
+      "misreading": "tested_route_enforcement reports a violation from an observed effect before checking that the effect observation was accepted."
+    },
+    {
+      "file": "variant_08.py",
+      "misreading": "tested_route_enforcement compares route_observation_accepted with == True, so the integer 1 counts as holding."
+    },
+    {
+      "file": "variant_09.py",
+      "misreading": "postcondition_observed compares states with Python ==, so True equals 1 across JSON types."
+    },
+    {
+      "file": "variant_10.py",
+      "misreading": "postcondition_observed treats a present null state value as missing."
+    },
+    {
+      "file": "variant_11.py",
+      "misreading": "postcondition_observed checks settlement_reached before fresh_in_declared_window."
+    },
+    {
+      "file": "variant_12.py",
+      "misreading": "postcondition_observed compares lists as unordered collections instead of element by element in order."
+    }
+  ]
+}

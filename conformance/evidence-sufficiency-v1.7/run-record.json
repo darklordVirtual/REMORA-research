@@ -1,0 +1,3070 @@
+{
+  "api_differential": {
+    "by_projection": {},
+    "failures": [],
+    "inputs": 2000,
+    "projections": 2000
+  },
+  "api_surface": {
+    "failures": [],
+    "names": 9
+  },
+  "authored_expectations": {
+    "by_origin": {
+      "G1": 4,
+      "G2": 2,
+      "G3": 14,
+      "G4": 3,
+      "G5": 1,
+      "H1": 3,
+      "I1": 3,
+      "K1": 23,
+      "L1": 22,
+      "N1": 274,
+      "v1": 26
+    },
+    "matched": 375,
+    "note": "expectation matches are regression checks, not a conformance score",
+    "total": 375
+  },
+  "call_sequences": {
+    "calls": 1800,
+    "failures": [],
+    "sequences": 300
+  },
+  "case_guidance": {
+    "A01": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A02": {
+      "decisive_if": "justify capture/export completeness for every admission stream in scope",
+      "missing_evidence": [
+        "complete admission coverage for the bounded scope"
+      ]
+    },
+    "A03": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A04": {
+      "decisive_if": "close the interval under a stated finalization/watermark rule",
+      "missing_evidence": [
+        "finalized observation interval"
+      ]
+    },
+    "A05": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A06": {
+      "decisive_if": "supply a candidate admission that joins to the same bounded action context",
+      "missing_evidence": [
+        "covering admission bound to this execution"
+      ]
+    },
+    "A07": {
+      "decisive_if": "state the rule requiring a covering admission for this action class",
+      "missing_evidence": [
+        "mandatory-admission rule"
+      ]
+    },
+    "A08": {
+      "decisive_if": "establish provenance and acceptance for the candidate admission record",
+      "missing_evidence": [
+        "accepted admission observation"
+      ]
+    },
+    "A09": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "A10": {
+      "decisive_if": "determine whether a candidate covering admission is present in the observation set",
+      "missing_evidence": [
+        "admission presence/absence observation"
+      ]
+    },
+    "A100": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A101": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A102": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A103": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A104": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A105": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A106": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A107": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A108": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A109": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A11": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A110": {
+      "decisive_if": "state the rule requiring a covering admission for this action class",
+      "missing_evidence": [
+        "mandatory-admission rule"
+      ]
+    },
+    "A111": {
+      "decisive_if": "state the rule requiring a covering admission for this action class",
+      "missing_evidence": [
+        "mandatory-admission rule"
+      ]
+    },
+    "A112": {
+      "decisive_if": "state the rule requiring a covering admission for this action class",
+      "missing_evidence": [
+        "mandatory-admission rule"
+      ]
+    },
+    "A113": {
+      "decisive_if": "state the rule requiring a covering admission for this action class",
+      "missing_evidence": [
+        "mandatory-admission rule"
+      ]
+    },
+    "A114": {
+      "decisive_if": "state the rule requiring a covering admission for this action class",
+      "missing_evidence": [
+        "mandatory-admission rule"
+      ]
+    },
+    "A115": {
+      "decisive_if": "close the interval under a stated finalization/watermark rule",
+      "missing_evidence": [
+        "finalized observation interval"
+      ]
+    },
+    "A116": {
+      "decisive_if": "close the interval under a stated finalization/watermark rule",
+      "missing_evidence": [
+        "finalized observation interval"
+      ]
+    },
+    "A117": {
+      "decisive_if": "close the interval under a stated finalization/watermark rule",
+      "missing_evidence": [
+        "finalized observation interval"
+      ]
+    },
+    "A118": {
+      "decisive_if": "close the interval under a stated finalization/watermark rule",
+      "missing_evidence": [
+        "finalized observation interval"
+      ]
+    },
+    "A119": {
+      "decisive_if": "close the interval under a stated finalization/watermark rule",
+      "missing_evidence": [
+        "finalized observation interval"
+      ]
+    },
+    "A12": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A120": {
+      "decisive_if": "justify capture/export completeness for every admission stream in scope",
+      "missing_evidence": [
+        "complete admission coverage for the bounded scope"
+      ]
+    },
+    "A121": {
+      "decisive_if": "justify capture/export completeness for every admission stream in scope",
+      "missing_evidence": [
+        "complete admission coverage for the bounded scope"
+      ]
+    },
+    "A122": {
+      "decisive_if": "justify capture/export completeness for every admission stream in scope",
+      "missing_evidence": [
+        "complete admission coverage for the bounded scope"
+      ]
+    },
+    "A123": {
+      "decisive_if": "justify capture/export completeness for every admission stream in scope",
+      "missing_evidence": [
+        "complete admission coverage for the bounded scope"
+      ]
+    },
+    "A124": {
+      "decisive_if": "justify capture/export completeness for every admission stream in scope",
+      "missing_evidence": [
+        "complete admission coverage for the bounded scope"
+      ]
+    },
+    "A125": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A126": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A127": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "A128": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "A129": {
+      "decisive_if": "establish provenance and acceptance for the candidate admission record",
+      "missing_evidence": [
+        "accepted admission observation"
+      ]
+    },
+    "A13": {
+      "decisive_if": "determine whether a candidate covering admission is present in the observation set",
+      "missing_evidence": [
+        "admission presence/absence observation"
+      ]
+    },
+    "A130": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A131": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A132": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A133": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A134": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "A135": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "A136": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "A137": {
+      "decisive_if": "state the rule requiring a covering admission for this action class",
+      "missing_evidence": [
+        "mandatory-admission rule"
+      ]
+    },
+    "A14": {
+      "decisive_if": "state the rule requiring a covering admission for this action class",
+      "missing_evidence": [
+        "mandatory-admission rule"
+      ]
+    },
+    "A15": {
+      "decisive_if": "close the interval under a stated finalization/watermark rule",
+      "missing_evidence": [
+        "finalized observation interval"
+      ]
+    },
+    "A16": {
+      "decisive_if": "justify capture/export completeness for every admission stream in scope",
+      "missing_evidence": [
+        "complete admission coverage for the bounded scope"
+      ]
+    },
+    "A17": {
+      "decisive_if": "supply a candidate admission that joins to the same bounded action context",
+      "missing_evidence": [
+        "covering admission bound to this execution"
+      ]
+    },
+    "A18": {
+      "decisive_if": "determine whether a candidate covering admission is present in the observation set",
+      "missing_evidence": [
+        "admission presence/absence observation"
+      ]
+    },
+    "A19": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A20": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A21": {
+      "decisive_if": "state the rule requiring a covering admission for this action class",
+      "missing_evidence": [
+        "mandatory-admission rule"
+      ]
+    },
+    "A22": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "A23": {
+      "decisive_if": "close the interval under a stated finalization/watermark rule",
+      "missing_evidence": [
+        "finalized observation interval"
+      ]
+    },
+    "A24": {
+      "decisive_if": "establish provenance and acceptance for the candidate admission record",
+      "missing_evidence": [
+        "accepted admission observation"
+      ]
+    },
+    "A25": {
+      "decisive_if": "determine whether a candidate covering admission is present in the observation set",
+      "missing_evidence": [
+        "admission presence/absence observation"
+      ]
+    },
+    "A26": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A27": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A28": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A29": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A30": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A31": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "A32": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A33": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A34": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A35": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A36": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "A37": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A38": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A39": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A40": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A41": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A42": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A43": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A44": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A45": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A46": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A47": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "A48": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "A49": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "A50": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "A51": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "A52": {
+      "decisive_if": "determine whether a candidate covering admission is present in the observation set",
+      "missing_evidence": [
+        "admission presence/absence observation"
+      ]
+    },
+    "A53": {
+      "decisive_if": "determine whether a candidate covering admission is present in the observation set",
+      "missing_evidence": [
+        "admission presence/absence observation"
+      ]
+    },
+    "A54": {
+      "decisive_if": "determine whether a candidate covering admission is present in the observation set",
+      "missing_evidence": [
+        "admission presence/absence observation"
+      ]
+    },
+    "A55": {
+      "decisive_if": "establish provenance and acceptance for the candidate admission record",
+      "missing_evidence": [
+        "accepted admission observation"
+      ]
+    },
+    "A56": {
+      "decisive_if": "establish provenance and acceptance for the candidate admission record",
+      "missing_evidence": [
+        "accepted admission observation"
+      ]
+    },
+    "A57": {
+      "decisive_if": "establish provenance and acceptance for the candidate admission record",
+      "missing_evidence": [
+        "accepted admission observation"
+      ]
+    },
+    "A58": {
+      "decisive_if": "establish provenance and acceptance for the candidate admission record",
+      "missing_evidence": [
+        "accepted admission observation"
+      ]
+    },
+    "A59": {
+      "decisive_if": "establish provenance and acceptance for the candidate admission record",
+      "missing_evidence": [
+        "accepted admission observation"
+      ]
+    },
+    "A60": {
+      "decisive_if": "supply a candidate admission that joins to the same bounded action context",
+      "missing_evidence": [
+        "covering admission bound to this execution"
+      ]
+    },
+    "A61": {
+      "decisive_if": "supply a candidate admission that joins to the same bounded action context",
+      "missing_evidence": [
+        "covering admission bound to this execution"
+      ]
+    },
+    "A62": {
+      "decisive_if": "supply a candidate admission that joins to the same bounded action context",
+      "missing_evidence": [
+        "covering admission bound to this execution"
+      ]
+    },
+    "A63": {
+      "decisive_if": "supply a candidate admission that joins to the same bounded action context",
+      "missing_evidence": [
+        "covering admission bound to this execution"
+      ]
+    },
+    "A64": {
+      "decisive_if": "supply a candidate admission that joins to the same bounded action context",
+      "missing_evidence": [
+        "covering admission bound to this execution"
+      ]
+    },
+    "A65": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A66": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A67": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A68": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A69": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A70": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A71": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A72": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A73": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A74": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A75": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A76": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A77": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A78": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A79": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A80": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A81": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A82": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A83": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A84": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A85": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A86": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A87": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A88": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A89": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A90": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A91": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A92": {
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ]
+    },
+    "A93": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "A94": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "A95": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "A96": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "A97": {
+      "decisive_if": "bind the evidence to the authority, tenant, target, operation, attempt and interval",
+      "missing_evidence": [
+        "accepted bounded scope"
+      ]
+    },
+    "A98": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "A99": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B01": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B02": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B03": {
+      "decisive_if": "show the same route and operation succeeds when the tested boundary condition is absent",
+      "missing_evidence": [
+        "comparable valid control"
+      ]
+    },
+    "B04": {
+      "decisive_if": "identify the required boundary as the cause of refusal rather than inferring it from 403/no-effect",
+      "missing_evidence": [
+        "accepted boundary-attribution evidence"
+      ]
+    },
+    "B05": {
+      "decisive_if": "close the downstream observation window before inferring non-occurrence",
+      "missing_evidence": [
+        "complete downstream effect window"
+      ]
+    },
+    "B06": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B07": {
+      "decisive_if": "observe whether the protected effect occurred for the named attempt",
+      "missing_evidence": [
+        "decisive protected-effect observation"
+      ]
+    },
+    "B08": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "B09": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B10": {
+      "decisive_if": "supply accepted downstream evidence for the protected effect",
+      "missing_evidence": [
+        "accepted protected-effect observation"
+      ]
+    },
+    "B100": {
+      "decisive_if": "close the downstream observation window before inferring non-occurrence",
+      "missing_evidence": [
+        "complete downstream effect window"
+      ]
+    },
+    "B101": {
+      "decisive_if": "close the downstream observation window before inferring non-occurrence",
+      "missing_evidence": [
+        "complete downstream effect window"
+      ]
+    },
+    "B102": {
+      "decisive_if": "close the downstream observation window before inferring non-occurrence",
+      "missing_evidence": [
+        "complete downstream effect window"
+      ]
+    },
+    "B103": {
+      "decisive_if": "close the downstream observation window before inferring non-occurrence",
+      "missing_evidence": [
+        "complete downstream effect window"
+      ]
+    },
+    "B104": {
+      "decisive_if": "show the same route and operation succeeds when the tested boundary condition is absent",
+      "missing_evidence": [
+        "comparable valid control"
+      ]
+    },
+    "B105": {
+      "decisive_if": "show the same route and operation succeeds when the tested boundary condition is absent",
+      "missing_evidence": [
+        "comparable valid control"
+      ]
+    },
+    "B106": {
+      "decisive_if": "show the same route and operation succeeds when the tested boundary condition is absent",
+      "missing_evidence": [
+        "comparable valid control"
+      ]
+    },
+    "B107": {
+      "decisive_if": "show the same route and operation succeeds when the tested boundary condition is absent",
+      "missing_evidence": [
+        "comparable valid control"
+      ]
+    },
+    "B108": {
+      "decisive_if": "show the same route and operation succeeds when the tested boundary condition is absent",
+      "missing_evidence": [
+        "comparable valid control"
+      ]
+    },
+    "B109": {
+      "decisive_if": "identify the required boundary as the cause of refusal rather than inferring it from 403/no-effect",
+      "missing_evidence": [
+        "accepted boundary-attribution evidence"
+      ]
+    },
+    "B11": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B110": {
+      "decisive_if": "identify the required boundary as the cause of refusal rather than inferring it from 403/no-effect",
+      "missing_evidence": [
+        "accepted boundary-attribution evidence"
+      ]
+    },
+    "B111": {
+      "decisive_if": "identify the required boundary as the cause of refusal rather than inferring it from 403/no-effect",
+      "missing_evidence": [
+        "accepted boundary-attribution evidence"
+      ]
+    },
+    "B112": {
+      "decisive_if": "identify the required boundary as the cause of refusal rather than inferring it from 403/no-effect",
+      "missing_evidence": [
+        "accepted boundary-attribution evidence"
+      ]
+    },
+    "B113": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B114": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B115": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B116": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B117": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B118": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "B119": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B12": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B120": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B121": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B122": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B123": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B124": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B125": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B126": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B127": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B128": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "B129": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "B13": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "B130": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "B131": {
+      "decisive_if": "supply accepted downstream evidence for the protected effect",
+      "missing_evidence": [
+        "accepted protected-effect observation"
+      ]
+    },
+    "B132": {
+      "decisive_if": "supply accepted downstream evidence for the protected effect",
+      "missing_evidence": [
+        "accepted protected-effect observation"
+      ]
+    },
+    "B133": {
+      "decisive_if": "supply accepted downstream evidence for the protected effect",
+      "missing_evidence": [
+        "accepted protected-effect observation"
+      ]
+    },
+    "B134": {
+      "decisive_if": "close the downstream observation window before inferring non-occurrence",
+      "missing_evidence": [
+        "complete downstream effect window"
+      ]
+    },
+    "B14": {
+      "decisive_if": "observe whether the protected effect occurred for the named attempt",
+      "missing_evidence": [
+        "decisive protected-effect observation"
+      ]
+    },
+    "B15": {
+      "decisive_if": "close the downstream observation window before inferring non-occurrence",
+      "missing_evidence": [
+        "complete downstream effect window"
+      ]
+    },
+    "B16": {
+      "decisive_if": "identify the required boundary as the cause of refusal rather than inferring it from 403/no-effect",
+      "missing_evidence": [
+        "accepted boundary-attribution evidence"
+      ]
+    },
+    "B17": {
+      "decisive_if": "show the same route and operation succeeds when the tested boundary condition is absent",
+      "missing_evidence": [
+        "comparable valid control"
+      ]
+    },
+    "B18": {
+      "decisive_if": "supply accepted downstream evidence for the protected effect",
+      "missing_evidence": [
+        "accepted protected-effect observation"
+      ]
+    },
+    "B19": {
+      "decisive_if": "close the downstream observation window before inferring non-occurrence",
+      "missing_evidence": [
+        "complete downstream effect window"
+      ]
+    },
+    "B20": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "B21": {
+      "decisive_if": "observe whether the protected effect occurred for the named attempt",
+      "missing_evidence": [
+        "decisive protected-effect observation"
+      ]
+    },
+    "B22": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B23": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B24": {
+      "decisive_if": "show the same route and operation succeeds when the tested boundary condition is absent",
+      "missing_evidence": [
+        "comparable valid control"
+      ]
+    },
+    "B25": {
+      "decisive_if": "observe whether the protected effect occurred for the named attempt",
+      "missing_evidence": [
+        "decisive protected-effect observation"
+      ]
+    },
+    "B26": {
+      "decisive_if": "identify the required boundary as the cause of refusal rather than inferring it from 403/no-effect",
+      "missing_evidence": [
+        "accepted boundary-attribution evidence"
+      ]
+    },
+    "B27": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B28": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B29": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B30": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B31": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "B32": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B33": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B34": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "B35": {
+      "decisive_if": "supply accepted downstream evidence for the protected effect",
+      "missing_evidence": [
+        "accepted protected-effect observation"
+      ]
+    },
+    "B36": {
+      "decisive_if": "supply accepted downstream evidence for the protected effect",
+      "missing_evidence": [
+        "accepted protected-effect observation"
+      ]
+    },
+    "B37": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B38": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B39": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B40": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B41": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B42": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B43": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B44": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B45": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B46": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B47": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B48": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "B49": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "B50": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "B51": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "B52": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "B53": {
+      "decisive_if": "supply accepted downstream evidence for the protected effect",
+      "missing_evidence": [
+        "accepted protected-effect observation"
+      ]
+    },
+    "B54": {
+      "decisive_if": "supply accepted downstream evidence for the protected effect",
+      "missing_evidence": [
+        "accepted protected-effect observation"
+      ]
+    },
+    "B55": {
+      "decisive_if": "supply accepted downstream evidence for the protected effect",
+      "missing_evidence": [
+        "accepted protected-effect observation"
+      ]
+    },
+    "B56": {
+      "decisive_if": "supply accepted downstream evidence for the protected effect",
+      "missing_evidence": [
+        "accepted protected-effect observation"
+      ]
+    },
+    "B57": {
+      "decisive_if": "supply accepted downstream evidence for the protected effect",
+      "missing_evidence": [
+        "accepted protected-effect observation"
+      ]
+    },
+    "B58": {
+      "decisive_if": "observe whether the protected effect occurred for the named attempt",
+      "missing_evidence": [
+        "decisive protected-effect observation"
+      ]
+    },
+    "B59": {
+      "decisive_if": "observe whether the protected effect occurred for the named attempt",
+      "missing_evidence": [
+        "decisive protected-effect observation"
+      ]
+    },
+    "B60": {
+      "decisive_if": "observe whether the protected effect occurred for the named attempt",
+      "missing_evidence": [
+        "decisive protected-effect observation"
+      ]
+    },
+    "B61": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B62": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B63": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B64": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B65": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B66": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B67": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B68": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B69": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B70": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B71": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B72": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B73": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B74": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B75": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B76": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B77": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B78": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "B79": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B80": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B81": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B82": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B83": {
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ]
+    },
+    "B84": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B85": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B86": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B87": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B88": {
+      "decisive_if": "bind the route/control evidence to the same protected operation",
+      "missing_evidence": [
+        "same protected target and operation"
+      ]
+    },
+    "B89": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "B90": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "B91": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "B92": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "B93": {
+      "decisive_if": "establish that the tested route is genuinely outside the required enforcement point",
+      "missing_evidence": [
+        "route outside the required PEP"
+      ]
+    },
+    "B94": {
+      "decisive_if": "supply accepted downstream evidence for the protected effect",
+      "missing_evidence": [
+        "accepted protected-effect observation"
+      ]
+    },
+    "B95": {
+      "decisive_if": "supply accepted downstream evidence for the protected effect",
+      "missing_evidence": [
+        "accepted protected-effect observation"
+      ]
+    },
+    "B96": {
+      "decisive_if": "supply accepted downstream evidence for the protected effect",
+      "missing_evidence": [
+        "accepted protected-effect observation"
+      ]
+    },
+    "B97": {
+      "decisive_if": "supply accepted downstream evidence for the protected effect",
+      "missing_evidence": [
+        "accepted protected-effect observation"
+      ]
+    },
+    "B98": {
+      "decisive_if": "supply accepted downstream evidence for the protected effect",
+      "missing_evidence": [
+        "accepted protected-effect observation"
+      ]
+    },
+    "B99": {
+      "decisive_if": "close the downstream observation window before inferring non-occurrence",
+      "missing_evidence": [
+        "complete downstream effect window"
+      ]
+    },
+    "E01": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E02": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E03": {
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ]
+    },
+    "E04": {
+      "decisive_if": "obtain a fresh observation bound to the declared settlement interval",
+      "missing_evidence": [
+        "fresh read-back in the declared window"
+      ]
+    },
+    "E05": {
+      "decisive_if": "establish provenance/trust for the read-back source",
+      "missing_evidence": [
+        "accepted read-back source"
+      ]
+    },
+    "E06": {
+      "decisive_if": "bind expected and observed state to the same target and predicate",
+      "missing_evidence": [
+        "same target and declared postcondition predicate"
+      ]
+    },
+    "E07": {
+      "decisive_if": "wait for the declared deadline/settlement point before appraising the postcondition",
+      "missing_evidence": [
+        "settlement point reached"
+      ]
+    },
+    "E08": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E09": {
+      "decisive_if": "supply both sides of the declared postcondition comparison",
+      "missing_evidence": [
+        "expected state",
+        "observed state"
+      ]
+    },
+    "E10": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E100": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E101": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E102": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E103": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E104": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E11": {
+      "decisive_if": "supply both sides of the declared postcondition comparison",
+      "missing_evidence": [
+        "expected state",
+        "observed state"
+      ]
+    },
+    "E12": {
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ]
+    },
+    "E13": {
+      "decisive_if": "establish provenance/trust for the read-back source",
+      "missing_evidence": [
+        "accepted read-back source"
+      ]
+    },
+    "E14": {
+      "decisive_if": "bind expected and observed state to the same target and predicate",
+      "missing_evidence": [
+        "same target and declared postcondition predicate"
+      ]
+    },
+    "E15": {
+      "decisive_if": "obtain a fresh observation bound to the declared settlement interval",
+      "missing_evidence": [
+        "fresh read-back in the declared window"
+      ]
+    },
+    "E16": {
+      "decisive_if": "wait for the declared deadline/settlement point before appraising the postcondition",
+      "missing_evidence": [
+        "settlement point reached"
+      ]
+    },
+    "E17": {
+      "decisive_if": "wait for the declared deadline/settlement point before appraising the postcondition",
+      "missing_evidence": [
+        "settlement point reached"
+      ]
+    },
+    "E18": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E19": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E20": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E21": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E22": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E23": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E24": {
+      "decisive_if": "obtain a fresh observation bound to the declared settlement interval",
+      "missing_evidence": [
+        "fresh read-back in the declared window"
+      ]
+    },
+    "E25": {
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ]
+    },
+    "E26": {
+      "decisive_if": "bind expected and observed state to the same target and predicate",
+      "missing_evidence": [
+        "same target and declared postcondition predicate"
+      ]
+    },
+    "E27": {
+      "decisive_if": "establish provenance/trust for the read-back source",
+      "missing_evidence": [
+        "accepted read-back source"
+      ]
+    },
+    "E28": {
+      "decisive_if": "wait for the declared deadline/settlement point before appraising the postcondition",
+      "missing_evidence": [
+        "settlement point reached"
+      ]
+    },
+    "E29": {
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ]
+    },
+    "E30": {
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ]
+    },
+    "E31": {
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ]
+    },
+    "E32": {
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ]
+    },
+    "E33": {
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ]
+    },
+    "E34": {
+      "decisive_if": "establish provenance/trust for the read-back source",
+      "missing_evidence": [
+        "accepted read-back source"
+      ]
+    },
+    "E35": {
+      "decisive_if": "establish provenance/trust for the read-back source",
+      "missing_evidence": [
+        "accepted read-back source"
+      ]
+    },
+    "E36": {
+      "decisive_if": "establish provenance/trust for the read-back source",
+      "missing_evidence": [
+        "accepted read-back source"
+      ]
+    },
+    "E37": {
+      "decisive_if": "establish provenance/trust for the read-back source",
+      "missing_evidence": [
+        "accepted read-back source"
+      ]
+    },
+    "E38": {
+      "decisive_if": "establish provenance/trust for the read-back source",
+      "missing_evidence": [
+        "accepted read-back source"
+      ]
+    },
+    "E39": {
+      "decisive_if": "bind expected and observed state to the same target and predicate",
+      "missing_evidence": [
+        "same target and declared postcondition predicate"
+      ]
+    },
+    "E40": {
+      "decisive_if": "bind expected and observed state to the same target and predicate",
+      "missing_evidence": [
+        "same target and declared postcondition predicate"
+      ]
+    },
+    "E41": {
+      "decisive_if": "bind expected and observed state to the same target and predicate",
+      "missing_evidence": [
+        "same target and declared postcondition predicate"
+      ]
+    },
+    "E42": {
+      "decisive_if": "bind expected and observed state to the same target and predicate",
+      "missing_evidence": [
+        "same target and declared postcondition predicate"
+      ]
+    },
+    "E43": {
+      "decisive_if": "bind expected and observed state to the same target and predicate",
+      "missing_evidence": [
+        "same target and declared postcondition predicate"
+      ]
+    },
+    "E44": {
+      "decisive_if": "obtain a fresh observation bound to the declared settlement interval",
+      "missing_evidence": [
+        "fresh read-back in the declared window"
+      ]
+    },
+    "E45": {
+      "decisive_if": "obtain a fresh observation bound to the declared settlement interval",
+      "missing_evidence": [
+        "fresh read-back in the declared window"
+      ]
+    },
+    "E46": {
+      "decisive_if": "obtain a fresh observation bound to the declared settlement interval",
+      "missing_evidence": [
+        "fresh read-back in the declared window"
+      ]
+    },
+    "E47": {
+      "decisive_if": "obtain a fresh observation bound to the declared settlement interval",
+      "missing_evidence": [
+        "fresh read-back in the declared window"
+      ]
+    },
+    "E48": {
+      "decisive_if": "obtain a fresh observation bound to the declared settlement interval",
+      "missing_evidence": [
+        "fresh read-back in the declared window"
+      ]
+    },
+    "E49": {
+      "decisive_if": "wait for the declared deadline/settlement point before appraising the postcondition",
+      "missing_evidence": [
+        "settlement point reached"
+      ]
+    },
+    "E50": {
+      "decisive_if": "wait for the declared deadline/settlement point before appraising the postcondition",
+      "missing_evidence": [
+        "settlement point reached"
+      ]
+    },
+    "E51": {
+      "decisive_if": "wait for the declared deadline/settlement point before appraising the postcondition",
+      "missing_evidence": [
+        "settlement point reached"
+      ]
+    },
+    "E52": {
+      "decisive_if": "wait for the declared deadline/settlement point before appraising the postcondition",
+      "missing_evidence": [
+        "settlement point reached"
+      ]
+    },
+    "E53": {
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ]
+    },
+    "E54": {
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ]
+    },
+    "E55": {
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ]
+    },
+    "E56": {
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ]
+    },
+    "E57": {
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ]
+    },
+    "E58": {
+      "decisive_if": "establish provenance/trust for the read-back source",
+      "missing_evidence": [
+        "accepted read-back source"
+      ]
+    },
+    "E59": {
+      "decisive_if": "establish provenance/trust for the read-back source",
+      "missing_evidence": [
+        "accepted read-back source"
+      ]
+    },
+    "E60": {
+      "decisive_if": "establish provenance/trust for the read-back source",
+      "missing_evidence": [
+        "accepted read-back source"
+      ]
+    },
+    "E61": {
+      "decisive_if": "establish provenance/trust for the read-back source",
+      "missing_evidence": [
+        "accepted read-back source"
+      ]
+    },
+    "E62": {
+      "decisive_if": "establish provenance/trust for the read-back source",
+      "missing_evidence": [
+        "accepted read-back source"
+      ]
+    },
+    "E63": {
+      "decisive_if": "bind expected and observed state to the same target and predicate",
+      "missing_evidence": [
+        "same target and declared postcondition predicate"
+      ]
+    },
+    "E64": {
+      "decisive_if": "bind expected and observed state to the same target and predicate",
+      "missing_evidence": [
+        "same target and declared postcondition predicate"
+      ]
+    },
+    "E65": {
+      "decisive_if": "bind expected and observed state to the same target and predicate",
+      "missing_evidence": [
+        "same target and declared postcondition predicate"
+      ]
+    },
+    "E66": {
+      "decisive_if": "bind expected and observed state to the same target and predicate",
+      "missing_evidence": [
+        "same target and declared postcondition predicate"
+      ]
+    },
+    "E67": {
+      "decisive_if": "bind expected and observed state to the same target and predicate",
+      "missing_evidence": [
+        "same target and declared postcondition predicate"
+      ]
+    },
+    "E68": {
+      "decisive_if": "obtain a fresh observation bound to the declared settlement interval",
+      "missing_evidence": [
+        "fresh read-back in the declared window"
+      ]
+    },
+    "E69": {
+      "decisive_if": "obtain a fresh observation bound to the declared settlement interval",
+      "missing_evidence": [
+        "fresh read-back in the declared window"
+      ]
+    },
+    "E70": {
+      "decisive_if": "obtain a fresh observation bound to the declared settlement interval",
+      "missing_evidence": [
+        "fresh read-back in the declared window"
+      ]
+    },
+    "E71": {
+      "decisive_if": "obtain a fresh observation bound to the declared settlement interval",
+      "missing_evidence": [
+        "fresh read-back in the declared window"
+      ]
+    },
+    "E72": {
+      "decisive_if": "obtain a fresh observation bound to the declared settlement interval",
+      "missing_evidence": [
+        "fresh read-back in the declared window"
+      ]
+    },
+    "E73": {
+      "decisive_if": "wait for the declared deadline/settlement point before appraising the postcondition",
+      "missing_evidence": [
+        "settlement point reached"
+      ]
+    },
+    "E74": {
+      "decisive_if": "wait for the declared deadline/settlement point before appraising the postcondition",
+      "missing_evidence": [
+        "settlement point reached"
+      ]
+    },
+    "E75": {
+      "decisive_if": "wait for the declared deadline/settlement point before appraising the postcondition",
+      "missing_evidence": [
+        "settlement point reached"
+      ]
+    },
+    "E76": {
+      "decisive_if": "wait for the declared deadline/settlement point before appraising the postcondition",
+      "missing_evidence": [
+        "settlement point reached"
+      ]
+    },
+    "E77": {
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ]
+    },
+    "E78": {
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ]
+    },
+    "E79": {
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ]
+    },
+    "E80": {
+      "decisive_if": "establish provenance/trust for the read-back source",
+      "missing_evidence": [
+        "accepted read-back source"
+      ]
+    },
+    "E81": {
+      "decisive_if": "establish provenance/trust for the read-back source",
+      "missing_evidence": [
+        "accepted read-back source"
+      ]
+    },
+    "E82": {
+      "decisive_if": "bind expected and observed state to the same target and predicate",
+      "missing_evidence": [
+        "same target and declared postcondition predicate"
+      ]
+    },
+    "E83": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E84": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E85": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E86": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E87": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E88": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E89": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E90": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E91": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E92": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E93": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E94": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E95": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E96": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E97": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E98": {
+      "decisive_if": null,
+      "missing_evidence": []
+    },
+    "E99": {
+      "decisive_if": null,
+      "missing_evidence": []
+    }
+  },
+  "case_results": {
+    "A01": "MATCH",
+    "A02": "MATCH",
+    "A03": "MATCH",
+    "A04": "MATCH",
+    "A05": "MATCH",
+    "A06": "MATCH",
+    "A07": "MATCH",
+    "A08": "MATCH",
+    "A09": "MATCH",
+    "A10": "MATCH",
+    "A100": "MATCH",
+    "A101": "MATCH",
+    "A102": "MATCH",
+    "A103": "MATCH",
+    "A104": "MATCH",
+    "A105": "MATCH",
+    "A106": "MATCH",
+    "A107": "MATCH",
+    "A108": "MATCH",
+    "A109": "MATCH",
+    "A11": "MATCH",
+    "A110": "MATCH",
+    "A111": "MATCH",
+    "A112": "MATCH",
+    "A113": "MATCH",
+    "A114": "MATCH",
+    "A115": "MATCH",
+    "A116": "MATCH",
+    "A117": "MATCH",
+    "A118": "MATCH",
+    "A119": "MATCH",
+    "A12": "MATCH",
+    "A120": "MATCH",
+    "A121": "MATCH",
+    "A122": "MATCH",
+    "A123": "MATCH",
+    "A124": "MATCH",
+    "A125": "MATCH",
+    "A126": "MATCH",
+    "A127": "MATCH",
+    "A128": "MATCH",
+    "A129": "MATCH",
+    "A13": "MATCH",
+    "A130": "MATCH",
+    "A131": "MATCH",
+    "A132": "MATCH",
+    "A133": "MATCH",
+    "A134": "MATCH",
+    "A135": "MATCH",
+    "A136": "MATCH",
+    "A137": "MATCH",
+    "A14": "MATCH",
+    "A15": "MATCH",
+    "A16": "MATCH",
+    "A17": "MATCH",
+    "A18": "MATCH",
+    "A19": "MATCH",
+    "A20": "MATCH",
+    "A21": "MATCH",
+    "A22": "MATCH",
+    "A23": "MATCH",
+    "A24": "MATCH",
+    "A25": "MATCH",
+    "A26": "MATCH",
+    "A27": "MATCH",
+    "A28": "MATCH",
+    "A29": "MATCH",
+    "A30": "MATCH",
+    "A31": "MATCH",
+    "A32": "MATCH",
+    "A33": "MATCH",
+    "A34": "MATCH",
+    "A35": "MATCH",
+    "A36": "MATCH",
+    "A37": "MATCH",
+    "A38": "MATCH",
+    "A39": "MATCH",
+    "A40": "MATCH",
+    "A41": "MATCH",
+    "A42": "MATCH",
+    "A43": "MATCH",
+    "A44": "MATCH",
+    "A45": "MATCH",
+    "A46": "MATCH",
+    "A47": "MATCH",
+    "A48": "MATCH",
+    "A49": "MATCH",
+    "A50": "MATCH",
+    "A51": "MATCH",
+    "A52": "MATCH",
+    "A53": "MATCH",
+    "A54": "MATCH",
+    "A55": "MATCH",
+    "A56": "MATCH",
+    "A57": "MATCH",
+    "A58": "MATCH",
+    "A59": "MATCH",
+    "A60": "MATCH",
+    "A61": "MATCH",
+    "A62": "MATCH",
+    "A63": "MATCH",
+    "A64": "MATCH",
+    "A65": "MATCH",
+    "A66": "MATCH",
+    "A67": "MATCH",
+    "A68": "MATCH",
+    "A69": "MATCH",
+    "A70": "MATCH",
+    "A71": "MATCH",
+    "A72": "MATCH",
+    "A73": "MATCH",
+    "A74": "MATCH",
+    "A75": "MATCH",
+    "A76": "MATCH",
+    "A77": "MATCH",
+    "A78": "MATCH",
+    "A79": "MATCH",
+    "A80": "MATCH",
+    "A81": "MATCH",
+    "A82": "MATCH",
+    "A83": "MATCH",
+    "A84": "MATCH",
+    "A85": "MATCH",
+    "A86": "MATCH",
+    "A87": "MATCH",
+    "A88": "MATCH",
+    "A89": "MATCH",
+    "A90": "MATCH",
+    "A91": "MATCH",
+    "A92": "MATCH",
+    "A93": "MATCH",
+    "A94": "MATCH",
+    "A95": "MATCH",
+    "A96": "MATCH",
+    "A97": "MATCH",
+    "A98": "MATCH",
+    "A99": "MATCH",
+    "B01": "MATCH",
+    "B02": "MATCH",
+    "B03": "MATCH",
+    "B04": "MATCH",
+    "B05": "MATCH",
+    "B06": "MATCH",
+    "B07": "MATCH",
+    "B08": "MATCH",
+    "B09": "MATCH",
+    "B10": "MATCH",
+    "B100": "MATCH",
+    "B101": "MATCH",
+    "B102": "MATCH",
+    "B103": "MATCH",
+    "B104": "MATCH",
+    "B105": "MATCH",
+    "B106": "MATCH",
+    "B107": "MATCH",
+    "B108": "MATCH",
+    "B109": "MATCH",
+    "B11": "MATCH",
+    "B110": "MATCH",
+    "B111": "MATCH",
+    "B112": "MATCH",
+    "B113": "MATCH",
+    "B114": "MATCH",
+    "B115": "MATCH",
+    "B116": "MATCH",
+    "B117": "MATCH",
+    "B118": "MATCH",
+    "B119": "MATCH",
+    "B12": "MATCH",
+    "B120": "MATCH",
+    "B121": "MATCH",
+    "B122": "MATCH",
+    "B123": "MATCH",
+    "B124": "MATCH",
+    "B125": "MATCH",
+    "B126": "MATCH",
+    "B127": "MATCH",
+    "B128": "MATCH",
+    "B129": "MATCH",
+    "B13": "MATCH",
+    "B130": "MATCH",
+    "B131": "MATCH",
+    "B132": "MATCH",
+    "B133": "MATCH",
+    "B134": "MATCH",
+    "B14": "MATCH",
+    "B15": "MATCH",
+    "B16": "MATCH",
+    "B17": "MATCH",
+    "B18": "MATCH",
+    "B19": "MATCH",
+    "B20": "MATCH",
+    "B21": "MATCH",
+    "B22": "MATCH",
+    "B23": "MATCH",
+    "B24": "MATCH",
+    "B25": "MATCH",
+    "B26": "MATCH",
+    "B27": "MATCH",
+    "B28": "MATCH",
+    "B29": "MATCH",
+    "B30": "MATCH",
+    "B31": "MATCH",
+    "B32": "MATCH",
+    "B33": "MATCH",
+    "B34": "MATCH",
+    "B35": "MATCH",
+    "B36": "MATCH",
+    "B37": "MATCH",
+    "B38": "MATCH",
+    "B39": "MATCH",
+    "B40": "MATCH",
+    "B41": "MATCH",
+    "B42": "MATCH",
+    "B43": "MATCH",
+    "B44": "MATCH",
+    "B45": "MATCH",
+    "B46": "MATCH",
+    "B47": "MATCH",
+    "B48": "MATCH",
+    "B49": "MATCH",
+    "B50": "MATCH",
+    "B51": "MATCH",
+    "B52": "MATCH",
+    "B53": "MATCH",
+    "B54": "MATCH",
+    "B55": "MATCH",
+    "B56": "MATCH",
+    "B57": "MATCH",
+    "B58": "MATCH",
+    "B59": "MATCH",
+    "B60": "MATCH",
+    "B61": "MATCH",
+    "B62": "MATCH",
+    "B63": "MATCH",
+    "B64": "MATCH",
+    "B65": "MATCH",
+    "B66": "MATCH",
+    "B67": "MATCH",
+    "B68": "MATCH",
+    "B69": "MATCH",
+    "B70": "MATCH",
+    "B71": "MATCH",
+    "B72": "MATCH",
+    "B73": "MATCH",
+    "B74": "MATCH",
+    "B75": "MATCH",
+    "B76": "MATCH",
+    "B77": "MATCH",
+    "B78": "MATCH",
+    "B79": "MATCH",
+    "B80": "MATCH",
+    "B81": "MATCH",
+    "B82": "MATCH",
+    "B83": "MATCH",
+    "B84": "MATCH",
+    "B85": "MATCH",
+    "B86": "MATCH",
+    "B87": "MATCH",
+    "B88": "MATCH",
+    "B89": "MATCH",
+    "B90": "MATCH",
+    "B91": "MATCH",
+    "B92": "MATCH",
+    "B93": "MATCH",
+    "B94": "MATCH",
+    "B95": "MATCH",
+    "B96": "MATCH",
+    "B97": "MATCH",
+    "B98": "MATCH",
+    "B99": "MATCH",
+    "E01": "MATCH",
+    "E02": "MATCH",
+    "E03": "MATCH",
+    "E04": "MATCH",
+    "E05": "MATCH",
+    "E06": "MATCH",
+    "E07": "MATCH",
+    "E08": "MATCH",
+    "E09": "MATCH",
+    "E10": "MATCH",
+    "E100": "MATCH",
+    "E101": "MATCH",
+    "E102": "MATCH",
+    "E103": "MATCH",
+    "E104": "MATCH",
+    "E11": "MATCH",
+    "E12": "MATCH",
+    "E13": "MATCH",
+    "E14": "MATCH",
+    "E15": "MATCH",
+    "E16": "MATCH",
+    "E17": "MATCH",
+    "E18": "MATCH",
+    "E19": "MATCH",
+    "E20": "MATCH",
+    "E21": "MATCH",
+    "E22": "MATCH",
+    "E23": "MATCH",
+    "E24": "MATCH",
+    "E25": "MATCH",
+    "E26": "MATCH",
+    "E27": "MATCH",
+    "E28": "MATCH",
+    "E29": "MATCH",
+    "E30": "MATCH",
+    "E31": "MATCH",
+    "E32": "MATCH",
+    "E33": "MATCH",
+    "E34": "MATCH",
+    "E35": "MATCH",
+    "E36": "MATCH",
+    "E37": "MATCH",
+    "E38": "MATCH",
+    "E39": "MATCH",
+    "E40": "MATCH",
+    "E41": "MATCH",
+    "E42": "MATCH",
+    "E43": "MATCH",
+    "E44": "MATCH",
+    "E45": "MATCH",
+    "E46": "MATCH",
+    "E47": "MATCH",
+    "E48": "MATCH",
+    "E49": "MATCH",
+    "E50": "MATCH",
+    "E51": "MATCH",
+    "E52": "MATCH",
+    "E53": "MATCH",
+    "E54": "MATCH",
+    "E55": "MATCH",
+    "E56": "MATCH",
+    "E57": "MATCH",
+    "E58": "MATCH",
+    "E59": "MATCH",
+    "E60": "MATCH",
+    "E61": "MATCH",
+    "E62": "MATCH",
+    "E63": "MATCH",
+    "E64": "MATCH",
+    "E65": "MATCH",
+    "E66": "MATCH",
+    "E67": "MATCH",
+    "E68": "MATCH",
+    "E69": "MATCH",
+    "E70": "MATCH",
+    "E71": "MATCH",
+    "E72": "MATCH",
+    "E73": "MATCH",
+    "E74": "MATCH",
+    "E75": "MATCH",
+    "E76": "MATCH",
+    "E77": "MATCH",
+    "E78": "MATCH",
+    "E79": "MATCH",
+    "E80": "MATCH",
+    "E81": "MATCH",
+    "E82": "MATCH",
+    "E83": "MATCH",
+    "E84": "MATCH",
+    "E85": "MATCH",
+    "E86": "MATCH",
+    "E87": "MATCH",
+    "E88": "MATCH",
+    "E89": "MATCH",
+    "E90": "MATCH",
+    "E91": "MATCH",
+    "E92": "MATCH",
+    "E93": "MATCH",
+    "E94": "MATCH",
+    "E95": "MATCH",
+    "E96": "MATCH",
+    "E97": "MATCH",
+    "E98": "MATCH",
+    "E99": "MATCH"
+  },
+  "checker_is_frozen_v1": true,
+  "contract_crossing": {
+    "checks": 648,
+    "failures": []
+  },
+  "crashes": [],
+  "empty_observations": {
+    "admission_accounting": {
+      "claim": "admission_accounting",
+      "decisive_if": "supply an independently accepted observation of the execution or effect",
+      "missing_evidence": [
+        "accepted execution/effect observation"
+      ],
+      "reason": "execution_observation_unaccepted_or_missing",
+      "scope": {
+        "bounded": true,
+        "kind": "synthetic_fixture",
+        "suite": "evidence-sufficiency-v1.7"
+      },
+      "status": "not_established"
+    },
+    "postcondition_observed": {
+      "claim": "postcondition_observed",
+      "decisive_if": "obtain a read-back from the declared observation source",
+      "missing_evidence": [
+        "authoritative read-back"
+      ],
+      "reason": "readback_unavailable",
+      "scope": {
+        "bounded": true,
+        "kind": "synthetic_fixture",
+        "suite": "evidence-sufficiency-v1.7"
+      },
+      "status": "not_established"
+    },
+    "tested_route_enforcement": {
+      "claim": "tested_route_enforcement",
+      "decisive_if": "supply accepted evidence that the named route was actually exercised",
+      "missing_evidence": [
+        "accepted alternative-route observation"
+      ],
+      "reason": "route_observation_unaccepted_or_missing",
+      "scope": {
+        "bounded": true,
+        "kind": "synthetic_fixture",
+        "suite": "evidence-sufficiency-v1.7"
+      },
+      "status": "not_established"
+    }
+  },
+  "evidence_erasure_checks": {
+    "decisive_single_field_removals": 743,
+    "inconclusive_single_field_removals": 2269,
+    "inconclusive_strengthening_failures": [],
+    "polarity_flip_failures": []
+  },
+  "failures": [],
+  "guidance_contract_failures": [],
+  "indistinguishable_world_pairs": [
+    {
+      "distinct_hidden_truth": true,
+      "id": "W01",
+      "identical_visible_input": true,
+      "same_nondecisive_verdict": true
+    },
+    {
+      "distinct_hidden_truth": true,
+      "id": "W02",
+      "identical_visible_input": true,
+      "same_nondecisive_verdict": true
+    }
+  ],
+  "input_contract": {
+    "claim_checks": 33,
+    "container_checks": 1125,
+    "failures": [],
+    "premise_source_checks": 15,
+    "value_checks": 144
+  },
+  "inputs_sha256": {
+    "cases.json": "e9204cde4b6d4ebe540c299fe61744310d31d67f08d0778fe0cfa8a1f64d5fea",
+    "checker.py (frozen v1)": "c4ca50aee2b2918b11c6fbde1f8615ca6c6bf1e5b6fa2ac1775f49c5e8c20be0",
+    "guidance.json": "eeb951e7073e7cc108a1d4886c4d03080b010287321a934f97ad763bb772542c",
+    "invariants.json": "15ba2341280b09e7b2dd44e93c1a0b185b4209f0a0c4f6c351f8d92a633bd687",
+    "ladders.json": "e5b5cd88356625b0593062736fb2a386fe36e9334004e99f34e5861f10acd400",
+    "model.json": "27537a9cfa60397c56c9539f6040ab251934d9a63f69ce15e627e030aa153a53"
+  },
+  "isolation_witnesses": [
+    {
+      "case": "A05",
+      "holds": true,
+      "reason": "execution_observation_unaccepted_or_missing"
+    },
+    {
+      "case": "A09",
+      "holds": true,
+      "reason": "scope_unaccepted_or_missing"
+    },
+    {
+      "case": "A08",
+      "holds": true,
+      "reason": "admission_observation_unaccepted"
+    },
+    {
+      "case": "A06",
+      "holds": true,
+      "reason": "candidate_admission_does_not_establish_a_covering_admission"
+    },
+    {
+      "case": "A10",
+      "holds": true,
+      "reason": "admission_presence_unknown"
+    },
+    {
+      "case": "A07",
+      "holds": true,
+      "reason": "admission_requirement_not_defined"
+    },
+    {
+      "case": "A04",
+      "holds": true,
+      "reason": "observation_window_open"
+    },
+    {
+      "case": "A02",
+      "holds": true,
+      "reason": "admission_coverage_incomplete"
+    },
+    {
+      "case": "B09",
+      "holds": true,
+      "reason": "route_observation_unaccepted_or_missing"
+    },
+    {
+      "case": "B06",
+      "holds": true,
+      "reason": "target_or_operation_not_bound"
+    },
+    {
+      "case": "B08",
+      "holds": true,
+      "reason": "alternative_route_not_established"
+    },
+    {
+      "case": "B10",
+      "holds": true,
+      "reason": "protected_effect_observation_unaccepted"
+    },
+    {
+      "case": "B07",
+      "holds": true,
+      "reason": "protected_effect_unknown"
+    },
+    {
+      "case": "B05",
+      "holds": true,
+      "reason": "no_effect_observation_not_complete"
+    },
+    {
+      "case": "B17",
+      "holds": true,
+      "reason": "valid_control_missing_or_incomparable"
+    },
+    {
+      "case": "B04",
+      "holds": true,
+      "reason": "refusal_not_attributed_to_required_boundary"
+    },
+    {
+      "case": "E03",
+      "holds": true,
+      "reason": "readback_unavailable"
+    },
+    {
+      "case": "E05",
+      "holds": true,
+      "reason": "readback_source_not_accepted"
+    },
+    {
+      "case": "E06",
+      "holds": true,
+      "reason": "target_or_predicate_not_bound"
+    },
+    {
+      "case": "E04",
+      "holds": true,
+      "reason": "readback_stale_or_time_unbound"
+    },
+    {
+      "case": "E07",
+      "holds": true,
+      "reason": "declared_settlement_point_not_reached"
+    },
+    {
+      "case": "E09",
+      "holds": true,
+      "reason": "state_value_missing"
+    }
+  ],
+  "limits": [
+    "No external implementation was run.",
+    "Evidence acceptance, scope and completeness are synthetic fixture premises.",
+    "No production, cryptographic, APS or CoSAI conformance claim is made.",
+    "No causal effect attribution is implemented.",
+    "ESTABLISHED and VIOLATED are bounded property verdicts, not whole-system grades.",
+    "Cases G1-G5 were written after an external seeded-fault run named the gaps; their kills of those faults are not independent evidence.",
+    "Cases E18-E20 (gap H1) were written after an external run with withheld faults named the gap; their kills of those faults are not independent evidence.",
+    "Cases E21-E23 (gap I1), the rejection set (gap J1), the envelope checks and the metamorphic relations were written after a systematic mutation sweep over the checker named the gaps; their kills of those mutants are not independent evidence.",
+    "The frozen v1 checker coerces a scope through dict(): a sequence of pairs is accepted as a scope, and a non-mapping scope that dict() cannot convert raises TypeError. That behaviour is outside the contract this corpus pins, and it is recorded here rather than repaired, because the checker stays frozen.",
+    "Cases A26-A36 and B27-B37 (gap L1) were derived by the rule-coverage rule of the v1.3 spec, section 14, after specification mutation named five of the obligations they discharge (NEGATIVE_RESULTS.md §68); their kills of those twelve mutants are not independent evidence.",
+    "Rule coverage is complete relative to the decision ladders of model.json: an obligation the model does not express, or a misreading the model shares with the checker, is not covered.",
+    "Cases with gap N1 were derived by rule-coverage profile v2 (v1.3 spec, section 15) after a blind probe (NEGATIVE_RESULTS.md §70) named the classes they cover; their kills of that probe's faults are not independent evidence.",
+    "The frozen checker copies a scope shallowly: a list or mapping nested in the caller's scope is shared with the verdict and with as_dict(). Section 15 pins top-level isolation only; a v2 checker should copy deeply. An unhashable claim raises TypeError, not ValueError, and is outside section 14.",
+    "Section 16 compares the checker with an executable contract written by the same author from model.json and guidance.json; a misreading both share is not caught. Its inputs are a seeded sample of two thousand, not an enumeration. It was written after held-out probe 2 named one fault outside the as_dict() view (verdict equality); its kill of that fault is not independent evidence.",
+    "Sections 17 to 19 were written after held-out probe 3 named their classes (a keyword-only constructor, an alias enum member, a shared default scope, scope validation skipped for empty observations); their kills of those faults are not independent evidence. api_surface.json is a snapshot of the frozen checker, so it pins what is, not what a specification requires.",
+    "A metamorphic relation that holds on this corpus is not a proof that it holds on every input.",
+    "The reference model in model.json shares its author and its specification with the checker: agreement on the lattice catches an implementation slip in either and cannot catch a misreading both share. The lattice is bounded to the declared premise, typed and state values."
+  ],
+  "metamorphic_relations": [
+    {
+      "checked": 1500,
+      "failures": [],
+      "holds": true,
+      "id": "MR-1",
+      "name": "claim_is_echoed"
+    },
+    {
+      "checked": 1500,
+      "failures": [],
+      "holds": true,
+      "id": "MR-2",
+      "name": "scope_is_echoed_not_consulted"
+    },
+    {
+      "checked": 1500,
+      "failures": [],
+      "holds": true,
+      "id": "MR-3",
+      "name": "envelope_shape"
+    },
+    {
+      "checked": 375,
+      "failures": [],
+      "holds": true,
+      "id": "MR-4",
+      "name": "observation_key_order_is_irrelevant"
+    },
+    {
+      "checked": 375,
+      "failures": [],
+      "holds": true,
+      "id": "MR-5",
+      "name": "unrelated_field_is_ignored"
+    },
+    {
+      "checked": 375,
+      "failures": [],
+      "holds": true,
+      "id": "MR-6",
+      "name": "assessment_is_deterministic"
+    },
+    {
+      "checked": 375,
+      "failures": [],
+      "holds": true,
+      "id": "MR-7",
+      "name": "inputs_are_not_mutated_or_aliased"
+    },
+    {
+      "checked": 375,
+      "failures": [],
+      "holds": true,
+      "id": "MR-8",
+      "name": "verdict_is_immutable"
+    },
+    {
+      "checked": 101,
+      "failures": [],
+      "holds": true,
+      "id": "MR-9",
+      "name": "state_comparison_is_symmetric"
+    },
+    {
+      "checked": 609,
+      "failures": [],
+      "holds": true,
+      "id": "MR-10",
+      "name": "acceptance_premise_flip_never_inverts_polarity"
+    },
+    {
+      "checked": 657,
+      "failures": [],
+      "holds": true,
+      "id": "MR-11",
+      "name": "canonical_separates_distinct_states_and_ignores_key_order"
+    }
+  ],
+  "precedence_witnesses": [
+    {
+      "case": "A12",
+      "earlier": "execution_observation_unaccepted_or_missing",
+      "holds": true,
+      "later": "scope_unaccepted_or_missing"
+    },
+    {
+      "case": "A13",
+      "earlier": "admission_presence_unknown",
+      "holds": true,
+      "later": "admission_requirement_not_defined"
+    },
+    {
+      "case": "A14",
+      "earlier": "admission_requirement_not_defined",
+      "holds": true,
+      "later": "observation_window_open"
+    },
+    {
+      "case": "A15",
+      "earlier": "observation_window_open",
+      "holds": true,
+      "later": "admission_coverage_incomplete"
+    },
+    {
+      "case": "B11",
+      "earlier": "route_observation_unaccepted_or_missing",
+      "holds": true,
+      "later": "target_or_operation_not_bound"
+    },
+    {
+      "case": "B12",
+      "earlier": "target_or_operation_not_bound",
+      "holds": true,
+      "later": "alternative_route_not_established"
+    },
+    {
+      "case": "B13",
+      "earlier": "alternative_route_not_established",
+      "holds": true,
+      "later": "protected_effect_observation_unaccepted"
+    },
+    {
+      "case": "B14",
+      "earlier": "protected_effect_unknown",
+      "holds": true,
+      "later": "no_effect_observation_not_complete"
+    },
+    {
+      "case": "B15",
+      "earlier": "no_effect_observation_not_complete",
+      "holds": true,
+      "later": "valid_control_missing_or_incomparable"
+    },
+    {
+      "case": "B03",
+      "earlier": "valid_control_missing_or_incomparable",
+      "holds": true,
+      "later": "refusal_not_attributed_to_required_boundary"
+    },
+    {
+      "case": "E12",
+      "earlier": "readback_unavailable",
+      "holds": true,
+      "later": "readback_source_not_accepted"
+    },
+    {
+      "case": "E13",
+      "earlier": "readback_source_not_accepted",
+      "holds": true,
+      "later": "target_or_predicate_not_bound"
+    },
+    {
+      "case": "E14",
+      "earlier": "target_or_predicate_not_bound",
+      "holds": true,
+      "later": "readback_stale_or_time_unbound"
+    },
+    {
+      "case": "E15",
+      "earlier": "readback_stale_or_time_unbound",
+      "holds": true,
+      "later": "declared_settlement_point_not_reached"
+    },
+    {
+      "case": "E16",
+      "earlier": "declared_settlement_point_not_reached",
+      "holds": true,
+      "later": "state_value_missing"
+    }
+  ],
+  "property_verdict_distribution": {
+    "established": 34,
+    "not_established": 283,
+    "violated": 58
+  },
+  "purpose": "regression evidence for claim-sufficiency inference rules, not system conformance",
+  "reason_coverage": {
+    "checker_reasons": 28,
+    "orphan_guidance": [],
+    "undeclared_guidance": [],
+    "unreached": []
+  },
+  "record_kind": "synthetic-author-run",
+  "reference_model": {
+    "authored_cases": 375,
+    "disagreement_count": 0,
+    "disagreements": [],
+    "documents": 155319,
+    "ladders_consistent": true,
+    "lattice_documents": 154791,
+    "reasons_consistent": true,
+    "typed_documents": 528
+  },
+  "rejections": [
+    {
+      "id": "R01",
+      "rejected": true
+    },
+    {
+      "id": "R02",
+      "rejected": true
+    },
+    {
+      "id": "R03",
+      "rejected": true
+    },
+    {
+      "id": "R04",
+      "rejected": true
+    },
+    {
+      "id": "R05",
+      "rejected": true
+    },
+    {
+      "id": "R06",
+      "rejected": true
+    },
+    {
+      "id": "R07",
+      "rejected": true
+    },
+    {
+      "id": "R08",
+      "rejected": true
+    },
+    {
+      "id": "R09",
+      "rejected": true
+    },
+    {
+      "id": "R10",
+      "rejected": true
+    },
+    {
+      "id": "R11_tuple_state",
+      "rejected": true
+    },
+    {
+      "id": "canonical:R11_tuple_state",
+      "rejected": true
+    },
+    {
+      "id": "R12_set_state",
+      "rejected": true
+    },
+    {
+      "id": "canonical:R12_set_state",
+      "rejected": true
+    },
+    {
+      "id": "R13_bytes_state",
+      "rejected": true
+    },
+    {
+      "id": "canonical:R13_bytes_state",
+      "rejected": true
+    },
+    {
+      "id": "R14_int_key_in_nested_mapping",
+      "rejected": true
+    },
+    {
+      "id": "canonical:R14_int_key_in_nested_mapping",
+      "rejected": true
+    },
+    {
+      "id": "R15_str_subclass_state",
+      "rejected": true
+    },
+    {
+      "id": "canonical:R15_str_subclass_state",
+      "rejected": true
+    },
+    {
+      "id": "R16_nan_state",
+      "rejected": true
+    },
+    {
+      "id": "canonical:R16_nan_state",
+      "rejected": true
+    },
+    {
+      "id": "R17_int_key_in_observations",
+      "rejected": true
+    },
+    {
+      "id": "canonical:R17_int_key_in_observations",
+      "rejected": true
+    },
+    {
+      "id": "R18_list_subclass_state",
+      "rejected": true
+    },
+    {
+      "id": "canonical:R18_list_subclass_state",
+      "rejected": true
+    },
+    {
+      "id": "R19_dict_subclass_state",
+      "rejected": true
+    },
+    {
+      "id": "canonical:R19_dict_subclass_state",
+      "rejected": true
+    },
+    {
+      "id": "R20_str_subclass_key_in_nested_mapping",
+      "rejected": true
+    },
+    {
+      "id": "canonical:R20_str_subclass_key_in_nested_mapping",
+      "rejected": true
+    }
+  ],
+  "return_isolation": {
+    "checks": 375,
+    "failures": []
+  },
+  "rule_coverage": {
+    "discharged": 80,
+    "obligations": 80,
+    "open": []
+  },
+  "rule_coverage_v2": {
+    "by_rule": {
+      "RC-P": 53,
+      "RC-S": 26,
+      "RC-V": 308
+    },
+    "discharged": 387,
+    "obligations": 387,
+    "open": []
+  },
+  "suite": "evidence-sufficiency-v1.7",
+  "wrong_shortcuts": {
+    "absence_always_means_violation": {
+      "rejected": true,
+      "witness": "A02"
+    },
+    "matching_state_always_means_verified": {
+      "rejected": true,
+      "witness": "E04"
+    },
+    "refusal_always_means_enforced": {
+      "rejected": true,
+      "witness": "B03"
+    },
+    "same_members_in_another_key_order_means_disagreement": {
+      "rejected": true,
+      "witness": "E21"
+    },
+    "tool_ack_means_postcondition": {
+      "rejected": true,
+      "witness": "E02"
+    },
+    "truthy_premise_means_true": {
+      "rejected": true,
+      "witness": "A16"
+    },
+    "unaccepted_effect_means_violation": {
+      "rejected": true,
+      "witness": "B10"
+    },
+    "unknown_means_success": {
+      "rejected": true,
+      "witness": "E03"
+    }
+  }
+}

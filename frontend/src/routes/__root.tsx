@@ -8,6 +8,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import type { ErrorComponentProps } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
 import { SiteHeader } from "@/components/site-header";
@@ -35,7 +36,10 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: ErrorComponentProps) {
+  // TanStack Router types the thrown value as `unknown`, which is the honest
+  // type: a route can throw anything. Log it as-is rather than asserting it is
+  // an Error and losing whatever was actually thrown.
   console.error(error);
   const router = useRouter();
 

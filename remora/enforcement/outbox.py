@@ -935,7 +935,7 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
                 "settled_at", "detail", "tool_call_json", "projection_json",
                 "projected_at", "authorization_expires_at", "requested_by",
             )
-            record = dict(zip(columns, record))  # type: ignore[assignment]
+            record = dict(zip(columns, record, strict=True))  # type: ignore[assignment]
         return cls._row(record)  # type: ignore[arg-type]
 
 
@@ -980,7 +980,7 @@ class PostgresExecutionOutbox(ExecutionOutbox):
 
     @staticmethod
     def _row_tuple(record: tuple) -> OutboxRow:
-        data = dict(zip(_COLUMNS, record))
+        data = dict(zip(_COLUMNS, record, strict=True))
 
         def _dt(value: str | None) -> datetime | None:
             return datetime.fromisoformat(value) if value else None

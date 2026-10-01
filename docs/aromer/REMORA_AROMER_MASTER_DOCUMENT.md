@@ -417,7 +417,7 @@ This reveals a significant gap: the live Workers AI oracle achieves only 0.480 d
 These are the original REMORA selective-QA results, not AROMER-specific:
 
 - N=302 selective trust: 94.74% accuracy at 25% coverage vs 82.78% majority baseline. Wilson CI95 [0.8723, 0.9793]. Artifact: `results/selective_trust_curve_results.json`.
-- N500 selective guardrail (544 items): 88.78% accuracy at 18% coverage vs 41.18% majority baseline. **Caveat: 18% threshold is derived in-sample on the same 544-item artifact.** Artifact: `results/end_to_end_n500_v3.json`.
+- N500 selective guardrail (544 items): 88.78% accuracy at 18% coverage vs 41.18% majority baseline. **Caveat: 18% threshold is derived in-sample on the same 544-item artifact.** Artifact: `results/selective_n500_results.json`.
 
 ### 10.6 Tool-Call Benchmark v2
 

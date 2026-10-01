@@ -356,6 +356,18 @@ jobs:
           python scripts/check_claim_sync.py
           python scripts/check_no_overclaims.py
           python scripts/_check_links.py
+          # Quality program Q5.4: no retired model identifier as a live default.
+          python scripts/check_retired_models.py
+          # Q1.1: every committed result carries a measured reproduction class.
+          python scripts/check_results_manifest.py
+          # Replication pack: headline artifact hashes, metric fields and the
+          # pinned environment, cross-checked against the register.
+          python scripts/verify_replication_pack.py --check
+          # Q1.5: numbers in the thermodynamics claim ledger come from their artifacts.
+          python scripts/check_ledger_bindings.py
+          # Q1.4: a replay-seed baseline is never cited as a model's answer.
+          python scripts/check_decision_sources.py
+          python scripts/check_far_claim_size.py
 
       - name: Source hygiene (script metadata, SPDX headers)
         run: python scripts/check_script_hygiene.py
@@ -644,6 +656,14 @@ jobs:
               sys.exit(1)
           print(f"sidecar self-consistency OK for {len(changed)} sidecars")
           PY
+
+      - name: Every other regenerable result reproduces (quality program Q1.2)
+        # Runs last: it rewrites result files in this throwaway checkout, and
+        # the byte-determinism step above must see only the round's writes.
+        # Reads docs/assurance/results_manifest_v1.yaml, runs each generator
+        # of a `regenerable` entry once, and fails on any difference outside
+        # the fields that entry declares volatile.
+        run: python scripts/reproduce_results.py
 
   artifact-integrity:
     name: Key artifact integrity

@@ -51,7 +51,9 @@ import urllib.error
 import urllib.request
 from dataclasses import asdict, dataclass
 from dataclasses import fields as dataclasses_fields
-from typing import Any
+from collections.abc import Mapping
+from types import MappingProxyType
+from typing import Any, ClassVar
 
 from remora.observability.events import governance_event
 from remora.policy.observation import PolicyObservation
@@ -247,13 +249,13 @@ class OPAAdapter:
     # SEC-4: Restrict OPA URL to safe schemes and reject cloud-metadata endpoints.
     # This prevents SSRF attacks where an attacker could provide a crafted opa_url
     # pointing to internal cloud infrastructure (169.254.169.254, etc.).
-    _ALLOWED_SCHEMES = {"http", "https"}
-    _BLOCKED_HOSTS = {
+    _ALLOWED_SCHEMES: ClassVar[frozenset[str]] = frozenset({"http", "https"})
+    _BLOCKED_HOSTS: ClassVar[frozenset[str]] = frozenset({
         "169.254.169.254",   # AWS/GCP/Azure instance metadata
         "metadata.google.internal",
         "169.254.170.2",     # ECS metadata
         "fd00:ec2::254",     # IPv6 metadata
-    }
+    })
 
     def __init__(
         self,
@@ -343,12 +345,14 @@ class OPAAdapter:
     # Severity ordering for decision monotonicity (REM-003 extended to
     # adapters): an external policy result may tighten but never loosen
     # relative to the Python engine's hard-guard floor.
-    _ACTION_SEVERITY = {
+    # Read-only: this ordering is what keeps an external policy from
+    # loosening the engine's floor, so nothing may rewrite it at runtime.
+    _ACTION_SEVERITY: ClassVar[Mapping[DecisionAction, int]] = MappingProxyType({
         DecisionAction.ACCEPT: 0,
         DecisionAction.VERIFY: 1,
         DecisionAction.ABSTAIN: 2,
         DecisionAction.ESCALATE: 3,
-    }
+    })
 
     def _apply_decision_floor(
         self,
@@ -604,6 +608,13 @@ def query_opa_policy(
         Falls back to ``"DENY"`` when the OPA server is unreachable
         (fail-closed — callers receive a safe default).
     """
+    # SEC-4, as the adapter class applies it: a file: or custom scheme would
+    # let a local file answer ALLOW. An unusable URL is a DENY, like an
+    # unreachable server.
+    try:
+        OPAAdapter._validate_opa_url(opa_url)
+    except ValueError:
+        return "DENY"
     endpoint = opa_url.rstrip("/") + policy_path
     payload = json.dumps({
         "input": {

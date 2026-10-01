@@ -147,7 +147,7 @@ calibrated-confidence baseline (`NEGATIVE_RESULTS.md` §18). They influence noth
 
 ```
 Oracle A (LLaMA 3.3 70B)  ─┐
-Oracle B (Claude 3.5 Haiku) ├─► ConsensusGate ─► PolicyObservation ─► RemoraDecisionEngine
+Oracle B (Claude Haiku 4.5) ├─► ConsensusGate ─► PolicyObservation ─► RemoraDecisionEngine
 Oracle C (Gemma 3 27B)     ─┘        │                                         │
                                       │                                         │
                               Disagreement diagnostics:                  Hard guards first
