@@ -1,0 +1,85 @@
+MATCH means observed SDK behavior equals the recorded expectation. It is not a conformance verdict.
+MATCH chain receipt intent
+MATCH chain receipt decision_permit
+MATCH chain receipt decision_deny
+action-result-binding TypeScript chain receipts: 3/3 matched
+  draft03                              satisfies  [5.1 lines 979-999; 5.3.1 lines 1052-1058; 5.3.2 lines 1071-1091; 5.3.3 lines 1103-1130]
+  sdk_ts validateReceiptStageV1        status=valid boundary_identity=verified stage="action-result" failures=[]
+  sdk_ts verifyReceiptWithDecisionV1   status=invalid decision_ref_bound=false errors=["decision_ref_mismatch"]
+  sdk_py                               run fixtures/action-result-binding/validate.py separately; composite verifier not_implemented
+  replay_policy (derived from stated rules, not run) fully bound
+  classification                       aps_conformance
+  draft03                              invalid  [5.1 lines 957-989; 5.6 lines 1213-1225]
+  sdk_ts validateReceiptStageV1        status=invalid boundary_identity=not_applicable stage=null failures=["SCHEMA_INVALID"]
+  sdk_ts verifyReceiptWithDecisionV1   status=invalid decision_ref_bound=false errors=["receipt_invalid","ReceiptV1: missing field subject_agent"]
+  sdk_py                               run fixtures/action-result-binding/validate.py separately; composite verifier not_implemented
+  replay_policy (derived from stated rules, not run) unresolved_until_run
+  classification                       aps_conformance
+  draft03                              stated_relation_not_met  [5.3.3 lines 1104-1105; 5.6 line 1219; 1.1 lines 175-179]
+  sdk_ts validateReceiptStageV1        status=valid boundary_identity=verified stage="action-result" failures=[]
+  sdk_ts verifyReceiptWithDecisionV1   status=invalid decision_ref_bound=false errors=["decision_ref_mismatch"]
+  sdk_py                               run fixtures/action-result-binding/validate.py separately; composite verifier not_implemented
+  replay_policy (derived from stated rules, not run) partially bound
+  classification                       draft03_stated_relation_not_enforced
+  draft03 text check (harness, not SDK) prev_is_not_the_consumed_decision
+  draft03                              invalid  [5.3.3 lines 1104-1106; 5.6 line 1218]
+  sdk_ts validateReceiptStageV1        status=valid boundary_identity=verified stage="action-result" failures=[]
+  sdk_ts verifyReceiptWithDecisionV1   status=valid decision_ref_bound=true errors=[]
+  sdk_py                               run fixtures/action-result-binding/validate.py separately; composite verifier not_implemented
+  replay_policy (derived from stated rules, not run) partially bound
+  classification                       aps_conformance
+  draft03                              invalid  [5.3.2 lines 1093-1094; 5.4 lines 1155-1168; 5.6 lines 1216-1218]
+  sdk_ts validateReceiptStageV1        status=valid boundary_identity=verified stage="action-result" failures=[]
+  sdk_ts verifyReceiptWithDecisionV1   status=invalid decision_ref_bound=false errors=["decision_ref_mismatch"]
+  sdk_py                               run fixtures/action-result-binding/validate.py separately; composite verifier not_implemented
+  replay_policy (derived from stated rules, not run) unbound
+  classification                       aps_conformance
+  draft03                              semantic_conflict_no_explicit_rule  [4.1 line 789; 5.1 line 981; 5.6 lines 1213-1221]
+  sdk_ts validateReceiptStageV1        status=valid boundary_identity=verified stage="action-result" failures=[]
+  sdk_ts verifyReceiptWithDecisionV1   status=invalid decision_ref_bound=false errors=["decision_ref_mismatch"]
+  sdk_py                               run fixtures/action-result-binding/validate.py separately; composite verifier not_implemented
+  replay_policy (derived from stated rules, not run) unresolved_until_run
+  classification                       draft03_semantic_relation_not_explicitly_enforced
+action-result-binding TypeScript: 3/9 matched
+FAIL ARB-01-positive
+  status: recorded "valid", observed "invalid"
+  valid: recorded true, observed false
+  decision_ref_bound: recorded true, observed false
+  temporal_relation_valid: recorded "not_applicable", observed false
+  errors: recorded [], observed ["decision_ref_mismatch"]
+  decision_ref_binding recomputed_from_permit_evidence: recorded "12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771", observed "2fc67caf85daa5123a83f8e6b603c8c4f4374cac2159556f04dc27387d9012cf"
+  decision_ref_binding equals_record_decision_ref: recorded true, observed false
+  decision_ref_binding equals_permit_decision_ref: recorded true, observed false
+FAIL ARB-02-subject-agent-absent
+  decision_ref_binding recomputed_from_permit_evidence: recorded "12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771", observed "2fc67caf85daa5123a83f8e6b603c8c4f4374cac2159556f04dc27387d9012cf"
+  decision_ref_binding equals_record_decision_ref: recorded true, observed false
+  decision_ref_binding equals_permit_decision_ref: recorded true, observed false
+FAIL ARB-03-prev-not-the-decision
+  status: recorded "valid", observed "invalid"
+  valid: recorded true, observed false
+  decision_ref_bound: recorded true, observed false
+  temporal_relation_valid: recorded "not_applicable", observed false
+  errors: recorded [], observed ["decision_ref_mismatch"]
+  decision_ref_binding recomputed_from_permit_evidence: recorded "12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771", observed "2fc67caf85daa5123a83f8e6b603c8c4f4374cac2159556f04dc27387d9012cf"
+  decision_ref_binding equals_record_decision_ref: recorded true, observed false
+  decision_ref_binding equals_permit_decision_ref: recorded true, observed false
+FAIL ARB-04-decision-ref-mismatch
+  status: recorded "invalid", observed "valid"
+  valid: recorded false, observed true
+  decision_ref_bound: recorded false, observed true
+  temporal_relation_valid: recorded false, observed "not_applicable"
+  errors: recorded ["decision_ref_mismatch"], observed []
+  decision_ref_binding recomputed_from_permit_evidence: recorded "12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771", observed "2fc67caf85daa5123a83f8e6b603c8c4f4374cac2159556f04dc27387d9012cf"
+  decision_ref_binding equals_record_decision_ref: recorded false, observed true
+  decision_ref_binding equals_permit_decision_ref: recorded true, observed false
+FAIL ARB-05-action-ref-mismatch
+  decision_ref_binding recomputed_from_permit_evidence: recorded "911ece7f7ed1dea3b8f1c8f9932c4caecb479f6612ec3ab87c64754ad6f6e703", observed "9e4a781c62a60f269e484bfbd88b8914beb78d6b606078d7c2ff8ab5bff8acbf"
+FAIL ARB-06-subject-agent-changed
+  status: recorded "valid", observed "invalid"
+  valid: recorded true, observed false
+  decision_ref_bound: recorded true, observed false
+  temporal_relation_valid: recorded "not_applicable", observed false
+  errors: recorded [], observed ["decision_ref_mismatch"]
+  decision_ref_binding recomputed_from_permit_evidence: recorded "12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771", observed "2fc67caf85daa5123a83f8e6b603c8c4f4374cac2159556f04dc27387d9012cf"
+  decision_ref_binding equals_record_decision_ref: recorded true, observed false
+  decision_ref_binding equals_permit_decision_ref: recorded true, observed false
