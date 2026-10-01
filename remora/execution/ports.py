@@ -210,6 +210,7 @@ class ToolDispatcherPort(Protocol):
         target_environment: str | None = None,
         now: str | None = None,
         actor_identity: str | None = None,
+        task_identity: Any = None,
     ) -> Any: ...
 
 

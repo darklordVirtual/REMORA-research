@@ -19,6 +19,27 @@ on:
   schedule:
     - cron: "0 5 * * 1"  # Mondays 05:00 UTC
   workflow_dispatch:
+  # The evidence-sufficiency sweep is a minute of work with a stable baseline,
+  # so it also runs on every pull request that touches its inputs; the
+  # enforcement sweep stays scheduled (see the job condition below).
+  pull_request:
+    paths:
+      - "conformance/evidence-sufficiency-v1/**"
+      - "conformance/evidence-sufficiency-v1.1/**"
+      - "conformance/evidence-sufficiency-v1.2/**"
+      - "conformance/evidence-sufficiency-v1.3/**"
+      - "conformance/evidence-sufficiency-v1.4/**"
+      - "conformance/evidence-sufficiency-v1.5/**"
+      - "conformance/evidence-sufficiency-v1.6/**"
+      - "conformance/evidence-sufficiency-v1.7/**"
+      - "scripts/mutation_evidence_sufficiency.py"
+      - "scripts/mutation_evidence_sufficiency_ast.py"
+      - "scripts/spec_mutation_evidence_sufficiency.py"
+      - "scripts/rule_coverage_evidence_sufficiency.py"
+      - "docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt"
+      - "docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt"
+      - "docs/assurance/mutation_baseline_evidence_sufficiency_ast_v1.txt"
+      - ".github/workflows/mutation.yml"
 
 permissions:
   contents: read
@@ -26,6 +47,7 @@ permissions:
 jobs:
   mutation:
     name: Scoped mutation sweep vs baseline
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
@@ -64,4 +86,48 @@ jobs:
         with:
           name: mutation-results
           path: mutation-results.txt
+          retention-days: 90
+
+  evidence-sufficiency:
+    # docs/design/evidence-sufficiency-v1.3.md D-10: the checker sweep, scored
+    # by the v1.3 corpus, ratcheted against a baseline of named survivors.
+    # The sandbox needs only pytest and mutmut; the runner is standard library.
+    # mutmut is pinned because mutant ids are stable only within one version
+    # (the baseline header records it).
+    name: Evidence-sufficiency checker sweep vs baseline
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install the sweep tool and the scoring dependencies
+        run: python -m pip install -q pytest mutmut==3.8.0
+
+      - name: Run the sweep and compare against the committed baseline
+        run: python scripts/mutation_evidence_sufficiency.py --results-out mutation-es-results.txt
+
+      - name: Run the second operator set (first- and second-order) against its baseline
+        run: python scripts/mutation_evidence_sufficiency_ast.py --workers 4 --json mutation-es-ast-results.json
+
+      - name: Run the specification mutants of model.json against their baseline
+        # v1.3 spec sections 13 and 14: mutants of the rules, not of checker.py, each run as a
+        # checker and scored by v1.5; the held-out catalogue is a measurement and is uploaded.
+        run: |
+          python scripts/spec_mutation_evidence_sufficiency.py --workers 4 --json mutation-es-spec-results.json
+          python scripts/spec_mutation_evidence_sufficiency.py --catalogue heldout --workers 4 --json mutation-es-spec-heldout.json
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mutation-evidence-sufficiency-results
+          path: |
+            mutation-es-results.txt
+            mutation-es-ast-results.json
+            mutation-es-spec-results.json
+            mutation-es-spec-heldout.json
           retention-days: 90

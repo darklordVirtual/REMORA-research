@@ -8,7 +8,7 @@ from typing import Any
 from remora.toolcall.schema import ToolCallTask
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-ARTIFACT_PATH = REPO_ROOT / "artifacts" / "toolcall_benchmark_v1.json"
+ARTIFACT_PATH = REPO_ROOT / "artifacts" / "benchmarks" / "toolcall_benchmark_v1.json"
 
 
 DOMAIN_PREFIX = {

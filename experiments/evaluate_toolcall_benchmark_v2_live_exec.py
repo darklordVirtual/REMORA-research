@@ -6,7 +6,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from experiments.evaluate_toolcall_benchmark_v2_live import CACHE_PATH, build_decision_table
+from experiments.evaluate_toolcall_benchmark_v2_live import CACHE_PATH, build_decision_table, decision_sources
 from remora.toolcall.live_execution import LiveExecutionTrace, LiveToolSandboxExecutor, aggregate_execution_metrics
 from remora.toolcall.scoring import aggregate_metrics
 from remora.toolcall.simulators import simulate
@@ -63,6 +63,7 @@ def run(
         "cache_path": cache_label,
         "n_tasks": len(tasks),
         "baselines": baselines,
+        "decision_sources": decision_sources(decisions_by_name),
         "limitations": [
             "Sandbox execution is local and deterministic; no production tools are touched.",
             "When mode=replay, single-model decisions come from deterministic cached entries.",

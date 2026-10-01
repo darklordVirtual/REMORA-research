@@ -35,6 +35,21 @@ FIXED_TIME = _NOW_DT.isoformat()
 FIXED_EXPIRY = (_NOW_DT + timedelta(seconds=300)).isoformat()
 
 
+@pytest.fixture(autouse=True)
+def _fresh_clock():
+    """Re-read the clock per test (the #598 fix, which missed this module).
+
+    The times above were taken once at import, i.e. at collection. Tokens
+    expire 300 s after FIXED_TIME, so a full suite that took longer than that
+    between collecting and running this module failed six token checks as
+    expired (local run, 2026-09-28 WS8 review).
+    """
+    global _NOW_DT, FIXED_TIME, FIXED_EXPIRY
+    _NOW_DT = datetime.now(_tz.utc)
+    FIXED_TIME = _NOW_DT.isoformat()
+    FIXED_EXPIRY = (_NOW_DT + timedelta(seconds=300)).isoformat()
+
+
 def _issue_with_key(action: str, obs_hash: str = "abc123", req_id: str = "req-1") -> PolicyDecisionToken:
     """Issue a properly signed token using the test key."""
     payload = _canonical_payload(action, obs_hash, req_id, FIXED_TIME, FIXED_EXPIRY)

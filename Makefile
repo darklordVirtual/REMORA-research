@@ -11,7 +11,7 @@
 #   make report            Generate results snapshot + claim consistency check
 #   make credibility-pack  Generate full credibility pack for external review
 
-.PHONY: install test test-fast test-core curated-test stress-toolcalls lint audit benchmark benchmark-package claim-check claim-sync demo report credibility-pack external-review shadow-replay shadow-verify shadow-audit-smoke shadow-replay-smoke holdout cyber-evidence cyber-vector-payload cyber-threat-feeds thermo-ablation tsf-synthetic typecheck replay safety-check clean help domain-benchmark ai-governance-evidence finance-evidence up down logs docker-build docker-test
+.PHONY: reproduce-results install test test-fast test-core curated-test stress-toolcalls lint audit benchmark benchmark-package claim-check claim-sync demo report credibility-pack external-review shadow-replay shadow-verify shadow-audit-smoke shadow-replay-smoke holdout cyber-evidence cyber-vector-payload cyber-threat-feeds thermo-ablation tsf-synthetic typecheck replay safety-check clean help domain-benchmark ai-governance-evidence finance-evidence up down logs docker-build docker-test
 
 PYTHON ?= python
 PYTEST ?= $(PYTHON) -m pytest
@@ -47,6 +47,7 @@ stress-toolcalls:  ## Run large tool-call stress replay
 
 lint:  ## Run ruff linter
 	$(RUFF) check .
+	$(RUFF) check remora/policy remora/enforcement remora/governance remora/execution servers --select B,S
 
 typecheck: lint test  ## Run lint + tests
 
@@ -82,6 +83,16 @@ audit: meta-audit lint test render-claims  ## Full quality gate: lint + tests + 
 	$(PYTHON) scripts/check_script_hygiene.py
 	@echo "\n-- Internal README link integrity --"
 	$(PYTHON) scripts/_check_links.py
+	@echo "\n-- Retired model identifiers (quality program Q5.4) --"
+	$(PYTHON) scripts/check_retired_models.py
+	@echo "\n-- Results reproduction manifest (quality program Q1.1) --"
+	$(PYTHON) scripts/check_results_manifest.py
+	@echo "\n-- Replication pack (headline artifact hashes and metric fields) --"
+	$(PYTHON) scripts/verify_replication_pack.py --check
+	@echo "\n-- Thermodynamics ledger number bindings (quality program Q1.5) --"
+	$(PYTHON) scripts/check_ledger_bindings.py
+	@echo "\n-- Replay-seed disclosure (quality program Q1.4) --"
+	$(PYTHON) scripts/check_decision_sources.py
 	@echo "\n-- Core module import integrity --"
 	$(PYTHON) scripts/_check_imports.py
 	@echo "\n-- Evaluator leakage gate (M1 assurance) --"
@@ -92,6 +103,8 @@ audit: meta-audit lint test render-claims  ## Full quality gate: lint + tests + 
 	$(PYTHON) scripts/check_claim_provenance.py
 	@echo "\n-- Claim metric bindings (every published number resolves to its artifact) --"
 	$(PYTHON) scripts/check_claim_metric_bindings.py
+	@echo "\n-- Claim utility floors (every active safety claim states its utility cost) --"
+	$(PYTHON) scripts/check_claim_utility_floors.py
 	@echo "\n-- Research shelf (source verification, adoption evidence) --"
 	$(PYTHON) scripts/check_research_shelf.py
 	@echo "\n-- Capability verification binding (verified_at_sha freshness) --"
@@ -146,6 +159,7 @@ claim-check:  ## Validate README/artifact/overclaim consistency
 	$(PYTHON) scripts/check_artifacts_exist.py
 	$(PYTHON) scripts/check_no_overclaims.py
 	$(PYTHON) scripts/check_claim_sync.py
+	$(PYTHON) scripts/verify_replication_pack.py --check
 
 holdout:  ## Run held-out selective-trust evaluation; tau* locked from training split
 	$(PYTHON) scripts/selective_n500_holdout.py
@@ -269,6 +283,9 @@ report:  ## Generate results snapshot and verify claim consistency
 	@echo "\nReport generated. See artifacts/benchmark_summary.json and docs/results_snapshot.md"
 
 # Credibility pack
+
+reproduce-results:  ## Regenerate every regenerable result and compare with the commit (run in a clean worktree; rewrites results/)
+	$(PYTHON) scripts/reproduce_results.py
 
 credibility-pack:  ## Refresh the curated credibility pack's generated companions
 	@echo "Refreshing REMORA credibility pack (generated companions)..."

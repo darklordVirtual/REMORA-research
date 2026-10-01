@@ -1,0 +1,321 @@
+{
+  "artifact": "evidence-sufficiency-v1.1",
+  "rule": "Among inconclusive guards, the reported reason is the first failing premise in the declared ladder. Each adjacent pair has a witness case in which both guards fail; repairing the earlier premise must surface the later reason.",
+  "ladders": {
+    "admission_accounting": {
+      "pre_decisive": [
+        "execution_observation_unaccepted_or_missing",
+        "scope_unaccepted_or_missing"
+      ],
+      "post_presence": [
+        "admission_presence_unknown",
+        "admission_requirement_not_defined",
+        "observation_window_open",
+        "admission_coverage_incomplete"
+      ]
+    },
+    "tested_route_enforcement": {
+      "pre_decisive": [
+        "route_observation_unaccepted_or_missing",
+        "target_or_operation_not_bound",
+        "alternative_route_not_established",
+        "protected_effect_observation_unaccepted"
+      ],
+      "post_effect": [
+        "protected_effect_unknown",
+        "no_effect_observation_not_complete",
+        "valid_control_missing_or_incomparable",
+        "refusal_not_attributed_to_required_boundary"
+      ]
+    },
+    "postcondition_observed": {
+      "pre_decisive": [
+        "readback_unavailable",
+        "readback_source_not_accepted",
+        "target_or_predicate_not_bound",
+        "readback_stale_or_time_unbound",
+        "declared_settlement_point_not_reached",
+        "state_value_missing"
+      ]
+    }
+  },
+  "witnesses": [
+    {
+      "earlier": "execution_observation_unaccepted_or_missing",
+      "later": "scope_unaccepted_or_missing",
+      "case": "A12",
+      "repair": {
+        "effect_source_accepted": true
+      }
+    },
+    {
+      "earlier": "admission_presence_unknown",
+      "later": "admission_requirement_not_defined",
+      "case": "A13",
+      "repair": {
+        "admission_present": false
+      }
+    },
+    {
+      "earlier": "admission_requirement_not_defined",
+      "later": "observation_window_open",
+      "case": "A14",
+      "repair": {
+        "mandatory_admission": true
+      }
+    },
+    {
+      "earlier": "observation_window_open",
+      "later": "admission_coverage_incomplete",
+      "case": "A15",
+      "repair": {
+        "window_finalized": true
+      }
+    },
+    {
+      "earlier": "route_observation_unaccepted_or_missing",
+      "later": "target_or_operation_not_bound",
+      "case": "B11",
+      "repair": {
+        "route_observation_accepted": true
+      }
+    },
+    {
+      "earlier": "target_or_operation_not_bound",
+      "later": "alternative_route_not_established",
+      "case": "B12",
+      "repair": {
+        "same_protected_operation": true
+      }
+    },
+    {
+      "earlier": "alternative_route_not_established",
+      "later": "protected_effect_observation_unaccepted",
+      "case": "B13",
+      "repair": {
+        "outside_required_pep": true
+      }
+    },
+    {
+      "earlier": "protected_effect_unknown",
+      "later": "no_effect_observation_not_complete",
+      "case": "B14",
+      "repair": {
+        "protected_effect_observed": false
+      }
+    },
+    {
+      "earlier": "no_effect_observation_not_complete",
+      "later": "valid_control_missing_or_incomparable",
+      "case": "B15",
+      "repair": {
+        "effect_window_complete": true
+      }
+    },
+    {
+      "earlier": "valid_control_missing_or_incomparable",
+      "later": "refusal_not_attributed_to_required_boundary",
+      "case": "B03",
+      "repair": {
+        "valid_control_same_context": true
+      }
+    },
+    {
+      "earlier": "readback_unavailable",
+      "later": "readback_source_not_accepted",
+      "case": "E12",
+      "repair": {
+        "readback_available": true
+      }
+    },
+    {
+      "earlier": "readback_source_not_accepted",
+      "later": "target_or_predicate_not_bound",
+      "case": "E13",
+      "repair": {
+        "source_accepted": true
+      }
+    },
+    {
+      "earlier": "target_or_predicate_not_bound",
+      "later": "readback_stale_or_time_unbound",
+      "case": "E14",
+      "repair": {
+        "same_target_and_predicate": true
+      }
+    },
+    {
+      "earlier": "readback_stale_or_time_unbound",
+      "later": "declared_settlement_point_not_reached",
+      "case": "E15",
+      "repair": {
+        "fresh_in_declared_window": true
+      }
+    },
+    {
+      "earlier": "declared_settlement_point_not_reached",
+      "later": "state_value_missing",
+      "case": "E16",
+      "repair": {
+        "settlement_reached": true
+      }
+    }
+  ],
+  "isolation_rule": "Every inconclusive reason has a witness case in which it is the only failing premise: repairing that one premise makes the verdict decisive. Erasing the premise must then keep the verdict inconclusive (checked by the erasure loop).",
+  "isolation": [
+    {
+      "reason": "execution_observation_unaccepted_or_missing",
+      "case": "A05",
+      "repair": {
+        "effect_source_accepted": true
+      }
+    },
+    {
+      "reason": "scope_unaccepted_or_missing",
+      "case": "A09",
+      "repair": {
+        "scope_accepted": true
+      }
+    },
+    {
+      "reason": "admission_observation_unaccepted",
+      "case": "A08",
+      "repair": {
+        "admission_source_accepted": true
+      }
+    },
+    {
+      "reason": "candidate_admission_does_not_establish_a_covering_admission",
+      "case": "A06",
+      "repair": {
+        "admission_matches": true
+      }
+    },
+    {
+      "reason": "admission_presence_unknown",
+      "case": "A10",
+      "repair": {
+        "admission_present": false
+      }
+    },
+    {
+      "reason": "admission_requirement_not_defined",
+      "case": "A07",
+      "repair": {
+        "mandatory_admission": true
+      }
+    },
+    {
+      "reason": "observation_window_open",
+      "case": "A04",
+      "repair": {
+        "window_finalized": true
+      }
+    },
+    {
+      "reason": "admission_coverage_incomplete",
+      "case": "A02",
+      "repair": {
+        "admission_coverage_complete": true
+      }
+    },
+    {
+      "reason": "route_observation_unaccepted_or_missing",
+      "case": "B09",
+      "repair": {
+        "route_observation_accepted": true
+      }
+    },
+    {
+      "reason": "target_or_operation_not_bound",
+      "case": "B06",
+      "repair": {
+        "same_protected_operation": true
+      }
+    },
+    {
+      "reason": "alternative_route_not_established",
+      "case": "B08",
+      "repair": {
+        "outside_required_pep": true
+      }
+    },
+    {
+      "reason": "protected_effect_observation_unaccepted",
+      "case": "B10",
+      "repair": {
+        "effect_observation_accepted": true
+      }
+    },
+    {
+      "reason": "protected_effect_unknown",
+      "case": "B07",
+      "repair": {
+        "protected_effect_observed": false
+      }
+    },
+    {
+      "reason": "no_effect_observation_not_complete",
+      "case": "B05",
+      "repair": {
+        "effect_window_complete": true
+      }
+    },
+    {
+      "reason": "valid_control_missing_or_incomparable",
+      "case": "B17",
+      "repair": {
+        "valid_control_same_context": true
+      }
+    },
+    {
+      "reason": "refusal_not_attributed_to_required_boundary",
+      "case": "B04",
+      "repair": {
+        "required_boundary_refusal_accepted": true
+      }
+    },
+    {
+      "reason": "readback_unavailable",
+      "case": "E03",
+      "repair": {
+        "readback_available": true
+      }
+    },
+    {
+      "reason": "readback_source_not_accepted",
+      "case": "E05",
+      "repair": {
+        "source_accepted": true
+      }
+    },
+    {
+      "reason": "target_or_predicate_not_bound",
+      "case": "E06",
+      "repair": {
+        "same_target_and_predicate": true
+      }
+    },
+    {
+      "reason": "readback_stale_or_time_unbound",
+      "case": "E04",
+      "repair": {
+        "fresh_in_declared_window": true
+      }
+    },
+    {
+      "reason": "declared_settlement_point_not_reached",
+      "case": "E07",
+      "repair": {
+        "settlement_reached": true
+      }
+    },
+    {
+      "reason": "state_value_missing",
+      "case": "E09",
+      "repair": {
+        "observed_state": "closed"
+      }
+    }
+  ]
+}

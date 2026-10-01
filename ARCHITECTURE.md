@@ -431,6 +431,7 @@ selective routing is phase-aware rather than a single global threshold. See
 | `remora/safety/` | **CORE** | Adversarial firewall, AST guard |
 | `remora/audit/` | **CORE** | SHA-256 hash-chain (tamper-evident) |
 | `remora/enforcement/` | **CORE** | PolicyDecisionToken + EnforcementGate + ExecutionLease/PEP (REM-013/024/034/035) |
+| `remora/capabilities/` | **CORE** | Capability minimization (WS8): `EffectiveCapabilitySet` with a canonical digest and `CapabilityResolver` (intersection of trusted operands, default deny). Rated CORE because the lease and dispatcher bind it (Q8.2); library-only until then, see [capability-minimized-execution-v1](docs/design/capability-minimized-execution-v1.md) |
 | `remora/governance/lifecycle.py` | **CORE** | Execution lifecycle model + tracker, loaded from `schemas/execution_lifecycle_v1.yaml` (FT-01). CORE is a *maturity* rating: like everything outside `remora.sdk`, this module carries no external backward-compatibility guarantee; see [docs/sdk.md](docs/sdk.md) |
 | `remora/enforcement/outbox.py` | **CORE** | Crash-consistent dispatch-intent store, in-process + SQLite + Postgres adapters (FT-02). Same stability caveat as above |
 | `remora/selective/` | **CORE** | Conformal / CRC / PhaseAwareGuardrail |
@@ -454,6 +455,7 @@ selective routing is phase-aware rather than a single global threshold. See
 | `remora/sdk/` | **STABLE** | The only namespace with an external backward-compatibility guarantee. Snapshot-gated against `artifacts/sdk/public_api_v1.json` and re-checked against the installed wheel in CI |
 | `remora/observability/` | **CORE** | OTel tracer (degrades to a documented no-op) + structured governance events |
 | `remora/toolcall/` | **EXPERIMENTAL** | Tool-call routing, semantic contracts and the benchmark harnesses |
+| `remora/toolcall/toolspec.py` | **CORE** | Signed ToolSpec bundle, verified at the PEP for every lease (RMR-004) and by `remora/execution/authorization.py`. A leaf: it imports nothing from `remora` |
 | `remora/shadow/` | **EXPERIMENTAL** | Counterfactual replay of an agent action log |
 | `remora/integrations/` | **EXPERIMENTAL** | Outbound integrations (GO-STAR MCP bridge) |
 | `remora/assess.py` | **CORE** | One-call tool-call assessment (the library form of `remora assess`) |
@@ -464,6 +466,7 @@ selective routing is phase-aware rather than a single global threshold. See
 | `remora/canonical.py`, `remora/action_semantics.py` | **CORE** | Canonical hashing and action-semantics vocabulary used by the binding hashes |
 | `remora/provenance.py` | **CORE** | Build/commit provenance stamped into result artifacts |
 | `remora/agent_hook/` | **EXPERIMENTAL** | Cross-call session tracking for the agent hook and MCP surface |
+| `remora/agent_hook/shell_ast.py` | **CORE** | Shell AST parser behind the CORE destructive-command guard (`remora/safety/ast_guard.py`). A leaf: it imports nothing from `remora` |
 | `remora/assurance/` | **EXPERIMENTAL** | Assurance trace and stability markers |
 | `remora/audit_gates/` | **EXPERIMENTAL** | Gate definitions used by the claim-audit tooling |
 | `remora/benchmarks/` | **EXPERIMENTAL** | Deterministic benchmark corpora and scoring harnesses |

@@ -95,6 +95,7 @@ FILE_THRESHOLDS: dict[str, float] = {
     # ADR-B. Same shape as gate.py: the Postgres and D1 backend branches are
     # not reachable in this run, and the in-process logic around them is.
     "remora/enforcement/nonce_store.py": 80.5,  # 80.67
+    "remora/enforcement/resolved_effect.py": 96.0,  # 96.30 measured 2026-09-28 (Q7.4)
     # ADR-A. The uncovered remainder is the import-error path for the optional
     # 'cryptography' extra, which is exercised by monkeypatch rather than by
     # actually uninstalling the package mid-run.
@@ -106,6 +107,25 @@ FILE_THRESHOLDS: dict[str, float] = {
     # tests/test_runtime_trust_base_binding.py; a gap here means a runtime
     # the binding no longer distinguishes.
     "remora/enforcement/runtime_identity.py": 98.0,
+    # NTA-2 phase 1 (docs/design/authority-preserving-capability-mediation-v1.md).
+    # 100.00 measured 2026-09-29: every refusal of the mediator and every bound
+    # of derive_effect_authority is a named test or conformance vector, so a
+    # gap here means a request the mediator no longer refuses.
+    "remora/enforcement/capability_mediator.py": 98.0,
+    "remora/enforcement/effect_capability.py": 98.0,
+    "remora/enforcement/execution_context.py": 98.0,
+    "remora/enforcement/effect_graph.py": 98.0,  # 100.00 measured 2026-09-29 (NTA-2 phase 2)
+    # NTA-2 phase 3: every refusal of the effect domain is a named test.
+    "remora/enforcement/effect_domain.py": 98.0,  # 100.00 measured 2026-09-29
+    "remora/enforcement/effect_client.py": 98.0,  # 100.00 measured 2026-09-29
+    # RES-013 runtime surface (quality program Q5.3). Measured 2026-09-28 on
+    # the full local suite; floors sit half a point under the measurement.
+    "remora/toolcall/runtime_surface.py": 92.5,  # 92.98
+    "remora/toolcall/signed_surface_runtime.py": 93.5,  # 94.12
+    "remora/toolcall/surface_authority.py": 92.0,  # 92.55
+    "remora/toolcall/surface_effect_evidence.py": 91.5,  # 92.06
+    "remora/toolcall/surface_evaluation.py": 99.0,  # 100.00
+    "remora/toolcall/surface_runtime.py": 90.5,  # 91.30
 }
 
 #: Global floor over everything measured, including branches.

@@ -1,0 +1,25 @@
+{
+  "artifact": "surface_binding_shadow_v1",
+  "generator": "scripts/measure_surface_binding_shadow.py",
+  "legitimate_runs": {
+    "compared": 200,
+    "executed": 200,
+    "runs": 200,
+    "surface_changed": 0
+  },
+  "perturbed_runs_enforced": {
+    "refusal_reasons": [
+      "surface_changed"
+    ],
+    "refused": 20,
+    "runs": 20,
+    "surface_changed": 20
+  },
+  "perturbed_runs_shadow": {
+    "refused_by_surface_binding": 0,
+    "runs": 20,
+    "surface_changed": 20
+  },
+  "question": "How often does the observed surface change between assessment and dispatch on legitimate runs, and is a real change caught?",
+  "scope": "REMORA's own reference runtime only, one tool, one process. Says nothing about how often an external agent host's surface changes on legitimate runs; that needs Q3.1 on a named host."
+}

@@ -12,7 +12,8 @@ aggregate policy metrics.
 No live oracle calls are made.  Fields that genuinely require oracle responses
 or live Remora.run() are reported as null with an accompanying reason_* string.
 
-Writes results to ``results/end_to_end_n500_v3.json``.
+Writes results to ``results/end_to_end_n500_v3_policy_v5.json``; the SAP v2 round
+record ``results/end_to_end_n500_v3.json`` is frozen.
 """
 
 import json
@@ -23,7 +24,10 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent
 # Clean round 2026-07 (SAP v2): the primary thermodynamic artifact is
 # UNCALIBRATED; the old calibrated artifact stays frozen as historical.
 _INPUT_ARTIFACT = "results/thermodynamic_eval_n500_uncalibrated_results.json"
-_OUTPUT_PATH = _REPO_ROOT / "results" / "end_to_end_n500_v3.json"
+# The SAP v2 round record (results/end_to_end_n500_v3.json, 2026-07-27,
+# RemoraDecisionEngine-v3) is frozen. The default writes the current-policy
+# artifact instead, so the documented command can never overwrite the record.
+_OUTPUT_PATH = _REPO_ROOT / "results" / "end_to_end_n500_v3_policy_v5.json"
 
 
 def run() -> dict:
@@ -47,6 +51,9 @@ def run() -> dict:
     correct_by_action: dict[str, list[bool]] = {k: [] for k in counts}
     confidences: list[float] = []
 
+    # Recorded from the engine's own reports, never hardcoded: a label that
+    # outlives an engine change is false provenance (quality program Q1.3).
+    policy_versions: set[str] = set()
     for item in items:
         obs = PolicyObservation(
             question=item.get("item_id", ""),
@@ -59,6 +66,7 @@ def run() -> dict:
             weighted_support=item.get("trust_score"),  # proxy
         )
         report = engine.decide(obs)
+        policy_versions.add(report.policy_version)
         action_key = report.action.value  # "accept" | "verify" | "abstain" | "escalate"
         counts[action_key] += 1
 
@@ -147,7 +155,7 @@ def run() -> dict:
         ),
         "temperature_threshold": temperature_threshold,
         "policy_engine_version": "RemoraDecisionEngine-v2-temperature-calibrated",
-        "policy_version": "RemoraDecisionEngine-v3",
+        "policy_version": ",".join(sorted(policy_versions)),
         "in_sample_calibration_warning": (
             "Temperature threshold is derived from the same N500 artifact used for this evaluation."
         ),
@@ -163,7 +171,15 @@ def run() -> dict:
     return result
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    import argparse
+
+    parser = argparse.ArgumentParser(description="N500 end-to-end policy evaluation (v3)")
+    parser.add_argument(
+        "--output", type=Path, default=_OUTPUT_PATH,
+        help="Where to write the result (default: the current-policy artifact). "
+             "results/end_to_end_n500_v3.json is the frozen SAP v2 round record.")
+    output = parser.parse_args(argv).output
     result = run()
 
     # Print summary
@@ -195,9 +211,9 @@ def main() -> None:
         print("False trust rate           : N/A (no items accepted)")
     print()
 
-    _OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    _OUTPUT_PATH.write_text(json.dumps(result, indent=2), encoding="utf-8")
-    print(f"Results written to: {_OUTPUT_PATH}")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(result, indent=2), encoding="utf-8")
+    print(f"Results written to: {output}")
 
 
 # ---------------------------------------------------------------------------

@@ -17,7 +17,7 @@ from remora.execution.ports import ToolCallPort, ToolDispatcherPort
 
 import logging
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from remora.enforcement.lease import ExecutionLease, LeaseRefused
 from remora.enforcement.lease_signing import SigningUnavailable
@@ -29,6 +29,12 @@ from remora.execution.remote_dispatch import (
 from remora.enforcement.outbox import ExecutionOutbox, OutboxRow
 from remora.observability.events import governance_event
 from remora.enforcement.result_envelope import capture_tool_result
+
+if TYPE_CHECKING:
+    from remora.capabilities.model import EffectiveCapabilitySet
+    from remora.enforcement.resolved_effect import ResolvedEffect
+    from remora.governance.plan_binding import PlanBinding
+    from remora.governance.task_identity import TaskIdentity
 
 
 def dispatch_under_lease(
@@ -45,6 +51,10 @@ def dispatch_under_lease(
     proposal_id: str = "",
     grant_jti: str = "",
     presented_lease: ExecutionLease | None = None,
+    task_identity: TaskIdentity | None = None,
+    resolved_effect: ResolvedEffect | None = None,
+    plan: PlanBinding | None = None,
+    capability_set: EffectiveCapabilitySet | None = None,
 ) -> dict[str, Any]:
     """Dispatch one authorized call through the governed dispatcher.
 
@@ -58,6 +68,22 @@ def dispatch_under_lease(
     issued. That is what allows the executing process to hold only a public
     verification key -- a process that cannot sign cannot reach the branch
     below, and with a lease handed to it, it does not need to.
+
+    ``task_identity`` (Q7.2) is the task the call is made under. It is signed
+    into a lease minted here and checked against the lease at dispatch, so an
+    approval granted under one task cannot run under another.
+
+    ``resolved_effect`` (Q7.4) is what the call resolves to in this domain's
+    registry. It is signed into a lease minted here; the executing
+    dispatcher resolves again and refuses a different effect.
+
+    ``plan`` (Q7.5) is the plan whose premises this write depends on. Its
+    digest is signed into a lease minted here and the dispatcher re-reads
+    the premises before the write.
+
+    ``capability_set`` (Q8.2) is the set the call runs under, resolved from
+    trusted state by the caller. Its digest is signed into a lease minted here
+    and the dispatcher checks the tool against it.
 
     The lease is NOT trusted because it arrived. ``dispatcher.dispatch``
     re-verifies the whole binding against the concrete call before anything
@@ -93,6 +119,10 @@ def dispatch_under_lease(
                 semantic=semantic, now=now,
                 policy_bundle_hash=policy_bundle_hash, toolspec=toolspec,
                 proposal_id=proposal_id, grant_jti=grant_jti,
+                task_identity=task_identity,
+                resolved_effect=resolved_effect,
+                plan=plan,
+                capability_set=capability_set,
             )
         except (LeaseRefused, ValueError, SigningUnavailable) as exc:
             # SigningUnavailable belongs here, and its absence was a live 500.
@@ -126,7 +156,7 @@ def dispatch_under_lease(
         try:
             return remote_dispatch(
                 lease=lease, tenant=tenant, principal=principal,
-                tool_call=tool_call,
+                tool_call=tool_call, capability_set=capability_set, plan=plan,
             )
         except RemoteDispatchUnavailable as exc:
             # No verdict. Reported as unknown rather than as a refusal: the
@@ -153,6 +183,15 @@ def dispatch_under_lease(
     # here. If this ever fires, the guard logic changed and the named
     # refusal contract with it.
     assert dispatcher is not None
+    # Passed only when present, so a dispatcher implementing the port without
+    # the parameter keeps working for calls that carry no task.
+    task_kwargs: dict[str, Any] = (
+        {"task_identity": task_identity} if task_identity is not None else {}
+    )
+    if plan is not None:
+        task_kwargs["plan"] = plan
+    if capability_set is not None:
+        task_kwargs["capability_set"] = capability_set
     try:
         dres = dispatcher.dispatch(
             lease,
@@ -171,6 +210,7 @@ def dispatch_under_lease(
             # (issue #379) -- a flake in exactly the tests that must not be
             # re-run until green.
             now=now.isoformat(),
+            **task_kwargs,
         )
     except RuntimeError as exc:
         # The tool raised after its nonce was consumed. Whether the effect
@@ -193,6 +233,13 @@ def dispatch_under_lease(
         tool_execution["proposal_id"] = proposal_id
         tool_execution["dispatch_began"] = True
         tool_execution["state_unknown"] = True
+        # NTA-2: what a mediated tool asked for before it raised.
+        nested = getattr(exc, "nested_effects", None)
+        if nested is not None:
+            tool_execution["nested_effects"] = dict(nested)
+        graph = getattr(exc, "effect_graph", None)
+        if graph is not None:
+            tool_execution["effect_graph"] = graph.to_dict()
         return tool_execution
     tool_execution["executed"] = dres.executed
     # Reported by the dispatcher, never inferred from the refusal reason.
@@ -200,6 +247,11 @@ def dispatch_under_lease(
     # Read the identity back off the dispatch result rather than the local
     # variable: what is reported is what the dispatcher actually acted under.
     tool_execution["proposal_id"] = dres.proposal_id
+    # NTA-2: the nested effects a mediated tool requested, as a bounded
+    # summary for the chain and the full graph for the response and export.
+    tool_execution["nested_effects"] = dict(getattr(dres, "nested_effects", None) or {})
+    if getattr(dres, "effect_graph", None) is not None:
+        tool_execution["effect_graph"] = dres.effect_graph.to_dict()
     if dres.executed:
         # Bounded retention, unbounded verification: the hash covers the
         # full result even when the preview is truncated, so an oversized
@@ -224,6 +276,10 @@ def issue_execution_lease(
     toolspec: dict[str, Any] | None = None,
     proposal_id: str = "",
     grant_jti: str = "",
+    task_identity: TaskIdentity | None = None,
+    resolved_effect: ResolvedEffect | None = None,
+    plan: PlanBinding | None = None,
+    capability_set: EffectiveCapabilitySet | None = None,
 ) -> ExecutionLease:
     """Mint a lease. The authority domain's half of the custody split.
 
@@ -236,6 +292,10 @@ def issue_execution_lease(
         tenant=tenant, principal=principal, tool_call=tool_call,
         semantic=semantic, now=now, policy_bundle_hash=policy_bundle_hash,
         toolspec=toolspec, proposal_id=proposal_id, grant_jti=grant_jti,
+        task_identity=task_identity,
+        resolved_effect=resolved_effect,
+        plan=plan,
+        capability_set=capability_set,
     )
 
 
@@ -250,6 +310,10 @@ def _issue_local_lease(
     toolspec: dict[str, Any] | None,
     proposal_id: str,
     grant_jti: str,
+    task_identity: TaskIdentity | None = None,
+    resolved_effect: ResolvedEffect | None = None,
+    plan: PlanBinding | None = None,
+    capability_set: EffectiveCapabilitySet | None = None,
 ) -> ExecutionLease:
     return ExecutionLease.issue(
             decision="accept",
@@ -266,6 +330,10 @@ def _issue_local_lease(
             toolspec_version=int((toolspec or {}).get("version", 0)),
             proposal_id=proposal_id,
             grant_jti=grant_jti,
+            task_identity=task_identity,
+            resolved_effect=resolved_effect,
+            plan=plan,
+            capability_set=capability_set,
         )
 
 

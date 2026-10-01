@@ -19,7 +19,15 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # 15, not 10 (2026-09-30): the job had grown to 9:00-10:03 with every step
+    # green. The master push for #637 (run 36617592241) and the #644 pull
+    # request run (36730336077) were both cancelled by the limit during the
+    # frontend steps after the coverage pass took 7:03 and 7:29.
+    # 20, not 15 (2026-10-01): the coverage pass reached 10:41 (8133 tests) with
+    # the evidence-sufficiency v1.5-v1.7 suites, and #650's run 36832213464 was
+    # cancelled by the limit in the documentation-gate step with every earlier
+    # step green.
+    timeout-minutes: 20
 
     # Real Postgres alongside the coverage run (2026-08-26, external review):
     # the Postgres adapters in enforcement/gate.py and enforcement/outbox.py
@@ -84,6 +92,11 @@ jobs:
       - name: Lint (ruff)
         run: ruff check .
 
+      - name: Security and bug lint for the core (REM-037)
+        # Bandit (S) and bugbear (B) rules over the trusted core. Reviewed
+        # exceptions live in pyproject.toml per-file-ignores, each with its reason.
+        run: ruff check remora/policy remora/enforcement remora/governance remora/execution servers --select B,S
+
       - name: Makefile parses (the documented reviewer entry point)
         # An external review found `make audit` dead since 2026-08-29: an
         # @echo string carried a literal newline, so every target failed with
@@ -131,6 +144,12 @@ jobs:
         # passed for weeks on a claim whose numbers were absent from the file it
         # cited (RMR-002). This step opens the artifact and looks (RMR-007).
         run: python scripts/check_claim_metric_bindings.py
+
+      - name: Claim utility floor gate (a safety claim states its utility cost)
+        # A zero false-accept rate is free for a gate that refuses everything.
+        # Each active safety claim carries its pre-registered utility floors,
+        # recomputed here, or a stated reason none applies.
+        run: python scripts/check_claim_utility_floors.py
 
       - name: OpenAPI contract drift gate
         # schemas/openapi.json is the committed, reviewable contract a client

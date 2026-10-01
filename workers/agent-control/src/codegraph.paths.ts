@@ -57,7 +57,7 @@ export const CODEGRAPH_PATHS = [
   'artifacts/figures/tool_safety.png',
   'artifacts/rag_adversarial_test.json',
   'artifacts/reproduce.sh',
-  'artifacts/toolcall_benchmark_v1.json',
+  'artifacts/benchmarks/toolcall_benchmark_v1.json',
   'artifacts/toolcall_benchmark_v2.json',
   'artifacts/toolcall_live_cache_v1.json',
   'artifacts/use-cases/asker_case_comparison.png',

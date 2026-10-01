@@ -1,0 +1,76 @@
+{
+  "artifact": "resolved_effect_fixtures_v1",
+  "cases": [
+    {
+      "authorised_effect": "0e5b05f44b0f73748d8822d4ec6df24f4c14129b9fbb9a7b131e55e6d6256aea",
+      "executed": true,
+      "name": "unchanged_registry",
+      "refusal_reason": null,
+      "stage": "dispatch",
+      "tool_ran": true
+    },
+    {
+      "authorised_effect": "0e5b05f44b0f73748d8822d4ec6df24f4c14129b9fbb9a7b131e55e6d6256aea",
+      "executed": true,
+      "name": "unrelated_entry_changed",
+      "refusal_reason": null,
+      "stage": "dispatch",
+      "tool_ran": true
+    },
+    {
+      "authorised_effect": "0e5b05f44b0f73748d8822d4ec6df24f4c14129b9fbb9a7b131e55e6d6256aea",
+      "executed": false,
+      "name": "alias_retargeted",
+      "refusal_reason": "resolved_effect_mismatch",
+      "stage": "dispatch",
+      "tool_ran": false
+    },
+    {
+      "authorised_effect": "0e5b05f44b0f73748d8822d4ec6df24f4c14129b9fbb9a7b131e55e6d6256aea",
+      "executed": false,
+      "name": "resource_redirected",
+      "refusal_reason": "resolved_effect_mismatch",
+      "stage": "dispatch",
+      "tool_ran": false
+    },
+    {
+      "authorised_effect": "0e5b05f44b0f73748d8822d4ec6df24f4c14129b9fbb9a7b131e55e6d6256aea",
+      "executed": false,
+      "name": "implementation_remapped",
+      "refusal_reason": "resolved_effect_mismatch",
+      "stage": "dispatch",
+      "tool_ran": false
+    },
+    {
+      "authorised_effect": null,
+      "executed": false,
+      "name": "unknown_alias",
+      "refusal_reason": "unresolved_reference",
+      "stage": "issue"
+    },
+    {
+      "authorised_effect": null,
+      "executed": false,
+      "name": "unknown_resource",
+      "refusal_reason": "unresolved_reference",
+      "stage": "issue"
+    }
+  ],
+  "claim": "A lease binds the effect its call resolved to when authorised; a changed resolution refuses at dispatch and an unknown reference refuses outright.",
+  "generator": "scripts/generate_resolved_effect_fixtures.py",
+  "scope": "Library dispatcher with an in-memory closed registry. Says nothing about whether a deployment's registry is correct, or about an adapter that resolves differently from the registry it declares.",
+  "summary": {
+    "all_as_required": true,
+    "executed_as_required": [
+      "unchanged_registry",
+      "unrelated_entry_changed"
+    ],
+    "refused_as_required": [
+      "alias_retargeted",
+      "implementation_remapped",
+      "resource_redirected",
+      "unknown_alias",
+      "unknown_resource"
+    ]
+  }
+}

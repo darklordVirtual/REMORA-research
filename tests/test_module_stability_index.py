@@ -68,12 +68,38 @@ def test_every_rating_is_from_the_vocabulary() -> None:
     assert not bad, f"unknown stability ratings: {sorted(bad)}"
 
 
+def _is_bytecode_residue(entry: Path) -> bool:
+    """A directory left behind with only compiled caches holds no module.
+
+    Deleting a package leaves its ``__pycache__`` on disk in a checkout, and
+    CI's fresh clone never sees it. Counting it made a local run differ from CI.
+    """
+    return entry.is_dir() and not any(
+        f.is_file() and "__pycache__" not in f.relative_to(entry).parts
+        for f in entry.rglob("*")
+    )
+
+
+def test_bytecode_residue_is_recognised(tmp_path: Path) -> None:
+    residue = tmp_path / "gone" / "__pycache__"
+    residue.mkdir(parents=True)
+    (residue / "old.cpython-313.pyc").write_bytes(b"")
+    live = tmp_path / "live"
+    live.mkdir()
+    (live / "__init__.py").write_text("", encoding="utf-8")
+    assert _is_bytecode_residue(tmp_path / "gone")
+    assert not _is_bytecode_residue(live)
+    assert not _is_bytecode_residue(live / "__init__.py")
+
+
 def test_every_top_level_module_is_classified() -> None:
     """A module nobody classified is a module nobody decided about."""
     listed = {p.rstrip("/") for p, _ in _index_rows()}
     unclassified: list[str] = []
     for entry in sorted((ROOT / "remora").iterdir()):
         if entry.name in _NOT_A_MODULE or entry.name.startswith("."):
+            continue
+        if _is_bytecode_residue(entry):
             continue
         rel = f"remora/{entry.name}" + ("/" if entry.is_dir() else "")
         if rel.rstrip("/") in listed:

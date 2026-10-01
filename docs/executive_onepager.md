@@ -61,7 +61,10 @@ executions on the blinded internal benchmark
 (`results/toolcall_blind_v3_results.json`, N=700 tasks = 70 template clusters × 10 cosmetic variants; inference is at the 70-cluster level) and on an independent
 external harmful-scenario dataset
 (`results/external_benchmark_agentharm_v1.json`, n=208), both
-benchmark-scoped, neither a field-deployment claim.
+benchmark-scoped, neither a field-deployment claim. On AgentHarm the gate
+also blocked all 208 benign twins (false-block rate 100%), so that result
+shows the hard-block floor holding, not the gate telling harmful from benign
+requests.
 
 ## Limitations: stated, not buried
 

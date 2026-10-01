@@ -14,5 +14,10 @@
   "command": "python scripts/selective_n500_holdout.py",
   "generated_at": "2026-07-27T13:28:32.191336+00:00",
   "artifact": "selective_n500_holdout_results.json",
-  "artifact_sha256": "131be665722ab99b59c95bae47110f67d8a49a7ad5adb24d0525ca1635f2fe4e"
+  "artifact_sha256": "3ed9f7d61493fb564574202cb832c64f365b5ec015c509e639db0a0104d28a35",
+  "artifact_sha256_correction": {
+    "date": "2026-09-28",
+    "previous_value": "131be665722ab99b59c95bae47110f67d8a49a7ad5adb24d0525ca1635f2fe4e",
+    "reason": "previous value hashed CRLF bytes; the result file is unchanged and this is its LF hash per docs/assurance/artifact_manifest_v1.md. Detected by the sidecar hash check in scripts/check_results_manifest.py."
+  }
 }

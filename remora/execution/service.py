@@ -33,7 +33,8 @@ from remora.enforcement.token import AuthorizationContext, PolicyDecisionToken
 from remora.governance.audit_outbox import encode_key
 from remora.governance.review_queue import ExecutionDecision
 from remora.governance.proposal_lineage import derive_lineage, lineage_key_for
-from remora.policy.report import DecisionAction
+from remora.governance.task_identity import TaskIdentity
+from remora.policy.report import DecisionAction, DecisionReason
 
 
 #: The outbox state each outcome settles as. A table rather than a chain of
@@ -88,7 +89,7 @@ def _claim_lost_response(
     item_id: str,
     tool_call_hash: str,
     grant_jti: str,
-    intent_sequence_no: int,
+    intent_sequence_no: int | None,
 ) -> dict[str, Any]:
     """Record and return "another worker holds this intent".
 
@@ -98,6 +99,10 @@ def _claim_lost_response(
     the outbox row or drive the item to a terminal state: both belong to the
     worker that won the claim, and writing them here would overwrite the record
     of the execution that actually happens.
+
+    On the review path the claim precedes the grant, so the loser passes an
+    empty ``grant_jti`` and no ``intent_sequence_no``: it consumed nothing and
+    appended no authorization for this record to point at.
     """
     tool_execution = {
         "executed": False,
@@ -152,6 +157,8 @@ def assess_proposal(
     token_audience: str,
     token_ttl_seconds: int,
     policy_bundle_hash: Callable[[], str] | None = None,
+    loop_safety: Any = None,
+    capability_gate: Callable[[Any], dict[str, Any] | None] | None = None,
 ) -> dict[str, Any]:
     """Assess a proposed tool call — nothing executes here.
 
@@ -163,7 +170,24 @@ def assess_proposal(
     leaves an item the API refuses as unknown — external review
     2026-07-27); ABSTAIN returns neither. Every assessment appends to the
     tenant audit chain.
+
+    ``loop_safety`` (Q7.2) is a ``LoopSafetyMonitor``. For a proposal that
+    names a task, the context's accumulated state is read first: when it has
+    reached a limit, an ACCEPT becomes ESCALATE, so a context that has been
+    probing does not keep acting autonomously. The downgrade never goes the
+    other way. The decision is then recorded against the context. A store
+    that cannot answer raises before anything is decided or recorded.
+
+    ``capability_gate`` (Q8.2) returns the capability block for the proposal:
+    the effective set it was checked against and whether the tool is in it.
+    A tool outside the set is ABSTAIN with ``capability_not_allowed``, whatever
+    the engine decided. None from the gate means no capability policy applies.
     """
+    task = task_identity_of(proposal)
+    prior_loop = (
+        loop_safety.assess(tenant, task.context_id)
+        if loop_safety is not None and task is not None else None
+    )
     obs, semantic = build_observation(proposal, tenant)
     toolspec_identity = resolve_toolspec(
         proposal.tool_name, proposal.arguments, proposal.target_environment
@@ -178,6 +202,21 @@ def assess_proposal(
     note_proposal_id(proposal_id)
     obs = dataclasses.replace(obs, proposal_id=proposal_id)
     report = engine.decide(obs)
+    if (prior_loop is not None and prior_loop.action == "escalate"
+            and report.action is DecisionAction.ACCEPT):
+        report = dataclasses.replace(
+            report,
+            action=DecisionAction.ESCALATE,
+            reasons=(*report.reasons, DecisionReason.LOOP_SAFETY_ESCALATE),
+            human_review_required=True,
+        )
+    capability = capability_gate(proposal) if capability_gate is not None else None
+    if capability is not None and not capability.get("allowed"):
+        report = dataclasses.replace(
+            report,
+            action=DecisionAction.ABSTAIN,
+            reasons=(*report.reasons, DecisionReason.CAPABILITY_NOT_ALLOWED),
+        )
     now = datetime.now(UTC)
 
     # Derived from the chain, never from the request: a caller-declared
@@ -221,6 +260,11 @@ def assess_proposal(
         "toolspec_hash": toolspec_identity["hash"],
         "toolspec_version": toolspec_identity["version"],
     }
+    if task is not None:
+        record["context_id"] = task.context_id
+        record["task_id"] = task.task_id
+    if capability is not None:
+        record["capability"] = capability
     response: dict[str, Any] = {
         "proposal_id": proposal_id,
         "decision": report.action.value,
@@ -229,6 +273,8 @@ def assess_proposal(
         "semantic": dict(semantic),
         "toolspec": dict(toolspec_identity),
     }
+    if capability is not None:
+        response["capability"] = capability
     # FT-01 conformance BEFORE anything is recorded.
     branch_event = {
         DecisionAction.ACCEPT: "direct_accept_token",
@@ -237,6 +283,24 @@ def assess_proposal(
         DecisionAction.ABSTAIN: "abstain_or_hard_refusal",
     }.get(report.action, "abstain_or_hard_refusal")
     lifecycle_guard("PROPOSED", "engine_decision", branch_event)
+
+    if loop_safety is not None and task is not None:
+        # Recorded before the token or review item exists, so a failure to
+        # record refuses the whole assessment instead of issuing authority
+        # the context's history does not show.
+        after = loop_safety.observe(
+            tenant, task, proposal.tool_name,
+            denied=report.action is DecisionAction.ABSTAIN,
+        )
+        loop_summary = {
+            "context_id": task.context_id,
+            "action": after.action,
+            "reached": list(after.reached),
+            "escalated_by_loop_state": (
+                DecisionReason.LOOP_SAFETY_ESCALATE in report.reasons),
+        }
+        record["loop_safety"] = loop_summary
+        response["loop_safety"] = loop_summary
 
     item = None
     if report.action is DecisionAction.ACCEPT:
@@ -256,6 +320,7 @@ def assess_proposal(
                 target_environment=proposal.target_environment or "",
                 policy_bundle_hash=_policy_bundle_hash(policy_bundle_hash),
                 toolspec_hash=str(toolspec_identity["hash"]),
+                task=task,
             ),
         )
         record["grant_jti"] = token.jti
@@ -463,6 +528,19 @@ def execute_approved_item(
             response["outbox_id"] = intent.outbox_id
         return response
 
+    # FT-02: claim the intent before anything can take effect (exclusive).
+    # A lost race means another worker holds this intent. Dispatching anyway
+    # would execute the same side effect twice, which is the single failure the
+    # outbox exists to prevent. The claim comes BEFORE the grant is minted and
+    # consumed and before execution_authorized is appended, the order issue
+    # #417 set for the worker path: the loser consumes and asserts nothing.
+    if not _claim_or_none(outbox, intent, worker_id=worker_id):
+        return _claim_lost_response(
+            response, chain=chain, tenant=tenant, principal=principal,
+            proposal_id=proposal_id, item_id=item_id,
+            tool_call_hash=fresh_obs.tool_call_hash, grant_jti="",
+            intent_sequence_no=None)
+
     # The re-gate only AUTHORIZED the call; EXECUTED is recorded separately
     # after the dispatcher reports what actually happened.
     now = datetime.now(UTC)
@@ -471,6 +549,7 @@ def execute_approved_item(
         target_environment=tool_call.target_environment or "",
         policy_bundle_hash=_policy_bundle_hash(policy_bundle_hash),
         toolspec_hash=str(toolspec_identity["hash"]),
+        task=task_identity_of(tool_call),
     )
     token = PolicyDecisionToken.issue(
         action="accept",
@@ -523,17 +602,6 @@ def execute_approved_item(
         "policy_components": coverage,
     })
 
-    # FT-02: claim the intent before anything can take effect (exclusive).
-    # A lost race means another worker holds this intent. Dispatching anyway
-    # would execute the same side effect twice, which is the single failure the
-    # outbox exists to prevent.
-    if not _claim_or_none(outbox, intent, worker_id=worker_id):
-        return _claim_lost_response(
-            response, chain=chain, tenant=tenant, principal=principal,
-            proposal_id=proposal_id, item_id=item_id,
-            tool_call_hash=fresh_obs.tool_call_hash, grant_jti=token.jti,
-            intent_sequence_no=intent_entry.sequence_no)
-
     tool_execution = dispatch_under_lease(
         tenant=tenant,
         principal=principal,
@@ -544,6 +612,7 @@ def execute_approved_item(
         toolspec=toolspec_identity,
         proposal_id=str(proposal_id or item_id),
         grant_jti=token.jti,
+        **_task_kwargs(tool_call),
     )
 
     # FT-02: settle with what actually happened - derived, never assumed.
@@ -605,6 +674,7 @@ def execute_approved_item(
         result_record["result_truncated"] = envelope_meta["truncated"]
     if tool_execution.get("refusal_reason"):
         result_record["tool_refusal_reason"] = tool_execution["refusal_reason"]
+    result_record.update(_nested_effects_fields(tool_execution))
     # Idempotent by outbox id (issue #416): the in-line write claims the
     # same key the projector would replay under, so the record can land at
     # most once regardless of who finishes it.
@@ -620,6 +690,14 @@ def execute_approved_item(
             "sequence_no": entry.sequence_no, "entry_hash": entry.entry_hash,
         }
     return response
+
+
+def _nested_effects_fields(tool_execution: dict[str, Any]) -> dict[str, Any]:
+    """The NTA-2 nested-effect summary an execution_result carries, when the
+    dispatch reported one. Absent for dispatches that never reached the
+    dispatcher, which report no nested effects because none could occur."""
+    nested = tool_execution.get("nested_effects")
+    return {"nested_effects": dict(nested)} if nested else {}
 
 
 def _projection_payload(
@@ -649,6 +727,7 @@ def _projection_payload(
         "state_unknown": bool(tool_execution.get("state_unknown")),
         "refusal_reason": tool_execution.get("refusal_reason"),
         "intent_sequence_no": intent_sequence_no,
+        **_nested_effects_fields(tool_execution),
     }
     if executed_by:
         payload["executed_by"] = executed_by
@@ -677,7 +756,7 @@ def _result_record_from_projection(p: dict[str, Any]) -> dict[str, Any]:
         record["intent_sequence_no"] = p["intent_sequence_no"]
     if p.get("refusal_reason"):
         record["tool_refusal_reason"] = p["refusal_reason"]
-    for key in ("result_sha256", "result_size_bytes", "result_truncated"):
+    for key in ("result_sha256", "result_size_bytes", "result_truncated", "nested_effects"):
         if key in p:
             record[key] = p[key]
     return record
@@ -897,6 +976,7 @@ def dispatch_pending_intent(
         target_environment=getattr(tool_call, "target_environment", "") or "",
         policy_bundle_hash=_policy_bundle_hash(policy_bundle_hash),
         toolspec_hash=str((toolspec_identity or {}).get("hash", "")),
+        task=task_identity_of(tool_call),
     )
     token = PolicyDecisionToken.issue(
         action="accept",
@@ -934,6 +1014,7 @@ def dispatch_pending_intent(
         toolspec=toolspec_identity,
         proposal_id=str(proposal_id or row.item_id),
         grant_jti=token.jti,
+        **_task_kwargs(tool_call),
     )
 
     outcome = classify_outcome(tool_execution)
@@ -978,6 +1059,7 @@ def dispatch_pending_intent(
         result_record["result_truncated"] = envelope_meta["truncated"]
     if tool_execution.get("refusal_reason"):
         result_record["tool_refusal_reason"] = tool_execution["refusal_reason"]
+    result_record.update(_nested_effects_fields(tool_execution))
     # Idempotent by outbox id (issue #416): the same key the projector
     # replays under, so the record lands at most once.
     entry = chain.append_once(
@@ -1014,6 +1096,7 @@ def authorization_context(
     target_environment: str,
     policy_bundle_hash: str,
     toolspec_hash: str,
+    task: TaskIdentity | None = None,
 ) -> AuthorizationContext:
     """The conditions a decision is made under, in one place.
 
@@ -1029,6 +1112,11 @@ def authorization_context(
     moves for reasons that have nothing to do with this tool's spec. They are
     passed explicitly now, so a caller cannot leave one unbound by omission.
     The contract-bundle hash keeps its own place in the audit record.
+
+    ``task`` (Q7.2) is the task the call is made under. It enters the hash
+    only when present, so a request that names no task hashes as before, and
+    a token issued under one task and redeemed under another is refused as
+    ``context_mismatch`` before the grant is consumed.
     """
 
     return AuthorizationContext(
@@ -1038,7 +1126,47 @@ def authorization_context(
         policy_bundle_hash=policy_bundle_hash,
         toolspec_hash=toolspec_hash,
         intent_authority_hash=str(semantic.get("intent_authority_hash", "")),
+        context_id=task.context_id if task is not None else "",
+        task_id=task.task_id if task is not None else "",
     )
+
+
+def task_identity_of(tool_call: Any) -> TaskIdentity | None:
+    """The task a proposal names, or None. Raises ValueError for one half.
+
+    Read by attribute so the duck-typed call a worker rebuilds from the outbox
+    is handled like the wire model; a call without the fields names no task.
+    """
+    return TaskIdentity.from_fields({
+        "context_id": getattr(tool_call, "context_id", None) or None,
+        "task_id": getattr(tool_call, "task_id", None) or None,
+    })
+
+
+def plan_binding_of(tool_call: Any) -> Any:
+    """The plan a proposal carries (Q7.5), or None. Raises ValueError when
+    the plan is malformed, so a bad plan is refused rather than dropped."""
+    raw = getattr(tool_call, "plan", None)
+    if raw is None:
+        return None
+    from remora.governance.plan_binding import PlanBinding
+
+    data = raw.model_dump() if hasattr(raw, "model_dump") else raw
+    return PlanBinding.from_dict(data)
+
+
+def _task_kwargs(tool_call: Any) -> dict[str, Any]:
+    """``task_identity`` and ``plan`` for a dispatch call, each omitted when
+    the call carries none, so a dispatcher binding that predates the
+    parameters keeps working."""
+    out: dict[str, Any] = {}
+    task = task_identity_of(tool_call)
+    if task is not None:
+        out["task_identity"] = task
+    plan = plan_binding_of(tool_call)
+    if plan is not None:
+        out["plan"] = plan
+    return out
 
 
 def redeem_accept_token(
@@ -1136,6 +1264,7 @@ def redeem_accept_token(
         target_environment=tool_call.target_environment or "",
         policy_bundle_hash=_policy_bundle_hash(policy_bundle_hash),
         toolspec_hash=str((toolspec_identity or {}).get("hash", "")),
+        task=task_identity_of(tool_call),
     )
     context_check = token.verify(obs.tool_call_hash, context=current_context)
     if not context_check.verified and context_check.reason in {
@@ -1203,6 +1332,11 @@ def redeem_accept_token(
         "tool_contract_bundle_hash": semantic["tool_contract_bundle_hash"],
         "intent_authority_hash": semantic["intent_authority_hash"],
     })
+    # Unlike the review path, consumption stays ahead of the claim here: the
+    # presented token IS the authority, and it must be proven single-use
+    # before any intent exists for it. A second redeemer is stopped by the
+    # atomic consume above, and the async worker skips this row because it
+    # carries no tool_call_json, so this branch is defensive.
     if not _claim_or_none(outbox, intent, worker_id=worker_id):
         return _claim_lost_response(
             response, chain=chain, tenant=tenant, principal=principal,
@@ -1220,6 +1354,7 @@ def redeem_accept_token(
         toolspec=toolspec_identity,
         proposal_id=str(proposal_id or token.jti),
         grant_jti=token.jti,
+        **_task_kwargs(tool_call),
     )
 
     # Same structural classification as the review path: a dispatch that began
@@ -1262,6 +1397,7 @@ def redeem_accept_token(
         result_record["result_truncated"] = envelope_meta["truncated"]
     if tool_execution.get("refusal_reason"):
         result_record["tool_refusal_reason"] = tool_execution["refusal_reason"]
+    result_record.update(_nested_effects_fields(tool_execution))
     # Idempotent by outbox id (issue #416): the in-line write claims the
     # same key the projector would replay under, so the record can land at
     # most once regardless of who finishes it.

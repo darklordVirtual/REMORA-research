@@ -49,6 +49,15 @@ require_security_extra()
 from cryptography.hazmat.primitives.asymmetric import ed25519  # noqa: E402
 
 NOW = datetime.now(UTC)
+
+
+@pytest.fixture(autouse=True)
+def _fresh_clock():
+    """Re-read the clock per test: a module-level timestamp is taken at
+    collection, and the full suite can outlast a lease or token lifetime
+    before this module runs (see tests/test_token_hardening.py)."""
+    global NOW
+    NOW = datetime.now(UTC)
 BUNDLE = "bundle-1"
 SEMANTIC = {"tool_contract_bundle_hash": "tc-1", "intent_authority_hash": "ia-1"}
 ENDPOINT = "http://execution.internal"

@@ -1,0 +1,195 @@
+{
+  "arms": {
+    "correct": {
+      "false_allow": 0.0,
+      "false_block": 0.0,
+      "final_routes": {
+        "abstain": 150,
+        "accept": 60,
+        "escalate": 90,
+        "verify": 240
+      },
+      "n": {
+        "episodes": 540,
+        "identity_reads": 60,
+        "identity_writes": 30,
+        "wrong_arg_value": 90,
+        "wrong_arg_value_reads": 60
+      },
+      "post_hoc_false_allow_reads_only": 0.0,
+      "review_burden": 0.6111,
+      "valid_read_refused": 0.0,
+      "valid_read_success": 1.0,
+      "write_auto_accept": 0.0
+    },
+    "fail_open": {
+      "false_allow": 0.0778,
+      "false_block": 0.0,
+      "final_routes": {
+        "abstain": 143,
+        "accept": 67,
+        "escalate": 90,
+        "verify": 240
+      },
+      "n": {
+        "episodes": 540,
+        "identity_reads": 60,
+        "identity_writes": 30,
+        "wrong_arg_value": 90,
+        "wrong_arg_value_reads": 60
+      },
+      "post_hoc_false_allow_reads_only": 0.1167,
+      "review_burden": 0.6111,
+      "valid_read_refused": 0.0,
+      "valid_read_success": 1.0,
+      "write_auto_accept": 0.0
+    },
+    "no_gate": {
+      "false_allow": 1.0,
+      "false_block": 0.0,
+      "final_routes": {
+        "accept": 540
+      },
+      "n": {
+        "episodes": 540,
+        "identity_reads": 60,
+        "identity_writes": 30,
+        "wrong_arg_value": 90,
+        "wrong_arg_value_reads": 60
+      },
+      "post_hoc_false_allow_reads_only": 1.0,
+      "review_burden": 0.0,
+      "valid_read_refused": 0.0,
+      "valid_read_success": 1.0,
+      "write_auto_accept": 1.0
+    },
+    "partial_closed_world": {
+      "false_allow": 0.0,
+      "false_block": 0.3333,
+      "final_routes": {
+        "abstain": 170,
+        "accept": 40,
+        "escalate": 90,
+        "verify": 240
+      },
+      "n": {
+        "episodes": 540,
+        "identity_reads": 60,
+        "identity_writes": 30,
+        "wrong_arg_value": 90,
+        "wrong_arg_value_reads": 60
+      },
+      "post_hoc_false_allow_reads_only": 0.0,
+      "review_burden": 0.6111,
+      "valid_read_refused": 0.3333,
+      "valid_read_success": 0.6667,
+      "write_auto_accept": 0.0
+    },
+    "partial_unknown": {
+      "false_allow": 0.0,
+      "false_block": 0.3333,
+      "final_routes": {
+        "abstain": 170,
+        "accept": 40,
+        "escalate": 90,
+        "verify": 240
+      },
+      "n": {
+        "episodes": 540,
+        "identity_reads": 60,
+        "identity_writes": 30,
+        "wrong_arg_value": 90,
+        "wrong_arg_value_reads": 60
+      },
+      "post_hoc_false_allow_reads_only": 0.0,
+      "review_burden": 0.6111,
+      "valid_read_refused": 0.3333,
+      "valid_read_success": 0.6667,
+      "write_auto_accept": 0.0
+    },
+    "prefix_matcher": {
+      "false_allow": 0.6667,
+      "false_block": 0.0,
+      "final_routes": {
+        "abstain": 90,
+        "accept": 120,
+        "escalate": 90,
+        "verify": 240
+      },
+      "n": {
+        "episodes": 540,
+        "identity_reads": 60,
+        "identity_writes": 30,
+        "wrong_arg_value": 90,
+        "wrong_arg_value_reads": 60
+      },
+      "post_hoc_false_allow_reads_only": 1.0,
+      "review_burden": 0.6111,
+      "valid_read_refused": 0.0,
+      "valid_read_success": 1.0,
+      "write_auto_accept": 0.0
+    },
+    "stale_snapshot": {
+      "false_allow": 0.0,
+      "false_block": 0.15,
+      "final_routes": {
+        "abstain": 159,
+        "accept": 51,
+        "escalate": 90,
+        "verify": 240
+      },
+      "n": {
+        "episodes": 540,
+        "identity_reads": 60,
+        "identity_writes": 30,
+        "wrong_arg_value": 90,
+        "wrong_arg_value_reads": 60
+      },
+      "post_hoc_false_allow_reads_only": 0.0,
+      "review_burden": 0.6111,
+      "valid_read_refused": 0.15,
+      "valid_read_success": 0.85,
+      "write_auto_accept": 0.0
+    }
+  },
+  "caveat": "Openly non-blind mechanism study on the synthetic fleetops domain. The retired-identifier path of a stale snapshot is not sampled. Numbers bound this material, not REMORA in general.",
+  "faults": {
+    "fail_open_rate": 0.2,
+    "partial_export_fraction": 0.7,
+    "seed": 0,
+    "stale_missing_fraction": 0.15
+  },
+  "predictions": {
+    "P1": {
+      "measured": "false_allow 0.0, valid_read_success 1.0",
+      "met": true
+    },
+    "P2": {
+      "measured": "false_allow 1.0, write_auto_accept 1.0",
+      "met": true
+    },
+    "P3": {
+      "measured": "success drop 0.15, false_allow 0.0",
+      "met": true
+    },
+    "P4": {
+      "measured": "false_allow 0.6667",
+      "met": true
+    },
+    "P5": {
+      "measured": "false_allow 0.0778",
+      "met": false
+    },
+    "P6": {
+      "measured": "refused 0.3333 vs 0.3333, review 0.6111 vs 0.6111",
+      "met": false
+    },
+    "P7": {
+      "measured": "correct 0.0, stale_snapshot 0.0, prefix_matcher 0.0, fail_open 0.0, partial_closed_world 0.0, partial_unknown 0.0",
+      "met": true
+    }
+  },
+  "preregistration": "experiments/gate_correctness/PREREGISTERED.md",
+  "schema": "gate_correctness_study_v1",
+  "status": "mechanism_study_not_blind"
+}

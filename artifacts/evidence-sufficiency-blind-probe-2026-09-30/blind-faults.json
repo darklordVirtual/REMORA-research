@@ -1,0 +1,568 @@
+{
+ "source_commit": "bb3a2ea",
+ "selectors": [
+  {
+   "selector": "fw1-refactor-slips",
+   "files_read": [
+    "conformance/evidence-sufficiency-v1/checker.py",
+    "conformance/evidence-sufficiency-v1/README.md"
+   ]
+  },
+  {
+   "selector": "fw2-semantic-misreadings",
+   "files_read": [
+    "conformance/evidence-sufficiency-v1/checker.py",
+    "conformance/evidence-sufficiency-v1/README.md"
+   ]
+  },
+  {
+   "selector": "fw3-python-json-pitfalls",
+   "files_read": [
+    "conformance/evidence-sufficiency-v1/checker.py",
+    "conformance/evidence-sufficiency-v1/README.md"
+   ]
+  }
+ ],
+ "faults": [
+  {
+   "id": "FW1-01",
+   "class": "hand_picked",
+   "selector": "fw1-refactor-slips",
+   "offset": 7107,
+   "old": "if o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True:",
+   "new": "if o.get(\"effect_source_accepted\") is not True and o.get(\"effect_seen\") is not True:",
+   "rationale": "or/and slip in the execution-observation guard lets an execution with only one of accepted-source/seen proceed to admission inference."
+  },
+  {
+   "id": "FW1-02",
+   "class": "hand_picked",
+   "selector": "fw1-refactor-slips",
+   "offset": 7280,
+   "old": "if o.get(\"scope_accepted\") is not True:",
+   "new": "if o.get(\"effect_source_accepted\") is not True:",
+   "rationale": "Key copied from the line above replaces the scope guard, so an unaccepted scope no longer blocks admission verdicts."
+  },
+  {
+   "id": "FW1-03",
+   "class": "hand_picked",
+   "selector": "fw1-refactor-slips",
+   "offset": 7577,
+   "old": "if o.get(\"admission_matches\") is True:",
+   "new": "if o.get(\"admission_matches\") is not False:",
+   "rationale": "Loosened identity check treats a missing or unknown admission_matches as a match and returns ESTABLISHED."
+  },
+  {
+   "id": "FW1-04",
+   "class": "hand_picked",
+   "selector": "fw1-refactor-slips",
+   "offset": 8031,
+   "old": "    if o.get(\"mandatory_admission\") is not True:\n        return _unknown(claim, \"admission_requirement_not_defined\", scope)\n",
+   "new": "",
+   "rationale": "Mandatory-admission guard lost in a refactor, so absence of admission becomes VIOLATED even when no admission rule is defined."
+  },
+  {
+   "id": "FW1-05",
+   "class": "hand_picked",
+   "selector": "fw1-refactor-slips",
+   "offset": 8159,
+   "old": "if o.get(\"window_finalized\") is not True:",
+   "new": "if o.get(\"admission_coverage_complete\") is not True:",
+   "rationale": "Neighbouring key pasted into the window guard, so an open observation window no longer blocks a VIOLATED verdict."
+  },
+  {
+   "id": "FW1-06",
+   "class": "hand_picked",
+   "selector": "fw1-refactor-slips",
+   "offset": 8437,
+   "old": "EvidenceStatus.VIOLATED,\n        \"mandatory_admission_absent_in_complete_bounded_history\",",
+   "new": "EvidenceStatus.ESTABLISHED,\n        \"mandatory_admission_absent_in_complete_bounded_history\",",
+   "rationale": "Return block copy-pasted from the ESTABLISHED branch keeps the wrong status, so closed-world absence reports ESTABLISHED instead of VIOLATED."
+  },
+  {
+   "id": "FW1-07",
+   "class": "hand_picked",
+   "selector": "fw1-refactor-slips",
+   "offset": 9390,
+   "old": "    if o.get(\"effect_observation_accepted\") is not True:\n        return _unknown(claim, \"protected_effect_observation_unaccepted\", scope)\n    if o.get(\"protected_effect_observed\") is True:\n        return _result(\n            claim,\n            EvidenceStatus.VIOLATED,\n            \"accepted_effect_observed_outside_required_pep\",\n            scope,\n        )\n",
+   "new": "    if o.get(\"protected_effect_observed\") is True:\n        return _result(\n            claim,\n            EvidenceStatus.VIOLATED,\n            \"accepted_effect_observed_outside_required_pep\",\n            scope,\n        )\n    if o.get(\"effect_observation_accepted\") is not True:\n        return _unknown(claim, \"protected_effect_observation_unaccepted\", scope)\n",
+   "rationale": "Reordered blocks let an unaccepted effect observation produce a VIOLATED verdict before the acceptance guard runs."
+  },
+  {
+   "id": "FW1-08",
+   "class": "hand_picked",
+   "selector": "fw1-refactor-slips",
+   "offset": 9753,
+   "old": "if o.get(\"protected_effect_observed\") is not False:",
+   "new": "if o.get(\"protected_effect_observed\") is None:",
+   "rationale": "Guard narrowed to None, so non-boolean values such as \"unknown\" fall through toward ESTABLISHED instead of protected_effect_unknown."
+  },
+  {
+   "id": "FW1-09",
+   "class": "hand_picked",
+   "selector": "fw1-refactor-slips",
+   "offset": 9871,
+   "old": "    if o.get(\"effect_window_complete\") is not True:\n        return _unknown(claim, \"no_effect_observation_not_complete\", scope)\n",
+   "new": "",
+   "rationale": "Downstream-window completeness guard dropped, so no-effect in an incomplete window can reach ESTABLISHED."
+  },
+  {
+   "id": "FW1-10",
+   "class": "hand_picked",
+   "selector": "fw1-refactor-slips",
+   "offset": 10003,
+   "old": "if o.get(\"valid_control_same_context\") is not True:",
+   "new": "if o.get(\"same_protected_operation\") is not True:",
+   "rationale": "Key copied from the earlier binding guard, so a missing comparable valid control no longer blocks ESTABLISHED."
+  },
+  {
+   "id": "FW1-11",
+   "class": "hand_picked",
+   "selector": "fw1-refactor-slips",
+   "offset": 10138,
+   "old": "if o.get(\"required_boundary_refusal_accepted\") is not True:",
+   "new": "if o.get(\"required_boundary_refusal_accepted\") is False:",
+   "rationale": "Guard rewritten as 'is False' so an absent boundary-attribution field is treated as accepted and yields ESTABLISHED."
+  },
+  {
+   "id": "FW1-12",
+   "class": "hand_picked",
+   "selector": "fw1-refactor-slips",
+   "offset": 10941,
+   "old": "if o.get(\"source_accepted\") is not True:",
+   "new": "if o.get(\"readback_available\") is not True:",
+   "rationale": "Key duplicated from the previous line, so an unaccepted read-back source no longer blocks postcondition verdicts."
+  },
+  {
+   "id": "FW1-13",
+   "class": "hand_picked",
+   "selector": "fw1-refactor-slips",
+   "offset": 11435,
+   "old": "if \"expected_state\" not in o or \"observed_state\" not in o:",
+   "new": "if \"expected_state\" not in o and \"observed_state\" not in o:",
+   "rationale": "or/and slip lets a case with only one state value through, raising KeyError instead of state_value_missing."
+  },
+  {
+   "id": "FW1-14",
+   "class": "hand_picked",
+   "selector": "fw1-refactor-slips",
+   "offset": 11559,
+   "old": "if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):",
+   "new": "if canonical(o[\"expected_state\"]) == canonical(o[\"expected_state\"]):",
+   "rationale": "Copy-paste compares expected_state with itself, so every disagreement is reported ESTABLISHED."
+  },
+  {
+   "id": "FW1-15",
+   "class": "hand_picked",
+   "selector": "fw1-refactor-slips",
+   "offset": 11304,
+   "old": "    if o.get(\"settlement_reached\") is not True:\n        return _unknown(claim, \"declared_settlement_point_not_reached\", scope)\n",
+   "new": "",
+   "rationale": "Settlement-point guard lost, so a read-back before the declared settlement point yields a decisive verdict."
+  },
+  {
+   "id": "FW1-16",
+   "class": "hand_picked",
+   "selector": "fw1-refactor-slips",
+   "offset": 6261,
+   "old": "missing, decisive_if = _REASON_GUIDANCE[reason]",
+   "new": "decisive_if, missing = _REASON_GUIDANCE[reason]",
+   "rationale": "Tuple-unpack order swapped, so missing_evidence becomes the guidance string (split into characters) and decisive_if becomes a tuple."
+  },
+  {
+   "id": "FW1-17",
+   "class": "hand_picked",
+   "selector": "fw1-refactor-slips",
+   "offset": 5866,
+   "old": "    if not scope:\n        return {\"kind\": \"synthetic_fixture\", \"bounded\": True}",
+   "new": "    if scope is None:\n        return {\"kind\": \"synthetic_fixture\", \"bounded\": True}",
+   "rationale": "Refactor to 'is None' means an empty scope mapping is no longer replaced by the default bounded synthetic scope."
+  },
+  {
+   "id": "FW1-18",
+   "class": "hand_picked",
+   "selector": "fw1-refactor-slips",
+   "offset": 12063,
+   "old": "    if type(value) is list:\n        for item in value:\n            validate_json(item)\n        return\n",
+   "new": "    if type(value) is list:\n        for item in value:\n            validate_json(item)\n",
+   "rationale": "Early return lost after the list branch, so any list value falls through to the raise and valid fixtures with lists are rejected."
+  },
+  {
+   "id": "FW1-19",
+   "class": "hand_picked",
+   "selector": "fw1-refactor-slips",
+   "offset": 13611,
+   "old": "if claim not in ASSESSORS or not isinstance(observations, Mapping):",
+   "new": "if claim not in ASSESSORS and not isinstance(observations, Mapping):",
+   "rationale": "or/and slip means an unknown claim with valid observations escapes the ValueError and fails with KeyError instead."
+  },
+  {
+   "id": "FW1-20",
+   "class": "hand_picked",
+   "selector": "fw1-refactor-slips",
+   "offset": 12592,
+   "old": "json.dumps(value, sort_keys=True, separators=(\",\", \":\"), ensure_ascii=False)",
+   "new": "json.dumps(value, separators=(\",\", \":\"), ensure_ascii=False)",
+   "rationale": "sort_keys dropped in a refactor, so equal objects with different key order compare unequal and yield VIOLATED."
+  },
+  {
+   "id": "FW2-01",
+   "class": "hand_picked",
+   "selector": "fw2-semantic-misreadings",
+   "offset": 8155,
+   "old": "    if o.get(\"window_finalized\") is not True:\n        return _unknown(claim, \"observation_window_open\", scope)\n",
+   "new": "",
+   "rationale": "Treats a missing admission in a still-open window as final, so absence in an unfinalized window becomes VIOLATED instead of NOT_ESTABLISHED."
+  },
+  {
+   "id": "FW2-02",
+   "class": "hand_picked",
+   "selector": "fw2-semantic-misreadings",
+   "offset": 8270,
+   "old": "if o.get(\"admission_coverage_complete\") is not True:",
+   "new": "if o.get(\"admission_coverage_complete\") is False:",
+   "rationale": "Assumes coverage is complete unless explicitly flagged incomplete, so unknown coverage lets absence refute the claim."
+  },
+  {
+   "id": "FW2-03",
+   "class": "hand_picked",
+   "selector": "fw2-semantic-misreadings",
+   "offset": 8035,
+   "old": "if o.get(\"mandatory_admission\") is not True:",
+   "new": "if o.get(\"mandatory_admission\") is False:",
+   "rationale": "Assumes every action class requires admission unless told otherwise, so an undefined requirement makes absence decisive."
+  },
+  {
+   "id": "FW2-04",
+   "class": "hand_picked",
+   "selector": "fw2-semantic-misreadings",
+   "offset": 7919,
+   "old": "if o.get(\"admission_present\") is not False:",
+   "new": "if o.get(\"admission_present\", False) is not False:",
+   "rationale": "Treats an unreported admission presence as 'no admission present', conflating absence of evidence with evidence of absence."
+  },
+  {
+   "id": "FW2-05",
+   "class": "hand_picked",
+   "selector": "fw2-semantic-misreadings",
+   "offset": 7432,
+   "old": "        if o.get(\"admission_source_accepted\") is not True:\n            return _unknown(claim, \"admission_observation_unaccepted\", scope)\n",
+   "new": "",
+   "rationale": "Lets an unaccepted admission record count, so a matching but unaccepted admission yields ESTABLISHED."
+  },
+  {
+   "id": "FW2-06",
+   "class": "hand_picked",
+   "selector": "fw2-semantic-misreadings",
+   "offset": 7814,
+   "old": "        return _unknown(claim, \"candidate_admission_does_not_establish_a_covering_admission\", scope)",
+   "new": "        return _result(claim, EvidenceStatus.VIOLATED, \"candidate_admission_does_not_establish_a_covering_admission\", scope)",
+   "rationale": "Reads a non-matching candidate admission as proof of a bypass, returning VIOLATED where the evidence is only inconclusive."
+  },
+  {
+   "id": "FW2-07",
+   "class": "hand_picked",
+   "selector": "fw2-semantic-misreadings",
+   "offset": 7107,
+   "old": "if o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True:",
+   "new": "if o.get(\"effect_seen\") is not True:",
+   "rationale": "Trusts an execution observation without its source being accepted, so unaccepted executions proceed to decisive verdicts."
+  },
+  {
+   "id": "FW2-08",
+   "class": "hand_picked",
+   "selector": "fw2-semantic-misreadings",
+   "offset": 7280,
+   "old": "if o.get(\"scope_accepted\") is not True:",
+   "new": "if o.get(\"scope_accepted\") is False:",
+   "rationale": "Treats an unstated scope as accepted, so evidence without a bound scope can still establish or refute."
+  },
+  {
+   "id": "FW2-09",
+   "class": "hand_picked",
+   "selector": "fw2-semantic-misreadings",
+   "offset": 9753,
+   "old": "if o.get(\"protected_effect_observed\") is not False:",
+   "new": "if o.get(\"protected_effect_observed\", False) is not False:",
+   "rationale": "Treats an unreported protected effect as 'no effect', letting a missing observation support positive enforcement credit."
+  },
+  {
+   "id": "FW2-10",
+   "class": "hand_picked",
+   "selector": "fw2-semantic-misreadings",
+   "offset": 9871,
+   "old": "    if o.get(\"effect_window_complete\") is not True:\n        return _unknown(claim, \"no_effect_observation_not_complete\", scope)\n",
+   "new": "",
+   "rationale": "Conflates 'no effect observed yet' with 'no effect occurred', so a refusal in an open downstream window becomes ESTABLISHED."
+  },
+  {
+   "id": "FW2-11",
+   "class": "hand_picked",
+   "selector": "fw2-semantic-misreadings",
+   "offset": 9999,
+   "old": "    if o.get(\"valid_control_same_context\") is not True:\n        return _unknown(claim, \"valid_control_missing_or_incomparable\", scope)\n",
+   "new": "",
+   "rationale": "Gives positive credit for a refusal without a comparable valid control, so a route that is simply broken looks enforced."
+  },
+  {
+   "id": "FW2-12",
+   "class": "hand_picked",
+   "selector": "fw2-semantic-misreadings",
+   "offset": 10134,
+   "old": "    if o.get(\"required_boundary_refusal_accepted\") is not True:\n        return _unknown(claim, \"refusal_not_attributed_to_required_boundary\", scope)\n",
+   "new": "",
+   "rationale": "Infers the required boundary caused the refusal from 403/no-effect alone, yielding ESTABLISHED without accepted attribution."
+  },
+  {
+   "id": "FW2-13",
+   "class": "hand_picked",
+   "selector": "fw2-semantic-misreadings",
+   "offset": 9394,
+   "old": "if o.get(\"effect_observation_accepted\") is not True:",
+   "new": "if o.get(\"effect_observation_accepted\") is False:",
+   "rationale": "Treats an effect observation of unknown acceptance as accepted, so unaccepted downstream evidence can refute or establish."
+  },
+  {
+   "id": "FW2-14",
+   "class": "hand_picked",
+   "selector": "fw2-semantic-misreadings",
+   "offset": 7276,
+   "old": "    if o.get(\"scope_accepted\") is not True:\n        return _unknown(claim, \"scope_unaccepted_or_missing\", scope)\n    if o.get(\"admission_present\") is True:",
+   "new": "    if o.get(\"admission_present\") is True and o.get(\"admission_matches\") is True and o.get(\"admission_source_accepted\") is True:\n        return _result(claim, EvidenceStatus.ESTABLISHED, \"covering_admission_observed_for_this_execution\", scope)\n    if o.get(\"scope_accepted\") is not True:\n        return _unknown(claim, \"scope_unaccepted_or_missing\", scope)\n    if o.get(\"admission_present\") is True:",
+   "rationale": "Short-circuits to ESTABLISHED on a matching accepted admission before checking the scope premise, crediting admissions outside the bounded scope."
+  },
+  {
+   "id": "FW2-15",
+   "class": "hand_picked",
+   "selector": "fw2-semantic-misreadings",
+   "offset": 9140,
+   "old": "    if o.get(\"same_protected_operation\") is not True:\n        return _unknown(claim, \"target_or_operation_not_bound\", scope)\n",
+   "new": "",
+   "rationale": "Forgets that route evidence must bind to the same protected operation, so an effect or refusal on a different operation decides the claim."
+  },
+  {
+   "id": "FW2-16",
+   "class": "hand_picked",
+   "selector": "fw2-semantic-misreadings",
+   "offset": 9622,
+   "old": "            EvidenceStatus.VIOLATED,\n            \"accepted_effect_observed_outside_required_pep\",",
+   "new": "            EvidenceStatus.ESTABLISHED,\n            \"accepted_effect_observed_outside_required_pep\",",
+   "rationale": "Reads an observed effect via the alternative route as 'the route works' and returns ESTABLISHED for the decisive counterexample."
+  },
+  {
+   "id": "FW2-17",
+   "class": "hand_picked",
+   "selector": "fw2-semantic-misreadings",
+   "offset": 11182,
+   "old": "if o.get(\"fresh_in_declared_window\") is not True:",
+   "new": "if o.get(\"fresh_in_declared_window\") is False:",
+   "rationale": "Assumes a read-back is fresh unless flagged stale, so time-unbound read-backs establish or refute the postcondition."
+  },
+  {
+   "id": "FW2-18",
+   "class": "hand_picked",
+   "selector": "fw2-semantic-misreadings",
+   "offset": 11352,
+   "old": "        return _unknown(claim, \"declared_settlement_point_not_reached\", scope)",
+   "new": "        return _result(claim, EvidenceStatus.VIOLATED, \"declared_settlement_point_not_reached\", scope)",
+   "rationale": "Treats a postcondition checked before its settlement point as failed, returning VIOLATED instead of NOT_ESTABLISHED."
+  },
+  {
+   "id": "FW2-19",
+   "class": "hand_picked",
+   "selector": "fw2-semantic-misreadings",
+   "offset": 11431,
+   "old": "    if \"expected_state\" not in o or \"observed_state\" not in o:\n        return _unknown(claim, \"state_value_missing\", scope)\n",
+   "new": "    if \"expected_state\" not in o:\n        return _unknown(claim, \"state_value_missing\", scope)\n    if \"observed_state\" not in o:\n        return _result(claim, EvidenceStatus.VIOLATED, \"declared_postcondition_disagreed_at_named_point\", scope)\n",
+   "rationale": "Treats a missing observed state as disagreement with the expected state, turning absence of evidence into refutation."
+  },
+  {
+   "id": "FW2-20",
+   "class": "hand_picked",
+   "selector": "fw2-semantic-misreadings",
+   "offset": 10941,
+   "old": "if o.get(\"source_accepted\") is not True:",
+   "new": "if o.get(\"source_accepted\") is False:",
+   "rationale": "Credits a read-back whose source acceptance is unstated (e.g. tool self-report), so it can establish or refute the postcondition."
+  },
+  {
+   "id": "FW3-01",
+   "class": "hand_picked",
+   "selector": "fw3-python-json-pitfalls",
+   "offset": 5866,
+   "old": "    if not scope:\n",
+   "new": "    if scope is None:\n",
+   "rationale": "Identity check replaces truthiness: an empty scope mapping {} is now returned as-is instead of the default synthetic_fixture scope."
+  },
+  {
+   "id": "FW3-02",
+   "class": "hand_picked",
+   "selector": "fw3-python-json-pitfalls",
+   "offset": 5946,
+   "old": "    return dict(scope)\n",
+   "new": "    return scope\n",
+   "rationale": "Reuses the caller's mapping instead of copying it, so the verdict scope aliases the caller's object and later caller mutation changes the verdict."
+  },
+  {
+   "id": "FW3-03",
+   "class": "hand_picked",
+   "selector": "fw3-python-json-pitfalls",
+   "offset": 7110,
+   "old": "o.get(\"effect_source_accepted\") is not True",
+   "new": "not o.get(\"effect_source_accepted\")",
+   "rationale": "Truthiness instead of `is True`: effect_source_accepted values like 1 or \"yes\" now count as accepted."
+  },
+  {
+   "id": "FW3-04",
+   "class": "hand_picked",
+   "selector": "fw3-python-json-pitfalls",
+   "offset": 7389,
+   "old": "    if o.get(\"admission_present\") is True:\n",
+   "new": "    if o.get(\"admission_present\") == True:  # noqa: E712\n",
+   "rationale": "`1 == True` pitfall: admission_present=1 is now treated as a present admission and can yield ESTABLISHED."
+  },
+  {
+   "id": "FW3-05",
+   "class": "hand_picked",
+   "selector": "fw3-python-json-pitfalls",
+   "offset": 7915,
+   "old": "    if o.get(\"admission_present\") is not False:\n",
+   "new": "    if o.get(\"admission_present\") != False:  # noqa: E712\n",
+   "rationale": "`0 == False` pitfall: admission_present=0 is now treated as absent and can reach the closed-world VIOLATED verdict."
+  },
+  {
+   "id": "FW3-06",
+   "class": "hand_picked",
+   "selector": "fw3-python-json-pitfalls",
+   "offset": 8038,
+   "old": "o.get(\"mandatory_admission\") is not True",
+   "new": "not o.get(\"mandatory_admission\")",
+   "rationale": "Truthiness instead of identity: a non-boolean truthy mandatory_admission (1, \"true\") now satisfies the closed-world premise."
+  },
+  {
+   "id": "FW3-07",
+   "class": "hand_picked",
+   "selector": "fw3-python-json-pitfalls",
+   "offset": 9528,
+   "old": "    if o.get(\"protected_effect_observed\") is True:\n",
+   "new": "    if o.get(\"protected_effect_observed\"):\n",
+   "rationale": "Truthiness instead of `is True`: protected_effect_observed values like 1 or \"false\" now produce VIOLATED instead of NOT_ESTABLISHED."
+  },
+  {
+   "id": "FW3-08",
+   "class": "hand_picked",
+   "selector": "fw3-python-json-pitfalls",
+   "offset": 9749,
+   "old": "    if o.get(\"protected_effect_observed\") is not False:\n",
+   "new": "    if o.get(\"protected_effect_observed\", False) is not False:\n",
+   "rationale": "Missing key conflated with False via a .get default: an absent protected_effect_observed is treated as an observed no-effect and can reach ESTABLISHED."
+  },
+  {
+   "id": "FW3-09",
+   "class": "hand_picked",
+   "selector": "fw3-python-json-pitfalls",
+   "offset": 11431,
+   "old": "    if \"expected_state\" not in o or \"observed_state\" not in o:\n",
+   "new": "    if o.get(\"expected_state\") is None or o.get(\"observed_state\") is None:\n",
+   "rationale": "None vs missing key: an explicitly null expected/observed state is now reported as state_value_missing instead of being compared."
+  },
+  {
+   "id": "FW3-10",
+   "class": "hand_picked",
+   "selector": "fw3-python-json-pitfalls",
+   "offset": 11555,
+   "old": "    if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):\n",
+   "new": "    if o[\"expected_state\"] == o[\"observed_state\"]:\n",
+   "rationale": "Python equality instead of canonical JSON comparison: 1 == True and 0 == False so expected 1 vs observed true is ESTABLISHED, and non-JSON state is no longer validated here."
+  },
+  {
+   "id": "FW3-11",
+   "class": "hand_picked",
+   "selector": "fw3-python-json-pitfalls",
+   "offset": 11991,
+   "old": "    if value is None or type(value) in (str, bool, int):\n",
+   "new": "    if value is None or isinstance(value, (str, bool, int, float)):\n",
+   "rationale": "Float handling pitfall: floats (including NaN/inf) and str/int subclasses are now accepted as fixture values instead of raising ValueError."
+  },
+  {
+   "id": "FW3-12",
+   "class": "hand_picked",
+   "selector": "fw3-python-json-pitfalls",
+   "offset": 12063,
+   "old": "    if type(value) is list:\n",
+   "new": "    if isinstance(value, (list, tuple)):\n",
+   "rationale": "Tuples are accepted as JSON arrays, so non-JSON tuple fixture values pass validation and compare equal to lists."
+  },
+  {
+   "id": "FW3-13",
+   "class": "hand_picked",
+   "selector": "fw3-python-json-pitfalls",
+   "offset": 12165,
+   "old": "    if type(value) is dict and all(type(key) is str for key in value):\n",
+   "new": "    if type(value) is dict:\n",
+   "rationale": "Dropped key-type check: dicts with non-string keys (int, bool, None) are accepted, which JSON would coerce or collide (1 vs \"1\") or fail later with TypeError."
+  },
+  {
+   "id": "FW3-14",
+   "class": "hand_picked",
+   "selector": "fw3-python-json-pitfalls",
+   "offset": 12319,
+   "old": "    raise ValueError(\n        \"fixture values must be",
+   "new": "    raise TypeError(\n        \"fixture values must be",
+   "rationale": "Exception type change: invalid fixture values raise TypeError instead of the documented ValueError."
+  },
+  {
+   "id": "FW3-15",
+   "class": "hand_picked",
+   "selector": "fw3-python-json-pitfalls",
+   "offset": 12610,
+   "old": "sort_keys=True, separators",
+   "new": "sort_keys=False, separators",
+   "rationale": "Key order becomes significant: dicts with the same content but different insertion order no longer compare equal in postcondition_observed."
+  },
+  {
+   "id": "FW3-16",
+   "class": "hand_picked",
+   "selector": "fw3-python-json-pitfalls",
+   "offset": 12581,
+   "old": "    return json.dumps(value, sort_keys=True, separators=(\",\", \":\"), ensure_ascii=False)\n",
+   "new": "    return json.dumps(value, sort_keys=True, separators=(\",\", \":\"), ensure_ascii=False).strip().casefold()\n",
+   "rationale": "Over-eager string normalisation: case-differing states (\"Active\" vs \"active\") and keys now canonicalise identically, turning VIOLATED into ESTABLISHED."
+  },
+  {
+   "id": "FW3-17",
+   "class": "hand_picked",
+   "selector": "fw3-python-json-pitfalls",
+   "offset": 13747,
+   "old": "    validate_json(dict(observations))\n",
+   "new": "    validate_json(observations)\n",
+   "rationale": "Missing dict() copy: a non-dict Mapping (e.g. MappingProxyType) of observations is now rejected with ValueError despite passing the Mapping check."
+  },
+  {
+   "id": "FW3-18",
+   "class": "hand_picked",
+   "selector": "fw3-python-json-pitfalls",
+   "offset": 13607,
+   "old": "    if claim not in ASSESSORS or",
+   "new": "    claim = claim.strip().lower()\n    if claim not in ASSESSORS or",
+   "rationale": "String normalisation of the claim name: \" Admission_Accounting \" is accepted instead of rejected, and a non-str claim raises AttributeError instead of ValueError."
+  },
+  {
+   "id": "FW3-19",
+   "class": "hand_picked",
+   "selector": "fw3-python-json-pitfalls",
+   "offset": 13359,
+   "old": "    if premise_source != \"synthetic_fixture\":\n",
+   "new": "    if premise_source.strip().lower() != \"synthetic_fixture\":\n",
+   "rationale": "String normalisation weakens the premise guard: \"Synthetic_Fixture \" is accepted, and a non-str premise_source raises AttributeError instead of ValueError."
+  },
+  {
+   "id": "FW3-20",
+   "class": "hand_picked",
+   "selector": "fw3-python-json-pitfalls",
+   "offset": 1543,
+   "old": "            \"scope\": dict(self.scope),\n",
+   "new": "            \"scope\": self.scope,\n",
+   "rationale": "Frozen-dataclass aliasing: as_dict returns the verdict's own scope mapping, so mutating the returned dict mutates the supposedly frozen verdict (and the caller's scope)."
+  }
+ ]
+}

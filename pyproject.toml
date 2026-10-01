@@ -129,6 +129,9 @@ packages = ["remora", "servers"]
 
 [tool.ruff]
 target-version = "py311"
+# A delivered third-party analysis package, committed byte for byte because its
+# pre-registration hash covers those bytes; it is evidence, not maintained code.
+extend-exclude = ["artifacts/independent-analysis-2026-09-30", "artifacts/evidence-sufficiency-blind-probe-2026-09-30", "artifacts/evidence-sufficiency-blind-probe-2-2026-09-30", "artifacts/evidence-sufficiency-blind-probe-3-2026-09-30", "artifacts/evidence-sufficiency-blind-probe-4-2026-10-01"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W"]
@@ -138,6 +141,33 @@ ignore = [
     "E701",   # multiple-statements-on-one-line-colon (compact math style)
     "E702",   # multiple-statements-on-one-line-semicolon (compact math style)
 ]
+
+[tool.ruff.lint.per-file-ignores]
+# Reviewed exceptions for the core security gate (ci.yml: ruff --select B,S
+# over remora/policy, enforcement, governance, execution and servers).
+# REM-037, reviewed 2026-09-28. Each line states why the finding is safe.
+# S608: only dialect placeholders (? or %s) and literals are interpolated;
+# every value is a bound parameter.
+"remora/enforcement/nonce_store.py" = ["S608"]
+"remora/enforcement/outbox.py" = ["S608"]
+"remora/governance/audit_outbox.py" = ["S608"]
+"remora/governance/loop_safety.py" = ["S608"]
+"remora/governance/revocation_store.py" = ["S608"]
+# S310: the URL is scheme-checked before it is opened (http or https only).
+"remora/execution/remote_dispatch.py" = ["S310", "S105", "S110"]  # S105: an env var name, not a secret; S110: optional OpenTelemetry import
+"remora/policy/opa_adapter.py" = ["S310"]
+# S310: every helper checks _http_only first. S603/S607: `git ls-files` with a
+# fixed argument list, no shell. S112: an unreadable file is skipped in search.
+# B023: the citation lambda is called synchronously in the same iteration.
+"servers/mcp_remora.py" = ["S310", "S603", "S607", "S112", "B023"]
+# S101: type narrowing after a guard that already returned; the next line
+# raises on None even with -O.
+"remora/execution/dispatch.py" = ["S101"]
+"remora/execution/service.py" = ["S101"]
+"remora/governance/audit_chain.py" = ["S101"]
+"servers/execution_api.py" = ["S101"]
+# S110: falls back to a text projection so the audit record is never lost.
+"remora/enforcement/result_envelope.py" = ["S110"]
 
 [tool.mypy]
 # Gate scope: `mypy remora servers` in quality-gates.yml. servers/ was
@@ -264,6 +294,8 @@ pytest_add_cli_args = [
 # one of the mutated modules and is missing here. Cost of the full set: the
 # selection runs in 4.2 s against 2.8 s for the frozen 17.
 pytest_add_cli_args_test_selection = [
+    "tests/test_callable_closure_digest.py",
+    "tests/test_credential_issuer_scope.py",
     "tests/test_custody_split_dispatch.py",
     "tests/test_decision_execution_correlation.py",
     "tests/test_direct_accept_authority_binding.py",
@@ -284,18 +316,27 @@ pytest_add_cli_args_test_selection = [
     "tests/test_gate_replay_properties.py",
     "tests/test_governance_event_contract.py",
     "tests/test_grant_ledger_tamper_evidence.py",
+    "tests/test_independent_recorder.py",
     "tests/test_lease_authority_custody.py",
     "tests/test_lease_nonce_durability.py",
+    "tests/test_nonce_store_consumed.py",
     "tests/test_lease_signing_contracts.py",
     "tests/test_lease_verification_completeness.py",
     "tests/test_lease_verification_contracts.py",
+    "tests/test_plan_binding.py",
     "tests/test_policy_engine_audit_v1.py",
+    "tests/test_procedure_contracts.py",
     "tests/test_rem013_pdp_pep_boundary.py",
     "tests/test_remote_dispatch_boundary.py",
+    "tests/test_resolved_effect_binding.py",
     "tests/test_review_path_custody_split.py",
     "tests/test_runtime_trust_base_binding.py",
     "tests/test_sqlite_memory_refused.py",
+    "tests/test_surface_lease_binding.py",
+    "tests/test_surface_runtime.py",
     "tests/test_task_bound_authority.py",
+    "tests/test_task_bound_lease_and_envelope.py",
+    "tests/test_task_identity_server_path.py",
     "tests/test_tcb_edge_contracts.py",
     "tests/test_authorization_context_golden_vectors.py",
     "tests/test_token_binding_contract.py",
@@ -305,4 +346,5 @@ pytest_add_cli_args_test_selection = [
     "tests/test_toolspec_binding_chain.py",
     "tests/test_toolspec_bound_at_dispatch.py",
     "tests/test_unsigned_issuance_family.py",
+    "tests/test_ws7_server_path.py",
 ]

@@ -1,0 +1,142 @@
+{
+  "arms": {
+    "A": {
+      "capability_exposure_ratio": 1.0,
+      "false_block_rate": 0.0,
+      "stopped_by_class": {
+        "argument_escalation": "0/6",
+        "confused_deputy": "0/4",
+        "effect_mismatch": "0/4",
+        "foreign_principal_tool": "0/4",
+        "hidden_tool": "0/6",
+        "legitimate": "0/12",
+        "replay": "0/4",
+        "stale_authority": "0/4"
+      },
+      "unauthorized_invocation_block_rate": 0.0,
+      "unsafe_execution_rate": 1.0
+    },
+    "B": {
+      "capability_exposure_ratio": 0.490909,
+      "false_block_rate": 0.0,
+      "stopped_by_class": {
+        "argument_escalation": "0/6",
+        "confused_deputy": "0/4",
+        "effect_mismatch": "0/4",
+        "foreign_principal_tool": "4/4",
+        "hidden_tool": "0/6",
+        "legitimate": "0/12",
+        "replay": "0/4",
+        "stale_authority": "0/4"
+      },
+      "unauthorized_invocation_block_rate": 0.2,
+      "unsafe_execution_rate": 0.875
+    },
+    "C": {
+      "capability_exposure_ratio": 0.254545,
+      "false_block_rate": 0.0,
+      "stopped_by_class": {
+        "argument_escalation": "0/6",
+        "confused_deputy": "0/4",
+        "effect_mismatch": "0/4",
+        "foreign_principal_tool": "4/4",
+        "hidden_tool": "6/6",
+        "legitimate": "0/12",
+        "replay": "0/4",
+        "stale_authority": "0/4"
+      },
+      "unauthorized_invocation_block_rate": 0.5,
+      "unsafe_execution_rate": 0.6875
+    },
+    "D": {
+      "capability_exposure_ratio": 0.254545,
+      "false_block_rate": 0.0,
+      "stopped_by_class": {
+        "argument_escalation": "6/6",
+        "confused_deputy": "4/4",
+        "effect_mismatch": "0/4",
+        "foreign_principal_tool": "4/4",
+        "hidden_tool": "6/6",
+        "legitimate": "0/12",
+        "replay": "0/4",
+        "stale_authority": "0/4"
+      },
+      "unauthorized_invocation_block_rate": 1.0,
+      "unsafe_execution_rate": 0.375
+    },
+    "E": {
+      "capability_exposure_ratio": 0.254545,
+      "false_block_rate": 0.0,
+      "stopped_by_class": {
+        "argument_escalation": "6/6",
+        "confused_deputy": "4/4",
+        "effect_mismatch": "0/4",
+        "foreign_principal_tool": "4/4",
+        "hidden_tool": "6/6",
+        "legitimate": "0/12",
+        "replay": "4/4",
+        "stale_authority": "4/4"
+      },
+      "unauthorized_invocation_block_rate": 1.0,
+      "unsafe_execution_rate": 0.125
+    },
+    "F": {
+      "capability_exposure_ratio": 0.254545,
+      "false_block_rate": 0.0,
+      "stopped_by_class": {
+        "argument_escalation": "6/6",
+        "confused_deputy": "4/4",
+        "effect_mismatch": "4/4",
+        "foreign_principal_tool": "4/4",
+        "hidden_tool": "6/6",
+        "legitimate": "0/12",
+        "replay": "4/4",
+        "stale_authority": "4/4"
+      },
+      "unauthorized_invocation_block_rate": 1.0,
+      "unsafe_execution_rate": 0.0
+    }
+  },
+  "artifact": "capability_minimization_study_v1",
+  "corpus": {
+    "by_class": {
+      "argument_escalation": 6,
+      "confused_deputy": 4,
+      "effect_mismatch": 4,
+      "foreign_principal_tool": 4,
+      "hidden_tool": 6,
+      "legitimate": 12,
+      "replay": 4,
+      "stale_authority": 4
+    },
+    "legitimate": 12,
+    "proposals": 44,
+    "registered_tools": 10,
+    "unsafe": 32
+  },
+  "deviations": [
+    "The first execution crashed before producing any result: the executor stub read arguments['amount'] from a foreign_principal_tool proposal to invoice.pay that carries no amount. The stub now writes a payment only when the call names invoice, amount and recipient. No label, arm or prediction changed."
+  ],
+  "first_arm_stopping_every_proposal_of_class": {
+    "argument_escalation": "D",
+    "confused_deputy": "D",
+    "effect_mismatch": "F",
+    "foreign_principal_tool": "B",
+    "hidden_tool": "C",
+    "replay": "E",
+    "stale_authority": "E"
+  },
+  "generator": "experiments/capability_minimization_study.py",
+  "predictions_met": {
+    "P1": true,
+    "P2": true,
+    "P3": true,
+    "P4": true,
+    "P5": true,
+    "P6": true,
+    "P7": true,
+    "P8": false
+  },
+  "preregistration": "experiments/capability_minimization/PREREGISTERED.md",
+  "scope": "Author-written corpus and labels, each class built to probe one layer. Measures layer attribution on REMORA's code, not real-world rates and not any model's propensity to propose a class."
+}

@@ -56,7 +56,7 @@
 # is documented, not invisible.
 
 schema_version: "1"
-updated: "2026-09-03"
+updated: "2026-09-30"
 
 maturity_levels:
   - implemented_and_tested
@@ -508,22 +508,612 @@ entries:
     controls:
       - task_identity_binding
       - authorization_context_task_fields
+      - execution_lease_task_fields
+      - a2a_envelope_task_fields
+      - a2a_declared_operation_subset
+      - context_scoped_loop_safety_store
     code:
       - remora/governance/task_identity.py
       - remora/enforcement/token.py
+      - remora/enforcement/lease.py
+      - remora/governance/a2a_envelope.py
+      - remora/execution/dispatch.py
+      - remora/governance/loop_safety.py
+      - servers/execution_api.py
       - scripts/generate_authorization_context_vectors.py
       - artifacts/task_authority/authorization_context_preimage_v1.json
     tests:
       - tests/test_task_identity.py
       - tests/test_task_bound_authority.py
-    evidence: "An approval bound to one task yields a different AuthorizationContext hash under another, while every binding REMORA already checked stays identical. The committed preimage artifact records that a context carrying no task identity hashes byte-identically to the pre-change implementation, so tokens issued since RMR-001 still verify; scripts/generate_authorization_context_vectors.py --check reproduces it exactly."
+      - tests/test_task_bound_lease_and_envelope.py
+      - tests/test_loop_safety.py
+      - tests/test_task_identity_server_path.py
+      - tests/test_a2a_declared_operation.py
+    evidence: "An approval bound to one task yields a different AuthorizationContext hash under another, while every binding REMORA already checked stays identical. The committed preimage artifact records that a context carrying no task identity hashes byte-identically to the pre-change implementation, so tokens issued since RMR-001 still verify; scripts/generate_authorization_context_vectors.py --check reproduces it exactly. The ExecutionLease and the A2A envelope carry the same pair, signed only when set: an unbound lease or envelope signs its pre-change key set, a lease or envelope checked against another task refuses as task_mismatch and an unbound one as task_unbound, and a task refusal at the dispatcher does not burn the nonce (tests/test_task_bound_lease_and_envelope.py). A loop-safety store keyed on (tenant_id, context_id) keeps denials, authority probes, tool switches after a denial and irreversible effects across task iterations: three denials in three separate tasks reach the default limit that no single task reaches, a new task_id never resets the count, a reset must name a policy decision and keeps the earlier events, state written through one store instance is read by another on the same SQLite file, and an unreadable store raises instead of reporting an empty history (tests/test_loop_safety.py)."
     maturity: implemented_and_tested
-    scope_boundary: "Binding only. This is not proof-of-possession: it binds an authorization to a task and does not prove the presenter holds a key, and nothing here closes the AGNTCY profile's PoP requirement. The A2A envelope and ExecutionLease halves, the declared-operation subset check and the loop-safety store are designed but not implemented at this revision. LoopHarness itself is not implemented; only the context_id key its state would need."
+    scope_boundary: "Binding only. This is not proof-of-possession: it binds an authorization to a task and does not prove the presenter holds a key, and nothing here closes the AGNTCY profile's PoP requirement. The execution API carries context_id and task_id from the request into the token context, the lease and the loop-safety state (tests/test_task_identity_server_path.py); a deployment makes them mandatory with REMORA_REQUIRE_TASK_IDENTITY, off by default, and no deployment is claimed to run with it. The A2A envelope's task check is a library check with no receiving route. The loop-safety limits are uncalibrated defaults, and authority probes and irreversible effects are counted only when a caller reports them: /assess records denials and tool switches. The declared-operation check (actual within declared within authorized) is a library check of the A2A envelope, with no receiving route (tests/test_a2a_declared_operation.py). LoopHarness itself is not implemented; REMORA keeps the non-decaying state the paper motivates, not its harness."
     related_work_section: "docs/09-related-work.md §11"
     in_code_citation: true
     citation_anchor: "2608.27443"
     compendium_refs: []
     compendium_note: "No anchor in the local compendium: both sources are from August 2026 and postdate the catalogue. Both arXiv identifiers were retrieved and checked against the arXiv record on 2026-08-30 before being entered here."
+
+  - id: RES-013
+    title: "Observed runtime surface, authority paths and recheckable effect evidence"
+    source:
+      citation: "REMORA internal research question (2026-09-27): discussion-derived requirements, not an adopted external publication."
+      sections:
+        - "docs/13-research-frontier-roadmap.md RF-13"
+        - "artifacts/runtime_surface/negative_cases_v1.json"
+        - "artifacts/runtime_surface/reference_runtime_v1.json"
+    concepts:
+      - runtime_tool_surface
+      - serving_process_observation
+      - evidence_sufficiency
+      - authority_effect_separation
+      - content_addressed_evidence
+    controls:
+      - surface_completeness_comparison
+      - assessment_dispatch_continuity
+      - bounded_authority_path_analysis
+      - independent_effect_recheck
+      - surface_digest_lease_binding
+      - callable_closure_identity
+      - issuer_observed_credential_scope
+      - durable_surface_evidence
+    code:
+      - remora/toolcall/runtime_surface.py
+      - remora/toolcall/surface_runtime.py
+      - remora/toolcall/signed_surface_runtime.py
+      - remora/toolcall/surface_authority.py
+      - remora/toolcall/surface_effect_evidence.py
+      - remora/toolcall/surface_evaluation.py
+      - remora/toolcall/credential_issuer.py
+      - remora/enforcement/lease.py
+      - scripts/evaluate_runtime_surface.py
+      - scripts/measure_surface_binding_shadow.py
+      - artifacts/runtime_surface/negative_cases_v1.json
+      - artifacts/runtime_surface/reference_runtime_v1.json
+      - artifacts/runtime_surface/surface_binding_shadow_v1.json
+    tests:
+      - tests/test_runtime_surface.py
+      - tests/test_runtime_surface_continuity.py
+      - tests/test_surface_runtime.py
+      - tests/test_surface_authority.py
+      - tests/test_surface_effect_evidence.py
+      - tests/test_surface_reference_integration.py
+      - tests/test_surface_lease_binding.py
+      - tests/test_callable_closure_digest.py
+      - tests/test_credential_issuer_scope.py
+      - tests/test_surface_evidence_durability.py
+    evidence: >-
+      Reproduce with python scripts/evaluate_runtime_surface.py --check.
+      The REMORA reference runtime loads a signed ToolSpec, serves its actual
+      offered list, observes dispatcher registration generations, binds a
+      one-use assessment to an exact action and principal, requires the existing
+      signed lease, writes a temporary file and separately reads its effect.
+      The artifact distinguishes runtime, surface, continuity, authority,
+      receipt and property verdicts. Tests recheck full evidence against the
+      retained contract and dispatch, reject tampering and cross-tenant access,
+      and exercise scope drift, replacement, unknown outcomes and concurrency.
+      Quality program Q3.2 to Q3.5 (2026-09-28): the lease carries the surface
+      digest from assessment and the dispatcher compares it at dispatch; the
+      shadow measurement (python scripts/measure_surface_binding_shadow.py
+      --check) found the surface unchanged in 200 of 200 legitimate reference
+      runs, counted 20 of 20 injected changes in shadow, and refused 20 of 20
+      when enforced. A spec may attest a closure digest over the defining module,
+      its in-package imports and installed third-party versions, and a changed
+      dependency fails registration. With a credential issuer bound, the scope
+      compared with the spec is the one the issuer reports, at registration and
+      before every dispatch. With a SQLite or Postgres chain, surface, execution
+      and effect evidence survives a restart and rechecks.
+    maturity: implemented_and_tested
+    scope_boundary: >-
+      Opt-in WIRED_REFERENCE_PATH, not the default HTTP API or production.
+      Authority scopes are finite deployment-provider assertions. A v1
+      source-span digest still measures only source text; the closure digest
+      covers in-package imports and installed versions, not host integrity or
+      an image. The credential issuer is a reference in the runtime's own trust
+      domain, and REMORA cannot check that a downstream system enforces the
+      issued scope. The shadow measurement covers REMORA's own reference runtime
+      only; how often an external host's surface changes is unmeasured until
+      Q3.1 runs on a named host. Trusted host code and process-local locks; no
+      external runtime attestation, OS containment or universal proof that an
+      alternative effect path is absent. MATCHED_OBSERVATION is bounded to the
+      observed inventory. No new benchmark or external-literature result.
+    related_work_section: "docs/09-related-work.md §4"
+    in_code_citation: false
+    compendium_refs: []
+    compendium_note: "Internal implementation from discussion-derived requirements; external thread claims are not treated as verified literature."
+
+  - id: RES-014
+    title: "Evidence completeness against claim contracts"
+    source:
+      citation: "REMORA internal research question (2026-09-28): quality program WS7 item Q7.3, built on RES-013's recheckable effect evidence; not an adopted external publication."
+      sections:
+        - "docs/design/remora-quality-program-v1.md WS7 Q7.3"
+    concepts:
+      - authentic_is_not_complete
+      - claim_scoped_evidence_contract
+    controls:
+      - evidence_coverage_verdict
+      - chain_derived_authenticity
+    code:
+      - remora/governance/evidence_coverage.py
+      - servers/execution_api.py
+    tests:
+      - tests/test_evidence_coverage.py
+    evidence: >-
+      An evidence contract names the kinds a claim needs; assess_coverage
+      returns TAMPERED, INCONCLUSIVE, AUTHENTIC_BUT_INCOMPLETE or COMPLETE, in
+      that precedence, and lists missing kinds on every verdict. Authenticity
+      of a proposal's chain entries is derived from the tenant chain's own
+      verification. The evidence export reports two contracts: an executed
+      proposal with no effect observation is AUTHENTIC_BUT_INCOMPLETE for
+      executed_effect_v1, a verified observation completes it, an
+      EFFECT_UNSUPPORTED record does not, and a rewritten chain entry reads
+      TAMPERED (tests/test_evidence_coverage.py).
+    maturity: implemented_and_tested
+    scope_boundary: >-
+      Two contracts are defined, over the tenant chain's event kinds only.
+      Coverage says whether the named kinds are present and intact; it does
+      not judge whether an effect observation was itself correct, which is
+      RES-013's recheck. A contract is only as complete as the kinds its
+      author listed.
+    related_work_section: "docs/09-related-work.md §12"
+    in_code_citation: false
+    compendium_refs: []
+    compendium_note: "Internal requirement; no external source is claimed for it."
+
+  - id: RES-015
+    title: "Closed-world resolved-effect binding"
+    source:
+      citation: "Iyer, L. G. (2026). Closed-World Resolution Against Tool Hallucination in LLM Agents. arXiv:2609.19425."
+      sections:
+        - "closed-world resolution of a tool reference before it is acted on"
+    concepts:
+      - closed_world_resolution
+      - authority_binds_effect_not_call
+    controls:
+      - resolved_effect_digest_in_lease
+      - dispatch_time_re_resolution
+    code:
+      - remora/enforcement/resolved_effect.py
+      - remora/enforcement/lease.py
+      - remora/execution/dispatch.py
+      - scripts/generate_resolved_effect_fixtures.py
+      - artifacts/resolved_effect/fixtures_v1.json
+    tests:
+      - tests/test_resolved_effect_binding.py
+    evidence: >-
+      Reproduce with python scripts/generate_resolved_effect_fixtures.py
+      --check. Of seven fixture cases, alias retargeting, a resource redirect
+      and an implementation remap refuse at dispatch as
+      resolved_effect_mismatch with the tool never run; an unknown alias and an
+      unknown resource refuse as unresolved_reference; an unchanged registry
+      and a change to an unrelated entry execute. The digest is frozen in a
+      golden test, signed only when set, and a refusal does not burn the nonce.
+    maturity: implemented_and_tested
+    scope_boundary: >-
+      The registry is deployment configuration and is not checked for
+      correctness; an adapter that resolves differently from the registry it
+      declares is outside what REMORA can see. Iyer's evaluation of tool
+      hallucination is not reproduced; only the closed-world rule is taken.
+    related_work_section: "docs/09-related-work.md §12"
+    in_code_citation: true
+    citation_anchor: "2609.19425"
+    compendium_refs: []
+    compendium_note: "September 2026 source, postdates the compendium; identifier checked against the arXiv record on 2026-09-28."
+
+  - id: RES-016
+    title: "Dependency-scoped plan validity (PlanFence)"
+    source:
+      citation: "Chen, E., Wang, S. & Brinton, C. G. (2026). Fresh Memory, Stale Plans: Dependency-Scoped Validation for Distributed LLM-Agent Memory. arXiv:2609.03340."
+      sections:
+        - "validate a plan against the state it depends on, not against all state"
+    concepts:
+      - plan_premise_binding
+      - dependency_scoped_validation
+    controls:
+      - plan_binding_digest_in_lease
+      - dispatch_time_revision_recheck
+    code:
+      - remora/governance/plan_binding.py
+      - remora/enforcement/lease.py
+    tests:
+      - tests/test_plan_binding.py
+    evidence: >-
+      A write whose plan depended on a resource that moved refuses as
+      stale_plan with the tool never run; a moved read the write does not
+      depend on is ignored; an unreadable dependency refuses as
+      plan_state_unverifiable; a lease naming a plan refuses without it or
+      with a different one; a refusal leaves the nonce unspent
+      (tests/test_plan_binding.py).
+    maturity: implemented_and_tested
+    scope_boundary: >-
+      Revisions come from a provider the deployment supplies and are compared,
+      never interpreted. Which reads a write depends on is declared by the
+      plan's author; an under-declared dependency is not detected. The paper's
+      distributed-memory setting and its measurements are not reproduced.
+    related_work_section: "docs/09-related-work.md §12"
+    in_code_citation: true
+    citation_anchor: "2609.03340"
+    compendium_refs: []
+    compendium_note: "September 2026 source, postdates the compendium; identifier checked against the arXiv record on 2026-09-28."
+
+  - id: RES-017
+    title: "Evidence captured outside the agent's process"
+    source:
+      citation: "Qin, J., Schmotz, D., Prinzhorn, D. et al. (2026). LLM Agents Can Easily Tamper With Their Own Traces. arXiv:2609.30266."
+      sections:
+        - "agents delete their own traces without tripping guardrails; capture outside the agent's control"
+    concepts:
+      - trace_tampering
+      - independent_capture
+    controls:
+      - separate_process_append_only_recorder
+      - record_before_effect_fail_closed
+    code:
+      - remora/audit/recorder.py
+      - remora/enforcement/lease.py
+    tests:
+      - tests/test_independent_recorder.py
+    evidence: >-
+      Tests start the recorder as a separate interpreter. The protocol has no
+      delete, update, truncate or reset; the store's triggers abort UPDATE and
+      DELETE; a deletion made after dropping them is detected against the
+      receipt. For a tool the deployment names, the dispatcher records the
+      intent before the nonce is spent and refuses as recorder_unavailable when
+      the recorder is down, leaving the nonce unspent; the outcome, including
+      state_unknown for a tool that raised, is recorded after.
+    maturity: implemented_and_tested
+    scope_boundary: >-
+      Reference implementation. Separation is only as strong as the
+      deployment's OS boundary (another user, host or socket permissions),
+      which REMORA does not configure. The durable, independently operated
+      sink is an owner decision overlapping REM-025. The paper's harness
+      measurements are not reproduced.
+    related_work_section: "docs/09-related-work.md §12"
+    in_code_citation: true
+    citation_anchor: "2609.30266"
+    compendium_refs: []
+    compendium_note: "September 2026 source, postdates the compendium; identifier checked against the arXiv record on 2026-09-28."
+
+  - id: RES-018
+    title: "Procedure obligations and derived completion"
+    source:
+      citation: "Singh, P., Kumar, S., Agarwal, A. et al. (2026). ContractEval: Query-Conditioned Execution Matching for Procedural Instruction Conformance. arXiv:2609.09458."
+      sections:
+        - "procedural obligations matched against execution traces"
+      builds_on:
+        - "Xiao, Y. & Nuzzo, P. (2026). Symbolic Temporal Supervision of LLM Agents Using Contracts. arXiv:2609.18128 (temporal contracts over tool-call traces)."
+        - "Smyth, N., Mantilla-Ramos, Y.-J., Tikeng Notsawo, P. Jr et al. (2026). Quantifying Overclaiming Propensity in Frontier LLM Agents. arXiv:2609.20812 (completion claims agents did not reach)."
+    concepts:
+      - trace_level_obligation
+      - online_and_replay_equivalence
+      - completion_is_derived
+    controls:
+      - finite_state_obligation_monitor
+      - pre_dispatch_procedure_refusal
+      - overclaim_flag
+    code:
+      - remora/governance/procedure.py
+      - remora/enforcement/lease.py
+    tests:
+      - tests/test_procedure_contracts.py
+    evidence: >-
+      Four obligation shapes (precedence, absence, response, existence) are
+      finite automata. An exhaustive test over all 1296 traces of length four
+      from six tools pins that stepping live and replaying agree on every
+      prefix, and that the online admits() check predicts exactly the safety
+      violations step() records. derive_completion returns NOT_ESTABLISHED for
+      a pending response or an empty trace, VIOLATED for any violation, and
+      flags a completion claim the trace does not establish as an overclaim.
+      The dispatcher refuses a violating step before it runs and refuses when
+      the history cannot be read.
+    maturity: implemented_and_tested
+    scope_boundary: >-
+      Steps are matched on tool name and exact argument fields; ContractEval's
+      query-conditioned matching of natural-language procedures, general
+      temporal logic and assume-guarantee composition are not implemented.
+      The trace comes from the deployment's own record. No model's
+      overclaiming propensity is measured.
+    related_work_section: "docs/09-related-work.md §12"
+    in_code_citation: true
+    citation_anchor: "2609.09458"
+    compendium_refs: []
+    compendium_note: "September 2026 sources, postdate the compendium; all three identifiers checked against the arXiv record on 2026-09-28."
+
+  - id: RES-019
+    title: "Measured correctness of the enforcement gate itself"
+    source:
+      citation: "Zhang, C., Kweon, W. & Han, J. (2026). How Strongly Should Task State Influence an LLM Agent? arXiv:2609.25686."
+      sections:
+        - "enforcement is bounded by the correctness of its state and of the matcher"
+    concepts:
+      - gate_correctness
+      - validator_fault_injection
+    controls:
+      - preregistered_gate_fault_study
+    code:
+      - experiments/gate_correctness_study.py
+      - experiments/gate_correctness/PREREGISTERED.md
+      - results/gate_correctness_study_v1.json
+    tests:
+      - tests/test_gate_correctness_fixture.py
+    evidence: >-
+      Pre-registered study over the 540 fleetops episodes with seven validator
+      arms, regenerated in CI. A lenient prefix matcher let 0.667 of corrupt
+      calls through and every corrupt read; failing open let 0.078 through; a
+      stale or partial index cost valid-read acceptance (0.850 and 0.667); no
+      gated arm auto-accepted a write. Five of seven predictions were met and
+      the two misses are NEGATIVE_RESULTS.md §60 (open).
+    maturity: empirically_evaluated_adaptation
+    scope_boundary: >-
+      One synthetic domain and one engine configuration; N is small (90
+      corrupt calls). The retired-identifier path of a stale snapshot is not
+      sampled. The source's own model experiments are not reproduced.
+    related_work_section: "docs/09-related-work.md §12"
+    in_code_citation: false
+    compendium_refs: []
+    compendium_note: "September 2026 source, postdates the compendium; identifier checked against the arXiv record on 2026-09-28. Cited in the study's pre-registration rather than in remora/."
+
+  - id: RES-020
+    title: "Capability minimization before reasoning, enforced through execution and effect"
+    source:
+      citation: "REMORA internal design (2026-09-28): owner-supplied software design document 'Capability-Minimized Verified Execution for REMORA', adopted as quality program WS8; not an external publication."
+      sections:
+        - "docs/design/capability-minimized-execution-v1.md"
+        - "experiments/capability_minimization/PREREGISTERED.md"
+    concepts:
+      - least_privilege_tool_vocabulary
+      - visibility_is_not_authorization
+      - non_widening_delegation
+      - epoch_revocation
+      - success_established_by_evidence
+    controls:
+      - task_scoped_capability_set
+      - capability_projection
+      - capability_digest_in_lease
+      - argument_and_state_constraints
+      - subset_delegation
+      - revocation_epochs
+      - success_established_contract
+    code:
+      - remora/capabilities/model.py
+      - remora/capabilities/resolver.py
+      - remora/capabilities/projector.py
+      - remora/capabilities/constraints.py
+      - remora/capabilities/delegation.py
+      - remora/capabilities/revocation.py
+      - remora/enforcement/lease.py
+      - remora/execution/service.py
+      - remora/governance/evidence_coverage.py
+      - servers/execution_api.py
+      - experiments/capability_minimization_study.py
+      - results/capability_minimization_study_v1.json
+    tests:
+      - tests/capabilities/test_capability_set.py
+      - tests/capabilities/test_capability_enforcement.py
+      - tests/capabilities/test_capability_server_path.py
+      - tests/capabilities/test_capability_projection.py
+      - tests/capabilities/test_capability_constraints.py
+      - tests/capabilities/test_capability_delegation.py
+      - tests/capabilities/test_capability_revocation.py
+      - tests/capabilities/test_success_established.py
+      - tests/test_capability_minimization_fixture.py
+    evidence: >-
+      Reproduce with python experiments/capability_minimization_study.py
+      --check. A capability set is the intersection of trusted operands with
+      default deny (property-tested), projected into the agent's tool list and
+      enforced at /assess, before consumption and in the dispatcher through a
+      digest signed into the lease. Argument and trusted-state constraints,
+      subset delegation and revocation epochs refuse with their own codes, and
+      success_established_v1 requires capability, authorization, execution and
+      a verified effect. The pre-registered layer study (44 proposals, eight
+      classes, arms A to F on REMORA's code) met seven of eight predictions:
+      unsafe execution fell from 1.0 to 0.0 as layers were added, each class
+      was first stopped by the layer built for it, and no arm blocked a
+      legitimate proposal. P8 missed (exposure ratio 0.2545 > 0.25,
+      NEGATIVE_RESULTS.md §62).
+    maturity: implemented_and_tested
+    scope_boundary: >-
+      Opt-in on the execution API; no deployment is claimed to run a capability
+      policy. The policy, the trusted-state reader and the epoch source are
+      deployment inputs REMORA does not check for correctness. The task type
+      is declared by the caller and only narrows. Capabilities bind to tools,
+      tasks and arguments, not to the provenance of each data value (the CaMeL
+      model, SHELF-008, is not adopted). The layer study uses an author-written
+      corpus: it shows layer attribution, not real-world rates or model
+      behaviour, which need a live model.
+    related_work_section: "docs/09-related-work.md §13"
+    in_code_citation: false
+    compendium_refs: []
+    compendium_note: "Internal design from an owner-supplied SDD; no external result is claimed for it."
+
+  - id: RES-021
+    title: "Test adequacy of the evidence-sufficiency corpus: mutation analysis, metamorphic relations and generated inputs"
+    source:
+      citation: "DeMillo, R. A., Lipton, R. J., Sayward, F. G. (1978). Hints on Test Data Selection: Help for the Practicing Programmer. IEEE Computer 11(4):34-41."
+      sections:
+        - "DeMillo, Lipton and Sayward (1978): mutation analysis, the competent-programmer and coupling hypotheses"
+        - "Chen, Cheung and Yiu (1998), HKUST-CS98-01: metamorphic relations as the oracle for unauthored inputs"
+        - "Claessen and Hughes (2000), ICFP: property-based random testing"
+      builds_on:
+        - "Budd, T. A., Angluin, D. (1982). Two notions of correctness and their relation to testing. Acta Informatica 18(1):31-45 (equivalent mutants are undecidable)."
+        - "Jia, Y., Harman, M. (2011). An Analysis and Survey of the Development of Mutation Testing. IEEE TSE 37(5):649-678."
+        - "Just, R., et al. (2014). Are mutants a valid substitute for real faults in software testing? FSE 2014."
+        - "Papadakis, M., Shin, D., Yoo, S., Bae, D.-H. (2018). Are mutation scores correlated with real fault detection? ICSE 2018."
+        - "Segura, S., Fraser, G., Sanchez, A. B., Ruiz-Cortés, A. (2016). A Survey on Metamorphic Testing. IEEE TSE 42(9):805-824."
+        - "Barr, E. T., Harman, M., McMinn, P., Shahbaz, M., Yoo, S. (2015). The Oracle Problem in Software Testing: A Survey. IEEE TSE 41(5):507-525."
+        - "MacIver, D. R., Hatfield-Dodds, Z., et al. (2019). Hypothesis: A new approach to property-based testing. JOSS 4(43):1891."
+    concepts:
+      - mutation_adequacy
+      - equivalent_mutants
+      - named_survivor_ratchet
+      - metamorphic_relations
+      - property_based_testing
+      - blind_held_out_faults
+    controls:
+      - systematic_mutation_sweep
+      - named_survivor_baseline
+      - rejection_contract
+      - verdict_envelope_check
+      - metamorphic_relation_runner
+      - generated_input_properties
+      - differential_family_test
+      - runner_crash_capture
+      - differential_reference_model_over_the_lattice
+      - second_operator_set_with_second_order_sample
+      - kill_redundancy_reading
+      - lattice_derived_cases
+      - specification_mutation
+      - rule_coverage_criterion
+      - held_out_specification_catalogue
+      - committed_held_out_fault_harness
+      - blind_agent_fault_probe
+      - rule_coverage_profile_v2
+      - generated_input_contract
+      - return_isolation_check
+      - whole_api_differential
+      - public_api_surface_snapshot
+      - stateful_call_sequences
+    code:
+      - conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py
+      - conformance/evidence-sufficiency-v1.3/invariants.json
+      - conformance/evidence-sufficiency-v1.3/model.json
+      - conformance/evidence-sufficiency-v1.3/cases.json
+      - conformance/evidence-sufficiency-v1.3/run-record.json
+      - scripts/mutation_evidence_sufficiency.py
+      - scripts/mutation_evidence_sufficiency_ast.py
+      - scripts/spec_mutation_evidence_sufficiency.py
+      - scripts/rule_coverage_evidence_sufficiency.py
+      - scripts/score_heldout_faults.py
+      - scripts/probe_reimplementations_evidence_sufficiency.py
+      - conformance/evidence-sufficiency-v1.4/run_evidence_sufficiency.py
+      - conformance/evidence-sufficiency-v1.4/cases.json
+      - conformance/evidence-sufficiency-v1.4/run-record.json
+      - conformance/evidence-sufficiency-v1.5/run_evidence_sufficiency.py
+      - conformance/evidence-sufficiency-v1.5/cases.json
+      - conformance/evidence-sufficiency-v1.5/model.json
+      - conformance/evidence-sufficiency-v1.5/run-record.json
+      - conformance/evidence-sufficiency-v1.6/run_evidence_sufficiency.py
+      - conformance/evidence-sufficiency-v1.6/run-record.json
+      - conformance/evidence-sufficiency-v1.7/run_evidence_sufficiency.py
+      - conformance/evidence-sufficiency-v1.7/api_surface.json
+      - conformance/evidence-sufficiency-v1.7/run-record.json
+      - docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt
+      - docs/assurance/mutation_baseline_evidence_sufficiency_ast_v1.txt
+      - docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt
+    tests:
+      - tests/test_evidence_sufficiency_v1_3.py
+      - tests/test_evidence_sufficiency_spec_mutation.py
+      - tests/test_evidence_sufficiency_rule_coverage.py
+      - tests/test_evidence_sufficiency_v1_4.py
+      - tests/test_score_heldout_faults.py
+      - tests/test_evidence_sufficiency_v1_5.py
+      - tests/test_evidence_sufficiency_v1_6.py
+      - tests/test_evidence_sufficiency_v1_7.py
+      - tests/test_evidence_sufficiency_blind_probe.py
+    evidence: >-
+      The record reproduces with python conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py
+      --check. mutmut 3.8.0 generates 489 mutants of the frozen v1 checker.
+      Scored by the v1.2 corpus in the three external projections (python
+      scripts/mutation_evidence_sufficiency.py --scoring-suite
+      evidence-sufficiency-v1.2), 112 survived in seven families
+      (NEGATIVE_RESULTS.md §65). Scored by v1.3 (python
+      scripts/mutation_evidence_sufficiency.py), which adds cases E21-E23 for
+      mapping key order, a rejection contract of twenty inputs (ten in
+      cases.json and ten the runner declares because JSON cannot express
+      them; seventeen before R18-R20), verdict-envelope checks and eleven
+      declared metamorphic relations, 20 survive, each named in the baseline
+      and argued equivalent under the pinned contract in
+      docs/assurance/mutation_testing_v1.md. The raw output of every sweep row
+      is committed in artifacts/evidence-sufficiency-mutation-2026-09-30/.
+      The test module scores one representative fault per real-gap family
+      against both runners (v1.3 fails, v1.2 does not, an H1 control fails
+      both) and checks the relations on generated inputs with Hypothesis at
+      150 derandomised examples per property. model.json is a table-driven reference model interpreted over
+      61,544 lattice and typed documents on which the checker must agree at
+      every point (McKeeman, 1998); it does. A second operator set of 705
+      first-order and 200 second-order mutants (scripts/mutation_evidence_sufficiency_ast.py)
+      kills 901 of 905, with 4 named survivors argued equivalent; its
+      per-mutant redundancy reading (--corpus first-run reconstructs it:
+      898 of 905 killed) showed 42 typed-premise faults that only the model
+      caught, which became the 23 lattice-derived K1 cases
+      (NEGATIVE_RESULTS.md §66, corrected in §67). The record reproduces byte
+      for byte with no failures and no crashes. An independent analysis of
+      43 faults chosen without reading v1.3, hashed locally but not committed
+      publicly, found v1.2 killing 42 on the runner row and v1.3 killing 43
+      (docs/assurance/external_adequacy_evidence_sufficiency_v1.md).
+      Specification mutation of model.json (python
+      scripts/spec_mutation_evidence_sufficiency.py; 446 first-order and 300
+      second-order mutants, equivalence computed over eight premise value
+      classes) was pre-registered in section 13 of the v1.3 spec before any
+      score was read. The runner kills all 392 live first-order mutants; the
+      authored cases kill 380, so the pre-registered criterion S-2 is not met.
+      The twelve survivors are cross-branch premise faults
+      (NEGATIVE_RESULTS.md §68). Rule coverage (python
+      scripts/rule_coverage_evidence_sufficiency.py) then defines adequacy
+      from model.json alone, MC/DC-style per decisive outcome: 80
+      obligations, of which v1.3 discharges 58. The derivation rule, its
+      output digest and a held-out catalogue (19 guard-placement and 300
+      third-order mutants) were pushed before v1.4 existed (section 14).
+      conformance/evidence-sufficiency-v1.4 is v1.3 plus the 22 derived
+      cases, and its runner fails on any open obligation. v1.4 discharges
+      all 80 and kills every live mutant of both specification catalogues on
+      the authored cases alone. The held-out test had little power: v1.3
+      already killed 318 of its 319 mutants, and only five of the 22 derived
+      cases, all for the §68 family, kill a mutant no other case kills
+      (NEGATIVE_RESULTS.md §69). A committed harness for section 8 (python
+      scripts/score_heldout_faults.py) reproduces the independent
+      analysis's raw rows for all 43 of its faults on v1.2 and v1.3. A
+      blind probe (artifacts/evidence-sufficiency-blind-probe-2026-09-30,
+      pre-registered) scored 60 code faults and 36 reimplementation variants
+      written by context-free agents that did not see the corpus: row 3 of
+      v1.4 kills 80 of 83 decision faults and row 1 kills 76, the same as
+      v1.3; six faults survive every row (NEGATIVE_RESULTS.md §70).
+      Evidence-sufficiency v1.5 answers with class-level checks: rule
+      coverage profile v2 (value classes including absence and null, guard
+      precedence, state pairs; 274 derived cases), a wider lattice, and
+      generated input-contract and return-isolation sections. A second probe
+      of 97 faults, locked before v1.5 was committed, went from 74 to 77 of 77
+      decision faults on row 3 (73 to 76 on row 1); one fault, verdict value
+      equality, survives (NEGATIVE_RESULTS.md §71). v1.6 adds a differential
+      test of the whole public API against an executable contract on 2,000
+      seeded inputs. On a third probe of 104 faults, locked before v1.6, it
+      kills all 61 decision faults and 97 of 104 in all (v1.5: 94); two of
+      its three new kills are in classes no probe had named, and five faults
+      on the API surface survive (NEGATIVE_RESULTS.md §72). v1.7 adds an API
+      surface snapshot, seeded call sequences and the crossed input contract;
+      on a fourth probe of 104 faults, locked before v1.7, every decision
+      fault dies again and 93 of 104 in all (v1.6: 90); five open survivors
+      concern input sizes and public-type behaviour (NEGATIVE_RESULTS.md §73,
+      open).
+    maturity: library_only
+    scope_boundary: >-
+      A conformance research artifact, not a governed runtime path: the checker
+      decides nothing in a deployment, and the sweep measures the corpus, never
+      the checker's correctness. Two operator sets, mutmut 3.8.0 with its
+      default operators and nine authored operators; a fault neither
+      generates is unmeasured. The specification operators were written by
+      the corpus's author after v1.3 and are pre-registered, not blind; their
+      state comparison is decided on the declared state values only. The families are a hand
+      classification, not a subsumption graph. Every v1.3 check was written
+      with the survivor list in view, so the sweep shows the repair and not
+      generalisation; only the blind protocol of the v1.3 spec, section 8,
+      could show that. The independent analysis selected its faults blind
+      but did not commit them publicly before the run, so it does not meet
+      that protocol. The reference model
+      shares author and specification with the checker, so agreement cannot
+      catch a misreading both share, and its lattice is bounded to the
+      declared values. The frozen checker's coercion of a scope through
+      dict() is recorded as a limit, not repaired.
+    related_work_section: "docs/09-related-work.md §14"
+    in_code_citation: true
+    citation_anchor: "DeMillo"
+    compendium_refs: []
+    compendium_note: "Software-testing sources outside the compendium's AI-assurance scope; entered from the primary publications named above."
 
 # ── Landscape coverage ──────────────────────────────────────────────────────
 # Whole areas of the local AI-assurance compendium that REMORA deliberately does
@@ -806,6 +1396,46 @@ bibliography:
         canonical_tool_call_hash, because rewriting those bytes would make the
         historical audit record unverifiable. runtime_identity.py cites the
         same RFC to record that it deliberately does not use it.
+    - id: demillo-1978-mutation
+      surname: "DeMillo"
+      year: "1978"
+      work: "Hints on Test Data Selection: Help for the Practicing Programmer (IEEE Computer 11(4))"
+      role: grounds_implementation
+      code: [conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py, scripts/mutation_evidence_sufficiency.py]
+      note: >-
+        Source of RES-021; the entry carries it as citation_anchor. The
+        enforcement sweep (docs/assurance/mutation_testing_v1.md) has cited it
+        since 2026-08-25 without a register line; the evidence-sufficiency
+        sweep gives it one.
+    - id: chen-1998-metamorphic
+      surname: "Chen"
+      year: "1998"
+      work: "Metamorphic testing: a new approach for generating next test cases (HKUST-CS98-01)"
+      role: grounds_implementation
+      code: [conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py, conformance/evidence-sufficiency-v1.3/invariants.json]
+      anchor: "Chen, Cheung and Yiu"
+      note: "The eleven relations in invariants.json are metamorphic relations in this sense; RES-021."
+    - id: claessen-2000-quickcheck
+      surname: "Claessen"
+      year: "2000"
+      work: "QuickCheck: a lightweight tool for random testing of Haskell programs (ICFP 2000)"
+      role: grounds_implementation
+      code: [tests/test_evidence_sufficiency_v1_3.py]
+      note: "Generated-input properties for the relations, run with Hypothesis, derandomised; RES-021."
+    - id: mckeeman-1998-differential
+      surname: "McKeeman"
+      year: "1998"
+      work: "Differential Testing for Software (Digital Technical Journal 10(1))"
+      role: grounds_implementation
+      code: [conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py, conformance/evidence-sufficiency-v1.3/model.json]
+      note: "The reference model in model.json, interpreted over the premise lattice, is a differential oracle for the checker; RES-021."
+    - id: jia-2009-higher-order
+      surname: "Jia"
+      year: "2009"
+      work: "Higher Order Mutation Testing (Information and Software Technology 51(10))"
+      role: grounds_implementation
+      code: [scripts/mutation_evidence_sufficiency_ast.py]
+      note: "The fixed-seed second-order sample of the second operator set; RES-021. Jia and Harman (2011) is cited in the same file for the survey."
     - id: rfc-3161-timestamping
       surname: "IETF"
       year: "2001"
@@ -888,6 +1518,65 @@ bibliography:
         the governance framing, not the architecture, so the attribution lives
         in docs/09-related-work.md rather than in a module docstring.
 
+    - id: iyer-2026-closed-world-resolution
+      surname: "Iyer"
+      year: "2026"
+      work: "Closed-World Resolution Against Tool Hallucination in LLM Agents (arXiv:2609.19425)"
+      role: implemented_line
+      entry: RES-015
+      code: [remora/enforcement/resolved_effect.py]
+      anchor: "2609.19425"
+      note: "Source of RES-015 (SHELF-033). Identifier checked against the arXiv record on 2026-09-28."
+    - id: chen-2026-fresh-memory-stale-plans
+      surname: "Chen"
+      year: "2026"
+      work: "Fresh Memory, Stale Plans: Dependency-Scoped Validation for Distributed LLM-Agent Memory (arXiv:2609.03340)"
+      role: implemented_line
+      entry: RES-016
+      code: [remora/governance/plan_binding.py]
+      anchor: "2609.03340"
+      note: "Source of RES-016 (SHELF-032). Identifier checked against the arXiv record on 2026-09-28."
+    - id: qin-2026-trace-tampering
+      surname: "Qin"
+      year: "2026"
+      work: "LLM Agents Can Easily Tamper With Their Own Traces (arXiv:2609.30266)"
+      role: implemented_line
+      entry: RES-017
+      code: [remora/audit/recorder.py]
+      anchor: "2609.30266"
+      note: "Source of RES-017 (SHELF-030). Identifier checked against the arXiv record on 2026-09-28."
+    - id: singh-2026-contracteval
+      surname: "Singh"
+      year: "2026"
+      work: "ContractEval: Query-Conditioned Execution Matching for Procedural Instruction Conformance (arXiv:2609.09458)"
+      role: implemented_line
+      entry: RES-018
+      code: [remora/governance/procedure.py]
+      anchor: "2609.09458"
+      note: "Source of RES-018 (SHELF-035). Identifier checked against the arXiv record on 2026-09-28."
+    - id: xiao-2026-temporal-contracts
+      surname: "Xiao"
+      year: "2026"
+      work: "Symbolic Temporal Supervision of LLM Agents Using Contracts (arXiv:2609.18128)"
+      role: grounds_implementation
+      code: [remora/governance/procedure.py]
+      anchor: "2609.18128"
+      note: "builds_on source for RES-018 (SHELF-036); a finite-state subset is taken, not general temporal logic."
+    - id: smyth-2026-overclaiming
+      surname: "Smyth"
+      year: "2026"
+      work: "Quantifying Overclaiming Propensity in Frontier LLM Agents (arXiv:2609.20812)"
+      role: grounds_implementation
+      code: [remora/governance/procedure.py]
+      anchor: "2609.20812"
+      note: "builds_on source for RES-018 (SHELF-037): the overclaim flag in derive_completion. No propensity is measured."
+    - id: zhang-2026-task-state-influence
+      surname: "Zhang"
+      year: "2026"
+      work: "How Strongly Should Task State Influence an LLM Agent? (arXiv:2609.25686)"
+      entry: RES-019
+      note: "Source question of the gate-correctness study (SHELF-029), cited in experiments/gate_correctness/PREREGISTERED.md rather than in remora/."
+
   # Works discussed ONLY in the narrative companion docs/09-related-work.md:
   # no code, no evaluation, and no reference in the paper. Recorded 2026-09-03
   # after an audit found four such works (the §4a PTC source and the three §4b
@@ -951,3 +1640,9 @@ bibliography:
     - {identifier: "arXiv:2608.27443", work: "Yan (2026), user-authored permission policies", code: [remora/governance/task_identity.py], recorded_as: yan-2026-permission-policies}
     - {identifier: "RFC 3161", work: "Time-Stamp Protocol", code: [remora/audit/hash_chain.py, remora/audit/merkle.py, remora/governance/envelope.py], recorded_as: rfc-3161-timestamping}
     - {identifier: "RFC 8785", work: "JSON Canonicalization Scheme", code: [remora/interop/jcs.py, remora/enforcement/runtime_identity.py], recorded_as: rfc-8785-jcs}
+    - {identifier: "arXiv:2609.03340", work: "Chen, Wang & Brinton (2026), Fresh Memory, Stale Plans", code: [remora/governance/plan_binding.py], recorded_as: chen-2026-fresh-memory-stale-plans}
+    - {identifier: "arXiv:2609.09458", work: "Singh et al. (2026), ContractEval", code: [remora/governance/procedure.py], recorded_as: singh-2026-contracteval}
+    - {identifier: "arXiv:2609.18128", work: "Xiao & Nuzzo (2026), Symbolic Temporal Supervision", code: [remora/governance/procedure.py], recorded_as: xiao-2026-temporal-contracts}
+    - {identifier: "arXiv:2609.19425", work: "Iyer (2026), Closed-World Resolution", code: [remora/enforcement/resolved_effect.py], recorded_as: iyer-2026-closed-world-resolution}
+    - {identifier: "arXiv:2609.20812", work: "Smyth et al. (2026), Overclaiming Propensity", code: [remora/governance/procedure.py], recorded_as: smyth-2026-overclaiming}
+    - {identifier: "arXiv:2609.30266", work: "Qin et al. (2026), Agents Tamper With Their Own Traces", code: [remora/audit/recorder.py], recorded_as: qin-2026-trace-tampering}

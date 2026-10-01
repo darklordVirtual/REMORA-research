@@ -6,6 +6,201 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Added
 
+- Evidence-sufficiency v1.3 (`conformance/evidence-sufficiency-v1.3/`,
+  `docs/design/evidence-sufficiency-v1.3.md`). A systematic mutation sweep
+  (mutmut, 489 mutants of the frozen checker) found 112 mutants the v1.2
+  corpus could not tell apart, in seven families (NEGATIVE_RESULTS.md §65).
+  v1.3 carries the 53 v1.2 cases verbatim and adds cases E21-E23 for mapping
+  key order, a rejection contract for malformed input, verdict-envelope checks
+  and eleven metamorphic relations declared in `invariants.json`. The sweep
+  now leaves 20 survivors, every one named and classified as equivalent under
+  the pinned contract in `docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt`;
+  `scripts/mutation_evidence_sufficiency.py` fails on a new survivor and runs
+  in the scheduled mutation workflow. `tests/test_evidence_sufficiency_v1_3.py`
+  scores one representative fault per family against both runners and checks
+  the relations on generated inputs with Hypothesis. The new checks were
+  written after the sweep named the gaps, so their kills are not independent
+  evidence; the spec records a blind external protocol for that.
+  Internal stress tests, same day, fitted and not independent confirmation:
+  `model.json` is a table-driven reference
+  model interpreted over the whole premise lattice (61,544 documents), and
+  the checker must agree at every point; a second operator set
+  (`scripts/mutation_evidence_sufficiency_ast.py`, 705 first-order and 200
+  second-order mutants) is scored in process with a per-mutant redundancy
+  reading; 42 typed-premise faults that only the model caught became the 23
+  lattice-derived K1 cases, and three `isinstance` relaxations became
+  rejections R18-R20. The second set leaves 4 named survivors, all argued
+  equivalent (NEGATIVE_RESULTS.md §66).
+- An independent analysis of evidence-sufficiency v1.3, recorded in
+  `docs/assurance/external_adequacy_evidence_sufficiency_v1.md` with its
+  package in `artifacts/independent-analysis-2026-09-30/`. 43 faults chosen
+  without reading v1.3: v1.2 kills 42 on the runner row, v1.3 kills 43. The
+  fault list was hashed locally, not committed publicly, so the run does not
+  meet section 8 of the v1.3 spec. It found stale numbers in the record, now
+  corrected (NEGATIVE_RESULTS.md §67). Every historical sweep row now has a
+  command that reproduces it:
+  `scripts/mutation_evidence_sufficiency.py --scoring-suite
+  evidence-sufficiency-v1.2` and
+  `scripts/mutation_evidence_sufficiency_ast.py --corpus first-run` or
+  `--corpus without-k1`. Their raw outputs are committed in
+  `artifacts/evidence-sufficiency-mutation-2026-09-30/`, and `--workers 1`
+  scores the second set without a process pool.
+- Specification mutation of the evidence-sufficiency model
+  (`scripts/spec_mutation_evidence_sufficiency.py`, v1.3 spec section 13):
+  446 first-order and 300 second-order mutants of the rules in `model.json`,
+  each run as a checker, with equivalence computed by enumeration. The
+  catalogue and criterion were pushed before the first score. The runner
+  kills every live mutant; the authored cases miss twelve cross-branch
+  premise faults, so the pre-registered criterion S-2 is not met
+  (NEGATIVE_RESULTS.md §68). The corpus is unchanged in that change. The sweep
+  runs in the mutation workflow.
+- Evidence-sufficiency v1.4 (`conformance/evidence-sufficiency-v1.4/`): v1.3
+  verbatim plus 22 cases derived from a rule-coverage criterion
+  (`scripts/rule_coverage_evidence_sufficiency.py`, v1.3 spec section 14)
+  that defines adequacy from `model.json` alone, MC/DC-style per decisive
+  outcome. The runner fails on any of its 80 obligations left open. The
+  derivation rule, its output digest and a held-out mutant catalogue were
+  pushed before v1.4 existed. v1.4 kills every live specification mutant of
+  both catalogues on the authored cases alone, and the specification gate
+  now scores v1.4 against an empty baseline. The held-out test had little
+  power, and 17 of the 22 cases kill nothing another case does not in any
+  catalogue measured (NEGATIVE_RESULTS.md §69).
+- A committed harness for blind external runs of the evidence-sufficiency
+  corpus (`scripts/score_heldout_faults.py`, v1.3 spec section 8). It checks
+  the fault file against its public digest, scores v1.2 to v1.4 in the three
+  rows, and applies the pre-registered criterion. It reproduces the
+  independent analysis's own raw rows for all 43 of its faults.
+- A pre-registered blind probe of evidence-sufficiency v1.4
+  (`artifacts/evidence-sufficiency-blind-probe-2026-09-30/`): six
+  context-free agents wrote 60 checker faults and 36 reimplementation
+  variants without seeing the corpus. Row 3 of v1.4 kills 80 of 83 decision
+  faults and row 1 kills 76, the same as v1.3. Six faults survive every row,
+  three of them a `null` state value (NEGATIVE_RESULTS.md §70). The
+  corpus is unchanged.
+- Evidence-sufficiency v1.5 (`conformance/evidence-sufficiency-v1.5/`):
+  classes instead of fault lists. Rule-coverage profile v2 derives 274 cases
+  (every value class of every premise, including absence and `null`; every
+  pair of failing guards; 26 state pairs); the model lattice is wider; new
+  runner sections generate the input contract (container types, 24 non-JSON
+  value classes, near misses of `premise_source` and claims) and check that
+  no returned value aliases the verdict. Measured on a second blind probe
+  locked before v1.5 existed: 77 of 77 decision faults on row 3 (v1.4: 74),
+  one survivor in a new class (NEGATIVE_RESULTS.md §71). Found on the way:
+  the frozen checker copies a scope shallowly (recorded as a limit).
+- Evidence-sufficiency v1.6 (`conformance/evidence-sufficiency-v1.6/`): v1.5
+  plus a differential test of the whole public API against an executable
+  contract (2,000 seeded inputs; exact types, value semantics, copy and
+  pickle, deep input non-mutation, order, module state, the enum contract).
+  On a third blind probe locked before v1.6: all 61 decision faults killed,
+  97 of 104 faults in all (v1.5: 94); two new kills are in classes no probe
+  had named; five faults on the API surface survive (NEGATIVE_RESULTS.md
+  §72).
+- Evidence-sufficiency v1.7 (`conformance/evidence-sufficiency-v1.7/`): v1.6
+  plus a public API surface snapshot, 300 seeded call sequences that mutate
+  every object a caller holds between calls, and the input contract crossed
+  with every claim and observation shape. On a fourth blind probe locked
+  before v1.7: all 63 decision faults killed, 93 of 104 faults in all (v1.6:
+  90); five open survivors on input sizes and public-type behaviour
+  (NEGATIVE_RESULTS.md §73, open).
+- Evidence-sufficiency v1.2 (`conformance/evidence-sufficiency-v1.2/`): the
+  50 v1.1 cases verbatim plus E18-E20, which tell apart the three withheld
+  `canonical()` faults from the external v1.1 run. v1 and v1.1 are frozen.
+  The cases were written after the faults were known, so their kills show the
+  repair and are not independent evidence; NEGATIVE_RESULTS.md §64 is
+  superseded.
+- The external v1.1 seeded-fault run over evidence-sufficiency, recorded in
+  `docs/assurance/external_adequacy_evidence_sufficiency_v1.md`. The known
+  faults are all killed on the runner row, which shows the repair and is not
+  evidence of generalisation. Of six withheld faults, the three in
+  `canonical()` survived every row; recorded as open in NEGATIVE_RESULTS.md
+  §64 for v1.2.
+- The pre-registered capability-mediation study (NTA-2,
+  `experiments/authority_preserving_capability_mediation.py`,
+  `results/authority_preserving_capability_mediation_v1.json`). Registered and
+  merged before the code existed; first run committed as the result. With
+  capability minimization alone every unsafe class produced its effect; the
+  in-process mediator stopped all but direct use of the credential in the
+  tool's process; the three-domain split, with the tool in a separate process
+  holding no credential, stopped all eight unsafe classes. No legitimate
+  nested effect was blocked. Seven of eight predictions met; P6 (mediated
+  effect coverage 1.0 in arm B) missed at 0.6667 and is recorded in
+  NEGATIVE_RESULTS.md §63. Author-written corpus; not a real-world rate.
+
+- NTA-2 phase 3: a three-domain custody split for mediated effects. A process
+  with `REMORA_EXECUTION_DOMAIN_ROLE=effect` holds the effect credentials and
+  serves only `/v1/execution/effects` and `/effects/close`; an executor with
+  `REMORA_EFFECT_ENDPOINT` set must then hold no declared effect credential
+  (custody K12 to K19). The effect domain verifies the lease with
+  verification material only (`ExecutionLease.verify_authenticity`), refuses
+  a lease the durable nonce store says was never dispatched
+  (`consumed()`, read-only), derives the effect authority from its own signed
+  ceiling, and keeps closure and the budget in the same store (AST-014).
+  Under a strict profile a mediated tool without a declared ceiling is
+  refused. `scripts/check_credential_topology.py` gains a direct-access gate
+  over governed tool modules. The experiment of the design's section 25 is
+  pre-registered in `experiments/authority_preserving_capability_mediation/`.
+
+- NTA-2 phase 2: capability mediation wired through the signed ToolSpec, the
+  dispatcher and the evidence. ToolSpec schema version 2 adds an optional
+  `downstream_capabilities` ceiling (`schemas/tool_spec_v2.yaml`); the
+  bundle's signed `schema_version` is now checked. A tool registered with
+  `mediated=True` is called with a `CapabilityMediator` that
+  `GovernedToolDispatcher` builds from the lease-bound capability set and the
+  tool's ceiling, before the nonce is spent. Nested effects are recorded as a
+  bounded `ResolvedEffectGraph` in the dispatch result, the `execution_result`
+  chain record and the outbox projection, and `success_established_v2`
+  requires them settled (v1 is unchanged). CAP-024 is `WIRED_API_PATH`, opt-in
+  and research profile; the runtime property stays `NOT_ESTABLISHED`.
+
+- Authority-Preserving Capability Mediation, NTA-2 phase 1
+  (`docs/design/authority-preserving-capability-mediation-v1.md`, status
+  proposed). Authorization of a tool does not authorize the privileged effects
+  its implementation can reach. Phase 1 is a library in the research profile:
+  canonical resource identities that refuse ambiguous forms rather than
+  normalise them (`remora/capabilities/resource.py`), a `within` constraint
+  operator, a ToolSpec-shaped `DownstreamCeiling` that is a limit and not a
+  grant, `derive_effect_authority` chaining a tool's effect authority to the
+  caller's set, and a fail-closed `CapabilityMediator` that records every
+  request. The conformance suite gains NTA2-01 to NTA2-11 (24 of 24 match).
+  Registered as CAP-024 at `IMPLEMENTED_LIBRARY`; the runtime property
+  `implementation_effect_non_transitivity` is registered as `NOT_ESTABLISHED`,
+  because the mediator runs in-process and does not stop direct client use.
+
+- Non-Transitivity of Authority (NTA-1) is a named principle with one
+  canonical page, `docs/security/non-transitivity-of-authority.md`. It gathers
+  what Q8.4, Q8.5, the lease binding and the "confused deputy" tests each
+  enforced under separate names into three forms (reachability, argument
+  authority, delegation transitivity), maps each to its code, and states the
+  limits: enforcement ends at REMORA's PEP, the capability layer is opt-in,
+  and no HTTP route derives a delegation. `conformance/non-transitivity-of-authority-v1`
+  states NTA-1 as 13 implementation-agnostic vectors with an adapter contract.
+  REMORA matches all 13, and `tests/test_conformance_non_transitivity.py`
+  shows that weakening each guard diverges on the vectors that name it.
+  CAP-023 is re-audited with the suite as evidence.
+
+- Utility floors in the claim register. Every active safety claim now declares
+  its pre-registered utility bars (`utility_floors`: metric, min or max,
+  source, met or missed) or a reason none applies (`utility_floor_exempt`).
+  `scripts/check_claim_utility_floors.py` recomputes each status and runs in
+  the quality gates and `make audit`. Five floors are declared and four are
+  missed: AgentHarm benign false-block 100% against a 40% ceiling (CLAIM-002),
+  and BFCL C-ext3 read autonomy, obtainable VERIFY and unobtainable ABSTAIN
+  (CLAIM-019). The last two C-ext3 metrics are now bound to their artifact, so
+  the unbound-metric baseline falls from 17 to 15.
+
+- Verify-only replication pack. `artifacts/replication-pack/replication_pack_v1.json`
+  lists each active headline claim with its artifacts, their LF SHA-256, their
+  results-manifest class, the metric values and the JSON fields they must
+  equal, and the offline commands that regenerate or validate them; active
+  claims it leaves out are listed with a reason. It also pins the environment:
+  the `requirements-lock.txt` hash and the reference Dockerfile's base image
+  digest, with `image: null` because no REMORA image is published.
+  `scripts/verify_replication_pack.py --check` verifies all of it offline and
+  fails when the pack drifts from the claim register or the results manifest;
+  `--regenerate` re-runs the regenerable entries in a temporary worktree of
+  HEAD and compares metric fields, ignoring only the named volatile fields.
+  `--check` runs in CI, in `make audit` and `make claim-check`, and first in
+  `artifacts/reproduce.sh`. Documented in `docs/06-reproducibility.md`.
 - `remora.decision_providers`: the contract through which an external source
   of typed semantic judgment is admitted as evidence, and only as evidence.
   A provider answers narrow typed questions (choice, score, boolean) with
@@ -145,6 +340,62 @@ This file lists externally relevant changes by release. Fine-grained development
   and transaction faults, not OS process kills or network partitions.
 
 ### Fixed
+
+- The H1 sentence in the evidence-sufficiency v1.2 runner's `limits` list
+  named only the gap label ("Cases H1 were written..."); it now names cases
+  E18-E20, and `run-record.json` is regenerated with no other change. An
+  external rerun measured v1.2 at `c1345b1` before the rewording, so a test
+  pins the measured bytes and checks that this sentence is the only
+  difference.
+- Five register findings from the replication pack.
+  `effective_n` in the tool-call scorers counted domains, not templates: task
+  ids are `<domain>_<seq>`, so stripping the last segment left 7 "clusters".
+  `remora.toolcall.scoring.template_cluster_key` now counts harmful template
+  clusters (56 for v2 and blind v3, 21 for v1), and the 13 affected regenerable
+  results are re-issued with no other field changed (artifact manifest
+  revision note, tag `effective-n-reissue-2026-09-28`). CLAIM-001's effective
+  N = 70 was always computed correctly by the significance analysis.
+  `results/sap_v3_round_results.json` is re-analysed: it predated the issue
+  #85 fix, so four uncertified SGR `risk_bound` fields still held the old
+  sentinel (0.99 and 0.996667 instead of 0.084, 0.093 and 0.060). Certified
+  flags and coverages are unchanged. It and `system_demonstration_v1.json`
+  are reclassed from live to regenerable, because both reproduce offline and
+  are now byte-compared in CI. CLAIM-001's Wilson bound is bound to the
+  significance file, which lowers the unbound baseline from 15 to 14.
+  `docs/06-reproducibility.md` now uses CLAIM-001's registered commands.
+
+- The MCP gateway verifies the Cloudflare Access assertion on `/mcp` itself
+  (`workers/mcp-gateway/src/admission.ts`: RS256 against the team key set,
+  AUD, issuer, expiry) and answers 503 while `ACCESS_TEAM_DOMAIN` and
+  `ACCESS_AUD` are unset, instead of relying on an edge policy configured
+  outside the repository. `REMORA_DEPLOYMENT_PROFILE=production` refuses `/mcp`
+  until `REMORA_PG_DSN`, the custody split and Access verification are all
+  configured, and `/health` no longer reports a D1 binding as a durable audit
+  chain. The deployed staging gateway needs the two Access settings before its
+  next deploy.
+- Agent-control's administrative reads (`/envelopes`, `/envelopes/verify`,
+  `/envelopes/<request_id>`, `/audit`) are bound to the deployment's
+  `TENANT_ID`. A query naming another tenant is refused with 403, and the
+  single-envelope lookup matches the tenant as well as the request id.
+
+- The synchronous `/v1/execution/execute` path now claims the dispatch intent
+  before it mints and consumes the grant and before it appends
+  `execution_authorized`, the order issue #417 set for the async worker. A
+  request that loses the claim consumes no grant and leaves no authorization
+  event for a dispatch it never performs.
+- `scripts/check_results_manifest.py` compares each sidecar's
+  `artifact_sha256` with the LF hash of its result. Eleven sidecars carried a
+  hash over CRLF bytes; they are corrected, and each keeps the old value under
+  `artifact_sha256_correction`. No result file changed.
+- CLAIM-006 no longer cites `artifacts/aromer/intelligence_after_v020.json`,
+  a 2026-06-09 snapshot that predates the TRAINED run and reads AII=0.5165.
+  The statement now matches the NEGATIVE_RESULTS.md §11 table (0.8412 at cycle
+  8, peak 0.844 at cycle 12, regression to CAPABLE the same day) and says the
+  values are live telemetry no gate can bind.
+- README and the executive one-pager pair the AgentHarm 0/208 false-accept
+  result with its 100% false-block rate on the benign twins.
+  `docs/EVIDENCE_OF_CAPABILITY.md` describes the execution kernel instead of
+  the earlier cascade framing.
 
 - The REM-047 transactional audit outbox is wired to production writes. It
   was implemented and had no caller outside its own test, so every

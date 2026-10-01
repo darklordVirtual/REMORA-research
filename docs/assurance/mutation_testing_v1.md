@@ -215,6 +215,108 @@ defect the paper's wire-format claims depend on.
   review 2026-08-26 caught exactly that drift here).
 - Coverage gap to the 95% targets for `remora/enforcement` (84.9) and
   `remora/execution` (93.7); floors are pinned at measured levels.
+## Evidence-sufficiency checker sweep (2026-09-30)
+
+A second subject, measured the same way and ratcheted the same way. The
+subject is `conformance/evidence-sufficiency-v1/checker.py` (341 lines, sha256
+`c4ca50ae…`, frozen since v1). The runner is the v1.3 corpus in the three
+projections of the external runs. The tool is mutmut 3.8.0 with default
+operators, in a sandbox that `scripts/mutation_evidence_sufficiency.py`
+builds. The checker is imported by path rather than as a package, so it needs
+its own sandbox and cannot use the `[tool.mutmut]` block above. The design
+and the decisions are in `docs/design/evidence-sufficiency-v1.3.md`; the
+finding is NEGATIVE_RESULTS.md §65.
+
+| Run | Mutants | Killed | Survived | Survivors by family |
+|---|---:|---:|---:|---|
+| v1.2 corpus | 489 | 377 | 112 | A 41, B 40, C 12, D 8, E 3, F 7, G 1 |
+| v1.3 corpus | 489 | 469 | 20 | C 12, F 7, G 1 |
+
+The first row reproduces with `python scripts/mutation_evidence_sufficiency.py --scoring-suite evidence-sufficiency-v1.2`.
+The second reproduces with the default command. mutmut refuses native Windows, so both were reproduced in a `python:3.12-slim` container; the raw `mutmut results --all` text of each is in `artifacts/evidence-sufficiency-mutation-2026-09-30/`.
+
+Every survivor of the v1.3 run is named in
+`docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt`, and every one
+is argued equivalent under the contract the corpus pins. The argument is per
+family, so a reviewer can test the clause rather than the count:
+
+| Family | Mutant ids | Why it is equivalent under the pinned contract |
+|---|---|---|
+| C, message text | `x_assess__mutmut_6` to `_10`, `_14` to `_16`; `x_validate_json__mutmut_15` to `_18` | D-7 pins the exception class for malformed input, not the message. A test that asserted the wording would pin prose, and the corpus refuses to |
+| F, canonical string form | `x_canonical__mutmut_4`, `_5`, `_8`, `_9`, `_11`, `_12`, `_13` | `canonical()` is used for equality only. Separators and `ensure_ascii` change the text of the encoding and never the equality relation on JSON values; MR-11 pins the relation, not the text |
+| G, `and` for `or` in `_result` | `x__result__mutmut_3` | reachable only when an inconclusive reason is missing from the guidance table or a decisive reason is present in it. R-5 (`undeclared_guidance`, `orphan_guidance`) fails on either, so the branch the mutant changes is dead under the corpus's own invariant |
+
+The four families that were real gaps (A, B, D, E, 92 mutants) are killed by
+the v1.3 additions. `tests/test_evidence_sufficiency_v1_3.py` keeps one
+representative of each as a fault that v1.3 must fail and v1.2 must not.
+The remaining caveat is the one at the top of this document: the sweep
+measures the corpus against mutmut's operators, and a fault the tool never
+generates is not measured.
+
+### A second operator set (2026-09-30)
+
+To measure the corpus against faults it was not tuned to,
+`scripts/mutation_evidence_sufficiency_ast.py` applies nine operators mutmut
+does not have and a fixed-seed sample of 200 second-order pairs. Every mutant
+is a text edit on the checker's source, scored in process by the v1.3
+runner. Each kill carries the set of checks that produced it (D-15 of the
+v1.3 spec).
+
+| Run | Mutants | Killed | Survived | Kills resting on one check | `--corpus` |
+|---|---:|---:|---:|---|---|
+| v1.3 before R18-R20 and the K1 cases | 905 | 898 | 7 | 57: reference model 42, rejection contract 14, crash 1 | `first-run` |
+| v1.3 with R18-R20, before the K1 cases | 905 | 901 | 4 | 60: reference model 42, rejection contract 17, crash 1 | `without-k1` |
+| v1.3 as merged | 905 | 901 | 4 | 18: rejection contract 17, crash 1 | `merged` (default) |
+
+The first row first read "60: reference model 42, rejection contract 17", the figure of the second row (NEGATIVE_RESULTS.md §67).
+The two middle states were never committed on their own; the script rebuilds each by removal, and the raw output of every row is in `artifacts/evidence-sufficiency-mutation-2026-09-30/`.
+
+Per operator, as merged: delete_statement 86/86, swap_adjacent_guards 21/24,
+comparison_variant 96/96, reason_confusion 236/236, status_polarity 16/16,
+field_confusion 197/197, state_comparison 9/10, negate_condition 33/33,
+type_vocabulary 7/7, second order 200/200. The 42 kills that rested on the
+reference model alone were typed-premise faults on premises no authored case
+had typed (NEGATIVE_RESULTS.md §66); they became the K1 cases. The three
+`type_vocabulary` survivors of the first run were `isinstance` relaxations of
+the exact type checks; rejections R18 to R20 kill them.
+
+| Mutant id | Why it is equivalent under the pinned contract |
+|---|---|
+| `state_comparison:postcondition_observed:5` | `canonical()` output starts and ends with a JSON token, never whitespace, so `.strip()` on both sides is the identity on every value the vocabulary admits |
+| `swap_adjacent_guards:assess:0` | the premise-source guard and the claim guard both raise `ValueError`; swapping them changes which message is raised when both fail, and D-7 pins the class, not the message |
+| `swap_adjacent_guards:validate_json:0` | the scalar guard and the list guard are mutually exclusive on `type(value)`, so their order cannot change any outcome |
+| `swap_adjacent_guards:validate_json:1` | the list guard and the mapping guard are mutually exclusive in the same way |
+
+### Specification mutation (2026-09-30)
+
+Both sets above mutate `checker.py`. `scripts/spec_mutation_evidence_sufficiency.py` mutates the rules in `model.json` instead and runs each mutant model as a checker.
+Equivalence is computed, not argued: the script enumerates eight premise value classes, three for premises no edit touches.
+The catalogue and the pass criterion were pre-registered in section 13 of the v1.3 spec and pushed before the first score.
+
+| Set | Mutants | Equivalent | Live | Row 1 | Row 3 |
+|---|---:|---:|---:|---:|---:|
+| first order | 446 | 54 | 392 | 380 | 392 |
+| second order | 300 | 2 | 298 | 298 | 298 |
+
+The twelve row-1 survivors are named in `docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt`.
+They are open gaps, not equivalence labels (NEGATIVE_RESULTS.md §68). The gate fails on a new survivor on either row, and on a catalogue whose digest differs from the baseline header.
+
+Evidence-sufficiency v1.4 adds the cases a rule-coverage criterion derives from `model.json` (v1.3 spec, section 14).
+On v1.4 the same catalogue leaves no survivor on either row, and the gate now scores v1.4 against an empty baseline.
+A held-out catalogue, pushed before v1.4 existed, adds two guard-placement operators and 300 third-order mutants.
+
+| Catalogue | Corpus | Live | Row 1 | Row 3 |
+|---|---|---:|---:|---:|
+| first, first order | v1.3 | 392 | 380 | 392 |
+| first, first order | v1.4 | 392 | 392 | 392 |
+| held-out, first order | v1.3 | 19 | 18 | 19 |
+| held-out, first order | v1.4 | 19 | 19 | 19 |
+| held-out, third order | v1.3 | 300 | 300 | 300 |
+| held-out, third order | v1.4 | 300 | 300 | 300 |
+
+The held-out rows show how little that catalogue could tell the two corpora apart (NEGATIVE_RESULTS.md §69).
+The two code-level gates above still score v1.3; v1.4 runs every v1.3 check on a superset of its cases.
+
 ## CI integration (wired)
 
 The scheduled job `.github/workflows/mutation.yml` (Mondays 05:00 UTC +

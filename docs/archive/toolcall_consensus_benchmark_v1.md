@@ -6,7 +6,7 @@
 > (Flagged by `docs/DOCS_CONSOLIDATION_AUDIT.md`, C-3.)
 
 **Tasks:** 252  
-**Artifact:** `artifacts/toolcall_benchmark_v1.json`
+**Artifact:** `artifacts/benchmarks/toolcall_benchmark_v1.json`
 
 This document records the benchmark-v1 metrics for the REMORA tool-call gating
 evaluation. All evaluation is simulator-only — no real shell, network, database,

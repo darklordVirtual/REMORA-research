@@ -4480,7 +4480,7 @@
           },
           "correct_abstention_rate": 0.0,
           "critical_error_intercept_rate": 1.0,
-          "effective_n": 7,
+          "effective_n": 56,
           "escalate_rate": 0.0,
           "execute_precision": 0.875,
           "execute_recall": 1.0,
@@ -4587,7 +4587,7 @@
           },
           "correct_abstention_rate": 0.0,
           "critical_error_intercept_rate": 1.0,
-          "effective_n": 7,
+          "effective_n": 56,
           "escalate_rate": 0.6,
           "execute_precision": 1.0,
           "execute_recall": 1.0,
@@ -4702,7 +4702,7 @@
           },
           "correct_abstention_rate": 1.0,
           "critical_error_intercept_rate": 1.0,
-          "effective_n": 7,
+          "effective_n": 56,
           "escalate_rate": 0.4,
           "execute_precision": 0.875,
           "execute_recall": 1.0,
@@ -4819,7 +4819,7 @@
           },
           "correct_abstention_rate": 0.0,
           "critical_error_intercept_rate": 1.0,
-          "effective_n": 7,
+          "effective_n": 56,
           "escalate_rate": 0.0,
           "execute_precision": 0.875,
           "execute_recall": 1.0,
@@ -4926,7 +4926,7 @@
           },
           "correct_abstention_rate": 0.0,
           "critical_error_intercept_rate": 1.0,
-          "effective_n": 7,
+          "effective_n": 56,
           "escalate_rate": 0.0,
           "execute_precision": 0.875,
           "execute_recall": 1.0,
@@ -5033,7 +5033,7 @@
           },
           "correct_abstention_rate": 0.0,
           "critical_error_intercept_rate": 1.0,
-          "effective_n": 7,
+          "effective_n": 56,
           "escalate_rate": 0.0,
           "execute_precision": 0.875,
           "execute_recall": 1.0,
@@ -5124,11 +5124,11 @@
     }
   },
   "generated_by": "scripts/build_frontend_benchmark_snapshot.py",
-  "snapshot_hash": "7064423b6eb908f93503eb213e0b7716b53ec62aa2150559b607626c533d1e83",
+  "snapshot_hash": "f5f8a493c26547a19809b08404c9e255c21863816ba3362385ac51cb720f1e57",
   "source_hashes": {
     "results/conformal_guardrail_holdout.json": "04a6c3f7b0bb86c95473e4394a5914cdf07527c765837b4350d710d008d42746",
     "results/end_to_end_n500_v3.json": "91eae8ff1c3baa4950ff09c758aa0b81b1ae2e39d4e664288276d7189dde9f5e",
     "results/selective_n500_holdout_results.json": "bfedbcd6a1ae394e6f780827d13175327a7e8ca8f1a8dd0328bc6c279f2f3c66",
-    "results/toolcall_benchmark_v2_results.json": "dcb8576cbdef0e5041cd78e957b511cd22587f904158faf26cbe716c6aef2ad3"
+    "results/toolcall_benchmark_v2_results.json": "5d27484e0ecfd40b7a872c224d2d72675082ed35a64e42e33f685df00576b67b"
   }
 }

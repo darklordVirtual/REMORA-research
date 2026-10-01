@@ -427,6 +427,94 @@ chain and reports `records_checked`; an `empty` chain is flagged because it is
 trivially valid). RBAC: `assess`/`execute` capabilities gate assess/execute;
 `review` gates approve; `read` gates audit. `review` also gates `POST /revoke-principal`, which withdraws a principal's authority after the fact. An approval that principal granted is invalidated at the execution re-gate, not rewritten. The chain therefore shows both the approval and the revocation.
 
+**Task identity and loop safety (Q7.2):** a tool call may carry `context_id`
+and `task_id`, in A2A's vocabulary, both or neither (one alone is a 422).
+When present, the task is bound into the ACCEPT token's authorization
+context and into the execution lease. Redeeming the token under another
+task, or with the task stripped, is refused as `context_mismatch` before the
+grant is spent. `POST /dispatch-leased` refuses a lease from another task as
+`task_mismatch`. Every assessment that names a task is recorded in the
+context's loop safety state (`remora/governance/loop_safety.py`). A context
+that has reached a limit (by default 3 denials, 1 authority probe, or 2 tool
+switches straight after a denial) cannot ACCEPT: the decision becomes
+ESCALATE with reason `loop_safety_escalate`. An unreadable loop store is a
+503 and nothing is assessed. `GET /loop-safety/{context_id}` reads a
+context's state, and `POST /loop-safety/reset` starts it again. The reset
+takes a `policy_ref` and a `reason`, both mandatory, is recorded on the
+tenant chain, and keeps the earlier events. Both routes need `review`.
+`REMORA_REQUIRE_TASK_IDENTITY=1` refuses every call that names no task with
+409 `task_identity_required` before anything is decided or consumed. It is
+off by default because callers must first send the fields. The loop limits
+are defaults that no study has calibrated.
+
+**Capability sets (WS8 Q8.2, opt-in):** with
+`REMORA_CAPABILITY_POLICY_FILE` naming a YAML or JSON capability policy,
+the API resolves an `EffectiveCapabilitySet` for every call. It uses the
+authenticated principal, the tenant, the call's `target_environment` and its
+optional `task_type`, and takes nothing else from the request. A call with no
+task type resolves to no tools. `/assess` records the capability block on the
+chain and in the response. A tool outside the set is ABSTAIN with reason
+`capability_not_allowed`. `/execute` and `/execute-accepted` refuse such a
+tool with 409 before anything is consumed. They resolve the set again at
+dispatch and sign its digest into the lease. `/dispatch-leased` takes the set
+as `capability_set`, and refuses one whose content no longer matches its
+digest. The dispatcher refuses a lease whose set is missing, mismatched,
+expired, or bound to another principal, tenant or environment.
+`REMORA_REQUIRE_CAPABILITY_SET=1` refuses any lease without a capability
+digest. The task type is declared by the caller. It is intersected with the
+principal's own tools, so it can never widen them.
+`GET /capabilities?task_type=...&target_environment=...` (Q8.3) returns the
+same set projected for an agent. It returns the set, an OpenAI tool list
+holding only the tools in the set, and the capability exposure ratio
+(exposed over registered tools). A tool outside the set is absent from the
+list, and it is still refused if a client calls it anyway. Without a
+capability policy the route answers 404.
+A capability policy may carry `constraints` per tool (Q8.4). The
+`allowed_fields` key limits which argument keys a call may use. `conditions`
+compare an argument or a trusted-state fact with a literal (`eq`, `ne`, `in`,
+`not_in`, `lt`, `lte`, `gt`, `gte`), or require an argument to equal a state
+fact (`equals_state`). State is read only through the `read(source,
+arguments)` function of the module named by
+`REMORA_CAPABILITY_STATE_MODULE`. An out-of-scope argument is
+`capability_argument_mismatch`, and a violated state condition is
+`capability_scope_violation`. A condition that needs state no reader can
+supply is `capability_state_unverifiable`. The same checks run at `/assess`,
+at the execution pre-check and in the dispatcher.
+With `REMORA_CAPABILITY_EPOCH_MODULE` naming a module with
+`current(tenant_id, principal_id)` and `revoked(capability_set_id)` (Q8.6),
+each set is issued under the current principal, tenant, policy and ToolSpec
+epochs, and the dispatcher reads them again. A set issued under an older
+epoch refuses as `capability_stale`, and a revoked one as
+`capability_revoked`. A source that cannot answer refuses as
+`capability_epoch_unverifiable`.
+The evidence export carries a `capability_decision` section with every
+capability check recorded for the proposal (Q8.7). Its `evidence_coverage`
+section adds the contract `success_established_v1`. That contract is complete
+only when the chain holds an assessment the capability check allowed, the
+authorization, an execution that ran and a verified effect. Executor success
+alone never completes it. A proposal assessed without a capability policy
+reports the missing capability decision.
+
+**Checks between authority and effect (WS7, all opt-in):** each setting
+below binds one check into the governed dispatcher. Every check runs after
+the lease verifies and before the nonce is consumed, so a refusal leaves the
+lease unspent. An unset setting leaves dispatch as it was.
+
+| Setting | Check | Refusals |
+|---|---|---|
+| `REMORA_EFFECT_REGISTRY_MODULE` (`build_resolver()`) | The implementation, resource and effect kind a call resolves to are signed into the lease and resolved again at dispatch | `resolved_effect_mismatch`, `unresolved_reference` |
+| `REMORA_STATE_REVISION_MODULE` (`read_revision(resource)`) | A call may carry `plan` (`plan_id`, `reads`, `depends_on`); its dependencies are re-read before the write | `stale_plan`, `plan_state_unverifiable` |
+| `REMORA_RECORDER_ADDRESS` with `REMORA_RECORDER_MANDATORY_TOOLS` | The intent is appended to the independent recorder (`python -m remora.audit.recorder`) before the named tools run | `recorder_unavailable` |
+| `REMORA_PROCEDURE_MODULE` (`contract()`, `trace_for(lease)`) | A step that would violate the procedure's safety obligations is refused before it runs | `procedure_violation`, `procedure_trace_unavailable` |
+
+The evidence export (`GET /proposals/{proposal_id}/evidence`) carries an
+`evidence_coverage` section in its hashed manifest. It says, for the claims
+`authorized_execution_v1` and `executed_effect_v1`, whether the evidence is
+`COMPLETE`, `AUTHENTIC_BUT_INCOMPLETE`, `INCONCLUSIVE` or `TAMPERED`, and
+what is missing. A plan is signed into the lease when the call is executed,
+not into the ACCEPT token at assessment. It guards against premises that
+moved, not against a different plan presented later.
+
 **Authentication modes:** token-table mode (`REMORA_API_TOKENS`) maps each
 bearer token to a fixed tenant and role; callers cannot forge either.
 Single-token mode (`REMORA_API_BEARER_TOKEN`) reads tenant/role from

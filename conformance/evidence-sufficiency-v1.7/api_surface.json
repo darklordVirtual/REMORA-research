@@ -1,0 +1,114 @@
+{
+  "ASSESSORS": {
+    "entries": {
+      "admission_accounting": "admission_accounting",
+      "postcondition_observed": "postcondition_observed",
+      "tested_route_enforcement": "tested_route_enforcement"
+    },
+    "kind": "table"
+  },
+  "EvidenceStatus": {
+    "bases": [
+      "StrEnum",
+      "str",
+      "ReprEnum",
+      "Enum",
+      "object"
+    ],
+    "kind": "class",
+    "members": [
+      [
+        "ESTABLISHED",
+        "established"
+      ],
+      [
+        "VIOLATED",
+        "violated"
+      ],
+      [
+        "NOT_ESTABLISHED",
+        "not_established"
+      ]
+    ]
+  },
+  "EvidenceVerdict": {
+    "bases": [
+      "object"
+    ],
+    "fields": [
+      [
+        "claim",
+        "str",
+        "MISSING",
+        false
+      ],
+      [
+        "status",
+        "EvidenceStatus",
+        "MISSING",
+        false
+      ],
+      [
+        "reason",
+        "str",
+        "MISSING",
+        false
+      ],
+      [
+        "scope",
+        "Mapping[str, Any]",
+        "MISSING",
+        false
+      ],
+      [
+        "missing_evidence",
+        "tuple[str, ...]",
+        "()",
+        false
+      ],
+      [
+        "decisive_if",
+        "str | None",
+        "None",
+        false
+      ]
+    ],
+    "kind": "class",
+    "methods": [
+      "as_dict"
+    ],
+    "options": {
+      "eq": true,
+      "frozen": true,
+      "init": true,
+      "order": false,
+      "repr": true,
+      "unsafe_hash": false
+    },
+    "signature": "(claim: 'str', status: 'EvidenceStatus', reason: 'str', scope: 'Mapping[str, Any]', missing_evidence: 'tuple[str, ...]' = (), decisive_if: 'str | None' = None) -> None"
+  },
+  "admission_accounting": {
+    "kind": "function",
+    "signature": "(o: 'Mapping[str, Any]', scope: 'Mapping[str, Any] | None') -> 'EvidenceVerdict'"
+  },
+  "assess": {
+    "kind": "function",
+    "signature": "(claim: 'str', observations: 'Mapping[str, Any]', *, scope: 'Mapping[str, Any] | None' = None, premise_source: 'str' = 'synthetic_fixture') -> 'EvidenceVerdict'"
+  },
+  "canonical": {
+    "kind": "function",
+    "signature": "(value: 'Any') -> 'str'"
+  },
+  "postcondition_observed": {
+    "kind": "function",
+    "signature": "(o: 'Mapping[str, Any]', scope: 'Mapping[str, Any] | None') -> 'EvidenceVerdict'"
+  },
+  "tested_route_enforcement": {
+    "kind": "function",
+    "signature": "(o: 'Mapping[str, Any]', scope: 'Mapping[str, Any] | None') -> 'EvidenceVerdict'"
+  },
+  "validate_json": {
+    "kind": "function",
+    "signature": "(value: 'Any') -> 'None'"
+  }
+}

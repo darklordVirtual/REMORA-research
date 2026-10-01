@@ -1,0 +1,2540 @@
+{
+  "artifact": "evidence-sufficiency-v1.4",
+  "base_corpus": {
+    "cases_carried_verbatim": 79,
+    "path": "conformance/evidence-sufficiency-v1.3/cases.json",
+    "sha256": "7fc6d42459fc019d84f9b9b723b7f312f1db9a9c2edebf3ad1f9e4a38da1fb81"
+  },
+  "cases": [
+    {
+      "claim": "admission_accounting",
+      "expected": {
+        "reason": "covering_admission_observed_for_this_execution",
+        "status": "established"
+      },
+      "id": "A01",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": true,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      }
+    },
+    {
+      "claim": "admission_accounting",
+      "expected": {
+        "reason": "admission_coverage_incomplete",
+        "status": "not_established"
+      },
+      "id": "A02",
+      "observations": {
+        "admission_coverage_complete": false,
+        "admission_matches": true,
+        "admission_present": false,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      }
+    },
+    {
+      "claim": "admission_accounting",
+      "expected": {
+        "reason": "mandatory_admission_absent_in_complete_bounded_history",
+        "status": "violated"
+      },
+      "id": "A03",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": false,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      }
+    },
+    {
+      "claim": "admission_accounting",
+      "expected": {
+        "reason": "observation_window_open",
+        "status": "not_established"
+      },
+      "id": "A04",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": false,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": false
+      }
+    },
+    {
+      "claim": "admission_accounting",
+      "expected": {
+        "reason": "execution_observation_unaccepted_or_missing",
+        "status": "not_established"
+      },
+      "id": "A05",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": true,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": false,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      }
+    },
+    {
+      "claim": "admission_accounting",
+      "expected": {
+        "reason": "candidate_admission_does_not_establish_a_covering_admission",
+        "status": "not_established"
+      },
+      "id": "A06",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": false,
+        "admission_present": true,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      }
+    },
+    {
+      "claim": "admission_accounting",
+      "expected": {
+        "reason": "admission_requirement_not_defined",
+        "status": "not_established"
+      },
+      "id": "A07",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": false,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": false,
+        "scope_accepted": true,
+        "window_finalized": true
+      }
+    },
+    {
+      "claim": "admission_accounting",
+      "expected": {
+        "reason": "admission_observation_unaccepted",
+        "status": "not_established"
+      },
+      "id": "A08",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": true,
+        "admission_source_accepted": false,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      }
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "expected": {
+        "reason": "accepted_effect_observed_outside_required_pep",
+        "status": "violated"
+      },
+      "id": "B01",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": true,
+        "required_boundary_refusal_accepted": false,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      }
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "expected": {
+        "reason": "named_route_refused_at_required_boundary_in_test_scope",
+        "status": "established"
+      },
+      "id": "B02",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      }
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "expected": {
+        "reason": "valid_control_missing_or_incomparable",
+        "status": "not_established"
+      },
+      "id": "B03",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": false,
+        "response_status": 403,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": false
+      }
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "expected": {
+        "reason": "refusal_not_attributed_to_required_boundary",
+        "status": "not_established"
+      },
+      "id": "B04",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": false,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      }
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "expected": {
+        "reason": "no_effect_observation_not_complete",
+        "status": "not_established"
+      },
+      "id": "B05",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": false,
+        "outside_required_pep": true,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      }
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "expected": {
+        "reason": "target_or_operation_not_bound",
+        "status": "not_established"
+      },
+      "id": "B06",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": false,
+        "valid_control_same_context": true
+      }
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "expected": {
+        "reason": "protected_effect_unknown",
+        "status": "not_established"
+      },
+      "id": "B07",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": null,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      }
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "expected": {
+        "reason": "alternative_route_not_established",
+        "status": "not_established"
+      },
+      "id": "B08",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": false,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      }
+    },
+    {
+      "claim": "postcondition_observed",
+      "expected": {
+        "reason": "declared_postcondition_observed_at_named_point",
+        "status": "established"
+      },
+      "id": "E01",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      }
+    },
+    {
+      "claim": "postcondition_observed",
+      "expected": {
+        "reason": "declared_postcondition_disagreed_at_named_point",
+        "status": "violated"
+      },
+      "id": "E02",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "observed_state": "open",
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      }
+    },
+    {
+      "claim": "postcondition_observed",
+      "expected": {
+        "reason": "readback_unavailable",
+        "status": "not_established"
+      },
+      "id": "E03",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": false,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      }
+    },
+    {
+      "claim": "postcondition_observed",
+      "expected": {
+        "reason": "readback_stale_or_time_unbound",
+        "status": "not_established"
+      },
+      "id": "E04",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": false,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      }
+    },
+    {
+      "claim": "postcondition_observed",
+      "expected": {
+        "reason": "readback_source_not_accepted",
+        "status": "not_established"
+      },
+      "id": "E05",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": false,
+        "tool_reports_success": true
+      }
+    },
+    {
+      "claim": "postcondition_observed",
+      "expected": {
+        "reason": "target_or_predicate_not_bound",
+        "status": "not_established"
+      },
+      "id": "E06",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": false,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      }
+    },
+    {
+      "claim": "postcondition_observed",
+      "expected": {
+        "reason": "declared_settlement_point_not_reached",
+        "status": "not_established"
+      },
+      "id": "E07",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "observed_state": "open",
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": false,
+        "source_accepted": true,
+        "tool_reports_success": true
+      }
+    },
+    {
+      "claim": "postcondition_observed",
+      "expected": {
+        "reason": "declared_postcondition_disagreed_at_named_point",
+        "status": "violated"
+      },
+      "id": "E08",
+      "observations": {
+        "expected_state": 1,
+        "fresh_in_declared_window": true,
+        "observed_state": true,
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      }
+    },
+    {
+      "claim": "postcondition_observed",
+      "expected": {
+        "reason": "state_value_missing",
+        "status": "not_established"
+      },
+      "id": "E09",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      }
+    },
+    {
+      "claim": "postcondition_observed",
+      "expected": {
+        "reason": "declared_postcondition_observed_at_named_point",
+        "status": "established"
+      },
+      "id": "E10",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": false
+      }
+    },
+    {
+      "claim": "admission_accounting",
+      "derived_from": "A01",
+      "expected": {
+        "reason": "scope_unaccepted_or_missing",
+        "status": "not_established"
+      },
+      "gap": "G1",
+      "id": "A09",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": true,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": false,
+        "window_finalized": true
+      },
+      "rationale": "scope not accepted while everything else would establish"
+    },
+    {
+      "claim": "admission_accounting",
+      "derived_from": "A03",
+      "expected": {
+        "reason": "admission_presence_unknown",
+        "status": "not_established"
+      },
+      "gap": "G1",
+      "id": "A10",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": null,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      },
+      "rationale": "presence neither true nor false; closed-world premises otherwise hold (would be VIOLATED if presence were read as absent)"
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "derived_from": "B02",
+      "expected": {
+        "reason": "route_observation_unaccepted_or_missing",
+        "status": "not_established"
+      },
+      "gap": "G1",
+      "id": "B09",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": false,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      },
+      "rationale": "route observation not accepted while everything else would establish"
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "derived_from": "B01",
+      "expected": {
+        "reason": "protected_effect_observation_unaccepted",
+        "status": "not_established"
+      },
+      "gap": "G1",
+      "id": "B10",
+      "observations": {
+        "effect_observation_accepted": false,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": true,
+        "required_boundary_refusal_accepted": false,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      },
+      "rationale": "an effect is reported but its observation is not accepted; must not become VIOLATED"
+    },
+    {
+      "claim": "admission_accounting",
+      "derived_from": "A01",
+      "expected": {
+        "reason": "execution_observation_unaccepted_or_missing",
+        "status": "not_established"
+      },
+      "gap": "G2",
+      "id": "A11",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": true,
+        "admission_source_accepted": true,
+        "effect_seen": false,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      },
+      "rationale": "accepted effect source but effect_seen false (second half of the compound guard)"
+    },
+    {
+      "claim": "postcondition_observed",
+      "derived_from": "E01",
+      "expected": {
+        "reason": "state_value_missing",
+        "status": "not_established"
+      },
+      "gap": "G2",
+      "id": "E11",
+      "observations": {
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      },
+      "rationale": "observed_state present, expected_state absent (first half of the compound guard)"
+    },
+    {
+      "claim": "admission_accounting",
+      "derived_from": "A01",
+      "expected": {
+        "reason": "execution_observation_unaccepted_or_missing",
+        "status": "not_established"
+      },
+      "gap": "G3",
+      "id": "A12",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": true,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": false,
+        "mandatory_admission": true,
+        "scope_accepted": false,
+        "window_finalized": true
+      },
+      "rationale": "effect-observation guard precedes scope guard"
+    },
+    {
+      "claim": "admission_accounting",
+      "derived_from": "A03",
+      "expected": {
+        "reason": "admission_presence_unknown",
+        "status": "not_established"
+      },
+      "gap": "G3",
+      "id": "A13",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": null,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": false,
+        "scope_accepted": true,
+        "window_finalized": true
+      },
+      "rationale": "presence guard precedes mandatory-admission guard"
+    },
+    {
+      "claim": "admission_accounting",
+      "derived_from": "A03",
+      "expected": {
+        "reason": "admission_requirement_not_defined",
+        "status": "not_established"
+      },
+      "gap": "G3",
+      "id": "A14",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": false,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": false,
+        "scope_accepted": true,
+        "window_finalized": false
+      },
+      "rationale": "mandatory-admission guard precedes window guard"
+    },
+    {
+      "claim": "admission_accounting",
+      "derived_from": "A03",
+      "expected": {
+        "reason": "observation_window_open",
+        "status": "not_established"
+      },
+      "gap": "G3",
+      "id": "A15",
+      "observations": {
+        "admission_coverage_complete": false,
+        "admission_matches": true,
+        "admission_present": false,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": false
+      },
+      "rationale": "window guard precedes coverage guard"
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "derived_from": "B02",
+      "expected": {
+        "reason": "route_observation_unaccepted_or_missing",
+        "status": "not_established"
+      },
+      "gap": "G3",
+      "id": "B11",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": false,
+        "same_protected_operation": false,
+        "valid_control_same_context": true
+      },
+      "rationale": "route guard precedes operation-binding guard"
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "derived_from": "B02",
+      "expected": {
+        "reason": "target_or_operation_not_bound",
+        "status": "not_established"
+      },
+      "gap": "G3",
+      "id": "B12",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": false,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": false,
+        "valid_control_same_context": true
+      },
+      "rationale": "operation-binding guard precedes outside-PEP guard"
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "derived_from": "B02",
+      "expected": {
+        "reason": "alternative_route_not_established",
+        "status": "not_established"
+      },
+      "gap": "G3",
+      "id": "B13",
+      "observations": {
+        "effect_observation_accepted": false,
+        "effect_window_complete": true,
+        "outside_required_pep": false,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      },
+      "rationale": "outside-PEP guard precedes effect-observation guard"
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "derived_from": "B02",
+      "expected": {
+        "reason": "protected_effect_unknown",
+        "status": "not_established"
+      },
+      "gap": "G3",
+      "id": "B14",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": false,
+        "outside_required_pep": true,
+        "protected_effect_observed": null,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      },
+      "rationale": "effect-unknown guard precedes effect-window guard"
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "derived_from": "B02",
+      "expected": {
+        "reason": "no_effect_observation_not_complete",
+        "status": "not_established"
+      },
+      "gap": "G3",
+      "id": "B15",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": false,
+        "outside_required_pep": true,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": false
+      },
+      "rationale": "effect-window guard precedes control guard"
+    },
+    {
+      "claim": "postcondition_observed",
+      "derived_from": "E01",
+      "expected": {
+        "reason": "readback_unavailable",
+        "status": "not_established"
+      },
+      "gap": "G3",
+      "id": "E12",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": false,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": false,
+        "tool_reports_success": true
+      },
+      "rationale": "read-back availability precedes source acceptance"
+    },
+    {
+      "claim": "postcondition_observed",
+      "derived_from": "E01",
+      "expected": {
+        "reason": "readback_source_not_accepted",
+        "status": "not_established"
+      },
+      "gap": "G3",
+      "id": "E13",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": false,
+        "settlement_reached": true,
+        "source_accepted": false,
+        "tool_reports_success": true
+      },
+      "rationale": "source acceptance precedes target/predicate binding"
+    },
+    {
+      "claim": "postcondition_observed",
+      "derived_from": "E01",
+      "expected": {
+        "reason": "target_or_predicate_not_bound",
+        "status": "not_established"
+      },
+      "gap": "G3",
+      "id": "E14",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": false,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": false,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      },
+      "rationale": "target/predicate binding precedes freshness"
+    },
+    {
+      "claim": "postcondition_observed",
+      "derived_from": "E01",
+      "expected": {
+        "reason": "readback_stale_or_time_unbound",
+        "status": "not_established"
+      },
+      "gap": "G3",
+      "id": "E15",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": false,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": false,
+        "source_accepted": true,
+        "tool_reports_success": true
+      },
+      "rationale": "freshness precedes settlement"
+    },
+    {
+      "claim": "postcondition_observed",
+      "derived_from": "E01",
+      "expected": {
+        "reason": "declared_settlement_point_not_reached",
+        "status": "not_established"
+      },
+      "gap": "G3",
+      "id": "E16",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": false,
+        "source_accepted": true,
+        "tool_reports_success": true
+      },
+      "rationale": "settlement precedes state-value presence"
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "derived_from": "B02",
+      "expected": {
+        "reason": "valid_control_missing_or_incomparable",
+        "status": "not_established"
+      },
+      "gap": "G5",
+      "id": "B17",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": false
+      },
+      "rationale": "valid control missing is the only failing premise, so erasing it must not make the claim decisive"
+    },
+    {
+      "claim": "admission_accounting",
+      "derived_from": "A03",
+      "expected": {
+        "reason": "admission_coverage_incomplete",
+        "status": "not_established"
+      },
+      "gap": "G4",
+      "id": "A16",
+      "observations": {
+        "admission_coverage_complete": 1,
+        "admission_matches": true,
+        "admission_present": false,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      },
+      "rationale": "integer 1 is not the boolean true; strict checker stays inconclusive (truthiness would give VIOLATED)"
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "derived_from": "B02",
+      "expected": {
+        "reason": "refusal_not_attributed_to_required_boundary",
+        "status": "not_established"
+      },
+      "gap": "G4",
+      "id": "B16",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": "true",
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      },
+      "rationale": "string \"true\" is not the boolean true (truthiness would give ESTABLISHED)"
+    },
+    {
+      "claim": "postcondition_observed",
+      "derived_from": "E01",
+      "expected": {
+        "reason": "declared_settlement_point_not_reached",
+        "status": "not_established"
+      },
+      "gap": "G4",
+      "id": "E17",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": {
+          "at": "declared"
+        },
+        "source_accepted": true,
+        "tool_reports_success": true
+      },
+      "rationale": "non-empty object is not the boolean true (truthiness would give ESTABLISHED)"
+    },
+    {
+      "claim": "postcondition_observed",
+      "derived_from": "E02",
+      "expected": {
+        "reason": "declared_postcondition_disagreed_at_named_point",
+        "status": "violated"
+      },
+      "gap": "H1",
+      "id": "E18",
+      "observations": {
+        "expected_state": "Closed",
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      },
+      "rationale": "strings that differ only in case are different states (case folding would give ESTABLISHED)"
+    },
+    {
+      "claim": "postcondition_observed",
+      "derived_from": "E02",
+      "expected": {
+        "reason": "declared_postcondition_disagreed_at_named_point",
+        "status": "violated"
+      },
+      "gap": "H1",
+      "id": "E19",
+      "observations": {
+        "expected_state": [
+          "closed",
+          "locked"
+        ],
+        "fresh_in_declared_window": true,
+        "observed_state": [
+          "locked",
+          "closed"
+        ],
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      },
+      "rationale": "the same members in another order are a different list (sorting lists would give ESTABLISHED)"
+    },
+    {
+      "claim": "postcondition_observed",
+      "derived_from": "E02",
+      "expected": {
+        "reason": "declared_postcondition_disagreed_at_named_point",
+        "status": "violated"
+      },
+      "gap": "H1",
+      "id": "E20",
+      "observations": {
+        "expected_state": {
+          "state": "closed"
+        },
+        "fresh_in_declared_window": true,
+        "observed_state": {
+          "state": "open"
+        },
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      },
+      "rationale": "equal keys with different values are different mappings (comparing keys only would give ESTABLISHED)"
+    },
+    {
+      "claim": "postcondition_observed",
+      "derived_from": "E01",
+      "expected": {
+        "reason": "declared_postcondition_observed_at_named_point",
+        "status": "established"
+      },
+      "gap": "I1",
+      "id": "E21",
+      "observations": {
+        "expected_state": {
+          "state": "closed",
+          "lock": "held"
+        },
+        "fresh_in_declared_window": true,
+        "observed_state": {
+          "lock": "held",
+          "state": "closed"
+        },
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      },
+      "rationale": "a JSON object is an unordered set of members (RFC 8259 section 4): the same members in another key order are the same state (comparing insertion order would give VIOLATED)"
+    },
+    {
+      "claim": "postcondition_observed",
+      "derived_from": "E19",
+      "expected": {
+        "reason": "declared_postcondition_disagreed_at_named_point",
+        "status": "violated"
+      },
+      "gap": "I1",
+      "id": "E22",
+      "observations": {
+        "expected_state": {
+          "members": [
+            "closed",
+            "locked"
+          ]
+        },
+        "fresh_in_declared_window": true,
+        "observed_state": {
+          "members": [
+            "locked",
+            "closed"
+          ]
+        },
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      },
+      "rationale": "key order is not member order: a list inside a mapping keeps its order, so E19 lifted one level is still a different state (sorting nested lists would give ESTABLISHED)"
+    },
+    {
+      "claim": "postcondition_observed",
+      "derived_from": "E21",
+      "expected": {
+        "reason": "declared_postcondition_observed_at_named_point",
+        "status": "established"
+      },
+      "gap": "I1",
+      "id": "E23",
+      "observations": {
+        "expected_state": {
+          "outer": {
+            "x": 1,
+            "y": 2
+          }
+        },
+        "fresh_in_declared_window": true,
+        "observed_state": {
+          "outer": {
+            "y": 2,
+            "x": 1
+          }
+        },
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      },
+      "rationale": "key-order independence holds at every depth, not only at the top level (sorting only top-level keys would give VIOLATED)"
+    },
+    {
+      "claim": "admission_accounting",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "candidate_admission_does_not_establish_a_covering_admission",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "A17",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": 1,
+        "admission_present": true,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      },
+      "rationale": "the premise `admission_matches` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 2 mutants only the reference model caught (equality; truthiness)",
+      "separates": [
+        "comparison_variant:admission_accounting:38",
+        "comparison_variant:admission_accounting:39"
+      ]
+    },
+    {
+      "claim": "admission_accounting",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "admission_presence_unknown",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "A18",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": 1,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      },
+      "rationale": "the premise `admission_present` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 2 mutants only the reference model caught (equality; truthiness)",
+      "separates": [
+        "comparison_variant:admission_accounting:6",
+        "comparison_variant:admission_accounting:7"
+      ]
+    },
+    {
+      "claim": "admission_accounting",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "execution_observation_unaccepted_or_missing",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "A19",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": false,
+        "admission_source_accepted": true,
+        "effect_seen": 1,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      },
+      "rationale": "the premise `effect_seen` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 2 mutants only the reference model caught (equality; truthiness)",
+      "separates": [
+        "comparison_variant:admission_accounting:30",
+        "comparison_variant:admission_accounting:31"
+      ]
+    },
+    {
+      "claim": "admission_accounting",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "execution_observation_unaccepted_or_missing",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "A20",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": false,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": 1,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      },
+      "rationale": "the premise `effect_source_accepted` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 2 mutants only the reference model caught (equality; truthiness)",
+      "separates": [
+        "comparison_variant:admission_accounting:26",
+        "comparison_variant:admission_accounting:27"
+      ]
+    },
+    {
+      "claim": "admission_accounting",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "admission_requirement_not_defined",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "A21",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": false,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": 1,
+        "scope_accepted": true,
+        "window_finalized": true
+      },
+      "rationale": "the premise `mandatory_admission` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 2 mutants only the reference model caught (equality; truthiness)",
+      "separates": [
+        "comparison_variant:admission_accounting:14",
+        "comparison_variant:admission_accounting:15"
+      ]
+    },
+    {
+      "claim": "admission_accounting",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "scope_unaccepted_or_missing",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "A22",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": false,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": 1,
+        "window_finalized": true
+      },
+      "rationale": "the premise `scope_accepted` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 2 mutants only the reference model caught (equality; truthiness)",
+      "separates": [
+        "comparison_variant:admission_accounting:2",
+        "comparison_variant:admission_accounting:3"
+      ]
+    },
+    {
+      "claim": "admission_accounting",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "observation_window_open",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "A23",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": false,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": 1
+      },
+      "rationale": "the premise `window_finalized` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 2 mutants only the reference model caught (equality; truthiness)",
+      "separates": [
+        "comparison_variant:admission_accounting:18",
+        "comparison_variant:admission_accounting:19"
+      ]
+    },
+    {
+      "claim": "admission_accounting",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "admission_observation_unaccepted",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "A24",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": true,
+        "admission_source_accepted": 1,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      },
+      "rationale": "the premise `admission_source_accepted` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 2 mutants only the reference model caught (equality; truthiness)",
+      "separates": [
+        "comparison_variant:admission_accounting:34",
+        "comparison_variant:admission_accounting:35"
+      ]
+    },
+    {
+      "claim": "admission_accounting",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "admission_presence_unknown",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "A25",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": 0,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      },
+      "rationale": "the premise `admission_present` is `0`, a falsy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== False` would give another verdict); derived from the model.json lattice as the point that separates the 1 mutants only the reference model caught (equality)",
+      "separates": [
+        "comparison_variant:admission_accounting:11"
+      ]
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "protected_effect_observation_unaccepted",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "B18",
+      "observations": {
+        "effect_observation_accepted": 1,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      },
+      "rationale": "the premise `effect_observation_accepted` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 2 mutants only the reference model caught (equality; truthiness)",
+      "separates": [
+        "comparison_variant:tested_route_enforcement:14",
+        "comparison_variant:tested_route_enforcement:15"
+      ]
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "no_effect_observation_not_complete",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "B19",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": 1,
+        "outside_required_pep": true,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      },
+      "rationale": "the premise `effect_window_complete` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 2 mutants only the reference model caught (equality; truthiness)",
+      "separates": [
+        "comparison_variant:tested_route_enforcement:26",
+        "comparison_variant:tested_route_enforcement:27"
+      ]
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "alternative_route_not_established",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "B20",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": 1,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      },
+      "rationale": "the premise `outside_required_pep` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 2 mutants only the reference model caught (equality; truthiness)",
+      "separates": [
+        "comparison_variant:tested_route_enforcement:10",
+        "comparison_variant:tested_route_enforcement:11"
+      ]
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "protected_effect_unknown",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "B21",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": 1,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      },
+      "rationale": "the premise `protected_effect_observed` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 2 mutants only the reference model caught (equality; truthiness)",
+      "separates": [
+        "comparison_variant:tested_route_enforcement:18",
+        "comparison_variant:tested_route_enforcement:19"
+      ]
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "route_observation_unaccepted_or_missing",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "B22",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": 1,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      },
+      "rationale": "the premise `route_observation_accepted` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 2 mutants only the reference model caught (equality; truthiness)",
+      "separates": [
+        "comparison_variant:tested_route_enforcement:2",
+        "comparison_variant:tested_route_enforcement:3"
+      ]
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "target_or_operation_not_bound",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "B23",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": 1,
+        "valid_control_same_context": true
+      },
+      "rationale": "the premise `same_protected_operation` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 2 mutants only the reference model caught (equality; truthiness)",
+      "separates": [
+        "comparison_variant:tested_route_enforcement:6",
+        "comparison_variant:tested_route_enforcement:7"
+      ]
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "valid_control_missing_or_incomparable",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "B24",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": 1
+      },
+      "rationale": "the premise `valid_control_same_context` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 2 mutants only the reference model caught (equality; truthiness)",
+      "separates": [
+        "comparison_variant:tested_route_enforcement:30",
+        "comparison_variant:tested_route_enforcement:31"
+      ]
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "protected_effect_unknown",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "B25",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": 0,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      },
+      "rationale": "the premise `protected_effect_observed` is `0`, a falsy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== False` would give another verdict); derived from the model.json lattice as the point that separates the 1 mutants only the reference model caught (equality)",
+      "separates": [
+        "comparison_variant:tested_route_enforcement:23"
+      ]
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "refusal_not_attributed_to_required_boundary",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "B26",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": 1,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      },
+      "rationale": "the premise `required_boundary_refusal_accepted` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 1 mutants only the reference model caught (equality)",
+      "separates": [
+        "comparison_variant:tested_route_enforcement:35"
+      ]
+    },
+    {
+      "claim": "postcondition_observed",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "readback_stale_or_time_unbound",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "E24",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": 1,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true
+      },
+      "rationale": "the premise `fresh_in_declared_window` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 2 mutants only the reference model caught (equality; truthiness)",
+      "separates": [
+        "comparison_variant:postcondition_observed:14",
+        "comparison_variant:postcondition_observed:15"
+      ]
+    },
+    {
+      "claim": "postcondition_observed",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "readback_unavailable",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "E25",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": 1,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true
+      },
+      "rationale": "the premise `readback_available` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 2 mutants only the reference model caught (equality; truthiness)",
+      "separates": [
+        "comparison_variant:postcondition_observed:2",
+        "comparison_variant:postcondition_observed:3"
+      ]
+    },
+    {
+      "claim": "postcondition_observed",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "target_or_predicate_not_bound",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "E26",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": 1,
+        "settlement_reached": true,
+        "source_accepted": true
+      },
+      "rationale": "the premise `same_target_and_predicate` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 2 mutants only the reference model caught (equality; truthiness)",
+      "separates": [
+        "comparison_variant:postcondition_observed:10",
+        "comparison_variant:postcondition_observed:11"
+      ]
+    },
+    {
+      "claim": "postcondition_observed",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "readback_source_not_accepted",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "E27",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": 1
+      },
+      "rationale": "the premise `source_accepted` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 2 mutants only the reference model caught (equality; truthiness)",
+      "separates": [
+        "comparison_variant:postcondition_observed:6",
+        "comparison_variant:postcondition_observed:7"
+      ]
+    },
+    {
+      "claim": "postcondition_observed",
+      "derived_from": "model.json lattice (typed sweep)",
+      "expected": {
+        "reason": "declared_settlement_point_not_reached",
+        "status": "not_established"
+      },
+      "gap": "K1",
+      "id": "E28",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": 1,
+        "source_accepted": true
+      },
+      "rationale": "the premise `settlement_reached` is `1`, a truthy non-boolean: the checker must not read it as the boolean it resembles (reading it by truthiness or by `== True` would give another verdict); derived from the model.json lattice as the point that separates the 1 mutants only the reference model caught (equality)",
+      "separates": [
+        "comparison_variant:postcondition_observed:19"
+      ]
+    },
+    {
+      "id": "A26",
+      "claim": "admission_accounting",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": true,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": false,
+        "scope_accepted": true,
+        "window_finalized": true
+      },
+      "expected": {
+        "status": "established",
+        "reason": "covering_admission_observed_for_this_execution"
+      },
+      "obligations": [
+        "RC-1 covering_admission_observed_for_this_execution mandatory_admission"
+      ],
+      "rationale": "`mandatory_admission` is not read on the path to `covering_admission_observed_for_this_execution`, so setting it to false must leave that verdict; a checker that also required it would say otherwise"
+    },
+    {
+      "id": "A27",
+      "claim": "admission_accounting",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": true,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": false
+      },
+      "expected": {
+        "status": "established",
+        "reason": "covering_admission_observed_for_this_execution"
+      },
+      "obligations": [
+        "RC-1 covering_admission_observed_for_this_execution window_finalized"
+      ],
+      "rationale": "`window_finalized` is not read on the path to `covering_admission_observed_for_this_execution`, so setting it to false must leave that verdict; a checker that also required it would say otherwise"
+    },
+    {
+      "id": "A28",
+      "claim": "admission_accounting",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "admission_coverage_complete": false,
+        "admission_matches": true,
+        "admission_present": true,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      },
+      "expected": {
+        "status": "established",
+        "reason": "covering_admission_observed_for_this_execution"
+      },
+      "obligations": [
+        "RC-1 covering_admission_observed_for_this_execution admission_coverage_complete"
+      ],
+      "rationale": "`admission_coverage_complete` is not read on the path to `covering_admission_observed_for_this_execution`, so setting it to false must leave that verdict; a checker that also required it would say otherwise"
+    },
+    {
+      "id": "A29",
+      "claim": "admission_accounting",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": true,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": 1,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      },
+      "expected": {
+        "status": "not_established",
+        "reason": "execution_observation_unaccepted_or_missing"
+      },
+      "obligations": [
+        "RC-3 covering_admission_observed_for_this_execution effect_source_accepted"
+      ],
+      "rationale": "`effect_source_accepted` is on the path to `covering_admission_observed_for_this_execution` and holds a non-boolean here; the verdict is `not_established/execution_observation_unaccepted_or_missing`, so the premise must be read exactly on this path too"
+    },
+    {
+      "id": "A30",
+      "claim": "admission_accounting",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": true,
+        "admission_source_accepted": true,
+        "effect_seen": 1,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      },
+      "expected": {
+        "status": "not_established",
+        "reason": "execution_observation_unaccepted_or_missing"
+      },
+      "obligations": [
+        "RC-3 covering_admission_observed_for_this_execution effect_seen"
+      ],
+      "rationale": "`effect_seen` is on the path to `covering_admission_observed_for_this_execution` and holds a non-boolean here; the verdict is `not_established/execution_observation_unaccepted_or_missing`, so the premise must be read exactly on this path too"
+    },
+    {
+      "id": "A31",
+      "claim": "admission_accounting",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": true,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": 1,
+        "window_finalized": true
+      },
+      "expected": {
+        "status": "not_established",
+        "reason": "scope_unaccepted_or_missing"
+      },
+      "obligations": [
+        "RC-3 covering_admission_observed_for_this_execution scope_accepted"
+      ],
+      "rationale": "`scope_accepted` is on the path to `covering_admission_observed_for_this_execution` and holds a non-boolean here; the verdict is `not_established/scope_unaccepted_or_missing`, so the premise must be read exactly on this path too"
+    },
+    {
+      "id": "A32",
+      "claim": "admission_accounting",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": false,
+        "admission_source_accepted": false,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      },
+      "expected": {
+        "status": "violated",
+        "reason": "mandatory_admission_absent_in_complete_bounded_history"
+      },
+      "obligations": [
+        "RC-1 mandatory_admission_absent_in_complete_bounded_history admission_source_accepted"
+      ],
+      "rationale": "`admission_source_accepted` is not read on the path to `mandatory_admission_absent_in_complete_bounded_history`, so setting it to false must leave that verdict; a checker that also required it would say otherwise"
+    },
+    {
+      "id": "A33",
+      "claim": "admission_accounting",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": false,
+        "admission_present": false,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      },
+      "expected": {
+        "status": "violated",
+        "reason": "mandatory_admission_absent_in_complete_bounded_history"
+      },
+      "obligations": [
+        "RC-1 mandatory_admission_absent_in_complete_bounded_history admission_matches"
+      ],
+      "rationale": "`admission_matches` is not read on the path to `mandatory_admission_absent_in_complete_bounded_history`, so setting it to false must leave that verdict; a checker that also required it would say otherwise"
+    },
+    {
+      "id": "A34",
+      "claim": "admission_accounting",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": false,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": false,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      },
+      "expected": {
+        "status": "not_established",
+        "reason": "execution_observation_unaccepted_or_missing"
+      },
+      "obligations": [
+        "RC-2 mandatory_admission_absent_in_complete_bounded_history effect_source_accepted"
+      ],
+      "rationale": "`effect_source_accepted` is on the path to `mandatory_admission_absent_in_complete_bounded_history`; with every other premise of that path met and this one at the opposite boolean the verdict is `not_established/execution_observation_unaccepted_or_missing`, which shows the premise matters to this outcome itself"
+    },
+    {
+      "id": "A35",
+      "claim": "admission_accounting",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": false,
+        "admission_source_accepted": true,
+        "effect_seen": false,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": true,
+        "window_finalized": true
+      },
+      "expected": {
+        "status": "not_established",
+        "reason": "execution_observation_unaccepted_or_missing"
+      },
+      "obligations": [
+        "RC-2 mandatory_admission_absent_in_complete_bounded_history effect_seen"
+      ],
+      "rationale": "`effect_seen` is on the path to `mandatory_admission_absent_in_complete_bounded_history`; with every other premise of that path met and this one at the opposite boolean the verdict is `not_established/execution_observation_unaccepted_or_missing`, which shows the premise matters to this outcome itself"
+    },
+    {
+      "id": "A36",
+      "claim": "admission_accounting",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "admission_coverage_complete": true,
+        "admission_matches": true,
+        "admission_present": false,
+        "admission_source_accepted": true,
+        "effect_seen": true,
+        "effect_source_accepted": true,
+        "mandatory_admission": true,
+        "scope_accepted": false,
+        "window_finalized": true
+      },
+      "expected": {
+        "status": "not_established",
+        "reason": "scope_unaccepted_or_missing"
+      },
+      "obligations": [
+        "RC-2 mandatory_admission_absent_in_complete_bounded_history scope_accepted"
+      ],
+      "rationale": "`scope_accepted` is on the path to `mandatory_admission_absent_in_complete_bounded_history`; with every other premise of that path met and this one at the opposite boolean the verdict is `not_established/scope_unaccepted_or_missing`, which shows the premise matters to this outcome itself"
+    },
+    {
+      "id": "B27",
+      "claim": "tested_route_enforcement",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": false,
+        "outside_required_pep": true,
+        "protected_effect_observed": true,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      },
+      "expected": {
+        "status": "violated",
+        "reason": "accepted_effect_observed_outside_required_pep"
+      },
+      "obligations": [
+        "RC-1 accepted_effect_observed_outside_required_pep effect_window_complete"
+      ],
+      "rationale": "`effect_window_complete` is not read on the path to `accepted_effect_observed_outside_required_pep`, so setting it to false must leave that verdict; a checker that also required it would say otherwise"
+    },
+    {
+      "id": "B28",
+      "claim": "tested_route_enforcement",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": true,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": false
+      },
+      "expected": {
+        "status": "violated",
+        "reason": "accepted_effect_observed_outside_required_pep"
+      },
+      "obligations": [
+        "RC-1 accepted_effect_observed_outside_required_pep valid_control_same_context"
+      ],
+      "rationale": "`valid_control_same_context` is not read on the path to `accepted_effect_observed_outside_required_pep`, so setting it to false must leave that verdict; a checker that also required it would say otherwise"
+    },
+    {
+      "id": "B29",
+      "claim": "tested_route_enforcement",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": true,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": false,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      },
+      "expected": {
+        "status": "not_established",
+        "reason": "route_observation_unaccepted_or_missing"
+      },
+      "obligations": [
+        "RC-2 accepted_effect_observed_outside_required_pep route_observation_accepted"
+      ],
+      "rationale": "`route_observation_accepted` is on the path to `accepted_effect_observed_outside_required_pep`; with every other premise of that path met and this one at the opposite boolean the verdict is `not_established/route_observation_unaccepted_or_missing`, which shows the premise matters to this outcome itself"
+    },
+    {
+      "id": "B30",
+      "claim": "tested_route_enforcement",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": true,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": false,
+        "valid_control_same_context": true
+      },
+      "expected": {
+        "status": "not_established",
+        "reason": "target_or_operation_not_bound"
+      },
+      "obligations": [
+        "RC-2 accepted_effect_observed_outside_required_pep same_protected_operation"
+      ],
+      "rationale": "`same_protected_operation` is on the path to `accepted_effect_observed_outside_required_pep`; with every other premise of that path met and this one at the opposite boolean the verdict is `not_established/target_or_operation_not_bound`, which shows the premise matters to this outcome itself"
+    },
+    {
+      "id": "B31",
+      "claim": "tested_route_enforcement",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": false,
+        "protected_effect_observed": true,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      },
+      "expected": {
+        "status": "not_established",
+        "reason": "alternative_route_not_established"
+      },
+      "obligations": [
+        "RC-2 accepted_effect_observed_outside_required_pep outside_required_pep"
+      ],
+      "rationale": "`outside_required_pep` is on the path to `accepted_effect_observed_outside_required_pep`; with every other premise of that path met and this one at the opposite boolean the verdict is `not_established/alternative_route_not_established`, which shows the premise matters to this outcome itself"
+    },
+    {
+      "id": "B32",
+      "claim": "tested_route_enforcement",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": true,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": 1,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      },
+      "expected": {
+        "status": "not_established",
+        "reason": "route_observation_unaccepted_or_missing"
+      },
+      "obligations": [
+        "RC-3 accepted_effect_observed_outside_required_pep route_observation_accepted"
+      ],
+      "rationale": "`route_observation_accepted` is on the path to `accepted_effect_observed_outside_required_pep` and holds a non-boolean here; the verdict is `not_established/route_observation_unaccepted_or_missing`, so the premise must be read exactly on this path too"
+    },
+    {
+      "id": "B33",
+      "claim": "tested_route_enforcement",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": true,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": 1,
+        "valid_control_same_context": true
+      },
+      "expected": {
+        "status": "not_established",
+        "reason": "target_or_operation_not_bound"
+      },
+      "obligations": [
+        "RC-3 accepted_effect_observed_outside_required_pep same_protected_operation"
+      ],
+      "rationale": "`same_protected_operation` is on the path to `accepted_effect_observed_outside_required_pep` and holds a non-boolean here; the verdict is `not_established/target_or_operation_not_bound`, so the premise must be read exactly on this path too"
+    },
+    {
+      "id": "B34",
+      "claim": "tested_route_enforcement",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": 1,
+        "protected_effect_observed": true,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      },
+      "expected": {
+        "status": "not_established",
+        "reason": "alternative_route_not_established"
+      },
+      "obligations": [
+        "RC-3 accepted_effect_observed_outside_required_pep outside_required_pep"
+      ],
+      "rationale": "`outside_required_pep` is on the path to `accepted_effect_observed_outside_required_pep` and holds a non-boolean here; the verdict is `not_established/alternative_route_not_established`, so the premise must be read exactly on this path too"
+    },
+    {
+      "id": "B35",
+      "claim": "tested_route_enforcement",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "effect_observation_accepted": 1,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": true,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      },
+      "expected": {
+        "status": "not_established",
+        "reason": "protected_effect_observation_unaccepted"
+      },
+      "obligations": [
+        "RC-3 accepted_effect_observed_outside_required_pep effect_observation_accepted"
+      ],
+      "rationale": "`effect_observation_accepted` is on the path to `accepted_effect_observed_outside_required_pep` and holds a non-boolean here; the verdict is `not_established/protected_effect_observation_unaccepted`, so the premise must be read exactly on this path too"
+    },
+    {
+      "id": "B36",
+      "claim": "tested_route_enforcement",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "effect_observation_accepted": false,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": false,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      },
+      "expected": {
+        "status": "not_established",
+        "reason": "protected_effect_observation_unaccepted"
+      },
+      "obligations": [
+        "RC-2 named_route_refused_at_required_boundary_in_test_scope effect_observation_accepted"
+      ],
+      "rationale": "`effect_observation_accepted` is on the path to `named_route_refused_at_required_boundary_in_test_scope`; with every other premise of that path met and this one at the opposite boolean the verdict is `not_established/protected_effect_observation_unaccepted`, which shows the premise matters to this outcome itself"
+    },
+    {
+      "id": "B37",
+      "claim": "tested_route_enforcement",
+      "gap": "L1",
+      "derived_from": "model.json rule-coverage obligations (v1.3 spec, section 14)",
+      "observations": {
+        "effect_observation_accepted": true,
+        "effect_window_complete": true,
+        "outside_required_pep": true,
+        "protected_effect_observed": true,
+        "required_boundary_refusal_accepted": true,
+        "route_observation_accepted": true,
+        "same_protected_operation": true,
+        "valid_control_same_context": true
+      },
+      "expected": {
+        "status": "violated",
+        "reason": "accepted_effect_observed_outside_required_pep"
+      },
+      "obligations": [
+        "RC-2 named_route_refused_at_required_boundary_in_test_scope protected_effect_observed"
+      ],
+      "rationale": "`protected_effect_observed` is on the path to `named_route_refused_at_required_boundary_in_test_scope`; with every other premise of that path met and this one at the opposite boolean the verdict is `violated/accepted_effect_observed_outside_required_pep`, which shows the premise matters to this outcome itself"
+    }
+  ],
+  "indistinguishable_worlds": [
+    {
+      "claim": "admission_accounting",
+      "id": "W01",
+      "worlds": [
+        {
+          "hidden_truth": "A covering admission exists, but export omitted it.",
+          "visible": {
+            "admission_coverage_complete": false,
+            "admission_matches": true,
+            "admission_present": false,
+            "admission_source_accepted": true,
+            "effect_seen": true,
+            "effect_source_accepted": true,
+            "mandatory_admission": true,
+            "scope_accepted": true,
+            "window_finalized": true
+          }
+        },
+        {
+          "hidden_truth": "No covering admission exists; the execution was unmediated.",
+          "visible": {
+            "admission_coverage_complete": false,
+            "admission_matches": true,
+            "admission_present": false,
+            "admission_source_accepted": true,
+            "effect_seen": true,
+            "effect_source_accepted": true,
+            "mandatory_admission": true,
+            "scope_accepted": true,
+            "window_finalized": true
+          }
+        }
+      ]
+    },
+    {
+      "claim": "tested_route_enforcement",
+      "id": "W02",
+      "worlds": [
+        {
+          "hidden_truth": "The required boundary caused the refusal, but control evidence is missing.",
+          "visible": {
+            "effect_observation_accepted": true,
+            "effect_window_complete": true,
+            "outside_required_pep": true,
+            "protected_effect_observed": false,
+            "required_boundary_refusal_accepted": false,
+            "response_status": 403,
+            "route_observation_accepted": true,
+            "same_protected_operation": true,
+            "valid_control_same_context": false
+          }
+        },
+        {
+          "hidden_truth": "Invalid credentials caused the refusal; the required boundary was not exercised.",
+          "visible": {
+            "effect_observation_accepted": true,
+            "effect_window_complete": true,
+            "outside_required_pep": true,
+            "protected_effect_observed": false,
+            "required_boundary_refusal_accepted": false,
+            "response_status": 403,
+            "route_observation_accepted": true,
+            "same_protected_operation": true,
+            "valid_control_same_context": false
+          }
+        }
+      ]
+    }
+  ],
+  "mode": "synthetic_author_run_only",
+  "rejections": [
+    {
+      "claim": "postcondition_observe",
+      "expected": {
+        "raises": "ValueError"
+      },
+      "gap": "J1",
+      "id": "R01",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      },
+      "rationale": "an unknown claim name has no assessor and must be refused, not assessed as any other claim"
+    },
+    {
+      "claim": null,
+      "expected": {
+        "raises": "ValueError"
+      },
+      "gap": "J1",
+      "id": "R02",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      },
+      "rationale": "a null claim is not a claim"
+    },
+    {
+      "claim": "postcondition_observed",
+      "expected": {
+        "raises": "ValueError"
+      },
+      "gap": "J1",
+      "id": "R03",
+      "observations": [
+        "readback_available",
+        true
+      ],
+      "rationale": "observations must be a mapping; a list of premises is malformed input"
+    },
+    {
+      "claim": "postcondition_observed",
+      "expected": {
+        "raises": "ValueError"
+      },
+      "gap": "J1",
+      "id": "R04",
+      "observations": null,
+      "rationale": "null observations are malformed input, not an empty observation set"
+    },
+    {
+      "claim": "postcondition_observed",
+      "expected": {
+        "raises": "ValueError"
+      },
+      "gap": "J1",
+      "id": "R05",
+      "observations": {
+        "expected_state": 1.5,
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      },
+      "rationale": "a float is outside the fixture value vocabulary; the checker must refuse rather than compare it"
+    },
+    {
+      "claim": "postcondition_observed",
+      "expected": {
+        "raises": "ValueError"
+      },
+      "gap": "J1",
+      "id": "R06",
+      "observations": {
+        "expected_state": [
+          1,
+          [
+            2,
+            [
+              3.5
+            ]
+          ]
+        ],
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      },
+      "rationale": "validation recurses into lists: an invalid value at depth is still invalid"
+    },
+    {
+      "claim": "postcondition_observed",
+      "expected": {
+        "raises": "ValueError"
+      },
+      "gap": "J1",
+      "id": "R07",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "observed_state": {
+          "a": {
+            "b": 2.5
+          }
+        },
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      },
+      "rationale": "validation recurses into mappings: an invalid value at depth is still invalid"
+    },
+    {
+      "claim": "postcondition_observed",
+      "expected": {
+        "raises": "ValueError"
+      },
+      "gap": "J1",
+      "id": "R08",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      },
+      "scope": {
+        "kind": "synthetic_fixture",
+        "weight": 0.5
+      },
+      "rationale": "a premise in the scope is validated like a premise in the observations"
+    },
+    {
+      "claim": "postcondition_observed",
+      "expected": {
+        "raises": "ValueError"
+      },
+      "gap": "J1",
+      "id": "R09",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      },
+      "premise_source": "production",
+      "rationale": "only synthetic_fixture premises are accepted; the production guard must refuse every other premise source"
+    },
+    {
+      "claim": "postcondition_observed",
+      "expected": {
+        "raises": "ValueError"
+      },
+      "gap": "J1",
+      "id": "R10",
+      "observations": {
+        "expected_state": "closed",
+        "fresh_in_declared_window": true,
+        "observed_state": "closed",
+        "readback_available": true,
+        "same_target_and_predicate": true,
+        "settlement_reached": true,
+        "source_accepted": true,
+        "tool_reports_success": true
+      },
+      "premise_source": "",
+      "rationale": "an empty premise source is not the synthetic source"
+    }
+  ]
+}

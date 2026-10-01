@@ -1,0 +1,55 @@
+{
+  "implementer": "p2e",
+  "style": "functional",
+  "files_read": ["SPEC.md"],
+  "variants": [
+    {
+      "file": "variant_01.py",
+      "misreading": "Treats any truthy value as holding (1, 'true', [True]) instead of requiring exactly True."
+    },
+    {
+      "file": "variant_02.py",
+      "misreading": "Collapses refuted and neither states into one bucket, never explicitly checking False."
+    },
+    {
+      "file": "variant_03.py",
+      "misreading": "Omits checking effect_seen premise in admission_accounting's first guard."
+    },
+    {
+      "file": "variant_04.py",
+      "misreading": "Inverts postcondition comparison: returns established when states differ and violated when equal."
+    },
+    {
+      "file": "variant_05.py",
+      "misreading": "Uses truthiness check (if value:) instead of identity check (if value is True:)."
+    },
+    {
+      "file": "variant_06.py",
+      "misreading": "Swaps error messages in guard sequence: mandatory_admission and window_finalized messages reversed, and duplicate message in tested_route_enforcement."
+    },
+    {
+      "file": "variant_07.py",
+      "misreading": "Missing else clause for neither state in admission_accounting and tested_route_enforcement dispatch."
+    },
+    {
+      "file": "variant_08.py",
+      "misreading": "Skips checking mandatory_admission and other preconditions when admission_present is refuted; returns violation immediately."
+    },
+    {
+      "file": "variant_09.py",
+      "misreading": "Typo in key name: 'scope_acceped' instead of 'scope_accepted' in admission_accounting."
+    },
+    {
+      "file": "variant_10.py",
+      "misreading": "Swaps tuple field order: returns (reason, status) instead of (status, reason) in first return."
+    },
+    {
+      "file": "variant_11.py",
+      "misreading": "Omits guard checking whether expected_state and observed_state keys are present in postcondition_observed."
+    },
+    {
+      "file": "variant_12.py",
+      "misreading": "Wrong guard order in postcondition_observed: checks state value presence before readback_available."
+    }
+  ]
+}

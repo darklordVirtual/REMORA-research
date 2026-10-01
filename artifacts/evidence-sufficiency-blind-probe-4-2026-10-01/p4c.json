@@ -1,0 +1,129 @@
+{
+  "selector": "p4c-very-thorough-suite-evasion",
+  "files_read": [
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\checker.py",
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\README.md"
+  ],
+  "faults": [
+    {
+      "id": "P4C-01",
+      "old": "        return {\"kind\": \"synthetic_fixture\", \"bounded\": True}\n",
+      "new": "        return _scope.__dict__.setdefault(\"_d\", {\"kind\": \"synthetic_fixture\", \"bounded\": True})\n",
+      "rationale": "Default scope dict is shared across calls: mutating one verdict's scope leaks into every later default-scope verdict. Witness: v1=assess(...); v1.scope['x']=1; assess(...).scope contains 'x'."
+    },
+    {
+      "id": "P4C-02",
+      "old": "    return ASSESSORS[claim](observations, scope)\n",
+      "new": "    key = (claim, canonical(dict(observations)), None if scope is None else canonical(dict(scope)))\n    cache = validate_json.__dict__.setdefault(\"_cache\", {})\n    if key not in cache:\n        cache[key] = ASSESSORS[claim](observations, scope)\n    return cache[key]\n",
+      "rationale": "Hidden memoisation: equal inputs return the identical verdict object, so scope mutations by one caller appear in another caller's later result. Witness: assess(c,o) is assess(c,dict(o)) -> True."
+    },
+    {
+      "id": "P4C-03",
+      "old": "ensure_ascii=False",
+      "new": "ensure_ascii=True",
+      "rationale": "Public canonical() escapes non-ASCII; verdicts unchanged. Witness: canonical('é') -> '\"\\\\u00e9\"' instead of '\"é\"'."
+    },
+    {
+      "id": "P4C-04",
+      "old": "separators=(\",\", \":\"), ",
+      "new": "",
+      "rationale": "Public canonical() emits spaced separators; comparisons unaffected. Witness: canonical([1,2]) -> '[1, 2]' instead of '[1,2]'."
+    },
+    {
+      "id": "P4C-05",
+      "old": "sort_keys=True",
+      "new": "sort_keys=False",
+      "rationale": "Dict state comparison becomes insertion-order sensitive. Witness: postcondition expected {'a':1,'b':2}, observed {'b':2,'a':1} -> VIOLATED instead of ESTABLISHED."
+    },
+    {
+      "id": "P4C-06",
+      "old": "if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):",
+      "new": "if __import__(\"unicodedata\").normalize(\"NFC\", canonical(o[\"expected_state\"])) == __import__(\"unicodedata\").normalize(\"NFC\", canonical(o[\"observed_state\"])):",
+      "rationale": "Unicode-normalised comparison: canonically-equivalent but distinct strings agree. Witness: expected 'é' observed 'é' -> ESTABLISHED instead of VIOLATED."
+    },
+    {
+      "id": "P4C-07",
+      "old": "        for item in value:\n            validate_json(item)\n",
+      "new": "        for item in value[:32]:\n            validate_json(item)\n",
+      "rationale": "List validation stops after 32 elements. Witness: observations {'x':[0]*32+[1.5]} accepted instead of ValueError."
+    },
+    {
+      "id": "P4C-08",
+      "old": "all(type(key) is str for key in value)",
+      "new": "all(isinstance(key, str) for key in value)",
+      "rationale": "str-subclass keys accepted. Witness: observations {S('readback_available'): True} with class S(str) -> verdict instead of ValueError."
+    },
+    {
+      "id": "P4C-09",
+      "old": "    validate_json(dict(observations))\n",
+      "new": "    if type(observations) is dict:\n        validate_json(observations)\n",
+      "rationale": "Non-dict Mapping observations bypass validation. Witness: MappingProxyType({'x':1.5}) -> verdict instead of ValueError."
+    },
+    {
+      "id": "P4C-10",
+      "old": "not isinstance(observations, Mapping)",
+      "new": "not isinstance(observations, dict)",
+      "rationale": "Valid non-dict Mappings rejected. Witness: assess('postcondition_observed', MappingProxyType({})) -> ValueError instead of NOT_ESTABLISHED."
+    },
+    {
+      "id": "P4C-11",
+      "old": "if type(value) is dict and all(",
+      "new": "if isinstance(value, dict) and all(",
+      "rationale": "Nested dict subclasses accepted. Witness: observations {'x': OrderedDict()} -> verdict instead of ValueError."
+    },
+    {
+      "id": "P4C-12",
+      "old": "if value is None or type(value) in (str, bool, int):",
+      "new": "if value is None or isinstance(value, str) or type(value) in (bool, int):",
+      "rationale": "str-subclass values accepted. Witness: observations {'x': S('v')} -> verdict instead of ValueError."
+    },
+    {
+      "id": "P4C-13",
+      "old": "if value is None or type(value) in (str, bool, int):",
+      "new": "if value is None or type(value) in (str, bool) or (type(value) is int and -2**63 <= value < 2**63):",
+      "rationale": "Valid large integers rejected. Witness: expected_state 2**64 -> ValueError instead of ESTABLISHED."
+    },
+    {
+      "id": "P4C-14",
+      "old": "if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):",
+      "new": "if canonical(o[\"expected_state\"]).replace(\"{}\", \"[]\") == canonical(o[\"observed_state\"]).replace(\"{}\", \"[]\"):",
+      "rationale": "Empty object and empty list (and strings containing '{}'/'[]') compare equal. Witness: expected [] observed {} -> ESTABLISHED instead of VIOLATED."
+    },
+    {
+      "id": "P4C-15",
+      "old": "        if self.decisive_if is not None:\n",
+      "new": "        if self.decisive_if:\n",
+      "rationale": "as_dict drops an empty-string decisive_if. Witness: EvidenceVerdict('c',ESTABLISHED,'r',{},(),'').as_dict() lacks 'decisive_if'."
+    },
+    {
+      "id": "P4C-16",
+      "old": "@dataclass(frozen=True)",
+      "new": "@dataclass(frozen=True, slots=True)",
+      "rationale": "Verdict becomes slotted: no __dict__, not weak-referenceable. Witness: weakref.ref(verdict) raises TypeError."
+    },
+    {
+      "id": "P4C-17",
+      "old": "    NOT_ESTABLISHED = \"not_established\"\n",
+      "new": "    NOT_ESTABLISHED = \"not_established\"\n    UNKNOWN = \"not_established\"\n",
+      "rationale": "Extra public alias member. Witness: EvidenceStatus.UNKNOWN exists; 'UNKNOWN' in EvidenceStatus.__members__."
+    },
+    {
+      "id": "P4C-18",
+      "old": "    NOT_ESTABLISHED = \"not_established\"\n",
+      "new": "    NOT_ESTABLISHED = \"not_established\"\n\n    @classmethod\n    def _missing_(cls, value):\n        if isinstance(value, str):\n            for member in cls:\n                if member.value == value.lower():\n                    return member\n        return None\n",
+      "rationale": "Enum lookup becomes case-insensitive. Witness: EvidenceStatus('ESTABLISHED') returns a member instead of ValueError."
+    },
+    {
+      "id": "P4C-19",
+      "old": "            \"claim\": self.claim,\n            \"status\": self.status.value,\n",
+      "new": "            \"status\": self.status.value,\n            \"claim\": self.claim,\n",
+      "rationale": "as_dict key order changes (visible to json.dumps without sort_keys, list(d)). Witness: list(v.as_dict())[0] == 'status'."
+    },
+    {
+      "id": "P4C-20",
+      "old": "    return dict(scope)\n",
+      "new": "    return scope if not isinstance(scope, dict) else dict(scope)\n",
+      "rationale": "Non-dict scope objects are stored as-is: verdict.scope aliases the caller's mapping and is not a dict; a pair-list scope stays a list. Witness: scope=[('a',1)] -> verdict.scope == [('a',1)] instead of {'a':1}."
+    }
+  ]
+}

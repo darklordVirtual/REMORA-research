@@ -1,0 +1,129 @@
+{
+  "selector": "p3c-thorough-suite-evasion",
+  "files_read": [
+    "conformance/evidence-sufficiency-v1/checker.py",
+    "conformance/evidence-sufficiency-v1/README.md"
+  ],
+  "faults": [
+    {
+      "id": "P3C-01",
+      "old": "    if not scope:\n        return {\"kind\"",
+      "new": "    if scope is None:\n        return {\"kind\"",
+      "rationale": "Empty scope mapping is no longer replaced by the default bounded synthetic scope. Witness: assess('admission_accounting', {}, scope={}).scope is {} instead of the default."
+    },
+    {
+      "id": "P3C-02",
+      "old": "def _scope(scope: Mapping[str, Any] | None) -> Mapping[str, Any]:\n    if not scope:\n        return {\"kind\": \"synthetic_fixture\", \"bounded\": True}",
+      "new": "def _scope(scope: Mapping[str, Any] | None, _default: dict[str, Any] = {\"kind\": \"synthetic_fixture\", \"bounded\": True}) -> Mapping[str, Any]:\n    if not scope:\n        return _default",
+      "rationale": "Default scope is one shared mutable dict, so mutating one verdict's scope leaks into every later default-scope verdict. Witness: v=assess(...); v.scope['kind']='x'; a second assess(...) reports kind 'x'."
+    },
+    {
+      "id": "P3C-03",
+      "old": "    return dict(scope)\n",
+      "new": "    return scope\n",
+      "rationale": "Verdict scope aliases the caller's scope mapping, so a later caller mutation changes an already-returned verdict. Witness: s={'a':1}; v=assess(..., scope=s); s['a']=2; v.as_dict()['scope']['a']==2."
+    },
+    {
+      "id": "P3C-04",
+      "old": "            \"scope\": dict(self.scope),",
+      "new": "            \"scope\": self.scope,",
+      "rationale": "as_dict returns the verdict's own scope object instead of a copy; mutating the returned dict mutates the frozen verdict. Witness: d=v.as_dict(); d['scope']['x']=1; 'x' in v.scope."
+    },
+    {
+      "id": "P3C-05",
+      "old": "        if self.decisive_if is not None:",
+      "new": "        if self.decisive_if:",
+      "rationale": "An empty-string decisive_if is silently dropped from as_dict. Witness: EvidenceVerdict('c', EvidenceStatus.ESTABLISHED, 'r', {}, (), '').as_dict() lacks 'decisive_if'."
+    },
+    {
+      "id": "P3C-06",
+      "old": "@dataclass(frozen=True)",
+      "new": "@dataclass",
+      "rationale": "EvidenceVerdict is no longer immutable. Witness: setattr(v, 'reason', 'tampered') succeeds instead of raising FrozenInstanceError."
+    },
+    {
+      "id": "P3C-07",
+      "old": "@dataclass(frozen=True)",
+      "new": "@dataclass(frozen=True, eq=False)",
+      "rationale": "Verdicts lose value equality (and become identity-hashable). Witness: assess(c, o) == assess(c, o) is False."
+    },
+    {
+      "id": "P3C-08",
+      "old": "class EvidenceStatus(StrEnum):",
+      "new": "class EvidenceStatus(str, __import__(\"enum\").Enum):",
+      "rationale": "Status loses StrEnum str()/format semantics while .value and == 'established' still hold. Witness: str(EvidenceStatus.ESTABLISHED) is 'EvidenceStatus.ESTABLISHED'; f'{status}' changes."
+    },
+    {
+      "id": "P3C-09",
+      "old": "    NOT_ESTABLISHED = \"not_established\"\n",
+      "new": "    NOT_ESTABLISHED = \"not_established\"\n    UNKNOWN = \"not_established\"\n",
+      "rationale": "Adds a hidden alias member; iteration is unchanged but EvidenceStatus['UNKNOWN'] and __members__ gain an entry. Witness: list(EvidenceStatus.__members__)."
+    },
+    {
+      "id": "P3C-10",
+      "old": "        missing, decisive_if = _REASON_GUIDANCE[reason]",
+      "new": "        guidance_missing, decisive_if = _REASON_GUIDANCE[reason]\n        missing = list(guidance_missing)",
+      "rationale": "missing_evidence on the verdict becomes a list, not the declared tuple (as_dict unchanged). Witness: assess('admission_accounting', {}).missing_evidence == ('accepted execution/effect observation',) is False."
+    },
+    {
+      "id": "P3C-11",
+      "old": "    if value is None or type(value) in (str, bool, int):",
+      "new": "    if value is None or isinstance(value, (str, bool, int)):",
+      "rationale": "Scalar subclasses (StrEnum/IntEnum members, custom str/int subclasses) now pass validation. Witness: validate_json(EvidenceStatus.VIOLATED) returns instead of ValueError."
+    },
+    {
+      "id": "P3C-12",
+      "old": "    if type(value) is dict and all(",
+      "new": "    if isinstance(value, dict) and all(",
+      "rationale": "dict subclasses (OrderedDict, defaultdict) nested in fixtures are accepted. Witness: validate_json(OrderedDict(a=1)) returns instead of ValueError."
+    },
+    {
+      "id": "P3C-13",
+      "old": "    if type(value) is list:",
+      "new": "    if type(value) in (list, tuple):",
+      "rationale": "Tuples are accepted as JSON arrays. Witness: postcondition with expected_state=(1,) and observed_state=[1] becomes established instead of ValueError."
+    },
+    {
+      "id": "P3C-14",
+      "old": "        for item in value:\n            validate_json(item)",
+      "new": "        for item in value:\n            if type(item) is not list:\n                validate_json(item)",
+      "rationale": "Items of a directly nested list are not validated. Witness: validate_json([[1.5]]) returns instead of ValueError; so does assess with a state [[1.5]]."
+    },
+    {
+      "id": "P3C-15",
+      "old": "ensure_ascii=False",
+      "new": "ensure_ascii=True",
+      "rationale": "canonical() output changes for non-ASCII text (escaped), though comparisons stay equal. Witness: canonical('é') returns an escaped \\u00e9 string."
+    },
+    {
+      "id": "P3C-16",
+      "old": "    if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):",
+      "new": "    if o[\"expected_state\"] == o[\"observed_state\"]:",
+      "rationale": "Postcondition uses Python equality instead of the canonical encoding, so True==1 agree. Witness: expected_state=True, observed_state=1 is established instead of violated."
+    },
+    {
+      "id": "P3C-17",
+      "old": "    if \"expected_state\" not in o or \"observed_state\" not in o:",
+      "new": "    if o.get(\"expected_state\") is None or o.get(\"observed_state\") is None:",
+      "rationale": "An explicit null state is treated as missing. Witness: expected_state=None, observed_state=None gives not_established/state_value_missing instead of established."
+    },
+    {
+      "id": "P3C-18",
+      "old": "not isinstance(observations, Mapping)",
+      "new": "not isinstance(observations, dict)",
+      "rationale": "Non-dict Mapping observations are rejected. Witness: assess('admission_accounting', MappingProxyType({})) raises ValueError instead of returning not_established."
+    },
+    {
+      "id": "P3C-19",
+      "old": "    if scope is not None:\n",
+      "new": "    if scope is not None and observations:\n",
+      "rationale": "Scope is not validated when observations are empty. Witness: assess('admission_accounting', {}, scope={'x': 1.5}) returns a verdict instead of ValueError."
+    },
+    {
+      "id": "P3C-20",
+      "old": "    return ASSESSORS[claim](observations, scope)\n",
+      "new": "    cache = globals().setdefault(\"_VERDICT_CACHE\", {})\n    key = (claim, id(observations), id(scope))\n    if key not in cache:\n        cache[key] = ASSESSORS[claim](observations, scope)\n    return cache[key]\n",
+      "rationale": "Verdicts are memoised by object identity, so reassessing a mutated observations dict returns a stale verdict (and module state grows). Witness: o={}; assess(c,o); o.update(effect_source_accepted=True, effect_seen=True); assess(c,o).reason is still execution_observation_unaccepted_or_missing."
+    }
+  ]
+}

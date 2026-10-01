@@ -23,7 +23,6 @@
       "meta_governance": 2
     },
     "README.md": {
-      "long_sentence": 1,
       "meta_governance": 2
     },
     "artifacts/pilot-pack/evaluation_worksheet.md": {
@@ -54,7 +53,7 @@
       "meta_governance": 3
     },
     "docs/13-research-frontier-roadmap.md": {
-      "long_sentence": 53,
+      "long_sentence": 51,
       "meta_governance": 2
     },
     "docs/AI_USE.md": {

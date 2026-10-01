@@ -33,7 +33,10 @@ import hmac
 import json
 from dataclasses import dataclass, field
 from types import MappingProxyType
-from typing import Any, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Mapping, Sequence
+
+if TYPE_CHECKING:
+    from remora.capabilities.ceiling import DownstreamCeiling
 
 __all__ = [
     "ToolSpec",
@@ -106,6 +109,30 @@ def _spec_hash(spec: Mapping[str, Any]) -> str:
     ).hexdigest()
 
 
+#: Bundle schema versions this loader understands. Version 2 adds the
+#: optional ``downstream_capabilities`` declaration; a version-1 bundle that
+#: carries one is refused rather than read with a field it never defined.
+SUPPORTED_SCHEMA_VERSIONS = (1, 2)
+
+
+def _downstream(raw: Mapping[str, Any]) -> "DownstreamCeiling | None":
+    """The spec's downstream ceiling, or None when it declares none."""
+    if "downstream_capabilities" not in raw:
+        return None
+    from remora.capabilities.ceiling import CeilingRefused, DownstreamCeiling
+
+    entries = raw["downstream_capabilities"]
+    try:
+        if not isinstance(entries, (list, tuple)):
+            raise CeilingRefused("downstream_capabilities is a list")
+        return DownstreamCeiling.from_dict(str(raw["tool_id"]), entries)
+    except (CeilingRefused, TypeError, AttributeError) as exc:
+        raise ToolSpecRefused(
+            "toolspec_downstream_declaration_invalid",
+            f"tool spec {raw.get('tool_id')!r}: {exc}",
+        ) from exc
+
+
 @dataclass(frozen=True)
 class ToolSpec:
     """One tool's immutable, signed declaration."""
@@ -131,6 +158,10 @@ class ToolSpec:
     network_policy: Mapping[str, Any]
     signing_identity: str
     toolspec_hash: str = field(compare=False)
+    #: The most the implementation may reach (schema version 2, NTA-2). None
+    #: when undeclared, which is not the same as an empty ceiling: undeclared
+    #: means the spec says nothing, empty means it declares no effects.
+    downstream_capabilities: "DownstreamCeiling | None" = None
 
     @classmethod
     def from_mapping(cls, raw: Mapping[str, Any]) -> "ToolSpec":
@@ -181,6 +212,7 @@ class ToolSpec:
             network_policy=MappingProxyType(dict(raw["network_policy"])),
             signing_identity=str(raw["signing_identity"]),
             toolspec_hash=_spec_hash(raw),
+            downstream_capabilities=_downstream(raw),
         )
 
 
@@ -258,8 +290,22 @@ class ToolSpecBundle:
                 "signature proves authenticity, never currency",
             )
 
+        schema_version = bundle.get("schema_version")
+        if (isinstance(schema_version, bool) or not isinstance(schema_version, int)
+                or schema_version not in SUPPORTED_SCHEMA_VERSIONS):
+            raise ToolSpecRefused(
+                "toolspec_schema_version_unsupported",
+                f"bundle schema_version {schema_version!r} is not one of "
+                f"{SUPPORTED_SCHEMA_VERSIONS}; it was signed, and never checked",
+            )
         specs: dict[str, ToolSpec] = {}
         for raw in bundle.get("tool_specs", []):
+            if schema_version < 2 and "downstream_capabilities" in raw:
+                raise ToolSpecRefused(
+                    "toolspec_downstream_requires_v2",
+                    f"tool spec {raw.get('tool_id')!r} declares downstream "
+                    "capabilities in a schema_version 1 bundle",
+                )
             spec = ToolSpec.from_mapping(raw)
             if spec.tool_id in specs:
                 raise ValueError(

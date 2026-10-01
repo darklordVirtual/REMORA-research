@@ -163,7 +163,7 @@ def test_an_unrecognised_role_is_a_configuration_error(monkeypatch):
     import servers.execution_api as ex
 
     monkeypatch.setenv("REMORA_EXECUTION_DOMAIN_ROLE", "excutor")
-    with pytest.raises(RuntimeError, match="neither"):
+    with pytest.raises(RuntimeError, match="not one of"):
         ex._execution_domain()
 
 
