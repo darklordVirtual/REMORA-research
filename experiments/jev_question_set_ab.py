@@ -233,8 +233,26 @@ def run_round(
             action_type=scenario["action_type"],
             target_environment="prod",
         )
+        baseline = engine.decide(observation)
         for set_name, (_version, questions) in sets.items():
-            state = state_for(set_name, scenario)
+            try:
+                state = state_for(set_name, scenario)
+            except ValueError as exc:
+                # semantic_state refuses credential-shaped keys before anything
+                # is sent. Recorded as its own outcome, never put to the model.
+                runs.extend(
+                    {
+                        "scenario": scenario["id"], "task": scenario["task"],
+                        "language": scenario["language"], "label": scenario["label"],
+                        "set": set_name, "repeat": repeat, "outcome": "state_refused",
+                        "notes": [str(exc)], "resolved_model": None, "response_hash": None,
+                        "latency_ms": None, "answers": {}, "injection": None,
+                        "favourable_admitted": False, "adversarial_raised": False,
+                        "decision": baseline.action.name, "accept_reached": False,
+                    }
+                    for repeat in range(repeats)
+                )
+                continue
             for repeat in range(repeats):
                 result = enrich(
                     observation,
@@ -291,7 +309,7 @@ def summarise(
                     r
                     for r in runs
                     if r["set"] == set_name and r["language"] == language and r["label"] == label
-                    and r["outcome"] != "provider_unavailable"
+                    and r["outcome"] not in ("provider_unavailable", "state_refused")
                 ]
                 cells[f"{set_name}.{language}.{label}"] = {
                     "n": len(rows),

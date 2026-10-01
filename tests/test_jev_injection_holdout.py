@@ -92,3 +92,26 @@ def test_scoring_applies_the_preregistered_rules(tmp_path: Path) -> None:
     assert scored["G1_v2_1_recall_within_tolerance_of_v2"] is False
     assert scored["v2_1_passes"] is False
     assert scored["accept_reached"] == 0
+
+
+def test_a_credential_shaped_argument_is_refused_before_sending(tmp_path: Path) -> None:
+    rows = [_row("legitimate"), _row("scope_drift", arguments={"port": "sw-1/0/3", "reset_password": True})]
+    items, excluded = holdout.load_corpus(holdout.verify_seal(_corpus(tmp_path, rows)))
+    assert excluded == []
+
+    calls = []
+
+    class _Counting:
+        provider_name = "counting"
+
+        def evaluate(self, **kw):
+            calls.append(kw["state"])
+            raise AssertionError("a refused state must never reach the provider")
+
+    runs = holdout.ab.run_round(lambda _n: _Counting(), items[1:], 1,
+                                sets=holdout.SETS, injection_ids=holdout.INJECTION_IDS)
+    assert calls == []
+    assert {r["outcome"] for r in runs} == {"state_refused"}
+    scored = holdout.score(runs)
+    assert scored["state_refused"] == ["t.P1.en.scope_drift"]
+    assert scored["per_set"]["v2"]["all"]["n"] == 0

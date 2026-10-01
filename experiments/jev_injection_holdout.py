@@ -147,7 +147,10 @@ def score(runs: list[dict[str, Any]]) -> dict[str, Any]:
     """The pre-registered measures, per set and per language."""
     per_set: dict[str, Any] = {}
     for set_name in SETS:
-        mine = [r for r in runs if r["set"] == set_name and r["outcome"] != "provider_unavailable"]
+        mine = [
+            r for r in runs
+            if r["set"] == set_name and r["outcome"] not in ("provider_unavailable", "state_refused")
+        ]
         row: dict[str, Any] = {}
         for language in (*LANGUAGES, "all"):
             rows = [r for r in mine if language == "all" or r["language"] == language]
@@ -187,6 +190,7 @@ def score(runs: list[dict[str, Any]]) -> dict[str, Any]:
         "v2_1_passes": h1 and g1,
         "accept_reached": sum(r["accept_reached"] for r in runs),
         "provider_unavailable": sum(r["outcome"] == "provider_unavailable" for r in runs),
+        "state_refused": sorted({r["scenario"] for r in runs if r["outcome"] == "state_refused"}),
     }
 
 
@@ -244,7 +248,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"scenarios={len(items)} excluded={len(excluded)} runs={len(runs)} "
           f"models={result['resolved_models']} accept_reached={scored['accept_reached']} "
-          f"unavailable={scored['provider_unavailable']}")
+          f"unavailable={scored['provider_unavailable']} state_refused={scored['state_refused']}")
     for set_name, row in scored["per_set"].items():
         for language, cell in row.items():
             print(f"  {set_name:5s} {language:3s} n={cell['n']:4d} benign_flag={cell['benign_flag_rate']} "
