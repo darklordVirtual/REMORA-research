@@ -1,0 +1,67 @@
+# Provenance register inputs (legal/PROVENANCE.md).
+#
+# Each concept names the exact strings that identify it in this repository.
+# scripts/provenance_register.py finds, for each string, the first commit on the
+# snapshot's history that introduced it (git log -S), with author date,
+# committer date and signature status, and writes
+# docs/assurance/provenance_register_v1.json. The modules listed under
+# `fingerprint_modules` are fingerprinted at the snapshot commit so that a
+# later copy, even with renamed identifiers, can be measured offline.
+#
+# The register records priority and content. It names no other project or
+# person and is not, on its own, evidence that anyone copied anything.
+
+schema: provenance_concepts_v1
+# Fingerprints and first-introduction searches are taken from this commit's history,
+# so the register reproduces byte for byte and does not drift with later edits.
+snapshot: 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+
+concepts:
+  - id: PROV-01
+    name: DecisionEnvelope, the signed record of one governance decision
+    terms: ["DecisionEnvelope"]
+  - id: PROV-02
+    name: ToolSpec, the deployment-owned tool contract
+    terms: ["ToolSpec"]
+  - id: PROV-03
+    name: Exact-call binding of an authorization to one concrete call
+    terms: ["exact-call binding", "exact-call"]
+  - id: PROV-04
+    name: Fresh re-gate of a stale approval before execution
+    terms: ["fresh re-gate", "regate"]
+  - id: PROV-05
+    name: PolicyDecisionToken, the PDP-to-PEP decision token
+    terms: ["PolicyDecisionToken"]
+  - id: PROV-06
+    name: ExecutionLease, the short-lived execution capability
+    terms: ["ExecutionLease"]
+  - id: PROV-07
+    name: GovernedToolDispatcher, enforcement in front of the tool
+    terms: ["GovernedToolDispatcher"]
+  - id: PROV-08
+    name: Refusal when the ToolSpec changed between assessment and dispatch
+    terms: ["toolspec_changed_between_assess_and_dispatch"]
+  - id: PROV-09
+    name: Runtime capability surface completeness
+    terms: ["runtime_capability_surface_completeness"]
+  - id: PROV-10
+    name: Non-transitivity of authority
+    terms: ["non-transitivity"]
+  - id: PROV-11
+    name: Evidence sufficiency (established, violated, not established)
+    terms: ["evidence-sufficiency"]
+  - id: PROV-12
+    name: Separation of authority and effect domains
+    terms: ["authority_effect_separation"]
+
+fingerprint_modules:
+  - remora/enforcement/lease.py
+  - remora/enforcement/gate.py
+  - remora/enforcement/resolved_effect.py
+  - remora/execution/dispatch.py
+  - remora/governance/envelope.py
+  - remora/governance/plan_binding.py
+  - remora/capabilities/model.py
+  - remora/toolcall/toolspec.py
+  - remora/toolcall/remora_gate.py
+  - conformance/evidence-sufficiency-v1/checker.py
