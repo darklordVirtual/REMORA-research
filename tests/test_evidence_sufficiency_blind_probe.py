@@ -102,3 +102,21 @@ def test_probe_3_inputs_match_their_digests_and_the_published_counts() -> None:
     assert (v15["code_row3"] + v15["impl_row3"], v16["code_row3"] + v16["impl_row3"]) == (94, 97)
     faults = json.loads(gzip.decompress((PROBE3 / "results" / "p3-faults.json.gz").read_bytes()))
     assert faults["criterion"]["row3_survivors"] == ["P3A-18", "P3B-19", "P3C-02", "P3C-05", "P3C-09", "P3C-15", "P3C-19"]
+
+
+PROBE4 = ROOT / "artifacts" / "evidence-sufficiency-blind-probe-4-2026-10-01"
+
+
+@pytest.mark.docgate
+def test_probe_4_inputs_match_their_digests_and_the_published_counts() -> None:
+    for line in (PROBE4 / "SHA256SUMS").read_text(encoding="utf-8").splitlines():
+        digest, name = line.split("  ", 1)
+        assert hashlib.sha256((PROBE4 / name).read_bytes()).hexdigest() == digest, name
+    tallies = json.loads(gzip.decompress((PROBE4 / "results" / "p4-tallies.json.gz").read_bytes()))["tallies"]
+    v16, v17 = tallies["evidence-sufficiency-v1.6"], tallies["evidence-sufficiency-v1.7"]
+    assert v17["code_decision"] + v17["impl"] == 63 == v17["code_decision_row3"] + v17["impl_row3"]
+    assert (v16["code_row3"] + v16["impl_row3"], v17["code_row3"] + v17["impl_row3"]) == (90, 93)
+    faults = json.loads(gzip.decompress((PROBE4 / "results" / "p4-faults.json.gz").read_bytes()))
+    labels = json.loads((PROBE4 / "labels.json").read_text(encoding="utf-8"))
+    assert sorted(labels) == sorted(faults["criterion"]["row3_survivors"])
+    assert sorted(k for k, v in labels.items() if v == "open_gap") == ["P4C-07", "P4C-09", "P4C-16", "P4C-18", "P4C-19"]

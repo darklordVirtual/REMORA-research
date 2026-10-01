@@ -976,6 +976,8 @@ entries:
       - generated_input_contract
       - return_isolation_check
       - whole_api_differential
+      - public_api_surface_snapshot
+      - stateful_call_sequences
     code:
       - conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py
       - conformance/evidence-sufficiency-v1.3/invariants.json
@@ -997,6 +999,9 @@ entries:
       - conformance/evidence-sufficiency-v1.5/run-record.json
       - conformance/evidence-sufficiency-v1.6/run_evidence_sufficiency.py
       - conformance/evidence-sufficiency-v1.6/run-record.json
+      - conformance/evidence-sufficiency-v1.7/run_evidence_sufficiency.py
+      - conformance/evidence-sufficiency-v1.7/api_surface.json
+      - conformance/evidence-sufficiency-v1.7/run-record.json
       - docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt
       - docs/assurance/mutation_baseline_evidence_sufficiency_ast_v1.txt
       - docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt
@@ -1008,6 +1013,7 @@ entries:
       - tests/test_score_heldout_faults.py
       - tests/test_evidence_sufficiency_v1_5.py
       - tests/test_evidence_sufficiency_v1_6.py
+      - tests/test_evidence_sufficiency_v1_7.py
       - tests/test_evidence_sufficiency_blind_probe.py
     evidence: >-
       The record reproduces with python conformance/evidence-sufficiency-v1.3/run_evidence_sufficiency.py
@@ -1078,7 +1084,12 @@ entries:
       seeded inputs. On a third probe of 104 faults, locked before v1.6, it
       kills all 61 decision faults and 97 of 104 in all (v1.5: 94); two of
       its three new kills are in classes no probe had named, and five faults
-      on the API surface survive (NEGATIVE_RESULTS.md §72, open).
+      on the API surface survive (NEGATIVE_RESULTS.md §72). v1.7 adds an API
+      surface snapshot, seeded call sequences and the crossed input contract;
+      on a fourth probe of 104 faults, locked before v1.7, every decision
+      fault dies again and 93 of 104 in all (v1.6: 90); five open survivors
+      concern input sizes and public-type behaviour (NEGATIVE_RESULTS.md §73,
+      open).
     maturity: library_only
     scope_boundary: >-
       A conformance research artifact, not a governed runtime path: the checker

@@ -94,7 +94,14 @@ This file lists externally relevant changes by release. Fine-grained development
   On a third blind probe locked before v1.6: all 61 decision faults killed,
   97 of 104 faults in all (v1.5: 94); two new kills are in classes no probe
   had named; five faults on the API surface survive (NEGATIVE_RESULTS.md
-  §72, open).
+  §72).
+- Evidence-sufficiency v1.7 (`conformance/evidence-sufficiency-v1.7/`): v1.6
+  plus a public API surface snapshot, 300 seeded call sequences that mutate
+  every object a caller holds between calls, and the input contract crossed
+  with every claim and observation shape. On a fourth blind probe locked
+  before v1.7: all 63 decision faults killed, 93 of 104 faults in all (v1.6:
+  90); five open survivors on input sizes and public-type behaviour
+  (NEGATIVE_RESULTS.md §73, open).
 - Evidence-sufficiency v1.2 (`conformance/evidence-sufficiency-v1.2/`): the
   50 v1.1 cases verbatim plus E18-E20, which tell apart the three withheld
   `canonical()` faults from the external v1.1 run. v1 and v1.1 are frozen.

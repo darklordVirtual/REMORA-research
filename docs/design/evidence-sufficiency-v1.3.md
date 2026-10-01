@@ -686,6 +686,14 @@ It is identical on CPython 3.11 and 3.14.
 `tests/test_evidence_sufficiency_v1_7.py` shows each section catching a fault of its class.
 Held-out probe 4 was locked in `2954a48` before v1.7 was committed.
 
+### 17.1 Result (2026-10-01)
+
+v1.6 and v1.7 both kill all 63 decision faults of probe 4 on row 3. Over all 104 faults, v1.7 kills 93 and v1.6 kills 90.
+The three new kills lie in classes probe 3 named, and one is a new member of its class: memoised verdicts shared between callers.
+Five survivors are labelled equivalent and one out of scope; five are open (NEGATIVE_RESULTS.md §73).
+The open ones are a size boundary (lists longer than 32 items), a container crossed with an invalid value, and three properties of the public types: `slots`, case-insensitive enum lookup, and key order.
+Nine of the eleven survivors come from the selector that was told how thorough the suite is.
+
 ## Deliverables
 
 - This spec.
