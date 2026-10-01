@@ -30,6 +30,14 @@ def _load():
 PR = _load()
 REGISTER = json.loads((ROOT / "docs" / "assurance" / "provenance_register_v1.json").read_text(encoding="utf-8"))
 
+#: Both history tests read the snapshot commit, which a shallow CI checkout does not hold. The
+#: verify job checks out full history, so they still run on every push there.
+needs_history = pytest.mark.skipif(
+    subprocess.run(["git", "cat-file", "-e", f"{REGISTER['snapshot']}^{{commit}}"], cwd=ROOT,
+                   capture_output=True, check=False).returncode != 0,
+    reason="the register's snapshot commit is not in this (shallow) clone",
+)
+
 
 def _rename_everything(source: str) -> str:
     """Every identifier renamed, every comment and docstring changed: a disguised copy."""
@@ -61,6 +69,7 @@ def test_register_is_internally_consistent() -> None:
         assert entry["fingerprints"], module
 
 
+@needs_history
 def test_a_renamed_copy_is_found_and_an_unrelated_module_is_not(tmp_path: Path) -> None:
     snapshot = REGISTER["snapshot"]
     lease = subprocess.run(["git", "show", f"{snapshot}:remora/enforcement/lease.py"], cwd=ROOT,
@@ -83,6 +92,7 @@ def test_fingerprints_ignore_formatting_and_comments() -> None:
     assert PR.fingerprints(a) == PR.fingerprints(b)
 
 
+@needs_history
 @pytest.mark.slow
 def test_register_reproduces_from_git_history() -> None:
     assert PR.render(PR.build()) == (ROOT / "docs" / "assurance" / "provenance_register_v1.json").read_text(encoding="utf-8")
