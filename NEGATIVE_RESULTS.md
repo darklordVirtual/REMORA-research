@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-09-30: **15 `open`**, **27 `accepted`**, **30 `superseded`**.
+Counts as of 2026-09-30: **15 `open`**, **27 `accepted`**, **31 `superseded`**.
 
 ## The actual backlog
 
@@ -96,10 +96,11 @@ cites only `open` sections and that no `open` section is missing a theme.
    were 68 of 70 correct, more accurate than the ones kept. Whether the
    exclusion belongs on this path needs an out-of-sample test; until then v5
    stays as the conservative choice.
-9. **Evidence-sufficiency API surface across calls** (§72): five held-out
-   faults survive v1.6, all outside the decision logic: a shared default
-   scope that leaks between verdicts, scope validation skipped for empty
-   observations, a keyword-only constructor and an alias enum member.
+9. **Evidence-sufficiency input sizes and public-type behaviour** (§73):
+   five held-out faults survive v1.7, all outside the decision logic. They
+   are list validation that stops after 32 items, a non-dict `Mapping` that
+   skips validation, `slots` on the verdict, case-insensitive enum lookup and
+   the key order of `as_dict()`.
 
 <!-- backlog-end -->
 
@@ -2461,7 +2462,7 @@ sections again.
 | MCE bucket bias and absent cross-domain episodes (§15, §16) | Structural AROMER ceilings: the buckets get no organic traffic and crossDomainCases=0. Needs diverse deployment context | Medium |
 | Authoritative tool metadata still caller-supplied on the advisory path (§14/M4) | Raise-only clamp shipped 2026-08-05 (declared risk cannot undercut the heuristic floor; clamps recorded, unset stays unset). Full authority still needs the signed ToolSpec registry (FT-03) | Medium |
 | External replication, REM-021, field evidence (§1, §4) | Cannot be closed from inside this repository | Medium |
-| Five held-out faults on the API surface survive v1.6 (§72) | Shared default scope across verdicts (two finds), scope unvalidated for empty observations, keyword-only constructor, alias enum member; every decision fault of probe 3 is killed | Low |
+| Five held-out faults survive v1.7 (§73) | List validation stops after 32 items, non-dict `Mapping` skips validation, `slots`, case-insensitive enum lookup, `as_dict` key order; every decision fault of probe 4 is killed | Low |
 
 ### Accepted negative results — do not "fix" these
 
@@ -2493,6 +2494,7 @@ sections again.
 | v1.1 evidence-sufficiency corpus misses three state-comparison faults (§64) | evidence-sufficiency v1.2, 2026-09-29 | Cases E18-E20 tell the three faults apart. They were written after the faults were known, so this is the repair, not independent evidence. An external rerun with every fault known (2026-09-30) is private until Rul1an publishes it |
 | Systematic mutation analysis finds 112 faults the v1.2 evidence-sufficiency corpus cannot see (§65) | evidence-sufficiency v1.3, 2026-09-30 | 489 mutmut mutants; v1.2 killed 377. The 112 survivors fell in seven families, four of them real gaps (claim and scope never checked, rejection untested, key order). v1.3 leaves 20, all named and argued equivalent. Written with the survivors in view, so repair, not independent evidence |
 | The v1.1 typed-premise pin covered one premise per claim; 42 typed-premise faults survived every authored case (§66) | evidence-sufficiency v1.3 K1 cases, 2026-09-30 | A second operator set of 905 mutants found 42 `is True` faults read by truthiness or `== True` that only the exhaustive reference model caught, plus three `isinstance` relaxations nothing caught. Now 23 lattice-derived cases and rejections R18-R20; 4 survivors, all argued equivalent |
+| Five held-out faults on the API surface survived v1.6 (§72) | evidence-sufficiency v1.7, 2026-10-01 | Public API surface snapshot, seeded call sequences with every held object mutated, and the input contract crossed with every claim and observation shape; on held-out probe 4 they add three kills, all in the classes probe 3 named |
 | Verdict value equality was unchecked (§71) | evidence-sufficiency v1.6, 2026-09-30 | A whole-API differential against an executable contract kills the probe-2 survivor (fitted) and, on held-out probe 3, two faults in classes nobody had named |
 | A blind probe found six evidence-sufficiency faults no row caught (§70) | evidence-sufficiency v1.5, 2026-09-30 | Class-level checks (value classes incl. absence and `null`, guard precedence, state pairs, generated input contract, return isolation) kill all 96 probe-1 faults on row 3, fitted. A second probe, locked before v1.5, went from 74 to 77 of 77 decision faults on row 3 |
 | Twelve cross-branch premise faults survived every authored evidence-sufficiency case (§68) | evidence-sufficiency v1.4, 2026-09-30 | Rule coverage (RC-1) derived five cases that kill all twelve; v1.4 kills every live specification mutant on row 1. The five were fitted: the family was named before the criterion was written |
@@ -4342,14 +4344,14 @@ input non-mutation, order independence, module state and the enum contract. It
 kills P2C-20, which is fitted. The test was probe 3, locked before v1.6: §72.
 
 ## §72 Probe 3: every decision fault killed, and five held-out faults on the API surface survive v1.6 (2026-09-30)
-<!-- finding-status: open -->
+<!-- finding-status: superseded -->
 
 **Status:** measured by the maintainer on 104 faults written by six
 context-free agents (Sonnet, Opus, Haiku) in four new scenarios and two new
 implementation styles. The faults were committed in `00aa914`, before v1.6 in
 `f9a8a27`. Criteria in
 `artifacts/evidence-sufficiency-blind-probe-3-2026-09-30/PREREGISTRATION.md`.
-Open.
+Superseded by evidence-sufficiency v1.7 (see the end of this section).
 
 **What was measured.** v1.6 kills all 61 decision faults on rows 1 and 3, as
 v1.5 does on row 3. Over all faults, row 3 kills 97 of 104 on v1.6 and 94 on
@@ -4373,3 +4375,43 @@ by a check that treats each call on its own.
 **What this does not establish.** The agents are Anthropic models and the
 maintainer wrote their prompts. The contract of section 16 shares its author
 with the checker. Two of the equivalence labels are arguments, not proofs.
+
+**Resolution (2026-10-01).** v1.7 adds three runner sections, one per class.
+They compare the public API surface with a snapshot, run seeded call
+sequences that mutate every object the caller holds between calls, and cross
+the input contract with every claim and observation shape. They kill the five open faults,
+fitted. The test was probe 4, locked before v1.7: §73.
+
+## §73 Probe 4: every decision fault killed again, and five held-out faults on sizes and public types survive v1.7 (2026-10-01)
+<!-- finding-status: open -->
+
+**Status:** measured by the maintainer on 104 faults written by six
+context-free agents (Opus, Sonnet, Haiku), committed in `2954a48` before
+v1.7 in `e464829`. Criteria in
+`artifacts/evidence-sufficiency-blind-probe-4-2026-10-01/PREREGISTRATION.md`.
+Open.
+
+**What was measured.** v1.6 and v1.7 both kill all 63 decision faults on
+row 3. Over all 104 faults, v1.7 kills 93 and v1.6 kills 90. The three new
+kills lie in the classes probe 3 named. One is a new member of its class:
+memoised verdicts, so equal inputs share one object between callers. Of the
+eleven survivors, five are labelled equivalent under the `assess` contract
+and one out of scope, with the arguments in the probe's `RESULTS.md`. Five
+are open: list validation that stops after 32 items, a non-dict `Mapping`
+that skips validation, `slots` on the verdict dataclass, case-insensitive
+enum lookup, and a changed key order in `as_dict()`. Nine of the eleven come
+from the selector told in general terms how thorough the suite is.
+
+**Why it matters.** Four probes in a row now find no decision fault that
+survives the runner, so the decision logic generalises across every fault
+source tried. Each round still finds something in the parts no check had
+been built for, and each round's gains lie in the classes the round before
+named. This round's mechanisms caught no fault in a class nobody had named;
+section 16 did that once, in probe 3. The open survivors are cheaper to
+reach than the decision logic was, and also less consequential: none changes
+a verdict.
+
+**What this does not establish.** The agents are Anthropic models and the
+maintainer wrote their prompts. The five equivalence labels are arguments.
+The size and type gaps say nothing about a deployment, because the checker
+is a synthetic-fixture artifact.

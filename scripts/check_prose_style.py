@@ -80,6 +80,7 @@ EXCLUDE_PREFIXES = (
     "artifacts/evidence-sufficiency-blind-probe-2026-09-30/",  # generated probe inputs, committed unchanged
     "artifacts/evidence-sufficiency-blind-probe-2-2026-09-30/",  # generated probe inputs, committed unchanged
     "artifacts/evidence-sufficiency-blind-probe-3-2026-09-30/",  # generated probe inputs, committed unchanged
+    "artifacts/evidence-sufficiency-blind-probe-4-2026-10-01/",  # generated probe inputs, committed unchanged
     "CHANGELOG.md",  # historical record
 )
 

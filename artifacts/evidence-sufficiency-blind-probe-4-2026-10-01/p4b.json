@@ -1,0 +1,129 @@
+{
+ "selector": "p4b-first-contributions",
+ "files_read": [
+  "conformance/evidence-sufficiency-v1/checker.py",
+  "conformance/evidence-sufficiency-v1/README.md"
+ ],
+ "faults": [
+  {
+   "id": "P4B-01",
+   "old": "if o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True:",
+   "new": "if o.get(\"effect_source_accepted\") is not True:",
+   "rationale": "dropped effect_seen as redundant"
+  },
+  {
+   "id": "P4B-02",
+   "old": "if o.get(\"admission_present\") is not False:",
+   "new": "if not o.get(\"admission_present\"):",
+   "rationale": "None presence treated as absent"
+  },
+  {
+   "id": "P4B-03",
+   "old": "if o.get(\"admission_matches\") is True:",
+   "new": "if o.get(\"admission_matches\"):",
+   "rationale": "truthy instead of identity True"
+  },
+  {
+   "id": "P4B-04",
+   "old": "    if not scope:\n",
+   "new": "    if scope is None:\n",
+   "rationale": "empty scope no longer defaulted"
+  },
+  {
+   "id": "P4B-05",
+   "old": "return dict(scope)",
+   "new": "return scope",
+   "rationale": "scope aliased not copied"
+  },
+  {
+   "id": "P4B-06",
+   "old": "        (\"authoritative read-back\",),",
+   "new": "        (\"read-back\",),",
+   "rationale": "missing_evidence text changed"
+  },
+  {
+   "id": "P4B-07",
+   "old": "\"scope\": dict(self.scope),",
+   "new": "\"scope\": self.scope,",
+   "rationale": "as_dict leaks mapping not dict"
+  },
+  {
+   "id": "P4B-08",
+   "old": "json.dumps(value, sort_keys=True, separators=(\",\", \":\"), ensure_ascii=False)",
+   "new": "json.dumps(value, separators=(\",\", \":\"), ensure_ascii=False)",
+   "rationale": "key order now matters"
+  },
+  {
+   "id": "P4B-09",
+   "old": "if value is None or type(value) in (str, bool, int):",
+   "new": "if value is None or isinstance(value, (str, bool, int, float)):",
+   "rationale": "floats accepted"
+  },
+  {
+   "id": "P4B-10",
+   "old": "    if type(value) is dict and all(type(key) is str for key in value):",
+   "new": "    if type(value) is dict:",
+   "rationale": "non-str keys allowed"
+  },
+  {
+   "id": "P4B-11",
+   "old": "if premise_source != \"synthetic_fixture\":",
+   "new": "if not premise_source:",
+   "rationale": "guard accepts any non-empty source"
+  },
+  {
+   "id": "P4B-12",
+   "old": "    validate_json(dict(observations))\n",
+   "new": "    pass\n",
+   "rationale": "observations not validated"
+  },
+  {
+   "id": "P4B-13",
+   "old": "validate_json(dict(scope))",
+   "new": "pass",
+   "rationale": "scope not validated"
+  },
+  {
+   "id": "P4B-14",
+   "old": "if \"expected_state\" not in o or \"observed_state\" not in o:",
+   "new": "if o.get(\"expected_state\") is None or o.get(\"observed_state\") is None:",
+   "rationale": "null states treated as missing"
+  },
+  {
+   "id": "P4B-15",
+   "old": "    if o.get(\"effect_window_complete\") is not True:\n        return _unknown(claim, \"no_effect_observation_not_complete\", scope)\n",
+   "new": "",
+   "rationale": "dropped window completeness check"
+  },
+  {
+   "id": "P4B-16",
+   "old": "if o.get(\"outside_required_pep\") is not True:",
+   "new": "if o.get(\"outside_required_pep\") is False:",
+   "rationale": "None passes outside-PEP check"
+  },
+  {
+   "id": "P4B-17",
+   "old": "if o.get(\"mandatory_admission\") is not True:",
+   "new": "if o.get(\"mandatory_admission\") is False:",
+   "rationale": "None mandatory treated as defined"
+  },
+  {
+   "id": "P4B-18",
+   "old": "if o.get(\"admission_coverage_complete\") is not True:",
+   "new": "if o.get(\"admission_coverage_complete\") is False:",
+   "rationale": "None coverage treated complete"
+  },
+  {
+   "id": "P4B-19",
+   "old": "if claim not in ASSESSORS or not isinstance(observations, Mapping):",
+   "new": "if claim not in ASSESSORS:",
+   "rationale": "non-Mapping observations check removed"
+  },
+  {
+   "id": "P4B-20",
+   "old": "if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):",
+   "new": "if o[\"expected_state\"] == o[\"observed_state\"]:",
+   "rationale": "python equality, True==1, no validation"
+  }
+ ]
+}

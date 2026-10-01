@@ -31,6 +31,7 @@ on:
       - "conformance/evidence-sufficiency-v1.4/**"
       - "conformance/evidence-sufficiency-v1.5/**"
       - "conformance/evidence-sufficiency-v1.6/**"
+      - "conformance/evidence-sufficiency-v1.7/**"
       - "scripts/mutation_evidence_sufficiency.py"
       - "scripts/mutation_evidence_sufficiency_ast.py"
       - "scripts/spec_mutation_evidence_sufficiency.py"

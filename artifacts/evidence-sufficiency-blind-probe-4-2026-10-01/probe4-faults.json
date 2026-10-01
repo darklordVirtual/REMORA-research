@@ -1,0 +1,755 @@
+{
+ "source_commit": "bb3a2ea",
+ "selectors": [
+  {
+   "selector": "p4a-extensions",
+   "files_read": [
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\checker.py",
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\README.md"
+   ]
+  },
+  {
+   "selector": "p4b-first-contributions",
+   "files_read": [
+    "conformance/evidence-sufficiency-v1/checker.py",
+    "conformance/evidence-sufficiency-v1/README.md"
+   ]
+  },
+  {
+   "selector": "p4c-very-thorough-suite-evasion",
+   "files_read": [
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\checker.py",
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\README.md"
+   ]
+  },
+  {
+   "selector": "p4d-refactors",
+   "files_read": [
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\checker.py",
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\README.md"
+   ]
+  }
+ ],
+ "faults": [
+  {
+   "id": "P4A-01",
+   "class": "hand_picked",
+   "selector": "p4a-extensions",
+   "offset": 1148,
+   "old": "@dataclass(frozen=True)",
+   "new": "@dataclass",
+   "rationale": "Developer adds a mutable annotations field to the result and drops frozen; verdicts become mutable and unhashable."
+  },
+  {
+   "id": "P4A-02",
+   "class": "hand_picked",
+   "selector": "p4a-extensions",
+   "offset": 5870,
+   "old": "if not scope:",
+   "new": "if scope is None:",
+   "rationale": "Configurable-default refactor treats only None as missing; an empty scope mapping no longer gets the synthetic default scope."
+  },
+  {
+   "id": "P4A-03",
+   "class": "hand_picked",
+   "selector": "p4a-extensions",
+   "offset": 6108,
+   "old": "missing: tuple[str, ...] = ()\n    decisive_if: str | None = None",
+   "new": "missing: tuple[str, ...] = ()\n    decisive_if: str | None = \"\"",
+   "rationale": "Richer-guidance change defaults decisive_if to empty string; decisive verdicts now carry decisive_if='' and as_dict emits the key."
+  },
+  {
+   "id": "P4A-04",
+   "class": "hand_picked",
+   "selector": "p4a-extensions",
+   "offset": 11995,
+   "old": "if value is None or type(value) in (str, bool, int):",
+   "new": "if value is None or isinstance(value, (str, bool, int, float)):",
+   "rationale": "Extra-validation helper widens accepted scalars to floats; float fixture values no longer raise ValueError."
+  },
+  {
+   "id": "P4A-05",
+   "class": "hand_picked",
+   "selector": "p4a-extensions",
+   "offset": 12610,
+   "old": "sort_keys=True",
+   "new": "sort_keys=False",
+   "rationale": "Caller helper exposes canonical for display and keeps insertion order; dicts with same content in different key order now compare unequal."
+  },
+  {
+   "id": "P4A-06",
+   "class": "hand_picked",
+   "selector": "p4a-extensions",
+   "offset": 12649,
+   "old": "ensure_ascii=False",
+   "new": "ensure_ascii=True",
+   "rationale": "Helper made canonical output ASCII-safe for logs; canonical() output for non-ASCII strings changes."
+  },
+  {
+   "id": "P4A-07",
+   "class": "hand_picked",
+   "selector": "p4a-extensions",
+   "offset": 13363,
+   "old": "if premise_source != \"synthetic_fixture\":",
+   "new": "if not premise_source.startswith(\"synthetic\"):",
+   "rationale": "Optional premise_source variants added via prefix check; 'synthetic_other' is now silently accepted instead of raising."
+  },
+  {
+   "id": "P4A-08",
+   "class": "hand_picked",
+   "selector": "p4a-extensions",
+   "offset": 13751,
+   "old": "validate_json(dict(observations))",
+   "new": "validate_json({k: v for k, v in observations.items() if k.endswith(\"_state\")})",
+   "rationale": "Validation narrowed to compared state values only; non-JSON values in other observation fields no longer raise."
+  },
+  {
+   "id": "P4A-09",
+   "class": "hand_picked",
+   "selector": "p4a-extensions",
+   "offset": 7919,
+   "old": "if o.get(\"admission_present\") is not False:",
+   "new": "if o.get(\"admission_present\") is None:",
+   "rationale": "Presence check loosened to missing-only; non-boolean admission_present (e.g. 0) proceeds to closed-world VIOLATED."
+  },
+  {
+   "id": "P4A-10",
+   "class": "hand_picked",
+   "selector": "p4a-extensions",
+   "offset": 7577,
+   "old": "if o.get(\"admission_matches\") is True:",
+   "new": "if o.get(\"admission_matches\"):",
+   "rationale": "Truthiness instead of identity; admission_matches='yes' now ESTABLISHED."
+  },
+  {
+   "id": "P4A-11",
+   "class": "hand_picked",
+   "selector": "p4a-extensions",
+   "offset": 8155,
+   "old": "    if o.get(\"window_finalized\") is not True:\n        return _unknown(claim, \"observation_window_open\", scope)\n    if o.get(\"admission_coverage_complete\") is not True:\n        return _unknown(claim, \"admission_coverage_incomplete\", scope)",
+   "new": "    if o.get(\"admission_coverage_complete\") is not True:\n        return _unknown(claim, \"admission_coverage_incomplete\", scope)\n    if o.get(\"window_finalized\") is not True:\n        return _unknown(claim, \"observation_window_open\", scope)",
+   "rationale": "Reordered closed-world checks; when both premises are missing the reported reason/guidance changes."
+  },
+  {
+   "id": "P4A-12",
+   "class": "hand_picked",
+   "selector": "p4a-extensions",
+   "offset": 9532,
+   "old": "if o.get(\"protected_effect_observed\") is True:",
+   "new": "if o.get(\"protected_effect_observed\"):",
+   "rationale": "Truthiness instead of identity; protected_effect_observed=1 now VIOLATED instead of protected_effect_unknown."
+  },
+  {
+   "id": "P4A-13",
+   "class": "hand_picked",
+   "selector": "p4a-extensions",
+   "offset": 9394,
+   "old": "if o.get(\"effect_observation_accepted\") is not True:",
+   "new": "if o.get(\"effect_observation_accepted\") is False:",
+   "rationale": "Optional-field handling treats a missing effect_observation_accepted as acceptable; unaccepted effect can produce VIOLATED."
+  },
+  {
+   "id": "P4A-14",
+   "class": "hand_picked",
+   "selector": "p4a-extensions",
+   "offset": 11435,
+   "old": "if \"expected_state\" not in o or \"observed_state\" not in o:",
+   "new": "if o.get(\"expected_state\") is None or o.get(\"observed_state\") is None:",
+   "rationale": "Missing-state check rewritten with get(); explicit null states (previously compared, ESTABLISHED) now state_value_missing."
+  },
+  {
+   "id": "P4A-15",
+   "class": "hand_picked",
+   "selector": "p4a-extensions",
+   "offset": 11308,
+   "old": "if o.get(\"settlement_reached\") is not True:",
+   "new": "if o.get(\"settlement_reached\") is False:",
+   "rationale": "Settlement made optional by default; absent settlement_reached no longer blocks a decisive verdict."
+  },
+  {
+   "id": "P4A-16",
+   "class": "hand_picked",
+   "selector": "p4a-extensions",
+   "offset": 13611,
+   "old": "if claim not in ASSESSORS or not isinstance(observations, Mapping):\n        raise ValueError(\"unknown claim or malformed observations\")\n    validate_json(dict(observations))\n    if scope is not None:\n        validate_json(dict(scope))\n    return ASSESSORS[claim](observations, scope)",
+   "new": "if claim.strip() not in ASSESSORS or not isinstance(observations, Mapping):\n        raise ValueError(\"unknown claim or malformed observations\")\n    validate_json(dict(observations))\n    if scope is not None:\n        validate_json(dict(scope))\n    return ASSESSORS[claim.strip()](observations, scope)",
+   "rationale": "Caller-friendly claim normalisation; whitespace-padded unknown claim names are now accepted instead of ValueError."
+  },
+  {
+   "id": "P4A-17",
+   "class": "hand_picked",
+   "selector": "p4a-extensions",
+   "offset": 5681,
+   "old": "(\"expected state\", \"observed state\"),",
+   "new": "(\"expected state\",),",
+   "rationale": "Guidance rewrite drops one missing-evidence item for state_value_missing."
+  },
+  {
+   "id": "P4A-18",
+   "class": "hand_picked",
+   "selector": "p4a-extensions",
+   "offset": 2954,
+   "old": "\"observation_window_open\": (",
+   "new": "\"observation_window_not_finalized\": (",
+   "rationale": "Guidance key renamed for clarity but reason string not; observation_window_open verdicts lose missing_evidence/decisive_if."
+  },
+  {
+   "id": "P4A-19",
+   "class": "hand_picked",
+   "selector": "p4a-extensions",
+   "offset": 13611,
+   "old": "if claim not in ASSESSORS or not isinstance(observations, Mapping):",
+   "new": "if claim not in ASSESSORS:",
+   "rationale": "Mapping guard removed when adding duck-typed inputs; non-mapping observations raise TypeError/AttributeError instead of ValueError."
+  },
+  {
+   "id": "P4A-20",
+   "class": "hand_picked",
+   "selector": "p4a-extensions",
+   "offset": 5950,
+   "old": "return dict(scope)",
+   "new": "return scope",
+   "rationale": "Copy avoided for performance; verdict.scope aliases caller's mapping so later caller mutation changes the verdict."
+  },
+  {
+   "id": "P4B-01",
+   "class": "hand_picked",
+   "selector": "p4b-first-contributions",
+   "offset": 7107,
+   "old": "if o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True:",
+   "new": "if o.get(\"effect_source_accepted\") is not True:",
+   "rationale": "dropped effect_seen as redundant"
+  },
+  {
+   "id": "P4B-02",
+   "class": "hand_picked",
+   "selector": "p4b-first-contributions",
+   "offset": 7919,
+   "old": "if o.get(\"admission_present\") is not False:",
+   "new": "if not o.get(\"admission_present\"):",
+   "rationale": "None presence treated as absent"
+  },
+  {
+   "id": "P4B-03",
+   "class": "hand_picked",
+   "selector": "p4b-first-contributions",
+   "offset": 7577,
+   "old": "if o.get(\"admission_matches\") is True:",
+   "new": "if o.get(\"admission_matches\"):",
+   "rationale": "truthy instead of identity True"
+  },
+  {
+   "id": "P4B-04",
+   "class": "hand_picked",
+   "selector": "p4b-first-contributions",
+   "offset": 5866,
+   "old": "    if not scope:\n",
+   "new": "    if scope is None:\n",
+   "rationale": "empty scope no longer defaulted"
+  },
+  {
+   "id": "P4B-05",
+   "class": "hand_picked",
+   "selector": "p4b-first-contributions",
+   "offset": 5950,
+   "old": "return dict(scope)",
+   "new": "return scope",
+   "rationale": "scope aliased not copied"
+  },
+  {
+   "id": "P4B-06",
+   "class": "hand_picked",
+   "selector": "p4b-first-contributions",
+   "offset": 4830,
+   "old": "        (\"authoritative read-back\",),",
+   "new": "        (\"read-back\",),",
+   "rationale": "missing_evidence text changed"
+  },
+  {
+   "id": "P4B-07",
+   "class": "hand_picked",
+   "selector": "p4b-first-contributions",
+   "offset": 1555,
+   "old": "\"scope\": dict(self.scope),",
+   "new": "\"scope\": self.scope,",
+   "rationale": "as_dict leaks mapping not dict"
+  },
+  {
+   "id": "P4B-08",
+   "class": "hand_picked",
+   "selector": "p4b-first-contributions",
+   "offset": 12592,
+   "old": "json.dumps(value, sort_keys=True, separators=(\",\", \":\"), ensure_ascii=False)",
+   "new": "json.dumps(value, separators=(\",\", \":\"), ensure_ascii=False)",
+   "rationale": "key order now matters"
+  },
+  {
+   "id": "P4B-09",
+   "class": "hand_picked",
+   "selector": "p4b-first-contributions",
+   "offset": 11995,
+   "old": "if value is None or type(value) in (str, bool, int):",
+   "new": "if value is None or isinstance(value, (str, bool, int, float)):",
+   "rationale": "floats accepted"
+  },
+  {
+   "id": "P4B-10",
+   "class": "hand_picked",
+   "selector": "p4b-first-contributions",
+   "offset": 12165,
+   "old": "    if type(value) is dict and all(type(key) is str for key in value):",
+   "new": "    if type(value) is dict:",
+   "rationale": "non-str keys allowed"
+  },
+  {
+   "id": "P4B-11",
+   "class": "hand_picked",
+   "selector": "p4b-first-contributions",
+   "offset": 13363,
+   "old": "if premise_source != \"synthetic_fixture\":",
+   "new": "if not premise_source:",
+   "rationale": "guard accepts any non-empty source"
+  },
+  {
+   "id": "P4B-12",
+   "class": "hand_picked",
+   "selector": "p4b-first-contributions",
+   "offset": 13747,
+   "old": "    validate_json(dict(observations))\n",
+   "new": "    pass\n",
+   "rationale": "observations not validated"
+  },
+  {
+   "id": "P4B-13",
+   "class": "hand_picked",
+   "selector": "p4b-first-contributions",
+   "offset": 13819,
+   "old": "validate_json(dict(scope))",
+   "new": "pass",
+   "rationale": "scope not validated"
+  },
+  {
+   "id": "P4B-14",
+   "class": "hand_picked",
+   "selector": "p4b-first-contributions",
+   "offset": 11435,
+   "old": "if \"expected_state\" not in o or \"observed_state\" not in o:",
+   "new": "if o.get(\"expected_state\") is None or o.get(\"observed_state\") is None:",
+   "rationale": "null states treated as missing"
+  },
+  {
+   "id": "P4B-15",
+   "class": "hand_picked",
+   "selector": "p4b-first-contributions",
+   "offset": 9871,
+   "old": "    if o.get(\"effect_window_complete\") is not True:\n        return _unknown(claim, \"no_effect_observation_not_complete\", scope)\n",
+   "new": "",
+   "rationale": "dropped window completeness check"
+  },
+  {
+   "id": "P4B-16",
+   "class": "hand_picked",
+   "selector": "p4b-first-contributions",
+   "offset": 9269,
+   "old": "if o.get(\"outside_required_pep\") is not True:",
+   "new": "if o.get(\"outside_required_pep\") is False:",
+   "rationale": "None passes outside-PEP check"
+  },
+  {
+   "id": "P4B-17",
+   "class": "hand_picked",
+   "selector": "p4b-first-contributions",
+   "offset": 8035,
+   "old": "if o.get(\"mandatory_admission\") is not True:",
+   "new": "if o.get(\"mandatory_admission\") is False:",
+   "rationale": "None mandatory treated as defined"
+  },
+  {
+   "id": "P4B-18",
+   "class": "hand_picked",
+   "selector": "p4b-first-contributions",
+   "offset": 8270,
+   "old": "if o.get(\"admission_coverage_complete\") is not True:",
+   "new": "if o.get(\"admission_coverage_complete\") is False:",
+   "rationale": "None coverage treated complete"
+  },
+  {
+   "id": "P4B-19",
+   "class": "hand_picked",
+   "selector": "p4b-first-contributions",
+   "offset": 13611,
+   "old": "if claim not in ASSESSORS or not isinstance(observations, Mapping):",
+   "new": "if claim not in ASSESSORS:",
+   "rationale": "non-Mapping observations check removed"
+  },
+  {
+   "id": "P4B-20",
+   "class": "hand_picked",
+   "selector": "p4b-first-contributions",
+   "offset": 11559,
+   "old": "if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):",
+   "new": "if o[\"expected_state\"] == o[\"observed_state\"]:",
+   "rationale": "python equality, True==1, no validation"
+  },
+  {
+   "id": "P4C-01",
+   "class": "hand_picked",
+   "selector": "p4c-very-thorough-suite-evasion",
+   "offset": 5884,
+   "old": "        return {\"kind\": \"synthetic_fixture\", \"bounded\": True}\n",
+   "new": "        return _scope.__dict__.setdefault(\"_d\", {\"kind\": \"synthetic_fixture\", \"bounded\": True})\n",
+   "rationale": "Default scope dict is shared across calls: mutating one verdict's scope leaks into every later default-scope verdict. Witness: v1=assess(...); v1.scope['x']=1; assess(...).scope contains 'x'."
+  },
+  {
+   "id": "P4C-02",
+   "class": "hand_picked",
+   "selector": "p4c-very-thorough-suite-evasion",
+   "offset": 13846,
+   "old": "    return ASSESSORS[claim](observations, scope)\n",
+   "new": "    key = (claim, canonical(dict(observations)), None if scope is None else canonical(dict(scope)))\n    cache = validate_json.__dict__.setdefault(\"_cache\", {})\n    if key not in cache:\n        cache[key] = ASSESSORS[claim](observations, scope)\n    return cache[key]\n",
+   "rationale": "Hidden memoisation: equal inputs return the identical verdict object, so scope mutations by one caller appear in another caller's later result. Witness: assess(c,o) is assess(c,dict(o)) -> True."
+  },
+  {
+   "id": "P4C-03",
+   "class": "hand_picked",
+   "selector": "p4c-very-thorough-suite-evasion",
+   "offset": 12649,
+   "old": "ensure_ascii=False",
+   "new": "ensure_ascii=True",
+   "rationale": "Public canonical() escapes non-ASCII; verdicts unchanged. Witness: canonical('é') -> '\"\\\\u00e9\"' instead of '\"é\"'."
+  },
+  {
+   "id": "P4C-04",
+   "class": "hand_picked",
+   "selector": "p4c-very-thorough-suite-evasion",
+   "offset": 12626,
+   "old": "separators=(\",\", \":\"), ",
+   "new": "",
+   "rationale": "Public canonical() emits spaced separators; comparisons unaffected. Witness: canonical([1,2]) -> '[1, 2]' instead of '[1,2]'."
+  },
+  {
+   "id": "P4C-05",
+   "class": "hand_picked",
+   "selector": "p4c-very-thorough-suite-evasion",
+   "offset": 12610,
+   "old": "sort_keys=True",
+   "new": "sort_keys=False",
+   "rationale": "Dict state comparison becomes insertion-order sensitive. Witness: postcondition expected {'a':1,'b':2}, observed {'b':2,'a':1} -> VIOLATED instead of ESTABLISHED."
+  },
+  {
+   "id": "P4C-06",
+   "class": "hand_picked",
+   "selector": "p4c-very-thorough-suite-evasion",
+   "offset": 11559,
+   "old": "if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):",
+   "new": "if __import__(\"unicodedata\").normalize(\"NFC\", canonical(o[\"expected_state\"])) == __import__(\"unicodedata\").normalize(\"NFC\", canonical(o[\"observed_state\"])):",
+   "rationale": "Unicode-normalised comparison: canonically-equivalent but distinct strings agree. Witness: expected 'é' observed 'é' -> ESTABLISHED instead of VIOLATED."
+  },
+  {
+   "id": "P4C-07",
+   "class": "hand_picked",
+   "selector": "p4c-very-thorough-suite-evasion",
+   "offset": 12091,
+   "old": "        for item in value:\n            validate_json(item)\n",
+   "new": "        for item in value[:32]:\n            validate_json(item)\n",
+   "rationale": "List validation stops after 32 elements. Witness: observations {'x':[0]*32+[1.5]} accepted instead of ValueError."
+  },
+  {
+   "id": "P4C-08",
+   "class": "hand_picked",
+   "selector": "p4c-very-thorough-suite-evasion",
+   "offset": 12196,
+   "old": "all(type(key) is str for key in value)",
+   "new": "all(isinstance(key, str) for key in value)",
+   "rationale": "str-subclass keys accepted. Witness: observations {S('readback_available'): True} with class S(str) -> verdict instead of ValueError."
+  },
+  {
+   "id": "P4C-09",
+   "class": "hand_picked",
+   "selector": "p4c-very-thorough-suite-evasion",
+   "offset": 13747,
+   "old": "    validate_json(dict(observations))\n",
+   "new": "    if type(observations) is dict:\n        validate_json(observations)\n",
+   "rationale": "Non-dict Mapping observations bypass validation. Witness: MappingProxyType({'x':1.5}) -> verdict instead of ValueError."
+  },
+  {
+   "id": "P4C-10",
+   "class": "hand_picked",
+   "selector": "p4c-very-thorough-suite-evasion",
+   "offset": 13640,
+   "old": "not isinstance(observations, Mapping)",
+   "new": "not isinstance(observations, dict)",
+   "rationale": "Valid non-dict Mappings rejected. Witness: assess('postcondition_observed', MappingProxyType({})) -> ValueError instead of NOT_ESTABLISHED."
+  },
+  {
+   "id": "P4C-11",
+   "class": "hand_picked",
+   "selector": "p4c-very-thorough-suite-evasion",
+   "offset": 12169,
+   "old": "if type(value) is dict and all(",
+   "new": "if isinstance(value, dict) and all(",
+   "rationale": "Nested dict subclasses accepted. Witness: observations {'x': OrderedDict()} -> verdict instead of ValueError."
+  },
+  {
+   "id": "P4C-12",
+   "class": "hand_picked",
+   "selector": "p4c-very-thorough-suite-evasion",
+   "offset": 11995,
+   "old": "if value is None or type(value) in (str, bool, int):",
+   "new": "if value is None or isinstance(value, str) or type(value) in (bool, int):",
+   "rationale": "str-subclass values accepted. Witness: observations {'x': S('v')} -> verdict instead of ValueError."
+  },
+  {
+   "id": "P4C-13",
+   "class": "hand_picked",
+   "selector": "p4c-very-thorough-suite-evasion",
+   "offset": 11995,
+   "old": "if value is None or type(value) in (str, bool, int):",
+   "new": "if value is None or type(value) in (str, bool) or (type(value) is int and -2**63 <= value < 2**63):",
+   "rationale": "Valid large integers rejected. Witness: expected_state 2**64 -> ValueError instead of ESTABLISHED."
+  },
+  {
+   "id": "P4C-14",
+   "class": "hand_picked",
+   "selector": "p4c-very-thorough-suite-evasion",
+   "offset": 11559,
+   "old": "if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):",
+   "new": "if canonical(o[\"expected_state\"]).replace(\"{}\", \"[]\") == canonical(o[\"observed_state\"]).replace(\"{}\", \"[]\"):",
+   "rationale": "Empty object and empty list (and strings containing '{}'/'[]') compare equal. Witness: expected [] observed {} -> ESTABLISHED instead of VIOLATED."
+  },
+  {
+   "id": "P4C-15",
+   "class": "hand_picked",
+   "selector": "p4c-very-thorough-suite-evasion",
+   "offset": 1653,
+   "old": "        if self.decisive_if is not None:\n",
+   "new": "        if self.decisive_if:\n",
+   "rationale": "as_dict drops an empty-string decisive_if. Witness: EvidenceVerdict('c',ESTABLISHED,'r',{},(),'').as_dict() lacks 'decisive_if'."
+  },
+  {
+   "id": "P4C-16",
+   "class": "hand_picked",
+   "selector": "p4c-very-thorough-suite-evasion",
+   "offset": 1148,
+   "old": "@dataclass(frozen=True)",
+   "new": "@dataclass(frozen=True, slots=True)",
+   "rationale": "Verdict becomes slotted: no __dict__, not weak-referenceable. Witness: weakref.ref(verdict) raises TypeError."
+  },
+  {
+   "id": "P4C-17",
+   "class": "hand_picked",
+   "selector": "p4c-very-thorough-suite-evasion",
+   "offset": 1106,
+   "old": "    NOT_ESTABLISHED = \"not_established\"\n",
+   "new": "    NOT_ESTABLISHED = \"not_established\"\n    UNKNOWN = \"not_established\"\n",
+   "rationale": "Extra public alias member. Witness: EvidenceStatus.UNKNOWN exists; 'UNKNOWN' in EvidenceStatus.__members__."
+  },
+  {
+   "id": "P4C-18",
+   "class": "hand_picked",
+   "selector": "p4c-very-thorough-suite-evasion",
+   "offset": 1106,
+   "old": "    NOT_ESTABLISHED = \"not_established\"\n",
+   "new": "    NOT_ESTABLISHED = \"not_established\"\n\n    @classmethod\n    def _missing_(cls, value):\n        if isinstance(value, str):\n            for member in cls:\n                if member.value == value.lower():\n                    return member\n        return None\n",
+   "rationale": "Enum lookup becomes case-insensitive. Witness: EvidenceStatus('ESTABLISHED') returns a member instead of ValueError."
+  },
+  {
+   "id": "P4C-19",
+   "class": "hand_picked",
+   "selector": "p4c-very-thorough-suite-evasion",
+   "offset": 1434,
+   "old": "            \"claim\": self.claim,\n            \"status\": self.status.value,\n",
+   "new": "            \"status\": self.status.value,\n            \"claim\": self.claim,\n",
+   "rationale": "as_dict key order changes (visible to json.dumps without sort_keys, list(d)). Witness: list(v.as_dict())[0] == 'status'."
+  },
+  {
+   "id": "P4C-20",
+   "class": "hand_picked",
+   "selector": "p4c-very-thorough-suite-evasion",
+   "offset": 5946,
+   "old": "    return dict(scope)\n",
+   "new": "    return scope if not isinstance(scope, dict) else dict(scope)\n",
+   "rationale": "Non-dict scope objects are stored as-is: verdict.scope aliases the caller's mapping and is not a dict; a pair-list scope stays a list. Witness: scope=[('a',1)] -> verdict.scope == [('a',1)] instead of {'a':1}."
+  },
+  {
+   "id": "P4D-01",
+   "class": "hand_picked",
+   "selector": "p4d-refactors",
+   "offset": 7107,
+   "old": "if o.get(\"effect_source_accepted\") is not True or o.get(\"effect_seen\") is not True:",
+   "new": "if o.get(\"effect_source_accepted\") is True or o.get(\"effect_seen\") is not True:",
+   "rationale": "Inverts effect_source_accepted check, rejecting valid observations"
+  },
+  {
+   "id": "P4D-02",
+   "class": "hand_picked",
+   "selector": "p4d-refactors",
+   "offset": 7280,
+   "old": "if o.get(\"scope_accepted\") is not True:",
+   "new": "if o.get(\"scope_accepted\") is True:",
+   "rationale": "Inverts scope_accepted condition, rejecting accepted scopes"
+  },
+  {
+   "id": "P4D-03",
+   "class": "hand_picked",
+   "selector": "p4d-refactors",
+   "offset": 7440,
+   "old": "if o.get(\"admission_source_accepted\") is not True:\n            return _unknown(claim, \"admission_observation_unaccepted\", scope)",
+   "new": "if o.get(\"admission_source_accepted\") is True:\n            return _unknown(claim, \"admission_observation_unaccepted\", scope)",
+   "rationale": "Inverts admission source check, rejects valid sources"
+  },
+  {
+   "id": "P4D-04",
+   "class": "hand_picked",
+   "selector": "p4d-refactors",
+   "offset": 7683,
+   "old": "EvidenceStatus.ESTABLISHED,\n                \"covering_admission_observed_for_this_execution\",",
+   "new": "EvidenceStatus.VIOLATED,\n                \"covering_admission_observed_for_this_execution\",",
+   "rationale": "Uses VIOLATED when should be ESTABLISHED for matching admission"
+  },
+  {
+   "id": "P4D-05",
+   "class": "hand_picked",
+   "selector": "p4d-refactors",
+   "offset": 9007,
+   "old": "if o.get(\"route_observation_accepted\") is not True:",
+   "new": "if o.get(\"route_observation_accepted\") is True:",
+   "rationale": "Inverts route observation check, rejects accepted observations"
+  },
+  {
+   "id": "P4D-06",
+   "class": "hand_picked",
+   "selector": "p4d-refactors",
+   "offset": 9144,
+   "old": "if o.get(\"same_protected_operation\") is not True:",
+   "new": "if o.get(\"same_protected_operation\") is True:",
+   "rationale": "Inverts operation binding, rejects when operations match"
+  },
+  {
+   "id": "P4D-07",
+   "class": "hand_picked",
+   "selector": "p4d-refactors",
+   "offset": 9269,
+   "old": "if o.get(\"outside_required_pep\") is not True:",
+   "new": "if o.get(\"outside_required_pep\") is True:",
+   "rationale": "Inverts PEP check, rejects routes outside required enforcement point"
+  },
+  {
+   "id": "P4D-08",
+   "class": "hand_picked",
+   "selector": "p4d-refactors",
+   "offset": 9394,
+   "old": "if o.get(\"effect_observation_accepted\") is not True:",
+   "new": "if o.get(\"effect_observation_accepted\") is True:",
+   "rationale": "Inverts effect observation acceptance check"
+  },
+  {
+   "id": "P4D-09",
+   "class": "hand_picked",
+   "selector": "p4d-refactors",
+   "offset": 9532,
+   "old": "if o.get(\"protected_effect_observed\") is True:\n        return _result(\n            claim,\n            EvidenceStatus.VIOLATED,\n            \"accepted_effect_observed_outside_required_pep\",",
+   "new": "if o.get(\"protected_effect_observed\") is not True:\n        return _result(\n            claim,\n            EvidenceStatus.VIOLATED,\n            \"accepted_effect_observed_outside_required_pep\",",
+   "rationale": "Inverts effect observation condition, reports violation when absent"
+  },
+  {
+   "id": "P4D-10",
+   "class": "hand_picked",
+   "selector": "p4d-refactors",
+   "offset": 10831,
+   "old": "if o.get(\"readback_available\") is not True:",
+   "new": "if o.get(\"readback_available\") is True:",
+   "rationale": "Inverts readback availability check"
+  },
+  {
+   "id": "P4D-11",
+   "class": "hand_picked",
+   "selector": "p4d-refactors",
+   "offset": 10941,
+   "old": "if o.get(\"source_accepted\") is not True:",
+   "new": "if o.get(\"source_accepted\") is True:",
+   "rationale": "Inverts source acceptance check in postcondition"
+  },
+  {
+   "id": "P4D-12",
+   "class": "hand_picked",
+   "selector": "p4d-refactors",
+   "offset": 11056,
+   "old": "if o.get(\"same_target_and_predicate\") is not True:",
+   "new": "if o.get(\"same_target_and_predicate\") is True:",
+   "rationale": "Inverts target and predicate binding check"
+  },
+  {
+   "id": "P4D-13",
+   "class": "hand_picked",
+   "selector": "p4d-refactors",
+   "offset": 11182,
+   "old": "if o.get(\"fresh_in_declared_window\") is not True:",
+   "new": "if o.get(\"fresh_in_declared_window\") is True:",
+   "rationale": "Inverts freshness check, accepts stale observations"
+  },
+  {
+   "id": "P4D-14",
+   "class": "hand_picked",
+   "selector": "p4d-refactors",
+   "offset": 11308,
+   "old": "if o.get(\"settlement_reached\") is not True:",
+   "new": "if o.get(\"settlement_reached\") is True:",
+   "rationale": "Inverts settlement point reached check"
+  },
+  {
+   "id": "P4D-15",
+   "class": "hand_picked",
+   "selector": "p4d-refactors",
+   "offset": 11559,
+   "old": "if canonical(o[\"expected_state\"]) == canonical(o[\"observed_state\"]):",
+   "new": "if canonical(o[\"expected_state\"]) != canonical(o[\"observed_state\"]):",
+   "rationale": "Inverts equality check, establishes when states disagree"
+  },
+  {
+   "id": "P4D-16",
+   "class": "hand_picked",
+   "selector": "p4d-refactors",
+   "offset": 11845,
+   "old": "EvidenceStatus.VIOLATED,\n        \"declared_postcondition_disagreed_at_named_point\",",
+   "new": "EvidenceStatus.ESTABLISHED,\n        \"declared_postcondition_disagreed_at_named_point\",",
+   "rationale": "Uses ESTABLISHED when postconditions disagree"
+  },
+  {
+   "id": "P4D-17",
+   "class": "hand_picked",
+   "selector": "p4d-refactors",
+   "offset": 6177,
+   "old": "if status is EvidenceStatus.NOT_ESTABLISHED and reason in _REASON_GUIDANCE:",
+   "new": "if reason in _REASON_GUIDANCE:",
+   "rationale": "Removes status check, applies guidance lookup to all verdict statuses"
+  },
+  {
+   "id": "P4D-18",
+   "class": "hand_picked",
+   "selector": "p4d-refactors",
+   "offset": 8035,
+   "old": "if o.get(\"mandatory_admission\") is not True:",
+   "new": "if o.get(\"mandatory_admission\") is True:",
+   "rationale": "Inverts mandatory admission check, rejects non-mandatory admissions"
+  },
+  {
+   "id": "P4D-19",
+   "class": "hand_picked",
+   "selector": "p4d-refactors",
+   "offset": 8159,
+   "old": "if o.get(\"window_finalized\") is not True:",
+   "new": "if o.get(\"window_finalized\") is True:",
+   "rationale": "Inverts window finalization check"
+  },
+  {
+   "id": "P4D-20",
+   "class": "hand_picked",
+   "selector": "p4d-refactors",
+   "offset": 10003,
+   "old": "if o.get(\"valid_control_same_context\") is not True:",
+   "new": "if o.get(\"valid_control_same_context\") is True:",
+   "rationale": "Inverts valid control check"
+  }
+ ]
+}
