@@ -200,6 +200,9 @@ class DecisionEvidence:
     response_hash: str
     answers: tuple[DecisionAnswer, ...]
     latency_ms: float
+    #: Input tokens the provider billed for this call, when it reports them.
+    #: Recorded so cost per decision is measured, not estimated.
+    input_tokens: int | None = None
 
     #: Never anything else. Present so the record states its own status rather
     #: than relying on a reader knowing this module's rules.

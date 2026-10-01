@@ -109,6 +109,7 @@ def test_the_shared_parser_keeps_probability_legend_and_resolved_model() -> None
     assert evidence.answer("is_urgent").value == pytest.approx(0.95)
     assert evidence.answer("frustration").legend == ("Calm", "Frustrated", "Very angry")
     assert evidence.answer("department").value == "billing"
+    assert evidence.input_tokens == 426
 
 
 def test_a_response_without_a_model_version_is_refused() -> None:

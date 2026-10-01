@@ -42,6 +42,7 @@ from remora.decision_providers import (
 from remora.decision_providers.cloudflare import (
     Transport,
     _https_transport,
+    _input_tokens,
     parse_answer,
     question_payload,
 )
@@ -174,6 +175,7 @@ class TypeSafeJevProvider:
             response_hash=evidence_fingerprint(dict(raw_answers)),
             answers=tuple(answers),
             latency_ms=latency_ms,
+            input_tokens=_input_tokens(body),
         )
 
     def _fetch(

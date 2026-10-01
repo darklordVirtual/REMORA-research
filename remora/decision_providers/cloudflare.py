@@ -161,6 +161,13 @@ def parse_answer(question: DecisionQuestion, raw: Mapping[str, Any]) -> Decision
     )
 
 
+def _input_tokens(body: Mapping[str, Any]) -> int | None:
+    """``usage.input_tokens`` when the response reports it; Jev bills input only."""
+    usage = body.get("usage")
+    value = usage.get("input_tokens") if isinstance(usage, Mapping) else None
+    return int(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else None
+
+
 def _https_transport(
     url: str, payload: bytes, headers: Mapping[str, str], timeout_s: float
 ) -> Mapping[str, Any]:
@@ -312,6 +319,7 @@ class CloudflareJevProvider:
             response_hash=evidence_fingerprint(dict(raw_answers)),
             answers=tuple(answers),
             latency_ms=latency_ms,
+            input_tokens=_input_tokens(body),
         )
 
     def _fetch(
