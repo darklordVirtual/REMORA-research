@@ -39,6 +39,13 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           queries: security-and-quality
+          # Frozen evidence, committed byte for byte under pre-registered digests: the blind
+          # probes' fault variants are faulty on purpose, and the independent-analysis package
+          # is a third party's delivery. Scanning them reports the faults they were made to carry.
+          config: |
+            paths-ignore:
+              - artifacts/independent-analysis-2026-09-30/**
+              - artifacts/evidence-sufficiency-blind-probe-*/**
 
       - name: Analyze
         uses: github/codeql-action/analyze@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1

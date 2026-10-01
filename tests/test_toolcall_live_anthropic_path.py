@@ -112,7 +112,7 @@ def _stub_live(monkeypatch, *, fail_after: int | None = None):
     monkeypatch.setattr(live, "_openai_live_decide", make("gpt"))
     monkeypatch.setattr(live, "_anthropic_live_decide", make("claude"))
     monkeypatch.setattr(live, "_gemini_live_decide", make("gemini"))
-    monkeypatch.setattr(live, "_new_anthropic_client", lambda: object())
+    monkeypatch.setattr(live, "_new_anthropic_client", object)
     monkeypatch.setattr(live, "load_benchmark_v2", lambda: load_benchmark_v2()[:5])
     return seen
 
