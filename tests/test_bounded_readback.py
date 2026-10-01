@@ -158,7 +158,7 @@ def test_inclusive_time_boundaries(payload, source, contract, observed_at, now):
     b'{"x":{"a":1,"a":2}}', b'{"a":NaN}', b'{"a":Infinity}', b'{"a":1.2}',
     b'{"a":"\\ud800"}', b"[" * 2000 + b"]" * 2000,
     "not bytes", bytearray(b"{}"),
-])
+], ids=lambda raw: f"{type(raw).__name__}-{len(raw)}")
 def test_malformed_input_is_nonverdict(source, contract, raw):
     result = verify_readback(raw, contract=contract, source=source, now=120)
     assert result.processing is Processing.REJECTED_EVIDENCE

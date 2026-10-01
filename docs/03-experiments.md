@@ -309,7 +309,11 @@ as production evidence. See `04-negative-results-detail.md` §2.
 
 `experiments/bounded_readback.py` explores accepting source observations before
 inferring `postcondition_observed`. It is not connected to the execution API,
-SDK or existing effect verifier. The frozen `conformance/evidence-sufficiency-v1`
+SDK or the existing effect verifier (`remora/governance/effect_verification.py`,
+fed by `remora/integrations/http_readback.py`). That verifier already compares
+only the declared fields. What the experiment adds is the envelope around the
+observation: an authenticated source, binding to tenant, target, operation and
+attempt, and a freshness window. The frozen `conformance/evidence-sufficiency-v1`
 and `conformance/decision-to-effect-v1` artifacts remain unchanged.
 
 The deployment supplies a `SourcePolicy` (source ID, key ID and HMAC key), a
@@ -333,6 +337,12 @@ Processing and property results remain separate:
   no property verdict.
 - Unexpected verifier/clock exceptions: `verifier_failed`, no property verdict.
 - Completed evaluation: `established`, `violated` or `not_established`.
+
+The nearest `EffectStatus` values in the effect verifier are `EFFECT_VERIFIED`
+for `established`, `EFFECT_MISMATCH` for `violated` and `EFFECT_UNOBSERVABLE`
+for `not_established`; the three processing failures are nearest to
+`EFFECT_VERIFIER_FAILED`. This is a reading aid only. No mapping is wired or
+tested, so the experiment keeps its own names.
 
 Only declared fields are compared. Missing fields do not establish a mismatch;
 an observed contradictory field can refute the declared conjunction even when
