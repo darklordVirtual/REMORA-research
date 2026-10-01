@@ -1,9 +1,10 @@
 # Jev as a decision provider
 
-Status: experimental. The adapter has been exercised against the documented
-request and response shapes only. It has not been run against the live
-service from this repository, and nothing on this page is evidence about the
-model's answers, latency or availability.
+Status: experimental. Two adapters reach the same model: one on TypeSafe's
+own API and one on Cloudflare Workers AI. Both have been exercised against the
+documented request and response shapes. Neither has produced an observed
+answer from the live service in this repository, and nothing on this page is
+evidence about the model's answers, latency or availability.
 
 ## The one rule
 
@@ -83,6 +84,35 @@ fail-open, and there is nothing it could express that is safe.
 Model availability therefore affects automation coverage. It never affects the
 safety boundary.
 
+## TypeSafe API
+
+`remora.decision_providers.typesafe.TypeSafeJevProvider` calls
+`POST https://api.typesafe.ai/v1/systemone` with a bearer key from the
+TypeSafe console and model alias `jev-latest`. This is the route for a
+TypeSafe key: it needs no Cloudflare account, no AI Gateway and no credits,
+so the billing prerequisites in the next two sections do not apply to it.
+
+The key is read from `JEV_API_KEY`, with `TYPESAFE_API_KEY` (the name in
+TypeSafe's documentation) as the fallback. Both are registered in
+`docs/assurance/credential_topology.yaml` as oracle credentials.
+
+The repository holds the key as a GitHub Agents secret, `JEV_API_KEY`, added
+2026-10-01. GitHub exposes Agents secrets to the Copilot cloud agent. They are
+not visible to Actions workflows or to a local shell. A workflow that should
+call Jev needs the key as an Actions secret as well, and a local run needs it
+exported in the environment:
+
+```bash
+export JEV_API_KEY=...   # from console.typesafe.ai
+python examples/jev_decision_provider_demo.py --live
+python examples/jev_decision_provider_demo.py --live --scenario injection
+```
+
+Rate limiting (`429`) and overload (`529`) are retried with the
+`retry-after` header honoured up to ten seconds. A `401` is refused at once.
+Every refusal carries TypeSafe's message and the `x-typesafe-request-id`, which
+is what TypeSafe support asks for.
+
 ## Cloudflare Workers AI
 
 `remora.decision_providers.cloudflare.CloudflareJevProvider` reaches the model
@@ -151,13 +181,14 @@ visible in the record.
 ## Example
 
 ```python
-from remora.decision_providers.cloudflare import CloudflareJevProvider
 from remora.decision_providers.enrich import SemanticThresholds, enrich, semantic_state
 from remora.decision_providers.questions import QUESTION_SET_VERSION
 from remora.policy.decision_engine import RemoraDecisionEngine
+from remora.decision_providers.typesafe import TypeSafeJevProvider
 from remora.policy.observation import PolicyObservation
 
-provider = CloudflareJevProvider(question_set_version=QUESTION_SET_VERSION)
+# Reads JEV_API_KEY. CloudflareJevProvider takes the same arguments.
+provider = TypeSafeJevProvider(question_set_version=QUESTION_SET_VERSION)
 
 # From reviewed configuration, calibrated against a corpus in the deployment's language.
 thresholds = SemanticThresholds(

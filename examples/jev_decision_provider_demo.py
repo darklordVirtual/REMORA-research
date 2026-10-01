@@ -4,9 +4,10 @@
 """One governed decision with a semantic provider in the loop, end to end.
 
 Runs offline by default with the deterministic provider, so the whole path is
-exercisable with no account. Set ``CLOUDFLARE_ACCOUNT_ID`` and
-``CLOUDFLARE_API_TOKEN`` and pass ``--live`` to put the same questions to
-``typesafe/jev`` on Workers AI instead.
+exercisable with no account. Set ``JEV_API_KEY`` (a TypeSafe key) and pass
+``--live`` to put the same questions to Jev on TypeSafe's own API instead.
+``--live --via cloudflare`` uses ``typesafe/jev`` on Workers AI, which needs
+``CLOUDFLARE_ACCOUNT_ID`` and ``CLOUDFLARE_API_TOKEN``.
 
 What it shows, in order: the minimised state a provider sees, the answers it
 returns, which of those were admitted as signals and why, and the decision
@@ -16,6 +17,7 @@ did not authorise anything.
 
     python examples/jev_decision_provider_demo.py
     python examples/jev_decision_provider_demo.py --live
+    python examples/jev_decision_provider_demo.py --live --via cloudflare
     python examples/jev_decision_provider_demo.py --scenario injection
 """
 
@@ -87,9 +89,15 @@ SCENARIOS = {
 }
 
 
-def build_provider(live: bool, offline_answers: dict):
+def build_provider(live: bool, offline_answers: dict, via: str = "typesafe"):
     if not live:
         return DeterministicDecisionProvider(offline_answers, question_set_version=QUESTION_SET_VERSION)
+    if via == "typesafe":
+        if not (os.environ.get("JEV_API_KEY") or os.environ.get("TYPESAFE_API_KEY")):
+            sys.exit("--live needs JEV_API_KEY (or TYPESAFE_API_KEY)")
+        from remora.decision_providers.typesafe import TypeSafeJevProvider
+
+        return TypeSafeJevProvider(question_set_version=QUESTION_SET_VERSION)
     if not (os.environ.get("CLOUDFLARE_ACCOUNT_ID") and os.environ.get("CLOUDFLARE_API_TOKEN")):
         sys.exit("--live needs CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN")
     from remora.decision_providers.cloudflare import CloudflareJevProvider
@@ -100,7 +108,13 @@ def build_provider(live: bool, offline_answers: dict):
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--scenario", choices=sorted(SCENARIOS), default="legitimate")
-    parser.add_argument("--live", action="store_true", help="use typesafe/jev via Workers AI")
+    parser.add_argument("--live", action="store_true", help="put the questions to the live Jev model")
+    parser.add_argument(
+        "--via",
+        choices=("typesafe", "cloudflare"),
+        default="typesafe",
+        help="live route: TypeSafe's API (JEV_API_KEY) or Workers AI",
+    )
     args = parser.parse_args(argv)
     scenario = SCENARIOS[args.scenario]
 
@@ -121,7 +135,7 @@ def main(argv: list[str] | None = None) -> int:
 
     result = enrich(
         observation,
-        build_provider(args.live, scenario["offline_answers"]),
+        build_provider(args.live, scenario["offline_answers"], args.via),
         state=state,
         thresholds=THRESHOLDS,
         questions=REMORA_QUESTIONS_V1,

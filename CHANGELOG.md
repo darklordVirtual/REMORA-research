@@ -258,6 +258,19 @@ This file lists externally relevant changes by release. Fine-grained development
   documented response shape through an injected transport and has not been run
   against the live service, so it is evidence about parsing and about nothing
   else.
+- `remora.decision_providers.typesafe`: an adapter for Jev on TypeSafe's own
+  API, `POST https://api.typesafe.ai/v1/systemone`, with model alias
+  `jev-latest`. It reads `JEV_API_KEY`, the name of the repository's GitHub
+  Agents secret, and falls back to `TYPESAFE_API_KEY`. It needs no Cloudflare
+  account or gateway credits. The question payload and answer parsing are now
+  module functions in `remora.decision_providers.cloudflare` shared by both
+  adapters, so a `noul` answer stays a probability and a `score` keeps its
+  legend on either route. `429` and `529` are retried with a bounded
+  `retry-after`; every refusal carries TypeSafe's message and request id.
+  `examples/jev_decision_provider_demo.py --live` now uses this route, and
+  `--via cloudflare` selects Workers AI. Both key names are registered in the
+  credential topology as oracle credentials. Exercised through an injected
+  transport only; no live answer has been observed yet.
 - `remora.decision_providers.questions` and `remora.decision_providers.enrich`
   complete the provider integration end to end. The question set is versioned
   (`remora-semantic-v1`) because thresholds are calibrated against a specific
