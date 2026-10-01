@@ -22,7 +22,7 @@ DATA_PATH = Path("results/thermodynamic_eval_n500_calibrated_results.json")
 
 def _load_results() -> dict:
     if RESULTS_PATH.exists():
-        return json.loads(RESULTS_PATH.read_text())
+        return json.loads(RESULTS_PATH.read_text(encoding="utf-8"))
     return run()
 
 

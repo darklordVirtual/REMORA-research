@@ -199,5 +199,5 @@ def test_the_committed_fixtures_reproduce():
         [sys.executable, str(ROOT / "scripts" / "generate_resolved_effect_fixtures.py"), "--check"],
         capture_output=True, text=True, cwd=ROOT)
     assert result.returncode == 0, result.stdout + result.stderr
-    artifact = json.loads((ROOT / "artifacts" / "resolved_effect" / "fixtures_v1.json").read_text())
+    artifact = json.loads((ROOT / "artifacts" / "resolved_effect" / "fixtures_v1.json").read_text(encoding="utf-8"))
     assert artifact["summary"]["all_as_required"] is True

@@ -12,7 +12,7 @@ _FIXTURE = Path(__file__).parent / "fixtures" / "policy_curated_cases.json"
 
 
 def _load_cases() -> list[dict]:
-    return json.loads(_FIXTURE.read_text())
+    return json.loads(_FIXTURE.read_text(encoding="utf-8"))
 
 
 _CURATED_CASES = _load_cases()

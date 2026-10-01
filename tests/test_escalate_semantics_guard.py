@@ -127,14 +127,14 @@ def test_arena_escalate_count_does_not_regress() -> None:
     took this count from 37 to 18 while leaving ACCEPT at 20, so per-case tests
     alone could be patched around one at a time without this tripping.
     """
-    index = json.loads((ARENA / "index.json").read_text())
+    index = json.loads((ARENA / "index.json").read_text(encoding="utf-8"))
     counts: collections.Counter[str] = collections.Counter()
     n = 0
     for meta in index["categories"].values():
         path = ARENA / meta["file"]
         if not path.exists():
             continue
-        for line in path.read_text().splitlines():
+        for line in path.read_text(encoding="utf-8").splitlines():
             if not line.strip():
                 continue
             ep = json.loads(line)

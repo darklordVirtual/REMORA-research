@@ -300,7 +300,7 @@ def test_the_deployed_image_installs_the_security_extra():
     from pathlib import Path
 
     dockerfile = (Path(__file__).resolve().parents[1]
-                  / "deploy" / "ot-pilot" / "Dockerfile").read_text()
+                  / "deploy" / "ot-pilot" / "Dockerfile").read_text(encoding="utf-8")
     install = [ln for ln in dockerfile.splitlines() if "pip install -e" in ln]
     assert install, "no editable install line found in the image"
     assert "security" in install[0], (

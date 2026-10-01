@@ -20,16 +20,16 @@ def test_the_committed_study_reproduces():
 
 
 def test_the_recorded_outcome_matches_the_negative_result():
-    data = json.loads(ARTIFACT.read_text())
+    data = json.loads(ARTIFACT.read_text(encoding="utf-8"))
     assert data["predictions_met"] == {f"P{n}": n != 6 for n in range(1, 9)}
     assert data["arms"]["C"]["unauthorized_effect_rate"] == 0.0
     assert data["arms"]["C"]["tool_process_separate"] is True
     assert data["arms"]["C"]["ambient_effect_authority_surface"] == 0
     assert data["arms"]["B"]["stopped_by_class"]["direct_sdk_access"] == "0/4"
-    assert "§63" in (ROOT / "NEGATIVE_RESULTS.md").read_text()
+    assert "§63" in (ROOT / "NEGATIVE_RESULTS.md").read_text(encoding="utf-8")
 
 
 def test_arm_c_is_not_an_in_process_simulation():
     """The registration forbids substituting a simulation for arm C."""
-    source = (ROOT / "experiments" / "authority_preserving_capability_mediation.py").read_text()
+    source = (ROOT / "experiments" / "authority_preserving_capability_mediation.py").read_text(encoding="utf-8")
     assert "subprocess.Popen" in source and "--worker" in source and "--effect-domain" in source
