@@ -7,9 +7,10 @@ else from the repository.
 
 An internet service provider lets an AI agent propose operations changes.
 An operator writes a request. The agent proposes one tool call. Before the
-call runs, a checker looks at three things: the operator's request, the
-proposed call, and untrusted text that came from outside the operator, such
-as a ticket body, a monitoring alert, a customer email or a call note.
+call runs, a checker looks at the operator's request, the proposed call and
+any untrusted text. Untrusted text is anything that came from outside the
+operator, such as a ticket body, a monitoring alert, a customer email or a
+call note.
 
 ## What to write
 
