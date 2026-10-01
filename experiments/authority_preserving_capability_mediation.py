@@ -44,7 +44,9 @@ ARTIFACT = ROOT / "results" / "authority_preserving_capability_mediation_v1.json
 PREREGISTRATION = "experiments/authority_preserving_capability_mediation/PREREGISTERED.md"
 
 CREDENTIAL = "REPORTING_DB_TOKEN"
-SECRET = "study-only-reporting-token"
+#: A synthetic label, not key material: the study checks that the worker never sees it
+#: (tests/test_external_scan_findings.py pins its shape).
+STUDY_CREDENTIAL_VALUE = "study-only-reporting-token"
 TOOL = "report.generate"
 SPEC_KEY, SPEC_SIGNER = "study-toolspec-key", "study-signer"
 #: Deterministic Ed25519 seed for the study's authority. Never a real key.
@@ -82,7 +84,7 @@ def _log_effect(capability: str, resource: str, via: str, proposal: str) -> None
 def primitive(capability: str, resource: str | None, arguments: dict, *, via: str) -> str:
     """The effect itself. Needs the credential; fills an omitted resource with
     its privileged default; honours a resource argument, as SDKs often do."""
-    if os.environ.get(CREDENTIAL) != SECRET:
+    if os.environ.get(CREDENTIAL) != STUDY_CREDENTIAL_VALUE:
         raise PermissionError(f"{capability}: no credential in this process")
     target = arguments.get("resource") or resource or DEFAULT_RESOURCE.get(capability, "")
     _log_effect(capability, target, via, str(arguments.get("proposal", "")))
@@ -328,7 +330,7 @@ def serve_worker() -> None:
 def run_three_domains(env: dict[str, str]) -> dict:
     script = str(Path(__file__).resolve())
     public = _public_key()
-    domain_env = {**env, CREDENTIAL: SECRET, "REMORA_LEASE_VERIFY_KEY_ED25519_PUBLIC": public}
+    domain_env = {**env, CREDENTIAL: STUDY_CREDENTIAL_VALUE, "REMORA_LEASE_VERIFY_KEY_ED25519_PUBLIC": public}
     worker_env = {k: v for k, v in env.items() if k != CREDENTIAL}
     worker_env["REMORA_LEASE_VERIFY_KEY_ED25519_PUBLIC"] = public
     for scrub in ("REMORA_LEASE_SIGNING_KEY_ED25519_PRIVATE", "REMORA_LEASE_SIGNING_KEY"):
@@ -427,7 +429,7 @@ def run_study() -> dict:
             os.environ.clear()
             os.environ.update(env)
             if arm in ("A", "B"):
-                os.environ[CREDENTIAL] = SECRET
+                os.environ[CREDENTIAL] = STUDY_CREDENTIAL_VALUE
                 run = run_in_process(arm)
             else:
                 run = run_three_domains(dict(os.environ))
