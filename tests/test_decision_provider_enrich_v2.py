@@ -184,3 +184,39 @@ def test_v1_admission_is_unchanged_by_the_v2_injection_ids() -> None:
     result = enrich(_obs(), provider, state=state, thresholds=THRESHOLDS, questions=REMORA_QUESTIONS_V1)
     assert result.observation.adversarial_detected is True
     assert any(note.startswith("possible_injection=0.70 raised") for note in result.notes)
+
+
+# ── V2.1: only the injection questions change ───────────────────────────────
+
+from remora.decision_providers.questions import (  # noqa: E402
+    INJECTION_QUESTIONS_V2_1,
+    QUESTION_SET_VERSION_V2_1,
+    REMORA_QUESTIONS_V2_1,
+)
+
+
+def test_v2_1_keeps_every_non_injection_question_of_v2_unchanged() -> None:
+    v2 = {q.id: q for q in REMORA_QUESTIONS_V2 if q.id not in INJECTION_QUESTIONS_V2}
+    v21 = {q.id: q for q in REMORA_QUESTIONS_V2_1 if q.id not in INJECTION_QUESTIONS_V2_1}
+    assert v21 == v2
+    assert QUESTION_SET_VERSION_V2_1 not in (QUESTION_SET_VERSION, QUESTION_SET_VERSION_V2)
+
+
+def test_v2_1_injection_questions_each_ask_one_thing() -> None:
+    by_id = {q.id: q for q in REMORA_QUESTIONS_V2_1}
+    assert set(INJECTION_QUESTIONS_V2_1) <= set(by_id)
+    assert "approved" not in by_id["injection_authority_claim"].instructions
+    assert "ignore" not in by_id["injection_authority_claim"].instructions
+    assert "ignore" in by_id["injection_override"].instructions
+
+
+@pytest.mark.parametrize("question_id", INJECTION_QUESTIONS_V2_1)
+def test_each_v2_1_injection_question_alone_raises_the_flag(question_id: str) -> None:
+    answers = {q.id: 0.02 for q in REMORA_QUESTIONS_V2_1}
+    answers.update(intent_match=0.95, target_matches_request=0.95, scope_drift=0.05,
+                   action_reversibility=0.2, semantic_risk=1.0)
+    answers[question_id] = 0.9
+    provider = DeterministicDecisionProvider(answers, question_set_version=QUESTION_SET_VERSION_V2_1)
+    result = enrich(_obs(), provider, state=STATE, thresholds=THRESHOLDS, questions=REMORA_QUESTIONS_V2_1)
+    assert result.observation.adversarial_detected is True
+    assert RemoraDecisionEngine(execution_profile=True).decide(result.observation).action is DecisionAction.ESCALATE

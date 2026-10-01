@@ -18,7 +18,7 @@ How each answer is admitted
     nothing is written. A withheld favourable signal is how a provider says
     no; it never writes an unfavourable label the engine could misread.
 
-``possible_injection`` (V1), or any of ``INJECTION_QUESTIONS_V2`` (V2)
+``possible_injection`` (V1), or any V2 or V2.1 injection question
     At or above the ``possible_injection`` threshold: ``adversarial_detected``
     is raised, and the deterministic hard block escalates. This is the one
     narrowing write, and it can only raise the flag. V2 asks three narrower
@@ -57,10 +57,13 @@ from remora.decision_providers import (
 )
 from remora.decision_providers.questions import (
     INJECTION_QUESTIONS_V2,
+    INJECTION_QUESTIONS_V2_1,
     QUESTION_SET_VERSION,
     QUESTION_SET_VERSION_V2,
+    QUESTION_SET_VERSION_V2_1,
     REMORA_QUESTIONS_V1,
     REMORA_QUESTIONS_V2,
+    REMORA_QUESTIONS_V2_1,
 )
 
 __all__ = [
@@ -72,12 +75,15 @@ __all__ = [
 ]
 
 #: Every question id whose answer is admitted as injection evidence.
-_INJECTION_IDS: tuple[str, ...] = ("possible_injection", *INJECTION_QUESTIONS_V2)
+_INJECTION_IDS: tuple[str, ...] = tuple(
+    dict.fromkeys(("possible_injection", *INJECTION_QUESTIONS_V2, *INJECTION_QUESTIONS_V2_1))
+)
 
 #: The version each shipped question set was published under.
 _SHIPPED_SETS = (
     (REMORA_QUESTIONS_V1, QUESTION_SET_VERSION),
     (REMORA_QUESTIONS_V2, QUESTION_SET_VERSION_V2),
+    (REMORA_QUESTIONS_V2_1, QUESTION_SET_VERSION_V2_1),
 )
 
 #: Keys that must never reach a provider, matched case-insensitively as

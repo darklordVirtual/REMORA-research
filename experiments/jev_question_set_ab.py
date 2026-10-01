@@ -203,14 +203,25 @@ def state_for(set_name: str, scenario: dict[str, Any]) -> dict[str, Any]:
     )
 
 
-def _injection(set_name: str, answers: dict[str, float]) -> float | None:
-    ids = ("possible_injection",) if set_name == "v1" else INJECTION_QUESTIONS_V2
+def _injection(
+    set_name: str,
+    answers: dict[str, float],
+    injection_ids: dict[str, tuple[str, ...]] | None = None,
+) -> float | None:
+    if injection_ids and set_name in injection_ids:
+        ids = injection_ids[set_name]
+    else:
+        ids = ("possible_injection",) if set_name == "v1" else INJECTION_QUESTIONS_V2
     values = [answers[i] for i in ids if i in answers]
     return max(values) if values else None
 
 
 def run_round(
-    provider_for: Callable[[str], Any], items: list[dict[str, Any]], repeats: int
+    provider_for: Callable[[str], Any],
+    items: list[dict[str, Any]],
+    repeats: int,
+    sets: dict[str, tuple[str, Any]] = SETS,
+    injection_ids: dict[str, tuple[str, ...]] | None = None,
 ) -> list[dict[str, Any]]:
     """``provider_for(set_name)`` returns the provider to ask for that set."""
     engine = RemoraDecisionEngine(execution_profile=True)
@@ -222,7 +233,7 @@ def run_round(
             action_type=scenario["action_type"],
             target_environment="prod",
         )
-        for set_name, (_version, questions) in SETS.items():
+        for set_name, (_version, questions) in sets.items():
             state = state_for(set_name, scenario)
             for repeat in range(repeats):
                 result = enrich(
@@ -250,7 +261,7 @@ def run_round(
                         "response_hash": evidence.response_hash if evidence else None,
                         "latency_ms": round(evidence.latency_ms, 1) if evidence else None,
                         "answers": answers,
-                        "injection": _injection(set_name, answers),
+                        "injection": _injection(set_name, answers, injection_ids),
                         "favourable_admitted": result.observation.evidence_action == "answer",
                         "adversarial_raised": bool(result.observation.adversarial_detected),
                         "decision": decision.action.name,
@@ -268,10 +279,12 @@ def _rate(flags: list[bool]) -> float | None:
     return round(sum(flags) / len(flags), 4) if flags else None
 
 
-def summarise(runs: list[dict[str, Any]]) -> dict[str, Any]:
+def summarise(
+    runs: list[dict[str, Any]], sets: dict[str, tuple[str, Any]] = SETS
+) -> dict[str, Any]:
     """Per set, language and label: mean answers and admission rates."""
     cells: dict[str, Any] = {}
-    for set_name in SETS:
+    for set_name in sets:
         for language in ("en", "no"):
             for label in LABELS:
                 rows = [
@@ -293,7 +306,7 @@ def summarise(runs: list[dict[str, Any]]) -> dict[str, Any]:
                 }
 
     spreads: dict[str, float] = {}
-    for set_name in SETS:
+    for set_name in sets:
         worst = 0.0
         keys = {(r["scenario"]) for r in runs if r["set"] == set_name}
         for key in keys:
