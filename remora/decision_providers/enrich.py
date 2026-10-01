@@ -18,10 +18,12 @@ How each answer is admitted
     nothing is written. A withheld favourable signal is how a provider says
     no; it never writes an unfavourable label the engine could misread.
 
-``possible_injection``
-    Above its threshold: ``adversarial_detected`` is raised, and the
-    deterministic hard block escalates. This is the one narrowing write, and
-    it can only raise the flag.
+``possible_injection`` (V1), or any of ``INJECTION_QUESTIONS_V2`` (V2)
+    At or above the ``possible_injection`` threshold: ``adversarial_detected``
+    is raised, and the deterministic hard block escalates. This is the one
+    narrowing write, and it can only raise the flag. V2 asks three narrower
+    injection questions; the largest answer is the one compared, so splitting
+    the question can only add ways to raise the flag.
 
 ``action_reversibility`` and ``semantic_risk``
     Recorded in the evidence and **not** projected. The observation has no
@@ -54,8 +56,11 @@ from remora.decision_providers import (
     project_narrowing,
 )
 from remora.decision_providers.questions import (
+    INJECTION_QUESTIONS_V2,
     QUESTION_SET_VERSION,
+    QUESTION_SET_VERSION_V2,
     REMORA_QUESTIONS_V1,
+    REMORA_QUESTIONS_V2,
 )
 
 __all__ = [
@@ -63,7 +68,17 @@ __all__ = [
     "SemanticThresholds",
     "enrich",
     "semantic_state",
+    "semantic_state_v2",
 ]
+
+#: Every question id whose answer is admitted as injection evidence.
+_INJECTION_IDS: tuple[str, ...] = ("possible_injection", *INJECTION_QUESTIONS_V2)
+
+#: The version each shipped question set was published under.
+_SHIPPED_SETS = (
+    (REMORA_QUESTIONS_V1, QUESTION_SET_VERSION),
+    (REMORA_QUESTIONS_V2, QUESTION_SET_VERSION_V2),
+)
 
 #: Keys that must never reach a provider, matched case-insensitively as
 #: substrings. A provider needs meaning, not credentials.
@@ -88,16 +103,7 @@ def semantic_state(
     a credential is refused rather than redacted, so a caller cannot ship a
     secret by mistake and discover it in a provider's logs.
     """
-    offending = sorted(
-        str(key)
-        for source in (arguments, context or {})
-        for key in source
-        if _SECRET_KEY.search(str(key))
-    )
-    if offending:
-        raise ValueError(
-            f"refusing to send credential-shaped keys to a decision provider: {offending}"
-        )
+    _refuse_credentials(arguments, context or {})
     state: dict[str, Any] = {
         "intent": intent,
         "tool_name": tool_name,
@@ -105,6 +111,47 @@ def semantic_state(
     }
     if context:
         state["context"] = dict(context)
+    return state
+
+
+def _refuse_credentials(*sources: Mapping[str, Any]) -> None:
+    offending = sorted(
+        str(key) for source in sources for key in source if _SECRET_KEY.search(str(key))
+    )
+    if offending:
+        raise ValueError(
+            f"refusing to send credential-shaped keys to a decision provider: {offending}"
+        )
+
+
+def semantic_state_v2(
+    *,
+    operator_request: str,
+    tool_name: str,
+    arguments: Mapping[str, Any],
+    tool_description: str | None = None,
+    untrusted_content: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """The state :data:`REMORA_QUESTIONS_V2` is written against.
+
+    Each part has a name the questions refer to. ``operator_request`` is the
+    trusted task. ``proposed_call`` is what the agent wants to run, with the
+    tool's own description when there is one (take it from the signed
+    ToolSpec, not from the agent). ``untrusted_content`` holds text that came
+    from outside the operator, such as ticket bodies, customer messages or
+    tool output; the injection questions judge only that and the free-text
+    arguments. Keeping the two apart is what lets the operator's imperative
+    request stay out of the injection question.
+
+    Credential-shaped keys are refused, as in :func:`semantic_state`.
+    """
+    _refuse_credentials(arguments, untrusted_content or {})
+    call: dict[str, Any] = {"tool": tool_name, "arguments": dict(arguments)}
+    if tool_description:
+        call["tool_description"] = tool_description
+    state: dict[str, Any] = {"operator_request": operator_request, "proposed_call": call}
+    if untrusted_content:
+        state["untrusted_content"] = dict(untrusted_content)
     return state
 
 
@@ -181,17 +228,24 @@ def enrich(
     notes: list[str] = [
         f"question_set={evidence.question_set_version} model={evidence.resolved_model}"
     ]
-    if questions is REMORA_QUESTIONS_V1 and evidence.question_set_version != QUESTION_SET_VERSION:
-        notes.append(
-            f"provider reports question set {evidence.question_set_version!r}; "
-            f"thresholds were calibrated for {QUESTION_SET_VERSION!r}"
-        )
+    for shipped, version in _SHIPPED_SETS:
+        if questions is shipped and evidence.question_set_version != version:
+            notes.append(
+                f"provider reports question set {evidence.question_set_version!r}; "
+                f"thresholds were calibrated for {version!r}"
+            )
 
-    injection = _probability(evidence, "possible_injection")
-    if injection is not None and injection >= thresholds.possible_injection:
-        updated = project_narrowing(observation, {"adversarial_detected": True})
-        notes.append(f"possible_injection={injection:.2f} raised adversarial_detected")
-        return Enrichment(updated, evidence, "signals_applied", tuple(notes))
+    injections = [
+        (question_id, value)
+        for question_id in _INJECTION_IDS
+        if (value := _probability(evidence, question_id)) is not None
+    ]
+    if injections:
+        question_id, injection = max(injections, key=lambda pair: pair[1])
+        if injection >= thresholds.possible_injection:
+            updated = project_narrowing(observation, {"adversarial_detected": True})
+            notes.append(f"{question_id}={injection:.2f} raised adversarial_detected")
+            return Enrichment(updated, evidence, "signals_applied", tuple(notes))
 
     intent = _probability(evidence, "intent_match")
     target = _probability(evidence, "target_matches_request")
