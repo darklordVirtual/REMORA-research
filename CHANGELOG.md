@@ -271,6 +271,15 @@ This file lists externally relevant changes by release. Fine-grained development
   `--via cloudflare` selects Workers AI. Both key names are registered in the
   credential topology as oracle credentials. Exercised through an injected
   transport only; no live answer has been observed yet.
+- `experiments/jev_live_smoke.py` and `results/jev_live_smoke_v1.json`: the
+  first live round against Jev, on TypeSafe's API, 2026-10-01. Three demo
+  scenarios with three repeats each: nine answers from `jev-1.13.0`, no
+  provider failure, no ACCEPT. The injection scenario escalated in every
+  repeat. The legitimate scenario's favourable signal was withheld at the
+  demo's illustrative 0.85 threshold (`intent_match` 0.70), and repeats of one
+  state returned different answers within 0.06. Both observations are recorded
+  in the integration guide as inputs to calibration. Manifest class `live`,
+  with a provenance sidecar.
 - `remora.decision_providers.questions` and `remora.decision_providers.enrich`
   complete the provider integration end to end. The question set is versioned
   (`remora-semantic-v1`) because thresholds are calibrated against a specific

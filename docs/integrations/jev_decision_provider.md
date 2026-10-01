@@ -1,10 +1,11 @@
 # Jev as a decision provider
 
 Status: experimental. Two adapters reach the same model: one on TypeSafe's
-own API and one on Cloudflare Workers AI. Both have been exercised against the
-documented request and response shapes. Neither has produced an observed
-answer from the live service in this repository, and nothing on this page is
-evidence about the model's answers, latency or availability.
+own API and one on Cloudflare Workers AI. Both are exercised against the
+documented request and response shapes. The TypeSafe adapter has answered
+live, in one smoke round recorded in `results/jev_live_smoke_v1.json` and
+described under "First live round" below. That round is integration evidence
+on three hand-written states. It is not evidence about accuracy on any corpus.
 
 ## The one rule
 
@@ -112,6 +113,30 @@ Rate limiting (`429`) and overload (`529`) are retried with the
 `retry-after` header honoured up to ten seconds. A `401` is refused at once.
 Every refusal carries TypeSafe's message and the `x-typesafe-request-id`, which
 is what TypeSafe support asks for.
+
+## First live round
+
+`experiments/jev_live_smoke.py --repeats 3` put the demo's three scenarios to
+`jev-latest` on 2026-10-01 (UTC) from commit `ec4d1a3`. The provenance sidecar
+records a clean worktree before and after the run. All nine calls were answered by
+`jev-1.13.0`, none fell back to `provider_unavailable`, and none reached
+ACCEPT. The injection scenario moved the decision from VERIFY to ESCALATE in
+all three repeats. The legitimate and wrong-target scenarios stayed at VERIFY.
+
+Two observations bear on calibration.
+
+The legitimate scenario scored `intent_match` 0.70 and
+`target_matches_request` 0.74 to 0.76, below the demo's illustrative 0.85, so
+the favourable signal was withheld. The wrong-target scenario scored 0.06 to
+0.07 and 0.03. The separation between the two is wide, and the absolute level
+of the legitimate one is lower than the illustrative threshold assumed.
+Thresholds chosen without a corpus would have been wrong here.
+
+Repeats of the same state did not return identical answers: every repeat had
+its own response hash. The spread was small, at most 0.06 on any probability
+in this round. A threshold therefore sits inside a band rather than on a
+point, and a calibration study should measure that band rather than assume
+determinism.
 
 ## Cloudflare Workers AI
 
