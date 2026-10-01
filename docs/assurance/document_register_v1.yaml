@@ -2624,6 +2624,18 @@ documents:
   audience:
   - evaluators
   - integrators
+- id: DOC-353
+  path: docs/design/plan-premise-authority-v1.md
+  status: proposal
+  topic: docs_design_plan-premise-authority-v1_md
+  code_synced: unreviewed
+  verdict: pending
+  last_audited: '2026-10-01'
+  last_reviewed: '2026-10-01'
+  audience:
+  - maintainers
+  - evaluators
+  - integrators
 topics:
 - docs_integrations_jev_decision_provider_md
 - docs_integrations_mcp-gateway_md
@@ -2909,3 +2921,4 @@ topics:
 - docs_design_evidence-sufficiency-v1.3_md
 - conformance_autoreview-to-effect-v1_readme_md
 - conformance_safety-case-evidence-profile-v0.1_readme_md
+- docs_design_plan-premise-authority-v1_md

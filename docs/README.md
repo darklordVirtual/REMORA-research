@@ -257,6 +257,7 @@ Design documents describe a proposal at the time it was written; whether it ship
 | [interop/REMORA-APS-PROFILE-v0.1.md](interop/REMORA-APS-PROFILE-v0.1.md) | APS interop profile v0.1: the term mapping for four conformance families, fixed before the run (open proposal) |
 | [design/task-bound-execution-authority-v1.md](design/task-bound-execution-authority-v1.md) | Binding an authorization to the task it was granted under: the gap, the three lines that found it, and the signature-preserving field rule (open proposal) |
 | [design/capability-minimized-execution-v1.md](design/capability-minimized-execution-v1.md) | Capability minimization before reasoning: the owner's SDD mapped onto existing REMORA code, the four gaps, the deviations, and WS8 Q8.1 to Q8.9 (implemented) |
+| [design/plan-premise-authority-v1.md](design/plan-premise-authority-v1.md) | Taking the minimum safety dependencies of a plan out of the planner's trust domain: the gap at `plan_binding.py`, the Q8.1 rule applied to premises, and WS9 Q9.1 to Q9.8 (open proposal) |
 | [design/remora-quality-program-v1.md](design/remora-quality-program-v1.md) | Spec-driven quality program: reproducible results, larger and live evaluation, runtime-surface binding in deployments, and the order of the open remediation items (open proposal) |
 | [methods/nested_governance.md](methods/nested_governance.md) | Nested governance model |
 | [methods/architecture_risk_register.md](methods/architecture_risk_register.md) | Architecture risk register |
