@@ -79,7 +79,9 @@ def normalised_tokens(source: str) -> list[str]:
             else:
                 out.append(tok.string)
     except (tokenize.TokenError, IndentationError, SyntaxError):
-        pass
+        # A file that does not tokenise to the end still has a usable prefix;
+        # fingerprint what was read rather than dropping the file.
+        return out
     return out
 
 
