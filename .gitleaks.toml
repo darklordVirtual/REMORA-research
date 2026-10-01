@@ -33,6 +33,11 @@ paths = [
   # wallet addresses. Verified at results/external_benchmark_agentharm_v1.json
   # lines 626 and 638 — both are benchmark instruction text.
   '''results/external_benchmark_agentharm_v1\.json''',
+  # APS conformance-suite fixture (Apache-2.0, upstream commit b64cc8df),
+  # pinned byte for byte by SHA-256 in SOURCE.md and the test. Trip cause:
+  # lines 372 and 373 are the Ed25519 PUBLIC verification keys of two
+  # did:aps:example identities, which the fixture's signatures depend on.
+  '''tests/fixtures/aps-action-result-binding-b64cc8df/chain\.json''',
 ]
 
 # Matched against the whole LINE, not the extracted secret. The default
