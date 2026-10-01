@@ -93,7 +93,7 @@
     "eslint-plugin-prettier": "^5.2.6",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
-    "globals": "^17.8.0",
+    "globals": "^17.12.0",
     "jsdom": "^30.0.1",
     "nitro": "3.0.260603-beta",
     "openapi-typescript": "^7.13.0",
