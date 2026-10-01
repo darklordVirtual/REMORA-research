@@ -137,7 +137,7 @@ class TestRunEndToEnd(unittest.TestCase):
                 run(episode_store_path=store, dry_run=False, verbose=False)
             finally:
                 mod.OUTPUT_PATH = orig
-            data = json.loads(out.read_text())
+            data = json.loads(out.read_text(encoding="utf-8"))
             self.assertIn("adjustments", data)
             self.assertIn("quality_gate", data)
 

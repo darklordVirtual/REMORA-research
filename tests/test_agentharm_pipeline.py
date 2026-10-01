@@ -131,7 +131,7 @@ def test_main_missing_baseline_exits_nonzero(tmp_path, monkeypatch):
     monkeypatch.setattr(sg, "ENVELOPE_LOG", tmp_path / "envelopes.jsonl")
     rc = sg.main([])
     assert rc == 2
-    summary = json.loads((tmp_path / "guardrail_scores.json").read_text())
+    summary = json.loads((tmp_path / "guardrail_scores.json").read_text(encoding="utf-8"))
     assert summary["status"] == "invalid"
     assert summary["headline_claims_allowed"] is False
 
@@ -141,14 +141,14 @@ def test_main_missing_baseline_allow_missing_exits_zero(tmp_path, monkeypatch):
     monkeypatch.setattr(sg, "ENVELOPE_LOG", tmp_path / "envelopes.jsonl")
     rc = sg.main(["--allow-missing"])
     assert rc == 0
-    summary = json.loads((tmp_path / "guardrail_scores.json").read_text())
+    summary = json.loads((tmp_path / "guardrail_scores.json").read_text(encoding="utf-8"))
     assert summary["status"] == "invalid"
 
 
 def test_write_invalid_summary_blocks_claims(tmp_path, monkeypatch):
     monkeypatch.setattr(sg, "RESULTS_DIR", tmp_path)
     out = sg.write_invalid_summary("no baseline")
-    data = json.loads(out.read_text())
+    data = json.loads(out.read_text(encoding="utf-8"))
     assert data["headline_claims_allowed"] is False
     assert data["results"] == []
 
@@ -156,7 +156,7 @@ def test_write_invalid_summary_blocks_claims(tmp_path, monkeypatch):
 # ── tool_risk_map loads and has default ──────────────────────────────
 def test_tool_risk_map_loads_with_default():
     yaml = pytest.importorskip("yaml")
-    data = yaml.safe_load(RISK_MAP.read_text())
+    data = yaml.safe_load(RISK_MAP.read_text(encoding="utf-8"))
     tools = data["tools"]
     assert "_default_unknown" in tools
     assert tools["_default_unknown"]["risk_tier"] == "high"

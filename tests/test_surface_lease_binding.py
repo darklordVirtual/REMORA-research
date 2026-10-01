@@ -147,6 +147,6 @@ def test_the_shadow_measurement_reproduces():
         [sys.executable, str(ROOT / "scripts" / "measure_surface_binding_shadow.py"), "--check"],
         capture_output=True, text=True, cwd=ROOT)
     assert result.returncode == 0, result.stdout + result.stderr
-    artifact = json.loads((ROOT / "artifacts/runtime_surface/surface_binding_shadow_v1.json").read_text())
+    artifact = json.loads((ROOT / "artifacts/runtime_surface/surface_binding_shadow_v1.json").read_text(encoding="utf-8"))
     assert artifact["legitimate_runs"]["surface_changed"] == 0
     assert artifact["perturbed_runs_enforced"]["refused"] == artifact["perturbed_runs_enforced"]["runs"]

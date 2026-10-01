@@ -20,8 +20,8 @@ def test_the_committed_study_reproduces():
 
 
 def test_the_recorded_outcome_matches_the_negative_result():
-    data = json.loads(ARTIFACT.read_text())
+    data = json.loads(ARTIFACT.read_text(encoding="utf-8"))
     assert data["predictions_met"] == {f"P{n}": n != 8 for n in range(1, 9)}
     assert data["arms"]["F"]["unsafe_execution_rate"] == 0.0
     assert all(arm["false_block_rate"] == 0.0 for arm in data["arms"].values())
-    assert "§62" in (ROOT / "NEGATIVE_RESULTS.md").read_text()
+    assert "§62" in (ROOT / "NEGATIVE_RESULTS.md").read_text(encoding="utf-8")

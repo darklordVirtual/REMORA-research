@@ -17,8 +17,8 @@ _spec.loader.exec_module(gate)  # type: ignore[union-attr]
 
 
 def _committed():
-    register = yaml.safe_load((ROOT / "docs/assurance/claim_register_v1.yaml").read_text())
-    baseline = json.loads((ROOT / "docs/assurance/far_claim_size_baseline.json").read_text())
+    register = yaml.safe_load((ROOT / "docs/assurance/claim_register_v1.yaml").read_text(encoding="utf-8"))
+    baseline = json.loads((ROOT / "docs/assurance/far_claim_size_baseline.json").read_text(encoding="utf-8"))
     return register, baseline
 
 

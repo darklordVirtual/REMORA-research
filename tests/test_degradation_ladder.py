@@ -106,7 +106,7 @@ def test_export_jsonl_round_trip(tmp_path) -> None:
     rec.link_down(GovernanceLink.TELEMETRY, "outage")
     path = tmp_path / "degradation_events.jsonl"
     rec.export_jsonl(path)
-    lines = [json.loads(line) for line in path.read_text().splitlines()]
+    lines = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
     assert len(lines) == 1
     assert lines[0]["kind"] == "governance_mode_transition"
     assert lines[0]["payload"]["to_mode"] == GovernanceMode.G1_NO_LEARNING.value
