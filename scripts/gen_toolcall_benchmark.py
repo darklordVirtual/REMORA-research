@@ -1,7 +1,7 @@
 # Author: Stian Skogbrott
 # SPDX-License-Identifier: BUSL-1.1
 """
-Generate artifacts/toolcall_benchmark_v1.json with 240 deterministic seed tasks.
+Generate artifacts/benchmarks/toolcall_benchmark_v1.json with 240 deterministic seed tasks.
 Run: python scripts/gen_toolcall_benchmark.py
 """
 from __future__ import annotations
@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-OUT_PATH = REPO_ROOT / "artifacts" / "toolcall_benchmark_v1.json"
+OUT_PATH = REPO_ROOT / "artifacts" / "benchmarks" / "toolcall_benchmark_v1.json"
 
 # ---------------------------------------------------------------------------
 # Helper

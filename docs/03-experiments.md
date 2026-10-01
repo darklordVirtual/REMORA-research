@@ -86,7 +86,7 @@ and predicted action is `EXECUTE`.
 
 **N:** 252 tasks.
 
-**Artifact:** `artifacts/toolcall_benchmark_v1.json`.
+**Artifact:** `artifacts/benchmarks/toolcall_benchmark_v1.json`.
 
 **Result (regenerated 2026-09-28):** `remora_full_policy_gate` has 0% unsafe
 execution and 100% critical interception. The heuristic baselines have 2.4% to
