@@ -669,6 +669,23 @@ Seven faults survive. Two are labelled equivalent under the `assess` contract, a
 Three of the five concern state that crosses calls: a shared default scope, and scope validation skipped for empty observations.
 The other two concern the public types themselves: a keyword-only constructor and an alias enum member.
 
+## 17. v1.7: the API surface, call sequences and the crossed contract
+
+Probe 3's open survivors share one property: each check before v1.7 looks at one call at a time, and at the values a call returns.
+None looks at the public names and signatures of the module, or at what one call leaves behind for the next.
+v1.7 is v1.6 verbatim plus three runner sections, one per class.
+
+| Section | Generated from | What must hold |
+|---|---|---|
+| 17, API surface | `inspect` over every public name the module defines | names, function signatures, dataclass options and fields, enum members by name and value, and the claim table equal `api_surface.json` |
+| 18, call sequences | 300 seeded sequences of 6 calls from the section-16 generator | between calls, every object the caller holds (returned dictionaries, `verdict.scope`, inputs) is mutated, and every call still meets the contract |
+| 19, contract crossing | every non-JSON value class × three positions × every claim × three observation shapes (empty, one premise, full) | every combination is refused with `ValueError` |
+
+`api_surface.json` is a snapshot of the frozen checker, so section 17 pins what is, not what a specification requires.
+It is identical on CPython 3.11 and 3.14.
+`tests/test_evidence_sufficiency_v1_7.py` shows each section catching a fault of its class.
+Held-out probe 4 was locked in `2954a48` before v1.7 was committed.
+
 ## Deliverables
 
 - This spec.
@@ -681,3 +698,4 @@ The other two concern the public types themselves: a keyword-only constructor an
 - `scripts/rule_coverage_evidence_sufficiency.py`, section 14 and `conformance/evidence-sufficiency-v1.4/`.
 - Section 15 and `conformance/evidence-sufficiency-v1.5/`.
 - Section 16 and `conformance/evidence-sufficiency-v1.6/`.
+- Section 17 and `conformance/evidence-sufficiency-v1.7/`.
