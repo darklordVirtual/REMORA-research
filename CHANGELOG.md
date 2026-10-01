@@ -6,6 +6,12 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Added
 
+- `conformance/autoreview-to-effect-v1/`: five adversarial post-approval
+  vectors (argument mutation, identity change, alternate tool, stale policy,
+  claimed success versus authoritative state) and one control. Author-run
+  against REMORA: 6 of 6 match. A naive boolean-gate adapter matches only the
+  control and diverges on all five, which is the evidence that the vectors
+  discriminate. Not run against any third-party system.
 - Evidence-sufficiency v1.3 (`conformance/evidence-sufficiency-v1.3/`,
   `docs/design/evidence-sufficiency-v1.3.md`). A systematic mutation sweep
   (mutmut, 489 mutants of the frozen checker) found 112 mutants the v1.2
