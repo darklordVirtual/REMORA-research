@@ -1,0 +1,149 @@
+{
+  "selector": "p4a-extensions",
+  "files_read": [
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\checker.py",
+    "C:\\users\\Stian\\REMORA-research\\conformance\\evidence-sufficiency-v1\\README.md"
+  ],
+  "faults": [
+    {
+      "id": "P4A-01",
+      "old": "@dataclass(frozen=True)",
+      "new": "@dataclass",
+      "rationale": "Developer adds a mutable annotations field to the result and drops frozen; verdicts become mutable and unhashable.",
+      "witness": "assess postcondition_observed then assign verdict.reason: original=('exc', 'FrozenInstanceError') mutant=('ok', 'x')"
+    },
+    {
+      "id": "P4A-02",
+      "old": "if not scope:",
+      "new": "if scope is None:",
+      "rationale": "Configurable-default refactor treats only None as missing; an empty scope mapping no longer gets the synthetic default scope.",
+      "witness": "assess(postcondition_observed, P, scope={}).scope: original=('ok', {'kind': 'synthetic_fixture', 'bounded': True}) mutant=('ok', {})"
+    },
+    {
+      "id": "P4A-03",
+      "old": "missing: tuple[str, ...] = ()\n    decisive_if: str | None = None",
+      "new": "missing: tuple[str, ...] = ()\n    decisive_if: str | None = \"\"",
+      "rationale": "Richer-guidance change defaults decisive_if to empty string; decisive verdicts now carry decisive_if='' and as_dict emits the key.",
+      "witness": "assess(postcondition_observed, P).as_dict(): original=('ok', {'claim': 'postcondition_observed', 'status': 'established', 'reason': 'declared_postcondition_observed_at_named_point', 'scope': {'kind': 'synthetic_fixture', 'bounded': True}, 'missing_evidence': []}) mutant=('ok', {'claim': 'postcondition_observed', 'status': 'established', 'reason': 'declared_postcondition_observed_at_named_point', 'scope': {'kind': 'synthetic_fixture', 'bounded': True}, 'missing_evidence': [], 'decisive_if': ''})"
+    },
+    {
+      "id": "P4A-04",
+      "old": "if value is None or type(value) in (str, bool, int):",
+      "new": "if value is None or isinstance(value, (str, bool, int, float)):",
+      "rationale": "Extra-validation helper widens accepted scalars to floats; float fixture values no longer raise ValueError.",
+      "witness": "assess with expected_state=1.5: original=('exc', 'ValueError') mutant=('ok', <EvidenceStatus.VIOLATED: 'violated'>)"
+    },
+    {
+      "id": "P4A-05",
+      "old": "sort_keys=True",
+      "new": "sort_keys=False",
+      "rationale": "Caller helper exposes canonical for display and keeps insertion order; dicts with same content in different key order now compare unequal.",
+      "witness": "expected {'a':1,'b':2} vs observed {'b':2,'a':1}: original=('ok', <EvidenceStatus.ESTABLISHED: 'established'>) mutant=('ok', <EvidenceStatus.VIOLATED: 'violated'>)"
+    },
+    {
+      "id": "P4A-06",
+      "old": "ensure_ascii=False",
+      "new": "ensure_ascii=True",
+      "rationale": "Helper made canonical output ASCII-safe for logs; canonical() output for non-ASCII strings changes.",
+      "witness": "canonical('é'): original=('ok', '\"é\"') mutant=('ok', '\"\\\\u00e9\"')"
+    },
+    {
+      "id": "P4A-07",
+      "old": "if premise_source != \"synthetic_fixture\":",
+      "new": "if not premise_source.startswith(\"synthetic\"):",
+      "rationale": "Optional premise_source variants added via prefix check; 'synthetic_other' is now silently accepted instead of raising.",
+      "witness": "assess(..., premise_source='synthetic_other'): original=('exc', 'ValueError') mutant=('ok', <EvidenceStatus.ESTABLISHED: 'established'>)"
+    },
+    {
+      "id": "P4A-08",
+      "old": "validate_json(dict(observations))",
+      "new": "validate_json({k: v for k, v in observations.items() if k.endswith(\"_state\")})",
+      "rationale": "Validation narrowed to compared state values only; non-JSON values in other observation fields no longer raise.",
+      "witness": "observations with note=[1.5]: original=('exc', 'ValueError') mutant=('ok', <EvidenceStatus.ESTABLISHED: 'established'>)"
+    },
+    {
+      "id": "P4A-09",
+      "old": "if o.get(\"admission_present\") is not False:",
+      "new": "if o.get(\"admission_present\") is None:",
+      "rationale": "Presence check loosened to missing-only; non-boolean admission_present (e.g. 0) proceeds to closed-world VIOLATED.",
+      "witness": "admission_present=0: original=('ok', 'admission_presence_unknown') mutant=('ok', 'mandatory_admission_absent_in_complete_bounded_history')"
+    },
+    {
+      "id": "P4A-10",
+      "old": "if o.get(\"admission_matches\") is True:",
+      "new": "if o.get(\"admission_matches\"):",
+      "rationale": "Truthiness instead of identity; admission_matches='yes' now ESTABLISHED.",
+      "witness": "admission_present True, matches 'yes': original=('ok', <EvidenceStatus.NOT_ESTABLISHED: 'not_established'>) mutant=('ok', <EvidenceStatus.ESTABLISHED: 'established'>)"
+    },
+    {
+      "id": "P4A-11",
+      "old": "    if o.get(\"window_finalized\") is not True:\n        return _unknown(claim, \"observation_window_open\", scope)\n    if o.get(\"admission_coverage_complete\") is not True:\n        return _unknown(claim, \"admission_coverage_incomplete\", scope)",
+      "new": "    if o.get(\"admission_coverage_complete\") is not True:\n        return _unknown(claim, \"admission_coverage_incomplete\", scope)\n    if o.get(\"window_finalized\") is not True:\n        return _unknown(claim, \"observation_window_open\", scope)",
+      "rationale": "Reordered closed-world checks; when both premises are missing the reported reason/guidance changes.",
+      "witness": "window and coverage both missing: original=('ok', 'observation_window_open') mutant=('ok', 'admission_coverage_incomplete')"
+    },
+    {
+      "id": "P4A-12",
+      "old": "if o.get(\"protected_effect_observed\") is True:",
+      "new": "if o.get(\"protected_effect_observed\"):",
+      "rationale": "Truthiness instead of identity; protected_effect_observed=1 now VIOLATED instead of protected_effect_unknown.",
+      "witness": "protected_effect_observed=1: original=('ok', 'protected_effect_unknown') mutant=('ok', 'accepted_effect_observed_outside_required_pep')"
+    },
+    {
+      "id": "P4A-13",
+      "old": "if o.get(\"effect_observation_accepted\") is not True:",
+      "new": "if o.get(\"effect_observation_accepted\") is False:",
+      "rationale": "Optional-field handling treats a missing effect_observation_accepted as acceptable; unaccepted effect can produce VIOLATED.",
+      "witness": "effect_observation_accepted missing, effect observed: original=('ok', 'protected_effect_observation_unaccepted') mutant=('ok', 'accepted_effect_observed_outside_required_pep')"
+    },
+    {
+      "id": "P4A-14",
+      "old": "if \"expected_state\" not in o or \"observed_state\" not in o:",
+      "new": "if o.get(\"expected_state\") is None or o.get(\"observed_state\") is None:",
+      "rationale": "Missing-state check rewritten with get(); explicit null states (previously compared, ESTABLISHED) now state_value_missing.",
+      "witness": "expected_state=None, observed_state=None: original=('ok', 'declared_postcondition_observed_at_named_point') mutant=('ok', 'state_value_missing')"
+    },
+    {
+      "id": "P4A-15",
+      "old": "if o.get(\"settlement_reached\") is not True:",
+      "new": "if o.get(\"settlement_reached\") is False:",
+      "rationale": "Settlement made optional by default; absent settlement_reached no longer blocks a decisive verdict.",
+      "witness": "settlement_reached missing: original=('ok', 'declared_settlement_point_not_reached') mutant=('ok', 'declared_postcondition_observed_at_named_point')"
+    },
+    {
+      "id": "P4A-16",
+      "old": "if claim not in ASSESSORS or not isinstance(observations, Mapping):\n        raise ValueError(\"unknown claim or malformed observations\")\n    validate_json(dict(observations))\n    if scope is not None:\n        validate_json(dict(scope))\n    return ASSESSORS[claim](observations, scope)",
+      "new": "if claim.strip() not in ASSESSORS or not isinstance(observations, Mapping):\n        raise ValueError(\"unknown claim or malformed observations\")\n    validate_json(dict(observations))\n    if scope is not None:\n        validate_json(dict(scope))\n    return ASSESSORS[claim.strip()](observations, scope)",
+      "rationale": "Caller-friendly claim normalisation; whitespace-padded unknown claim names are now accepted instead of ValueError.",
+      "witness": "assess(' postcondition_observed ', P): original=('exc', 'ValueError') mutant=('ok', <EvidenceStatus.ESTABLISHED: 'established'>)"
+    },
+    {
+      "id": "P4A-17",
+      "old": "(\"expected state\", \"observed state\"),",
+      "new": "(\"expected state\",),",
+      "rationale": "Guidance rewrite drops one missing-evidence item for state_value_missing.",
+      "witness": "expected_state missing -> missing_evidence: original=('ok', ('expected state', 'observed state')) mutant=('ok', ('expected state',))"
+    },
+    {
+      "id": "P4A-18",
+      "old": "\"observation_window_open\": (",
+      "new": "\"observation_window_not_finalized\": (",
+      "rationale": "Guidance key renamed for clarity but reason string not; observation_window_open verdicts lose missing_evidence/decisive_if.",
+      "witness": "window_finalized False -> missing_evidence: original=('ok', ('finalized observation interval',)) mutant=('ok', ())"
+    },
+    {
+      "id": "P4A-19",
+      "old": "if claim not in ASSESSORS or not isinstance(observations, Mapping):",
+      "new": "if claim not in ASSESSORS:",
+      "rationale": "Mapping guard removed when adding duck-typed inputs; non-mapping observations raise TypeError/AttributeError instead of ValueError.",
+      "witness": "assess(admission_accounting, None): original=('exc', 'ValueError') mutant=('exc', 'TypeError')"
+    },
+    {
+      "id": "P4A-20",
+      "old": "return dict(scope)",
+      "new": "return scope",
+      "rationale": "Copy avoided for performance; verdict.scope aliases caller's mapping so later caller mutation changes the verdict.",
+      "witness": "caller mutates scope dict after assess: original=('ok', {'k': 'a'}) mutant=('ok', {'k': 'b'})"
+    }
+  ]
+}
