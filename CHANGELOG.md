@@ -6,6 +6,13 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Added
 
+- `conformance/safety-case-evidence-profile-v0.1/`: five safeguard claims
+  (containment maintained, monitor active, unauthorized execution prevented,
+  run paused on violation, postcondition verified) laid out as claim, producer
+  evidence, independent verification, evidence sufficiency and verdict. 22
+  synthetic cases; producer evidence is checked never to move a verdict. Two
+  claims delegate to the frozen evidence-sufficiency checker, so the open
+  findings in NEGATIVE_RESULTS.md §73 apply to them.
 - Evidence-sufficiency v1.3 (`conformance/evidence-sufficiency-v1.3/`,
   `docs/design/evidence-sufficiency-v1.3.md`). A systematic mutation sweep
   (mutmut, 489 mutants of the frozen checker) found 112 mutants the v1.2
