@@ -1,0 +1,375 @@
+{
+  "actions": {
+    "alternate": {
+      "action_ref": "c840871bff8e7ae9760a9b0fe9df2243049efbd5051dc837cb4f892174fee346",
+      "input": {
+        "action_type": "calendar.write",
+        "agent_id": "did:aps:example:arb-acting-agent",
+        "issued_at": "2026-09-21T11:59:59.500Z",
+        "nonce": "e290902754b9b306661795297e5519ec",
+        "payload_ref": "c6f0336bda6391793339eef5cb534a190661247e5df0175c9d9ac1cb0616e7df",
+        "profile": "aps-action-ref-v2",
+        "scope_required": [
+          "calendar:write"
+        ],
+        "target": "https://calendar.example/api/v1/archive/events"
+      }
+    },
+    "payload": {
+      "event_id": "evt-2026-09-21-0001",
+      "title": "Quarterly review"
+    },
+    "payload_ref": "c6f0336bda6391793339eef5cb534a190661247e5df0175c9d9ac1cb0616e7df",
+    "primary": {
+      "action_ref": "273a245d3aff0cfffc390a26ed200396bbc64f76c5282d6f167ef95c740526cd",
+      "input": {
+        "action_type": "calendar.write",
+        "agent_id": "did:aps:example:arb-acting-agent",
+        "issued_at": "2026-09-21T11:59:59.500Z",
+        "nonce": "e290902754b9b306661795297e5519ec",
+        "payload_ref": "c6f0336bda6391793339eef5cb534a190661247e5df0175c9d9ac1cb0616e7df",
+        "profile": "aps-action-ref-v2",
+        "scope_required": [
+          "calendar:write"
+        ],
+        "target": "https://calendar.example/api/v1/events"
+      }
+    }
+  },
+  "cases": {
+    "action-ref-mismatch": {
+      "action_ref": "c840871bff8e7ae9760a9b0fe9df2243049efbd5051dc837cb4f892174fee346",
+      "decision_ref": "12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771",
+      "delegation_ref": "sha256:3fae1b16c3b6504f1f26c923bc7df06db7ffacff28a0386a64d2f53c7c90b726",
+      "evidence_refs": [],
+      "issued_at": "2026-09-21T12:00:05.000Z",
+      "issuer": "did:aps:example:arb-enforcement-boundary",
+      "prev": "fb46f47305d9d3c5bf296ed87081af534077f2f5e380211f3875f2e20966fc49",
+      "profile": "aps-receipt-v1",
+      "receipt_id": "7eab4acabee608ca8d8b5aee5eecc3467c632d83d548b2baf009212c9e7ffc71",
+      "receipt_type": "aps:action-result:v1",
+      "result": {
+        "effect_ref": "5360c22b4be9db0329067d846be156c6b7f16d49455f52d3c3c7448e7532ccbe",
+        "error_code": null,
+        "profile": "aps-action-result-v1",
+        "status": "succeeded"
+      },
+      "signatures": [
+        {
+          "alg": "Ed25519",
+          "key_id": "did:aps:example:arb-enforcement-boundary#key-1",
+          "signer": "did:aps:example:arb-enforcement-boundary",
+          "value": "9b293f318b2dfe5b495bffc7fd2d8cbf3372a783b71ae9dbdd8c82ee9bfa2f45bdc8dec2fe5315b139fc2b30959def93b97d51eb72721b0dba9641ea5703fb03"
+        }
+      ],
+      "subject_agent": "did:aps:example:arb-acting-agent"
+    },
+    "decision-ref-mismatch": {
+      "action_ref": "273a245d3aff0cfffc390a26ed200396bbc64f76c5282d6f167ef95c740526cd",
+      "decision_ref": "2fc67caf85daa5123a83f8e6b603c8c4f4374cac2159556f04dc27387d9012cf",
+      "delegation_ref": "sha256:3fae1b16c3b6504f1f26c923bc7df06db7ffacff28a0386a64d2f53c7c90b726",
+      "evidence_refs": [],
+      "issued_at": "2026-09-21T12:00:05.000Z",
+      "issuer": "did:aps:example:arb-enforcement-boundary",
+      "prev": "fb46f47305d9d3c5bf296ed87081af534077f2f5e380211f3875f2e20966fc49",
+      "profile": "aps-receipt-v1",
+      "receipt_id": "a1f27e82625d2845b32554830b5316bd9dfffe7ce613b53d13b5af38b3886014",
+      "receipt_type": "aps:action-result:v1",
+      "result": {
+        "effect_ref": "5360c22b4be9db0329067d846be156c6b7f16d49455f52d3c3c7448e7532ccbe",
+        "error_code": null,
+        "profile": "aps-action-result-v1",
+        "status": "succeeded"
+      },
+      "signatures": [
+        {
+          "alg": "Ed25519",
+          "key_id": "did:aps:example:arb-enforcement-boundary#key-1",
+          "signer": "did:aps:example:arb-enforcement-boundary",
+          "value": "b9b7b18f648ba258d08bda6392c73d198bdaedde07dc104f5b91a0a8ca3db9393c89c5ff6c95692b4793d6c3deef729ffe09383af8e8e7f8b99c839d3ff04c04"
+        }
+      ],
+      "subject_agent": "did:aps:example:arb-acting-agent"
+    },
+    "positive": {
+      "action_ref": "273a245d3aff0cfffc390a26ed200396bbc64f76c5282d6f167ef95c740526cd",
+      "decision_ref": "12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771",
+      "delegation_ref": "sha256:3fae1b16c3b6504f1f26c923bc7df06db7ffacff28a0386a64d2f53c7c90b726",
+      "evidence_refs": [],
+      "issued_at": "2026-09-21T12:00:05.000Z",
+      "issuer": "did:aps:example:arb-enforcement-boundary",
+      "prev": "fb46f47305d9d3c5bf296ed87081af534077f2f5e380211f3875f2e20966fc49",
+      "profile": "aps-receipt-v1",
+      "receipt_id": "3a86d7f0765e55762815b8c0afbe6def54f81baa9720590b32afd6f9d6cc0d23",
+      "receipt_type": "aps:action-result:v1",
+      "result": {
+        "effect_ref": "5360c22b4be9db0329067d846be156c6b7f16d49455f52d3c3c7448e7532ccbe",
+        "error_code": null,
+        "profile": "aps-action-result-v1",
+        "status": "succeeded"
+      },
+      "signatures": [
+        {
+          "alg": "Ed25519",
+          "key_id": "did:aps:example:arb-enforcement-boundary#key-1",
+          "signer": "did:aps:example:arb-enforcement-boundary",
+          "value": "b540c00fed3e4fc44a820e8ddbdf12ff65fd2a70d967ddad24d16e3bf27dd87edfd5855d3138987d56221b7f24919edd04b528840cee6754ebf2a68f0d6cf709"
+        }
+      ],
+      "subject_agent": "did:aps:example:arb-acting-agent"
+    },
+    "prev-not-the-decision": {
+      "action_ref": "273a245d3aff0cfffc390a26ed200396bbc64f76c5282d6f167ef95c740526cd",
+      "decision_ref": "12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771",
+      "delegation_ref": "sha256:3fae1b16c3b6504f1f26c923bc7df06db7ffacff28a0386a64d2f53c7c90b726",
+      "evidence_refs": [],
+      "issued_at": "2026-09-21T12:00:05.000Z",
+      "issuer": "did:aps:example:arb-enforcement-boundary",
+      "prev": "f0323f19a47e46e58e66a0f3d65ea72b4e9c6b42a0414df25c479a598fe70b3e",
+      "profile": "aps-receipt-v1",
+      "receipt_id": "441ef1f533beabf1f297f42d46666df363bfb9d4d99eefdcbe648fbe7c7b24d4",
+      "receipt_type": "aps:action-result:v1",
+      "result": {
+        "effect_ref": "5360c22b4be9db0329067d846be156c6b7f16d49455f52d3c3c7448e7532ccbe",
+        "error_code": null,
+        "profile": "aps-action-result-v1",
+        "status": "succeeded"
+      },
+      "signatures": [
+        {
+          "alg": "Ed25519",
+          "key_id": "did:aps:example:arb-enforcement-boundary#key-1",
+          "signer": "did:aps:example:arb-enforcement-boundary",
+          "value": "8d7918f91862ef17ae5c2410ef3c83a73579c6850789bc8c21ba91de7816367bcbe5c0607ff0ecabab8e60275265acf0f90d5c3b0aa86ae59ad05a82fb34ad0e"
+        }
+      ],
+      "subject_agent": "did:aps:example:arb-acting-agent"
+    },
+    "subject-agent-absent": {
+      "action_ref": "273a245d3aff0cfffc390a26ed200396bbc64f76c5282d6f167ef95c740526cd",
+      "decision_ref": "12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771",
+      "delegation_ref": "sha256:3fae1b16c3b6504f1f26c923bc7df06db7ffacff28a0386a64d2f53c7c90b726",
+      "evidence_refs": [],
+      "issued_at": "2026-09-21T12:00:05.000Z",
+      "issuer": "did:aps:example:arb-enforcement-boundary",
+      "prev": "fb46f47305d9d3c5bf296ed87081af534077f2f5e380211f3875f2e20966fc49",
+      "profile": "aps-receipt-v1",
+      "receipt_id": "e8c83c5a4e92f6a65c9dd66ff921a6a094adcafb732d5b44745fb5e4f3844f41",
+      "receipt_type": "aps:action-result:v1",
+      "result": {
+        "effect_ref": "5360c22b4be9db0329067d846be156c6b7f16d49455f52d3c3c7448e7532ccbe",
+        "error_code": null,
+        "profile": "aps-action-result-v1",
+        "status": "succeeded"
+      },
+      "signatures": [
+        {
+          "alg": "Ed25519",
+          "key_id": "did:aps:example:arb-enforcement-boundary#key-1",
+          "signer": "did:aps:example:arb-enforcement-boundary",
+          "value": "6669ca0dda45e5d572d75abaf6e7621fae08426e338e48eafef5dbd0e169f4c88343e2e3651a6fea2601831327ae82cc87b1dc1c23a3bfb63e5ee6838a9ac40e"
+        }
+      ]
+    },
+    "subject-agent-changed": {
+      "action_ref": "273a245d3aff0cfffc390a26ed200396bbc64f76c5282d6f167ef95c740526cd",
+      "decision_ref": "12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771",
+      "delegation_ref": "sha256:3fae1b16c3b6504f1f26c923bc7df06db7ffacff28a0386a64d2f53c7c90b726",
+      "evidence_refs": [],
+      "issued_at": "2026-09-21T12:00:05.000Z",
+      "issuer": "did:aps:example:arb-enforcement-boundary",
+      "prev": "fb46f47305d9d3c5bf296ed87081af534077f2f5e380211f3875f2e20966fc49",
+      "profile": "aps-receipt-v1",
+      "receipt_id": "8aad7e5009181a8dba44e69f77bc52ebc6cdd5c13f42a7eb2918b156ea54b5b7",
+      "receipt_type": "aps:action-result:v1",
+      "result": {
+        "effect_ref": "5360c22b4be9db0329067d846be156c6b7f16d49455f52d3c3c7448e7532ccbe",
+        "error_code": null,
+        "profile": "aps-action-result-v1",
+        "status": "succeeded"
+      },
+      "signatures": [
+        {
+          "alg": "Ed25519",
+          "key_id": "did:aps:example:arb-enforcement-boundary#key-1",
+          "signer": "did:aps:example:arb-enforcement-boundary",
+          "value": "c188059ca944f269c46e34116bd7f6f55f6c3007d7de081be774fd12917aa2b62964e61ffec46937d339ec2eeeb5c6e9bb207961338b689d4c2be0f012abf00b"
+        }
+      ],
+      "subject_agent": "did:aps:example:arb-second-agent"
+    }
+  },
+  "consumed_decision_receipt_id": "fb46f47305d9d3c5bf296ed87081af534077f2f5e380211f3875f2e20966fc49",
+  "decision_evidence": {
+    "deny": {
+      "authority_state": {
+        "authority_basis": "delegation",
+        "profile": "aps-conformance-suite:action-result-binding:authority-state-v0",
+        "selected_chain": [
+          "sha256:3fae1b16c3b6504f1f26c923bc7df06db7ffacff28a0386a64d2f53c7c90b726"
+        ],
+        "spend_state": {
+          "mode": "unbounded"
+        }
+      },
+      "decision_context": {
+        "enforcement_boundary": "did:aps:example:arb-enforcement-boundary",
+        "evaluated_at": "2026-09-21T12:00:01.500Z"
+      },
+      "decision_output": {
+        "constraints": [],
+        "effective_authority_ref": null,
+        "profile": "aps-core-decision-output-v1",
+        "valid_until": null,
+        "verdict": "deny"
+      },
+      "policy_input": {
+        "policy_id": "calendar-write-v1",
+        "policy_version": "1.0.0",
+        "requested_scope": [
+          "calendar:write"
+        ],
+        "target": "https://calendar.example/api/v1/events"
+      }
+    },
+    "permit": {
+      "authority_state": {
+        "authority_basis": "delegation",
+        "profile": "aps-conformance-suite:action-result-binding:authority-state-v0",
+        "selected_chain": [
+          "sha256:3fae1b16c3b6504f1f26c923bc7df06db7ffacff28a0386a64d2f53c7c90b726"
+        ],
+        "spend_state": {
+          "mode": "unbounded"
+        }
+      },
+      "decision_context": {
+        "enforcement_boundary": "did:aps:example:arb-enforcement-boundary",
+        "evaluated_at": "2026-09-21T12:00:01.000Z"
+      },
+      "decision_output": {
+        "constraints": [],
+        "effective_authority_ref": "354d3f3202f9b3ef4a6b286fb82ce761f053fcd905cf6fddacb1df0142ed64ca",
+        "profile": "aps-core-decision-output-v1",
+        "valid_until": "2026-09-21T12:00:31.000Z",
+        "verdict": "permit"
+      },
+      "policy_input": {
+        "policy_id": "calendar-write-v1",
+        "policy_version": "1.0.0",
+        "requested_scope": [
+          "calendar:write"
+        ],
+        "target": "https://calendar.example/api/v1/events"
+      }
+    }
+  },
+  "decision_refs": {
+    "deny": "2fc67caf85daa5123a83f8e6b603c8c4f4374cac2159556f04dc27387d9012cf",
+    "permit": "12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771"
+  },
+  "description": "One draft-03 section 5.3 chain (action-intent, policy-decision permit, action-result) plus the decision evidence a composite verifier needs, and six action-result records differing from the positive one by exactly one named defect.",
+  "effect": {
+    "effect_ref": "5360c22b4be9db0329067d846be156c6b7f16d49455f52d3c3c7448e7532ccbe",
+    "tag": "APS-ACTION-EFFECT-V1",
+    "value": {
+      "event_id": "evt-2026-09-21-0001",
+      "outcome": "created",
+      "profile": "aps-conformance-suite:action-result-binding:effect-v0",
+      "resource": "https://calendar.example/api/v1/events/evt-2026-09-21-0001"
+    }
+  },
+  "identities": {
+    "acting_agent": "did:aps:example:arb-acting-agent",
+    "enforcement_boundary": "did:aps:example:arb-enforcement-boundary",
+    "second_agent": "did:aps:example:arb-second-agent"
+  },
+  "minted_by": "fixtures/action-result-binding/mint.ts",
+  "profile": "aps-action-result-binding-v0",
+  "receipts": {
+    "decision_deny": {
+      "action_ref": "273a245d3aff0cfffc390a26ed200396bbc64f76c5282d6f167ef95c740526cd",
+      "decision_ref": "2fc67caf85daa5123a83f8e6b603c8c4f4374cac2159556f04dc27387d9012cf",
+      "delegation_ref": "sha256:3fae1b16c3b6504f1f26c923bc7df06db7ffacff28a0386a64d2f53c7c90b726",
+      "evidence_refs": [],
+      "issued_at": "2026-09-21T12:00:01.500Z",
+      "issuer": "did:aps:example:arb-enforcement-boundary",
+      "prev": "f0323f19a47e46e58e66a0f3d65ea72b4e9c6b42a0414df25c479a598fe70b3e",
+      "profile": "aps-receipt-v1",
+      "receipt_id": "80cb14bce53d2f75b0730c024dfb3a442b8fabe5a5a1e4052ebc9e28fecb0412",
+      "receipt_type": "aps:policy-decision:v1",
+      "result": {
+        "constraints": [],
+        "effective_authority_ref": null,
+        "profile": "aps-core-decision-output-v1",
+        "valid_until": null,
+        "verdict": "deny"
+      },
+      "signatures": [
+        {
+          "alg": "Ed25519",
+          "key_id": "did:aps:example:arb-enforcement-boundary#key-1",
+          "signer": "did:aps:example:arb-enforcement-boundary",
+          "value": "b2d28adfd8c1b5f39686234b29cf470e06c933032e2acb27ad25c62e94cf5b52ba7a12827a75f19e4f3aa01a1b5561e2395290c999878116df508d894d3f1e09"
+        }
+      ],
+      "subject_agent": "did:aps:example:arb-acting-agent"
+    },
+    "decision_permit": {
+      "action_ref": "273a245d3aff0cfffc390a26ed200396bbc64f76c5282d6f167ef95c740526cd",
+      "decision_ref": "12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771",
+      "delegation_ref": "sha256:3fae1b16c3b6504f1f26c923bc7df06db7ffacff28a0386a64d2f53c7c90b726",
+      "evidence_refs": [],
+      "issued_at": "2026-09-21T12:00:01.000Z",
+      "issuer": "did:aps:example:arb-enforcement-boundary",
+      "prev": "f0323f19a47e46e58e66a0f3d65ea72b4e9c6b42a0414df25c479a598fe70b3e",
+      "profile": "aps-receipt-v1",
+      "receipt_id": "fb46f47305d9d3c5bf296ed87081af534077f2f5e380211f3875f2e20966fc49",
+      "receipt_type": "aps:policy-decision:v1",
+      "result": {
+        "constraints": [],
+        "effective_authority_ref": "354d3f3202f9b3ef4a6b286fb82ce761f053fcd905cf6fddacb1df0142ed64ca",
+        "profile": "aps-core-decision-output-v1",
+        "valid_until": "2026-09-21T12:00:31.000Z",
+        "verdict": "permit"
+      },
+      "signatures": [
+        {
+          "alg": "Ed25519",
+          "key_id": "did:aps:example:arb-enforcement-boundary#key-1",
+          "signer": "did:aps:example:arb-enforcement-boundary",
+          "value": "4bbe197214fcd575db51d5b46a701c3464e5483c1cc4af1550afca9497582f7fca594e38d154fff002be956903e2d1634d879e93bf89428ea4e662af248fe105"
+        }
+      ],
+      "subject_agent": "did:aps:example:arb-acting-agent"
+    },
+    "intent": {
+      "action_ref": "273a245d3aff0cfffc390a26ed200396bbc64f76c5282d6f167ef95c740526cd",
+      "delegation_ref": "sha256:3fae1b16c3b6504f1f26c923bc7df06db7ffacff28a0386a64d2f53c7c90b726",
+      "evidence_refs": [],
+      "issued_at": "2026-09-21T12:00:00.000Z",
+      "issuer": "did:aps:example:arb-acting-agent",
+      "profile": "aps-receipt-v1",
+      "receipt_id": "f0323f19a47e46e58e66a0f3d65ea72b4e9c6b42a0414df25c479a598fe70b3e",
+      "receipt_type": "aps:action-intent:v1",
+      "result": {
+        "profile": "aps-action-intent-result-v1",
+        "status": "declared"
+      },
+      "signatures": [
+        {
+          "alg": "Ed25519",
+          "key_id": "did:aps:example:arb-acting-agent#key-1",
+          "signer": "did:aps:example:arb-acting-agent",
+          "value": "d2c6130dfe06ea4457fed00cdc614b0b8202c77c4c617322b08e5ce0275204d86b2865efb165382c7f7d4247869637bc98d0d0de580bf6e14248d8bf13267406"
+        }
+      ],
+      "subject_agent": "did:aps:example:arb-acting-agent"
+    }
+  },
+  "seed_label_prefix": "aps-conformance-suite:action-result-binding:",
+  "verification_keys": {
+    "did:aps:example:arb-acting-agent#key-1": "b02d70558f408c232887e059196b4a2099ee568a8a0d1684a7bd9cc2f85f873d",
+    "did:aps:example:arb-enforcement-boundary#key-1": "3911b9b4ddcf3917145d445c96fab7a476f4cf73c337f26bc454d7a63c22103e"
+  }
+}

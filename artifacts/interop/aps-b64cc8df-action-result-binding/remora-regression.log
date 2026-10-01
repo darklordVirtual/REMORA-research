@@ -1,0 +1,9 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.14, pytest-9.1.1, pluggy-1.6.0
+rootdir: /workspace/scratch/537e03af59f2/REMORA-research
+configfile: pyproject.toml
+collected 19 items
+
+tests/test_aps_action_result_binding.py ...................              [100%]
+
+============================== 19 passed in 0.09s ==============================

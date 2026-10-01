@@ -1,0 +1,539 @@
+{
+  "assessment": "BOUNDED_INTEROP_EVIDENCE_NOT_APS_CONFORMANCE",
+  "aps_commit": "b64cc8dfa889b493bbf285fbb115a988ac54566b",
+  "remora_base_commit": "824098bcf75efa07ac1f65aed44b98251f4973df",
+  "source_sha256": {
+    "README.md": "1b2176d0615ee9a22011b35e11f7a77af577114d553cecd79c2eee89e24e3266",
+    "chain.json": "93415285378cd2241476ab94114c50dec85b330bb8c0b1f6c75d252274b0432a",
+    "mint.ts": "b4e446a1e9a7cb22655bc9d8486fbd0a0e0dede5d984fa2a6360b3e4c11b6f5c",
+    "validate.py": "9d22ce6c1eb58a0170cf11423ed4fa4eeadf8ee45dc483a96a56c7357e82bc22",
+    "vectors.json": "1cbad25150e4779ef067e269329b0954b966898d6ca933a98b2e3949b23d117b",
+    "verify.ts": "7a354f8e5d075d3384c682557042869a50bd558cb5485f5c563ccad0b7694ba6"
+  },
+  "sdk_runs": {
+    "typescript": {
+      "sdk_version": "7.0.0",
+      "command": "node --import tsx fixtures/action-result-binding/verify.ts",
+      "exit_code": 0,
+      "matched": 9,
+      "total": 9
+    },
+    "python": {
+      "sdk_version": "4.0.0",
+      "command": "../aps-py-4/bin/python fixtures/action-result-binding/validate.py",
+      "exit_code": 0,
+      "matched": 10,
+      "total": 10,
+      "composite_verifier": "NOT_IMPLEMENTED"
+    }
+  },
+  "cases": [
+    {
+      "id": "ARB-01-positive",
+      "classification": "aps_conformance",
+      "source_expectations": {
+        "draft03": {
+          "outcome": "satisfies",
+          "statement": "The record is the action-result stage section 5.3.3 describes: issuer is the enforcement boundary, prev is the consumed policy-decision receipt_id, decision_ref equals that decision's decision_ref, and result carries exactly profile, status, effect_ref and error_code with status succeeded and a non-null effect_ref. The decision it follows carries a valid_until later than its own issued_at.",
+          "sections": [
+            "5.1 lines 979-999",
+            "5.3.1 lines 1052-1058",
+            "5.3.2 lines 1071-1091",
+            "5.3.3 lines 1103-1130"
+          ]
+        },
+        "sdk_ts": {
+          "validateReceiptStageV1": {
+            "entrypoint": "validateReceiptStageV1(record, { boundaryIdentity: <enforcement boundary DID> })",
+            "status": "valid",
+            "boundary_identity": "verified",
+            "stage": "action-result",
+            "failures": []
+          },
+          "verifyReceiptWithDecisionV1": {
+            "entrypoint": "verifyReceiptWithDecisionV1(record, decision_evidence.permit, resolveKey, { boundaryIdentity: <enforcement boundary DID> })",
+            "status": "valid",
+            "valid": true,
+            "receipt_status": "valid",
+            "decision_ref_present": true,
+            "decision_ref_bound": true,
+            "decision_output_bound": "not_applicable",
+            "temporal_relation_valid": "not_applicable",
+            "errors": []
+          }
+        },
+        "sdk_py": {
+          "validate_receipt_stage_v1": {
+            "entrypoint": "agent_passport.receipt_core.validate_receipt_stage_v1(record, boundary_identity=<enforcement boundary DID>)",
+            "status": "valid",
+            "boundary_identity": "verified",
+            "stage": "action-result",
+            "failures": []
+          },
+          "composite_decision_verifier": {
+            "entrypoint": null,
+            "result": "not_implemented",
+            "note": "agent-passport-system 4.0.0 for Python exports no counterpart to verifyReceiptWithDecisionV1. agent_passport.receipt_core exposes build_decision_ref_v1 and compute_decision_ref_v1 but no entrypoint that verifies a receipt together with the decision it references."
+          }
+        },
+        "replay_policy": {
+          "status": "derived",
+          "outcome": "fully bound",
+          "rule": "All four conditions the stated rules give for full binding hold: action_ref matches the decision's, subject_agent is present and matches, prev equals the consumed decision's receipt_id, and decision_ref matches the decision the chain names.",
+          "source": "derived by this suite from the binding rules stated by the Agent Replay author at revision 08b3146097977db565a202c7a8f34d350da00fd0 in Agent-Authority-Conformance/aps-conformance-suite#99. Agent Replay was not run here and this record was not submitted to it."
+        }
+      },
+      "runner_observations": {
+        "typescript_expectations": "MATCH",
+        "python_expectations": "MATCH"
+      },
+      "remora_digest_mapping": {
+        "scope": "digest and legacy temporal relation only; not action-result validation",
+        "digest": "12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771",
+        "matches_exact_evidence_pin": true,
+        "matches_record_decision_ref": true,
+        "swapped_evidence_digest": "2fc67caf85daa5123a83f8e6b603c8c4f4374cac2159556f04dc27387d9012cf",
+        "substitution_breaks_pin": true,
+        "legacy_relation_result": "PASS"
+      },
+      "harness_relations_not_sdk_or_remora_verifier_verdicts": {
+        "prev_equals_consumed_decision": true,
+        "action_ref_equals_consumed_decision": true,
+        "subject_agent_equals_action_agent": true
+      },
+      "external_effect": "NOT_ESTABLISHED",
+      "normative_conformance_verdict": "NOT_ASSESSED"
+    },
+    {
+      "id": "ARB-02-subject-agent-absent",
+      "classification": "aps_conformance",
+      "source_expectations": {
+        "draft03": {
+          "outcome": "invalid",
+          "statement": "subject_agent is a REQUIRED member of the closed ReceiptV1 object. It appears in the envelope at line 962 and is defined at line 981 as the acting agent; lines 984-988 name decision_ref and prev as the only conditional members, and lines 988-989 say a member that is not applicable is absent, not null. subject_agent is always applicable, so its absence is a structural failure, which section 5.6 line 1225 makes invalid.",
+          "sections": [
+            "5.1 lines 957-989",
+            "5.6 lines 1213-1225"
+          ]
+        },
+        "sdk_ts": {
+          "validateReceiptStageV1": {
+            "entrypoint": "validateReceiptStageV1(record, { boundaryIdentity: <enforcement boundary DID> })",
+            "status": "invalid",
+            "boundary_identity": "not_applicable",
+            "stage": null,
+            "failures": [
+              {
+                "code": "SCHEMA_INVALID",
+                "detail": "ReceiptV1: missing field subject_agent"
+              }
+            ]
+          },
+          "verifyReceiptWithDecisionV1": {
+            "entrypoint": "verifyReceiptWithDecisionV1(record, decision_evidence.permit, resolveKey, { boundaryIdentity: <enforcement boundary DID> })",
+            "status": "invalid",
+            "valid": false,
+            "receipt_status": "invalid",
+            "decision_ref_present": false,
+            "decision_ref_bound": false,
+            "decision_output_bound": "not_applicable",
+            "temporal_relation_valid": false,
+            "errors": [
+              "receipt_invalid",
+              "ReceiptV1: missing field subject_agent"
+            ]
+          }
+        },
+        "sdk_py": {
+          "validate_receipt_stage_v1": {
+            "entrypoint": "agent_passport.receipt_core.validate_receipt_stage_v1(record, boundary_identity=<enforcement boundary DID>)",
+            "status": "invalid",
+            "boundary_identity": "not_applicable",
+            "stage": null,
+            "failures": [
+              {
+                "code": "SCHEMA_INVALID",
+                "detail": "ReceiptV1: missing field subject_agent"
+              }
+            ]
+          },
+          "composite_decision_verifier": {
+            "entrypoint": null,
+            "result": "not_implemented",
+            "note": "agent-passport-system 4.0.0 for Python exports no counterpart to verifyReceiptWithDecisionV1."
+          }
+        },
+        "replay_policy": {
+          "status": "unresolved_until_run",
+          "outcome": null,
+          "rule": "The stated rules make a missing actor leave a result partially bound, but they describe a missing actor on an input Agent Replay accepted. This record is not a valid ReceiptV1: subject_agent is a REQUIRED member and it is absent, so the record fails the APS schema before any binding rule is known to apply. The stated rules say nothing about that case, so this suite does not assign one.",
+          "source": "the binding rules stated by the Agent Replay author at revision 08b3146097977db565a202c7a8f34d350da00fd0 in Agent-Authority-Conformance/aps-conformance-suite#99 do not settle this record. Agent Replay was not run here and this record was not submitted to it."
+        }
+      },
+      "runner_observations": {
+        "typescript_expectations": "MATCH",
+        "python_expectations": "MATCH"
+      },
+      "remora_digest_mapping": {
+        "scope": "digest and legacy temporal relation only; not action-result validation",
+        "digest": "12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771",
+        "matches_exact_evidence_pin": true,
+        "matches_record_decision_ref": true,
+        "swapped_evidence_digest": "2fc67caf85daa5123a83f8e6b603c8c4f4374cac2159556f04dc27387d9012cf",
+        "substitution_breaks_pin": true,
+        "legacy_relation_result": "PASS"
+      },
+      "harness_relations_not_sdk_or_remora_verifier_verdicts": {
+        "prev_equals_consumed_decision": true,
+        "action_ref_equals_consumed_decision": true,
+        "subject_agent_equals_action_agent": false
+      },
+      "external_effect": "NOT_ESTABLISHED",
+      "normative_conformance_verdict": "NOT_ASSESSED"
+    },
+    {
+      "id": "ARB-03-prev-not-the-decision",
+      "classification": "draft03_stated_relation_not_enforced",
+      "source_expectations": {
+        "draft03": {
+          "outcome": "stated_relation_not_met",
+          "statement": "Section 5.3.3 lines 1104-1105 say prev is the consumed policy-decision receipt_id. This record names the action-intent receipt_id instead. Section 5.6 line 1219 lists validate prev and stage transitions among the verifier steps, so the relation is named on the verifier side as well as the producer side. Neither statement carries a BCP 14 keyword, which section 1.1 lines 175-179 confine to words that appear in all capitals; the MUST in the same sentence at line 1105 governs decision_ref, not prev.",
+          "sections": [
+            "5.3.3 lines 1104-1105",
+            "5.6 line 1219",
+            "1.1 lines 175-179"
+          ]
+        },
+        "sdk_ts": {
+          "validateReceiptStageV1": {
+            "entrypoint": "validateReceiptStageV1(record, { boundaryIdentity: <enforcement boundary DID> })",
+            "status": "valid",
+            "boundary_identity": "verified",
+            "stage": "action-result",
+            "failures": []
+          },
+          "verifyReceiptWithDecisionV1": {
+            "entrypoint": "verifyReceiptWithDecisionV1(record, decision_evidence.permit, resolveKey, { boundaryIdentity: <enforcement boundary DID> })",
+            "status": "valid",
+            "valid": true,
+            "receipt_status": "valid",
+            "decision_ref_present": true,
+            "decision_ref_bound": true,
+            "decision_output_bound": "not_applicable",
+            "temporal_relation_valid": "not_applicable",
+            "errors": []
+          }
+        },
+        "sdk_py": {
+          "validate_receipt_stage_v1": {
+            "entrypoint": "agent_passport.receipt_core.validate_receipt_stage_v1(record, boundary_identity=<enforcement boundary DID>)",
+            "status": "valid",
+            "boundary_identity": "verified",
+            "stage": "action-result",
+            "failures": []
+          },
+          "composite_decision_verifier": {
+            "entrypoint": null,
+            "result": "not_implemented",
+            "note": "agent-passport-system 4.0.0 for Python exports no counterpart to verifyReceiptWithDecisionV1."
+          }
+        },
+        "replay_policy": {
+          "status": "derived",
+          "outcome": "partially bound",
+          "rule": "The stated rules make a wrong prev leave the result only partially bound. This record's prev names the action-intent rather than the consumed decision, so prev == decision.receipt_id does not hold while the other three conditions for full binding do.",
+          "source": "derived by this suite from the binding rules stated by the Agent Replay author at revision 08b3146097977db565a202c7a8f34d350da00fd0 in Agent-Authority-Conformance/aps-conformance-suite#99. Agent Replay was not run here and this record was not submitted to it."
+        }
+      },
+      "runner_observations": {
+        "typescript_expectations": "MATCH",
+        "python_expectations": "MATCH"
+      },
+      "remora_digest_mapping": {
+        "scope": "digest and legacy temporal relation only; not action-result validation",
+        "digest": "12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771",
+        "matches_exact_evidence_pin": true,
+        "matches_record_decision_ref": true,
+        "swapped_evidence_digest": "2fc67caf85daa5123a83f8e6b603c8c4f4374cac2159556f04dc27387d9012cf",
+        "substitution_breaks_pin": true,
+        "legacy_relation_result": "PASS"
+      },
+      "harness_relations_not_sdk_or_remora_verifier_verdicts": {
+        "prev_equals_consumed_decision": false,
+        "action_ref_equals_consumed_decision": true,
+        "subject_agent_equals_action_agent": true
+      },
+      "external_effect": "NOT_ESTABLISHED",
+      "normative_conformance_verdict": "NOT_ASSESSED"
+    },
+    {
+      "id": "ARB-04-decision-ref-mismatch",
+      "classification": "aps_conformance",
+      "source_expectations": {
+        "draft03": {
+          "outcome": "invalid",
+          "statement": "Section 5.3.3 lines 1105-1106 say decision_ref MUST equal that decision's decision_ref, where that decision is the consumed policy-decision named by prev. This record's prev still names the permit decision while its decision_ref names the deny decision, so the two disagree. Section 5.6 line 1218 has a verifier recompute decision_ref where required.",
+          "sections": [
+            "5.3.3 lines 1104-1106",
+            "5.6 line 1218"
+          ]
+        },
+        "sdk_ts": {
+          "validateReceiptStageV1": {
+            "entrypoint": "validateReceiptStageV1(record, { boundaryIdentity: <enforcement boundary DID> })",
+            "status": "valid",
+            "boundary_identity": "verified",
+            "stage": "action-result",
+            "failures": []
+          },
+          "verifyReceiptWithDecisionV1": {
+            "entrypoint": "verifyReceiptWithDecisionV1(record, decision_evidence.permit, resolveKey, { boundaryIdentity: <enforcement boundary DID> })",
+            "status": "invalid",
+            "valid": false,
+            "receipt_status": "valid",
+            "decision_ref_present": true,
+            "decision_ref_bound": false,
+            "decision_output_bound": "not_applicable",
+            "temporal_relation_valid": false,
+            "errors": [
+              "decision_ref_mismatch"
+            ]
+          }
+        },
+        "sdk_py": {
+          "validate_receipt_stage_v1": {
+            "entrypoint": "agent_passport.receipt_core.validate_receipt_stage_v1(record, boundary_identity=<enforcement boundary DID>)",
+            "status": "valid",
+            "boundary_identity": "verified",
+            "stage": "action-result",
+            "failures": []
+          },
+          "composite_decision_verifier": {
+            "entrypoint": null,
+            "result": "not_implemented",
+            "note": "agent-passport-system 4.0.0 for Python exports no counterpart to verifyReceiptWithDecisionV1, so Python cannot exercise the surface this case turns on. The stage result above is valid because the stage surface does not recompute decision_ref, which its own docstring states."
+          }
+        },
+        "replay_policy": {
+          "status": "derived",
+          "outcome": "partially bound",
+          "rule": "The stated rules make a wrong decision_ref leave the result only partially bound, and they scope that condition to a decision that carries one, which the consumed permit decision does. This record's decision_ref names the deny decision instead.",
+          "source": "derived by this suite from the binding rules stated by the Agent Replay author at revision 08b3146097977db565a202c7a8f34d350da00fd0 in Agent-Authority-Conformance/aps-conformance-suite#99. Agent Replay was not run here and this record was not submitted to it."
+        }
+      },
+      "runner_observations": {
+        "typescript_expectations": "MATCH",
+        "python_expectations": "MATCH"
+      },
+      "remora_digest_mapping": {
+        "scope": "digest and legacy temporal relation only; not action-result validation",
+        "digest": "12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771",
+        "matches_exact_evidence_pin": true,
+        "matches_record_decision_ref": false,
+        "swapped_evidence_digest": "2fc67caf85daa5123a83f8e6b603c8c4f4374cac2159556f04dc27387d9012cf",
+        "substitution_breaks_pin": true,
+        "legacy_relation_result": "DECISION_REF_MISMATCH"
+      },
+      "harness_relations_not_sdk_or_remora_verifier_verdicts": {
+        "prev_equals_consumed_decision": true,
+        "action_ref_equals_consumed_decision": true,
+        "subject_agent_equals_action_agent": true
+      },
+      "external_effect": "NOT_ESTABLISHED",
+      "normative_conformance_verdict": "NOT_ASSESSED"
+    },
+    {
+      "id": "ARB-05-action-ref-mismatch",
+      "classification": "aps_conformance",
+      "source_expectations": {
+        "draft03": {
+          "outcome": "invalid",
+          "statement": "Decision binding fails. decision_ref is computed over a closed DecisionRefV1 input whose members are profile, action_ref, authority_state_ref, policy_ref, context_ref and decision_output_ref, in that order; profile is the first member at line 1158 and action_ref the second at line 1159. Lines 1093-1094 say a permit or narrow policy-decision record is a bounded, single-use approval for its action_ref. This record carries the decision_ref of a decision made over the primary action while naming a different action_ref, so the reference cannot be recomputed from the decision the boundary made. Section 5.6 lines 1216-1218 have a verifier recompute action_ref from the independently supplied action and recompute decision_ref where required.",
+          "sections": [
+            "5.3.2 lines 1093-1094",
+            "5.4 lines 1155-1168",
+            "5.6 lines 1216-1218"
+          ]
+        },
+        "sdk_ts": {
+          "validateReceiptStageV1": {
+            "entrypoint": "validateReceiptStageV1(record, { boundaryIdentity: <enforcement boundary DID> })",
+            "status": "valid",
+            "boundary_identity": "verified",
+            "stage": "action-result",
+            "failures": []
+          },
+          "verifyReceiptWithDecisionV1": {
+            "entrypoint": "verifyReceiptWithDecisionV1(record, decision_evidence.permit, resolveKey, { boundaryIdentity: <enforcement boundary DID> })",
+            "status": "invalid",
+            "valid": false,
+            "receipt_status": "valid",
+            "decision_ref_present": true,
+            "decision_ref_bound": false,
+            "decision_output_bound": "not_applicable",
+            "temporal_relation_valid": false,
+            "errors": [
+              "decision_ref_mismatch"
+            ]
+          }
+        },
+        "sdk_py": {
+          "validate_receipt_stage_v1": {
+            "entrypoint": "agent_passport.receipt_core.validate_receipt_stage_v1(record, boundary_identity=<enforcement boundary DID>)",
+            "status": "valid",
+            "boundary_identity": "verified",
+            "stage": "action-result",
+            "failures": []
+          },
+          "composite_decision_verifier": {
+            "entrypoint": null,
+            "result": "not_implemented",
+            "note": "agent-passport-system 4.0.0 for Python exports no counterpart to verifyReceiptWithDecisionV1, so Python cannot exercise the surface this case turns on. The stage result above is valid because the stage surface neither recomputes action_ref from a supplied action nor recomputes decision_ref, which its own docstring states."
+          }
+        },
+        "replay_policy": {
+          "status": "derived",
+          "outcome": "unbound",
+          "rule": "The stated rules make a wrong action_ref remain unbound, and that condition is stated on its own rather than among the three that leave a result partially bound. This record's action_ref names the alternate action.",
+          "source": "derived by this suite from the binding rules stated by the Agent Replay author at revision 08b3146097977db565a202c7a8f34d350da00fd0 in Agent-Authority-Conformance/aps-conformance-suite#99. Agent Replay was not run here and this record was not submitted to it."
+        }
+      },
+      "runner_observations": {
+        "typescript_expectations": "MATCH",
+        "python_expectations": "MATCH"
+      },
+      "remora_digest_mapping": {
+        "scope": "digest and legacy temporal relation only; not action-result validation",
+        "digest": "911ece7f7ed1dea3b8f1c8f9932c4caecb479f6612ec3ab87c64754ad6f6e703",
+        "matches_exact_evidence_pin": true,
+        "matches_record_decision_ref": false,
+        "swapped_evidence_digest": "9e4a781c62a60f269e484bfbd88b8914beb78d6b606078d7c2ff8ab5bff8acbf",
+        "substitution_breaks_pin": true,
+        "legacy_relation_result": "DECISION_REF_MISMATCH"
+      },
+      "harness_relations_not_sdk_or_remora_verifier_verdicts": {
+        "prev_equals_consumed_decision": true,
+        "action_ref_equals_consumed_decision": false,
+        "subject_agent_equals_action_agent": true
+      },
+      "external_effect": "NOT_ESTABLISHED",
+      "normative_conformance_verdict": "NOT_ASSESSED"
+    },
+    {
+      "id": "ARB-06-subject-agent-changed",
+      "classification": "draft03_semantic_relation_not_explicitly_enforced",
+      "source_expectations": {
+        "draft03": {
+          "outcome": "semantic_conflict_no_explicit_rule",
+          "statement": "aps-action-ref-v2 commits to agent_id, which draft-03 defines as the acting agent's identifier (4.1, line 789), and ReceiptV1 defines subject_agent as the acting agent (5.1, line 981). action_ref is unchanged in this case, so the record names two different acting agents. Draft-03 states no explicit equality relation between subject_agent and the action_ref agent_id, and section 5.6 lines 1213-1221 name no verifier comparison between them.",
+          "sections": [
+            "4.1 line 789",
+            "5.1 line 981",
+            "5.6 lines 1213-1221"
+          ]
+        },
+        "sdk_ts": {
+          "validateReceiptStageV1": {
+            "entrypoint": "validateReceiptStageV1(record, { boundaryIdentity: <enforcement boundary DID> })",
+            "status": "valid",
+            "boundary_identity": "verified",
+            "stage": "action-result",
+            "failures": []
+          },
+          "verifyReceiptWithDecisionV1": {
+            "entrypoint": "verifyReceiptWithDecisionV1(record, decision_evidence.permit, resolveKey, { boundaryIdentity: <enforcement boundary DID> })",
+            "status": "valid",
+            "valid": true,
+            "receipt_status": "valid",
+            "decision_ref_present": true,
+            "decision_ref_bound": true,
+            "decision_output_bound": "not_applicable",
+            "temporal_relation_valid": "not_applicable",
+            "errors": []
+          }
+        },
+        "sdk_py": {
+          "validate_receipt_stage_v1": {
+            "entrypoint": "agent_passport.receipt_core.validate_receipt_stage_v1(record, boundary_identity=<enforcement boundary DID>)",
+            "status": "valid",
+            "boundary_identity": "verified",
+            "stage": "action-result",
+            "failures": []
+          },
+          "composite_decision_verifier": {
+            "entrypoint": null,
+            "result": "not_implemented",
+            "note": "agent-passport-system 4.0.0 for Python exports no counterpart to verifyReceiptWithDecisionV1."
+          }
+        },
+        "replay_policy": {
+          "status": "unresolved_until_run",
+          "outcome": null,
+          "rule": "The stated rules require an explicit matching actor for full binding and name a missing actor among the conditions that leave a result partially bound. This record's actor is present and mismatched, which is neither. The stated rules do not name that case, so this suite does not assign one.",
+          "source": "the binding rules stated by the Agent Replay author at revision 08b3146097977db565a202c7a8f34d350da00fd0 in Agent-Authority-Conformance/aps-conformance-suite#99 do not settle this record. Agent Replay was not run here and this record was not submitted to it."
+        }
+      },
+      "runner_observations": {
+        "typescript_expectations": "MATCH",
+        "python_expectations": "MATCH"
+      },
+      "remora_digest_mapping": {
+        "scope": "digest and legacy temporal relation only; not action-result validation",
+        "digest": "12d285993f53a94783def52d3dd6ebc730781b7e04245d655ab7cd4acd958771",
+        "matches_exact_evidence_pin": true,
+        "matches_record_decision_ref": true,
+        "swapped_evidence_digest": "2fc67caf85daa5123a83f8e6b603c8c4f4374cac2159556f04dc27387d9012cf",
+        "substitution_breaks_pin": true,
+        "legacy_relation_result": "PASS"
+      },
+      "harness_relations_not_sdk_or_remora_verifier_verdicts": {
+        "prev_equals_consumed_decision": true,
+        "action_ref_equals_consumed_decision": true,
+        "subject_agent_equals_action_agent": false
+      },
+      "external_effect": "NOT_ESTABLISHED",
+      "normative_conformance_verdict": "NOT_ASSESSED"
+    }
+  ],
+  "not_established": [
+    "external effect occurrence or settlement",
+    "single-use consumption",
+    "freshness at dispatch",
+    "real delegation leaf resolution",
+    "Agent Replay runtime behavior",
+    "production REMORA action-result stage/composite verification"
+  ],
+  "not_run": [
+    "25/25",
+    "schema 9/9",
+    "P1 7/7",
+    "oracle 13/13",
+    "C19"
+  ],
+  "evidence_substitution_runs": {
+    "typescript": {
+      "exit_code": 1,
+      "failed_cases": [
+        "FAIL ARB-01-positive",
+        "FAIL ARB-02-subject-agent-absent",
+        "FAIL ARB-03-prev-not-the-decision",
+        "FAIL ARB-04-decision-ref-mismatch",
+        "FAIL ARB-05-action-ref-mismatch",
+        "FAIL ARB-06-subject-agent-changed"
+      ],
+      "digest_binding_failure": true
+    },
+    "python": {
+      "exit_code": 1,
+      "failed_cases": [
+        "FAIL ARB-01-positive",
+        "FAIL ARB-02-subject-agent-absent",
+        "FAIL ARB-03-prev-not-the-decision",
+        "FAIL ARB-04-decision-ref-mismatch",
+        "FAIL ARB-05-action-ref-mismatch",
+        "FAIL ARB-06-subject-agent-changed"
+      ],
+      "digest_binding_failure": true
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "typescript": {
+    "exit_code": 1,
+    "failed_cases": [
+      "FAIL ARB-01-positive",
+      "FAIL ARB-02-subject-agent-absent",
+      "FAIL ARB-03-prev-not-the-decision",
+      "FAIL ARB-04-decision-ref-mismatch",
+      "FAIL ARB-05-action-ref-mismatch",
+      "FAIL ARB-06-subject-agent-changed"
+    ],
+    "digest_binding_failure": true
+  },
+  "python": {
+    "exit_code": 1,
+    "failed_cases": [
+      "FAIL ARB-01-positive",
+      "FAIL ARB-02-subject-agent-absent",
+      "FAIL ARB-03-prev-not-the-decision",
+      "FAIL ARB-04-decision-ref-mismatch",
+      "FAIL ARB-05-action-ref-mismatch",
+      "FAIL ARB-06-subject-agent-changed"
+    ],
+    "digest_binding_failure": true
+  }
+}
