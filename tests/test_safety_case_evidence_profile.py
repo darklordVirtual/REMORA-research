@@ -26,7 +26,7 @@ def _load(name: str, path: Path):
     return module
 
 
-CHECKER = _load("safety_case_profile_checker", PROFILE / "checker.py")
+CHECKER = _load("safety_case_profile_checker", PROFILE / "profile_checker.py")
 RUNNER = _load("safety_case_profile_runner", PROFILE / "run_profile.py")
 
 

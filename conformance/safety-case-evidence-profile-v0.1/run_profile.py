@@ -28,7 +28,7 @@ from typing import Any
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from checker import ASSESSORS, DELEGATED, V1_CHECKER_PATH, Verdict, assess  # noqa: E402
+from profile_checker import ASSESSORS, DELEGATED, V1_CHECKER_PATH, Verdict, assess  # noqa: E402
 
 
 def sha256_file(path: Path) -> str:
@@ -157,7 +157,7 @@ def build_record() -> dict[str, Any]:
             "evaluation of any external system and not a safety case"
         ),
         "inputs_sha256": {
-            "checker.py": sha256_file(HERE / "checker.py"),
+            "profile_checker.py": sha256_file(HERE / "profile_checker.py"),
             "cases.json": sha256_file(HERE / "cases.json"),
             "profile.json": sha256_file(HERE / "profile.json"),
             "evidence-sufficiency-v1/checker.py": sha256_file(V1_CHECKER_PATH),
@@ -182,8 +182,8 @@ def build_record() -> dict[str, Any]:
             "No external system was run; every premise is an authored synthetic fixture.",
             "Evidence acceptance, scope, completeness and immutability are trusted fixture premises.",
             "SUPPORTED is a bounded property verdict for one window and scope, not a safety case.",
-            "The five claim classes are the maintainer's reading of public safety-case discussion; "
-            "they are not endorsed by, or taken verbatim from, any third party.",
+            ("The five claim classes are the maintainer's reading of public safety-case discussion; "
+             "they are not endorsed by, or taken verbatim from, any third party."),
             "Rules were written by the same author as the fixtures.",
         ],
     }

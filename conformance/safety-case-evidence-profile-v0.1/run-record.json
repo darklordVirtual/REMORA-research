@@ -68,9 +68,9 @@
   "failures": [],
   "inputs_sha256": {
     "cases.json": "a15388d2d383d43ee8de4741f1335a85d471743d1a535205e1b2d40ec557b5a3",
-    "checker.py": "485c1a47bcaf3c701f7d67819d6e6a40662b3e39beee5e3012a99779a2b9a810",
     "evidence-sufficiency-v1/checker.py": "c4ca50aee2b2918b11c6fbde1f8615ca6c6bf1e5b6fa2ac1775f49c5e8c20be0",
-    "profile.json": "fcfae8bc93f70cdf8d1b6d4237ba5644408ab1186fcd9d1a6b0a12c16bff01e4"
+    "profile.json": "fcfae8bc93f70cdf8d1b6d4237ba5644408ab1186fcd9d1a6b0a12c16bff01e4",
+    "profile_checker.py": "485c1a47bcaf3c701f7d67819d6e6a40662b3e39beee5e3012a99779a2b9a810"
   },
   "limits": [
     "No external system was run; every premise is an authored synthetic fixture.",
