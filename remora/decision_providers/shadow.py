@@ -123,7 +123,7 @@ def shadow_evaluate(
     built (a credential-shaped key, say) is recorded like any other failure.
     """
     actual = getattr(actual_action, "name", str(actual_action))
-    context = {
+    context: dict[str, Any] = {
         "thresholds": {
             "intent_match": thresholds.intent_match,
             "target_matches_request": thresholds.target_matches_request,
