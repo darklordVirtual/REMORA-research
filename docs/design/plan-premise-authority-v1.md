@@ -132,15 +132,17 @@ the verified source record; this table does not restate those authors' results.
 | Q9.7 | `remora/enforcement/lease.py` | none | `tests/test_lease_verification_completeness.py` | SHELF-027 |
 | Q9.8 | `servers/execution_api.py`, `remora/execution/remote_dispatch.py` | same run record | `tests/test_ws9_server_path.py`, `tests/capabilities/test_ws8_review_findings.py` | SHELF-008 |
 
-The shelf entries, all recorded `VERIFIED_RETRIEVED` in
-`docs/research/research_shelf_v1.yaml`, are SHELF-032 dependency-scoped plan
-validity (`:843`), SHELF-008 capabilities bound to data rather than only to
-tools (`:201`), SHELF-009 programmable fine-grained privilege policy (`:231`),
-SHELF-001 declarative tool policy (`:46`), SHELF-027 stateful authorization for
-delegated agent effects (`:718`), SHELF-012 temporal constraints (`:299`) and
-SHELF-029 how strongly task state should influence an agent (`:784`). SHELF-032
-is the source `PlanBinding` was built from, and the case in Q9.2 is the one its
-mechanism leaves to the plan's author.
+The shelf entries are all recorded `VERIFIED_RETRIEVED` in
+`docs/research/research_shelf_v1.yaml`. They include SHELF-032 dependency-scoped
+plan validity (`:843`), SHELF-008 capabilities bound to data rather than only to
+tools (`:201`), SHELF-009 programmable fine-grained privilege policy (`:231`)
+and SHELF-001 declarative tool policy (`:46`).
+
+The remaining references are SHELF-027 stateful authorization for delegated
+agent effects (`:718`), SHELF-012 temporal constraints (`:299`) and SHELF-029
+how strongly task state should influence an agent (`:784`). SHELF-032 is the
+source `PlanBinding` was built from. The case in Q9.2 is the one its mechanism
+leaves to the plan's author.
 
 ## Proposed conformance profile
 
@@ -150,13 +152,19 @@ shape used by `conformance/non-transitivity-of-authority-v1/`: `vectors.json`,
 and a committed `run-record.json`, with `README.md` registered in
 `docs/assurance/document_register_v1.yaml`.
 
-The vectors are written here, before any run, and cover: a required premise
-declared and unmoved; a required premise declared and moved; a required premise
-the planner omitted from `depends_on`; a required premise the planner omitted
-from `reads`; an empty `depends_on`; a planner-declared superset; a required
-premise whose reader raises; and a tool with no required premises, which must
-behave exactly as it does today. Outcomes are refusal classes, not scores, and
-`UNSUPPORTED` is neither pass nor fail.
+The vectors are written here, before any run. They cover:
+
+- a required premise declared and unmoved;
+- a required premise declared and moved;
+- a required premise the planner omitted from `depends_on`;
+- a required premise the planner omitted from `reads`;
+- an empty `depends_on`;
+- a planner-declared superset;
+- a required premise whose reader raises;
+- a tool with no required premises, which must behave exactly as it does today.
+
+Outcomes are refusal classes, not scores, and `UNSUPPORTED` is neither pass nor
+fail.
 
 ## What this does not establish
 
