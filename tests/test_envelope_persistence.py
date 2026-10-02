@@ -303,3 +303,12 @@ def test_shadow_envelopes_do_not_leak_into_another_tenant(tmp_path: Path) -> Non
     store = SQLiteControlPlaneStore(db_path=db)
     replay_action_log(SAMPLE_LOG, envelope_store=store, store_tenant_id="shadow")
     assert store.list_audit_records_for_tenant(tenant_id="live") == []
+
+
+def test_empty_envelope_file_does_not_verify(tmp_path) -> None:
+    for content in ("", "\n\n  \n"):
+        empty = tmp_path / "empty.jsonl"
+        empty.write_text(content, encoding="utf-8")
+        ok, breaks = verify_envelope_file(str(empty))
+        assert ok is False
+        assert breaks

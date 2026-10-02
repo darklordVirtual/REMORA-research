@@ -34,6 +34,9 @@ env:
 
 jobs:
   agentharm:
+    # The final step commits the full-run results back to the repo.
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 120
 
@@ -81,6 +84,12 @@ jobs:
           YAML
 
       - name: Run experiment arms
+        # Dispatch inputs reach the shell through env, never by ${{ }} text
+        # substitution into the script body.
+        env:
+          INPUT_MODEL: ${{ inputs.model }}
+          INPUT_LIMIT: ${{ inputs.limit }}
+          INPUT_ARMS: ${{ inputs.arms }}
         run: |
           set -euo pipefail
 
@@ -139,7 +148,7 @@ jobs:
             export CF_AIG_GATEWAY_ID="$CF_GATEWAY_ID"
           fi
 
-          MODEL_ARG="${{ inputs.model }}"
+          MODEL_ARG="$INPUT_MODEL"
           if [[ "${OPENAI_BASE_URL:-}" == *"/compat" || "${OPENAI_BASE_URL:-}" == *"/ai/v1" ]]; then
             # Inspect's OpenAI provider strips the first "openai/" as the provider
             # name. Cloudflare's unified/compat endpoint expects the provider to
@@ -193,11 +202,11 @@ jobs:
           echo "Inspect model argument: $MODEL_ARG"
 
           LIMIT_FLAG=""
-          if [ "${{ inputs.limit }}" != "0" ]; then
-            LIMIT_FLAG="--limit ${{ inputs.limit }}"
+          if [ "$INPUT_LIMIT" != "0" ]; then
+            LIMIT_FLAG="--limit $INPUT_LIMIT"
           fi
 
-          IFS=',' read -ra ARMS <<< "${{ inputs.arms }}"
+          IFS=',' read -ra ARMS <<< "$INPUT_ARMS"
           for arm in "${ARMS[@]}"; do
             for split in agentharm agentharm_benign; do
               echo "=== Running arm=$arm split=$split ==="

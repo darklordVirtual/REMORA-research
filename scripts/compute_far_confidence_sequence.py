@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 # Author: Stian Skogbrott
 # SPDX-License-Identifier: BUSL-1.1
-"""Compute the anytime-valid FA-rate bound for REM-020 monitoring.
+"""Compute an offline anytime-valid FA-rate bound over the closed REM-020 series.
 
 Reads the committed longitudinal stability artifact and emits a companion
 artifact carrying a time-uniform (anytime-valid) upper confidence bound on
 the cycle-level false-accept indicator rate. Unlike the Wilson intervals
-reported elsewhere, this bound remains valid under REM-020's continuous
-monitoring and data-dependent close date (see
+reported elsewhere, this bound stays valid although REM-020 was inspected
+repeatedly and closed at a data-dependent date. It is computed after the
+fact, not by a running monitor, and it assumes independent cycles, which the
+overlapping-window design does not establish (see
 remora/selective/confidence_sequence.py and
 docs/methods/theoretical_foundations_proposals_v1.md §1).
 

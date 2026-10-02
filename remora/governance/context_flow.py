@@ -35,7 +35,9 @@ _VALID_FREQUENCIES = {
 }
 _VALID_RETENTION = {"short", "medium", "long", "permanent"}
 _VALID_RISK = {"low", "medium", "high", "critical"}
-_AGENT_ACTORS = {"agent", "assistant", "model", "llm"}
+# Default-deny: only these actors are treated as non-agents; any other actor
+# string (e.g. "claude-subagent", "bot") is subject to writable_by_agent.
+_NON_AGENT_ACTORS = frozenset({"human", "service"})
 
 
 @dataclass(frozen=True)
@@ -67,7 +69,7 @@ class ContextFlow:
             raise ValueError("description is required")
 
     def permits_actor(self, actor: str) -> bool:
-        if actor.lower() in _AGENT_ACTORS:
+        if actor.strip().lower() not in _NON_AGENT_ACTORS:
             return self.writable_by_agent
         return True
 

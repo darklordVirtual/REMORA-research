@@ -282,6 +282,18 @@ class ToolSpecBundle:
                 "after signing",
             )
 
+        # The outer label is outside the signed bytes, so on its own it can be
+        # relabeled from a revoked signer to a trusted one. Each spec's own
+        # signing_identity is inside them; the label must agree with every one.
+        for raw in bundle.get("tool_specs", []):
+            if str(raw.get("signing_identity", "")) != identity:
+                raise ToolSpecRefused(
+                    "toolspec_signing_identity_mismatch",
+                    f"tool spec {raw.get('tool_id')!r} is signed as "
+                    f"{raw.get('signing_identity')!r}, not as the bundle's "
+                    f"signing identity {identity!r}",
+                )
+
         digest = hashlib.sha256(canonical_signing_bytes(bundle)).hexdigest()
         if pinned_bundle_digest and digest != pinned_bundle_digest:
             raise ToolSpecRefused(

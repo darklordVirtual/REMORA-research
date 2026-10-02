@@ -53,8 +53,11 @@ class JWTAdapter(IdentityAdapter):
                 algorithms=self._algorithms,
                 audience=self._audience,
                 issuer=self._issuer,
+                options={"require": ["exp", "sub"]},
             )
-            subject = payload.get("sub", "unknown")
+            subject = payload.get("sub")
+            if not isinstance(subject, str) or not subject:
+                return None
             roles = payload.get(self._roles_claim, [])
             if isinstance(roles, str):
                 roles = [roles]

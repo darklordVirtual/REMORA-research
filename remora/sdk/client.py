@@ -37,6 +37,7 @@ from remora.sdk.errors import (
     RemoraUnavailableError,
     ReplayRefusedError,
     ServerError,
+    UnknownExecutionStateError,
 )
 from remora.sdk.effects import EffectVerificationView
 from remora.sdk.models import (
@@ -303,16 +304,69 @@ class RemoraClient:
                 method, path, json=json_body, headers=self._headers,
             )
         except httpx.HTTPError as exc:
-            raise RemoraUnavailableError(
-                f"REMORA control plane unreachable: {exc}",
-            ) from exc
+            raise transport_error_for(exc, path) from exc
         if response.status_code >= 400:
             raise self._error_for(response)
-        return response.json()
+        return success_body(response, path)
 
     @staticmethod
     def _error_for(response: httpx.Response) -> RemoraError:
         return error_for_response(response)
+
+
+#: Paths whose request may already have caused a side effect on the server.
+_EXECUTION_PATHS = frozenset({
+    "/v1/execution/execute",
+    "/v1/execution/execute-accepted",
+})
+
+#: Transport failures raised before any byte of the request left the client:
+#: the call cannot have executed, so retrying is safe.
+_PRE_SEND_ERRORS: "tuple[type[Exception], ...]" = (
+    httpx.ConnectError,
+    httpx.ConnectTimeout,
+    httpx.PoolTimeout,
+    httpx.ProxyError,
+    httpx.UnsupportedProtocol,
+)
+
+
+def transport_error_for(exc: Exception, path: str) -> RemoraError:
+    """Map a transport failure to the typed hierarchy.
+
+    On the execution paths a failure AFTER the request may have reached the
+    server (read timeout, dropped connection) leaves the outcome
+    undeterminable; that is :class:`UnknownExecutionStateError` and is never
+    retryable, because re-running is the one move the execution layer must
+    not make. Connect-stage failures and every non-execution call stay
+    :class:`RemoraUnavailableError`.
+    """
+    if path in _EXECUTION_PATHS and not isinstance(exc, _PRE_SEND_ERRORS):
+        return UnknownExecutionStateError(
+            f"execution outcome unknown: transport failed after the request "
+            f"was sent ({type(exc).__name__}: {exc}); do not re-run, reconcile "
+            f"through the proposal lifecycle",
+        )
+    return RemoraUnavailableError(f"REMORA control plane unreachable: {exc}")
+
+
+def success_body(response: "httpx.Response", path: str) -> dict[str, Any]:
+    """Decode a 2xx body, raising a typed error when it is not a JSON object."""
+    try:
+        body = response.json()
+    except ValueError as exc:
+        body = None
+        cause: Exception | None = exc
+    else:
+        cause = None
+    if isinstance(body, dict):
+        return body
+    message = f"REMORA returned a 2xx response that is not a JSON object (HTTP {response.status_code})"
+    if path in _EXECUTION_PATHS:
+        raise UnknownExecutionStateError(
+            f"execution outcome unknown: {message}",
+        ) from cause
+    raise ServerError(message) from cause
 
 
 def error_for_response(response: "httpx.Response") -> RemoraError:
@@ -324,6 +378,8 @@ def error_for_response(response: "httpx.Response") -> RemoraError:
     try:
         body = response.json()
     except (json.JSONDecodeError, ValueError):
+        body = {}
+    if not isinstance(body, dict):
         body = {}
     detail = str(body.get("detail") or f"HTTP {response.status_code}")
     if response.status_code == 429:

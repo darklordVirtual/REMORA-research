@@ -1095,3 +1095,13 @@ def test_policy_version_is_v4(engine: RemoraDecisionEngine) -> None:
     """The tier-dependent tainted floor is a behavior change -> version bump."""
     report = engine.decide(PolicyObservation(question="q", risk_tier="low"))
     assert report.policy_version == "RemoraDecisionEngine-v5"
+
+
+def test_explain_temperature_accept_excluded_in_critical_phase() -> None:
+    """explain() must agree with decide(): no temperature_accept in critical."""
+    e = RemoraDecisionEngine(temperature_threshold=0.20)
+    obs = PolicyObservation(question="q", temperature=0.05, phase="critical")
+    assert e.decide(obs).action == DecisionAction.VERIFY
+    trace = e.explain(obs)
+    triggered = {r.rule: r.triggered for r in trace.rule_evaluations}
+    assert triggered.get("temperature_accept") is False

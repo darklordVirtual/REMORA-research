@@ -11,6 +11,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
+from remora.agent_hook.intent_anchor import atomic_write_text, quarantine_file
 from remora.lyapunov import LyapunovController, LyapunovParams, LyapunovState
 
 class AutonomyLevel(str):
@@ -79,6 +80,8 @@ class LyapunovTracker:
         self.tracker_file = self.session_dir / "lyapunov.json"
         self._controller = LyapunovController.init(params)
         self._observations: list[ToolCallObservation] = []
+        # True when persisted state was unreadable: fail closed to HUMAN_REQUIRED.
+        self._quarantined = False
         self._load()
 
     def _load(self) -> None:
@@ -86,23 +89,34 @@ class LyapunovTracker:
             return
         try:
             raw = json.loads(self.tracker_file.read_text(encoding="utf-8"))
+            if not isinstance(raw, dict):
+                raise ValueError("tracker state is not an object")
+            self._quarantined = bool(raw.get("quarantined", False))
             self._observations = [
                 ToolCallObservation(**observation)
                 for observation in raw.get("observations", [])
             ]
             for observation in self._observations:
                 self._controller.push(self._observation_to_state(observation))
-        except (OSError, TypeError, json.JSONDecodeError):
+        except (OSError, TypeError, ValueError, AttributeError):
+            # Fail closed: keep the unreadable file and pin the most
+            # conservative tier instead of silently forgetting history.
+            quarantine_file(self.tracker_file)
             self._observations = []
             self._controller = LyapunovController.init(self._params)
+            self._quarantined = True
+            try:
+                self._save()
+            except OSError:
+                pass
 
     def _save(self) -> None:
-        self.session_dir.mkdir(parents=True, exist_ok=True)
         data = {
+            "quarantined": self._quarantined,
             "observations": [asdict(observation) for observation in self._observations],
             "trajectory": self._controller.trajectory(),
         }
-        self.tracker_file.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        atomic_write_text(self.tracker_file, json.dumps(data, indent=2))
 
     @staticmethod
     def _observation_to_weighted_support(
@@ -233,6 +247,9 @@ class LyapunovTracker:
         consecutive_critical_human:
             Consecutive CRITICAL phases that trigger HUMAN_REQUIRED.
         """
+        if self._quarantined:
+            return AutonomyLevel(AutonomyLevel.HUMAN_REQUIRED)
+
         latest_v = self.latest_V()
         consecutive = self._consecutive_critical_phases()
 
@@ -258,5 +275,6 @@ class LyapunovTracker:
     def clear(self) -> None:
         self._controller = LyapunovController.init(self._params)
         self._observations = []
+        self._quarantined = False
         if self.tracker_file.exists():
             self.tracker_file.unlink()

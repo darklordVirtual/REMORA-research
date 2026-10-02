@@ -453,7 +453,7 @@ def _rules_from_report(report: DecisionReport) -> list[str]:
 
 def _world_model_ece(episodes: list[Episode], world: DomainHarmPrior) -> float:
     """Expected calibration error for labelled episodes against world priors."""
-    labelled = [e for e in episodes if e.ground_truth != GroundTruth.UNKNOWN]
+    labelled = [e for e in episodes if e.is_observed_label]
     if not labelled:
         return 0.5
 

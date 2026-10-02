@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import dataclasses
 import logging
+import math
 from dataclasses import dataclass, replace
 from typing import ClassVar
 
@@ -276,7 +277,7 @@ def _is_low_consequence(obs: PolicyObservation) -> bool:
 
     # Production is excluded even for reads: blast radius there includes
     # disclosure of live data, which no read-only guarantee covers.
-    if (obs.target_environment or "").strip().lower() in {"prod", "production"}:
+    if (obs.target_environment or "").strip().lower() in _PROD_ENVS:
         return False
 
     return True
@@ -671,6 +672,18 @@ _CONDITIONAL_GATES: tuple[_ConditionalGate, ...] = (
 # Engine
 # ---------------------------------------------------------------------------
 
+_FINITE_GATE_FIELDS: tuple[str, ...] = (
+    "trust_score",
+    "final_H",
+    "final_D",
+    "session_cumulative_risk",
+    "model_misspecification_risk",
+    "policy_generalization_risk",
+    "environment_confidence",
+    "classification_confidence",
+)
+
+
 class RemoraDecisionEngine:
     """Conservative policy engine mapping PolicyObservation → DecisionReport.
 
@@ -777,6 +790,75 @@ class RemoraDecisionEngine:
     # ------------------------------------------------------------------
 
 
+    def _argument_gate_report(
+        self,
+        reasons: list[DecisionReason],
+        obs: PolicyObservation,
+        *,
+        credal: CredalEnvelope | None,
+        raw_obs: PolicyObservation | None,
+    ) -> DecisionReport | None:
+        """Argument gates (missing / unvalidated / ungrounded). Shared by the
+        decide() tail and by _probabilistic_accept, so a probabilistic ACCEPT
+        can never outrun an argument gate."""
+        if obs.missing_required_arguments:
+            if obs.argument_resolver_tools and obs.arguments_satisfiable is not False:
+                reasons.append(DecisionReason.ARGUMENT_RESOLUTION_REQUIRED)
+                return self._build(
+                    DecisionAction.VERIFY, reasons, obs,
+                    credal=credal, raw_obs=raw_obs,
+                    resolution_plan=ResolutionPlan(
+                        resolver="argument_resolution",
+                        target_arguments=tuple(obs.missing_required_arguments),
+                        source_tools=tuple(obs.argument_resolver_tools),
+                    ),
+                )
+            # No bounded step can close the gap. Promising a verification that
+            # cannot happen is worse than stopping.
+            reasons.append(DecisionReason.NO_RESOLVER_AVAILABLE)
+            return self._build(DecisionAction.ABSTAIN, reasons, obs,
+                               credal=credal, raw_obs=raw_obs)
+
+        # ── VALIDATION REQUIRED (2026-07-31) ─────────────────────────────
+        # §27 left UNKNOWN falling through to autonomy, so an uncovered domain
+        # accepted 61.5% of corrupted identifiers. An argument that steers where
+        # the action lands must be confirmed before autonomous execution — and
+        # only such arguments, because routing every UNKNOWN here would rebuild
+        # the constant blocker of §21 one level up.
+        #
+        # Placed after every blocking gate, so it can only convert a
+        # fall-through. Inert until the caller populates the field.
+        if obs.unvalidated_required_arguments:
+            if obs.argument_resolver_tools:
+                reasons.append(DecisionReason.ARGUMENT_VALIDATION_REQUIRED)
+                return self._build(
+                    DecisionAction.VERIFY, reasons, obs,
+                    credal=credal, raw_obs=raw_obs,
+                    resolution_plan=ResolutionPlan(
+                        resolver="argument_validation",
+                        target_arguments=tuple(obs.unvalidated_required_arguments),
+                        source_tools=tuple(obs.argument_resolver_tools),
+                    ),
+                )
+            # Nothing authoritative can confirm it, so autonomy is unavailable.
+            reasons.append(DecisionReason.NO_RESOLVER_AVAILABLE)
+            return self._build(DecisionAction.ABSTAIN, reasons, obs,
+                               credal=credal, raw_obs=raw_obs)
+
+        # ── UNGROUNDED ARGUMENT VALUES (2026-07-31) ──────────────────────
+        # §34 measured the open autonomy risk: 86.8% of well-formed foreign
+        # calls accepted, because every structural signal was satisfied. The
+        # tell is provenance-shaped — the values are traceable to nothing in
+        # this context — so autonomy withdraws to VERIFY. Placed after every
+        # blocking gate (it can only convert a fall-through, never preempt a
+        # block) and before the low-consequence accept it exists to guard.
+        # None never triggers it: a call with nothing to judge keeps its lane.
+        if obs.argument_values_grounded is False:
+            reasons.append(DecisionReason.UNGROUNDED_ARGUMENT_VALUES_VERIFY)
+            return self._build(DecisionAction.VERIFY, reasons, obs,
+                               credal=credal, raw_obs=raw_obs)
+        return None
+
     def _probabilistic_accept(
         self,
         reasons: list[DecisionReason],
@@ -789,6 +871,11 @@ class RemoraDecisionEngine:
         that conclusion is advisory only: the call routes to VERIFY with an
         explicit reason (issue #35 invariant: PROBABILISTIC_SIGNAL can never
         directly produce ACCEPT)."""
+        _arg_report = self._argument_gate_report(
+            reasons, obs, credal=credal, raw_obs=raw_obs
+        )
+        if _arg_report is not None:
+            return _arg_report
         if self.execution_profile:
             reasons.append(DecisionReason.EXECUTION_PROFILE_PROBABILISTIC_VERIFY)
             return self._build(DecisionAction.VERIFY, reasons, obs,
@@ -888,6 +975,18 @@ class RemoraDecisionEngine:
                         credal=_credal, raw_obs=_raw_obs,
                     )
                 return self._build(_outcome, reasons, obs, credal=_credal, raw_obs=_raw_obs)
+
+        # ── NON-FINITE INPUT FLOOR ──────────────────────────────────────────
+        # Every threshold comparison with NaN is False, so a NaN risk or
+        # confidence would silently pass each gate above and leave a high
+        # trust score at ACCEPT. A non-finite numeric gate input is unknown,
+        # not safe: refuse to accept. Finite inputs are unaffected.
+        if any(
+            isinstance(_v, (int, float)) and not math.isfinite(_v)
+            for _v in (getattr(obs, _f, None) for _f in _FINITE_GATE_FIELDS)
+        ):
+            reasons.append(DecisionReason.NON_FINITE_INPUT_VERIFY)
+            return self._build(DecisionAction.VERIFY, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
         # ── SCHEMA UNVERIFIED FLOOR ─────────────────────────────────────────
         # All higher-priority ESCALATE/VERIFY paths (adversarial, malformed,
@@ -1092,62 +1191,11 @@ class RemoraDecisionEngine:
         #
         # Placed after every blocking gate, so it can only convert a
         # fall-through — a forbidden tool still escalates on re-entry.
-        if obs.missing_required_arguments:
-            if obs.argument_resolver_tools and obs.arguments_satisfiable is not False:
-                reasons.append(DecisionReason.ARGUMENT_RESOLUTION_REQUIRED)
-                return self._build(
-                    DecisionAction.VERIFY, reasons, obs,
-                    credal=_credal, raw_obs=_raw_obs,
-                    resolution_plan=ResolutionPlan(
-                        resolver="argument_resolution",
-                        target_arguments=tuple(obs.missing_required_arguments),
-                        source_tools=tuple(obs.argument_resolver_tools),
-                    ),
-                )
-            # No bounded step can close the gap. Promising a verification that
-            # cannot happen is worse than stopping.
-            reasons.append(DecisionReason.NO_RESOLVER_AVAILABLE)
-            return self._build(DecisionAction.ABSTAIN, reasons, obs,
-                               credal=_credal, raw_obs=_raw_obs)
-
-        # ── VALIDATION REQUIRED (2026-07-31) ─────────────────────────────
-        # §27 left UNKNOWN falling through to autonomy, so an uncovered domain
-        # accepted 61.5% of corrupted identifiers. An argument that steers where
-        # the action lands must be confirmed before autonomous execution — and
-        # only such arguments, because routing every UNKNOWN here would rebuild
-        # the constant blocker of §21 one level up.
-        #
-        # Placed after every blocking gate, so it can only convert a
-        # fall-through. Inert until the caller populates the field.
-        if obs.unvalidated_required_arguments:
-            if obs.argument_resolver_tools:
-                reasons.append(DecisionReason.ARGUMENT_VALIDATION_REQUIRED)
-                return self._build(
-                    DecisionAction.VERIFY, reasons, obs,
-                    credal=_credal, raw_obs=_raw_obs,
-                    resolution_plan=ResolutionPlan(
-                        resolver="argument_validation",
-                        target_arguments=tuple(obs.unvalidated_required_arguments),
-                        source_tools=tuple(obs.argument_resolver_tools),
-                    ),
-                )
-            # Nothing authoritative can confirm it, so autonomy is unavailable.
-            reasons.append(DecisionReason.NO_RESOLVER_AVAILABLE)
-            return self._build(DecisionAction.ABSTAIN, reasons, obs,
-                               credal=_credal, raw_obs=_raw_obs)
-
-        # ── UNGROUNDED ARGUMENT VALUES (2026-07-31) ──────────────────────
-        # §34 measured the open autonomy risk: 86.8% of well-formed foreign
-        # calls accepted, because every structural signal was satisfied. The
-        # tell is provenance-shaped — the values are traceable to nothing in
-        # this context — so autonomy withdraws to VERIFY. Placed after every
-        # blocking gate (it can only convert a fall-through, never preempt a
-        # block) and before the low-consequence accept it exists to guard.
-        # None never triggers it: a call with nothing to judge keeps its lane.
-        if obs.argument_values_grounded is False:
-            reasons.append(DecisionReason.UNGROUNDED_ARGUMENT_VALUES_VERIFY)
-            return self._build(DecisionAction.VERIFY, reasons, obs,
-                               credal=_credal, raw_obs=_raw_obs)
+        _arg_report = self._argument_gate_report(
+            reasons, obs, credal=_credal, raw_obs=_raw_obs
+        )
+        if _arg_report is not None:
+            return _arg_report
 
         # ── LOW-CONSEQUENCE ACCEPT (opt-in, 2026-07-31) ─────────────────────
         # Placed here deliberately: every hard guard and every blocking gate has
@@ -1365,6 +1413,7 @@ class RemoraDecisionEngine:
             below_temp = (
                 obs.temperature is not None
                 and obs.temperature <= self.temperature_threshold
+                and obs.phase != "critical"
                 and obs.counterfactual_passed is not False
                 and not contradictions
             )
