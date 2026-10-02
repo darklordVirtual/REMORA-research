@@ -78,3 +78,8 @@ class TestExtractConfidenceFromJson:
 
     def test_clamps_above_one(self):
         assert extract_confidence_from_json({"confidence": 1.5}) == pytest.approx(1.0)
+
+
+@pytest.mark.parametrize("raw", ["nan", float("nan"), float("inf"), "inf", "-inf"])
+def test_non_finite_json_confidence_is_zero(raw):
+    assert extract_confidence_from_json({"confidence": raw}) == 0.0

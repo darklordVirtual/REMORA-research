@@ -75,3 +75,36 @@ class TestQueryOpaPolicyReturnValues:
         assert captured["input"]["trust_score"] == 0.75
         assert captured["input"]["phase"] == "critical"
         assert captured["input"]["intent"] == "audit_write"
+
+
+import pytest  # noqa: E402
+
+
+def _query_with(result: object) -> str:
+    with patch("urllib.request.urlopen") as mock_open:
+        mock_resp = MagicMock()
+        mock_resp.read.return_value = json.dumps({"result": result}).encode()
+        mock_resp.__enter__ = lambda s: s
+        mock_resp.__exit__ = MagicMock(return_value=False)
+        mock_open.return_value = mock_resp
+        return query_opa_policy(0.9, "ordered", "read_document")
+
+
+@pytest.mark.parametrize(
+    "result",
+    [
+        {"action": "escalate"},
+        {"action": "abstain"},
+        {"allow": 0},
+        {"allow": "no"},
+        {"allow": 1},
+        {"allow": []},
+    ],
+)
+def test_only_explicit_allow_is_allow(result: object) -> None:
+    assert _query_with(result) == "DENY"
+
+
+@pytest.mark.parametrize("result", [{"allow": True}, {"action": "allow"}])
+def test_explicit_allow_values_still_allow(result: object) -> None:
+    assert _query_with(result) == "ALLOW"

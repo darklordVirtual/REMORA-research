@@ -24,6 +24,7 @@ from typing import Any, Mapping
 
 from remora.policy.report import DecisionAction
 from remora.sdk.effects import EffectVerificationView
+from remora.sdk.errors import ServerError
 
 
 def _frozen(payload: Any) -> Mapping[str, Any] | None:
@@ -353,9 +354,15 @@ class AssessmentResult:
 
     @classmethod
     def from_payload(cls, payload: Mapping[str, Any]) -> AssessmentResult:
+        try:
+            action = DecisionAction(payload["decision"])
+        except ValueError as exc:
+            raise ServerError(
+                f"unknown decision value {payload['decision']!r} from the control plane",
+            ) from exc
         return cls(
             proposal_id=str(payload["proposal_id"]),
-            action=DecisionAction(payload["decision"]),
+            action=action,
             reasons=tuple(str(r) for r in payload.get("reasons", [])),
             tool_call_hash=str(payload.get("tool_call_hash", "")),
             semantic=SemanticAssessment.from_payload(payload.get("semantic", {})),

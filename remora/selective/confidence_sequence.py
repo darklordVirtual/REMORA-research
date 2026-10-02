@@ -13,6 +13,16 @@ docstring said the module is "used by REM-020 to monitor the operational
 false-accept rate continuously", and the research-control matrix repeated it;
 that described a deployment which does not exist, and it is corrected here.
 
+Independence caveat
+-------------------
+The bound assumes independent Bernoulli trials. The REM-020 trials are adapt
+cycles, and AROMER scores a fixed-size window of recent episodes in every
+cycle, so consecutive cycles re-score overlapping episodes. Checked against the
+live episode store on 2026-10-02: every cycle processes 200 episodes and no
+episode has been written since 2026-07-02. The independence assumption is
+therefore not established for the CLAIM-011 series, and n=168 is a count of
+cycles, not of independent trials.
+
 Motivation
 ----------
 The REM-020 series was inspected repeatedly while it accumulated, and the

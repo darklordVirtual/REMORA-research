@@ -280,7 +280,7 @@ empty trail passes trivially and proves nothing about what was decided.
 
 ## See also
 
-- [README Quickstart](../README.md#quickstart): install and first run
+- [README, Run it](../README.md#run-it): install and first run
 - [docs/07-api-reference.md](07-api-reference.md): REST API (`remora serve`)
 - [docs/03-experiments.md](03-experiments.md): how the evidence was produced
 - `python -m remora --help` / `python -m remora <command> --help`

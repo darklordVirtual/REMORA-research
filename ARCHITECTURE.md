@@ -205,7 +205,7 @@ same answers in plain words. §5.6 has the detail.
 | **Audit chain** | `remora/audit/hash_chain.py` | SHA-256 hash chain; tamper-**evident** |
 | **Governance API** | `servers/api.py` | FastAPI governance gateway |
 | **MCP server** | `servers/mcp_remora.py` | Model Context Protocol tool suite (`remora_verify_claim`, `remora_analyze_document`, `remora_rag_query`, `remora_norwegian_law_search`, `agent_start_session`, `agent_execute_tool`, `remora_session_status`, …) |
-| **Edge workers** | `workers/` | `agent-control`, `rag-oracle`, `law-search`, `aromer` (see §5.4) |
+| **Edge workers** | `workers/` | `agent-control`, `rag-oracle`, `law-search`, `aromer`, `mcp-gateway` (see §5.4) |
 | **Learning overlay** | `remora/aromer/` | AROMER, experimental, shadow-only (see §5.5) |
 
 ## 5. Component subsystems in detail
@@ -299,8 +299,14 @@ an external append-only (WORM) store as a deployment dependency.
 - **`servers/mcp_remora.py`**, MCP server exposing REMORA as a tool suite to
   Claude Desktop and compatible hosts (stdlib `urllib` only). Profiles: `local`,
   `demo`, `enterprise`.
-- **`workers/`**, Cloudflare edge workers, all fail-closed on authentication
-  (a missing `ORACLE_SECRET` / `CONTROL_SECRET` rejects, never silently permits):
+- **`workers/`**, Cloudflare edge workers. Authentication is **not uniformly
+  fail-closed**. Fail-closed (a missing secret rejects): `agent-control`
+  mutations, `aromer` writes (503 without `AROMER_WRITE_SECRET`), `rag-oracle`
+  `/ingest`, and `mcp-gateway` `/mcp`. Open when no secret is configured:
+  `rag-oracle` `/query`, `/rerank` and `/translate` use `optionalBearer`, which
+  allows all requests while `ORACLE_SECRET` is unset; `rag-oracle` `/search`
+  does not check authentication; `law-search` has no authentication. This
+  describes current behaviour; hardening it is a separate code change:
 
   | Worker | Directory | Primary endpoints |
   |---|---|---|

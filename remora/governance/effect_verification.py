@@ -237,6 +237,14 @@ def verify_declared_delta(
             detail=detail, now=now,
         )
 
+    if not contract.expected_fields:
+        # A vacuous contract proves nothing; "verified" would be a false
+        # attestation. There is no declared delta to compare.
+        return _build(
+            EffectStatus.UNSUPPORTED, "empty_postcondition",
+            "the contract declares no expected fields; nothing can be verified",
+        )
+
     if observed is None:
         return _build(
             EffectStatus.UNOBSERVABLE, "postcondition_object_absent",
@@ -272,7 +280,11 @@ def verify_declared_delta(
             if _digest(actual) != str(expected_value):
                 problems.append(f"{name}: content hash differs")
             continue
-        if actual != expected_value:
+        # bool is an int subclass: 1 == True, but "flag is true" and "count
+        # is 1" are different claims. Compare the kinds strictly.
+        if isinstance(actual, bool) != isinstance(expected_value, bool) or (
+            actual != expected_value
+        ):
             problems.append(f"{name}: expected {expected_value!r}, got {actual!r}")
 
     if problems:

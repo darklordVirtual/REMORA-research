@@ -191,6 +191,9 @@ def assess_tool_call(tool_name: str, tool_input: dict[str, Any]) -> ToolRiskAsse
             DestructiveIntent.POWER_CYCLE,
             DestructiveIntent.SECRET_EXPOSURE,
             DestructiveIntent.SUBSHELL_DECODE,
+            DestructiveIntent.MASS_DESTRUCTION,
+            DestructiveIntent.BRANCH_DELETE,
+            DestructiveIntent.DOWNLOAD_EXECUTE,
         }
         blocking_intents = [i for i in ast_intents if i in _BLOCK_INTENTS]
         if blocking_intents:

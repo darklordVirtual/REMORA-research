@@ -31,7 +31,7 @@ import hmac
 import json
 import os
 import threading
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 import sqlite3
@@ -110,6 +110,29 @@ class ChainEntry:
         return asdict(self)
 
 
+def _head_problems(
+    entries: Sequence[ChainEntry],
+    expected_head: tuple[int, str] | None,
+    stored_head: tuple[int, str] | None = None,
+) -> list[str]:
+    """Compare the last entry to an external anchor and/or a stored head row.
+
+    Tail truncation (deleting the newest entries) leaves a self-consistent
+    prefix, so it is invisible to per-entry checks. ``expected_head`` is a
+    ``(sequence_no, entry_hash)`` pair held outside the chain store; a stored
+    head row (Postgres) is compared the same way.
+    """
+    problems: list[str] = []
+    last: tuple[int, str] = (
+        (entries[-1].sequence_no, entries[-1].entry_hash) if entries else (-1, _GENESIS)
+    )
+    if expected_head is not None and (int(expected_head[0]), str(expected_head[1])) != last:
+        problems.append(f"head_mismatch:expected_seq={expected_head[0]}:actual_seq={last[0]}")
+    if stored_head is not None and (int(stored_head[0]), str(stored_head[1])) != last:
+        problems.append(f"stored_head_mismatch:stored_seq={stored_head[0]}:actual_seq={last[0]}")
+    return problems
+
+
 class TenantAuditChain:
     """In-process reference implementation with atomic appends."""
 
@@ -173,12 +196,20 @@ class TenantAuditChain:
         with self._lock:
             return tuple(self._entries.get(tenant_id, ()))
 
-    def verify(self, tenant_id: str) -> tuple[bool, list[str]]:
-        """Recompute one tenant's chain; report every break (complete set)."""
+    def verify(
+        self, tenant_id: str, expected_head: tuple[int, str] | None = None
+    ) -> tuple[bool, list[str]]:
+        """Recompute one tenant's chain; report every break (complete set).
+
+        ``expected_head`` is an optional ``(sequence_no, entry_hash)`` anchor
+        held outside the store; a mismatch (e.g. tail truncation) is reported.
+        """
         problems: list[str] = []
         previous_hash = _GENESIS
         key = os.environ.get(_ENV_KEY, "").strip().encode()
-        for i, entry in enumerate(self.entries(tenant_id)):
+        all_entries = self.entries(tenant_id)
+        problems.extend(_head_problems(all_entries, expected_head))
+        for i, entry in enumerate(all_entries):
             if entry.sequence_no != i:
                 problems.append(f"sequence_gap_at:{i}")
             if entry.previous_hash != previous_hash:
@@ -193,6 +224,8 @@ class TenantAuditChain:
                 want = hmac.new(key, entry.entry_hash.encode(), hashlib.sha256).hexdigest()
                 if not hmac.compare_digest(want, entry.signature):
                     problems.append(f"signature_mismatch_at:{i}")
+            elif key and not entry.signature:
+                problems.append(f"signature_missing_at:{i}")
             previous_hash = entry.entry_hash
         return (not problems, problems)
 
@@ -308,11 +341,17 @@ def verify_exported_chain(
     return (not problems), problems
 
 
-def _verify_generic(chain: Any, tenant_id: str) -> tuple[bool, list[str]]:
+def _verify_generic(
+    chain: Any, tenant_id: str, expected_head: tuple[int, str] | None = None
+) -> tuple[bool, list[str]]:
     problems: list[str] = []
     previous_hash = _GENESIS
     key = os.environ.get(_ENV_KEY, "").strip().encode()
-    for i, e in enumerate(chain.entries(tenant_id)):
+    all_entries = chain.entries(tenant_id)
+    stored_head_fn = getattr(chain, "stored_head", None)
+    stored = stored_head_fn(tenant_id) if callable(stored_head_fn) else None
+    problems.extend(_head_problems(all_entries, expected_head, stored))
+    for i, e in enumerate(all_entries):
         if e.sequence_no != i:
             problems.append(f"sequence_gap_at:{i}")
         if e.previous_hash != previous_hash:
@@ -429,8 +468,10 @@ class SQLiteTenantChain:
             for r in rows
         )
 
-    def verify(self, tenant_id: str) -> tuple[bool, list[str]]:
-        return _verify_generic(self, tenant_id)
+    def verify(
+        self, tenant_id: str, expected_head: tuple[int, str] | None = None
+    ) -> tuple[bool, list[str]]:
+        return _verify_generic(self, tenant_id, expected_head)
 
 
 class PostgresTenantChain:
@@ -533,5 +574,16 @@ class PostgresTenantChain:
             for r in rows
         )
 
-    def verify(self, tenant_id: str) -> tuple[bool, list[str]]:
-        return _verify_generic(self, tenant_id)
+    def stored_head(self, tenant_id: str) -> tuple[int, str] | None:
+        """The per-tenant head row, or None when no row exists."""
+        with self._psycopg.connect(self._dsn) as conn:
+            row = conn.execute(
+                "SELECT head_sequence, head_hash FROM tenant_chain_head "
+                "WHERE tenant_id = %s", (tenant_id,),
+            ).fetchone()
+        return None if row is None else (int(row[0]), str(row[1]))
+
+    def verify(
+        self, tenant_id: str, expected_head: tuple[int, str] | None = None
+    ) -> tuple[bool, list[str]]:
+        return _verify_generic(self, tenant_id, expected_head)

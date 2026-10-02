@@ -18,7 +18,11 @@ where y ∈ {0, 1} is whether the accepted verdict was correct.  Online SGD give
 
 Under a simplified linear trust approximation, ∂trust/∂λ ≈ −D (dissensus), so:
 
-    λ_{t+1} = λ_t + α · (y_t − trust_t) · D_t
+    λ_{t+1} = λ_t + α · (trust_t − y_t) · D_t
+
+(the sign the code applies: ∂trust/∂λ is taken as −D, so the step is
+λ − α · (trust − y) · (−D); trust_t is approximated by the EMA ratio
+E[D|correct] / (E[D|correct] + E[D|incorrect]) rather than the live trust score).
 
 Convergence: by the SGD convergence theorem, if L is convex and ∇L is L-Lipschitz,
 the EMA iterate converges in O(1/ε²) steps to an ε-neighbourhood of λ*.
@@ -144,7 +148,7 @@ class ThermodynamicAdapter:
             self._ema_d_incorrect = (1.0 - alpha) * self._ema_d_incorrect + alpha * dissensus
 
         # SGD step for λ — only on ACCEPT verdicts where we have a loss signal
-        if self._n >= self._min_samples and verdict == "ACCEPT":
+        if self._n >= self._min_samples and str(verdict).upper() == "ACCEPT":
             # Simplified gradient: ∂L/∂λ ≈ (trust - y) · (-D)
             # → λ update = +α · (y - trust) · D
             # Approximate trust via the current EMA signal

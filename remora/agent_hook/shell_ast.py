@@ -39,6 +39,9 @@ class DestructiveIntent(str, Enum):
     POWER_CYCLE        = "power_cycle"             # poweroff / reboot / shutdown
     SECRET_EXPOSURE    = "secret_exposure"         # wrangler secret / env SECRET=
     SUBSHELL_DECODE    = "subshell_decode"         # eval $(base64 -d ...) patterns
+    MASS_DESTRUCTION   = "mass_destruction"        # find -delete, chmod -R 000 /, truncate -s 0, git clean -f, mv ~ /dev/null
+    BRANCH_DELETE      = "branch_delete"           # git branch -D main/master
+    DOWNLOAD_EXECUTE   = "download_execute"        # bash <(curl ...), curl -o a.sh && bash a.sh
     UNKNOWN_SUBSHELL   = "unknown_subshell"        # $(...) or `...` expanding to exec
 
 
@@ -66,6 +69,11 @@ _POWER_PROGRAMS = frozenset(["poweroff", "reboot", "shutdown", "halt", "init"])
 _EXEC_SHELLS = frozenset(["sh", "bash", "zsh", "ksh", "dash", "fish", "pwsh", "powershell", "cmd"])
 _SECRET_SUBCOMMANDS = frozenset(["secret"])  # wrangler secret put
 _FORCE_FLAGS = frozenset(["force", "f"])
+
+_DOWNLOAD_PROGRAMS = frozenset(["curl", "wget"])
+_ROOT_LIKE_PATHS = frozenset(["/", "~", ".", "..", "/*", "~/", "~/*"])
+_PROTECTED_BRANCHES = frozenset(["main", "master", "develop", "trunk"])
+_FIND_DESTRUCTIVE_EXEC = frozenset(["rm", "rmdir", "shred", "unlink", "del", "mv", "truncate"])
 
 _SQL_DROP_RE = re.compile(
     r"\b(drop\s+table|truncate\s+table|drop\s+database|drop\s+schema)\b",
@@ -231,10 +239,83 @@ def classify_destructive_intents(nodes: list[ShellCommandNode]) -> list[Destruct
     """Return the list of destructive intents found in the command AST."""
     intents: list[DestructiveIntent] = []
     full_raw = " ".join(" ".join(n.raw_tokens) for n in nodes)
+    downloaded: set[str] = set()
 
     for node in nodes:
         prog = node.program.lower()
         flags = {f.lower() for f in node.flags}
+        args = node.args
+
+        # DOWNLOAD_EXECUTE: process substitution into a shell, or running a
+        # file that an earlier curl/wget in the same command wrote.
+        if (prog in _EXEC_SHELLS or prog in {"source", "."}) and any(
+            a.startswith("<(") for a in args
+        ):
+            intents.append(DestructiveIntent.DOWNLOAD_EXECUTE)
+        if prog in _DOWNLOAD_PROGRAMS:
+            for i, a in enumerate(args):
+                if a in {"-o", "-O", "--output"} and i + 1 < len(args):
+                    downloaded.add(args[i + 1])
+                elif a.startswith("--output="):
+                    downloaded.add(a.split("=", 1)[1])
+        if downloaded:
+            script_arg = next((a for a in args if not a.startswith("-")), "")
+            first = node.raw_tokens[0] if node.raw_tokens else ""
+            if (prog in _EXEC_SHELLS or prog in {"source", "."}) and script_arg in downloaded:
+                intents.append(DestructiveIntent.DOWNLOAD_EXECUTE)
+            elif first in downloaded or (first.startswith("./") and first[2:] in downloaded):
+                intents.append(DestructiveIntent.DOWNLOAD_EXECUTE)
+
+        # MASS_DESTRUCTION
+        if prog == "find":
+            if "-delete" in args:
+                intents.append(DestructiveIntent.MASS_DESTRUCTION)
+            for i, a in enumerate(args):
+                if a in {"-exec", "-execdir", "-ok", "-okdir"} and i + 1 < len(args):
+                    if args[i + 1].split("/")[-1] in _FIND_DESTRUCTIVE_EXEC:
+                        intents.append(DestructiveIntent.MASS_DESTRUCTION)
+        if prog in {"chmod", "chown", "chgrp"} and ("r" in flags or "recursive" in flags):
+            targets = [a for a in args if not a.startswith("-")]
+            if any(t in _ROOT_LIKE_PATHS for t in targets) or (
+                prog == "chmod" and targets and targets[0] in {"000", "0000"}
+            ):
+                intents.append(DestructiveIntent.MASS_DESTRUCTION)
+        if prog == "truncate":
+            size = None
+            for i, a in enumerate(args):
+                if a in {"-s", "--size"} and i + 1 < len(args):
+                    size = args[i + 1]
+                elif a.startswith("--size="):
+                    size = a.split("=", 1)[1]
+                elif a.startswith("-s") and len(a) > 2:
+                    size = a[2:]
+            if size == "0":
+                intents.append(DestructiveIntent.MASS_DESTRUCTION)
+        if prog == "git" and args and args[0] == "clean":
+            opts = [a for a in args[1:] if a.startswith("-")]
+            short = {c for a in opts if not a.startswith("--") for c in a[1:]}
+            dry = "n" in short or "--dry-run" in opts
+            if ("f" in short or "--force" in opts) and not dry:
+                intents.append(DestructiveIntent.MASS_DESTRUCTION)
+        if prog == "mv":
+            positional = [a for a in args if not a.startswith("-")]
+            if positional and (
+                positional[-1].startswith("/dev/")
+                and positional[-1] != "/dev/shm"
+                or any(p in _ROOT_LIKE_PATHS for p in positional[:-1])
+            ):
+                intents.append(DestructiveIntent.MASS_DESTRUCTION)
+
+        # BRANCH_DELETE: git branch -D <protected>
+        if prog == "git" and args and args[0] == "branch":
+            opts = [a for a in args[1:] if a.startswith("-")]
+            short = {c for a in opts if not a.startswith("--") for c in a[1:]}
+            names = [a for a in args[1:] if not a.startswith("-")]
+            if ("D" in short or ("d" in short and "f" in short)
+                    or ("--delete" in opts and "--force" in opts)) and any(
+                n.split("/")[-1] in _PROTECTED_BRANCHES for n in names
+            ):
+                intents.append(DestructiveIntent.BRANCH_DELETE)
 
         # DELETE_RECURSIVE: rm/del with recursive flag
         if prog in _DELETE_PROGRAMS:
@@ -268,6 +349,7 @@ def classify_destructive_intents(nodes: list[ShellCommandNode]) -> list[Destruct
         # FORCE_PUSH
         if prog == "git" and node.args and node.args[0] == "push" and (
             flags & _FORCE_FLAGS or "--force" in node.args or "-f" in node.args
+            or any(a.startswith("+") and len(a) > 1 for a in node.args[1:])
         ):
             intents.append(DestructiveIntent.FORCE_PUSH)
 

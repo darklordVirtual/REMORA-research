@@ -376,3 +376,29 @@ def test_no_questions_is_an_error_not_an_empty_answer() -> None:
 
 def test_the_adapter_satisfies_the_protocol() -> None:
     assert isinstance(_provider(_Recorder()), DecisionProvider)
+
+
+def test_timeout_is_an_overall_deadline_across_retries(monkeypatch) -> None:
+    from remora.decision_providers import cloudflare as cf
+
+    clock = {"t": 0.0}
+    monkeypatch.setattr(cf.time, "monotonic", lambda: clock["t"])
+    slept: list[float] = []
+
+    def _sleep(s):
+        slept.append(s)
+        clock["t"] += s
+
+    monkeypatch.setattr(cf.time, "sleep", _sleep)
+    seen: list[float] = []
+
+    def transport(url, payload, headers, timeout_s):
+        seen.append(timeout_s)
+        clock["t"] += timeout_s
+        raise TimeoutError("slow")
+
+    provider = _provider(transport, max_attempts=3)
+    with pytest.raises(DecisionProviderError):
+        provider.evaluate(state=STATE, questions=QUESTIONS, timeout_s=2.0)
+    assert clock["t"] <= 2.0 + 1e-6
+    assert all(t <= 2.0 for t in seen)

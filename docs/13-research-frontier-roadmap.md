@@ -11,7 +11,7 @@ implementation added on 2026-09-27. A claim may only enter `README.md` or
 tool-call gating, uncertainty routing, audit) against published work through
 mid-2026, plus REMORA's own open findings (`NEGATIVE_RESULTS.md` §3
 entropy-backend mismatch; the AgentHarm FBR=100% corner; the tamper-evident
-limitation in the README Limitations section, registered as REM-025; the
+limitation (ARCHITECTURE.md §4 and §10), registered as REM-025; the
 REM-020/REM-021 deployment gates; the SAP v3 CWV result, validated but not
 wired). RF-01…RF-09 were grounded against the working tree on 2026-07-30
 (master @ `0646a87`); RF-10 was added on 2026-08-03 (master @ `f510cde`);
@@ -21,7 +21,7 @@ be corrected against.
 
 **Namespace note.** WP identifiers are RF-01…RF-13 (research frontier). The
 `REM-` prefix is deliberately not used: it is the namespace of
-`docs/assurance/remediation_register.yaml` (REM-001…REM-046, machine-consumed
+`docs/assurance/remediation_register.yaml` (REM-001…REM-047, machine-consumed
 by release-profile gating), and roadmap WPs are not remediation items. Where a
 WP would close a registered remediation item (RF-08 ↔ REM-025), the WP says so
 explicitly.

@@ -127,11 +127,17 @@ a crashed process, or a proxy) and re-presents it. Also: the deployment runs
 more than one dispatcher, or a container is replaced mid-window, with no
 adversary at all.
 
-**Current state.** `NonceLedger` (`remora/enforcement/lease.py:387-398`) is
+**State at ADR time (historical).** `NonceLedger` (then at
+`remora/enforcement/lease.py:387-398`, now `NonceLedger` near line 594) is
 `threading.Lock` plus a `set`. Its own docstring is accurate and unusually
 candid: *"a lease is single-use per process, not globally: with several
 workers, or after a restart, the same lease can be dispatched again"*, and
-notes the contrast with `EnforcementGate`'s durable jti ledger. REM-025.
+notes the contrast with `EnforcementGate`'s durable jti ledger. The REM-025 attribution here was wrong: REM-025 is durable
+audit integrity. `DurableNonceStore` (`remora/enforcement/nonce_store.py`) is
+now wired via `servers/execution_api.py::_lease_nonce_store` when
+`REMORA_PG_DSN`, `REMORA_CHAIN_DB` or `REMORA_STATE_ENDPOINT` is set; the
+per-process `NonceLedger` remains the default when none is configured (see its
+docstring).
 
 On the Cloudflare deployment this is live: containers are ephemeral by design
 and are replaced on idle. The one-time property of a lease currently has the

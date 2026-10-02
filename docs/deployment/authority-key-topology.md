@@ -1,4 +1,12 @@
-# Signing topology of the Cloudflare deployment: current and target
+# Signing topology of the Cloudflare deployment: pre-split (historical) and target
+
+> **Historical.** This describes the symmetric, single-container topology at
+> commit `ceb979f`, before the custody split shipped. It is the pre-split
+> record, not the current state. The deployed post-split topology and the
+> forgery attack are in
+> [`authority-custody-evidence.md`](authority-custody-evidence.md).
+> Line references were re-pointed on 2026-10-02 to
+> `workers/mcp-gateway/src/index.ts` at HEAD. They may drift, so search by symbol.
 
 Read from `workers/mcp-gateway/src/index.ts` and `wrangler.toml` at commit
 `ceb979f`, not from architecture prose. Every CURRENT row below is a line of
@@ -11,7 +19,7 @@ after the TARGET topology is deployed and the forgery attack in
 
 ---
 
-## 1. Current topology
+## 1. Pre-split topology (as of `ceb979f`)
 
 The deployment has **one** container class, `RemoraContainer`
 (`wrangler.toml`, `[[containers]]`, `max_instances = 1`). It serves
@@ -20,14 +28,14 @@ policy decision point and the policy enforcement point.
 
 | Secret | Reaches the execution container? | Line |
 |---|---|---|
-| `REMORA_PDP_SIGNING_KEY` | **yes** | `index.ts:169` |
-| `REMORA_LEASE_SIGNING_KEY` | **yes** | `index.ts:170` |
-| `REMORA_AUDIT_SIGNING_KEY` | **yes** | `index.ts:171` |
-| `REMORA_ENVELOPE_SIGNING_KEY` | **yes** | `index.ts:172` |
-| `REMORA_TOOLSPEC_SIGNING_KEY` | **yes**, when a bundle is configured | `index.ts:176` |
-| `REMORA_GITHUB_TOKEN` | yes | `index.ts:211` |
-| `REMORA_PG_DSN` | yes, when set | `index.ts:157` |
-| `REMORA_API_TOKENS`, `REMORA_AGENT_TOKEN` | yes | `index.ts:167-168` |
+| `REMORA_PDP_SIGNING_KEY` | **yes** | `index.ts:208` |
+| `REMORA_LEASE_SIGNING_KEY` | **yes** | `index.ts:219` |
+| `REMORA_AUDIT_SIGNING_KEY` | **yes** | `index.ts:248` |
+| `REMORA_ENVELOPE_SIGNING_KEY` | **yes** | `index.ts:249` |
+| `REMORA_TOOLSPEC_SIGNING_KEY` | **yes**, when a bundle is configured | `index.ts:253` |
+| `REMORA_GITHUB_TOKEN` | yes (at `ceb979f`; at HEAD it is passed only to the executor container, `index.ts:400`) | `index.ts:400` |
+| `REMORA_PG_DSN` | yes, when set | `index.ts:196` |
+| `REMORA_API_TOKENS`, `REMORA_AGENT_TOKEN` | yes | `index.ts:206-207` |
 | exeQta graph credentials | **no** — reached through the `GRAPH_DB` Worker binding via `outboundByHost` | `wrangler.toml` |
 
 Five signing keys, all symmetric, all in the component that executes.
@@ -35,7 +43,7 @@ Five signing keys, all symmetric, all in the component that executes.
 ### Why the boundary is nominal rather than weak
 
 The PDP→PEP boundary is not merely sharing a key by oversight. The two sides are
-consecutive statements in one function. `remora/execution/dispatch.py:53-79`:
+consecutive statements in one function. `remora/execution/dispatch.py` as of `ceb979f`. At HEAD the lease is minted at `dispatch.py:318` and dispatched at `:196`. A `presented_lease` can now be supplied, so the executor need not mint:
 
 ```
 lease = ExecutionLease.issue(...)     # the PDP mints
