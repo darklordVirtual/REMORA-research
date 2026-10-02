@@ -105,9 +105,13 @@ class _ExplodingEngine:
 
 
 def test_an_unexpected_exception_is_recorded_not_raised() -> None:
-    _obs_, _actual, record = _run(_Exploding())
-    assert record.error == "RuntimeError: unexpected"
-    assert record.shadow_action is None
+    # enrich() absorbs any provider exception as provider_unavailable, so the
+    # deterministic decision stands and the counterfactual equals the actual.
+    _obs_, actual, record = _run(_Exploding())
+    assert record.error is None
+    assert record.outcome == "provider_unavailable"
+    assert any("RuntimeError: unexpected" in note for note in record.notes)
+    assert record.shadow_action == actual.name
     assert record.would_change is False
 
 
