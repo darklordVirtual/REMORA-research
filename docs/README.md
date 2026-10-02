@@ -90,7 +90,7 @@ Several topics have more than one document. This table says which to open.
 | [deployment/azure-reference-architecture.md](deployment/azure-reference-architecture.md) | Azure reference architecture |
 | [deployment/onprem-airgapped.md](deployment/onprem-airgapped.md) | On-prem / air-gapped deployment |
 | [deployment/authority-custody-evidence.md](deployment/authority-custody-evidence.md) | Deployed evidence for the authority/execution custody split; every value read from the running system |
-| [deployment/authority-key-topology.md](deployment/authority-key-topology.md) | Signing topology of the Cloudflare deployment, current and target, read from source |
+| [deployment/authority-key-topology.md](deployment/authority-key-topology.md) | Pre-split signing topology of the Cloudflare deployment (historical), read from source |
 | [enterprise/audit-anchoring-guide.md](enterprise/audit-anchoring-guide.md) | Audit-chain anchoring guide |
 | [enterprise/togaf-enterprise-rollout-plan.md](enterprise/togaf-enterprise-rollout-plan.md) | TOGAF rollout plan |
 | [TOGAF enterprise architecture (Markdown)](enterprise/no/REMORA_TOGAF_Enterprise_Architecture_v1.0.md) | Norwegian TOGAF source document |

@@ -235,3 +235,17 @@ class TestOracleBandit:
         s = bandit.summary()
         assert set(s["oracles"].keys()) == {"x", "y", "z"}
         assert "ranking" in s
+
+
+def test_lowercase_accept_verdict_moves_lambda() -> None:
+    """DecisionAction.value is lowercase 'accept'; the lambda step must fire."""
+    from remora.adaptation.thermodynamic_adapter import ThermodynamicAdapter
+
+    def run(verdict: str) -> float:
+        a = ThermodynamicAdapter(min_samples=1, learning_rate=0.1)
+        for correct in (True, False, False, True, False):
+            a.record_outcome(0.5, 0.5, "ordered", verdict, correct)  # type: ignore[arg-type]
+        return a.adapted_lambda()
+
+    assert run("accept") != 1.0
+    assert run("accept") == run("ACCEPT")

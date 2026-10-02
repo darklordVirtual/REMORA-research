@@ -371,6 +371,10 @@ def verify_envelope_file(path: str) -> tuple[bool, list[str]]:
     stored field is detected.
     """
     envelopes = load_envelopes_jsonl(path)
+    if not envelopes:
+        # An empty trail has nothing to verify; reporting it as intact would
+        # let a truncated or wiped file pass as a clean audit trail.
+        return False, [f"{path}: empty envelope trail (0 envelopes); nothing to verify"]
     breaks = describe_envelope_hash_chain_breaks(envelopes)
     return (not breaks), breaks
 

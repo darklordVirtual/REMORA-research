@@ -7,6 +7,9 @@ on:
       - "workers/aromer/**"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: deploy-aromer-worker
   cancel-in-progress: false

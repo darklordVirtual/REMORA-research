@@ -198,14 +198,21 @@ def _handle(store: RecorderStore, request: Any) -> dict[str, Any]:
 class _Handler(socketserver.StreamRequestHandler):
     def handle(self) -> None:
         store: RecorderStore = self.server.store  # type: ignore[attr-defined]
-        for raw in self.rfile:
+        while True:
+            # Bounded read: never buffer more than one limit's worth of a line.
+            raw = self.rfile.readline(_MAX_LINE + 1)
+            if not raw:
+                return
             if len(raw) > _MAX_LINE:
-                response: dict[str, Any] = {"ok": False, "error": "request too large"}
-            else:
-                try:
-                    response = _handle(store, json.loads(raw))
-                except (ValueError, sqlite3.Error) as exc:
-                    response = {"ok": False, "error": type(exc).__name__}
+                # The rest of the line is unread and unframed: answer once and
+                # drop the connection rather than reading it.
+                refusal = {"ok": False, "error": "request too large"}
+                self.wfile.write((json.dumps(refusal) + "\n").encode())
+                return
+            try:
+                response: dict[str, Any] = _handle(store, json.loads(raw))
+            except (ValueError, sqlite3.Error) as exc:
+                response = {"ok": False, "error": type(exc).__name__}
             self.wfile.write((json.dumps(response) + "\n").encode())
 
 

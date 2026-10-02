@@ -15,6 +15,7 @@ EXPERIMENTAL: Part of the AROMER research plugin.
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
@@ -233,11 +234,13 @@ class AromerAdapterBridge:
                 _MANAGED_THRESHOLDS["trust_critical_min"][1],  # min bound
                 current - total_delta,
             )
-            self._threshold._thresholds["trust_critical_min"].current_value = new_val
 
-            # Consume the proposals (rename so they're not reapplied next cycle)
+            # Consume the proposals FIRST (atomic replace, overwrites a stale
+            # .consumed file on Windows) so a failed consume can never leave a
+            # relaxed threshold with a still-pending proposals file.
             consumed_path = proposals_path.with_suffix(".consumed.json")
-            proposals_path.rename(consumed_path)
+            os.replace(proposals_path, consumed_path)
+            self._threshold._thresholds["trust_critical_min"].current_value = new_val
 
             return {
                 "applied": len(approved),
@@ -295,8 +298,14 @@ class AromerAdapterBridge:
             "thermo_lambda": self._thermo.adapted_lambda(),
             "oracle_alpha": {k: v for k, v in self._bandit._alpha.items()},
             "oracle_beta":  {k: v for k, v in self._bandit._beta.items()},
+            "thresholds": {
+                name: self._threshold._thresholds[name].current_value
+                for name in _MANAGED_THRESHOLDS
+            },
         }
-        self._state_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        tmp = self._state_path.with_name(self._state_path.name + ".tmp")
+        tmp.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        os.replace(tmp, self._state_path)
 
     def _load_state(self) -> None:
         if not self._state_path.exists():
@@ -309,5 +318,12 @@ class AromerAdapterBridge:
                 if oid in payload.get("oracle_alpha", {}):
                     self._bandit._alpha[oid] = payload["oracle_alpha"][oid]
                     self._bandit._beta[oid]  = payload["oracle_beta"].get(oid, 1.0)
+            # Restore managed thresholds (clamped to their bounds)
+            for name, (_base, lo, hi) in _MANAGED_THRESHOLDS.items():
+                saved = payload.get("thresholds", {}).get(name)
+                if isinstance(saved, (int, float)):
+                    self._threshold._thresholds[name].current_value = min(
+                        hi, max(lo, float(saved))
+                    )
         except Exception:
             pass  # a corrupt checkpoint falls back to the fresh prior

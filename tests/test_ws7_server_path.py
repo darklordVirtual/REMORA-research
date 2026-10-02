@@ -65,6 +65,10 @@ def client(monkeypatch, tmp_path):
     exec_mod._ITEM_TENANT.clear()
     exec_mod._CHAIN = TenantAuditChain()
     exec_mod._GATE = exec_mod.EnforcementGate(strict=True, audience=exec_mod.PEP_AUDIENCE)
+    # A dispatcher cached by an earlier test module (built before this
+    # fixture set REMORA_TOOL_REGISTRY_MODULE) would otherwise be reused here
+    # and refuse read_telemetry as unknown_tool.
+    exec_mod._reset_tool_dispatcher()
     exec_mod._reset_semantic_bundle()
     exec_mod._reset_outbox()
     deployment.reset()

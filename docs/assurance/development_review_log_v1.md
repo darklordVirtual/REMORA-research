@@ -15,12 +15,12 @@ point of the whole repository, so it is the point of this log too.
 
 | Dimension | State | How to verify |
 |---|---|---|
-| Test suite | 4,594 tests collected, 0 failing (3,301 at the start of the hardening cycle; 3,514 when this log was first written) | `pip install -e ".[dev,causal,api]" && make test` |
+| Test suite | Count changes with every merge; at the 2026-10-02 review `pytest --collect-only` collected about 8,385 tests (3,301 at the start of the hardening cycle; 3,514 when this log was first written) | `pip install -e ".[dev,causal,api]" && make test` |
 | CI | Green on 4 Python versions (3.11/3.12/3.13/3.14) + pinned-OPA conformance + claim-provenance gate | GitHub Actions, every push |
-| Result artifacts | 78 committed under `results/`; every headline number is reproducible offline | see §6 |
-| Remediation items | 22 of 30 tracked REM-items DONE; **REM-021 (independent review) is the sole open production gate** | [`remediation_register.yaml`](remediation_register.yaml) |
-| Capability wiring | 12 capabilities on an explicit six-rung ladder; **nothing claims `ENFORCED_PRODUCTION` or `EXTERNALLY_VERIFIED`** (a CI-enforced invariant) | [`capability_register_v1.yaml`](capability_register_v1.yaml), `tests/test_capability_register.py` |
-| Deployment status | `SHADOW_ONLY`, unchanged, by design, until REM-021 closes | [`release_gates.md`](release_gates.md) |
+| Result artifacts | 117 JSON files under `results/` at the 2026-10-02 review; every headline number is reproducible offline | see §6 |
+| Remediation items | 47 tracked REM-items (32 DONE, 6 IN_PROGRESS, 9 NOT_STARTED at the 2026-10-02 review); **two gates remain for `CONTROLLED_PILOT`: REM-021 (independent review, NOT_STARTED) and REM-023 (RBAC follow-through, IN_PROGRESS)**, see [`release_gates.md`](release_gates.md) | [`remediation_register.yaml`](remediation_register.yaml) |
+| Capability wiring | 25 capabilities in the register on an explicit six-rung ladder; **nothing claims `ENFORCED_PRODUCTION` or `EXTERNALLY_VERIFIED`** (a CI-enforced invariant) | [`capability_register_v1.yaml`](capability_register_v1.yaml), `tests/test_capability_register.py` |
+| Deployment status | `SHADOW_ONLY`, unchanged, by design, until the remaining gates (REM-021, REM-023) close | [`release_gates.md`](release_gates.md) |
 
 The honest one-line summary: **a credible, executable reference architecture
 for policy-governed agent assurance, hardened through eight external review
@@ -157,7 +157,7 @@ No number in this repository requires trusting the author. From a clean clone:
 
 ```bash
 pip install -e ".[dev,causal,api]"
-make test                                   # 4,594 tests, no keys, ~60s
+make test                                   # full suite, no keys
 python scripts/demo_industrial_maintenance.py   # the autonomy boundary, live engine
 python experiments/end_to_end_n500_v3.py        # 0.8878 selective accuracy (claim 3)
 python experiments/evaluate_toolcall_benchmark_v2.py  # unsafe=0.0000 (claims 1-2)

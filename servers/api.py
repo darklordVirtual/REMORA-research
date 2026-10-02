@@ -74,6 +74,11 @@ def _get_env_mode() -> str:
     return os.getenv("REMORA_ENV", "development").strip().lower()
 
 
+#: The only REMORA_ENV values that enable the no-auth fallback and the
+#: self-asserted X-Remora-Role header (single-token mode).
+_DEV_ENV_VALUES = frozenset({"development", "dev"})
+
+
 # Resolved once at import time for the FastAPI app version string.
 try:
     _PACKAGE_VERSION: str = importlib.metadata.version("remora-assurance")
@@ -921,6 +926,20 @@ def _make_control_plane_store() -> tuple[ControlPlaneStore, str]:
 
 
 _validate_production_prerequisites()
+
+
+def _warn_if_development_mode() -> None:
+    if _get_env_mode() in _DEV_ENV_VALUES:
+        logger.warning(
+            "REMORA API is running in development mode (REMORA_ENV unset or "
+            "'development'): without credentials every request is "
+            "authenticated as tenant 'default' with the operator role, and in "
+            "single-token mode the X-Remora-Role header is trusted. Not for "
+            "production; set REMORA_ENV=production."
+        )
+
+
+_warn_if_development_mode()
 
 
 def _validate_deployment_tool_metadata() -> None:
@@ -1967,7 +1986,8 @@ def _authenticate(request: Request) -> tuple[str, str]:
          The role is SELF-ASSERTED by the caller — single-token mode is a
          single-operator/dev profile with NO role separation (anyone holding
          the token can claim any role). In REMORA_ENV=production the
-         X-Remora-Role header is therefore ignored and the role is pinned to
+         X-Remora-Role header is therefore ignored (in every environment other
+         than the documented dev values) and the role is pinned to
          'operator', so approval-role gating cannot be satisfied by
          self-assertion; production role separation requires the token-table
          mode (external review 2026-07-28, N4).
@@ -1980,7 +2000,7 @@ def _authenticate(request: Request) -> tuple[str, str]:
 
     # No credentials configured at all
     if not has_token_table and not single_token:
-        if _get_env_mode() not in {"development", "dev"}:
+        if _get_env_mode() not in _DEV_ENV_VALUES:
             raise HTTPException(
                 status_code=500,
                 detail=(
@@ -2001,19 +2021,20 @@ def _authenticate(request: Request) -> tuple[str, str]:
     # Multi-tenant mode
     if has_token_table:
         for token, (tenant, role) in _TOKEN_TABLE.items():
-            if hmac.compare_digest(provided, token):
+            if hmac.compare_digest(provided.encode("utf-8"), token.encode("utf-8")):
                 return tenant, role
         raise HTTPException(status_code=401, detail="invalid bearer token")
 
     # Single-token mode
-    if not hmac.compare_digest(provided, single_token):
+    if not hmac.compare_digest(provided.encode("utf-8"), single_token.encode("utf-8")):
         raise HTTPException(status_code=401, detail="invalid bearer token")
     tenant = request.headers.get("X-Remora-Tenant", "default").strip() or "default"
-    if _is_production_mode():
-        # Self-asserted roles must not satisfy approval-role gating in
-        # production (N4): pin to the baseline role; role separation
-        # requires REMORA_API_TOKENS (token -> fixed role). Uses the
-        # canonical predicate so the "prod" alias is covered too.
+    if _get_env_mode() not in _DEV_ENV_VALUES:
+        # Self-asserted roles must not satisfy approval-role gating outside
+        # development (N4): pin to the baseline role; role separation
+        # requires REMORA_API_TOKENS (token -> fixed role). Trusting the
+        # header is opt-in via the documented dev value, not opt-out via the
+        # exact production spelling, so "staging" and typos are untrusted too.
         return tenant, "operator"
     role   = request.headers.get("X-Remora-Role", "operator").strip().lower() or "operator"
     return tenant, role
@@ -2618,6 +2639,15 @@ def metrics(request: Request) -> dict:
     """Basic governance gateway metrics for prototype observability."""
     tenant_id, role = _authenticate(request)
     _require_tenant_capability(role, tenant_id, "read")
+    # These counters are process-global, not per tenant. When more than one
+    # tenant is provisioned, exposing them to any tenant holding `read` leaks
+    # other tenants' decision/refusal volumes, so the global view needs admin.
+    # A single-tenant deployment has nobody to leak to and keeps `read`.
+    if len({t for t, _ in _TOKEN_TABLE.values()}) > 1 and role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="global metrics span all tenants; admin role required",
+        )
     total = _metric_int("assess_total")
     total_elapsed = _metric_float("total_elapsed_ms")
     mean_elapsed = round(total_elapsed / total, 3) if total else 0.0
@@ -2927,6 +2957,106 @@ class _ProposalIdHeaderMiddleware:
 
 
 app.add_middleware(_ProposalIdHeaderMiddleware)
+
+
+_DEFAULT_MAX_REQUEST_BYTES = 1_048_576  # 1 MiB
+
+
+def _max_request_bytes() -> int:
+    """Per-request body cap from REMORA_MAX_REQUEST_BYTES (default 1 MiB)."""
+    raw = os.getenv("REMORA_MAX_REQUEST_BYTES", "").strip()
+    try:
+        value = int(raw) if raw else _DEFAULT_MAX_REQUEST_BYTES
+    except ValueError:
+        return _DEFAULT_MAX_REQUEST_BYTES
+    return value if value > 0 else _DEFAULT_MAX_REQUEST_BYTES
+
+
+class _BodyTooLarge(Exception):
+    pass
+
+
+class _BodySizeLimitMiddleware:
+    """Reject request bodies above REMORA_MAX_REQUEST_BYTES with 413.
+
+    Checked on the declared Content-Length and again on the bytes actually
+    streamed, so chunked uploads and lying clients are bounded too. Without
+    this a tenant could store arbitrarily large rows in the chain and
+    control-plane store through the unbounded dict fields.
+    """
+
+    def __init__(self, asgi_app: Any) -> None:
+        self.app = asgi_app
+
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+        limit = _max_request_bytes()
+        for name, value in scope.get("headers", []):
+            if name == b"content-length":
+                try:
+                    declared = int(value)
+                except ValueError:
+                    declared = 0
+                if declared > limit:
+                    await self._reject(send, limit)
+                    return
+                break
+
+        seen = 0
+        exceeded = False
+        responded = False
+
+        async def limited_receive() -> Any:
+            nonlocal seen, exceeded
+            message = await receive()
+            if message["type"] == "http.request":
+                seen += len(message.get("body", b""))
+                if seen > limit:
+                    exceeded = True
+                    raise _BodyTooLarge
+            return message
+
+        async def tracking_send(message: Any) -> None:
+            nonlocal responded
+            if exceeded:
+                # The framework turns the aborted body read into its own 400;
+                # the real outcome is 413, so that response is replaced.
+                if not responded:
+                    responded = True
+                    await self._reject(send, limit)
+                return
+            if message["type"] == "http.response.start":
+                responded = True
+            await send(message)
+
+        try:
+            await self.app(scope, limited_receive, tracking_send)
+        except _BodyTooLarge:
+            if responded and not exceeded:
+                raise
+        if exceeded and not responded:
+            await self._reject(send, limit)
+
+    @staticmethod
+    async def _reject(send: Any, limit: int) -> None:
+        body = json.dumps(
+            {"detail": f"request body exceeds {limit} bytes "
+                       "(REMORA_MAX_REQUEST_BYTES)"}
+        ).encode("utf-8")
+        await send({
+            "type": "http.response.start",
+            "status": 413,
+            "headers": [
+                (b"content-type", b"application/json"),
+                (b"content-length", str(len(body)).encode("ascii")),
+            ],
+        })
+        await send({"type": "http.response.body", "body": body})
+
+
+app.add_middleware(_BodySizeLimitMiddleware)
 
 app.include_router(_execution_router)
 

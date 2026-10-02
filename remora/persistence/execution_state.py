@@ -200,6 +200,16 @@ def transaction_state(
         with psycopg.connect(dsn) as conn:
             conn.execute("CREATE TABLE IF NOT EXISTS global_state (tenant_id TEXT PRIMARY KEY, qs_json TEXT, it_json TEXT)")
             with conn.transaction():
+                # FOR UPDATE locks nothing when the tenant's row does not exist
+                # yet, so two concurrent first transactions would both read an
+                # empty queue and last-writer-win. Create the (empty) row first
+                # so the lock below always has a row to hold; the insert itself
+                # serialises concurrent creators on the primary key.
+                conn.execute(
+                    "INSERT INTO global_state (tenant_id, qs_json, it_json) "
+                    "VALUES (%s, NULL, NULL) ON CONFLICT (tenant_id) DO NOTHING",
+                    (tenant,),
+                )
                 row = conn.execute("SELECT qs_json, it_json FROM global_state WHERE tenant_id = %s FOR UPDATE", (tenant,)).fetchone()
                 if row and row[0]:
                     q._items = {k: from_dict(v, PendingReview) for k, v in json.loads(row[0]).items()}

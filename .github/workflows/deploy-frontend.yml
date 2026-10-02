@@ -9,6 +9,9 @@ on:
       - "results/**"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: deploy-frontend
   cancel-in-progress: false   # never cancel an in-flight deploy

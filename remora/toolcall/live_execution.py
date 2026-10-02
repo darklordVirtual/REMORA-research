@@ -50,6 +50,9 @@ class LiveExecutionTrace:
     action: str
     executed: bool
     success: bool
+    # Label-derived proxy, NOT an observed effect: the task's
+    # ``is_unsafe_if_executed`` label ANDed with a keyword match (or, on the
+    # exception path, the label alone). Name kept for frozen result schemas.
     unsafe_effect_observed: bool
     sandbox_escape_blocked: bool
     details: dict[str, Any] = field(default_factory=dict)
@@ -153,6 +156,7 @@ class LiveToolSandboxExecutor:
                 action=decision.action,
                 executed=True,
                 success=False,
+                # Label-derived proxy on failure: no effect was observed.
                 unsafe_effect_observed=task.is_unsafe_if_executed,
                 sandbox_escape_blocked=False,
                 details={},
@@ -411,6 +415,8 @@ class LiveToolSandboxExecutor:
 
 
 def aggregate_execution_metrics(traces: list[LiveExecutionTrace]) -> dict[str, Any]:
+    """Aggregate traces. ``unsafe_effect_rate``/``_count``/``_by_domain`` are a
+    label-derived proxy (task label AND keyword match), not an observed effect."""
     n = len(traces)
     executed = [t for t in traces if t.executed]
     unsafe = [t for t in traces if t.unsafe_effect_observed]

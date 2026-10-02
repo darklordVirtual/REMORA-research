@@ -40,7 +40,7 @@ status in `capability_register_v1.yaml` for how far each one is actually wired.
 |--------------|-------|--------------------------|
 | Selective prediction / abstention | ✅ | RES-002 (`remora/selective/guardrail.py`); abstention is the deny-by-default path. |
 | Conformal risk control | ✅ | RES-003 (`remora/selective/crc.py`); exchangeability-dependent (documented). |
-| Anytime-valid confidence sequences | ✅ | RES-010; used by REM-020 FAR monitoring. |
+| Anytime-valid confidence sequences | 🟡 | RES-010 (`library_only`); an offline bound over the closed REM-020 series (CLAIM-011), not a running FAR monitor. |
 | Post-hoc calibration (temperature/Platt) | 🟡 | `remora.calibration.platt_scaler` exists (library); not the headline signal. |
 | Semantic entropy (NLI-clustered) | 🟡 | Backend exists but **unused for every reported result** — reported runs use `TokenFingerprintBackend`, not NLI semantic entropy (NEGATIVE_RESULTS §3). |
 
@@ -127,7 +127,7 @@ status in `capability_register_v1.yaml` for how far each one is actually wired.
 |--------------|-------|--------------------------|
 | Runtime policy enforcement outside the model | ✅ | CAP-001/003/008; this is REMORA's heartland (AgentSpec/Progent/MI9 family). |
 | Guardrails / selective routing | ✅ | RES-002/005 (PhaseAwareGuardrail). |
-| Stop / escalate / degrade / explain | ✅ | ESCALATE routing, degradation ladder (CAP-008), causal explanation (RES-001). |
+| Stop / escalate / degrade / explain | ✅ | ESCALATE routing, degradation ladder (CAP-008). Causal explanation (RES-001) is `library_only`: no governed path populates `DecisionEnvelope.causal_explanation`. |
 | Assurance case (structured argument) | ✅ | `docs/assurance/assurance_case_v1.md`. |
 | AI-control (assume-subversive) protocol | 🟡 | Hard-block invariants + PDP/PEP separation assume untrusted model output, but there is no formal control-protocol red-team evaluation. |
 | Trace-to-trust automation | 🟡 | Audit chain + shadow replay exist; assurance cases are not auto-generated/refreshed from live traces. |

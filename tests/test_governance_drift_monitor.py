@@ -85,3 +85,18 @@ def test_high_work_context_stress_can_upgrade_to_verify() -> None:
     report = DriftMonitor().evaluate(baseline, observed, context)
     assert report.action in {"VERIFY", "ESCALATE"}
     assert "work_context_stress" in report.reasons
+
+
+def test_drift_monitor_improvement_is_not_risk() -> None:
+    baseline = PersonaBaseline(agent_id="agent-1", compliance=0.5)
+    observed = AgentBehaviorSnapshot(
+        system_legitimacy=0.85,
+        compliance=0.95,
+        risk_appetite=0.20,
+        abstention_rate=0.25,
+        persona_stability=0.85,
+        memory_write_risk=0.05,
+    )
+    report = DriftMonitor().evaluate(baseline, observed)
+    assert report.action == "ACCEPT"
+    assert report.risk_score == 0.0

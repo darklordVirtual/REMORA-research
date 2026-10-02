@@ -127,7 +127,8 @@ def test_g4_refuses_mutating_and_production_actions() -> None:
 def test_g4_allows_read_only_non_production() -> None:
     assert not g4_refuses("read", "staging")
     assert not g4_refuses("query", None)
-    assert not g4_refuses(None, None)
+    # Unknown/missing action types are not known-safe: refuse (default-deny).
+    assert g4_refuses(None, None)
 
 
 def test_g4_vocabulary_is_the_engines_own() -> None:

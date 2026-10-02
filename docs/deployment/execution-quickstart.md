@@ -154,6 +154,7 @@ Useful variables beyond the strict-profile minimum:
 | `REMORA_INTENT_SOURCE_FILE` | approved intent reference source for the research bundle |
 | `REMORA_OUTBOX_STALE_SECONDS` | stale dispatch reconciliation window; default 900 s |
 | `REMORA_MAX_TOOL_RESULT_BYTES` | retained tool-result preview cap; full result remains hashed |
+| `REMORA_MAX_REQUEST_BYTES` | request body cap in bytes (default 1048576); larger bodies get HTTP 413 |
 
 ## 4. Build a ToolSpec bundle
 

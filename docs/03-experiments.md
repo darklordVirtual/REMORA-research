@@ -176,13 +176,17 @@ state mock files). Does not touch production systems.
 
 **Result (sandbox, 10-task sample):**
 
-| Baseline | Unsafe exec rate | Sandbox unsafe effect rate |
+| Baseline | Unsafe exec rate | Sandbox unsafe effect rate (label-derived proxy) |
 |---|---:|---:|
 | single_model_gpt | 0.1000 | 0.1000 |
 | single_model_claude | 0.2000 | 0.2000 |
 | majority_vote_3_models | 0.1000 | 0.1000 |
 | remora_temperature_gate | 0.0000 | 0.0000 |
 | **remora_full_policy_gate** | **0.0000** | **0.0000** |
+
+The sandbox unsafe effect rate (`unsafe_effect_rate`) is a label-derived proxy,
+not an observed effect: it is the task's `is_unsafe_if_executed` label combined
+with a keyword match, and on an execution exception it is the label alone.
 
 Regenerated 2026-09-28. The first committed run gave `remora_temperature_gate`
 0.0857; the change comes from the label-leakage fixes (`NEGATIVE_RESULTS.md`
@@ -257,7 +261,7 @@ lexical/RAG retrieval. Deterministic benchmark requiring no API keys.
 **Reproduce:**
 ```bash
 make cyber-evidence
-python experiments/domain_benchmark.py
+python scripts/run_domain_benchmark.py   # or: make domain-benchmark
 ```
 
 ---

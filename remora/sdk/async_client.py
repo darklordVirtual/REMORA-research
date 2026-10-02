@@ -23,8 +23,7 @@ except ImportError as exc:  # pragma: no cover - exercised only without extra
         'AsyncRemoraClient requires httpx; install with pip install "remora[sdk]"'
     ) from exc
 
-from remora.sdk.client import error_for_response
-from remora.sdk.errors import RemoraUnavailableError
+from remora.sdk.client import error_for_response, success_body, transport_error_for
 from remora.sdk.effects import EffectVerificationView
 from remora.sdk.models import (
     ApprovalResult,
@@ -199,9 +198,7 @@ class AsyncRemoraClient:
                 method, path, json=json_body, headers=self._headers,
             )
         except httpx.HTTPError as exc:
-            raise RemoraUnavailableError(
-                f"REMORA control plane unreachable: {exc}",
-            ) from exc
+            raise transport_error_for(exc, path) from exc
         if response.status_code >= 400:
             raise error_for_response(response)
-        return response.json()
+        return success_body(response, path)
