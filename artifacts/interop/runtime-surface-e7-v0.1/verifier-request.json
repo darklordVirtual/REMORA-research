@@ -1,0 +1,52 @@
+{
+  "schema_version": "remora-verifier-request-v1",
+  "contract_id": "runtime-surface-e7-v0.1",
+  "edge": "E7",
+  "producer": {
+    "repository": "darklordVirtual/REMORA-research",
+    "source_revision": "35db242ffd212320576a0636e125cf8dbf12a25c"
+  },
+  "package_identity": {
+    "manifest": "artifacts/interop/runtime-surface-e7-v0.1/manifest.json",
+    "note": "package_digest and every package file digest are in manifest.json and index.json. The Git revision you consumed is recorded in your run record, not here."
+  },
+  "inputs": {
+    "fixtures": {
+      "path": "artifacts/interop/runtime-surface-e7-v0.1/fixtures.json",
+      "sha256": "b09b937ad263169682fd0d6175564d084b4a61f5c996adb1237fd2eac31aaccf"
+    },
+    "claim_packet": {
+      "path": "artifacts/interop/runtime-surface-e7-v0.1/claim-packet.json",
+      "sha256": "6c140d12f66e06aa3ae60e6aec62e38836509a91a32056649520f2bbb8aa2833"
+    }
+  },
+  "run_record_schema": "artifacts/interop/schemas/external-run-record-v1.schema.json",
+  "requested_work": [
+    "implement the fixture contract in a separately maintained codebase",
+    "do not import REMORA runtime code",
+    "do not import or depend on REMORA's reference_verifier.py",
+    "publish one result per native claim and case",
+    "record exact implementation revision, command, environment, input digests, package_digest and the REMORA Git revision consumed",
+    "classify implementation diversity (AUTHOR_IMPLEMENTATION, REPRODUCTION, SECOND_IMPLEMENTATION) and independence (INDEPENDENT, NOT_INDEPENDENT) as two separate fields, per external-run-record-v1",
+    "repeat the producer claim ceiling and explicit non-claims, including that runtime_capability_surface_completeness remains NOT_ESTABLISHED"
+  ],
+  "expected_result_vocabulary": [
+    "ESTABLISHED",
+    "CONTRADICTED",
+    "NOT_ESTABLISHED"
+  ],
+  "independence_requirement": "A qualifying E7 external verification requires INDEPENDENT under external-run-record-v1: a second implementation maintained outside REMORA, run by an external operator, importing neither REMORA runtime code nor reference_verifier.py. Running REMORA's author reference verifier is a REPRODUCTION. A second implementation that does not meet every condition is recorded as NOT_INDEPENDENT and moves the contract to REPRODUCED only.",
+  "proposed_review_policy": {
+    "mode": "PUBLIC_AFTER_REVIEW",
+    "producer_review": "REQUIRED",
+    "review_window_days": 7,
+    "unresolved_disagreement": "PUBLISH_WITH_DISAGREEMENT"
+  },
+  "non_claims": [
+    "this request does not appoint a verifier",
+    "this request does not establish Federation membership",
+    "this request does not grant REMORA authority over another project",
+    "a successful run does not establish global runtime capability-surface completeness",
+    "a second implementation does not by itself establish independent verification"
+  ]
+}

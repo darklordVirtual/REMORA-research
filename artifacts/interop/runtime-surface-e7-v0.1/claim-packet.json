@@ -1,0 +1,62 @@
+{
+  "schema_version": "remora-claim-packet-v1",
+  "contract_id": "runtime-surface-e7-v0.1",
+  "producer": "REMORA-research",
+  "source_revision": "35db242ffd212320576a0636e125cf8dbf12a25c",
+  "package_identity": {
+    "manifest": "artifacts/interop/runtime-surface-e7-v0.1/manifest.json",
+    "rule": "content-addressed; package_digest is computed from manifest.package_files and recorded in manifest.json and index.json, never inside a hashed package file"
+  },
+  "subject": {
+    "class": "runtime_observation_bundle",
+    "id": "remora-reference-runtime-surface-v0.1"
+  },
+  "artifact_refs": [
+    {
+      "path": "artifacts/interop/runtime-surface-e7-v0.1/fixtures.json",
+      "sha256": "b09b937ad263169682fd0d6175564d084b4a61f5c996adb1237fd2eac31aaccf",
+      "role": "producer fixture contract"
+    },
+    {
+      "path": "artifacts/interop/runtime-surface-e7-v0.1/reference_verifier.py",
+      "sha256": "3b8525a5d5b570a9e736c3b8c6f31053b49268965540bb098147a2e10ec1e388",
+      "role": "author reference implementation; not independent verification"
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "bounded_observed_surface_matches_governed_set",
+      "result_vocabulary": [
+        "ESTABLISHED",
+        "CONTRADICTED",
+        "NOT_ESTABLISHED"
+      ],
+      "claim_ceiling": "ESTABLISHED means only that the supplied complete agent-runtime observation matches the supplied governed tool set under this fixture contract."
+    },
+    {
+      "claim_id": "exclusive_effect_path",
+      "result_vocabulary": [
+        "ESTABLISHED",
+        "CONTRADICTED",
+        "NOT_ESTABLISHED"
+      ],
+      "claim_ceiling": "An observed alternative path can contradict exclusivity. Absence of an observed path establishes exclusivity only when path-inventory completeness is independently established."
+    }
+  ],
+  "assumptions": [
+    "runtime identity is evaluated exactly as supplied by the fixture",
+    "complete=true is a fixture premise for the bounded observation, not proof of external-host completeness",
+    "tool-definition identity is represented by the supplied ToolSpec hash"
+  ],
+  "explicit_non_claims": [
+    "runtime_capability_surface_completeness for an external host",
+    "absence of host credentials or capabilities outside the observed process",
+    "absence of unobserved alternative execution paths",
+    "execution occurrence",
+    "production enforcement",
+    "causation of an observed effect",
+    "Federation endorsement",
+    "a second implementation is by itself an independent verification record"
+  ],
+  "temporal_scope": "Pinned fixture evaluation only; no live deployment time window is established."
+}

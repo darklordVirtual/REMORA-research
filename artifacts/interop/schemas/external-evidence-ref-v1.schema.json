@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "REMORA external evidence reference v1",
+  "description": "Opaque reference to a foreign native claim. This record grants no REMORA authority by itself; ADMITTED_AS_CONTEXT is its strongest admission state and no admission state maps to ACCEPT, VERIFY, ABSTAIN or ESCALATE.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "producer",
+    "artifact_digest",
+    "native_claim",
+    "native_result",
+    "subject_class",
+    "verification",
+    "claim_ceiling",
+    "admission_state"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "remora-external-evidence-ref-v1"
+    },
+    "producer": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifact_ref": {
+      "type": "string"
+    },
+    "artifact_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "native_claim": {
+      "type": "string",
+      "minLength": 1
+    },
+    "native_result": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subject_class": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subject_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "temporal_scope": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "verifier",
+        "implementation_diversity",
+        "independence"
+      ],
+      "properties": {
+        "verifier": {
+          "type": "string",
+          "minLength": 1
+        },
+        "run_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "implementation_diversity": {
+          "enum": [
+            "AUTHOR_IMPLEMENTATION",
+            "REPRODUCTION",
+            "SECOND_IMPLEMENTATION",
+            "NOT_CLASSIFIED"
+          ]
+        },
+        "operator": {
+          "enum": [
+            "AUTHOR",
+            "EXTERNAL",
+            "NOT_CLASSIFIED"
+          ]
+        },
+        "independence": {
+          "enum": [
+            "NOT_INDEPENDENT",
+            "INDEPENDENT",
+            "NOT_CLASSIFIED"
+          ]
+        }
+      },
+      "if": {
+        "properties": {
+          "independence": {
+            "const": "INDEPENDENT"
+          }
+        },
+        "required": [
+          "independence"
+        ]
+      },
+      "then": {
+        "required": [
+          "operator"
+        ],
+        "properties": {
+          "implementation_diversity": {
+            "const": "SECOND_IMPLEMENTATION"
+          },
+          "operator": {
+            "const": "EXTERNAL"
+          }
+        }
+      }
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 1
+    },
+    "admission_state": {
+      "enum": [
+        "UNADMITTED",
+        "ADMITTED_AS_CONTEXT",
+        "REJECTED",
+        "NOT_EVALUATED"
+      ],
+      "description": "Deployment-owned admission step. ADMITTED_AS_CONTEXT is the maximum; no state creates authority."
+    },
+    "note": {
+      "type": "string"
+    }
+  }
+}

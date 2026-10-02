@@ -2068,6 +2068,17 @@ documents:
   - maintainers
   - evaluators
   - integrators
+- id: DOC-354
+  path: docs/interop/FEDERATION.md
+  status: supporting
+  topic: docs_interop_FEDERATION_md
+  code_synced: verified
+  verdict: current
+  last_reviewed: '2026-10-02'
+  audience:
+  - maintainers
+  - evaluators
+  - integrators
 - id: DOC-334
   path: docs/interop/REMORA-APS-PROFILE-v0.1.md
   status: proposal

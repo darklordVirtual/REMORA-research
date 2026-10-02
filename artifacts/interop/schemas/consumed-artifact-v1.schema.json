@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "REMORA consumed artifact attribution v1",
+  "description": "Attribution/provenance record only. It does not establish causal importance, value, payment entitlement or execution occurrence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_ref",
+    "producer",
+    "role",
+    "digest",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "remora-consumed-artifact-v1"
+    },
+    "artifact_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "producer": {
+      "type": "string",
+      "minLength": 1
+    },
+    "role": {
+      "type": "string",
+      "minLength": 1
+    },
+    "claim_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "consumed_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "claim_ceiling": {
+      "const": "This record establishes only that the named artifact was referenced in the named role. It does not establish causal importance, economic value, payment entitlement, endorsement or that an external effect occurred."
+    }
+  }
+}

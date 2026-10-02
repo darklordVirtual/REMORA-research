@@ -1,0 +1,17 @@
+{
+  "schema_version": "remora-interop-authority-integrations-v1",
+  "purpose": "Allowlist for tests/test_federation_interop_contract.py. A module on the authority path (remora/policy, remora/enforcement, remora/execution, remora/governance, remora/toolcall, servers) may reference the Federation evidence formats only when it is listed here with the review that admitted it. An empty list means no such integration exists.",
+  "guarded_tokens": [
+    "remora-external-evidence-ref-v1",
+    "external-evidence-ref-v1",
+    "remora-consumed-artifact-v1",
+    "consumed-artifact-v1",
+    "remora-action-lineage-v1",
+    "action-lineage-v1",
+    "remora-external-run-record-v1",
+    "external-run-record-v1",
+    "artifacts/interop/schemas",
+    "artifacts/interop/index.json"
+  ],
+  "reviewed_integrations": []
+}
