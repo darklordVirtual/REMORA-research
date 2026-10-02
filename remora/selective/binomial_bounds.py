@@ -38,8 +38,9 @@ def binomial_tail_prob(k: int, n: int, p: float) -> float:
 def clopper_pearson_upper(k: int, n: int, alpha: float = 0.05) -> float:
     """Upper end of Clopper-Pearson exact interval for a proportion.
 
-    Returns the smallest p* such that P(X <= k | Binomial(n, p*)) >= alpha.
-    Uses binary search over p in [0, 1].
+    Returns the LARGEST p* such that P(X <= k | Binomial(n, p*)) >= alpha
+    (P(X <= k) is decreasing in p, so this is the crossing point where it
+    falls to alpha). Uses binary search over p in [0, 1].
 
     Interpretation: the true error rate exceeds the returned value with
     probability at most alpha.

@@ -1,0 +1,38 @@
+{
+  "schema_version": "remora-runtime-surface-e7-manifest-v0.1",
+  "status": "proposal",
+  "producer": "REMORA-research",
+  "source_revision": "35db242ffd212320576a0636e125cf8dbf12a25c",
+  "source_artifacts": [
+    {
+      "path": "artifacts/runtime_surface/negative_cases_v1.json",
+      "sha256": "49b96e5da46ed9584691f6efd40d7e36957e0498315cff3723846fa230e9e19b",
+      "role": "source for bounded surface negative cases"
+    },
+    {
+      "path": "artifacts/runtime_surface/reference_runtime_v1.json",
+      "sha256": "18876e5c94374c47a6a3f56b9e6642be7823a5242d7708320ff4a89fa3f33886",
+      "role": "source for alternative effect-path case"
+    },
+    {
+      "path": "artifacts/runtime_surface/surface_binding_shadow_v1.json",
+      "sha256": "954e76b3aebeb3ece530b8c14f15d46da334b628fe7183727f9fcfc92c17fd6e",
+      "role": "related author-run evidence; not required to evaluate the five fixtures"
+    }
+  ],
+  "package_files": [
+    {
+      "path": "artifacts/interop/runtime-surface-e7-v0.1/fixtures.json",
+      "sha256": "b09b937ad263169682fd0d6175564d084b4a61f5c996adb1237fd2eac31aaccf"
+    },
+    {
+      "path": "artifacts/interop/runtime-surface-e7-v0.1/reference_verifier.py",
+      "sha256": "3b8525a5d5b570a9e736c3b8c6f31053b49268965540bb098147a2e10ec1e388"
+    }
+  ],
+  "independence_boundary": "The reference verifier is author-produced and is not independent verification. An E7 reproduction requires another project to implement the contract without importing REMORA code or this verifier's logic as a dependency.",
+  "global_property": {
+    "id": "runtime_capability_surface_completeness",
+    "status": "NOT_ESTABLISHED"
+  }
+}

@@ -255,6 +255,19 @@ class Episode:
     # same posterior. Empty list means provenance is unknown (credit the primary
     # oracle only, never the whole pool).
 
+    @property
+    def is_observed_label(self) -> bool:
+        """True only for ground truth that was actually observed.
+
+        TTL-presumed benign labels (no harm report after the TTL) are stored
+        for history but are not observed truth: they must not feed activation
+        counts, false-accept rate or calibration.
+        """
+        return (
+            self.ground_truth != GroundTruth.UNKNOWN
+            and self.label_source != "ttl_presumed"
+        )
+
     # ------------------------------------------------------------------
     # Outcome recording (new API)
     # ------------------------------------------------------------------
@@ -412,16 +425,19 @@ class EpisodeSummary:
             return cls(0, 0, 0, 0, None, None, None, None, None, 0, 0, 0, 0, 0.0, None)
 
         total   = len(episodes)
-        harmful = [e for e in episodes if e.ground_truth == GroundTruth.HARMFUL]
-        benign  = [e for e in episodes if e.ground_truth == GroundTruth.BENIGN]
-        unknown = [e for e in episodes if e.ground_truth == GroundTruth.UNKNOWN]
+        harmful = [e for e in episodes
+                   if e.is_observed_label and e.ground_truth == GroundTruth.HARMFUL]
+        benign  = [e for e in episodes
+                   if e.is_observed_label and e.ground_truth == GroundTruth.BENIGN]
+        # Presumed (TTL) labels count as not-yet-observed.
+        unknown = [e for e in episodes if not e.is_observed_label]
 
         n_h, n_b = len(harmful), len(benign)
 
         fa = sum(1 for e in harmful if e.decision_quality == DecisionQuality.FALSE_ACCEPT)
         fb = sum(1 for e in benign  if e.decision_quality == DecisionQuality.FALSE_BLOCK)
         sv = sum(1 for e in episodes if e.outcome == OutcomeType.SAFETY_VIOLATION)
-        pending = sum(1 for e in episodes if e.ground_truth == GroundTruth.UNKNOWN)
+        pending = len(unknown)
 
         # Hard FPR: ESCALATE on benign
         hard_fps = sum(1 for e in benign if e.verdict.upper() == "ESCALATE")

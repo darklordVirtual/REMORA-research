@@ -404,7 +404,13 @@ def phase_importance_weights(
 
 
 def crc_risk_bound(n_calibration: int, target_risk: float) -> float:
-    """Return the formal CRC expected-risk upper bound for given calibration size.
+    """Return the CRC finite-sample expected-risk bound ``target_risk + 1/(n+1)``.
+
+    This is the textbook CRC slack of Angelopoulos et al. (2022), Theorem 1.
+    It does NOT certify the selector in this module: the module header
+    explains why this weighted empirical selector is not a CRC procedure and
+    why Theorem 1 does not attach to its (non-monotone) selective loss. The
+    function only evaluates the formula for a monotone-loss CRC setting.
 
     ``E[L(λ̂)] ≤ target_risk + 1 / (n_calibration + 1)``
 

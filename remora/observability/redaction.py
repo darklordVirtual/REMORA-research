@@ -29,10 +29,32 @@ identifiers, digests and enum values remain the right thing to pass.
 from __future__ import annotations
 
 import re
+from typing import Mapping
 
 #: Replacement marker. Distinct and greppable, so an operator reading a log can
 #: tell redaction happened rather than wondering where the text went.
 MARKER = "[redacted]"
+
+#: Credential-shaped key names, shared by the assignment rule and by the
+#: recursive structured-value walk.
+_CREDENTIAL_KEYS = (
+    r"api[_-]?key|secret|password|passwd|token|credential|"
+    r"private[_-]?key|signing[_-]?key|access[_-]?key|auth"
+)
+_CREDENTIAL_KEY = re.compile(r"(?i)(?:" + _CREDENTIAL_KEYS + r")")
+
+#: Vendor-prefixed secrets: Anthropic/OpenAI-style sk-, GitHub tokens, AWS
+#: access key ids and Slack tokens.
+_VENDOR = re.compile(
+    r"\bsk-[A-Za-z0-9_\-]{10,}"
+    r"|\bgh[pousr]_[A-Za-z0-9]{20,}"
+    r"|\bgithub_pat_[A-Za-z0-9_]{20,}"
+    r"|\b(?:AKIA|ASIA)[0-9A-Z]{16}\b"
+    r"|\bxox[abposr]-[A-Za-z0-9\-]{10,}"
+)
+
+#: A value that is plainly an identifier or digest: no whitespace, no quoting.
+_IDENTIFIER_SHAPE = re.compile(r"[A-Za-z0-9._:\-/+=]{0,256}")
 
 #: Ordered longest-context-first: a bearer token inside a URL should be caught
 #: by the credential rule before the URL rule rewrites the host.
@@ -41,13 +63,15 @@ _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("bearer", re.compile(r"(?i)\b(bearer|basic|token)\s+[A-Za-z0-9._\-+/=]{8,}")),
     # JWTs: three base64url segments separated by dots.
     ("jwt", re.compile(r"\beyJ[A-Za-z0-9_\-]{4,}\.[A-Za-z0-9_\-]{4,}\.[A-Za-z0-9_\-]{4,}")),
-    # key=value and key: value forms for anything credential-shaped.
+    # Vendor-prefixed credentials, which are secrets wherever they appear.
+    ("vendor", _VENDOR),
+    # key=value and key: value forms for anything credential-shaped. The key
+    # may be quoted (JSON), and the value may be quoted and contain spaces.
     (
         "assignment",
         re.compile(
-            r"(?i)\b(api[_-]?key|secret|password|passwd|token|credential|"
-            r"private[_-]?key|signing[_-]?key|access[_-]?key|auth)\b"
-            r"\s*[:=]\s*[^\s,;)\]}]+"
+            r"(?i)\b(?:" + _CREDENTIAL_KEYS + r")\b[\"']?"
+            r"\s*[:=]\s*(?:\"[^\"]*\"|'[^']*'|[^\s,;)\]}\"']+)"
         ),
     ),
     # Connection strings: scheme://user:password@host
@@ -87,26 +111,58 @@ def redact_text(value: str) -> str:
     return out
 
 
+_EXEMPT_NAMES = frozenset({"jti", "nonce", "kid", "digest", "sha", "commit"})
+_EXEMPT_SUFFIXES = ("_hash", "_id", "_sha")
+_JWT = _PATTERNS[1][1]
+
+
+def _is_exempt_name(name: str) -> bool:
+    lowered = name.lower()
+    return lowered in _EXEMPT_NAMES or lowered.endswith(_EXEMPT_SUFFIXES)
+
+
 def redact_field(name: str, value: object) -> object:
-    """Redact one structured field value, leaving non-text values untouched.
+    """Redact one structured field value.
 
     Hashes and identifiers are passed through by name so that a digest field
     keeps its digest: ``*_hash``, ``*_id``, ``jti`` and ``nonce`` are the
     values an audit trail exists to carry, and a long hex rule would otherwise
-    eat exactly those.
+    eat exactly those. The exemption holds only while the value still LOOKS
+    like an identifier: free text or a vendor-prefixed credential under such a
+    name is redacted like any other string.
+
+    Mappings, sequences and exceptions are walked, so a structure logged whole
+    does not carry a credential past the emitter.
     """
 
-    if not isinstance(value, str):
-        return value
-    lowered = name.lower()
-    if (
-        lowered.endswith("_hash")
-        or lowered.endswith("_id")
-        or lowered.endswith("_sha")
-        or lowered in {"jti", "nonce", "kid", "digest", "sha", "commit"}
-    ):
-        return value
-    return redact_text(value)
+    if isinstance(value, str):
+        if (
+            _is_exempt_name(name)
+            and _IDENTIFIER_SHAPE.fullmatch(value)
+            and not _VENDOR.search(value)
+            and not _JWT.search(value)
+        ):
+            return value
+        return redact_text(value)
+    if isinstance(value, BaseException):
+        return redact_text(f"{type(value).__name__}: {value}")
+    if isinstance(value, Mapping):
+        return {
+            key: (
+                MARKER
+                if isinstance(key, str)
+                and _CREDENTIAL_KEY.search(key)
+                and value[key] is not None
+                and not isinstance(value[key], (Mapping, list, tuple, set, frozenset))
+                else redact_field(str(key), value[key])
+            )
+            for key in value
+        }
+    if isinstance(value, (list, tuple)):
+        return type(value)(redact_field(name, item) for item in value)
+    if isinstance(value, (set, frozenset)):
+        return [redact_field(name, item) for item in value]
+    return value
 
 
 __all__ = ["MARKER", "redact_field", "redact_text"]

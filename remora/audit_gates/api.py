@@ -20,6 +20,7 @@ class Violation(str, Enum):
     DOC_HISTORICAL_REFERENCE = "doc_historical_reference"
     DOC_STALE = "doc_stale"
     DOC_UNREGISTERED = "doc_unregistered"
+    GATE_NOT_IMPLEMENTED = "gate_not_implemented"
 
 @dataclass
 class GateResult:
@@ -62,6 +63,8 @@ def run_claim_audit(root: Path) -> GateResult:
 
     claim_register = root / "docs" / "claim_register.md"
     if not claim_register.exists():
+        # A gate with nothing to check must not report PASS.
+        result.add(Violation.MISSING_ARTIFACT, "docs/claim_register.md")
         return result
     register_text = claim_register.read_text(encoding="utf-8")
     loc = "docs/claim_register.md"
@@ -101,7 +104,10 @@ def run_profile_gate(root: Path) -> GateResult:
     return result
 
 def run_caveat_gate(root: Path) -> GateResult:
-    return GateResult()
+    """Not implemented: reports a violation instead of a vacuous PASS."""
+    result = GateResult()
+    result.add(Violation.GATE_NOT_IMPLEMENTED, "run_caveat_gate")
+    return result
 
 def run_docs_gate(root: Path) -> GateResult:
     result = GateResult()

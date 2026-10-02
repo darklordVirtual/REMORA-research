@@ -97,6 +97,34 @@ class AuditAnchor:
             signature_algorithm="hmac-sha256",
         )
 
+    @staticmethod
+    def _entry_hash_matches(entry: dict) -> bool:
+        """Recompute the entry hash with the hash chain's own function."""
+        from remora.audit.hash_chain import _compute_hash
+
+        try:
+            metadata = entry.get("metadata") or {}
+            if any(k in entry for k in ("oracle_count", "verdict", "policy_version")):
+                # JSONLAudit hashes the metadata augmented with these fields.
+                metadata = {
+                    **metadata,
+                    "oracle_count": entry.get("oracle_count"),
+                    "verdict": entry.get("verdict"),
+                    "policy_version": entry.get("policy_version"),
+                }
+            recomputed = _compute_hash(
+                timestamp=entry["timestamp"],
+                question_hash=entry["question_hash"],
+                action=entry["action"],
+                trust_score=entry["trust_score"],
+                phase=entry["phase"],
+                previous_hash=entry.get("previous_hash"),
+                metadata=metadata,
+            )
+        except (KeyError, TypeError, ValueError, AttributeError):
+            return False
+        return hmac.compare_digest(str(recomputed), str(entry.get("entry_hash", "")))
+
     def anchor(self) -> AnchorRecord:
         """Read the JSONL file and return an ``AnchorRecord``.
 
@@ -107,7 +135,7 @@ class AuditAnchor:
             return self._sign_record(AnchorRecord(
                 root_hash="",
                 entry_count=0,
-                chain_valid=True,
+                chain_valid=False,
                 error_message="file_not_found",
             ))
 
@@ -132,6 +160,16 @@ class AuditAnchor:
 
         root_hash = entries[0].get("entry_hash", "")
 
+        # Genesis must declare no predecessor.
+        if entries[0].get("previous_hash") not in (None, ""):
+            return self._sign_record(AnchorRecord(
+                root_hash=root_hash,
+                entry_count=len(entries),
+                chain_valid=False,
+                broken_at_index=0,
+                error_message="chain_broken: genesis entry declares a previous_hash",
+            ))
+
         # Verify chain linkage
         for i in range(1, len(entries)):
             prev_hash = entries[i - 1].get("entry_hash", "")
@@ -146,6 +184,18 @@ class AuditAnchor:
                         f"chain_broken: entry[{i}].previous_hash={declared_prev!r} "
                         f"!= entry[{i-1}].entry_hash={prev_hash!r}"
                     ),
+                ))
+
+        # Every entry hash must be recomputed from its own content (linkage
+        # alone is forgeable by editing a field while keeping stored hashes).
+        for i, entry in enumerate(entries):
+            if not self._entry_hash_matches(entry):
+                return self._sign_record(AnchorRecord(
+                    root_hash=root_hash,
+                    entry_count=len(entries),
+                    chain_valid=False,
+                    broken_at_index=i,
+                    error_message=f"entry_hash_mismatch: entry[{i}] content does not match its entry_hash",
                 ))
 
         return self._sign_record(AnchorRecord(

@@ -1,9 +1,11 @@
-# REMORA Results Snapshot (Canonical)
+# REMORA Results Snapshot
 
-This file is auto-generated from `results/ablation_v2_results.json` by
-`scripts/generate_results_snapshot.py`.
+Generated snapshot of `results/ablation_v2_results.json` (N=302, internal
+ablation) by `scripts/generate_results_snapshot.py`.
 
-Use this as the canonical source for headline metrics cited in docs and paper.
+This file is **not a governed claim source**. Governed claims, with their
+evidence and caveats, live in `docs/assurance/claim_register_v1.yaml`; cite
+those, not this snapshot.
 
 ## Benchmark
 
@@ -23,10 +25,12 @@ Use this as the canonical source for headline metrics cited in docs and paper.
 | D2 Router BALANCED | 82.1 % | 43.4 % |
 | D3 Router HYBRID | 76.2 % | 40.7 % |
 
-## Innovation Factor
+## Heuristic Readiness Score (not a claim)
 
-- Innovation factor: 87.0/100
-- Status: breakthrough_candidate
+An internal heuristic score over this one result file. It is not evidence of a
+breakthrough and is not used by the claim register.
+
+- Heuristic score: 87.0/100
 - Accuracy gain vs single oracle: 25.2 pp
 - D2 vs majority delta: -0.7 pp
 - ETR gain vs full REMORA: 30.5 pp
@@ -38,7 +42,7 @@ Use this as the canonical source for headline metrics cited in docs and paper.
 - Effective Truth Rate is materially improved, but still below a high-assurance 50%+ target on the external benchmark.
 - The canonical v2 result set does not yet include a Cloudflare oracle swarm comparison.
 
-## What Is Needed For A Breakthrough Claim
+## What Would Be Needed For A Stronger Claim
 
 - Rebuild the benchmark with the LARGE or XL preset and rerun ablation_v2.
 - Add cross-provider and Cloudflare-backed ablations to show a stronger margin over adjacent baselines.

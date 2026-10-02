@@ -337,7 +337,7 @@ freshness contract with an execution-time re-gate.
 
 Full inventory of caveats and negative results:
 [NEGATIVE_RESULTS.md](../NEGATIVE_RESULTS.md),
-[README, Limitations](../README.md#limitations).
+[README, What REMORA cannot do](../README.md#what-remora-cannot-do) and [ARCHITECTURE.md §10](../ARCHITECTURE.md#10-scope-and-maturity) (tamper-evident, not tamper-proof).
 
 ---
 

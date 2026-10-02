@@ -30,6 +30,7 @@ References:
 from __future__ import annotations
 
 import json
+import math
 import re
 from dataclasses import dataclass
 from enum import Enum
@@ -149,7 +150,21 @@ def _parse_verdict(raw: str) -> JudgeVerdict:
             return _build_from_dict(obj, raw)
 
     # Last resort: scan for verdict keyword in the text
+    # Non-supporting wording is checked first: "unsupported" and "not
+    # supported" contain "supported" and must never parse as SUPPORTED.
     lower = raw.lower()
+    if "refuted" in lower:
+        return JudgeVerdict(
+            JudgeOutcome.REFUTED, 0.5, "verdict inferred from text (parse failed)", raw
+        )
+    if (
+        "challenged" in lower
+        or "unsupported" in lower
+        or re.search(r"(?:\bnot|\bnever|n't)\s+(?:\w+\s+)?supported", lower)
+    ):
+        return JudgeVerdict(
+            JudgeOutcome.CHALLENGED, 0.5, "verdict inferred from text (parse failed)", raw
+        )
     for word, outcome in _VERDICT_WORDS.items():
         if word in lower:
             return JudgeVerdict(outcome, 0.5, "verdict inferred from text (parse failed)", raw)
@@ -170,7 +185,8 @@ def _build_from_dict(obj: dict, raw: str) -> JudgeVerdict:
     outcome = _VERDICT_WORDS.get(verdict_raw, JudgeOutcome.PARSE_ERROR)
     try:
         conf = float(obj.get("confidence", 0.5))
-        conf = max(0.0, min(1.0, conf))
+        # max(0, min(1, nan)) is 1.0: a non-finite confidence is unknown, not certain.
+        conf = max(0.0, min(1.0, conf)) if math.isfinite(conf) else 0.0
     except (TypeError, ValueError):
         conf = 0.5
     critique = str(obj.get("critique", obj.get("reason", obj.get("explanation", "")))).strip()

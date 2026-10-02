@@ -119,12 +119,14 @@ def main() -> None:
     OUT_JSON.write_text(json.dumps(summary, indent=2) + "\n")
 
     h = summary["headline"]
-    md = """# REMORA Results Snapshot (Canonical)
+    md = """# REMORA Results Snapshot
 
-This file is auto-generated from `results/ablation_v2_results.json` by
-`scripts/generate_results_snapshot.py`.
+Generated snapshot of `results/ablation_v2_results.json` (N=302, internal
+ablation) by `scripts/generate_results_snapshot.py`.
 
-Use this as the canonical source for headline metrics cited in docs and paper.
+This file is **not a governed claim source**. Governed claims, with their
+evidence and caveats, live in `docs/assurance/claim_register_v1.yaml`; cite
+those, not this snapshot.
 
 ## Benchmark
 
@@ -144,10 +146,12 @@ Use this as the canonical source for headline metrics cited in docs and paper.
 | D2 Router BALANCED | {d2:.1f} % | {d2e:.1f} % |
 | D3 Router HYBRID | {d3:.1f} % | {d3e:.1f} % |
 
-## Innovation Factor
+## Heuristic Readiness Score (not a claim)
 
-- Innovation factor: {innovation_factor:.1f}/100
-- Status: {status}
+An internal heuristic score over this one result file. It is not evidence of a
+breakthrough and is not used by the claim register.
+
+- Heuristic score: {innovation_factor:.1f}/100
 - Accuracy gain vs single oracle: {gain_single:.1f} pp
 - D2 vs majority delta: {delta_majority:+.1f} pp
 - ETR gain vs full REMORA: {etr_gain:.1f} pp
@@ -156,7 +160,7 @@ Use this as the canonical source for headline metrics cited in docs and paper.
 
 {gap_lines}
 
-## What Is Needed For A Breakthrough Claim
+## What Would Be Needed For A Stronger Claim
 
 {action_lines}
 """.format(
@@ -174,7 +178,6 @@ Use this as the canonical source for headline metrics cited in docs and paper.
         d3=h["D3_hybrid_accuracy_pct"],
         d3e=h["D3_hybrid_etr_pct"],
         innovation_factor=summary["innovation"]["innovation_factor"],
-        status=summary["innovation"]["status"],
         gain_single=summary["innovation"]["signals"]["accuracy_gain_vs_single_pct"],
         delta_majority=summary["innovation"]["signals"]["d2_vs_majority_delta_pct"],
         etr_gain=summary["innovation"]["signals"]["etr_gain_vs_full_remora_pct"],

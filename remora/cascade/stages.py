@@ -50,6 +50,8 @@ class _StageContext:
     consensus_answer: Optional[str] = None
     consensus_polarity: object = None
     consensus_trust: Optional[float] = None
+    # Trust after Platt calibration (None until ConsensusGate has run).
+    consensus_calibrated_trust: Optional[float] = None
     consensus_phase: Optional[str] = None
     cascade_confidence: float = 0.5
     last_critique: Optional[str] = None
@@ -177,7 +179,12 @@ class ConsensusGate:
         # calibrated_trust is used for all threshold comparisons;
         # raw trust is preserved in metadata for traceability.
         calibrated_trust = trust
-        if trust is not None and self.platt_scaler is not None:
+        # An unfitted scaler is sigmoid(x), not a calibration: use raw trust.
+        _is_fitted = getattr(self.platt_scaler, "is_fitted", None)
+        _scaler_usable = self.platt_scaler is not None and (
+            not callable(_is_fitted) or bool(_is_fitted())
+        )
+        if trust is not None and _scaler_usable:
             try:
                 calibrated_trust = self.platt_scaler.transform([trust])[0]
             except Exception as exc:
@@ -201,6 +208,7 @@ class ConsensusGate:
         # Per-domain threshold overrides the global accept threshold.
         effective_accept = ctx.domain_accept_threshold or self.accept_threshold
         conf = calibrated_trust if calibrated_trust is not None else 0.5
+        ctx.consensus_calibrated_trust = calibrated_trust
 
         if calibrated_trust is not None and calibrated_trust >= effective_accept:
             verdict = CascadeVerdict.ACCEPT
@@ -335,7 +343,8 @@ class SelfConsistencyGate:
         from collections import Counter
         counts = Counter(answers)
         majority_answer, majority_count = counts.most_common(1)[0]
-        agreement = majority_count / len(answers)
+        # Unparsed samples count as non-agreement: 1 parsed of N is not 100%.
+        agreement = majority_count / max(self.sc_samples, len(answers))
         conf = agreement
 
         if agreement >= self.sc_threshold:
@@ -415,8 +424,18 @@ class CritiqueRevisionGate:
         # accuracy by ~22 pp on easy questions (NEGATIVE_RESULTS.md §2).
         # Short-circuit immediately and accept the existing consensus answer.
         # ------------------------------------------------------------------
-        trust = ctx.consensus_trust
-        if trust is not None and trust >= self.skip_high_trust_threshold:
+        # Compare the CALIBRATED trust (and the per-domain threshold when set):
+        # raw trust must not override a calibration that sent Stage 2 to VERIFY.
+        trust = (
+            ctx.consensus_calibrated_trust
+            if ctx.consensus_calibrated_trust is not None
+            else ctx.consensus_trust
+        )
+        if (
+            trust is not None
+            and trust >= self.skip_high_trust_threshold
+            and trust >= (ctx.domain_accept_threshold or 0.0)
+        ):
             return StageResult(
                 stage=CascadeStage.CRITIQUE_REVISION,
                 verdict=CascadeVerdict.ACCEPT,

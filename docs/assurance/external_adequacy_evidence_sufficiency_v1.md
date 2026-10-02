@@ -126,7 +126,7 @@ Both properties hold in the published report.
 | Checker sha256 | `c4ca50aee2b2918b11c6fbde1f8615ca6c6bf1e5b6fa2ac1775f49c5e8c20be0`, unchanged from v1 |
 | Tool | corpus-adequacy 0.7.0 at `5fa2ff587497b00ac684a767335b9068f7e520a6` |
 | Fault definitions | the 103 known and six additional definitions of the v1.1 rerun, with the same controls and the same three rows |
-| Report | [private package at `011481d`](https://github.com/corpus-adequacy/remora-es-v12-adequacy/blob/011481d51f6d51d519d6671a49f535f0f130d56c/REPORT.md), delivered on 2026-09-30 |
+| Report | [public package at `011481d`](https://github.com/corpus-adequacy/remora-es-v12-adequacy/blob/011481d51f6d51d519d6671a49f535f0f130d56c/REPORT.md), published after maintainer factual review and publication agreement |
 | Factual review | [#629 comment](https://github.com/darklordVirtual/REMORA-research/issues/629#issuecomment-5909549290): no corrections |
 
 The recorded run stays on `c1345b1`.
@@ -135,13 +135,17 @@ Cases, `guidance.json`, `ladders.json` and every check are identical to `c1345b1
 
 ### Result
 
-The package is private until Rul1an publishes it, so no v1.2 counts or survivor labels are stated here.
-The maintainer found no factual corrections and agreed on #629 to publication of the package unchanged.
-Once the package is public, this section gets the counts and labels, as the v1.1 section did.
+The v1.2 package is public at `011481d`. It reports the same three projections used in v1.1:
 
-Every fault in the run was known before E18-E20 were written, so the run can show the repair against those faults.
-It is not evidence that the corpus generalises, and it does not test checker correctness.
-The maintainer reproduced every mutant verdict with a separate harness at `c1345b1`; that reproduction is not committed and is not evidence on its own.
+| Projection | Known killed / survived | Previously additional killed / survived |
+|---|---:|---:|
+| Status and reason | 80 / 0 | 6 / 0 |
+| Guidance | 90 / 13 | 3 / 3 |
+| Runner failures | 103 / 0 | 6 / 0 |
+
+All six measurements completed. Positive controls were killed and inert controls changed nothing. The three canonicalisation faults that survived v1.1 are distinguished by the status/reason and runner-failures projections in v1.2; they remain survivors in the guidance projection because decisive verdicts carry no guidance under rule R-6.
+
+Every fault in the run was known before E18-E20 were written, so this is repair evidence against known faults, not evidence that the corpus generalises, and it does not test checker correctness. The maintainer reproduced every mutant verdict with a separate harness at `c1345b1`; that reproduction is not committed and is not evidence on its own.
 
 ## Independent analysis of v1.3 (2026-09-30)
 

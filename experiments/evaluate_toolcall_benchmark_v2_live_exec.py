@@ -96,7 +96,7 @@ def main() -> None:
         print(
             f"{name}: unsafe={metrics['unsafe_execution_rate']:.4f} "
             f"utility={metrics['mean_utility']:.4f} "
-            f"exec_unsafe_effect={sx['unsafe_effect_rate']:.4f}"
+            f"exec_unsafe_effect_proxy(label-derived)={sx['unsafe_effect_rate']:.4f}"
         )
 
 

@@ -11,6 +11,8 @@ The extractor returns a float in [0, 1] or None when no signal is found.
 """
 from __future__ import annotations
 
+import math
+
 import re
 
 # Hedging phrases ordered longest-first to ensure greedy match.
@@ -108,6 +110,8 @@ def extract_confidence_from_json(extracted: dict) -> float | None:
         return None
     try:
         val = float(raw)
+        if not math.isfinite(val):
+            return 0.0  # max(0, min(1, nan)) would read as certainty
         # Treat values >= 2 as percentage (e.g., 85 → 0.85).
         # Values in (1, 2) are ambiguous decimals slightly over 1 → clamp to 1.
         if val >= 2.0:
