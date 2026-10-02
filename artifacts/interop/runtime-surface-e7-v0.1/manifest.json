@@ -1,6 +1,6 @@
 {
   "schema_version": "remora-runtime-surface-e7-manifest-v0.1",
-  "lifecycle": "DRAFT",
+  "lifecycle": "FROZEN",
   "producer": "REMORA-research",
   "source_revision": "35db242ffd212320576a0636e125cf8dbf12a25c",
   "source_artifacts": [

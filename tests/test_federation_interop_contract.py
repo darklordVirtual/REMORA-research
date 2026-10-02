@@ -510,6 +510,7 @@ def test_a_second_implementation_cannot_advance_a_contract_to_externally_verifie
 ) -> None:
     contract = copy.deepcopy(e7)
     contract["freeze_record"] = {"revision": "f" * 40, "package_digest": e7["package_digest"]}
+    contract["external_runs"] = []
     run = _with(_valid_run_record(e7), "independence", "NOT_INDEPENDENT")
     contract["external_runs"] = [run]
     assert _lifecycle_floor(contract, schemas) == "REPRODUCED"
@@ -520,6 +521,7 @@ def test_a_second_implementation_cannot_advance_a_contract_to_externally_verifie
 def test_an_author_run_does_not_advance_the_lifecycle(e7: dict[str, Any], schemas: dict[str, dict[str, Any]]) -> None:
     contract = copy.deepcopy(e7)
     contract["freeze_record"] = {"revision": "f" * 40, "package_digest": e7["package_digest"]}
+    contract["pin_confirmed_to"] = []
     run = _with(_valid_run_record(e7), "implementation_diversity", "AUTHOR_IMPLEMENTATION")
     run = _with(run, "operator", "AUTHOR")
     run = _with(run, "independence", "NOT_INDEPENDENT")
@@ -531,6 +533,7 @@ def test_an_author_run_does_not_advance_the_lifecycle(e7: dict[str, Any], schema
 def test_a_run_over_different_bytes_does_not_count(e7: dict[str, Any], schemas: dict[str, dict[str, Any]]) -> None:
     contract = copy.deepcopy(e7)
     contract["freeze_record"] = {"revision": "f" * 40, "package_digest": e7["package_digest"]}
+    contract["external_runs"] = []
     contract["external_runs"] = [_with(_valid_run_record(e7), "package_digest", "sha256:" + "0" * 64)]
     with pytest.raises(AssertionError):
         _lifecycle_floor(contract, schemas)
