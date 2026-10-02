@@ -2468,10 +2468,10 @@ documents:
   - evaluators
 - id: DOC-355
   path: docs/architecture/ADR-tainted-argument-floor-order.md
-  status: proposal
+  status: canonical
   topic: docs_architecture_adr_tainted_argument_floor_order_md
-  code_synced: unreviewed
-  verdict: pending
+  code_synced: verified
+  verdict: current
   owner: darklordVirtual
   audience:
   - maintainers

@@ -1,6 +1,6 @@
 # ADR: Tainted arguments — severity-monotone floor order (WP-1 alternative A)
 
-- Status: **proposed** (2026-10-02)
+- Status: **accepted** (2026-10-02)
 - Deciders: repository owner
 - Extends: `docs/architecture/ADR-tainted-argument-approval.md` (option **a**, accepted 2026-08-20)
 - Related: issue #40 (option **b**, open), `docs/13-research-frontier-roadmap.md` RF-02,
