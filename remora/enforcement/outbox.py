@@ -203,6 +203,31 @@ def _check_claimable(row: OutboxRow) -> None:
         )
 
 
+def _unknown_if_still_dispatching(
+    settle: Any,
+    outbox_id: str,
+    moment: datetime,
+) -> OutboxRow | None:
+    """Settle a stale claim as UNKNOWN, or skip a row another worker finished.
+
+    The scan and the update are separate transactions on the durable
+    adapters. A worker can reach SUCCEEDED between them. That is a lost
+    race, not a reconciler failure: raising would abandon every later stale
+    row in the same pass. An already-terminal row is left untouched.
+    """
+    try:
+        return settle(
+            outbox_id,
+            OutboxState.UNKNOWN,
+            detail="reconciler: dispatch outcome undeterminable",
+            now=moment,
+        )
+    except ValueError as exc:
+        if "already terminal" not in str(exc):
+            raise
+        return None
+
+
 def _check_settleable(
     row: OutboxRow, state: OutboxState, *, from_pending: bool = False
 ) -> None:
@@ -411,11 +436,10 @@ class ExecutionOutbox:
                     continue
                 if row.claimed_at is not None and row.claimed_at > cutoff:
                     continue
-                out.append(self.settle(
-                    row.outbox_id, OutboxState.UNKNOWN,
-                    detail="reconciler: dispatch outcome undeterminable",
-                    now=moment,
-                ))
+                settled = _unknown_if_still_dispatching(
+                    self.settle, row.outbox_id, moment)
+                if settled is not None:
+                    out.append(settled)
         return out
 
     def reconcile_unclaimed(
@@ -735,11 +759,10 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
             row = self._row(record)
             if row.claimed_at is not None and row.claimed_at > cutoff:
                 continue
-            out.append(self.settle(
-                row.outbox_id, OutboxState.UNKNOWN,
-                detail="reconciler: dispatch outcome undeterminable",
-                now=moment,
-            ))
+            settled = _unknown_if_still_dispatching(
+                self.settle, row.outbox_id, moment)
+            if settled is not None:
+                out.append(settled)
         return out
 
     def mark_projected(
@@ -1167,11 +1190,10 @@ class PostgresExecutionOutbox(ExecutionOutbox):
             row = self._row_tuple(record)
             if row.claimed_at is not None and row.claimed_at > cutoff:
                 continue
-            out.append(self.settle(
-                row.outbox_id, OutboxState.UNKNOWN,
-                detail="reconciler: dispatch outcome undeterminable",
-                now=moment,
-            ))
+            settled = _unknown_if_still_dispatching(
+                self.settle, row.outbox_id, moment)
+            if settled is not None:
+                out.append(settled)
         return out
 
     def mark_projected(

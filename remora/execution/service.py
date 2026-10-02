@@ -886,7 +886,9 @@ def dispatch_pending_intent(
     their fate, this worker cannot reconstruct the call), or a lost claim
     race. A payload that no longer hashes to the authorization's binding
     is refused and settled REFUSED — a worker must never dispatch a call
-    other than the one that was authorized.
+    other than the one that was authorized. A row that cannot name the
+    principal it was granted for is refused as ``requester_identity_missing``;
+    the worker identity passed as ``principal`` is never adopted as that actor.
     """
     if row.state is not OutboxState.DISPATCH_PENDING:
         return None
@@ -901,6 +903,11 @@ def dispatch_pending_intent(
         refusal = "authorization_expiry_missing"
     elif datetime.now(UTC) > row.authorization_expires_at:
         refusal = "authorization_expired"
+    elif not (row.requested_by or "").strip():
+        # The worker process identity is not an authorization. A legacy or
+        # hand-built row with no requester would otherwise be honoured as
+        # principal (the worker), which is the substitution issue #420 forbids.
+        refusal = "requester_identity_missing"
     tool_call: Any = None
     if refusal is None:
         try:
@@ -928,7 +935,9 @@ def dispatch_pending_intent(
     # Issue #420 (RMR-CR-005): every record carries the principal the
     # authorization was granted FOR; the worker's own identity is reported
     # separately as executed_by and never substituted for the requester's.
-    actor = row.requested_by or principal
+    # ``principal`` remains the worker binder's process identity and is not
+    # an actor fallback.
+    actor = (row.requested_by or "").strip()
     proposal_id = row.proposal_id
     if refusal is not None:
         if outbox().claim(row.outbox_id, worker_id=worker_id) is None:
