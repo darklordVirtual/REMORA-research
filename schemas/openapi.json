@@ -3145,6 +3145,81 @@
         ]
       }
     },
+    "/v1/execution/proposals/{proposal_id}/semantic-assessment": {
+      "get": {
+        "description": "The semantic shadow's reading of one proposal, for whoever resolves it.\n\nAt VERIFY that is a bounded machine lookup, which the reading tells what\nto check; at ESCALATE it is the human approver. Advisory only: nothing on\nthe approval, resolution or execution path reads it, and the response\nsays so. ``status`` is ``available`` with the reading, ``failed`` when\nthe provider could not answer, or the reason there is none:\n``not_enabled``, ``pending``, ``tenant_not_opted_in``,\n``request_not_resolved``, ``dropped`` or ``unknown``. Tenant-scoped like\nevery proposal read: another tenant's proposal is a 404.",
+        "operationId": "get_semantic_assessment_v1_execution_proposals__proposal_id__semantic_assessment_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Semantic Assessment V1 Execution Proposals  Proposal Id  Semantic Assessment Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Jev's advisory reading of the proposal, for the verifier or approver."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Missing or invalid bearer token."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Role lacks the required capability for this tenant."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "No such proposal for this tenant."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Semantic Assessment",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
     "/v1/execution/reject": {
       "post": {
         "description": "Refuse a pending review item, terminally.\n\nThe counterpart to :func:`approve`, and subject to the same identity\nrule: the recorded reviewer is the authenticated principal, never a\nvalue from the body. A rejected item can never be approved or executed\nafterwards — the queue refuses any later transition, so a refusal\ncannot be worked around by calling approve again.",

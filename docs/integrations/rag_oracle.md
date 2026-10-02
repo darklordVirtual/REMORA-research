@@ -346,6 +346,18 @@ precision, restoring accuracy to 75%.
 
 ---
 
+## As the source for a VERIFY lookup
+
+A VERIFY is a machine step: a bounded lookup closes the information gap and
+the router runs again (`remora/policy/resolution.py`). The RAG oracle is one
+such source. When the semantic shadow is on, Jev's reading names what the lookup should
+establish for a proposal (`verification_focus`). That can be the target
+identifiers, the procedure for the requested change, or a source for every
+argument outside the request. It also marks the proposal's untrusted text as
+not a source. The focus selects what to retrieve; it does not widen what a
+resolver may write. See
+[jev_decision_provider.md](jev_decision_provider.md).
+
 ## Extending the knowledge base
 
 The `remora-knowledge` Vectorize index is designed to grow with the system.

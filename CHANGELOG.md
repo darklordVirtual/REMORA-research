@@ -258,6 +258,78 @@ This file lists externally relevant changes by release. Fine-grained development
   documented response shape through an injected transport and has not been run
   against the live service, so it is evidence about parsing and about nothing
   else.
+- `remora.decision_providers.typesafe`: an adapter for Jev on TypeSafe's own
+  API, `POST https://api.typesafe.ai/v1/systemone`, with model alias
+  `jev-latest`. It reads `JEV_API_KEY`, the name of the repository's GitHub
+  Agents secret, and falls back to `TYPESAFE_API_KEY`. It needs no Cloudflare
+  account or gateway credits. The question payload and answer parsing are now
+  module functions in `remora.decision_providers.cloudflare` shared by both
+  adapters, so a `noul` answer stays a probability and a `score` keeps its
+  legend on either route. `429` and `529` are retried with a bounded
+  `retry-after`; every refusal carries TypeSafe's message and request id.
+  `examples/jev_decision_provider_demo.py --live` now uses this route, and
+  `--via cloudflare` selects Workers AI. Both key names are registered in the
+  credential topology as oracle credentials. Exercised through an injected
+  transport only; no live answer has been observed yet.
+- `experiments/jev_live_smoke.py` and `results/jev_live_smoke_v1.json`: the
+  first live round against Jev, on TypeSafe's API, 2026-10-01. Three demo
+  scenarios with three repeats each: nine answers from `jev-1.13.0`, no
+  provider failure, no ACCEPT. The injection scenario escalated in every
+  repeat. The legitimate scenario's favourable signal was withheld at the
+  demo's illustrative 0.85 threshold (`intent_match` 0.70), and repeats of one
+  state returned different answers within 0.06. Both observations are recorded
+  in the integration guide as inputs to calibration. Manifest class `live`,
+  with a provenance sidecar.
+- Question set V2 (`remora-semantic-v2`) and `semantic_state_v2`, written
+  against TypeSafe's published Jev guidance, with a V1/V2 screening round in
+  `results/jev_question_set_ab_v1.json`: 192 answers from `jev-1.13.0`, no
+  ACCEPT, every injected variant flagged under both sets. V2 separated scope
+  drift more cleanly and scored legitimate intent higher. Both sets flagged
+  benign tickets as injection on some tasks, recorded as open finding
+  NEGATIVE_RESULTS.md §74.
+- Question set V2.1 (`remora-semantic-v2.1`) and a pre-registered hold-out
+  (`artifacts/jev-injection-holdout-2026-10-02/`,
+  `results/jev_injection_holdout_v1.json`). V2.1 changes only the injection
+  questions. On 192 scenarios from context-free authors, V2.1 flagged 22.5 %
+  of non-injection scenarios (V2 53.5 %, V1 29.6 %) and caught every
+  injection, meeting both pre-registered criteria. V1, the default set in
+  `enrich`, gave one favourable admission on a wrong target. Deviations, one
+  of them an Opus author declining the injection brief, are in the
+  artifact's `DEVIATIONS.md`.
+- Semantic shadow mode on the enforcing assess path.
+  `remora/decision_providers/shadow.py` evaluates a provider beside a real
+  decision and returns a record of the actual, engine and counterfactual
+  actions with answers, latency and billed input tokens; it never mutates
+  the observation and turns every fault into a record.
+  `servers/semantic_shadow.py` wires it into `assess_proposal` through a new
+  `semantic_shadow` parameter, called after the audit record is durable, on a
+  bounded background pool, for opted-in tenants with a server-resolved
+  operator request. Off by default; refused at startup when switched on
+  without tenants, question set, thresholds and log path. The response is
+  unchanged with the shadow off, on or failing.
+- `scripts/semantic_shadow_report.py` summarises shadow records and, given
+  reviewer labels, reports what the sensor missed and flagged separately
+  from what would have changed the decision, since under the execution
+  profile a caught scope drift is flagged without a stricter decision.
+- `GET /v1/execution/proposals/{proposal_id}/semantic-assessment` gives the
+  step that resolves a decision Jev's reading of the proposal. At VERIFY, a
+  bounded machine lookup, `verification_focus` names what the lookup should
+  check (`confirm_target`, `confirm_intent`, `confirm_scope`,
+  `exclude_untrusted_text`); at ESCALATE the human approver gets the same
+  answers in plain words. Advisory in every response, tenant-scoped, and read
+  by no approval, resolution or execution path. When there is no reading the
+  status says why. Shadow records now carry the thresholds they were
+  admitted against.
+- Per-vertical semantic profiles (`REMORA_SEMANTIC_SHADOW_PROFILES`): named
+  profiles with question set, thresholds, language and calibration record,
+  and a tenant map, checked key by key at startup. Records carry the profile
+  and the reader's caveats follow it. Documentation now places Jev in the
+  architecture: a node and a shadow branch in the pipeline diagrams of
+  `ARCHITECTURE.md` and `docs/01-architecture.md`, a new `ARCHITECTURE.md`
+  §5.6 with its own flow diagram and its relation to AROMER, the API
+  reference for the semantic-assessment route, the semantic profile as an
+  optional fifth part of a domain pack (`domain_pack_governance_v1.md` §11),
+  cross-links from the RAG oracle and Workers AI guides, and the mkdocs nav.
 - `remora.decision_providers.questions` and `remora.decision_providers.enrich`
   complete the provider integration end to end. The question set is versioned
   (`remora-semantic-v1`) because thresholds are calibrated against a specific

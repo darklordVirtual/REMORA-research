@@ -152,9 +152,11 @@ nav:
   - Integrations:
       - Agent tool hook: integrations/agent_tool_hook.md
       - Cloudflare Workers AI: integrations/cloudflare_workers_ai.md
+      - Jev semantic decision provider: integrations/jev_decision_provider.md
       - Cyber evidence layer: integrations/cyber_evidence_layer.md
       - Knowledge domains: integrations/knowledge_domains.md
       - MCP integration: integrations/mcp-integration.md
+      - Governed MCP gateway: integrations/mcp-gateway.md
       - RAG oracle: integrations/rag_oracle.md
       - GO-STAR bridge: integrations/go_star_bridge.md
   - Deployment:
