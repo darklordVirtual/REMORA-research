@@ -3,6 +3,7 @@
 """Session intent anchoring for governed agent tool calls."""
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import re
@@ -33,10 +34,8 @@ def atomic_write_text(path: Path, text: str) -> None:
 def quarantine_file(path: Path) -> None:
     """Move an unreadable state file aside so its bytes are kept for forensics."""
 
-    try:
+    with contextlib.suppress(OSError):
         os.replace(path, path.with_name(f"{path.name}.corrupt-{time.time_ns()}"))
-    except OSError:
-        pass
 
 
 class IntentAnchor:
@@ -68,10 +67,8 @@ class IntentAnchor:
             # session is explicitly re-anchored.
             quarantine_file(self.intent_file)
             self._data = {"corrupt": True, "tool_call_count": 0}
-            try:
+            with contextlib.suppress(OSError):
                 self._save()
-            except OSError:
-                pass
 
     def _save(self) -> None:
         atomic_write_text(self.intent_file, json.dumps(self._data, indent=2))
