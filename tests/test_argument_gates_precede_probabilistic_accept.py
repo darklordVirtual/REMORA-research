@@ -22,7 +22,7 @@ def _obs(**kw) -> PolicyObservation:
 ENGINES = {
     "conformal": lambda: RemoraDecisionEngine(conformal_trust_threshold=0.5),
     "mondrian": lambda: RemoraDecisionEngine(conformal_phase_thresholds={"ordered": 0.5}),
-    "ordered": lambda: RemoraDecisionEngine(),
+    "ordered": RemoraDecisionEngine,
 }
 
 

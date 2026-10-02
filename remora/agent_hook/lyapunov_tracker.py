@@ -3,6 +3,7 @@
 """Cross-tool-call Lyapunov tracking for local agent sessions."""
 from __future__ import annotations
 
+import contextlib
 import json
 import math
 import os
@@ -13,6 +14,7 @@ from typing import Any
 
 from remora.agent_hook.intent_anchor import atomic_write_text, quarantine_file
 from remora.lyapunov import LyapunovController, LyapunovParams, LyapunovState
+
 
 class AutonomyLevel(str):
     """Agent autonomy tier based on accumulated Lyapunov uncertainty.
@@ -105,10 +107,8 @@ class LyapunovTracker:
             self._observations = []
             self._controller = LyapunovController.init(self._params)
             self._quarantined = True
-            try:
+            with contextlib.suppress(OSError):
                 self._save()
-            except OSError:
-                pass
 
     def _save(self) -> None:
         data = {
