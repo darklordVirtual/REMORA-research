@@ -1,0 +1,31 @@
+{
+  "schema_version": "remora-interop-index-v1",
+  "producer": {
+    "repository": "darklordVirtual/REMORA-research",
+    "published_revision": "dc5f10e87ea546137d00b09d01d147f2ab6972e0"
+  },
+  "semantics": {
+    "native_claims_preserved": true,
+    "transitive_credit": false,
+    "external_evidence_is_authority": false,
+    "note": "Interop artifacts are evidence inputs and references. They do not create REMORA authority or alter ACCEPT/VERIFY/ABSTAIN/ESCALATE semantics."
+  },
+  "contracts": [
+    {
+      "id": "runtime-surface-e7-v0.1",
+      "status": "PUBLISHED",
+      "edge": "E7",
+      "claim_packet": "artifacts/interop/runtime-surface-e7-v0.1/claim-packet.json",
+      "verifier_request": "artifacts/interop/runtime-surface-e7-v0.1/verifier-request.json",
+      "fixtures": "artifacts/interop/runtime-surface-e7-v0.1/fixtures.json",
+      "manifest": "artifacts/interop/runtime-surface-e7-v0.1/manifest.json",
+      "external_verification": "PENDING"
+    }
+  ],
+  "schemas": {
+    "claim_packet": "artifacts/interop/schemas/claim-packet-v1.schema.json",
+    "external_evidence_ref": "artifacts/interop/schemas/external-evidence-ref-v1.schema.json",
+    "consumed_artifact": "artifacts/interop/schemas/consumed-artifact-v1.schema.json",
+    "action_lineage": "artifacts/interop/schemas/action-lineage-v1.schema.json"
+  }
+}

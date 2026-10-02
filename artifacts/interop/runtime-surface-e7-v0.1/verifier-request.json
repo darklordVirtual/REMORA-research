@@ -1,0 +1,45 @@
+{
+  "schema_version": "remora-verifier-request-v1",
+  "contract_id": "runtime-surface-e7-v0.1",
+  "edge": "E7",
+  "producer": {
+    "repository": "darklordVirtual/REMORA-research",
+    "published_revision": "dc5f10e87ea546137d00b09d01d147f2ab6972e0"
+  },
+  "inputs": {
+    "fixtures": {
+      "path": "artifacts/interop/runtime-surface-e7-v0.1/fixtures.json",
+      "sha256": "b09b937ad263169682fd0d6175564d084b4a61f5c996adb1237fd2eac31aaccf"
+    },
+    "claim_packet": {
+      "path": "artifacts/interop/runtime-surface-e7-v0.1/claim-packet.json"
+    }
+  },
+  "requested_work": [
+    "implement the fixture contract in a separately maintained codebase",
+    "do not import REMORA runtime code",
+    "do not import or depend on REMORA's reference_verifier.py",
+    "publish one result per native claim and case",
+    "record exact implementation revision, command, environment and input digests",
+    "classify the run as AUTHOR_RUN, REPRODUCTION, SECOND_IMPLEMENTATION or INDEPENDENT_IMPLEMENTATION",
+    "repeat the producer claim ceiling and explicit non-claims"
+  ],
+  "expected_result_vocabulary": [
+    "ESTABLISHED",
+    "CONTRADICTED",
+    "NOT_ESTABLISHED"
+  ],
+  "independence_requirement": "A qualifying E7 external verification requires a separately maintained implementation. Running REMORA's author reference verifier is not sufficient.",
+  "proposed_review_policy": {
+    "mode": "PUBLIC_AFTER_REVIEW",
+    "producer_review": "REQUIRED",
+    "review_window_days": 7,
+    "unresolved_disagreement": "PUBLISH_WITH_DISAGREEMENT"
+  },
+  "non_claims": [
+    "this request does not appoint a verifier",
+    "this request does not establish Federation membership",
+    "this request does not grant REMORA authority over another project",
+    "a successful run does not establish global runtime capability-surface completeness"
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "REMORA action lineage reference record v1",
+  "description": "Opaque join record across an action lifecycle. References do not inherit each other's claims.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "action_ref",
+    "proposal_ref",
+    "authority_refs",
+    "policy_decision_ref",
+    "execution_lease_ref",
+    "dispatch_ref",
+    "receipt_refs",
+    "effect_refs",
+    "verification_refs",
+    "consumed_artifacts",
+    "claim_ceiling"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "remora-action-lineage-v1"
+    },
+    "action_ref": {
+      "type": "string",
+      "minLength": 1
+    },
+    "proposal_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "authority_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "policy_decision_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "execution_lease_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "dispatch_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "receipt_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "effect_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "verification_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "consumed_artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "producer",
+          "artifact_ref",
+          "role",
+          "digest"
+        ],
+        "properties": {
+          "producer": {
+            "type": "string"
+          },
+          "artifact_ref": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "digest": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "claim_ceiling": {
+      "const": "This record establishes reference linkage only. It does not make one referenced artifact inherit the authority, authenticity, execution, effect or verification claim of another."
+    }
+  }
+}

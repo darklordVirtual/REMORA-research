@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "REMORA external evidence reference v1",
+  "description": "Opaque reference to a foreign native claim. This record grants no REMORA authority by itself.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "producer",
+    "artifact_digest",
+    "native_claim",
+    "native_result",
+    "subject_class",
+    "verification",
+    "claim_ceiling",
+    "admission_state"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "remora-external-evidence-ref-v1"
+    },
+    "producer": {
+      "type": "string",
+      "minLength": 1
+    },
+    "artifact_ref": {
+      "type": "string"
+    },
+    "artifact_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "native_claim": {
+      "type": "string",
+      "minLength": 1
+    },
+    "native_result": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subject_class": {
+      "type": "string",
+      "minLength": 1
+    },
+    "subject_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "temporal_scope": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "verifier",
+        "independence"
+      ],
+      "properties": {
+        "verifier": {
+          "type": "string",
+          "minLength": 1
+        },
+        "run_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "independence": {
+          "enum": [
+            "AUTHOR_RUN",
+            "REPRODUCTION",
+            "SECOND_IMPLEMENTATION",
+            "INDEPENDENT_IMPLEMENTATION",
+            "NOT_CLASSIFIED"
+          ]
+        }
+      }
+    },
+    "claim_ceiling": {
+      "type": "string",
+      "minLength": 1
+    },
+    "admission_state": {
+      "enum": [
+        "UNADMITTED",
+        "ADMITTED_AS_CONTEXT",
+        "REJECTED",
+        "NOT_EVALUATED"
+      ]
+    },
+    "note": {
+      "type": "string"
+    }
+  }
+}
