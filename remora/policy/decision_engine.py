@@ -220,6 +220,19 @@ def hard_guard_floor(
         # floor fails toward ESCALATE for the critical tier.
         if _normalize_risk_tier(obs.risk_tier) == "critical":
             return DecisionAction.ESCALATE, DecisionReason.TAINTED_ARGUMENT_ESCALATE
+        # WP-1 / ADR-tainted-argument-floor-order (2026-10-02): severity-
+        # monotone floor order. The floor's early VERIFY return for tainted
+        # calls would otherwise absorb two severity conditions that the
+        # conditional gates escalate on their own: rollback-unavailable and
+        # uncertain-state-transition at HIGH risk. Apply them here, before
+        # the VERIFY return, so a tainted HIGH-risk write with no rollback
+        # or an uncertain state transition escalates rather than verifies.
+        # The residual (Alt A does not close it): a HIGH-risk tainted call
+        # with rollback available and no other severity signal still
+        # verifies, and may execute on approval (issue #40 option b / RF-02).
+        if _normalize_risk_tier(obs.risk_tier) == "high":
+            if obs.rollback_available is False or obs.state_transition_uncertain:
+                return DecisionAction.ESCALATE, DecisionReason.TAINTED_ARGUMENT_ESCALATE
         return DecisionAction.VERIFY, DecisionReason.TAINTED_ARGUMENT_VERIFY
     return None
 
@@ -1318,10 +1331,16 @@ class RemoraDecisionEngine:
           f"evidence_contradictions={obs.evidence_contradictions}",
           "ESCALATE" if (obs.contradiction_cycles or 0) > 0 else "ABSTAIN")
 
+        _taint_escalate = _normalize_risk_tier(obs.risk_tier) == "critical" or (
+            _normalize_risk_tier(obs.risk_tier) == "high"
+            and (obs.rollback_available is False or obs.state_transition_uncertain)
+        )
         r("tainted_argument_check",
           obs.argument_tainted,
-          f"argument_tainted={obs.argument_tainted} risk_tier={obs.risk_tier}",
-          "ESCALATE" if _normalize_risk_tier(obs.risk_tier) == "critical" else "VERIFY")
+          f"argument_tainted={obs.argument_tainted} risk_tier={obs.risk_tier} "
+          f"rollback_available={obs.rollback_available} "
+          f"state_transition_uncertain={obs.state_transition_uncertain}",
+          "ESCALATE" if _taint_escalate else "VERIFY")
 
         # ── CONDITIONAL GATES (single source: _CONDITIONAL_GATES) ───────────
         # Record every conditional gate from the same ordered inventory decide()

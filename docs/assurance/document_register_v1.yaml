@@ -2466,6 +2466,19 @@ documents:
   audience:
   - maintainers
   - evaluators
+- id: DOC-355
+  path: docs/architecture/ADR-tainted-argument-floor-order.md
+  status: proposal
+  topic: docs_architecture_adr_tainted_argument_floor_order_md
+  code_synced: unreviewed
+  verdict: pending
+  owner: darklordVirtual
+  audience:
+  - maintainers
+  - evaluators
+  last_reviewed: '2026-10-02'
+  validates_against: []
+  claims: []
 - id: DOC-338
   path: docs/14-remora-prime-architecture.md
   status: proposal
@@ -2656,6 +2669,7 @@ topics:
 - docs_design_cloudflare-mcp-gateway-v1_md
 - docs_aromer_subproject_md
 - docs_architecture_adr_tainted_argument_approval_md
+- docs_architecture_adr_tainted_argument_floor_order_md
 - docs_assurance_statistical_analysis_plan_v5_bfcl_semantic_md
 - docs_architecture_cloudflare_state_architecture_md
 - docs_architecture_multi_tenant_security_model_md
@@ -2920,6 +2934,7 @@ topics:
 - docs_assurance_prose_style_baseline_json
 - docs_assurance_credential_topology_yaml
 - docs_assurance_authority_state_topology_yaml
+- docs_architecture_adr_tainted_argument_floor_order_md
 - docs_design_remora-quality-program-v1_md
 - docs_assurance_results_manifest_v1_yaml
 - docs_assurance_ledger_binding_baseline_json
