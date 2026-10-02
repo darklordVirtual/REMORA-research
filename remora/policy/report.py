@@ -126,6 +126,7 @@ class DecisionReason(str, Enum):
     # None-is-unknown-not-safe (PR 2)
     SCHEMA_UNVERIFIED_VERIFY      = "schema_unverified_verify"      # schema_valid=None + mutating action
     UNKNOWN_ACTION_TYPE_VERIFY    = "unknown_action_type_verify"    # non-empty, unrecognised action_type (deny-by-default for actuation)
+    NON_FINITE_INPUT_VERIFY       = "non_finite_input_verify"       # NaN/Inf in a numeric gate input: comparisons are all False, so refuse to accept
     COUNTERFACTUAL_UNKNOWN_VERIFY = "counterfactual_unknown_verify" # counterfactual=None + high/critical evidence path
     # Oracle quorum gate (PR 3)
     INSUFFICIENT_ORACLE_VOTES     = "insufficient_oracle_votes"     # valid_oracle_count < MIN_REQUIRED_ORACLE_VOTES

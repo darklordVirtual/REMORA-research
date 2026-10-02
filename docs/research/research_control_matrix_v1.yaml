@@ -56,7 +56,7 @@
 # is documented, not invisible.
 
 schema_version: "1"
-updated: "2026-09-30"
+updated: "2026-10-02"
 
 maturity_levels:
   - implemented_and_tested
@@ -94,8 +94,15 @@ entries:
     tests:
       - tests/test_causal.py
       - tests/test_causal_search_attribution.py
-    evidence: "PS/PN in {0,1}, minimality, verdict-change, and global mean-PS ordering are unit-tested; result carried on DecisionEnvelope.causal_explanation."
-    maturity: implemented_and_tested
+    evidence: >-
+      PS/PN in {0,1}, minimality, verdict-change, and global mean-PS ordering
+      are unit-tested. DecisionEnvelope.causal_explanation is an optional slot
+      that can carry the result, but verified 2026-10-02 that no governed path
+      populates it: nothing outside remora/causal/ and the tests calls
+      generate_explanation, and servers/ never references the field. The tests
+      are evidence about the library, not about runtime behaviour. Downgraded
+      from implemented_and_tested on that date.
+    maturity: library_only
     scope_boundary: "Deterministic policy-level PS/PN operationalisation: binary per-instance indicators evaluated against the policy model, not population-level probabilities and not the world. No real-world causal-effect or safety claim."
     related_work_section: "docs/09-related-work.md §9"
     in_code_citation: true
@@ -419,7 +426,7 @@ entries:
       - infra-agents-2025
 
   - id: RES-010
-    title: "Anytime-valid confidence sequences (optional-stopping-safe monitoring)"
+    title: "Anytime-valid confidence sequences (optional-stopping-safe offline bound)"
     source:
       citation: "Howard, S. R., Ramdas, A., McAuliffe, J. & Sekhon, J. (2021). Time-uniform, nonparametric, nonasymptotic confidence sequences."
       sections:
@@ -432,7 +439,7 @@ entries:
       - anytime_valid_inference
       - optional_stopping_safety
     controls:
-      - continuous_far_monitoring
+      - offline_far_confidence_sequence
     code:
       - remora/selective/confidence_sequence.py
     tests:
@@ -449,9 +456,22 @@ entries:
       the module, and REM-020 is a closed audit rather than a running gate,
       so the continuous-monitoring wording claimed a deployment that does not
       exist. What the construction buys is that the bound stays valid although
-      the series was inspected repeatedly while it accumulated.
-    maturity: implemented_and_tested
-    scope_boundary: "A time-uniform Bernoulli-rate bound, distinct from the CRC-inspired empirical selective routing of RES-003; conservative by construction and valid only under the stated Beta-binomial mixture assumptions."
+      the series was inspected repeatedly while it accumulated. Maturity
+      downgraded to library_only and the control renamed from
+      continuous_far_monitoring on 2026-10-02: the 2026-09-03 correction fixed
+      this text and the module docstring but left the maturity field and the
+      control name asserting the deployment that was withdrawn.
+    maturity: library_only
+    scope_boundary: >-
+      A time-uniform Bernoulli-rate bound, distinct from the CRC-inspired
+      empirical selective routing of RES-003; conservative by construction and
+      valid only under the stated Beta-binomial mixture assumptions. Open
+      caveat (observed 2026-10-02, not yet reconciled with CLAIM-011): the
+      unit is an adapt cycle, and the AROMER store scores a fixed-size recent
+      window of 200 episodes per cycle at about 288 cycles a day, so
+      consecutive cycles re-score overlapping episodes. The independence
+      assumption behind the bound is therefore not established, and n=168
+      must not be read as 168 independent trials.
     related_work_section: "docs/09-related-work.md §2"
     in_code_citation: true
     citation_anchor: "Howard"
@@ -706,9 +726,9 @@ entries:
     compendium_note: "September 2026 source, postdates the compendium; identifier checked against the arXiv record on 2026-09-28."
 
   - id: RES-016
-    title: "Dependency-scoped plan validity (PlanFence)"
+    title: "Dependency-scoped plan validity (source: PlanFence; REMORA: PlanBinding)"
     source:
-      citation: "Chen, E., Wang, S. & Brinton, C. G. (2026). Fresh Memory, Stale Plans: Dependency-Scoped Validation for Distributed LLM-Agent Memory. arXiv:2609.03340."
+      citation: "Chen, E., Wang, S. & Brinton, C. G. (2026). Fresh Memory, Stale Plans: Derivation Currency for Distributed LLM-Agent Memory. arXiv:2609.03340 (v2, 2026-09-27; v1 was titled Dependency-Scoped Validation for Distributed LLM-Agent Memory)."
       sections:
         - "validate a plan against the state it depends on, not against all state"
     concepts:
@@ -1530,7 +1550,7 @@ bibliography:
     - id: chen-2026-fresh-memory-stale-plans
       surname: "Chen"
       year: "2026"
-      work: "Fresh Memory, Stale Plans: Dependency-Scoped Validation for Distributed LLM-Agent Memory (arXiv:2609.03340)"
+      work: "Fresh Memory, Stale Plans: Derivation Currency for Distributed LLM-Agent Memory (arXiv:2609.03340)"
       role: implemented_line
       entry: RES-016
       code: [remora/governance/plan_binding.py]

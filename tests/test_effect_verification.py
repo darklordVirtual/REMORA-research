@@ -183,3 +183,17 @@ def test_statuses_match_the_frozen_contract() -> None:
     )
     declared = {e["status"] for e in contract_file["statuses"]}
     assert {s.value for s in EffectStatus} == declared
+
+
+def test_empty_expected_fields_never_verifies() -> None:
+    for observed in (None, {}, {"status": "anything"}):
+        result = _verify(_contract(expected_fields={}), observed)
+        assert result.status is not EffectStatus.VERIFIED
+        assert result.status is EffectStatus.UNSUPPORTED
+
+
+def test_bool_and_int_are_not_interchangeable() -> None:
+    assert _verify(_contract(expected_fields={"flag": True}), {"flag": 1}).status is EffectStatus.MISMATCH
+    assert _verify(_contract(expected_fields={"n": 1}), {"n": True}).status is EffectStatus.MISMATCH
+    assert _verify(_contract(expected_fields={"flag": True}), {"flag": True}).status is EffectStatus.VERIFIED
+    assert _verify(_contract(expected_fields={"n": 1}), {"n": 1}).status is EffectStatus.VERIFIED

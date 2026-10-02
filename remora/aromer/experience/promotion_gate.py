@@ -40,6 +40,8 @@ Usage
 from __future__ import annotations
 
 import json
+import os
+from datetime import datetime, timezone
 from dataclasses import asdict, dataclass, field
 from enum import IntEnum
 from pathlib import Path
@@ -429,11 +431,27 @@ class MemoryPromotionGate:
             return
         try:
             raw = json.loads(self._ledger_path.read_text())
-            for eid, rec_dict in raw.items():
-                self._ledger[eid] = PromotionRecord.from_dict(rec_dict)
-        except Exception:
-            self._ledger = {}
+            if not isinstance(raw, dict):
+                raise ValueError("ledger root must be an object")
+            loaded = {
+                eid: PromotionRecord.from_dict(rec_dict)
+                for eid, rec_dict in raw.items()
+            }
+        except Exception as exc:
+            # Fail closed: never continue with an empty ledger that the next
+            # save would write over the (corrupt but recoverable) original.
+            stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+            quarantine = self._ledger_path.with_name(
+                f"{self._ledger_path.name}.corrupt-{stamp}"
+            )
+            os.replace(self._ledger_path, quarantine)
+            raise ValueError(
+                f"promotion ledger is corrupt; quarantined to {quarantine}"
+            ) from exc
+        self._ledger = loaded
 
     def _save_ledger(self) -> None:
         data = {eid: rec.to_dict() for eid, rec in self._ledger.items()}
-        self._ledger_path.write_text(json.dumps(data, indent=2))
+        tmp = self._ledger_path.with_name(self._ledger_path.name + ".tmp")
+        tmp.write_text(json.dumps(data, indent=2))
+        os.replace(tmp, self._ledger_path)

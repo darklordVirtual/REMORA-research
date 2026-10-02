@@ -9,6 +9,8 @@ Requirements:
 """
 from __future__ import annotations
 
+from typing import Any
+
 from remora.adapters.identity import Identity, IdentityAdapter
 
 
@@ -31,22 +33,28 @@ class EntraIDAdapter(IdentityAdapter):
         self._roles_claim = roles_claim
         self._jwks_url = f"https://login.microsoftonline.com/{tenant_id}/discovery/v2.0/keys"
         self._issuer = f"https://sts.windows.net/{tenant_id}/"
+        self._jwks_client: Any = None
 
     def validate(self, token: str) -> Identity | None:
         import jwt as pyjwt
         from jwt import PyJWKClient
 
         try:
-            jwks_client = PyJWKClient(self._jwks_url)
-            signing_key = jwks_client.get_signing_key_from_jwt(token)
+            if self._jwks_client is None:
+                # One client per adapter: it carries the JWKS cache.
+                self._jwks_client = PyJWKClient(self._jwks_url)
+            signing_key = self._jwks_client.get_signing_key_from_jwt(token)
             payload = pyjwt.decode(
                 token,
                 signing_key.key,
                 algorithms=["RS256"],
                 audience=self._client_id,
                 issuer=self._issuer,
+                options={"require": ["exp", "sub"]},
             )
-            subject = payload.get("sub", payload.get("oid", "unknown"))
+            subject = payload.get("sub")
+            if not isinstance(subject, str) or not subject:
+                return None
             roles = payload.get(self._roles_claim, [])
             if isinstance(roles, str):
                 roles = [roles]

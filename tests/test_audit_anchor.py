@@ -20,7 +20,7 @@ def test_anchor_empty_file_not_found() -> None:
         path = f"{td}/missing.jsonl"
         rec = anchor_from_jsonl(path)
         assert rec.entry_count == 0
-        assert rec.chain_valid is True
+        assert rec.chain_valid is False  # a missing audit file is not a valid chain
         assert rec.error_message == "file_not_found"
 
 

@@ -23,9 +23,11 @@ from __future__ import annotations
 import hashlib
 import json
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from enum import Enum
 from typing import Any
+
+from remora.policy.decision_engine import _MUTATING_TYPES
 
 
 class DelegationVerdict(str, Enum):
@@ -91,12 +93,28 @@ _RISK_ORDER = {"low": 0, "medium": 1, "high": 2, "critical": 3}
 
 
 def _risk_level(tier: str) -> int:
-    return _RISK_ORDER.get(tier.lower(), 99)
+    """Risk of an *action*: an unknown tier is the highest (most restrictive)."""
+    return _RISK_ORDER.get(tier.strip().lower(), 99)
+
+
+def _ceiling_level(tier: str) -> int:
+    """Ceiling of an *agent*: an unknown tier is the lowest (nothing allowed).
+
+    An unrecognised ceiling (e.g. a typo such as ``"hgh"``) must not mean
+    "no ceiling"; it ranks below ``low`` so every action exceeds it.
+    """
+    return _RISK_ORDER.get(tier.strip().lower(), -1)
+
+_KNOWN_TRUST_TIERS = frozenset({"trusted", "standard", "restricted"})
+
+# Restricted agents are read-only: block every mutating action type the
+# decision engine knows, plus the generic delegation verbs.
+_RESTRICTED_BLOCKED_TYPES = frozenset(_MUTATING_TYPES | {"write", "delete", "execute", "shell_execute"})
 
 
 def _tighter_risk(a: str, b: str) -> str:
     """Return the more restrictive of two risk tiers."""
-    return a if _risk_level(a) <= _risk_level(b) else b
+    return a if _ceiling_level(a) <= _ceiling_level(b) else b
 
 
 # ---------------------------------------------------------------------------
@@ -165,8 +183,8 @@ class AgentTrustRegistry:
         Pattern: A's max_risk_tier < action risk, but B's max_risk_tier >= action risk.
         """
         action_risk = _risk_level(request.risk_tier)
-        from_ceiling = _risk_level(request.from_agent.max_risk_tier)
-        to_ceiling = _risk_level(request.to_agent.max_risk_tier)
+        from_ceiling = _ceiling_level(request.from_agent.max_risk_tier)
+        to_ceiling = _ceiling_level(request.to_agent.max_risk_tier)
         return action_risk > from_ceiling and action_risk <= to_ceiling
 
     def _chain_hash(self, request: DelegationRequest, depth: int) -> str:
@@ -186,6 +204,17 @@ class AgentTrustRegistry:
         Returns a DelegationEnvelope with the verdict and constraints.
         """
         constraints: list[str] = []
+
+        # 0. Identity attributes come from the registry, never from the request:
+        # a caller-supplied "trusted/critical" identity cannot override what was
+        # registered. Unregistered agents keep their request-supplied identity
+        # (no registry entry exists to consult); callers who need unregistered
+        # agents rejected must register every agent.
+        request = replace(
+            request,
+            from_agent=self._agents.get(request.from_agent.agent_id, request.from_agent),
+            to_agent=self._agents.get(request.to_agent.agent_id, request.to_agent),
+        )
 
         # 1. Self-delegation check
         if request.from_agent.agent_id == request.to_agent.agent_id and not self._allow_self_delegation:
@@ -216,16 +245,17 @@ class AgentTrustRegistry:
         effective_ceiling = _tighter_risk(request.from_agent.max_risk_tier, request.to_agent.max_risk_tier)
         action_risk = _risk_level(request.risk_tier)
 
-        if action_risk > _risk_level(effective_ceiling):
+        if action_risk > _ceiling_level(effective_ceiling):
             return self._envelope(
                 request, DelegationVerdict.ESCALATED, [f"risk_exceeds_ceiling:{effective_ceiling}"], depth,
                 f"Action risk {request.risk_tier} exceeds effective ceiling {effective_ceiling}",
             )
 
         # 7. Trust tier constraints
-        if request.to_agent.trust_tier == "restricted":
+        # Unknown trust tiers are treated as restricted (most restrictive).
+        if request.to_agent.trust_tier.strip().lower() not in _KNOWN_TRUST_TIERS or                 request.to_agent.trust_tier.strip().lower() == "restricted":
             constraints.append("restricted_agent:read_only")
-            if request.action_type in ("write", "delete", "execute"):
+            if (request.action_type or "").strip().lower() in _RESTRICTED_BLOCKED_TYPES:
                 return self._envelope(request, DelegationVerdict.BLOCKED, constraints, depth, "Restricted agent cannot perform write/delete/execute")
 
         # 8. Constrained pass-through

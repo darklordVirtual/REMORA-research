@@ -41,6 +41,7 @@ offered, because a table would be a place to configure a fail-open.
 
 from __future__ import annotations
 
+import math
 import re
 from dataclasses import dataclass
 from typing import Any, Literal, Mapping, Sequence
@@ -48,7 +49,6 @@ from typing import Any, Literal, Mapping, Sequence
 from remora.decision_providers import (
     DecisionEvidence,
     DecisionProvider,
-    DecisionProviderError,
     DecisionQuestion,
     project,
     project_narrowing,
@@ -155,7 +155,10 @@ def _probability(evidence: DecisionEvidence, question_id: str) -> float | None:
         return None
     if not isinstance(answer.value, (int, float)):
         return None
-    return float(answer.value)
+    probability = float(answer.value)
+    if not math.isfinite(probability) or not 0.0 <= probability <= 1.0:
+        return None
+    return probability
 
 
 def enrich(
@@ -170,12 +173,15 @@ def enrich(
     """Ask, then admit. Returns a new observation; the input is untouched."""
     try:
         evidence = provider.evaluate(state=state, questions=questions, timeout_s=timeout_s)
-    except DecisionProviderError as exc:
+    except Exception as exc:  # noqa: BLE001 - any provider failure leaves the observation unchanged
         return Enrichment(
             observation=observation,
             evidence=None,
             outcome="provider_unavailable",
-            notes=(f"provider unavailable: {exc}; deterministic decision stands",),
+            notes=(
+                f"provider unavailable: {type(exc).__name__}: {exc}; "
+                "deterministic decision stands",
+            ),
         )
 
     notes: list[str] = [
