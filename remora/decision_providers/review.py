@@ -52,23 +52,52 @@ from remora.decision_providers.questions import (
     REMORA_QUESTIONS_V2_1,
 )
 
-__all__ = ["ADVISORY", "CAVEATS", "reviewer_view"]
+__all__ = ["ADVISORY", "CAVEATS", "caveats_for", "reviewer_view"]
 
 ADVISORY = (
     "Jev's reading of the operator request and the proposed call. It does not "
-    "approve, block or change this decision. Your review and the policy decision "
-    "are what count."
+    "approve, block or change this decision. The policy decision, the "
+    "verification lookup and any human approval are what count."
 )
 
 #: Each caveat rests on committed evidence; the reference is part of the text.
-CAVEATS = (
-    "Thresholds are not calibrated for this deployment until a calibration "
-    "study says so; treat values near a cut as uncertain.",
-    "Repeated calls on the same input differ by up to about 0.1 "
-    "(results/jev_question_set_ab_v1.json).",
-    "Norwegian text was flagged as possible injection about twice as often as "
-    "English in REMORA's hold-out (results/jev_injection_holdout_v1.json).",
+UNCALIBRATED = (
+    "The thresholds of this profile are not calibrated; treat values near a "
+    "cut as uncertain."
 )
+REPEAT_SPREAD = (
+    "Repeated calls on the same input differed by up to 0.18 in REMORA's "
+    "screening round (results/jev_question_set_ab_v1.json)."
+)
+NON_ENGLISH = (
+    "English is Jev's primary language. Norwegian text was flagged as possible "
+    "injection about twice as often as English in REMORA's hold-out "
+    "(results/jev_injection_holdout_v1.json)."
+)
+#: The caveats of a record with no profile information: all of them.
+CAVEATS = (UNCALIBRATED, REPEAT_SPREAD, NON_ENGLISH)
+
+
+def caveats_for(record: Mapping[str, Any]) -> list[str]:
+    """The caveats that apply to this record's profile, most important first.
+
+    A calibrated profile replaces the calibration warning with the study it
+    rests on. The language warning is dropped only for a profile that
+    declares English; an undeclared language keeps it.
+    """
+    calibration = record.get("calibration") or {}
+    caveats = []
+    if calibration.get("status") == "calibrated":
+        caveats.append(
+            f"Thresholds from calibration study {calibration.get('study')} "
+            f"(corpus sha256 {str(calibration.get('corpus_sha256', ''))[:12]})."
+        )
+    else:
+        caveats.append(UNCALIBRATED)
+    caveats.append(REPEAT_SPREAD)
+    if record.get("language") != "en":
+        caveats.append(NON_ENGLISH)
+    return caveats
 
 _SETS = {
     QUESTION_SET_VERSION: REMORA_QUESTIONS_V1,
@@ -151,7 +180,9 @@ def reviewer_view(record: Mapping[str, Any]) -> dict[str, Any]:
         "recorded_at": record.get("recorded_at"),
         "model": record.get("resolved_model"),
         "question_set": version,
-        "caveats": list(CAVEATS),
+        "profile": record.get("profile"),
+        "language": record.get("language"),
+        "caveats": caveats_for(record),
     }
     if record.get("error") or record.get("outcome") == "provider_unavailable":
         reason = record.get("error") or next(

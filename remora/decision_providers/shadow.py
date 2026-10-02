@@ -76,6 +76,13 @@ class ShadowRecord:
     #: The cuts the answers were admitted against, so the record can be read
     #: on its own, by a reviewer or a later calibration study.
     thresholds: dict[str, float] | None = None
+    #: The deployment profile the call was evaluated under (a vertical, a
+    #: language, a customer), its language, and its calibration record
+    #: (``status`` is ``uncalibrated`` or ``calibrated``; a calibrated
+    #: profile names its study and corpus hash).
+    profile: str | None = None
+    language: str | None = None
+    calibration: dict[str, Any] | None = None
     #: A shadow record is never authority. Stated in the record itself.
     authoritative: bool = False
 
@@ -103,6 +110,9 @@ def shadow_evaluate(
     tenant: str | None = None,
     tool_name: str | None = None,
     engine_action: Any = None,
+    profile: str | None = None,
+    language: str | None = None,
+    calibration: Mapping[str, Any] | None = None,
 ) -> ShadowRecord:
     """Evaluate in shadow and return the record. Never raises, never mutates.
 
@@ -120,6 +130,9 @@ def shadow_evaluate(
             "possible_injection": thresholds.possible_injection,
             "scope_drift": thresholds.scope_drift,
         },
+        "profile": profile,
+        "language": language,
+        "calibration": dict(calibration) if calibration is not None else None,
         "tenant": tenant,
         "tool_name": tool_name,
         "engine_action": (
