@@ -602,6 +602,42 @@ def test_interop_package_refuses_to_freeze_against_a_revision_without_the_bytes(
         module.revision_carries_package("runtime-surface-e7-v0.1", "0" * 40, ROOT)
 
 
+def test_lifecycle_transitions_leave_the_package_digest_unchanged(tmp_path: Path) -> None:
+    """Freezing and pinning change the index and the manifest only. The
+    package files carry no state label, so every transition that the producer
+    can perform leaves the frozen bytes, and hence package_digest, untouched."""
+    import shutil
+
+    module = _interop_package_module()
+    root = tmp_path / "repo"
+    shutil.copytree(INTEROP, root / "artifacts" / "interop")
+    for rel in ("artifacts/runtime_surface",):
+        shutil.copytree(ROOT / rel, root / rel)
+    index_path = root / "artifacts" / "interop" / "index.json"
+    index = _load(index_path)
+    (contract,) = [c for c in index["contracts"] if c["id"] == "runtime-surface-e7-v0.1"]
+    manifest_path = root / contract["manifest"]
+    before = {e["path"]: _sha256(root / e["path"]) for e in _load(manifest_path)["package_files"]}
+    digest_before = contract["package_digest"]
+    assert module.check(root) == []
+
+    contract["freeze_record"] = {"revision": "f" * 40, "package_digest": digest_before, "recorded_at": "2026-10-02"}
+    module._set_lifecycle(contract, "FROZEN", root)
+    index["contracts"] = [contract]
+    _dump = lambda p, d: p.write_text(json.dumps(d, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")  # noqa: E731
+    _dump(index_path, index)
+    module.confirm_pin("runtime-surface-e7-v0.1", "Probity", "https://example.invalid/707", root)
+
+    after_index = _load(index_path)
+    (after,) = after_index["contracts"]
+    assert after["lifecycle"] == "EXTERNAL_RUN_PENDING"
+    assert _load(manifest_path)["lifecycle"] == "EXTERNAL_RUN_PENDING"
+    assert {e["path"]: _sha256(root / e["path"]) for e in _load(manifest_path)["package_files"]} == before
+    assert module.package_digest(_load(manifest_path)["package_files"]) == digest_before
+    assert after["package_digest"] == digest_before
+    assert module.check(root) == [], "the pinned package must still verify after the transitions"
+
+
 def test_authority_path_does_not_import_a_federation_module() -> None:
     pattern = re.compile(r"^\s*(from|import)\s+remora\.interop\.(federation|external_evidence|lineage)\b", re.M)
     offenders = [
