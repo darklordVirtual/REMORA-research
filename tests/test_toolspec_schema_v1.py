@@ -155,6 +155,8 @@ EXPECTED_REASON_CODES = {
     "toolspec_schema_version_unsupported",
     "toolspec_downstream_requires_v2",
     "toolspec_downstream_declaration_invalid",
+    # Additive 2026-10-02: the unsigned bundle label must match each signed spec.
+    "toolspec_signing_identity_mismatch",
 }
 
 
