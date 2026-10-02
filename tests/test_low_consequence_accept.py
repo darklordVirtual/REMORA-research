@@ -231,3 +231,11 @@ def test_supported_argument_value_qualifies() -> None:
     assert ON.decide(_obs(action_type="read", argument_values_supported=True)).action == (
         DecisionAction.ACCEPT
     )
+
+
+@pytest.mark.parametrize("env", ["prod", "production", "live", " LIVE "])
+def test_no_production_alias_reaches_accept_under_the_execution_profile(env: str) -> None:
+    """Security review 2026-10-02: `live` slipped past a two-alias literal."""
+    engine = RemoraDecisionEngine(low_consequence_accept=True, execution_profile=True)
+    report = engine.decide(_obs(action_type="read", risk_tier="low", target_environment=env))
+    assert report.action != DecisionAction.ACCEPT
