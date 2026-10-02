@@ -354,6 +354,18 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Fixed
 
+- Security review 2026-10-02, two fail-closed narrowings.
+  `_is_low_consequence()` now excludes every production alias in `_PROD_ENVS`
+  (`prod`, `production`, `live`). Before this fix, a low-risk `live` read
+  could reach `LOW_CONSEQUENCE_ACCEPT` when `REMORA_LOW_CONSEQUENCE_ACCEPT`
+  was on. `ToolSpecBundle.load()` now refuses a bundle whose outer
+  `registry_signature.signing_identity` differs from any spec's signed
+  `signing_identity`, using the new additive reason code
+  `toolspec_signing_identity_mismatch`. The outer label sits outside the HMAC
+  preimage, so a revoked bundle could previously be relabeled to a trusted
+  signer. Open: one shared HMAC key still lets any holder sign under any
+  identity; signer-specific keys are not implemented.
+
 - The H1 sentence in the evidence-sufficiency v1.2 runner's `limits` list
   named only the gap label ("Cases H1 were written..."); it now names cases
   E18-E20, and `run-record.json` is regenerated with no other change. An
