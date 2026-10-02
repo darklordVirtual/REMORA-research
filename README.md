@@ -140,7 +140,7 @@ The state of the `servers/execution_api.py` decomposition (issue #241, closed) a
 
 For product-oriented integration see [Assured Agent Execution](https://github.com/darklordVirtual/assured-agent-execution), which consumes pinned REMORA artifacts rather than copying the governance core.
 
-Jev as an external decision provider is under trial (experimental, evidence only, never authority): see [integrations/jev_decision_provider.md](docs/integrations/jev_decision_provider.md).
+Jev (TypeSafe) is a semantic sensor beside the policy engine: experimental, evidence only, never authority. It runs in shadow on the enforcing path with per-vertical profiles, and its reading goes to the VERIFY lookup and the ESCALATE approver. See [integrations/jev_decision_provider.md](docs/integrations/jev_decision_provider.md).
 
 </details>
 

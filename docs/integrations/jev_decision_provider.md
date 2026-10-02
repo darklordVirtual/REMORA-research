@@ -1,11 +1,37 @@
 # Jev as a decision provider
 
 Status: experimental. Two adapters reach the same model: one on TypeSafe's
-own API and one on Cloudflare Workers AI. Both are exercised against the
-documented request and response shapes. The TypeSafe adapter has answered
-live, in one smoke round recorded in `results/jev_live_smoke_v1.json` and
-described under "First live round" below. That round is integration evidence
-on three hand-written states. It is not evidence about accuracy on any corpus.
+own API and one on Cloudflare Workers AI. The TypeSafe adapter has answered
+live in three committed rounds: a smoke round
+(`results/jev_live_smoke_v1.json`), a V1/V2 screening
+(`results/jev_question_set_ab_v1.json`) and a pre-registered hold-out of 192
+scenarios (`results/jev_injection_holdout_v1.json`). They are evidence about
+the integration and about those corpora. No threshold is calibrated for any
+deployment, and NEGATIVE_RESULTS.md §74 is open.
+
+```mermaid
+flowchart TB
+    subgraph JEV_ROLE["Jev: meaning"]
+        J1["Does the call make the requested change?"]
+        J2["Right customer, port, device, record?"]
+        J3["Does it do more than asked?"]
+        J4["Is untrusted text steering the agent?"]
+    end
+    subgraph REMORA_ROLE["REMORA: authority and effect"]
+        R1["Signed ToolSpec and hard guards"]
+        R2["Policy decision<br/>ACCEPT, VERIFY, ABSTAIN, ESCALATE"]
+        R3["Single-use lease and governed dispatch"]
+        R4["Effect verification and audit chain"]
+    end
+    JEV_ROLE -.->|"evidence signal or raised injection flag<br/>(enrich, the one boundary)"| R2
+    R2 -->|"VERIFY: machine lookup<br/>(system of record, RAG, docs)"| L["Lookup, guided by verification_focus"]
+    R2 -->|"ESCALATE: human approval"| H["Approver, shown Jev's reading"]
+    L --> R2
+    R1 --> R2 --> R3 --> R4
+```
+
+Jev never writes a deployment fact, lowers a flag, names a route or reaches
+ACCEPT. REMORA never asks Jev whether something is allowed.
 
 ## The one rule
 
@@ -37,9 +63,13 @@ appear in a provider's logs.
 
 ## What is asked
 
-`remora.decision_providers.questions.REMORA_QUESTIONS_V1`, versioned as
-`remora-semantic-v1`. Six questions, each answerable from the minimised state
-alone.
+Three versioned question sets exist. `remora-semantic-v2.1`
+(`REMORA_QUESTIONS_V2_1`) is the one to use: it met the pre-registered
+hold-out criteria, described under "Question set V2" below. V2 and V2.1 split
+the questions further, name the state fields they judge and expect the
+structured state from `semantic_state_v2`. The table describes V1,
+`remora-semantic-v1`, which is still the default of `enrich()`: six
+questions, each answerable from the minimised state alone.
 
 | Question | Kind | Admitted as |
 |---|---|---|
@@ -254,6 +284,42 @@ in a live check. The decision stayed VERIFY, and the view's first focus was
 `confirm_scope`. That is one call, shown to illustrate the view, and is not a
 measurement.
 
+## Per-vertical profiles
+
+One deployment can serve several verticals and languages. Setting
+`REMORA_SEMANTIC_SHADOW_PROFILES` to a YAML or JSON file replaces the
+single-profile variables with named profiles and a tenant map:
+
+```yaml
+profiles:
+  isp-no:
+    questions: v2.1
+    thresholds: {intent: 0.85, target: 0.85, injection: 0.5, drift: 0.5}
+    language: no
+    calibration: {status: uncalibrated}
+  bank-en:
+    questions: v2.1
+    thresholds: {intent: 0.9, target: 0.9, injection: 0.5, drift: 0.4}
+    language: en
+    calibration: {status: calibrated, study: artifacts/<study>, corpus_sha256: <hash>}
+tenants:
+  example-isp: isp-no
+  example-bank: bank-en
+```
+
+The thresholds shown are placeholders. Each tenant is evaluated under its
+own profile, with one provider per question-set version. Every record
+carries the profile, its language and its calibration record. The reading's
+caveats follow them: a calibrated profile names its study instead of the
+uncalibrated warning, and the language warning is dropped only for a profile
+that declares English. Every key is checked at startup. An unknown key, a
+missing threshold, a tenant mapped to an undefined profile, or a
+`calibrated` profile without `study` and `corpus_sha256` refuses startup.
+Setting the file together with `_TENANTS`, `_QUESTIONS` or `_THRESHOLDS` is
+refused as ambiguous. How a vertical gets from an uncalibrated to a
+calibrated profile is in
+[domain_pack_governance_v1.md §11](../assurance/domain_pack_governance_v1.md).
+
 ## Cloudflare Workers AI
 
 `remora.decision_providers.cloudflare.CloudflareJevProvider` reaches the model
@@ -366,9 +432,10 @@ Record the evidence beside the decision, joined by the proposal identity.
 
 ## What this is not
 
-It is not a benchmark result. No measurement of Jev against the existing
-oracle corpus exists in this repository yet, and the comparison should be run
-before any claim about replacing an oracle is made.
+It is not a benchmark result against REMORA's oracles. The committed rounds
+measure Jev on hand-written and agent-written ISP scenarios. No measurement
+against the existing oracle corpus exists yet, and that comparison should be
+run before any claim about replacing an oracle is made.
 
 It is not a production gate. The shipped execution path calls `enrich` only
 in shadow mode, described below, where the answer is recorded and never

@@ -320,6 +320,16 @@ This file lists externally relevant changes by release. Fine-grained development
   by no approval, resolution or execution path. When there is no reading the
   status says why. Shadow records now carry the thresholds they were
   admitted against.
+- Per-vertical semantic profiles (`REMORA_SEMANTIC_SHADOW_PROFILES`): named
+  profiles with question set, thresholds, language and calibration record,
+  and a tenant map, checked key by key at startup. Records carry the profile
+  and the reader's caveats follow it. Documentation now places Jev in the
+  architecture: a node and a shadow branch in the pipeline diagrams of
+  `ARCHITECTURE.md` and `docs/01-architecture.md`, a new `ARCHITECTURE.md`
+  §5.6 with its own flow diagram and its relation to AROMER, the API
+  reference for the semantic-assessment route, the semantic profile as an
+  optional fifth part of a domain pack (`domain_pack_governance_v1.md` §11),
+  cross-links from the RAG oracle and Workers AI guides, and the mkdocs nav.
 - `remora.decision_providers.questions` and `remora.decision_providers.enrich`
   complete the provider integration end to end. The question set is versioned
   (`remora-semantic-v1`) because thresholds are calibrated against a specific

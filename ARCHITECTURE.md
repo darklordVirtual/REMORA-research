@@ -88,6 +88,10 @@ flowchart TD
     S3["Stage 3 · Evidence verification<br/>remora/oracles/evidence_verifier.py, evidence_v2/v3<br/>source-anchored support / contradiction (lexical)"]
     S3 --> S4
 
+    JEV["Semantic decision provider (Jev)<br/>remora/decision_providers/<br/>typed answers: intent, target, scope, injection<br/>model-signal fields only; never authority"]
+    JEV -.->|"favourable evidence signal<br/>(stops at VERIFY under the execution profile)"| S4
+    JEV -.->|"injection answer past its cut:<br/>adversarial_detected raised, never lowered"| S4
+
     S4["Stage 4 · Policy decision<br/>remora/policy/decision_engine.py + remora/selective/<br/>hard_guard_floor() first, absolute priority (admission flag,<br/>schema, forbidden tool, coercion, blackmail, counterfactual,<br/>contradicted evidence, tainted argument),<br/>then conditional guards and trust / conformal routing,<br/>then the argument gates on whatever is left"]
     S4 -->|"hard guard fires"| ESC["ESCALATE / ABSTAIN<br/>(cannot be overridden)"]
     S4 --> DEC{"Decision"}
@@ -100,6 +104,9 @@ flowchart TD
 
     ACCEPT & VERIFY & ABSTAIN & ESC --> S5["Stage 5 · Hash-chain audit<br/>remora/governance/envelope.py + remora/audit/hash_chain.py<br/>DecisionEnvelope, atomic per-tenant chain on the /v1/execution path"]
     S5 --> OUT["Audit chain + shadow-replay log"]
+    S5 -.->|"after the record is durable"| SH["Semantic shadow (opt-in)<br/>servers/semantic_shadow.py<br/>JSONL beside the chain, never in it"]
+    SH -.->|"verification_focus"| VERIFY
+    SH -.->|"approver view"| ESC
 ```
 
 Two edges are dotted because they are not verdicts. Stage 1 never issues one: it
@@ -109,6 +116,19 @@ guard in `hard_guard_floor()` turns that flag into ESCALATE
 `decide()` and `explain()` cannot disagree. The VERIFY edge is the resolution
 loop: a bounded lookup answers, and the whole router re-runs on a fresh
 observation rather than patching the old one.
+
+The Jev edges are dotted for the same reason, and they are bounded twice.
+`remora/decision_providers/enrich.py` is the only place a provider answer
+meets an observation. It can write a favourable model signal, which the
+execution profile stops at VERIFY, or raise `adversarial_detected`, which the
+floor turns into ESCALATE. It cannot write a deployment fact, lower a flag or
+name a route. On the enforcing `/v1/execution` path Jev runs in **shadow
+only**: after the audit record is appended, on a bounded background pool,
+with its records kept beside the chain. Its reading reaches the next step as
+information. VERIFY is a machine step, a bounded lookup in a system of record,
+a RAG index or documentation, and Jev's `verification_focus` names what that
+lookup should check. ESCALATE is a human approval, and the approver sees the
+same answers in plain words. §5.6 has the detail.
 
 **Stage summary:**
 
@@ -181,6 +201,7 @@ observation rather than patching the old one.
 | **Uncertainty observables** | `remora/thermodynamics.py`, `remora/research_attic/statphys/` | entropy `H`, dissensus `D`, value `V` as an uncertainty-routing metaphor (not physics) |
 | **Selective prediction** | `remora/selective/` | `conformal.py`, `crc.py` (weight-corrected slack), `pvd.py`, `guardrail.py` (`PhaseAwareGuardrail`), `drift_detector.py` |
 | **Oracles (pluggable)** | `remora/oracles/` | interchangeable backends, see §6 |
+| **Semantic decision provider** | `remora/decision_providers/`, `servers/semantic_shadow.py` | typed semantic judgment from Jev (TypeSafe), admitted as evidence only; versioned question sets; shadow mode on the enforcing path; per-vertical profiles (see §5.6) |
 | **Audit chain** | `remora/audit/hash_chain.py` | SHA-256 hash chain; tamper-**evident** |
 | **Governance API** | `servers/api.py` | FastAPI governance gateway |
 | **MCP server** | `servers/mcp_remora.py` | Model Context Protocol tool suite (`remora_verify_claim`, `remora_analyze_document`, `remora_rag_query`, `remora_norwegian_law_search`, `agent_start_session`, `agent_execute_tool`, `remora_session_status`, …) |
@@ -310,6 +331,58 @@ import AROMER. `tests/test_aromer_subproject_boundary.py` fails on a new
 importer under `remora/` or `servers/`. The charter is
 [docs/aromer/SUBPROJECT.md](docs/aromer/SUBPROJECT.md).
 
+### 5.6 Semantic decision provider: Jev (`remora/decision_providers/`)
+
+Jev is TypeSafe's model for typed semantic judgment. It answers narrow questions about a proposed call with probabilities and scored
+levels instead of prose. Does the call make the requested change, on the
+requested target, and nothing more? Is untrusted text trying to steer the agent? REMORA asks
+those questions and keeps authority for itself: Jev reads meaning, and REMORA
+owns ToolSpec, hard guards, lease, custody, dispatch, effect verification and
+audit.
+
+```mermaid
+flowchart LR
+    REQ["Operator request<br/>(resolved server-side)"] --> ST
+    CALL["Proposed tool call<br/>+ signed ToolSpec description"] --> ST
+    UNT["Untrusted text<br/>(ticket, alert, e-mail)"] --> ST
+    ST["semantic_state_v2<br/>credential-shaped keys refused"] --> Q["Question set v2.1<br/>intent, target, scope,<br/>four injection questions,<br/>reversibility, risk"]
+    Q --> JEV["Jev, pinned jev-1.13.0<br/>api.typesafe.ai or Workers AI"]
+    JEV --> EN["enrich()<br/>favourable signal or<br/>adversarial_detected, nothing else"]
+    EN --> CF["Counterfactual decision<br/>same engine, execution profile"]
+    CF --> REC["ShadowRecord (JSONL)<br/>actual / engine / shadow action,<br/>answers, latency, tokens,<br/>profile, calibration"]
+    REC --> API["GET /proposals/{id}/semantic-assessment<br/>advisory in every response"]
+    API -->|"VERIFY: machine lookup"| FOC["verification_focus<br/>confirm_target, confirm_intent,<br/>confirm_scope, exclude_untrusted_text"]
+    API -->|"ESCALATE: human approval"| APP["Approver view<br/>attention, worst first"]
+    REC --> REP["scripts/semantic_shadow_report.py<br/>missed, unneeded stops,<br/>p95 latency, cost"]
+    REC -.->|"candidate signal, never ground truth"| AR["AROMER<br/>(shadow-only learning overlay)"]
+```
+
+| Part | Location | What it does |
+|---|---|---|
+| Contract and projection | `remora/decision_providers/__init__.py` | `DecisionEvidence` with alias and resolved model kept apart, `project()` to model-signal fields only, `project_narrowing()` raise-only |
+| Adapters | `typesafe.py`, `cloudflare.py` | TypeSafe's API (`JEV_API_KEY`) and Workers AI; shared parsing that keeps a `noul` a probability and a score with its legend; billed input tokens recorded |
+| Question sets | `questions.py` | `remora-semantic-v1`, `-v2`, `-v2.1`; a change of wording is a new version, because thresholds are calibrated against wording |
+| Admission | `enrich.py` | thresholds without defaults; any injection question past its cut raises the flag; reversibility and risk are recorded and never projected |
+| Shadow | `shadow.py`, `servers/semantic_shadow.py` | the counterfactual beside the real decision; off by default, refused at startup when half configured, per-tenant opt-in for data egress |
+| Profiles | `servers/semantic_shadow.py` (`REMORA_SEMANTIC_SHADOW_PROFILES`) | one profile per vertical or language: question set, thresholds, language, calibration record |
+| Reading for the next step | `review.py`, `GET /v1/execution/proposals/{id}/semantic-assessment` | `verification_focus` for the VERIFY lookup, plain-language attention for the ESCALATE approver, caveats from REMORA's own evidence |
+
+Evidence so far is three committed live rounds: a smoke round
+(`results/jev_live_smoke_v1.json`), a V1/V2 screening
+(`results/jev_question_set_ab_v1.json`) and a pre-registered hold-out of 192
+scenarios by context-free authors (`results/jev_injection_holdout_v1.json`).
+None reached ACCEPT. The open finding is NEGATIVE_RESULTS.md §74: injection
+questions flag benign operator text, Norwegian more often than English. No
+threshold is calibrated yet. The integration guide is
+[docs/integrations/jev_decision_provider.md](docs/integrations/jev_decision_provider.md).
+
+AROMER and Jev meet only through shadow records. A record can be an input to
+AROMER's experience store as a provenance-tagged, down-weighted signal, and
+Jev's injection answers are a direct comparator for AROMER's injection
+ceiling on the same untrusted-context corpus. A Jev answer is never a label:
+AROMER's memory governance already refuses self-labels at full weight, and a
+model reading is the same kind of evidence.
+
 ---
 
 ## 6. Oracles are pluggable backends, not the purpose
@@ -335,6 +408,10 @@ to reduce correlated failure). `remora/oracles/diversity.py` provides
 engine can select the most historically-diverse oracles and down-weight
 correlated pairs. OpenAI-family models are reachable through the OpenRouter
 backend; there is no standalone OpenAI oracle class.
+
+Jev is not an oracle. An oracle returns free text into consensus; Jev returns
+typed answers to fixed questions and enters only through
+`remora/decision_providers/enrich.py` (§5.6).
 
 ---
 
@@ -416,7 +493,7 @@ selective routing is phase-aware rather than a single global threshold. See
 | Module | Stability | Notes |
 |--------|-----------|-------|
 | `remora/core.py` | **CORE** | Oracle ABC + OracleResponse |
-| `remora/decision_providers/` | **EXPERIMENTAL** | Contract for typed semantic judgment from an external model, admitted as evidence only. `project()` writes model-signal observation fields exclusively, so a provider inherits the execution-profile invariant that no model signal reaches ACCEPT; the projectable set is pinned against the `whatif` lever catalogue. `cloudflare.py` adapts `typesafe/jev` on Workers AI and is exercised against the documented response shape only, never the live service. `questions.py` is the versioned question set and `enrich.py` the one admission point: a favourable evidence signal or a raised `adversarial_detected`, nothing else. Nothing in the shipped execution path calls it |
+| `remora/decision_providers/` | **EXPERIMENTAL** | Contract for typed semantic judgment from an external model, admitted as evidence only. `project()` writes model-signal observation fields exclusively, so a provider inherits the execution-profile invariant that no model signal reaches ACCEPT; the projectable set is pinned against the `whatif` lever catalogue. `typesafe.py` calls Jev on TypeSafe's API and has answered live in three committed rounds; `cloudflare.py` reaches `typesafe/jev` on Workers AI. `questions.py` holds the versioned question sets (V1, V2, V2.1) and `enrich.py` the one admission point: a favourable evidence signal or a raised `adversarial_detected`, nothing else. `shadow.py` and `review.py` run it beside the enforcing path in shadow only and render the reading for the VERIFY lookup and the ESCALATE approver; no decision on the enforcing path reads it |
 | `remora/errors.py` | **CORE** | Runtime exception taxonomy root: `RemoraError` with machine-readable `code`/`category` (issue #45 gap 4). Separate from the SDK's client-side hierarchy by design |
 | `remora/scaffold.py` | **CORE** | `remora init-review`: writes a strict-profile configuration (keys, signed demo ToolSpec bundle, registry, intents, one env file per custody half). Automates ceremony; the result must still pass the unchanged prerequisites, which `tests/test_init_review_scaffold.py` asserts |
 | `remora/profiles.py` | **CORE** | Runtime profile name resolution, deliberately a leaf: it imports nothing from `remora`, so the enforcement layer and the tool-call layer can both ask which profile is active without importing each other. `remora/toolcall/runtime_profile.py` owns the prerequisites a strict profile imposes and re-exports this module's names |
