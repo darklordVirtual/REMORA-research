@@ -277,7 +277,7 @@ def _is_low_consequence(obs: PolicyObservation) -> bool:
 
     # Production is excluded even for reads: blast radius there includes
     # disclosure of live data, which no read-only guarantee covers.
-    if (obs.target_environment or "").strip().lower() in {"prod", "production"}:
+    if (obs.target_environment or "").strip().lower() in _PROD_ENVS:
         return False
 
     return True

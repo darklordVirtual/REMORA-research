@@ -168,6 +168,8 @@ reason_codes:
     meaning: the signing identity is not in the trust allowlist
   - code: toolspec_signing_identity_revoked
     meaning: the signing identity was removed from the trust allowlist
+  - code: toolspec_signing_identity_mismatch
+    meaning: the bundle's signing identity differs from a spec's signed signing_identity
   - code: toolspec_bundle_stale
     meaning: correctly signed, but not the pinned bundle
   - code: toolspec_version_stale
