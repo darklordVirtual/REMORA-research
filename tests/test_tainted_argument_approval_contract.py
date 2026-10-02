@@ -210,3 +210,72 @@ def test_untrusted_control_of_a_sensitive_argument_escalates_at_any_tier() -> No
     )
     assert report.action is DecisionAction.ESCALATE
     assert DecisionReason.UNTRUSTED_CONTROLS_SENSITIVE_ARGUMENT in report.reasons
+
+
+# ── WP-1 / ADR-tainted-argument-floor-order: severity-monotone floor ────────
+#
+# The two tests below pin the WP-1 change: before the rung-3 VERIFY return,
+# the floor now applies the two severity conditions the conditional gates
+# would have escalated on (rollback-unavailable, uncertain state transition)
+# when the taint is also present at HIGH risk.
+
+
+def _verify_obs_no_rollback(*, tainted: bool) -> PolicyObservation:
+    """A HIGH-risk tainted write with no rollback available."""
+    return PolicyObservation(
+        question="delete_production_database(db=main)",
+        proposed_tool_name="delete_production_database",
+        risk_tier="high",
+        action_type="destructive_write",
+        target_environment="prod",
+        schema_valid=True,
+        trust_score=0.86,
+        phase="ordered",
+        evidence_action="verify",
+        evidence_confidence=0.8,
+        rollback_available=False,
+        argument_tainted=tainted,
+        tool_call_hash=canonical_tool_call_hash(
+            name="delete_production_database", arguments={"db": "main"}, target="prod"
+        ),
+    )
+
+
+def test_tainted_high_risk_no_rollback_escalates() -> None:
+    """WP-1: tainted + HIGH + no rollback → ESCALATE, not VERIFY.
+
+    Before this change, the floor returned VERIFY on the taint alone and the
+    rollback-unavailable condition was absorbed silently. The conditional gate
+    would have escalated on rollback; the floor now applies that severity
+    signal itself.
+    """
+    report = RemoraDecisionEngine().decide(_verify_obs_no_rollback(tainted=True))
+    assert report.action is DecisionAction.ESCALATE
+    assert DecisionReason.TAINTED_ARGUMENT_ESCALATE in report.reasons
+
+
+def _verify_obs_uncertain_state(*, tainted: bool) -> PolicyObservation:
+    """A HIGH-risk tainted write with an uncertain state transition."""
+    return PolicyObservation(
+        question="update_work_order(order=WO-1, action=reschedule)",
+        proposed_tool_name="update_work_order",
+        risk_tier="high",
+        action_type="production_write",
+        target_environment="prod",
+        schema_valid=True,
+        trust_score=0.86,
+        phase="ordered",
+        evidence_action="verify",
+        evidence_confidence=0.8,
+        rollback_available=True,
+        state_transition_uncertain=True,
+        argument_tainted=tainted,
+        tool_call_hash=VERIFY_HASH,
+    )
+
+
+def test_tainted_high_risk_uncertain_state_escalates() -> None:
+    """WP-1: tainted + HIGH + uncertain state transition → ESCALATE, not VERIFY."""
+    report = RemoraDecisionEngine().decide(_verify_obs_uncertain_state(tainted=True))
+    assert report.action is DecisionAction.ESCALATE
+    assert DecisionReason.TAINTED_ARGUMENT_ESCALATE in report.reasons
