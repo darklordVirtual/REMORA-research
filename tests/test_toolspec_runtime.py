@@ -207,6 +207,28 @@ def test_revoked_identity_is_refused_even_with_a_valid_signature() -> None:
     assert exc.value.reason_code == "toolspec_signing_identity_revoked"
 
 
+def test_relabeling_a_revoked_bundle_to_a_trusted_signer_is_refused() -> None:
+    """Security review 2026-10-02: the outer signer label is outside the HMAC
+    preimage, so it must agree with the signed per-spec signing_identity."""
+    relabeled = _bundle()
+    relabeled["registry_signature"] = dict(relabeled["registry_signature"],
+                                           signing_identity="pilot-signer-v2")
+    with pytest.raises(ToolSpecRefused) as exc:
+        ToolSpecBundle.load(relabeled, key=KEY,
+                            trusted_identities=["pilot-signer-v2"],
+                            revoked_identities=[IDENTITY],
+                            pinned_bundle_digest=_load().bundle_digest)
+    assert exc.value.reason_code == "toolspec_signing_identity_mismatch"
+
+
+def test_a_spec_signed_under_another_identity_is_refused() -> None:
+    bundle = _bundle([_spec(), _spec(tool_id="other_tool",
+                                     signing_identity="pilot-signer-v0")])
+    with pytest.raises(ToolSpecRefused) as exc:
+        _load(bundle)
+    assert exc.value.reason_code == "toolspec_signing_identity_mismatch"
+
+
 def test_strict_mode_without_a_bundle_refuses_rather_than_falls_back() -> None:
     with pytest.raises(ToolSpecRefused) as exc:
         ToolSpecBundle.load(None, key=KEY, trusted_identities=[IDENTITY],
