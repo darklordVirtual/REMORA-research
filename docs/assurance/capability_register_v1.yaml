@@ -766,3 +766,32 @@ capabilities:
       - tests/meta/test_divergence.py
       - tests/meta/test_register_evidences.py
     caveat: "Metatest detection logic covers basic claim parsing and basic structural evidence, but does not capture all complex prose statements automatically."
+
+  - id: CAP-025
+    name: "Evidence admission for sufficiency premises (CoSAI §7.4: visibility, coverage, vantage, binding, prior commitment)"
+    status: IMPLEMENTED_LIBRARY
+    verified_at_sha: ce25ac18025d18682b32334c099e9253eb5bb673
+    verified_by: >-
+      audit 2026-10-02 at registration: remora/evidence/admission/ adds five
+      frozen types (ProducerCapabilityManifest, CoverageAttestation,
+      ObservationVantage, InvocationBindingProof, PriorCommitment) and
+      admit_evidence(), which derives the premises the frozen conformance
+      checkers take as trusted booleans from typed records joined against a
+      deployment-owned TrustConfig. Evidence green at this revision:
+      tests/test_evidence_admission_models.py (23), the adversarial matrix in
+      tests/test_evidence_admission_adversarial.py (19), and the isolation and
+      invariant suite tests/test_evidence_admission_isolation.py (5, including
+      the AST guard against importing remora.enforcement/execution/policy and
+      the erasure-monotonicity and scope-non-transitivity invariants) all pass.
+      Method: test execution plus review of the authority boundary; not an
+      external audit. Bound to the commit carrying the layer.
+    evidence:
+      - remora/evidence/admission/models.py
+      - remora/evidence/admission/admission.py
+      - remora/evidence/admission/canonical.py
+      - remora/evidence/admission/reasons.py
+      - tests/test_evidence_admission_models.py
+      - tests/test_evidence_admission_adversarial.py
+      - tests/test_evidence_admission_isolation.py
+      - docs/design/evidence-admission-v1.md
+    caveat: "Library only: nothing in the runtime reads an EvidenceAdmission, and no adapter feeds it into the frozen conformance checkers (their synthetic-fixture premise boundary stands). The layer does not parse raw bytes itself; callers must construct typed records through the bounded parser first, and a construction failure is a processing failure, not an admission result. TrustConfig's accepted-producer map is the deployment's authority — a misconfigured deployment accepts what it configured, and a dishonest clock defeats the prior-commitment predating check. Claim ceiling in docs/design/evidence-admission-v1.md: no global completeness, no non-bypassability, no independence from a declaration, no absence outside the established denominator, no causation, no authorization from evidence."
