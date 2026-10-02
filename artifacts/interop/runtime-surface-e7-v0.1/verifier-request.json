@@ -28,7 +28,7 @@
     "publish one result per native claim and case",
     "record exact implementation revision, command, environment, input digests, package_digest and the REMORA Git revision consumed",
     "classify implementation diversity (AUTHOR_IMPLEMENTATION, REPRODUCTION, SECOND_IMPLEMENTATION) and independence (INDEPENDENT, NOT_INDEPENDENT) as two separate fields, per external-run-record-v1",
-    "repeat the producer claim ceiling and explicit non-claims"
+    "repeat the producer claim ceiling and explicit non-claims, including that runtime_capability_surface_completeness remains NOT_ESTABLISHED"
   ],
   "expected_result_vocabulary": [
     "ESTABLISHED",

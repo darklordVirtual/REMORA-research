@@ -20,7 +20,7 @@ revision it consumed. A manifest is never hashed into itself.
 
 `DRAFT` → `FROZEN` → `EXTERNAL_RUN_PENDING` → `REPRODUCED` → `EXTERNALLY_VERIFIED`.
 The state is written once, in `index.json`, and repeated in the contract's
-manifest and README. A state is only as strong as the records under it.
+manifest. Package files carry no state label, so a freeze changes no bytes. A state is only as strong as the records under it.
 `REPRODUCED` needs a run record with implementation diversity;
 `EXTERNALLY_VERIFIED` needs one that meets the independence contract. An
 author run advances nothing. `tests/test_federation_interop_contract.py`

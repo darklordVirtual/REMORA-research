@@ -1,9 +1,10 @@
 # REMORA runtime-surface E7 fixture contract v0.1
 
-Lifecycle: **`DRAFT`**. The single source for the state is the contract entry
-in [`artifacts/interop/index.json`](../index.json); `manifest.json` repeats it
-and this line must agree with both. This package prepares the REMORA side of
-E7 in `aeoess/agent-governance-vocabulary#179`. It is not an external
+Lifecycle: recorded in the contract entry in
+[`artifacts/interop/index.json`](../index.json) and repeated in
+`manifest.json`. The package files, this README included, carry no state
+label, so freezing the package does not change its bytes. This package
+prepares the REMORA side of E7 in `aeoess/agent-governance-vocabulary#179`. It is not an external
 verification record and does not raise any REMORA capability to
 `EXTERNALLY_VERIFIED`.
 

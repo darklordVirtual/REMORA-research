@@ -23,7 +23,7 @@
   "package_files": [
     {
       "path": "artifacts/interop/runtime-surface-e7-v0.1/README.md",
-      "sha256": "2c533f600151d8cbe605b37c3497cd2ac580f31a4a4a2caa8dd033a146a25852"
+      "sha256": "a12c3da58dd79e651a5a7cd8526d5b6e4ca6a1a24a176bfc0e13d6182540ae15"
     },
     {
       "path": "artifacts/interop/runtime-surface-e7-v0.1/claim-packet.json",
@@ -39,10 +39,10 @@
     },
     {
       "path": "artifacts/interop/runtime-surface-e7-v0.1/verifier-request.json",
-      "sha256": "b4321a879d6dddc5d950c1042a0ae148350d4b90eb2d314b8ab91d58adb08cea"
+      "sha256": "d9241cebf42d539767bf161e33557dfafc6d34f14fa842d55138a05e359d6119"
     }
   ],
-  "package_digest": "sha256:c8f2272d5ce647fa2d2c4a6cace26316a7db2a886bd2e9cd53c53dab8bfc7ea7",
+  "package_digest": "sha256:01dfdb7885bdbb18c025bc013edc28b482b0631ae282aca877bd0953b865e4bf",
   "package_digest_rule": "sha256 over the UTF-8 text formed by one line per package_files entry, '<path> <sha256>\\n', sorted by path. manifest.json and index.json are outside the package and are never hashed into it.",
   "independence_boundary": "The reference verifier is author-produced and is not independent verification. A second implementation is implementation diversity, not independence. INDEPENDENT requires a second implementation maintained outside REMORA, run by an external operator, importing neither REMORA code nor this verifier (external-run-record-v1).",
   "global_property": {

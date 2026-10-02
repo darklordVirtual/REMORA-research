@@ -498,8 +498,11 @@ def test_lifecycle_is_stated_once_and_repeated_consistently(e7: dict[str, Any]) 
     assert manifest["lifecycle"] == e7["lifecycle"]
     assert "status" not in manifest, "the old free-text status field contradicted the index"
     readme = (E7 / "README.md").read_text(encoding="utf-8")
-    assert f"Lifecycle: **`{e7['lifecycle']}`**" in readme
+    assert "Lifecycle: recorded in the contract entry" in readme
+    assert "Lifecycle: **`" not in readme, "a state label in a package file would change its bytes on freeze"
     assert "Status: **proposal**" not in readme
+    for pin in e7["pin_confirmed_to"]:
+        assert {"verifier", "where", "confirmed_at"} <= set(pin)
 
 
 def test_a_second_implementation_cannot_advance_a_contract_to_externally_verified(
@@ -574,6 +577,29 @@ def test_federation_formats_are_not_wired_into_the_authority_path() -> None:
         "Federation evidence formats reached the authority path without a reviewed integration:\n"
         + "\n".join(offenders)
     )
+
+
+def _interop_package_module() -> Any:
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("interop_package", ROOT / "scripts" / "interop_package.py")
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_interop_package_check_passes_on_the_committed_package() -> None:
+    module = _interop_package_module()
+    assert module.check(ROOT) == []
+    manifest = _load(ROOT / "artifacts/interop/runtime-surface-e7-v0.1/manifest.json")
+    assert module.package_digest(manifest["package_files"]) == manifest["package_digest"]
+
+
+def test_interop_package_refuses_to_freeze_against_a_revision_without_the_bytes() -> None:
+    module = _interop_package_module()
+    with pytest.raises(module.PackageError):
+        module.revision_carries_package("runtime-surface-e7-v0.1", "0" * 40, ROOT)
 
 
 def test_authority_path_does_not_import_a_federation_module() -> None:

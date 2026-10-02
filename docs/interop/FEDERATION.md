@@ -39,9 +39,41 @@ recorded in the index's `freeze_record`, outside the package.
 | `EXTERNALLY_VERIFIED` | a run record that meets the independence contract and covers every claim | an independent run record |
 
 The state is written once, in `artifacts/interop/index.json`, and repeated in
-the contract's manifest and README. An author run advances nothing. A test
+the contract's manifest. The package files carry no state label, so a freeze
+changes no bytes. An author run advances nothing. A test
 refuses an index whose state exceeds its records, so a contract cannot be
 marked verified before the record exists.
+
+### Freezing a package and giving the pin
+
+Freezing is a producer step after merge, done with
+`scripts/interop_package.py` so the pin is checked rather than typed.
+
+1. `python scripts/interop_package.py --check` recomputes every digest. It
+   refuses a package whose manifest, index, claim packet or verifier request
+   disagree, and one whose files name a revision other than `source_revision`.
+2. After the package has merged, `python scripts/interop_package.py --freeze
+   <contract-id> <master-revision>` reads every package file out of that
+   revision's tree and checks the bytes hash to the manifest. It then writes
+   `freeze_record` (revision, `package_digest`, date) and sets the lifecycle
+   to `FROZEN` in the index and the manifest. The commit that records the
+   freeze is a later commit than the one it names, so nothing pins itself.
+3. The pin given to a verifier is the contract id, the `package_digest`, the
+   frozen revision and the manifest path. Posting it on the control board and
+   recording the verifier with `--confirm-pin` moves the contract to
+   `EXTERNAL_RUN_PENDING`.
+
+### After an external run
+
+The verifier publishes its run record. The producer reviews it within the
+window in the verifier request and records it under `external_runs`. That
+moves the contract to `REPRODUCED`, or to `EXTERNALLY_VERIFIED` if the record
+meets the independence contract. Only then is the edge status outside this
+repository updated. REMORA may afterwards run the verifier's reader in its own
+CI, pinned to the reader revision named in the run record, and retain the
+output as a CI artifact. That rerun is a `REPRODUCTION` of the external
+record, kept as evidence; it adds no state, creates no REMORA authority and
+never feeds a policy decision.
 
 ### Diversity and independence
 
@@ -82,9 +114,10 @@ entry.
 The steps below are what the verifier request asks for, written as a
 checklist for a project that wants to verify a REMORA artifact.
 
-1. Pin the inputs. Take the `published_revision`, the fixture path and the
-   `sha256` from the contract's `verifier-request.json`. Record them in your
-   own run report before anything runs.
+1. Pin the inputs. Take `package_digest` and every file digest from the
+   contract's `manifest.json`, and the input paths and digests from
+   `verifier-request.json`. Record them, with the Git revision you fetched
+   them from, in your own run report before anything runs.
 2. Implement separately. The implementation lives in a codebase REMORA does
    not maintain and imports neither REMORA runtime code nor
    `reference_verifier.py`. A fresh clone that runs REMORA's own verifier is a

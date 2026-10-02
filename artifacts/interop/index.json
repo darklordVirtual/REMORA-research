@@ -18,7 +18,7 @@
       "external_verification": "PENDING",
       "source_revision": "35db242ffd212320576a0636e125cf8dbf12a25c",
       "manifest": "artifacts/interop/runtime-surface-e7-v0.1/manifest.json",
-      "package_digest": "sha256:c8f2272d5ce647fa2d2c4a6cace26316a7db2a886bd2e9cd53c53dab8bfc7ea7",
+      "package_digest": "sha256:01dfdb7885bdbb18c025bc013edc28b482b0631ae282aca877bd0953b865e4bf",
       "claim_packet": "artifacts/interop/runtime-surface-e7-v0.1/claim-packet.json",
       "verifier_request": "artifacts/interop/runtime-surface-e7-v0.1/verifier-request.json",
       "fixtures": "artifacts/interop/runtime-surface-e7-v0.1/fixtures.json",
