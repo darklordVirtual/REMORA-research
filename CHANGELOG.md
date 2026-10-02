@@ -307,6 +307,10 @@ This file lists externally relevant changes by release. Fine-grained development
   operator request. Off by default; refused at startup when switched on
   without tenants, question set, thresholds and log path. The response is
   unchanged with the shadow off, on or failing.
+- `scripts/semantic_shadow_report.py` summarises shadow records and, given
+  reviewer labels, reports what the sensor missed and flagged separately
+  from what would have changed the decision, since under the execution
+  profile a caught scope drift is flagged without a stricter decision.
 - `remora.decision_providers.questions` and `remora.decision_providers.enrich`
   complete the provider integration end to end. The question set is versioned
   (`remora-semantic-v1`) because thresholds are calibrated against a specific

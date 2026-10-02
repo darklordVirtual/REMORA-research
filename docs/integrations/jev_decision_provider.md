@@ -206,6 +206,16 @@ proposals whose operator request was resolved server-side
 placeholder built from the call itself. The tool description is taken from
 the signed ToolSpec when a bundle is configured, never from the agent.
 
+`scripts/semantic_shadow_report.py` summarises the log: disagreements by
+direction, failures, p50 and p95 latency, billed tokens and an estimated
+cost. Given a reviewer's labels by `proposal_id`, it separates what the
+sensor flagged from what would have changed the decision. Under the
+execution profile the two differ. A caught scope drift withholds a favourable
+signal from a call that stops at VERIFY anyway, so it is flagged without a
+stricter decision. Only a raised `adversarial_detected` makes the decision
+stricter. Jev's drift and target answers are therefore information for the
+reviewer at VERIFY, and are measured as such.
+
 ## Cloudflare Workers AI
 
 `remora.decision_providers.cloudflare.CloudflareJevProvider` reaches the model
