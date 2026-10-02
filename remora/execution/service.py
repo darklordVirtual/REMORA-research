@@ -21,6 +21,7 @@ from remora.execution.ports import (AuditChainPort, DispatchOutboxPort,
 
 import dataclasses
 import json
+import logging
 from collections.abc import Callable
 from types import SimpleNamespace
 from datetime import UTC, datetime, timedelta
@@ -35,6 +36,9 @@ from remora.governance.review_queue import ExecutionDecision
 from remora.governance.proposal_lineage import derive_lineage, lineage_key_for
 from remora.governance.task_identity import TaskIdentity
 from remora.policy.report import DecisionAction, DecisionReason
+
+
+logger = logging.getLogger(__name__)
 
 
 #: The outbox state each outcome settles as. A table rather than a chain of
@@ -372,8 +376,11 @@ def assess_proposal(
                 "engine_action": engine_action,
                 "final_action": report.action,
             })
-        except Exception:  # noqa: BLE001
-            pass
+        except Exception as exc:  # noqa: BLE001
+            # The semantic provider is shadow-only, so an outage must not
+            # affect the governed decision. Record only the exception type to
+            # avoid leaking provider payloads or credentials into logs.
+            logger.warning("semantic shadow sensor failed: %s", type(exc).__name__)
     return response
 
 
