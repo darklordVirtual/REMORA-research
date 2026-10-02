@@ -114,18 +114,6 @@ For external review or pilot work, set `REMORA_RUNTIME_PROFILE=review` or `contr
 
 </details>
 
-## Verify it from outside
-
-Independent projects, shared boundaries, verifiable evidence ([agent-governance-vocabulary#177](https://github.com/aeoess/agent-governance-vocabulary/issues/177)). REMORA publishes what it claims and asks other implementations to check it. It does not take foreign evidence as authority.
-
-| You want to | Start here |
-|---|---|
-| Verify a REMORA claim with your own implementation (producer side) | [`artifacts/interop/index.json`](artifacts/interop/index.json). Each contract carries a claim packet, pinned fixture digests and a verifier request with the result vocabulary `ESTABLISHED`, `CONTRADICTED`, `NOT_ESTABLISHED`. The open request is runtime-surface E7. Do not import REMORA code; a run of the reference verifier is not independent verification. |
-| Test your own system against the decision-to-effect vectors (adapter) | `python conformance/decision-to-effect-v1/run_conformance.py --adapter remora`, then copy [`adapter_skeleton.py`](conformance/decision-to-effect-v1/adapter_skeleton.py) and fill in what your system can express. An unsupported vector is a recorded result, not a failure. |
-| Hand REMORA evidence from your project (consumer side) | [`external-evidence-ref-v1`](artifacts/interop/schemas/external-evidence-ref-v1.schema.json) keeps your native claim and result; [`consumed-artifact-v1`](artifacts/interop/schemas/consumed-artifact-v1.schema.json) records attribution. Neither changes a decision. The boundary is in [docs/interop/FEDERATION.md](docs/interop/FEDERATION.md). |
-
-Verification of a REMORA artifact is exactly that, not endorsement, and a result at one assurance layer is not evidence for a stronger one. One round has been run from outside, with the survivors kept as open gaps: [external adequacy record](docs/assurance/external_adequacy_evidence_sufficiency_v1.md) (#629); the step-by-step is in [FEDERATION.md](docs/interop/FEDERATION.md). Other corpora: [evidence sufficiency](conformance/evidence-sufficiency-v1.7/README.md), [autoreview to effect](conformance/autoreview-to-effect-v1/README.md), [non-transitivity of authority](conformance/non-transitivity-of-authority-v1/README.md).
-
 ## What REMORA cannot do
 
 It cannot enforce against a credential path that bypasses its dispatcher. Deployment identity, credential custody, downstream authorization and operational controls stay with the deployment. Capability maturity is tracked, per capability, in the [capability register](docs/assurance/capability_register_v1.yaml).
