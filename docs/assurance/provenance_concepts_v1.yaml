@@ -1,15 +1,20 @@
 # Provenance register inputs (legal/PROVENANCE.md).
 #
-# Each concept names the exact strings that identify it in this repository.
-# scripts/provenance_register.py finds, for each string, the first commit on the
-# snapshot's history that introduced it (git log -S), with author date,
-# committer date and signature status, and writes
-# docs/assurance/provenance_register_v1.json. The modules listed under
-# `fingerprint_modules` are fingerprinted at the snapshot commit so that a
-# later copy, even with renamed identifiers, can be measured offline.
+# Each concept names the exact strings that identify it in this repository, and
+# the invariant those strings stand for. scripts/provenance_register.py finds,
+# for each string, the first commit on the snapshot's history that introduced
+# it as its own token (word-boundary git log -G, not a substring search), with
+# author date, committer date, signature status and up to eight paths, and
+# writes docs/assurance/provenance_register_v1.json.
+#
+# `markers` are coined identifiers. Two or more in another tree are a stronger
+# signal than one shared architectural idea. `fingerprint_modules` are
+# fingerprinted at the snapshot commit so that a later copy, even with renamed
+# identifiers, can be measured offline.
 #
 # The register records priority and content. It names no other project or
-# person and is not, on its own, evidence that anyone copied anything.
+# person and is not, on its own, evidence that anyone copied anything. It does
+# not grant a commercial license; legal/LICENSING.md does that.
 
 schema: provenance_concepts_v1
 # Fingerprints and first-introduction searches are taken from this commit's history,
@@ -19,49 +24,103 @@ snapshot: 0b595b8c9da97cb919613fd8c74009ac19ea05fd
 concepts:
   - id: PROV-01
     name: DecisionEnvelope, the signed record of one governance decision
+    invariant: The decision leaves the gate as a signed, hash-chained record. The name alone is not the property.
     terms: ["DecisionEnvelope"]
   - id: PROV-02
     name: ToolSpec, the deployment-owned tool contract
+    invariant: The deployment, not the agent, owns the signed contract for what a tool call may be.
     terms: ["ToolSpec"]
   - id: PROV-03
     name: Exact-call binding of an authorization to one concrete call
+    invariant: An authorization is bound to one tool, one argument set, one target and one policy-bundle identity, not to a tool name alone.
     terms: ["exact-call binding", "exact-call"]
   - id: PROV-04
     name: Fresh re-gate of a stale approval before execution
-    terms: ["fresh re-gate", "regate"]
+    invariant: A stored approval is re-decided on the observation presented at execution. It survives only when the fresh decision is executable and no stricter.
+    terms: ["fresh re-gate"]
   - id: PROV-05
     name: PolicyDecisionToken, the PDP-to-PEP decision token
+    invariant: The policy decision point signs a token. The enforcement point verifies that token and does not call the decision point.
     terms: ["PolicyDecisionToken"]
   - id: PROV-06
     name: ExecutionLease, the short-lived execution capability
+    invariant: A lease exists only for an accepted decision, and only for one exact call, with expiry and one-time consumption.
     terms: ["ExecutionLease"]
   - id: PROV-07
     name: GovernedToolDispatcher, enforcement in front of the tool
+    invariant: The dispatcher holds the tool callable. The agent holds a lease. A call with no valid lease does not run.
     terms: ["GovernedToolDispatcher"]
   - id: PROV-08
     name: Refusal when the ToolSpec changed between assessment and dispatch
+    invariant: Dispatch refuses if the ToolSpec presented at execution is not the ToolSpec the approval was granted over.
     terms: ["toolspec_changed_between_assess_and_dispatch"]
   - id: PROV-09
     name: Runtime capability surface completeness
+    invariant: Completeness of an observed runtime capability surface is a separate claim. For an external host it stays not established until the observation set distinguishes it.
     terms: ["runtime_capability_surface_completeness"]
   - id: PROV-10
     name: Non-transitivity of authority
+    invariant: Authorization of one capability does not authorize a further capability reached through it. Delegation may narrow authority. It does not widen it.
     terms: ["non-transitivity"]
   - id: PROV-11
     name: Evidence sufficiency (established, violated, not established)
+    invariant: Accepted evidence can establish a bounded claim, refute it, or leave it not established. Missing evidence is not establishment.
     terms: ["evidence-sufficiency"]
   - id: PROV-12
     name: Separation of authority and effect domains
+    invariant: The authority that signs is not the domain that performs the effect, and the executor that dispatches does not sign its own authorization.
     terms: ["authority_effect_separation"]
+  - id: PROV-13
+    name: Canonical tool-call hash
+    invariant: The hash of a tool call is computed from the canonical call, and the dispatcher recomputes it before execution so a lease cannot be replayed over mutated arguments.
+    terms: ["canonical_tool_call_hash"]
+  - id: PROV-14
+    name: One-time lease nonce
+    invariant: A lease nonce is consumed once. A second presentation of the same nonce is not a second execution.
+    terms: ["NonceLedger"]
+  - id: PROV-15
+    name: Custody split as a hard guard
+    invariant: Under a strict profile the process must declare its domain role. An authority process holds no effect credential and no tool callable. An executor process holds no lease-signing material.
+    terms: ["CustodyViolation", "assert_custody_split", "REMORA_EXECUTION_DOMAIN_ROLE"]
+  - id: PROV-16
+    name: Task identity bound into the lease
+    invariant: A dispatch without the task identity the lease was bound to is refused. Authority does not float free of the task.
+    terms: ["task_identity_required"]
+  - id: PROV-17
+    name: The authority-to-effect chain, taken together
+    invariant: The distinctive property is the chain, not any one name. An intention is not an effect. The grant is bound to one call, consumed once, refused if the ToolSpec changed, and split so the signer does not perform the effect and the executor does not sign. Delegated authority does not widen.
+    terms: ["GovernedToolDispatcher", "canonical_tool_call_hash", "assert_custody_split"]
+
+# Coined identifiers. A comparison flags two or more of these in another tree.
+# Generic words (ToolSpec, evidence-sufficiency, non-transitivity) are concepts,
+# not markers, because independent work uses them.
+markers:
+  - PolicyDecisionToken
+  - ExecutionLease
+  - GovernedToolDispatcher
+  - canonical_tool_call_hash
+  - NonceLedger
+  - CustodyViolation
+  - assert_custody_split
+  - REMORA_EXECUTION_DOMAIN_ROLE
+  - toolspec_changed_between_assess_and_dispatch
+  - task_identity_required
+  - authority_effect_separation
+  - runtime_capability_surface_completeness
 
 fingerprint_modules:
   - remora/enforcement/lease.py
   - remora/enforcement/gate.py
   - remora/enforcement/resolved_effect.py
+  - remora/enforcement/custody.py
   - remora/execution/dispatch.py
   - remora/governance/envelope.py
   - remora/governance/plan_binding.py
+  - remora/governance/review_queue.py
   - remora/capabilities/model.py
   - remora/toolcall/toolspec.py
   - remora/toolcall/remora_gate.py
   - conformance/evidence-sufficiency-v1/checker.py
+# The conformance adapter contracts are not fingerprinted. They are short and
+# structurally close to ordinary Python, and one of them shared 27 % of its
+# fingerprints with a single pydantic file. That is above the 25 % flag.

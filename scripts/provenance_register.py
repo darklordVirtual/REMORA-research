@@ -3,28 +3,29 @@
 # SPDX-License-Identifier: BUSL-1.1
 """Provenance register: when REMORA's distinctive concepts first appeared, and fingerprints of its code.
 
-Two records, both reproducible from git history alone (legal/PROVENANCE.md):
+Three records, all reproducible from the pinned inputs (legal/PROVENANCE.md):
 
 1. For every term in ``docs/assurance/provenance_concepts_v1.yaml``, the first
-   commit on the snapshot's history that introduced it (``git log -S``), with
-   author date, committer date and signature status. Signed commits pushed to
-   GitHub give a third party a dated record to check.
+   commit on the snapshot's history that introduced it as its own token
+   (``git log -G`` with a word boundary, not a substring search), with author
+   date, committer date, signature status and up to eight paths. A term buried
+   inside a longer token, such as ``regate`` inside ``aggregate``, does not count.
 2. For every listed module, winnowing fingerprints of its token stream at the
    snapshot commit (Schleimer, Wilkerson and Aiken, 2003, the method behind
    MOSS). Identifiers become ``V``, strings ``S`` and numbers ``N`` before
    hashing, so renaming classes and variables does not hide a copy, while
    formatting and comments are ignored.
+3. A list of coined identifiers. ``--compare`` reports how many of them appear
+   as their own tokens in another tree.
 
-``--compare DIR`` fingerprints the Python files under another directory, for
-example a local clone, and reports for each REMORA module how much of its
-fingerprint appears there. A high share says the code structure is shared; it
-does not say who copied whom, which the dated records of part 1 and the other
-side's own history have to settle.
+``--compare DIR`` does not say who copied whom, and it does not grant or refuse
+a license. Commercial use of REMORA still requires a written commercial license.
+A flagged overlap is a reason to read both histories, not a public accusation.
 
 Usage::
 
-    python scripts/provenance_register.py --write           # build docs/assurance/provenance_register_v1.json
-    python scripts/provenance_register.py --check           # rebuild in memory and compare
+    python scripts/provenance_register.py --write
+    python scripts/provenance_register.py --check
     python scripts/provenance_register.py --compare ../other-clone [--min-share 0.25]
 """
 from __future__ import annotations
@@ -34,6 +35,7 @@ import hashlib
 import io
 import json
 import keyword
+import re
 import subprocess
 import sys
 import tokenize
@@ -49,12 +51,23 @@ REGISTER = ROOT / "docs" / "assurance" / "provenance_register_v1.json"
 #: at least K + W - 1 tokens is guaranteed to produce a shared fingerprint.
 K = 12
 W = 8
+_PATH_CAP = 8
 _SKIP = {tokenize.COMMENT, tokenize.NL, tokenize.ENCODING, tokenize.ENDMARKER}
+_TEXT_SUFFIXES = {".py", ".md", ".yml", ".yaml", ".json", ".toml", ".ts", ".js", ".go", ".rs", ".java"}
+_SKIP_DIRS = {".git", "node_modules", "__pycache__", ".venv", "venv", "dist", "build"}
+_MAX_MARKER_BYTES = 1_000_000
 
 
-def _git(*args: str) -> str:
-    return subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, encoding="utf-8",
-                          check=True).stdout
+def _git(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["git", "--no-pager", *args], cwd=ROOT, capture_output=True, text=True,
+        encoding="utf-8", check=check,
+    )
+
+
+def term_pattern(term: str) -> str:
+    """A term counts only as its own token, not as a substring of a longer one."""
+    return r"(^|[^A-Za-z0-9_])" + re.escape(term) + r"($|[^A-Za-z0-9_])"
 
 
 def normalised_tokens(source: str) -> list[str]:
@@ -88,8 +101,10 @@ def normalised_tokens(source: str) -> list[str]:
 def fingerprints(source: str, k: int = K, w: int = W) -> list[str]:
     """Winnowed k-gram hashes of the normalised token stream, as sorted hex strings."""
     tokens = normalised_tokens(source)
-    grams = [hashlib.sha1(" ".join(tokens[i:i + k]).encode("utf-8")).hexdigest()[:16]
-             for i in range(len(tokens) - k + 1)]
+    grams = [
+        hashlib.sha1(" ".join(tokens[i:i + k]).encode("utf-8")).hexdigest()[:16]
+        for i in range(len(tokens) - k + 1)
+    ]
     chosen: set[str] = set()
     for i in range(max(0, len(grams) - w + 1)):
         chosen.add(min(grams[i:i + w]))
@@ -98,15 +113,39 @@ def fingerprints(source: str, k: int = K, w: int = W) -> list[str]:
     return sorted(chosen)
 
 
+def introducing_paths(term: str, sha: str) -> list[str]:
+    """Sorted paths in ``sha`` whose text contains ``term`` as its own token."""
+    proc = _git("grep", "-n", "-I", "-F", "-e", term, sha, check=False)
+    if proc.returncode not in (0, 1):
+        proc.check_returncode()
+    paths: set[str] = set()
+    prefix = sha + ":"
+    boundary = re.compile(term_pattern(term))
+    for line in proc.stdout.splitlines():
+        if not line.startswith(prefix):
+            continue
+        path, _, rest = line[len(prefix):].partition(":")
+        _, _, text = rest.partition(":")
+        if boundary.search(text):
+            paths.add(path)
+    return sorted(paths)
+
+
 def first_introduction(term: str, snapshot: str) -> dict:
-    """The first commit in the snapshot's history whose diff adds the term."""
-    out = _git("log", "--reverse", "--format=%H%x09%aI%x09%cI%x09%G?%x09%s", f"-S{term}", snapshot)
-    line = next((ln for ln in out.splitlines() if ln.strip()), "")
+    """The first commit in the snapshot's history whose patch adds the term as its own token."""
+    proc = _git(
+        "log", "--reverse", "--format=%H%x09%aI%x09%cI%x09%G?%x09%s",
+        "-G", term_pattern(term), snapshot,
+    )
+    line = next((ln for ln in proc.stdout.splitlines() if ln.strip()), "")
     if not line:
         return {"term": term, "found": False}
     sha, authored, committed, signature, subject = line.split("\t", 4)
-    return {"term": term, "found": True, "commit": sha, "authored": authored, "committed": committed,
-            "signature": signature, "subject": subject}
+    paths = introducing_paths(term, sha)
+    return {
+        "term": term, "found": True, "commit": sha, "authored": authored, "committed": committed,
+        "signature": signature, "subject": subject, "path_count": len(paths), "paths": paths[:_PATH_CAP],
+    }
 
 
 def build() -> dict:
@@ -114,11 +153,17 @@ def build() -> dict:
     snapshot = spec["snapshot"]
     concepts = []
     for concept in spec["concepts"]:
-        concepts.append({"id": concept["id"], "name": concept["name"],
-                         "first": [first_introduction(t, snapshot) for t in concept["terms"]]})
+        row = {
+            "id": concept["id"],
+            "name": concept["name"],
+            "first": [first_introduction(t, snapshot) for t in concept["terms"]],
+        }
+        if concept.get("invariant"):
+            row["invariant"] = concept["invariant"].strip()
+        concepts.append(row)
     modules = {}
     for path in spec["fingerprint_modules"]:
-        source = _git("show", f"{snapshot}:{path}")
+        source = _git("show", f"{snapshot}:{path}").stdout
         modules[path] = {
             "sha256": hashlib.sha256(source.replace("\r\n", "\n").encode("utf-8")).hexdigest(),
             "tokens": len(normalised_tokens(source)),
@@ -127,9 +172,18 @@ def build() -> dict:
     register = {
         "schema": "provenance_register_v1",
         "snapshot": snapshot,
-        "snapshot_committed": _git("show", "-s", "--format=%cI", snapshot).strip(),
-        "method": {"fingerprint": "winnowing over normalised Python tokens", "k": K, "window": W},
+        "snapshot_committed": _git("show", "-s", "--format=%cI", snapshot).stdout.strip(),
+        "method": {
+            "fingerprint": "winnowing over normalised Python tokens",
+            "k": K,
+            "window": W,
+            "term_search": "word-boundary git log -G; a term inside a longer token does not count",
+            "paths": "up to 8 sorted paths in the introducing commit",
+            "markers": "coined identifiers matched as their own tokens",
+            "cover": "share of one module's fingerprints in the files that cover the most of it",
+        },
         "concepts": concepts,
+        "markers": list(spec.get("markers") or []),
         "modules": modules,
     }
     body = json.dumps(register, sort_keys=True, separators=(",", ":"))
@@ -141,14 +195,73 @@ def render(register: dict) -> str:
     return json.dumps(register, indent=1, sort_keys=True, ensure_ascii=False) + "\n"
 
 
-def compare(directory: Path, register: dict, min_share: float) -> list[dict]:
-    """For each REMORA module, the share of its fingerprints found in any Python file under ``directory``."""
+def _cover_share(ours: set[str], theirs: dict[str, set[str]], n: int) -> tuple[float, list[str]]:
+    """Share of ``ours`` covered by the ``n`` files that add the most remaining fingerprints."""
+    if not ours:
+        return 0.0, []
+    remaining = set(ours)
+    pool = dict(theirs)
+    chosen: list[str] = []
+    for _ in range(n):
+        if not remaining or not pool:
+            break
+        name = max(pool, key=lambda item: len(remaining & pool[item]))
+        if not remaining & pool[name]:
+            break
+        remaining -= pool.pop(name)
+        chosen.append(name)
+    return 1 - len(remaining) / len(ours), chosen
+
+
+def python_fingerprints(directory: Path) -> dict[str, set[str]]:
+    """Winnowing fingerprints of each Python file under ``directory``."""
     theirs: dict[str, set[str]] = {}
     for path in sorted(directory.rglob("*.py")):
+        rel = path.relative_to(directory)
+        if any(part in _SKIP_DIRS for part in rel.parts):
+            continue
         try:
-            theirs[str(path.relative_to(directory))] = set(fingerprints(path.read_text(encoding="utf-8", errors="replace")))
+            theirs[str(rel)] = set(fingerprints(path.read_text(encoding="utf-8", errors="replace")))
         except OSError:
             continue
+    return theirs
+
+
+def marker_hits(directory: Path, markers: list[str]) -> list[dict]:
+    """Coined identifiers found as their own tokens."""
+    compiled = [(marker, re.compile(term_pattern(marker))) for marker in markers]
+    found: dict[str, list[str]] = {marker: [] for marker in markers}
+    for path in sorted(directory.rglob("*")):
+        if not path.is_file() or path.suffix.lower() not in _TEXT_SUFFIXES:
+            continue
+        rel = path.relative_to(directory)
+        if any(part in _SKIP_DIRS for part in rel.parts):
+            continue
+        try:
+            if path.stat().st_size > _MAX_MARKER_BYTES:
+                continue
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        rel_s = str(rel)
+        for marker, pattern in compiled:
+            if pattern.search(text):
+                found[marker].append(rel_s)
+    return [
+        {"marker": marker, "file_count": len(paths), "files": paths[:5]}
+        for marker, paths in found.items() if paths
+    ]
+
+
+def compare(directory: Path, register: dict, min_share: float, min_cover: float | None = None) -> dict:
+    """Fingerprint overlap, split-file cover, and coined-identifier hits under ``directory``.
+
+    ``flag`` on a module is the single-file share. ``flag_cover`` is the share covered by the
+    eight files that match it best, which is how a copy split across files shows up. The cover
+    threshold is separate because pooling files raises the share against a large unrelated tree.
+    """
+    cover_at = min_share if min_cover is None else min_cover
+    theirs = python_fingerprints(directory)
     union = set().union(*theirs.values()) if theirs else set()
     rows = []
     for module, entry in register["modules"].items():
@@ -160,27 +273,49 @@ def compare(directory: Path, register: dict, min_share: float) -> list[dict]:
             share = len(ours & prints) / len(ours)
             if share > best:
                 best_file, best = name, share
-        rows.append({"module": module, "share_anywhere": round(len(ours & union) / len(ours), 3),
-                     "best_file": best_file, "share_in_best_file": round(best, 3),
-                     "flag": best >= min_share})
-    return rows
+        cover, files = _cover_share(ours, theirs, 8)
+        rows.append({
+            "module": module,
+            "share_anywhere": round(len(ours & union) / len(ours), 3),
+            "best_file": best_file,
+            "share_in_best_file": round(best, 3),
+            "share_in_best_eight": round(cover, 3),
+            "best_eight_files": files,
+            "flag": best >= min_share,
+            "flag_cover": cover >= cover_at,
+        })
+    hits = marker_hits(directory, list(register.get("markers") or []))
+    return {"modules": rows, "markers": hits, "marker_flag": len(hits) >= 2}
 
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--write", action="store_true", help="write the register")
     parser.add_argument("--check", action="store_true", help="fail if the committed register differs from a rebuild")
-    parser.add_argument("--compare", type=Path, help="a directory of Python code to measure against the register")
+    parser.add_argument("--compare", type=Path, help="a directory of code to measure against the register")
     parser.add_argument("--min-share", type=float, default=0.25, help="share in one file that is flagged")
+    parser.add_argument("--min-cover", type=float, default=0.50,
+                        help="share across the eight best files that is flagged")
     args = parser.parse_args(argv)
     if args.compare:
         register = json.loads(REGISTER.read_text(encoding="utf-8"))
-        rows = compare(args.compare, register, args.min_share)
-        for row in sorted(rows, key=lambda r: -r["share_in_best_file"]):
-            mark = "FLAG" if row["flag"] else "    "
-            print(f"{mark} {row['share_in_best_file']:6.1%} {row['module']:48} best: {row['best_file']} "
-                  f"(anywhere {row['share_anywhere']:.1%})")
-        return 0
+        report = compare(args.compare, register, args.min_share, args.min_cover)
+        print("A flag is overlap with the pinned REMORA register. It is not a finding that anyone copied anything.")
+        print("Commercial use of REMORA requires a written commercial license. See legal/LICENSING.md.")
+        for row in sorted(report["modules"], key=lambda item: -item["share_in_best_file"]):
+            mark = "FLAG" if row["flag"] or row["flag_cover"] else "    "
+            print(
+                f"{mark} {row['share_in_best_file']:6.1%} {row['module']:48} best: {row['best_file']} "
+                f"(eight {row['share_in_best_eight']:.1%}, anywhere {row['share_anywhere']:.1%})"
+            )
+        if report["markers"]:
+            names = ", ".join(hit["marker"] for hit in report["markers"])
+            mark = "FLAG" if report["marker_flag"] else "    "
+            print(f"{mark} coined identifiers ({len(report['markers'])}): {names}")
+        else:
+            print("     coined identifiers: none")
+        flagged = any(row["flag"] or row["flag_cover"] for row in report["modules"]) or report["marker_flag"]
+        return 1 if flagged else 0
     register = build()
     if args.write:
         REGISTER.write_text(render(register), encoding="utf-8", newline="\n")
