@@ -16,7 +16,7 @@
     "measured_with_python": "3.13.7 (macOS arm64, venv with the dev extras)",
     "requirements_lock": {
       "path": "requirements-lock.txt",
-      "sha256_lf": "6d0af05b916f74c1e3a2aacdcc243334bee1c42ae2c046ad4e871ae3db52ac27"
+      "sha256_lf": "7177533acbdacc33344913bfa6b2a6b8a0e4bcc11fde1935a601ee822d447a77"
     },
     "reference_image": {
       "dockerfile": "deploy/reference/Dockerfile",
