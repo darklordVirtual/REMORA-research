@@ -72,6 +72,16 @@ security_specialist = CloudflareOracle(
 )
 ```
 
+## Jev through Workers AI
+
+TypeSafe's Jev is also served on Workers AI as `typesafe/jev`. REMORA reaches
+it through `remora.decision_providers.cloudflare.CloudflareJevProvider`, not
+through `CloudflareOracle`: Jev answers typed questions and is admitted as
+evidence, not as an oracle vote. It is a partner model, billed from AI
+Gateway credits under Unified Billing, and needs a gateway token with the Run
+permission. The prerequisites, and the direct TypeSafe route that needs none
+of them, are in [jev_decision_provider.md](jev_decision_provider.md).
+
 ## Setup Environment
 
 Ensure your `.env.vars` configures the correct auth details for native access:

@@ -587,6 +587,35 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/execution/proposals/{proposal_id}/semantic-assessment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Semantic Assessment
+         * @description The semantic shadow's reading of one proposal, for whoever resolves it.
+         *
+         *     At VERIFY that is a bounded machine lookup, which the reading tells what
+         *     to check; at ESCALATE it is the human approver. Advisory only: nothing on
+         *     the approval, resolution or execution path reads it, and the response
+         *     says so. ``status`` is ``available`` with the reading, ``failed`` when
+         *     the provider could not answer, or the reason there is none:
+         *     ``not_enabled``, ``pending``, ``tenant_not_opted_in``,
+         *     ``request_not_resolved``, ``dropped`` or ``unknown``. Tenant-scoped like
+         *     every proposal read: another tenant's proposal is a 404.
+         */
+        get: operations["get_semantic_assessment_v1_execution_proposals__proposal_id__semantic_assessment_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/execution/reject": {
         parameters: {
             query?: never;
@@ -2646,6 +2675,66 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description The ordered event trail for one proposal. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Missing or invalid bearer token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Role lacks the required capability for this tenant. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description No such proposal for this tenant. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_semantic_assessment_v1_execution_proposals__proposal_id__semantic_assessment_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Jev's advisory reading of the proposal, for the verifier or approver. */
             200: {
                 headers: {
                     [name: string]: unknown;

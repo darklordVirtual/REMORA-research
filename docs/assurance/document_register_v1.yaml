@@ -2470,11 +2470,12 @@ documents:
   topic: docs_integrations_jev_decision_provider_md
   code_synced: verified
   verdict: current
-  last_audited: '2026-09-24'
-  last_reviewed: '2026-09-24'
+  last_audited: '2026-10-02'
+  last_reviewed: '2026-10-02'
   audience:
   - integrators
   - maintainers
+  - operators
 - id: DOC-340
   path: docs/design/remora-quality-program-v1.md
   status: proposal

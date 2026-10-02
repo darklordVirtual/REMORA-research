@@ -18,9 +18,11 @@ actions in a specific operational domain. It has four components:
 | **RAG knowledge chunks** | Cloudflare Vectorize (`remora-knowledge` or `remora-knowledge-multi`) | Primary-source documents ingested into the vector knowledge base for evidence retrieval |
 | **Evidence pack** | `results/` or referenced external source | Benchmark or validation artifacts that support domain-specific claims |
 | **Claim register entry** | `docs/claim_register.md` or `docs/assurance/claim_register_v1.yaml` | Formally registered claims with artifact pointers and confidence grades |
+| **Semantic profile** (optional) | a profile in the file named by `REMORA_SEMANTIC_SHADOW_PROFILES` | The question set, thresholds, language and calibration record Jev is asked under for this domain; see §11 |
 
 A domain pack is considered _complete_ only when all four components exist and
-are mutually consistent. A policy cookbook page without supporting RAG chunks
+are mutually consistent. The semantic profile is optional and never counts
+towards completeness: it adds a reading, not a rule. A policy cookbook page without supporting RAG chunks
 is an incomplete domain pack; a policy page without supporting evidence is also
 incomplete.
 
@@ -79,7 +81,7 @@ have no policy cookbook page, no RAG chunks, and no evidence pack:
 |--------|---------------|-------|
 | **Operational Technology (OT)** | Critical, ICS/SCADA systems; errors are potentially irreversible and safety-affecting | No policy rules, no RAG corpus, no evaluation set. IEC 62443 and NERC CIP references absent. |
 | **Energy sector** | High, grid management, energy trading, regulatory compliance | Covered in the use-case index but no policy cookbook, no corpus. |
-| **Telecommunications** | High, network configuration, service disruption risk | No representation anywhere in the repository. |
+| **Telecommunications** | High, network configuration, service disruption risk | No policy cookbook, RAG corpus or evaluation set. Since 2026-10-02 the repository holds synthetic ISP operations scenarios in English and Norwegian for Jev's question sets (`experiments/jev_question_set_ab.py`, `artifacts/jev-injection-holdout-2026-10-02/`); they test the semantic reading, not a domain pack. |
 | **Cybersecurity (structured intelligence)** | High, addressed in cyber.md but incomplete | CISA KEV / EPSS / NVD integration not implemented. |
 
 These gaps mean REMORA cannot retrieve domain-specific evidence for OT, energy,
@@ -99,6 +101,8 @@ A domain pack begins as a Proposal. The proposer must identify:
 2. The primary sources that will form the RAG corpus (e.g., IEC 62443 for OT).
 3. The policy outcome rules (at minimum: one ACCEPT and one ESCALATE scenario).
 4. The evaluation protocol (what benchmark or shadow-mode corpus will validate the pack).
+5. Optionally, the semantic profile: the question set, the language of the
+   domain's requests, and the corpus a calibration study will use (§11).
 
 Proposals are documented as issues in the project tracker referencing this
 governance document.
@@ -304,3 +308,67 @@ Based on the gap analysis in §3 and the risk profile of each domain:
   outcomes in core policy). Domain packs can only narrow the set of ACCEPT decisions,
   not widen it beyond what the core policy permits.
 - No domain pack may claim to be "production-certified" or "safety-guaranteeing."
+
+---
+
+## 11. Semantic Profile for a Vertical (Jev)
+
+A vertical can add a semantic reading to its domain pack: Jev, asked a fixed
+set of typed questions about each proposed call. The questions ask whether the
+call makes the requested change, on the requested target, and nothing more,
+and whether untrusted text is trying to steer the agent. The reading informs and never authorises. It is defined
+in [docs/integrations/jev_decision_provider.md](../integrations/jev_decision_provider.md).
+
+A profile is one entry in the YAML or JSON file named by
+`REMORA_SEMANTIC_SHADOW_PROFILES`, and tenants are mapped to it:
+
+```yaml
+profiles:
+  telecom-no:
+    questions: v2.1
+    thresholds: {intent: 0.85, target: 0.85, injection: 0.5, drift: 0.5}
+    language: no
+    calibration: {status: uncalibrated}
+tenants:
+  example-isp: telecom-no
+```
+
+The values above are the illustrative cuts used in REMORA's own rounds, not
+recommendations. Every key is checked when the service starts, and a wrong
+file refuses startup.
+
+### 11.1 What a vertical decides
+
+| Decision | Why it is the vertical's | Constraint |
+|---|---|---|
+| Question set | Wording is what thresholds are calibrated against | A shipped version (`v1`, `v2`, `v2.1`); a new wording is a new version in `remora/decision_providers/questions.py` |
+| Thresholds | The cost of a missed scope drift differs between a bank and a monitoring read | All four are required; there are no defaults |
+| Language | Jev's primary language is English; REMORA's hold-out flagged Norwegian text about twice as often (`results/jev_injection_holdout_v1.json`) | Declare it, so the language caveat is shown or dropped correctly |
+| Calibration record | Whether the thresholds were measured or assumed | `calibrated` requires `study` and `corpus_sha256` |
+| Tenants | Arguments and untrusted text leave the process | Per-tenant opt-in only |
+
+### 11.2 From uncalibrated to calibrated
+
+1. Start in shadow with `calibration: {status: uncalibrated}`. Nothing in the
+   decision changes, and every reading says the thresholds are uncalibrated.
+2. Label a sample of shadow records by `proposal_id` (`legitimate`,
+   `wrong_target`, `scope_drift`, `injection`) and run
+   `scripts/semantic_shadow_report.py --truth`. It reports what the sensor
+   missed and flagged separately from what would have changed the decision.
+3. Write a pre-registration before choosing thresholds, as
+   `artifacts/jev-injection-holdout-2026-10-02/PREREGISTRATION.md` does: the
+   corpus, its hash, the criteria, and a test split sealed before scoring.
+   Cuts read off the test split are hints, not results.
+4. Commit the study and its result, then set the profile to
+   `calibrated` with `study` and `corpus_sha256`. Re-run the study when the
+   resolved model, the question set or the domain's language changes.
+
+### 11.3 What a profile cannot do
+
+A profile changes which questions are asked and where the cuts are. It
+cannot make a reading authoritative, write a deployment fact, lower a safety
+flag or name a route. Under the execution profile no combination of model
+signals reaches ACCEPT, whatever the profile says. Wiring the reading into a
+decision is a separate change with its own review, and it should follow the
+calibration study.
+
