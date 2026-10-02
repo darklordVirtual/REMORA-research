@@ -191,7 +191,9 @@ def reviewer_view(record: Mapping[str, Any]) -> dict[str, Any]:
         )
         return base | {"status": "failed", "reason": reason, "attention": [], "answers": []}
 
-    answers, attention, focus = [], [], {}
+    answers: list[dict[str, Any]] = []
+    attention: list[tuple[float, str]] = []
+    focus: dict[str, dict[str, Any]] = {}
     for question_id, answer in (record.get("answers") or {}).items():
         value = answer.get("value")
         question = _question(version, question_id)
