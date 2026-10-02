@@ -16,12 +16,14 @@ It complements [COPYRIGHT.md](COPYRIGHT.md), [LICENSING.md](LICENSING.md) and [T
 
 | Part | What it records |
 |---|---|
-| Concepts | for twelve distinctive concepts (DecisionEnvelope, ToolSpec, exact-call binding, fresh re-gate, PolicyDecisionToken, ExecutionLease, GovernedToolDispatcher, the ToolSpec-change refusal, runtime capability surface completeness, non-transitivity of authority, evidence sufficiency, authority/effect separation), the first commit that introduced each identifying term, with author date, committer date and signature status |
-| Fingerprints | for ten core modules, winnowing fingerprints of the normalised token stream at one pinned commit (Schleimer, Wilkerson and Aiken, 2003, the method behind MOSS) |
+| Concepts | seventeen concepts, each with the invariant it stands for and the first commit that introduced each identifying term as its own token, with author date, committer date, signature status and up to eight paths |
+| Markers | twelve coined identifiers (`PolicyDecisionToken`, `ExecutionLease`, `GovernedToolDispatcher`, `canonical_tool_call_hash`, `NonceLedger`, `CustodyViolation`, `assert_custody_split`, `REMORA_EXECUTION_DOMAIN_ROLE`, `toolspec_changed_between_assess_and_dispatch`, `task_identity_required`, `authority_effect_separation`, `runtime_capability_surface_completeness`) |
+| Fingerprints | twelve modules, winnowing fingerprints of the normalised token stream at one pinned commit (Schleimer, Wilkerson and Aiken, 2003, the method behind MOSS) |
 | Digest | `register_sha256`, a digest of the whole register |
 
+A term counts only as its own token. The earlier string `regate` matched inside `aggregate` and is not a term. Fresh re-gate is dated from `fresh re-gate` alone.
 Identifiers become `V`, strings `S` and numbers `N` before hashing. Renaming classes and variables, rewording comments or reformatting therefore does not change the fingerprints.
-The register is taken from a pinned snapshot commit, so it reproduces byte for byte and does not drift as the code changes. A test rebuilds it from git history.
+The register is taken from a pinned snapshot commit, so it reproduces byte for byte and does not drift as the code changes. A test rebuilds it from git history. Code added after that snapshot is not in the fingerprints until a new snapshot is appended.
 
 ## Comparing other code
 
@@ -30,22 +32,32 @@ git clone <other repository> /tmp/other
 python scripts/provenance_register.py --compare /tmp/other
 ```
 
-For each REMORA module the output gives the share of its fingerprints found in the most similar file there. A share of 25 % or more is flagged.
-The threshold is calibrated, not guessed:
+The command exits 1 if it flags an overlap, and 0 otherwise. A flag is a reason to read both histories. It is not a finding that anyone copied anything, and it does not replace the license. Commercial use of REMORA requires a written commercial license from the Licensor. See [LICENSING.md](LICENSING.md). Nothing in this register stops a person from copying the files.
 
-| Compared with | Highest share in one file |
+Three signals are reported:
+
+| Signal | Flag |
 |---|---|
-| a copy of `remora/enforcement/lease.py` with every identifier renamed and every comment and string rewritten | above 90 % |
-| unrelated code from this repository (same author, same idioms) | 14 % |
-| six third-party packages (fastapi, pydantic, starlette, httpx, PyJWT, cryptography) | 15.8 % at most |
+| Share of one module's fingerprints in the single most similar Python file | 25 % or more |
+| Share covered by the eight Python files that match that module best | 50 % or more |
+| Coined identifiers found as their own tokens | two or more |
 
-The "anywhere" share pools every file in the other codebase and grows with its size (42 % against pydantic). Read the per-file share, not that one.
+The thresholds are calibrated, not guessed. Measured on 2026-10-02 against the register at snapshot `0b595b8`:
+
+| Compared with | Result |
+|---|---|
+| a copy of `remora/enforcement/lease.py` with every identifier renamed and every comment and string rewritten | above 90 % in one file |
+| that same module split into one renamed file per method | under 25 % in one file, and at least 50 % across eight files |
+| unrelated code from this repository (same author, same idioms) | 14 % in one file |
+| six third-party packages (fastapi, pydantic, starlette, httpx, PyJWT, cryptography) | 11.2 % in one file, 34.4 % across eight files, no coined identifier |
+
+The conformance adapter contracts are not fingerprinted. One of them shared 27 % of its fingerprints with a single pydantic file, which is above the one-file flag, so including it would accuse ordinary Python. The "anywhere" share pools every file and grows with the size of the other tree (42 % against pydantic on the earlier ten-module register). Read the one-file share and the eight-file share, not that pool.
 
 ## What a match does and does not show
 
-A flagged share shows that two pieces of code share structure. It does not show who wrote first or whether one was derived from the other.
+A flagged share shows that two pieces of code share structure, or that coined identifiers survived. It does not show who wrote first or whether one was derived from the other.
 The dated records settle priority, and the other side's own history has to be read as well.
-Shared ideas are not code. Independent work on the same problem often converges on similar architecture, and an architectural resemblance is not, by itself, a copy.
+Shared ideas are not code. Independent work on the same problem often converges on similar architecture, and an architectural resemblance is not, by itself, a copy. The distinctive REMORA property is the chain recorded as PROV-17. An intention is not an effect. The grant is bound to one call and consumed once. A changed ToolSpec is refused. The signer does not perform the effect, and delegated authority does not widen.
 The register names no other project or person. A suspected infringement is a matter for legal advice, not for a public accusation.
 
 ## Interoperability
