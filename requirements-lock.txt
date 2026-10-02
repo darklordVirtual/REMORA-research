@@ -204,13 +204,8 @@ rpds-py==0.28.0
 ruamel.yaml==0.19.1
 ruamel.yaml.clib==0.2.15
 ruff==0.16.9
-<<<<<<< HEAD
 s3fs==2026.2.0
 s3transfer==0.19.2
-=======
-s3fs==2025.9.0
-s3transfer==0.14.0
->>>>>>> origin/master
 safetensors==0.8.0
 scapy==2.6.1
 scikit-learn==1.9.1
