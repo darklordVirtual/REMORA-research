@@ -251,6 +251,29 @@ def test_an_expired_authorization_is_refused_never_redispatched(client) -> None:
     assert settled.projected_at is not None
 
 
+def test_a_row_without_a_requester_is_not_honoured_as_the_worker(client) -> None:
+    """Issue #420: a pending row that cannot name its requester must not be
+    dispatched under the worker process identity."""
+    import dataclasses
+
+    proposal_id, row = _authorized_pending(client)
+    exec_mod = _exec_mod()
+    unbound = dataclasses.replace(row, requested_by=None)
+    exec_mod._outbox()._rows[row.outbox_id] = unbound
+
+    results = exec_mod.dispatch_pending_intents("acme", worker_id="w-9")
+    assert results[0]["tool_execution"]["executed"] is False
+    assert results[0]["tool_execution"]["refusal_reason"] == (
+        "requester_identity_missing")
+    settled = exec_mod._outbox().rows_for_proposal("acme", proposal_id)[0]
+    assert settled.state is OutboxState.REFUSED
+    result_events = [e.payload for e in exec_mod._CHAIN.entries("acme")
+                     if e.payload.get("event") == "execution_result"]
+    assert result_events[0]["actor"] == ""
+    assert result_events[0]["executed_by"] == "w-9"
+    assert "worker:w-9" not in result_events[0].values()
+
+
 def test_a_row_without_an_expiry_cannot_prove_freshness(client) -> None:
     """Pre-#418 rows carry no authorization_expires_at: refused, never
     dispatched on a guess about their age."""

@@ -501,6 +501,33 @@ def test_reconcile_stale_only_touches_claimed_rows(outbox) -> None:
     assert outbox.get(row.outbox_id).state is OutboxState.DISPATCH_PENDING
 
 
+def test_reconcile_stale_skips_a_row_another_worker_already_settled(outbox) -> None:
+    """A worker that finishes between the scan and the update is not a crash.
+
+    The durable adapters select DISPATCHING rows, then settle each one in a
+    later transaction. If that row is already terminal, reconciliation must
+    leave it and continue, not raise and abandon the rest of the pass.
+    """
+    from datetime import timedelta
+
+    finished = _intent(outbox, proposal_id="finished", item_id="finished")
+    still_open = _intent(outbox, proposal_id="open", item_id="open")
+    outbox.claim(finished.outbox_id, worker_id="w1")
+    outbox.claim(still_open.outbox_id, worker_id="w1")
+    real_settle = outbox.settle
+
+    def finish_first(outbox_id, state, **kwargs):
+        if outbox_id == finished.outbox_id and state is OutboxState.UNKNOWN:
+            real_settle(outbox_id, OutboxState.SUCCEEDED, detail="worker finished")
+        return real_settle(outbox_id, state, **kwargs)
+
+    outbox.settle = finish_first
+    settled = outbox.reconcile_stale("acme", older_than=timedelta(seconds=-1))
+    assert [r.outbox_id for r in settled] == [still_open.outbox_id]
+    assert outbox.get(finished.outbox_id).state is OutboxState.SUCCEEDED
+    assert outbox.get(still_open.outbox_id).state is OutboxState.UNKNOWN
+
+
 def test_reconcile_stale_settles_a_claimed_row_as_unknown(outbox) -> None:
     """UNKNOWN, never a retry: the worker may have invoked the tool before dying."""
     from datetime import timedelta
