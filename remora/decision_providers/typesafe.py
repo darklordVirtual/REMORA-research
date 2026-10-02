@@ -86,9 +86,11 @@ def _error_detail(exc: urllib.error.HTTPError) -> str:
 
 def _retry_after(exc: urllib.error.HTTPError, attempt: int) -> float:
     header = exc.headers.get("retry-after") if exc.headers else None
+    if header is None:
+        return float(2**attempt)
     try:
         return min(max(float(header), 0.0), _MAX_RETRY_AFTER_S)
-    except (TypeError, ValueError):
+    except ValueError:
         return float(2**attempt)
 
 
