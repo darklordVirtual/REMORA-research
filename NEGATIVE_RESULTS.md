@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-10-02: **16 `open`**, **27 `accepted`**, **31 `superseded`**.
+Counts as of 2026-10-02: **17 `open`**, **27 `accepted`**, **31 `superseded`**.
 
 ## The actual backlog
 
@@ -106,6 +106,11 @@ cites only `open` sections and that no `open` section is missing a theme.
    `adversarial_detected` on legitimate calls at the illustrative 0.5 cut,
    on different tasks. Until a calibrated threshold or a better question
    exists, the injection answer costs automation on benign tickets.
+11. **Evidence-admission trust inputs are asserted** (§75): the admission
+   layer derives the checkers' premises, but the deployment's
+   accepted-producer map and the clock are taken on faith. Trusted
+   timestamping and WORM-anchored trust configuration are the mitigations
+   (REM-025), not this layer.
 
 <!-- backlog-end -->
 
@@ -4467,3 +4472,35 @@ Norwegian scenarios were flagged at about twice the English rate. The same
 round found V1 giving a favourable admission on one wrong-target scenario;
 V2 and V2.1 gave none.
 
+
+## §75 Evidence admission: premises are derived, but trust configuration and the clock are taken on faith (2026-10-02)
+<!-- finding-status: open -->
+
+**Status:** recorded at the introduction of `remora/evidence/admission/`
+(CoSAI §7.4 evidence-admission layer, design in
+`docs/design/evidence-admission-v1.md`). Open.
+
+**What is intentionally not solved.** The admission layer derives the frozen
+checkers' premises (source accepted, coverage complete, binding, prior
+commitment) from typed evidence joined against a deployment-owned
+`TrustConfig`. Two trust inputs are asserted, not established by the layer:
+
+1. **The accepted-producer map is the deployment's word.** A producer whose
+   manifest digest the deployment has configured is accepted; the layer
+   cannot tell a reviewed producer from a rubber-stamped one. A
+   misconfigured deployment accepts what it configured.
+2. **The clock.** `PriorCommitment.predates()` compares two timestamps. A
+   dishonest or misconfigured clock defeats the prior-commitment binding;
+   the layer detects nothing about time's provenance.
+
+**Why it matters.** These are exactly the inputs an attacker with
+deployment access would target, and the layer's claim ceiling
+(`docs/design/evidence-admission-v1.md`) only holds while the reader
+remembers they are inputs. The mitigations are external: trusted timestamping
+(RFC 3161) and WORM-anchored trust configuration are the roadmap items
+(REM-025), not this layer.
+
+**What this does not weaken.** The frozen checkers are untouched. The
+admission layer cannot reach authority modules (AST-guarded). A
+misconfigured trust map can only ever *accept* evidence: it cannot
+authorize, upgrade a decision, or reach execution.

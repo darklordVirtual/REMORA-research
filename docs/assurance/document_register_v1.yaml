@@ -2479,6 +2479,20 @@ documents:
   last_reviewed: '2026-10-02'
   validates_against: []
   claims: []
+- id: DOC-356
+  path: docs/design/evidence-admission-v1.md
+  status: proposal
+  topic: docs_design_evidence-admission-v1_md
+  code_synced: verified
+  verdict: pending
+  owner: darklordVirtual
+  audience:
+  - integrators
+  - maintainers
+  - evaluators
+  last_reviewed: '2026-10-02'
+  validates_against: []
+  claims: []
 - id: DOC-338
   path: docs/14-remora-prime-architecture.md
   status: proposal

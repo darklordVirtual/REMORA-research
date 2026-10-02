@@ -115,3 +115,29 @@ __all__ = [
     "DOMAIN_REGISTRY",
     "get_provider",
 ]
+
+
+def __getattr__(name: str):
+    """Lazy re-export of the evidence-admission surface (CoSAI §7.4).
+
+    The admission types are production-oriented but off the hot path; importing
+    them eagerly would cost every ``import remora.evidence`` their module load.
+    The authoritative import path is ``remora.evidence.admission``.
+    """
+    if name in _ADMISSION_NAMES:
+        from remora.evidence import admission
+
+        return getattr(admission, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+_ADMISSION_NAMES = frozenset({
+    "CoverageAttestation", "CoverageState", "EstablishmentStatus",
+    "EvidenceAdmission", "InvocationBindingProof", "KnownGap",
+    "ManifestTrust", "ObservationVantage", "PriorCommitment",
+    "ProcessingStatus", "ProducerCapabilityManifest", "TrustConfig",
+    "VantageIndependence", "admit_evidence", "process_evidence_payload",
+    "processing_failure",
+})
+
+__all__ += sorted(_ADMISSION_NAMES)

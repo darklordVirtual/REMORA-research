@@ -766,3 +766,53 @@ capabilities:
       - tests/meta/test_divergence.py
       - tests/meta/test_register_evidences.py
     caveat: "Metatest detection logic covers basic claim parsing and basic structural evidence, but does not capture all complex prose statements automatically."
+
+  - id: CAP-025
+    name: "Evidence admission for sufficiency premises (CoSAI §7.4: visibility, coverage, vantage, binding, prior commitment)"
+    status: IMPLEMENTED_LIBRARY
+    verified_at_sha: 52efe215633dbe47bd381acf4009fdfa66eb6eb8
+    verified_by: >-
+      audit 2026-10-02 at registration: remora/evidence/admission/ adds five
+      frozen types (ProducerCapabilityManifest, CoverageAttestation,
+      ObservationVantage, InvocationBindingProof, PriorCommitment) and
+      admit_evidence(), which derives the premises the frozen conformance
+      checkers take as trusted booleans from typed records joined against a
+      deployment-owned TrustConfig. Evidence green at this revision:
+      tests/test_evidence_admission_models.py (25), the adversarial matrix in
+      tests/test_evidence_admission_adversarial.py (24), and the isolation and
+      invariant suite tests/test_evidence_admission_isolation.py (5, including
+      the AST guard against importing remora.enforcement/execution/policy and
+      the erasure-monotonicity and scope-non-transitivity invariants) all pass.
+      Processing-boundary tests in tests/test_evidence_admission_processing.py
+      cover malformed input, unsupported schemas, parser/verifier failures,
+      acquisition failure reporting, and raw-byte digest derivation.
+      Method: test execution plus review of the authority boundary; not an
+      external audit. Bound to the commit carrying the layer.
+    evidence:
+      - remora/evidence/admission/models.py
+      - remora/evidence/admission/admission.py
+      - remora/evidence/admission/canonical.py
+      - remora/evidence/admission/reasons.py
+      - tests/test_evidence_admission_models.py
+      - tests/test_evidence_admission_adversarial.py
+      - tests/test_evidence_admission_isolation.py
+      - tests/test_evidence_admission_processing.py
+      - docs/design/evidence-admission-v1.md
+    caveat: >-
+      Library only: nothing in the runtime reads an EvidenceAdmission, and no
+      adapter feeds it into the frozen conformance checkers (their
+      synthetic-fixture premise boundary stands). process_evidence_payload
+      bounds raw JSON and separates malformed input, unsupported schemas,
+      parser errors, and verifier exceptions from property facts. A caller
+      supplies a schema-specific parser for the five typed evidence records;
+      the parser is trusted code and this does not authenticate its source.
+      Prior commitments must match deployment-pinned digests, and observer
+      domains must appear in the deployment trust configuration.
+      Acquisition code can report a processing failure through
+      processing_failure. TrustConfig's accepted-producer map is the
+      deployment's authority. A misconfigured deployment accepts what it
+      configured, and a dishonest clock defeats the prior-commitment predating
+      check. Claim ceiling in docs/design/evidence-admission-v1.md: no global
+      completeness, no non-bypassability, no independence from a declaration,
+      no accepted event content or property refutation, no absence outside the
+      established denominator, no causation, no authorization from evidence.
