@@ -23,8 +23,8 @@ favourable default, because absence of evidence and evidence of safety are
 different states.
 
 Scope (declared, not exhaustive): the contract, the projection and the
-deterministic reference provider. No network adapter is tested here because
-none is shipped, and the properties above hold for any adapter since they are
+deterministic reference provider. The network adapters are tested in their
+own files; the properties above hold for any adapter since they are
 properties of the projection.
 """
 

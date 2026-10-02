@@ -296,6 +296,17 @@ This file lists externally relevant changes by release. Fine-grained development
   `enrich`, gave one favourable admission on a wrong target. Deviations, one
   of them an Opus author declining the injection brief, are in the
   artifact's `DEVIATIONS.md`.
+- Semantic shadow mode on the enforcing assess path.
+  `remora/decision_providers/shadow.py` evaluates a provider beside a real
+  decision and returns a record of the actual, engine and counterfactual
+  actions with answers, latency and billed input tokens; it never mutates
+  the observation and turns every fault into a record.
+  `servers/semantic_shadow.py` wires it into `assess_proposal` through a new
+  `semantic_shadow` parameter, called after the audit record is durable, on a
+  bounded background pool, for opted-in tenants with a server-resolved
+  operator request. Off by default; refused at startup when switched on
+  without tenants, question set, thresholds and log path. The response is
+  unchanged with the shadow off, on or failing.
 - `remora.decision_providers.questions` and `remora.decision_providers.enrich`
   complete the provider integration end to end. The question set is versioned
   (`remora-semantic-v1`) because thresholds are calibrated against a specific

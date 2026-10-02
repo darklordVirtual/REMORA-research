@@ -169,6 +169,43 @@ set to use for shadow evaluation. Its injection threshold and its intent
 and target thresholds still need calibration, and Norwegian text is flagged
 about twice as often as English.
 
+## Shadow mode
+
+`servers/semantic_shadow.py` runs Jev beside every `/v1/execution/assess`
+decision and records what it would have changed. The hook is the
+`semantic_shadow` parameter of `remora/execution/service.py::assess_proposal`.
+It is called after the audit record is appended, its return value is
+ignored, and any exception it raises is swallowed. The response is the same
+with the shadow off, on or failing, and `tests/test_semantic_shadow_server.py`
+holds that through the real route.
+
+The work runs on a small background pool with a bounded queue. A full queue
+drops the proposal and counts it, so a slow provider costs shadow coverage
+and never request latency. Each evaluation appends one `ShadowRecord` to a
+local JSON Lines file. The record holds the final action, the engine's own
+action before any downgrade, the action Jev's answers would have produced
+(`shadow_action`), `would_change`, every answer, the latency and the billed
+input tokens. It is joined to the audit record by `proposal_id` and never
+written into it.
+
+Configuration is explicit and has no defaults for the decisions in it:
+
+| Variable | Meaning |
+|---|---|
+| `REMORA_SEMANTIC_SHADOW` | `1` turns it on; off otherwise |
+| `REMORA_SEMANTIC_SHADOW_TENANTS` | tenants whose calls may leave the process |
+| `REMORA_SEMANTIC_SHADOW_QUESTIONS` | `v1`, `v2` or `v2.1` |
+| `REMORA_SEMANTIC_SHADOW_THRESHOLDS` | `intent=…,target=…,injection=…,drift=…` |
+| `REMORA_SEMANTIC_SHADOW_LOG` | path of the JSON Lines file |
+| `REMORA_SEMANTIC_SHADOW_MODEL` | optional; defaults to the pinned `jev-1.13.0` |
+
+Switching it on with any required setting missing refuses startup, because
+a shadow that silently records nothing would later read as agreement. Only
+proposals whose operator request was resolved server-side
+(`intent_authority_present`) are evaluated; otherwise the question is a
+placeholder built from the call itself. The tool description is taken from
+the signed ToolSpec when a bundle is configured, never from the agent.
+
 ## Cloudflare Workers AI
 
 `remora.decision_providers.cloudflare.CloudflareJevProvider` reaches the model
@@ -285,6 +322,7 @@ It is not a benchmark result. No measurement of Jev against the existing
 oracle corpus exists in this repository yet, and the comparison should be run
 before any claim about replacing an oracle is made.
 
-It is not a production gate. Nothing in the shipped execution path calls
-`enrich`. Wiring it into a governed dispatch is a separate change with its
+It is not a production gate. The shipped execution path calls `enrich` only
+in shadow mode, described below, where the answer is recorded and never
+used. Letting it influence a governed decision is a separate change with its
 own review, and it should follow the calibration study rather than precede it.

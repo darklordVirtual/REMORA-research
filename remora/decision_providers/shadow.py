@@ -37,7 +37,7 @@ import time
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any, Callable, Mapping, Sequence
 
 from remora.decision_providers import DecisionProvider, DecisionQuestion
 from remora.decision_providers.enrich import SemanticThresholds, enrich
@@ -51,6 +51,7 @@ class ShadowRecord:
 
     proposal_id: str
     recorded_at: str
+    #: The final action the real path took, after any downgrade.
     actual_action: str
     shadow_action: str | None
     #: True when the provider's admission would have produced a different
@@ -66,6 +67,12 @@ class ShadowRecord:
     latency_ms: float | None = None
     input_tokens: int | None = None
     error: str | None = None
+    tenant: str | None = None
+    tool_name: str | None = None
+    #: The engine's own action before any downgrade the real path applied
+    #: afterwards (loop safety, capability). The counterfactual is computed by
+    #: the same engine, so this is the like-for-like comparison.
+    engine_action: str | None = None
     #: A shadow record is never authority. Stated in the record itself.
     authoritative: bool = False
 
@@ -85,25 +92,37 @@ def shadow_evaluate(
     provider: DecisionProvider,
     *,
     engine: Any,
-    state: Mapping[str, Any],
+    state: Mapping[str, Any] | Callable[[], Mapping[str, Any]],
     thresholds: SemanticThresholds,
     questions: Sequence[DecisionQuestion],
     proposal_id: str,
     timeout_s: float = 2.0,
+    tenant: str | None = None,
+    tool_name: str | None = None,
+    engine_action: Any = None,
 ) -> ShadowRecord:
     """Evaluate in shadow and return the record. Never raises, never mutates.
 
     ``actual_action`` is the action the real path took, recorded as its name.
     ``engine`` is the engine the real path uses, so the counterfactual is
     computed under the same configuration, execution profile included.
+    ``state`` may be a callable that builds it, so a state that refuses to be
+    built (a credential-shaped key, say) is recorded like any other failure.
     """
     actual = getattr(actual_action, "name", str(actual_action))
+    context = {
+        "tenant": tenant,
+        "tool_name": tool_name,
+        "engine_action": (
+            getattr(engine_action, "name", str(engine_action)) if engine_action is not None else None
+        ),
+    }
     started = time.perf_counter()
     try:
         result = enrich(
             observation,
             provider,
-            state=state,
+            state=state() if callable(state) else state,
             thresholds=thresholds,
             questions=questions,
             timeout_s=timeout_s,
@@ -134,6 +153,7 @@ def shadow_evaluate(
             notes=result.notes,
             input_tokens=evidence.input_tokens if evidence else None,
             latency_ms=round(evidence.latency_ms if evidence else (time.perf_counter() - started) * 1000.0, 1),
+            **context,
         )
     except Exception as exc:  # noqa: BLE001 - a shadow must never break the real path
         return ShadowRecord(
@@ -149,6 +169,7 @@ def shadow_evaluate(
             state_hash=None,
             latency_ms=round((time.perf_counter() - started) * 1000.0, 1),
             error=f"{type(exc).__name__}: {exc}",
+            **context,
         )
 
 

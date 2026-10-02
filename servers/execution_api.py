@@ -1710,6 +1710,30 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     return response
 
 
+def _toolspec_description(tool_name: str) -> str | None:
+    """The signed ToolSpec's description, for the semantic shadow's state.
+
+    Taken from the spec, never from the agent. ``None`` when no bundle is
+    configured or the tool is not in it; the shadow then sends none.
+    """
+    bundle = _toolspec_bundle()
+    if bundle is None:
+        return None
+    try:
+        return bundle.get(tool_name).description
+    except ToolSpecRefused:
+        return None
+
+
+# Off unless REMORA_SEMANTIC_SHADOW is set, and refused at startup when it is
+# set without the rest of its configuration (servers/semantic_shadow.py).
+from servers.semantic_shadow import build_semantic_shadow_from_env  # noqa: E402
+
+_SEMANTIC_SHADOW = build_semantic_shadow_from_env(
+    engine=_ENGINE, tool_description=_toolspec_description,
+)
+
+
 def _assess_proposal_with_loop_state(
     *, tenant: str, principal: str, req: "ToolCallRequest",
 ) -> dict[str, Any]:
@@ -1728,6 +1752,7 @@ def _assess_proposal_with_loop_state(
         loop_safety=_loop_safety_monitor(),
         capability_gate=(lambda proposal: _capability_block(proposal, principal, tenant))
         if _capability_resolver() is not None else None,
+        semantic_shadow=_SEMANTIC_SHADOW,
     )
 
 
