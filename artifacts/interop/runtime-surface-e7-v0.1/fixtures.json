@@ -1,0 +1,150 @@
+{
+  "schema_version": "remora-runtime-surface-e7-fixtures-v0.1",
+  "source_revision": "35db242ffd212320576a0636e125cf8dbf12a25c",
+  "claim_id": "bounded_observed_surface_matches_governed_set",
+  "result_vocabulary": [
+    "ESTABLISHED",
+    "CONTRADICTED",
+    "NOT_ESTABLISHED"
+  ],
+  "claim_ceiling": "ESTABLISHED means only that the supplied complete agent-runtime observation matches the supplied governed tool set under this fixture contract. It does not establish runtime_capability_surface_completeness, absence of host credentials, absence of unobserved alternative paths, execution occurrence, production enforcement, or external-host completeness.",
+  "cases": [
+    {
+      "id": "valid_reference_surface",
+      "kind": "surface",
+      "runtime_identity": "agent-1",
+      "expected_runtime_identity": "agent-1",
+      "observation_source": "agent-runtime",
+      "complete": true,
+      "governed_tools": {
+        "update_ticket": "spec-a"
+      },
+      "tools": [
+        {
+          "tool_id": "update_ticket",
+          "source": "native",
+          "registered": true,
+          "offered_to_agent": true,
+          "callable_at_dispatch": true,
+          "toolspec_hash": "spec-a"
+        }
+      ],
+      "expected": {
+        "surface_verdict": "MATCHED_OBSERVATION",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "undeclared_tool_invocation_surface",
+      "kind": "surface",
+      "provenance": "derived from artifacts/runtime_surface/negative_cases_v1.json#runtime_only_shell",
+      "runtime_identity": "agent-1",
+      "expected_runtime_identity": "agent-1",
+      "observation_source": "agent-runtime",
+      "complete": true,
+      "governed_tools": {
+        "update_ticket": "spec-a"
+      },
+      "tools": [
+        {
+          "tool_id": "update_ticket",
+          "source": "native",
+          "registered": true,
+          "offered_to_agent": true,
+          "callable_at_dispatch": true,
+          "toolspec_hash": "spec-a"
+        },
+        {
+          "tool_id": "shell",
+          "source": "injected",
+          "registered": true,
+          "offered_to_agent": true,
+          "callable_at_dispatch": true,
+          "toolspec_hash": null
+        }
+      ],
+      "expected": {
+        "surface_verdict": "MISMATCH",
+        "claim_result": "CONTRADICTED",
+        "unexpected_tools": [
+          "shell"
+        ]
+      }
+    },
+    {
+      "id": "runtime_identity_changed",
+      "kind": "surface",
+      "provenance": "derived from artifacts/runtime_surface/negative_cases_v1.json#wrong_process_registry",
+      "runtime_identity": "cli-1",
+      "expected_runtime_identity": "agent-1",
+      "observation_source": "agent-runtime",
+      "complete": true,
+      "governed_tools": {
+        "update_ticket": "spec-a"
+      },
+      "tools": [
+        {
+          "tool_id": "update_ticket",
+          "source": "native",
+          "registered": true,
+          "offered_to_agent": true,
+          "callable_at_dispatch": true,
+          "toolspec_hash": "spec-a"
+        }
+      ],
+      "expected": {
+        "surface_verdict": "NOT_ESTABLISHED",
+        "claim_result": "NOT_ESTABLISHED",
+        "reasons": [
+          "runtime_identity_mismatch"
+        ]
+      }
+    },
+    {
+      "id": "observation_coverage_incomplete",
+      "kind": "surface",
+      "provenance": "derived from artifacts/runtime_surface/negative_cases_v1.json#mcp_discovery_not_registration",
+      "runtime_identity": "agent-1",
+      "expected_runtime_identity": "agent-1",
+      "observation_source": "agent-runtime",
+      "complete": false,
+      "governed_tools": {
+        "update_ticket": "spec-a"
+      },
+      "tools": [
+        {
+          "tool_id": "update_ticket",
+          "source": "native",
+          "registered": true,
+          "offered_to_agent": true,
+          "callable_at_dispatch": true,
+          "toolspec_hash": "spec-a"
+        }
+      ],
+      "expected": {
+        "surface_verdict": "NOT_ESTABLISHED",
+        "claim_result": "NOT_ESTABLISHED",
+        "reasons": [
+          "surface_incomplete"
+        ]
+      }
+    },
+    {
+      "id": "alternative_effect_path_observed",
+      "kind": "effect_path",
+      "provenance": "derived from artifacts/runtime_surface/reference_runtime_v1.json#cases/alternate_effect_path",
+      "path_inventory_complete": false,
+      "alternative_effect_paths": [
+        [
+          "shell",
+          "write"
+        ]
+      ],
+      "expected": {
+        "claim_id": "exclusive_effect_path",
+        "claim_result": "CONTRADICTED",
+        "reason": "alternative_effect_path_observed"
+      }
+    }
+  ]
+}
