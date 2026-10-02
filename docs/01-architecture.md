@@ -55,6 +55,8 @@ flowchart TD
     B -.->|"injection found: adversarial_detected set,<br/>models never consulted"| E
     C["<b>2 · Multi-oracle consensus</b><br/>remora/engine.py<br/>independent models judge the same action,<br/>merged into one trust score"] --> D
     D["<b>3 · Evidence verification</b><br/>remora/oracles/evidence_verifier.py<br/>do the cited sources support or contradict it?"] --> E
+    S["<b>Semantic reading (Jev)</b><br/>remora/decision_providers/<br/>does the call match the request, the target,<br/>the scope? is untrusted text steering it?"]
+    S -.->|"evidence signal or raised injection flag,<br/>never a verdict"| E
     E["<b>4 · Policy decision</b><br/>RemoraDecisionEngine.decide()<br/>hard_guard_floor() first, and it wins outright,<br/>then conditional guards and trust routing,<br/>then the argument gates on whatever is left"]
     E --> F{"Answer"}
     F -->|ACCEPT| G["<b>Run it</b>: GovernedToolDispatcher<br/>under a single-use ExecutionLease tied to tenant,<br/>actor, tool, exact arguments, environment, policy hash"]
@@ -66,6 +68,9 @@ flowchart TD
     H --> K
     I --> K
     J --> K
+    K -.->|"shadow only, after the record is kept"| R["<b>Jev's reading</b><br/>what the lookup should check (VERIFY)<br/>where the approver should look (ESCALATE)"]
+    R -.-> H
+    R -.-> J
 ```
 
 **Why the firewall's arrow is dotted.** The admission firewall does not issue the
@@ -73,6 +78,13 @@ verdict itself. It sets `adversarial_detected` and suppresses the model fan-out,
 then the first hard guard in step 4 turns that flag into ESCALATE
 (`ADMISSION_FIREWALL_BLOCKED`). Every verdict comes out of one place, which is why the
 explanation of a decision can never disagree with the decision.
+
+**Why Jev's arrows are dotted.** Jev is a semantic sensor, not an authority. It answers typed questions about the call, and its answers can do two things only.
+They can add a favourable evidence signal, which stops at VERIFY under the execution
+profile, or raise the same `adversarial_detected` flag the firewall uses. On the
+enforcing execution path it runs in shadow, after the audit record is kept, and
+its reading goes to whoever resolves the decision. See
+[integrations/jev_decision_provider.md](integrations/jev_decision_provider.md).
 
 **Why hard guards "win outright".** The deterministic hard guards (schema,
 forbidden-tool, tainted-argument, contradicting-evidence, counterfactual,
@@ -93,13 +105,21 @@ architectural property of the policy layer, not of the consensus machinery: see
 allowed to supply them. The lookup cannot switch tools or write anything outside its
 plan, and if no lookup exists at all the answer is ABSTAIN instead: promising a check
 that cannot happen is worse than stopping. When the answer comes back, step 4 runs
-again from scratch on a fresh view. In today's execution API a VERIFY is enqueued for a
-person **and** the plan is returned to the caller. `/v1/execution/*` surfaces a
+again from scratch on a fresh view. VERIFY is a machine step: a lookup in a system of
+record, a RAG index or documentation. A person is ESCALATE. When the semantic shadow
+is on, Jev's reading names what the lookup should check (`verification_focus`:
+target, intent, scope, and untrusted text not to use as a source); it widens no
+plan. In today's execution API a VERIFY is also enqueued as a review item **and** the
+plan is returned to the caller. `/v1/execution/*` surfaces a
 `machine_resolution` plan verbatim when the engine produced one, and a `human_approval`
 plan otherwise (`servers/execution_api.py:_resolution_plan_for`, wired through
 `remora/execution/service.py`). What is still not wired is the *execution* of that plan:
 REMORA does not run the named lookup itself, so the caller performs it and resubmits.
 Corrected 2026-09-03; this paragraph previously said the mechanism was not wired at all.
+A VERIFY for which the engine produced no machine plan currently falls back to a
+`human_approval` plan. That fallback treats VERIFY as human review, which is what
+ESCALATE is for; it is an open design question whether it should become ABSTAIN
+or ESCALATE.
 
 **What running it means.** `/v1/execution/execute` spends a single-use grant and calls
 the tool through `GovernedToolDispatcher`. Permission is welded to the exact call it

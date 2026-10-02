@@ -77,7 +77,7 @@ from remora.decision_providers import (
     evidence_fingerprint,
 )
 
-__all__ = ["CloudflareJevProvider", "JEV_MODEL_ID"]
+__all__ = ["CloudflareJevProvider", "JEV_MODEL_ID", "parse_answer", "question_payload"]
 
 #: The Workers AI model identifier. Not a version: the response names that.
 JEV_MODEL_ID = "typesafe/jev"
@@ -92,6 +92,81 @@ _API_KIND = {
 _RETRYABLE = frozenset({429, 500, 502, 503, 504})
 
 Transport = Callable[[str, bytes, Mapping[str, str], float], Mapping[str, Any]]
+
+
+def question_payload(question: DecisionQuestion) -> dict[str, Any]:
+    """One question in the Jev wire shape, shared by every Jev adapter."""
+    payload: dict[str, Any] = {
+        "type": _API_KIND[question.kind],
+        "instructions": question.instructions,
+    }
+    if question.criteria is not None:
+        payload["criteria"] = dict(question.criteria)
+    elif question.kind is QuestionKind.CHOICE:
+        payload["criteria"] = {option: option for option in question.options}
+    elif question.kind is QuestionKind.SCORE:
+        payload["criteria"] = list(question.legend)
+    return payload
+
+
+def parse_answer(question: DecisionQuestion, raw: Mapping[str, Any]) -> DecisionAnswer:
+    """One Jev answer as a :class:`DecisionAnswer`, losing nothing.
+
+    Shared by every Jev adapter: the answer shape is the model's, not the
+    transport's.
+    """
+    kind = raw.get("type")
+    expected = _API_KIND[question.kind]
+    if kind != expected:
+        raise DecisionProviderError(
+            f"question {question.id!r} asked for {expected!r} and the provider "
+            f"answered {kind!r}"
+        )
+    probabilities = raw.get("probabilities")
+    if kind == "noul":
+        if "noul" not in raw:
+            raise DecisionProviderError(f"noul answer for {question.id!r} has no value")
+        probability = _unit_interval(raw["noul"], f"noul answer for {question.id!r}")
+        return DecisionAnswer(
+            question_id=question.id,
+            value=probability,
+            probabilities={"true": probability, "false": 1.0 - probability},
+            confidence=raw.get("confidence"),
+        )
+    if kind == "choice":
+        chosen = raw.get("choice")
+        if chosen not in question.options:
+            raise DecisionProviderError(
+                f"provider chose {chosen!r} for {question.id!r}, which is not one of "
+                f"the declared options {question.options}"
+            )
+        return DecisionAnswer(
+            question_id=question.id,
+            value=chosen,
+            probabilities=dict(probabilities) if probabilities else None,
+            confidence=raw.get("confidence"),
+        )
+    if "score" not in raw:
+        raise DecisionProviderError(f"score answer for {question.id!r} has no value")
+    legend = raw.get("legend")
+    if isinstance(legend, Mapping):
+        labels = tuple(legend[key] for key in sorted(legend, key=int))
+    else:
+        labels = question.legend
+    return DecisionAnswer(
+        question_id=question.id,
+        value=_finite(raw["score"], f"score answer for {question.id!r}"),
+        probabilities=dict(probabilities) if probabilities else None,
+        confidence=raw.get("confidence"),
+        legend=labels or None,
+    )
+
+
+def _input_tokens(body: Mapping[str, Any]) -> int | None:
+    """``usage.input_tokens`` when the response reports it; Jev bills input only."""
+    usage = body.get("usage")
+    value = usage.get("input_tokens") if isinstance(usage, Mapping) else None
+    return int(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else None
 
 
 def _https_transport(
@@ -179,17 +254,7 @@ class CloudflareJevProvider:
     # -- request ----------------------------------------------------------
 
     def _question_payload(self, question: DecisionQuestion) -> dict[str, Any]:
-        payload: dict[str, Any] = {
-            "type": _API_KIND[question.kind],
-            "instructions": question.instructions,
-        }
-        if question.criteria is not None:
-            payload["criteria"] = dict(question.criteria)
-        elif question.kind is QuestionKind.CHOICE:
-            payload["criteria"] = {option: option for option in question.options}
-        elif question.kind is QuestionKind.SCORE:
-            payload["criteria"] = list(question.legend)
-        return payload
+        return question_payload(question)
 
     def _body(
         self, state: Mapping[str, Any], questions: Sequence[DecisionQuestion]
@@ -206,51 +271,7 @@ class CloudflareJevProvider:
 
     @staticmethod
     def _answer(question: DecisionQuestion, raw: Mapping[str, Any]) -> DecisionAnswer:
-        kind = raw.get("type")
-        expected = _API_KIND[question.kind]
-        if kind != expected:
-            raise DecisionProviderError(
-                f"question {question.id!r} asked for {expected!r} and the provider "
-                f"answered {kind!r}"
-            )
-        probabilities = raw.get("probabilities")
-        if kind == "noul":
-            if "noul" not in raw:
-                raise DecisionProviderError(f"noul answer for {question.id!r} has no value")
-            probability = _unit_interval(raw["noul"], f"noul answer for {question.id!r}")
-            return DecisionAnswer(
-                question_id=question.id,
-                value=probability,
-                probabilities={"true": probability, "false": 1.0 - probability},
-                confidence=raw.get("confidence"),
-            )
-        if kind == "choice":
-            chosen = raw.get("choice")
-            if chosen not in question.options:
-                raise DecisionProviderError(
-                    f"provider chose {chosen!r} for {question.id!r}, which is not one of "
-                    f"the declared options {question.options}"
-                )
-            return DecisionAnswer(
-                question_id=question.id,
-                value=chosen,
-                probabilities=dict(probabilities) if probabilities else None,
-                confidence=raw.get("confidence"),
-            )
-        if "score" not in raw:
-            raise DecisionProviderError(f"score answer for {question.id!r} has no value")
-        legend = raw.get("legend")
-        if isinstance(legend, Mapping):
-            labels = tuple(legend[key] for key in sorted(legend, key=int))
-        else:
-            labels = question.legend
-        return DecisionAnswer(
-            question_id=question.id,
-            value=_finite(raw["score"], f"score answer for {question.id!r}"),
-            probabilities=dict(probabilities) if probabilities else None,
-            confidence=raw.get("confidence"),
-            legend=labels or None,
-        )
+        return parse_answer(question, raw)
 
     # -- the contract -----------------------------------------------------
 
@@ -329,6 +350,7 @@ class CloudflareJevProvider:
             response_hash=evidence_fingerprint(dict(raw_answers)),
             answers=tuple(answers),
             latency_ms=latency_ms,
+            input_tokens=_input_tokens(body),
         )
 
     def _fetch(

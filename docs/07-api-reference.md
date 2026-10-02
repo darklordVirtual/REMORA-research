@@ -515,6 +515,24 @@ what is missing. A plan is signed into the lease when the call is executed,
 not into the ACCEPT token at assessment. It guards against premises that
 moved, not against a different plan presented later.
 
+**Semantic reading (`GET /proposals/{proposal_id}/semantic-assessment`).**
+When the semantic shadow is on (`REMORA_SEMANTIC_SHADOW`, see
+[integrations/jev_decision_provider.md](integrations/jev_decision_provider.md)),
+Jev's reading of a proposal is recorded beside the audit chain and served
+here. Every response carries `authoritative: false` and an `advisory` text,
+and no approval, resolution or execution path reads it. Read capability is
+required and the route is tenant-scoped: another tenant's proposal is a 404.
+
+| Field | Meaning |
+|---|---|
+| `status` | `available`, `failed`, or why there is no reading: `not_enabled`, `pending`, `tenant_not_opted_in`, `request_not_resolved`, `dropped`, `unknown` |
+| `for` | `verifier` at VERIFY (a machine lookup), `approver` at ESCALATE (a person) |
+| `verification_focus` | checks for the lookup, worst first: `confirm_target`, `confirm_intent`, `confirm_scope`, `exclude_untrusted_text` |
+| `attention` | the same concerns in plain words, with value and cut |
+| `answers` | every answer with its question, value, cut and, for a score, the nearest level's label |
+| `would_change_to` | the action Jev's answers would have produced, when it differs |
+| `profile`, `language`, `caveats` | the deployment profile, its language, and the caveats that apply to it |
+
 **Authentication modes:** token-table mode (`REMORA_API_TOKENS`) maps each
 bearer token to a fixed tenant and role; callers cannot forge either.
 Single-token mode (`REMORA_API_BEARER_TOKEN`) reads tenant/role from

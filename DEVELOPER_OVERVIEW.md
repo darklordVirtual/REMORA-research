@@ -18,12 +18,16 @@ PolicyObservation
     v
 RemoraDecisionEngine
     |-- ACCEPT
-    |-- VERIFY
+    |-- VERIFY    bounded machine lookup (system of record, RAG, docs), then re-gate
     |-- ABSTAIN
-    `-- ESCALATE
+    `-- ESCALATE  human approval
           |
           v
 review / re-gate when required
+          :
+          :.. semantic shadow (opt-in, after the audit record):
+              Jev's reading -> what the VERIFY lookup checks,
+              where the ESCALATE approver looks; never a decision
           v
 single-use policy grant
           v
@@ -35,6 +39,8 @@ effect verification -> tenant audit chain
 ```
 
 `POST /v1/execution/*` is the enforcing surface. `assess_tool_call(...)` is advisory unless downstream execution is forced through the governed dispatcher.
+
+Jev, TypeSafe's typed semantic-judgment model, enters only through `remora/decision_providers/enrich.py` and, on the enforcing path, only in shadow (`servers/semantic_shadow.py`). It informs and never authorises; see [docs/integrations/jev_decision_provider.md](docs/integrations/jev_decision_provider.md).
 
 ## Core modules
 

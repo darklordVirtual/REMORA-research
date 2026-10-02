@@ -17,6 +17,9 @@ from pathlib import Path
 
 import pytest
 
+#: Every variable that would let the example reach a live model.
+_LIVE_KEYS = ("CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_API_TOKEN", "JEV_API_KEY", "TYPESAFE_API_KEY")
+
 EXAMPLE = Path(__file__).resolve().parents[1] / "examples" / "jev_decision_provider_demo.py"
 
 
@@ -35,7 +38,7 @@ def test_the_example_runs_offline_and_holds_its_own_assertion(scenario: str, exp
         text=True,
         env={"PYTHONIOENCODING": "utf-8", "PATH": "", "SYSTEMROOT": ""} | {
             k: v for k, v in __import__("os").environ.items()
-            if k not in ("CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_API_TOKEN")
+            if k not in _LIVE_KEYS
         },
         timeout=120,
     )
@@ -44,12 +47,15 @@ def test_the_example_runs_offline_and_holds_its_own_assertion(scenario: str, exp
     assert "authorised nothing" in completed.stdout
 
 
-def test_live_mode_refuses_without_credentials(monkeypatch) -> None:
-    env = {k: v for k, v in __import__("os").environ.items()
-           if k not in ("CLOUDFLARE_ACCOUNT_ID", "CLOUDFLARE_API_TOKEN")}
+@pytest.mark.parametrize(
+    ("via", "named"),
+    [("typesafe", "JEV_API_KEY"), ("cloudflare", "CLOUDFLARE_ACCOUNT_ID")],
+)
+def test_live_mode_refuses_without_credentials(via: str, named: str) -> None:
+    env = {k: v for k, v in __import__("os").environ.items() if k not in _LIVE_KEYS}
     completed = subprocess.run(  # noqa: S603
-        [sys.executable, str(EXAMPLE), "--live"],
+        [sys.executable, str(EXAMPLE), "--live", "--via", via],
         capture_output=True, text=True, env=env, timeout=120,
     )
     assert completed.returncode != 0
-    assert "CLOUDFLARE_ACCOUNT_ID" in completed.stderr
+    assert named in completed.stderr
