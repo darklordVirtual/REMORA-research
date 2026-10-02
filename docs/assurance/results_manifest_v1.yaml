@@ -191,6 +191,13 @@ results:
 - path: results/jev_question_set_ab_v1.provenance.json
   class: sidecar
   of: results/jev_question_set_ab_v1.json
+- path: results/jev_injection_holdout_v1.json
+  class: live
+  generator: python experiments/jev_injection_holdout.py
+  needs: JEV_API_KEY (TypeSafe), network access to api.typesafe.ai, and the sealed corpus in artifacts/jev-injection-holdout-2026-10-02
+- path: results/jev_injection_holdout_v1.provenance.json
+  class: sidecar
+  of: results/jev_injection_holdout_v1.json
 - path: results/jev_live_smoke_v1.json
   class: live
   generator: python experiments/jev_live_smoke.py --repeats 3

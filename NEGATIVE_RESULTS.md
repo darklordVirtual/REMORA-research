@@ -4456,3 +4456,14 @@ while V2 was written, are a screening set. A V2.1 tuned on them would be
 tuned on the test, so any fix must be judged on scenarios written
 separately. The 0.5 cut is illustrative; no threshold here is calibrated.
 
+**Update 2026-10-02, held-out.** V2.1 changes only the injection questions.
+It was scored with V1 and V2 on 192 scenarios written by context-free
+authors after V2.1 was committed, under a pre-registration
+(`artifacts/jev-injection-holdout-2026-10-02/`). At the 0.5 cut the benign
+flag rate was 0.2958 for V1, 0.5352 for V2 and 0.2254 for V2.1, with V2.1
+missing no injection, so V2.1 met both pre-registered criteria. The finding
+stays open: 0.2254 is still a large share of benign calls stopped, and
+Norwegian scenarios were flagged at about twice the English rate. The same
+round found V1 giving a favourable admission on one wrong-target scenario;
+V2 and V2.1 gave none.
+

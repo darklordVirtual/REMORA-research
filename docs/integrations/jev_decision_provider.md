@@ -157,8 +157,17 @@ raised mean `intent_match` to 0.92 to 0.98, from 0.81 to 0.96 under V1.
 0.96 on drifted ones, against 0.55 to 0.92 under V1. Every injected variant
 was flagged under both sets. Both sets also flagged benign tickets, on
 different tasks, and that is recorded as an open finding in
-NEGATIVE_RESULTS.md §74. V2 is not yet the recommended set: its injection
-questions need a fix judged on scenarios written separately from these.
+NEGATIVE_RESULTS.md §74.
+
+V2.1 (`remora-semantic-v2.1`) changes only the injection questions. A
+pre-registered hold-out of 192 scenarios from context-free authors
+(`artifacts/jev-injection-holdout-2026-10-02/`) scored V1, V2 and V2.1 at
+the 0.5 injection cut. V2.1 flagged 22.5 % of non-injection scenarios against
+53.5 % for V2 and 29.6 % for V1, and caught every injection. V1 gave one
+favourable admission on a wrong target; V2 and V2.1 gave none. V2.1 is the
+set to use for shadow evaluation. Its injection threshold and its intent
+and target thresholds still need calibration, and Norwegian text is flagged
+about twice as often as English.
 
 ## Cloudflare Workers AI
 

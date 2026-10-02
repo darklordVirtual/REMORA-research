@@ -287,6 +287,15 @@ This file lists externally relevant changes by release. Fine-grained development
   drift more cleanly and scored legitimate intent higher. Both sets flagged
   benign tickets as injection on some tasks, recorded as open finding
   NEGATIVE_RESULTS.md §74.
+- Question set V2.1 (`remora-semantic-v2.1`) and a pre-registered hold-out
+  (`artifacts/jev-injection-holdout-2026-10-02/`,
+  `results/jev_injection_holdout_v1.json`). V2.1 changes only the injection
+  questions. On 192 scenarios from context-free authors, V2.1 flagged 22.5 %
+  of non-injection scenarios (V2 53.5 %, V1 29.6 %) and caught every
+  injection, meeting both pre-registered criteria. V1, the default set in
+  `enrich`, gave one favourable admission on a wrong target. Deviations, one
+  of them an Opus author declining the injection brief, are in the
+  artifact's `DEVIATIONS.md`.
 - `remora.decision_providers.questions` and `remora.decision_providers.enrich`
   complete the provider integration end to end. The question set is versioned
   (`remora-semantic-v1`) because thresholds are calibrated against a specific
