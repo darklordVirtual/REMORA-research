@@ -1,0 +1,231 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "REMORA interop external run record v1",
+  "description": "Published by a verifier after evaluating a REMORA interop package. It names the exact bytes evaluated (package_digest, input digests) and the Git revision actually consumed. Implementation diversity and independence are separate facts: INDEPENDENT requires a second implementation, an external operator and no REMORA imports.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "contract_id",
+    "package_digest",
+    "consumed_revision",
+    "verifier",
+    "imports",
+    "command",
+    "environment",
+    "input_digests",
+    "implementation_diversity",
+    "operator",
+    "independence",
+    "results",
+    "claim_ceiling_repeated",
+    "non_claims_repeated",
+    "run_ref"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "remora-external-run-record-v1"
+    },
+    "contract_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "package_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "consumed_revision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$",
+      "description": "The REMORA Git revision whose bytes the verifier consumed. Recorded here, after the fact, never inside the package."
+    },
+    "verifier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "project",
+        "repository",
+        "implementation_revision",
+        "maintained_by"
+      ],
+      "properties": {
+        "project": {
+          "type": "string",
+          "minLength": 1
+        },
+        "repository": {
+          "type": "string",
+          "minLength": 1
+        },
+        "implementation_revision": {
+          "type": "string",
+          "minLength": 1
+        },
+        "maintained_by": {
+          "enum": [
+            "REMORA",
+            "EXTERNAL"
+          ]
+        }
+      }
+    },
+    "imports": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "remora_runtime",
+        "reference_verifier"
+      ],
+      "properties": {
+        "remora_runtime": {
+          "type": "boolean"
+        },
+        "reference_verifier": {
+          "type": "boolean"
+        }
+      }
+    },
+    "command": {
+      "type": "string",
+      "minLength": 1
+    },
+    "environment": {
+      "type": "string",
+      "minLength": 1
+    },
+    "input_digests": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "sha256"
+        ],
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        }
+      }
+    },
+    "implementation_diversity": {
+      "enum": [
+        "AUTHOR_IMPLEMENTATION",
+        "REPRODUCTION",
+        "SECOND_IMPLEMENTATION"
+      ]
+    },
+    "operator": {
+      "enum": [
+        "AUTHOR",
+        "EXTERNAL"
+      ]
+    },
+    "independence": {
+      "enum": [
+        "NOT_INDEPENDENT",
+        "INDEPENDENT"
+      ]
+    },
+    "results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "claim_id",
+          "case_id",
+          "result"
+        ],
+        "properties": {
+          "claim_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "case_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "result": {
+            "enum": [
+              "ESTABLISHED",
+              "CONTRADICTED",
+              "NOT_ESTABLISHED"
+            ]
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "claim_ceiling_repeated": {
+      "type": "boolean"
+    },
+    "non_claims_repeated": {
+      "type": "boolean"
+    },
+    "run_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Public location of the run report."
+    },
+    "published_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "if": {
+    "properties": {
+      "independence": {
+        "const": "INDEPENDENT"
+      }
+    },
+    "required": [
+      "independence"
+    ]
+  },
+  "then": {
+    "properties": {
+      "implementation_diversity": {
+        "const": "SECOND_IMPLEMENTATION"
+      },
+      "operator": {
+        "const": "EXTERNAL"
+      },
+      "verifier": {
+        "properties": {
+          "maintained_by": {
+            "const": "EXTERNAL"
+          }
+        }
+      },
+      "imports": {
+        "properties": {
+          "remora_runtime": {
+            "const": false
+          },
+          "reference_verifier": {
+            "const": false
+          }
+        }
+      },
+      "claim_ceiling_repeated": {
+        "const": true
+      },
+      "non_claims_repeated": {
+        "const": true
+      }
+    }
+  }
+}

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "REMORA external evidence reference v1",
-  "description": "Opaque reference to a foreign native claim. This record grants no REMORA authority by itself.",
+  "description": "Opaque reference to a foreign native claim. This record grants no REMORA authority by itself; ADMITTED_AS_CONTEXT is its strongest admission state and no admission state maps to ACCEPT, VERIFY, ABSTAIN or ESCALATE.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -59,6 +59,7 @@
       "additionalProperties": false,
       "required": [
         "verifier",
+        "implementation_diversity",
         "independence"
       ],
       "properties": {
@@ -72,14 +73,50 @@
             "null"
           ]
         },
-        "independence": {
+        "implementation_diversity": {
           "enum": [
-            "AUTHOR_RUN",
+            "AUTHOR_IMPLEMENTATION",
             "REPRODUCTION",
             "SECOND_IMPLEMENTATION",
-            "INDEPENDENT_IMPLEMENTATION",
             "NOT_CLASSIFIED"
           ]
+        },
+        "operator": {
+          "enum": [
+            "AUTHOR",
+            "EXTERNAL",
+            "NOT_CLASSIFIED"
+          ]
+        },
+        "independence": {
+          "enum": [
+            "NOT_INDEPENDENT",
+            "INDEPENDENT",
+            "NOT_CLASSIFIED"
+          ]
+        }
+      },
+      "if": {
+        "properties": {
+          "independence": {
+            "const": "INDEPENDENT"
+          }
+        },
+        "required": [
+          "independence"
+        ]
+      },
+      "then": {
+        "required": [
+          "operator"
+        ],
+        "properties": {
+          "implementation_diversity": {
+            "const": "SECOND_IMPLEMENTATION"
+          },
+          "operator": {
+            "const": "EXTERNAL"
+          }
         }
       }
     },
@@ -93,7 +130,8 @@
         "ADMITTED_AS_CONTEXT",
         "REJECTED",
         "NOT_EVALUATED"
-      ]
+      ],
+      "description": "Deployment-owned admission step. ADMITTED_AS_CONTEXT is the maximum; no state creates authority."
     },
     "note": {
       "type": "string"

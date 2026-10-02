@@ -1,0 +1,62 @@
+name: Federation Interop Contract
+
+# Runs the machine-enforced producer-contract tests for artifacts/interop
+# whenever the package, its documentation, the contract tests or this
+# workflow change. Deterministic: no secrets, no network beyond checkout and
+# the pinned install.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "artifacts/interop/**"
+      - "docs/interop/FEDERATION.md"
+      - "tests/test_federation_interop_contract.py"
+      - "tests/test_runtime_surface_e7_fixture_contract.py"
+      - ".github/workflows/federation-interop.yml"
+  push:
+    branches: [master]
+    paths:
+      - "artifacts/interop/**"
+      - "docs/interop/FEDERATION.md"
+      - "tests/test_federation_interop_contract.py"
+      - "tests/test_runtime_surface_e7_fixture_contract.py"
+      - ".github/workflows/federation-interop.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: federation-interop-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  contract:
+    name: Producer contract, schemas, digests, lifecycle, authority guard
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install (pinned)
+        run: |
+          python -m pip install --upgrade pip
+          grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
+          pip install -e ".[dev]" -c /tmp/constraints.txt
+
+      - name: Federation producer contract
+        run: python -m pytest tests/test_federation_interop_contract.py tests/test_runtime_surface_e7_fixture_contract.py -q --no-cov -p no:cacheprovider
+
+      - name: Reference verifier (author run; not independent verification)
+        run: python artifacts/interop/runtime-surface-e7-v0.1/reference_verifier.py > /tmp/reference-run.json && python -c "import json; d=json.load(open('/tmp/reference-run.json')); assert d['failures']==[], d; print(len(d['results']), 'results, no failures')"

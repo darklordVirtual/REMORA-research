@@ -8,12 +8,55 @@ The stable entry point is `artifacts/interop/index.json`.
 
 For each public interop contract REMORA publishes:
 
-1. immutable producer/source revisions;
-2. pinned artifact digests;
+1. the immutable source revision the contract was derived from
+   (`source_revision`);
+2. a manifest pinning every package file by SHA-256, and a content-addressed
+   `package_digest` over those lines;
 3. native claim ids and result vocabulary;
 4. assumptions;
 5. explicit non-claims and a claim ceiling;
 6. a verifier request when independent reproduction is sought.
+
+### Identity
+
+A package cannot carry the Git revision that published it: the revision
+would have to contain the bytes that name it. So three facts are kept apart.
+`source_revision` is provenance and predates the package. `package_digest`
+identifies the exact bytes a verifier evaluates; it is derived from the
+manifest's file lines, and the manifest is never hashed into itself. The
+revision a verifier actually consumed is recorded by the verifier in its run
+record, and the reachable master revision carrying the frozen bytes is
+recorded in the index's `freeze_record`, outside the package.
+
+### Lifecycle
+
+| State | Means | Advanced by |
+|---|---|---|
+| `DRAFT` | bytes may still change | nothing yet |
+| `FROZEN` | `freeze_record` names a reachable master revision carrying exactly `package_digest` | the producer, after merge |
+| `EXTERNAL_RUN_PENDING` | frozen, and the final pin has been given to a named verifier | the producer |
+| `REPRODUCED` | a run record with `REPRODUCTION` or `SECOND_IMPLEMENTATION` over this `package_digest` | an external run record |
+| `EXTERNALLY_VERIFIED` | a run record that meets the independence contract and covers every claim | an independent run record |
+
+The state is written once, in `artifacts/interop/index.json`, and repeated in
+the contract's manifest and README. An author run advances nothing. A test
+refuses an index whose state exceeds its records, so a contract cannot be
+marked verified before the record exists.
+
+### Diversity and independence
+
+A run record states two facts. Implementation diversity says what ran:
+`AUTHOR_IMPLEMENTATION`, `REPRODUCTION` (REMORA's reference verifier run by
+someone else) or `SECOND_IMPLEMENTATION`. Independence says whether the
+record counts as an independent verification: `INDEPENDENT` or
+`NOT_INDEPENDENT`. `INDEPENDENT` is allowed only for a second implementation
+maintained outside REMORA, run by an external operator, importing neither
+REMORA runtime code nor the reference verifier, with the claim ceiling and
+non-claims repeated. The schema (`external-run-record-v1`) rejects any other
+combination. A second implementation that misses one condition is real
+evidence and is recorded; it moves the contract to `REPRODUCED`, not to
+`EXTERNALLY_VERIFIED`. This is the claim and provenance discipline of
+aeoess/agent-governance-vocabulary#179.
 
 ## Foreign evidence
 
@@ -46,14 +89,17 @@ checklist for a project that wants to verify a REMORA artifact.
    not maintain and imports neither REMORA runtime code nor
    `reference_verifier.py`. A fresh clone that runs REMORA's own verifier is a
    reproduction, not an independent implementation.
-3. Classify the run as `AUTHOR_RUN`, `REPRODUCTION`, `SECOND_IMPLEMENTATION`
-   or `INDEPENDENT_IMPLEMENTATION`. Only the last two can close an
-   `external_verification: PENDING` entry in `index.json`.
+3. Classify two things separately: implementation diversity
+   (`AUTHOR_IMPLEMENTATION`, `REPRODUCTION`, `SECOND_IMPLEMENTATION`) and
+   independence (`INDEPENDENT`, `NOT_INDEPENDENT`). Only `INDEPENDENT` closes
+   `external_verification: PENDING`; a second implementation on its own moves
+   the contract to `REPRODUCED`.
 4. Report one result per native claim and case, using only `ESTABLISHED`,
    `CONTRADICTED` and `NOT_ESTABLISHED`. A layer the public material cannot
    support stays `NOT_ESTABLISHED`; it is not rounded up.
-5. Record the exact implementation revision, command, environment and input
-   digests next to the results.
+5. Record the exact implementation revision, command, environment, input
+   digests, the `package_digest` and the REMORA Git revision you consumed next
+   to the results, in the shape of `external-run-record-v1`.
 6. Repeat the producer's claim ceiling and non-claims from the claim packet
    in your report, so a reader of your report alone cannot read more into the
    result than the producer claimed.

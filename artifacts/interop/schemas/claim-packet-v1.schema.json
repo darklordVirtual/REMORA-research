@@ -7,13 +7,13 @@
     "schema_version",
     "contract_id",
     "producer",
-    "producer_revision",
     "source_revision",
     "artifact_refs",
     "claims",
     "assumptions",
     "explicit_non_claims",
-    "temporal_scope"
+    "temporal_scope",
+    "package_identity"
   ],
   "properties": {
     "schema_version": {
@@ -25,10 +25,6 @@
     },
     "producer": {
       "const": "REMORA-research"
-    },
-    "producer_revision": {
-      "type": "string",
-      "pattern": "^[0-9a-f]{40}$"
     },
     "source_revision": {
       "type": "string",
@@ -125,6 +121,24 @@
     "temporal_scope": {
       "type": "string",
       "minLength": 1
+    },
+    "package_identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "manifest",
+        "rule"
+      ],
+      "properties": {
+        "manifest": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rule": {
+          "const": "content-addressed; package_digest is computed from manifest.package_files and recorded in manifest.json and index.json, never inside a hashed package file"
+        }
+      }
     }
-  }
+  },
+  "description": "What REMORA claims for one interop contract, and what it does not. Source provenance is source_revision; package identity is content-addressed in the contract manifest and is never embedded here, so the packet cannot pin itself."
 }

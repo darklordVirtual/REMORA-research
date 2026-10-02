@@ -2,8 +2,11 @@
   "schema_version": "remora-claim-packet-v1",
   "contract_id": "runtime-surface-e7-v0.1",
   "producer": "REMORA-research",
-  "producer_revision": "dc5f10e87ea546137d00b09d01d147f2ab6972e0",
   "source_revision": "35db242ffd212320576a0636e125cf8dbf12a25c",
+  "package_identity": {
+    "manifest": "artifacts/interop/runtime-surface-e7-v0.1/manifest.json",
+    "rule": "content-addressed; package_digest is computed from manifest.package_files and recorded in manifest.json and index.json, never inside a hashed package file"
+  },
   "subject": {
     "class": "runtime_observation_bundle",
     "id": "remora-reference-runtime-surface-v0.1"
@@ -52,7 +55,8 @@
     "execution occurrence",
     "production enforcement",
     "causation of an observed effect",
-    "Federation endorsement"
+    "Federation endorsement",
+    "a second implementation is by itself an independent verification record"
   ],
   "temporal_scope": "Pinned fixture evaluation only; no live deployment time window is established."
 }

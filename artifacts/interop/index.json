@@ -1,31 +1,55 @@
 {
   "schema_version": "remora-interop-index-v1",
   "producer": {
-    "repository": "darklordVirtual/REMORA-research",
-    "published_revision": "dc5f10e87ea546137d00b09d01d147f2ab6972e0"
+    "repository": "darklordVirtual/REMORA-research"
   },
   "semantics": {
     "native_claims_preserved": true,
     "transitive_credit": false,
     "external_evidence_is_authority": false,
-    "note": "Interop artifacts are evidence inputs and references. They do not create REMORA authority or alter ACCEPT/VERIFY/ABSTAIN/ESCALATE semantics."
+    "note": "Interop artifacts are evidence inputs and references. They do not create REMORA authority or alter ACCEPT/VERIFY/ABSTAIN/ESCALATE semantics.",
+    "second_implementation_is_independent": false
   },
   "contracts": [
     {
       "id": "runtime-surface-e7-v0.1",
-      "status": "PUBLISHED",
       "edge": "E7",
+      "lifecycle": "DRAFT",
+      "external_verification": "PENDING",
+      "source_revision": "35db242ffd212320576a0636e125cf8dbf12a25c",
+      "manifest": "artifacts/interop/runtime-surface-e7-v0.1/manifest.json",
+      "package_digest": "sha256:c8f2272d5ce647fa2d2c4a6cace26316a7db2a886bd2e9cd53c53dab8bfc7ea7",
       "claim_packet": "artifacts/interop/runtime-surface-e7-v0.1/claim-packet.json",
       "verifier_request": "artifacts/interop/runtime-surface-e7-v0.1/verifier-request.json",
       "fixtures": "artifacts/interop/runtime-surface-e7-v0.1/fixtures.json",
-      "manifest": "artifacts/interop/runtime-surface-e7-v0.1/manifest.json",
-      "external_verification": "PENDING"
+      "reference_verifier": "artifacts/interop/runtime-surface-e7-v0.1/reference_verifier.py",
+      "freeze_record": null,
+      "pin_confirmed_to": [],
+      "external_runs": []
     }
   ],
   "schemas": {
     "claim_packet": "artifacts/interop/schemas/claim-packet-v1.schema.json",
     "external_evidence_ref": "artifacts/interop/schemas/external-evidence-ref-v1.schema.json",
     "consumed_artifact": "artifacts/interop/schemas/consumed-artifact-v1.schema.json",
-    "action_lineage": "artifacts/interop/schemas/action-lineage-v1.schema.json"
+    "action_lineage": "artifacts/interop/schemas/action-lineage-v1.schema.json",
+    "external_run_record": "artifacts/interop/schemas/external-run-record-v1.schema.json"
+  },
+  "lifecycle_model": {
+    "states": [
+      "DRAFT",
+      "FROZEN",
+      "EXTERNAL_RUN_PENDING",
+      "REPRODUCED",
+      "EXTERNALLY_VERIFIED"
+    ],
+    "rules": {
+      "DRAFT": "package bytes may still change; freeze_record is null",
+      "FROZEN": "freeze_record names a reachable master revision carrying exactly manifest.package_digest; package files no longer change under this contract id",
+      "EXTERNAL_RUN_PENDING": "FROZEN, and the final pin has been given to at least one named verifier (pin_confirmed_to)",
+      "REPRODUCED": "FROZEN, and at least one external run record with implementation_diversity REPRODUCTION or SECOND_IMPLEMENTATION over this package_digest; not independent",
+      "EXTERNALLY_VERIFIED": "FROZEN, and at least one external run record with independence INDEPENDENT over this package_digest covering every claim"
+    },
+    "note": "Author runs never advance the state. A state is derived from records; tests refuse an index whose state exceeds its records."
   }
 }
