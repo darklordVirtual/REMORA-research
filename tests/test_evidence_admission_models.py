@@ -38,6 +38,10 @@ class TestProducerCapabilityManifest:
         assert _manifest().digest != _manifest(
             fields_visible=("effect",),).digest
 
+    def test_supplied_digest_cannot_hide_changed_manifest_content(self) -> None:
+        with pytest.raises(ValueError, match="digest does not match"):
+            _manifest(digest=_manifest().digest, fields_visible=("effect",))
+
     def test_invalid_window_refused(self) -> None:
         with pytest.raises(ValueError, match="valid_until"):
             _manifest(valid_from=100, valid_until=100)
@@ -159,12 +163,18 @@ def _commitment(**kw) -> PriorCommitment:
         commitment_id="c-1", proposal_id="p-1", tool_call_hash=H64,
         target="prod", operation="write", expected_digest="c" * 64,
         created_at=100, valid_until=1000, issuer="deployer",
+        provenance_ref="deployment-ledger://commitment/c-1",
     )
     base.update(kw)
     return PriorCommitment(**base)
 
 
 class TestPriorCommitment:
+    def test_digest_is_bound_to_content(self) -> None:
+        commitment = _commitment()
+        with pytest.raises(ValueError, match="digest does not match"):
+            _commitment(digest=commitment.digest, expected_digest="d" * 64)
+
     def test_predates(self) -> None:
         assert _commitment().predates(150)
         assert not _commitment().predates(50)

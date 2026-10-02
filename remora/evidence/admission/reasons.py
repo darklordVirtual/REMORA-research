@@ -12,15 +12,19 @@ REASON_CODES: tuple[str, ...] = (
     # processing axis
     "malformed_evidence",
     "unsupported_evidence_schema",
+    "acquisition_failed",
     "verifier_failed",
     # provenance / source
     "evidence_source_unaccepted",
     "producer_visibility_not_established",
     "producer_capability_self_declared",
+    "producer_scope_mismatch",
     # coverage
     "coverage_incomplete",
     "coverage_unknown",
     "coverage_scope_mismatch",
+    # observation content
+    "effect_observation_not_supplied",
     # vantage / independence
     "observation_vantage_not_independent",
     "observation_vantage_not_established",
@@ -31,6 +35,7 @@ REASON_CODES: tuple[str, ...] = (
     "binding_scope_mismatch",
     # prior commitment
     "prior_commitment_missing",
+    "prior_commitment_unaccepted",
     "prior_commitment_postdates_execution",
     "prior_commitment_scope_mismatch",
     # temporal

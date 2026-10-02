@@ -2,13 +2,15 @@
 """Evidence admission layer (CoSAI §7.4) — public surface.
 
 Deliberately small: five typed records, the trust configuration, the
-admission report, and one operation. No convenience helpers, no authority.
+admission report, and three operations. No authority.
 """
 from remora.evidence.admission.admission import (
     FACT_NAMES,
     EvidenceAdmission,
     TrustConfig,
     admit_evidence,
+    process_evidence_payload,
+    processing_failure,
 )
 from remora.evidence.admission.models import (
     CoverageAttestation,
@@ -42,4 +44,6 @@ __all__ = [
     "TrustConfig",
     "VantageIndependence",
     "admit_evidence",
+    "process_evidence_payload",
+    "processing_failure",
 ]

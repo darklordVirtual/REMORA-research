@@ -1,10 +1,9 @@
 # Implementation note — evidence admission layer (EA, CoSAI §7.4)
 
-**Date:** 2026-10-02 · **Author:** Copilot session · **Status:** working note, pre-implementation
+**Date:** 2026-10-02 · **Status:** implemented library surface; not runtime-wired
 
-This note is step 2 of the evidence-admission task. It records what exists,
-what is genuinely new, and the boundary the new code must not cross. It is not
-a registered design document; `docs/design/evidence-admission-v1.md` (EA-6) is.
+This note summarizes the evidence-admission implementation and its authority
+boundary. The canonical design is `docs/design/evidence-admission-v1.md`.
 
 ## Existing primitives to reuse
 
@@ -34,19 +33,20 @@ one hole:
 | `InvocationBindingProof` | nothing binds evidence to an action beyond identifier equality (CoSAI C5) |
 | `PriorCommitment` | nothing records that an expected postcondition existed *before* execution; `PostconditionContract` is timeless configuration |
 
-Plus one orchestration result: `EvidenceAdmission` + `admit_evidence()`.
+The admission result is `EvidenceAdmission`; public operations are
+`process_evidence_payload()`, `admit_evidence()`, and `processing_failure()`.
 
 ## Placement
 
 New subpackage `remora/evidence/admission/` (inside the existing `remora/evidence/`
 package, not a new top-level package). Rationale: the task names
-`remora/evidence/` as the preferred location, and the existing package is the
-research/evidence surface — the admission layer is exactly that, and must not
+`remora/evidence/` as the preferred location. The existing package is the
+research/evidence surface, and the admission layer must not
 leak into `remora/enforcement` or `remora/execution` (authority boundary).
 
 ```
 remora/evidence/admission/
-    __init__.py        # public surface: five types + admit_evidence + result
+   __init__.py        # public surface: evidence types and admission operations
     models.py          # frozen dataclasses + enums
     canonical.py       # bounded JSON helpers, lifted from bounded_readback
     admission.py       # admit_evidence()
@@ -55,7 +55,7 @@ remora/evidence/admission/
 `experiments/bounded_readback.py` keeps its own copies for now (it is an
 opt-in experiment); `canonical.py` duplicates that small, tested surface into a
 production module rather than importing the experiment. If the two drift, the
-experiment's disclaimers are not inherited by production code — that separation
+experiment's disclaimers are not inherited by production code. This separation
 is deliberate.
 
 ## Authority boundary
@@ -64,7 +64,7 @@ The admission layer:
 
 - never imports `remora.enforcement`, `remora.execution`, `remora.policy`;
 - never returns anything the policy engine reads (no `PolicyObservation` fields);
-- returns only an `EvidenceAdmission` record — a report, not a verdict input;
+- returns only an `EvidenceAdmission` report, not a verdict input;
 - is guarded by an AST test (`tests/test_evidence_admission_isolation.py`)
   asserting none of those imports exist, same pattern as
   `tests/test_cascade_not_authorization.py`.
@@ -75,19 +75,19 @@ The admission layer:
    `__all__` changes the package surface. The SDK snapshot gate does not cover
    `remora.evidence` (it covers `remora.sdk`), so this is safe; still, the new
    names go in a submodule import (`from remora.evidence.admission import ...`)
-   and are re-exported lazily, not eagerly, to avoid import cost on the hot path.
+   and are re-exported lazily, not eagerly. This avoids import cost on the hot
+   path.
 2. **Frozen checkers.** v1, v1.3, v1.4, v1.5 checkers are untouched. The new
    layer produces inputs those checkers *could* consume, but no adapter is wired
    in this task; the synthetic-fixture boundary (`premise_source`) stays.
-3. **Claim governance.** The admission layer is `NOT_ESTABLISHED` in the
-   capability register until wired; the design document and the capability
-   entry land in the same PR (repository gates require both).
+3. **Claim governance.** The capability register records `IMPLEMENTED_LIBRARY`.
+   No runtime adapter feeds admission results into a property checker.
 4. **Reason-code vocabulary.** New codes are additive and live in
-   `remora/evidence/admission/reasons.py` as a frozen tuple, pinned by a test —
-   same pattern as the frozen schema reason codes, but not yet a published wire
+   `remora/evidence/admission/reasons.py` as a frozen tuple, pinned by a test.
+   This follows the frozen schema reason-code pattern, but is not yet a published wire
    contract (that is a later versioning decision).
 
-## Files to touch (implementation phase)
+## Implemented files and governance
 
 - new: `remora/evidence/admission/{__init__,models,canonical,admission,reasons}.py`
 - new: `tests/test_evidence_admission_models.py` (type-level invariants)
@@ -95,7 +95,7 @@ The admission layer:
 - new: `tests/test_evidence_admission_isolation.py` (AST authority guard)
 - new: `docs/design/evidence-admission-v1.md` + register entry
 - edit: `remora/evidence/__init__.py` (lazy re-export)
-- edit: `docs/assurance/capability_register_v1.yaml` (new NOT_ESTABLISHED entry)
+- edit: `docs/assurance/capability_register_v1.yaml` (CAP-025 and claim ceiling)
 - edit: `docs/README.md` (index link for the design doc)
 
 Nothing in `conformance/`, `remora/enforcement/`, `remora/execution/`,

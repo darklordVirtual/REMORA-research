@@ -86,14 +86,22 @@ def _commitment(**kw) -> PriorCommitment:
         commitment_id="c-1", proposal_id="p-1", tool_call_hash=H64,
         target="prod", operation="write", expected_digest="c" * 64,
         created_at=100, valid_until=1000, issuer="deployer",
+        provenance_ref="deployment-ledger://commitment/c-1",
     )
     base.update(kw)
     return PriorCommitment(**base)
 
 
-def _trust_for(manifest: ProducerCapabilityManifest) -> TrustConfig:
+def _trust_for(
+    manifest: ProducerCapabilityManifest,
+    prior_commitment: PriorCommitment | None = None,
+) -> TrustConfig:
     return TrustConfig(
         accepted_producers={manifest.producer_id: manifest.digest},
+        accepted_prior_commitments=(
+            {prior_commitment.commitment_id: prior_commitment.digest}
+            if prior_commitment is not None else {}
+        ),
         trusted_vantage_domains=("deployer-b",),
     )
 
@@ -101,7 +109,6 @@ def _trust_for(manifest: ProducerCapabilityManifest) -> TrustConfig:
 def _full(**overrides):
     """A complete, correctly bound evidence set — the happy path."""
     kwargs = dict(
-        evidence_digest="e" * 64,
         manifest=_manifest(),
         coverage=_coverage(),
         vantage=_vantage(),
@@ -117,7 +124,7 @@ def _full(**overrides):
     kwargs.update(overrides)
     if kwargs["trust"] is None:
         kwargs["trust"] = (
-            _trust_for(kwargs["manifest"])
+            _trust_for(kwargs["manifest"], kwargs["prior_commitment"])
             if kwargs["manifest"] is not None
             else TrustConfig()
         )
@@ -128,14 +135,46 @@ def _full(**overrides):
 
 def test_fully_bound_evidence_establishes_every_fact() -> None:
     result = _full()
-    assert result.reason_codes == ()
+    assert result.reason_codes == ("effect_observation_not_supplied",)
     for fact in (
         "source_accepted", "scope_accepted", "producer_visibility_established",
-        "observation_coverage_complete", "effect_observation_accepted",
+        "observation_coverage_complete",
         "same_protected_operation", "vantage_independent",
         "invocation_binding_established", "prior_commitment_established",
     ):
         assert result.is_established(fact), fact
+    assert not result.is_established("effect_observation_accepted")
+
+
+def test_complete_coverage_does_not_claim_an_observed_effect() -> None:
+    result = _full(vantage=None, binding=None, prior_commitment=None)
+
+    assert result.is_established("observation_coverage_complete")
+    assert not result.is_established("effect_observation_accepted")
+
+
+def test_typed_evidence_digest_is_deterministic_and_content_bound() -> None:
+    complete = _full()
+    repeated = _full()
+    changed = _full(coverage=_coverage(interval_end=250))
+
+    assert complete.evidence_digest == repeated.evidence_digest
+    assert complete.evidence_digest != changed.evidence_digest
+
+
+def test_missing_evidence_obligations_are_named() -> None:
+    result = _full(
+        coverage=None,
+        vantage=None,
+        binding=None,
+        prior_commitment=None,
+    )
+
+    assert "coverage_incomplete" in result.reason_codes
+    assert "observation_vantage_not_established" in result.reason_codes
+    assert "invocation_binding_not_established" in result.reason_codes
+    assert "prior_commitment_missing" in result.reason_codes
+    assert "effect_observation_not_supplied" in result.reason_codes
 
 
 # ── visibility (task 6, "Visibility") ───────────────────────────────────────
@@ -160,6 +199,16 @@ def test_manifest_not_covering_a_field_fails_visibility() -> None:
     m = _manifest(fields_visible=("effect",))
     result = _full(manifest=m, trust=_trust_for(m))
     assert not result.is_established("producer_visibility_established")
+
+
+def test_manifest_for_another_tenant_cannot_establish_visibility_or_coverage() -> None:
+    manifest = _manifest(scope={"tenant": "other"})
+    result = _full(manifest=manifest, trust=_trust_for(manifest))
+
+    assert result.is_established("source_accepted")
+    assert not result.is_established("producer_visibility_established")
+    assert not result.is_established("observation_coverage_complete")
+    assert "producer_scope_mismatch" in result.reason_codes
 
 
 # ── coverage (task 6, "Coverage") ───────────────────────────────────────────
@@ -219,14 +268,26 @@ def test_independent_observer_outside_trusted_domains_is_unestablished() -> None
     assert not result.is_established("vantage_independent")
 
 
-def test_unconfigured_domain_list_accepts_derived_independence() -> None:
-    # No configured domain list: derived independence stands on its own.
+def test_unconfigured_domain_list_does_not_accept_vantage() -> None:
     m = _manifest()
     result = _full(
         manifest=m,
         trust=TrustConfig(accepted_producers={m.producer_id: m.digest}),
     )
-    assert result.is_established("vantage_independent")
+    assert not result.is_established("vantage_independent")
+
+
+def test_unaccepted_prior_commitment_is_not_established() -> None:
+    manifest = _manifest()
+    commitment = _commitment()
+    result = _full(
+        manifest=manifest,
+        prior_commitment=commitment,
+        trust=_trust_for(manifest),
+    )
+
+    assert not result.is_established("prior_commitment_established")
+    assert "prior_commitment_unaccepted" in result.reason_codes
 
 
 # ── binding (task 6, "Binding") ─────────────────────────────────────────────

@@ -102,16 +102,20 @@ class ProducerCapabilityManifest:
         object.__setattr__(self, "scope", MappingProxyType(dict(self.scope)))
         if self.valid_until <= self.valid_from:
             raise ValueError("valid_until must be after valid_from")
-        if not self.digest:
-            object.__setattr__(self, "digest", canonical_digest({
-                "producer_id": self.producer_id,
-                "manifest_id": self.manifest_id,
-                "schema_version": self.schema_version,
-                "fields_visible": list(self.fields_visible),
-                "scope": dict(self.scope),
-                "valid_from": self.valid_from,
-                "valid_until": self.valid_until,
-            }))
+        computed_digest = canonical_digest({
+            "producer_id": self.producer_id,
+            "manifest_id": self.manifest_id,
+            "schema_version": self.schema_version,
+            "fields_visible": list(self.fields_visible),
+            "scope": dict(self.scope),
+            "trust": self.trust.value,
+            "valid_from": self.valid_from,
+            "valid_until": self.valid_until,
+            "provenance_ref": self.provenance_ref,
+        })
+        if self.digest and self.digest != computed_digest:
+            raise ValueError("manifest digest does not match manifest content")
+        object.__setattr__(self, "digest", computed_digest)
 
     def covers_field(self, field_name: str) -> bool:
         """Declared visibility of one field. Not proof of capability."""
@@ -164,19 +168,22 @@ class CoverageAttestation:
                            tuple(sorted(self.known_gaps, key=lambda g: (g.start, g.end))))
         if self.state is CoverageState.COMPLETE and self.known_gaps:
             raise ValueError("COMPLETE coverage cannot carry known gaps")
-        if not self.digest:
-            object.__setattr__(self, "digest", canonical_digest({
-                "invocation_id": self.invocation_id,
-                "fields": list(self.fields),
-                "interval_start": self.interval_start,
-                "interval_end": self.interval_end,
-                "state": self.state.value,
-                "producer_id": self.producer_id,
-                "known_gaps": [
-                    {"start": g.start, "end": g.end, "reason": g.reason}
-                    for g in self.known_gaps
-                ],
-            }))
+        computed_digest = canonical_digest({
+            "invocation_id": self.invocation_id,
+            "fields": list(self.fields),
+            "interval_start": self.interval_start,
+            "interval_end": self.interval_end,
+            "state": self.state.value,
+            "producer_id": self.producer_id,
+            "known_gaps": [
+                {"start": g.start, "end": g.end, "reason": g.reason}
+                for g in self.known_gaps
+            ],
+            "provenance_ref": self.provenance_ref,
+        })
+        if self.digest and self.digest != computed_digest:
+            raise ValueError("coverage digest does not match attestation content")
+        object.__setattr__(self, "digest", computed_digest)
 
     def covers_field(self, field_name: str) -> bool:
         return field_name in self.fields
@@ -312,17 +319,33 @@ class PriorCommitment:
     created_at: int
     valid_until: int
     issuer: str
-    provenance_ref: str = ""
+    provenance_ref: str
+    digest: str = ""
 
     def __post_init__(self) -> None:
         for name in ("commitment_id", "proposal_id", "target", "operation",
-                     "issuer"):
+                     "issuer", "provenance_ref"):
             require_identifier(getattr(self, name), name)
         from remora.evidence.admission.canonical import require_sha256
         require_sha256(self.tool_call_hash, "tool_call_hash")
         require_sha256(self.expected_digest, "expected_digest")
         if self.valid_until <= self.created_at:
             raise ValueError("valid_until must be after created_at")
+        computed_digest = canonical_digest({
+            "commitment_id": self.commitment_id,
+            "proposal_id": self.proposal_id,
+            "tool_call_hash": self.tool_call_hash,
+            "target": self.target,
+            "operation": self.operation,
+            "expected_digest": self.expected_digest,
+            "created_at": self.created_at,
+            "valid_until": self.valid_until,
+            "issuer": self.issuer,
+            "provenance_ref": self.provenance_ref,
+        })
+        if self.digest and self.digest != computed_digest:
+            raise ValueError("commitment digest does not match commitment content")
+        object.__setattr__(self, "digest", computed_digest)
 
     def predates(self, execution_started_at: int) -> bool:
         return self.created_at <= execution_started_at

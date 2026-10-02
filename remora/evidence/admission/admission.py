@@ -15,10 +15,12 @@ this package, and a test keeps it that way.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+import hashlib
+from dataclasses import dataclass, field, replace
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 
+from remora.evidence.admission.canonical import canonical_digest, decode_bounded
 from remora.evidence.admission.models import (
     CoverageAttestation,
     CoverageState,
@@ -31,6 +33,56 @@ from remora.evidence.admission.models import (
     ProducerCapabilityManifest,
     VantageIndependence,
 )
+from remora.evidence.admission.reasons import REASON_CODES
+
+_EVIDENCE_RECORD_NAMES = frozenset({
+    "manifest", "coverage", "vantage", "binding", "prior_commitment",
+})
+
+
+def _typed_evidence_digest(
+    *,
+    manifest: ProducerCapabilityManifest | None,
+    coverage: CoverageAttestation | None,
+    vantage: ObservationVantage | None,
+    binding: InvocationBindingProof | None,
+    prior_commitment: PriorCommitment | None,
+) -> str:
+    return canonical_digest({
+        "manifest": manifest.digest if manifest is not None else None,
+        "coverage": coverage.digest if coverage is not None else None,
+        "vantage": (
+            {
+                "observer_id": vantage.observer_id,
+                "observed_party": vantage.observed_party,
+                "control_domain": vantage.control_domain,
+                "observed_control_domain": vantage.observed_control_domain,
+                "can_observed_party_forge": vantage.can_observed_party_forge,
+                "can_observed_party_suppress": vantage.can_observed_party_suppress,
+                "declared_independence": vantage.declared_independence,
+                "provenance_ref": vantage.provenance_ref,
+            }
+            if vantage is not None else None
+        ),
+        "binding": (
+            {
+                "evidence_id": binding.evidence_id,
+                "proposal_id": binding.proposal_id,
+                "execution_id": binding.execution_id,
+                "tool_call_hash": binding.tool_call_hash,
+                "dispatch_id": binding.dispatch_id,
+                "toolspec_hash": binding.toolspec_hash,
+                "tenant": binding.tenant,
+                "target": binding.target,
+                "operation": binding.operation,
+                "attempt": binding.attempt,
+            }
+            if binding is not None else None
+        ),
+        "prior_commitment": (
+            prior_commitment.digest if prior_commitment is not None else None
+        ),
+    })
 
 #: Derived fact names, in the vocabulary of the conformance premises they
 #: substantiate. The mapping from these names to checker premise keys is a
@@ -52,18 +104,23 @@ FACT_NAMES: tuple[str, ...] = (
 class TrustConfig:
     """Deployment-owned trust material. Never read from the evidence itself.
 
-    ``accepted_producers`` maps producer_id to the manifest digest the
-    deployment has reviewed and accepted. A manifest whose digest is not in
-    this map is DECLARED at best — a claim, not accepted capability.
+    ``accepted_producers`` and ``accepted_prior_commitments`` map identifiers
+    to deployment-reviewed content digests. Vantage independence also requires
+    membership in ``trusted_vantage_domains``.
     """
 
     accepted_producers: Mapping[str, str] = field(default_factory=dict)
+    accepted_prior_commitments: Mapping[str, str] = field(default_factory=dict)
     trusted_vantage_domains: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         object.__setattr__(
             self, "accepted_producers",
             MappingProxyType(dict(self.accepted_producers)),
+        )
+        object.__setattr__(
+            self, "accepted_prior_commitments",
+            MappingProxyType(dict(self.accepted_prior_commitments)),
         )
 
 
@@ -78,6 +135,8 @@ class EvidenceAdmission:
     scope: Mapping[str, Any]
 
     def __post_init__(self) -> None:
+        if not isinstance(self.processing, ProcessingStatus):
+            raise ValueError("processing must be a ProcessingStatus")
         object.__setattr__(
             self, "established_facts", MappingProxyType(dict(self.established_facts)),
         )
@@ -100,9 +159,83 @@ def _fail(processing: ProcessingStatus, reason: str) -> EvidenceAdmission:
     )
 
 
+def processing_failure(
+    processing: ProcessingStatus,
+    reason: str,
+) -> EvidenceAdmission:
+    """Create a processing-only report for failures outside this package."""
+    if not isinstance(processing, ProcessingStatus):
+        raise ValueError("processing must be a ProcessingStatus")
+    if processing is ProcessingStatus.COMPLETED:
+        raise ValueError("processing failure cannot be COMPLETED")
+    if reason not in REASON_CODES:
+        raise ValueError("unknown evidence-admission reason code")
+    return _fail(processing, reason)
+
+
+def process_evidence_payload(
+    raw: bytes,
+    *,
+    schema: str,
+    parse: Callable[[Mapping[str, Any]], Mapping[str, Any]],
+    trust: TrustConfig,
+    expected_invocation: Mapping[str, Any],
+    execution_started_at: int,
+    evaluated_fields: tuple[str, ...],
+    evaluated_interval: tuple[int, int],
+    now: int,
+) -> EvidenceAdmission:
+    """Parse bounded evidence and keep processing failures off the fact axis.
+
+    ``parse`` converts a supported payload to exactly the five typed evidence
+    records. Trust and evaluation scope remain deployment-owned arguments.
+    Callback exception text is never copied into the report.
+    """
+    if type(schema) is not str or not schema:
+        raise ValueError("schema must be a nonempty string")
+    try:
+        payload = decode_bounded(raw)
+    except (TypeError, ValueError, RecursionError):
+        return _fail(ProcessingStatus.REJECTED_EVIDENCE, "malformed_evidence")
+
+    if type(payload) is not dict or type(payload.get("schema")) is not str:
+        return _fail(ProcessingStatus.REJECTED_EVIDENCE, "malformed_evidence")
+    if payload["schema"] != schema:
+        return _fail(
+            ProcessingStatus.UNSUPPORTED,
+            "unsupported_evidence_schema",
+        )
+
+    try:
+        records = parse(payload)
+        if not isinstance(records, Mapping):
+            raise ValueError("parser must return an evidence-record mapping")
+        if set(records) != _EVIDENCE_RECORD_NAMES:
+            raise ValueError("parser returned unexpected evidence records")
+    except Exception:
+        return _fail(ProcessingStatus.REJECTED_EVIDENCE, "malformed_evidence")
+
+    try:
+        result = admit_evidence(
+            manifest=records["manifest"],
+            coverage=records["coverage"],
+            vantage=records["vantage"],
+            binding=records["binding"],
+            prior_commitment=records["prior_commitment"],
+            trust=trust,
+            expected_invocation=expected_invocation,
+            execution_started_at=execution_started_at,
+            evaluated_fields=evaluated_fields,
+            evaluated_interval=evaluated_interval,
+            now=now,
+        )
+    except Exception:
+        return _fail(ProcessingStatus.VERIFIER_FAILED, "verifier_failed")
+    return replace(result, evidence_digest=hashlib.sha256(raw).hexdigest())
+
+
 def admit_evidence(
     *,
-    evidence_digest: str,
     manifest: ProducerCapabilityManifest | None,
     coverage: CoverageAttestation | None,
     vantage: ObservationVantage | None,
@@ -129,6 +262,7 @@ def admit_evidence(
     facts: dict[str, EstablishmentStatus] = {
         name: EstablishmentStatus.NOT_ESTABLISHED for name in FACT_NAMES
     }
+    reasons.append("effect_observation_not_supplied")
 
     # ── Provenance: is this producer accepted for this manifest? ──────────
     manifest_accepted = False
@@ -146,19 +280,31 @@ def admit_evidence(
     else:
         manifest_accepted = True
 
+    manifest_scope_matches = False
+    if manifest is not None and manifest.scope:
+        manifest_scope_matches = all(
+            key in expected_invocation
+            and type(expected_invocation[key]) is type(value)
+            and expected_invocation[key] == value
+            for key, value in manifest.scope.items()
+        )
+
     # ── Producer visibility: declared, accepted, and covering the fields ──
-    if manifest_accepted and all(
+    if manifest is not None and manifest_accepted and manifest_scope_matches and all(
         manifest.covers_field(f) for f in evaluated_fields
     ):
         facts["producer_visibility_established"] = EstablishmentStatus.ESTABLISHED
     elif manifest is not None and manifest_accepted:
-        reasons.append("producer_visibility_not_established")
+        reasons.append(
+            "producer_visibility_not_established"
+            if manifest_scope_matches else "producer_scope_mismatch"
+        )
 
     if manifest_accepted:
         facts["source_accepted"] = EstablishmentStatus.ESTABLISHED
 
     # ── Coverage: explicit denominator, scoped to this invocation ─────────
-    if coverage is not None and manifest_accepted:
+    if coverage is not None and manifest_accepted and manifest_scope_matches:
         if coverage.producer_id != (manifest.producer_id if manifest else ""):
             reasons.append("coverage_scope_mismatch")
         elif coverage.invocation_id != expected_invocation.get("invocation_id", ""):
@@ -175,7 +321,8 @@ def admit_evidence(
             facts["observation_coverage_complete"] = (
                 EstablishmentStatus.ESTABLISHED
             )
-            facts["effect_observation_accepted"] = EstablishmentStatus.ESTABLISHED
+    else:
+        reasons.append("coverage_incomplete")
 
     # ── Vantage: independence derived, never declared ─────────────────────
     if vantage is not None:
@@ -188,13 +335,12 @@ def admit_evidence(
             )
         elif independence is VantageIndependence.NOT_ESTABLISHED:
             reasons.append("observation_vantage_not_established")
-        elif (
-            trust.trusted_vantage_domains
-            and vantage.control_domain not in trust.trusted_vantage_domains
-        ):
+        elif vantage.control_domain not in trust.trusted_vantage_domains:
             reasons.append("observation_vantage_not_established")
         else:
             facts["vantage_independent"] = EstablishmentStatus.ESTABLISHED
+    else:
+        reasons.append("observation_vantage_not_established")
 
     # ── Binding: every declared axis must match (CoSAI C5) ────────────────
     if binding is not None:
@@ -222,10 +368,17 @@ def admit_evidence(
                 reasons.append("tool_call_hash_mismatch")
             else:
                 reasons.append("binding_scope_mismatch")
+    else:
+        reasons.append("invocation_binding_not_established")
 
     # ── Prior commitment: must predate the execution it evaluates ─────────
     if prior_commitment is not None:
-        if not prior_commitment.binds_to(
+        if (
+            trust.accepted_prior_commitments.get(prior_commitment.commitment_id)
+            != prior_commitment.digest
+        ):
+            reasons.append("prior_commitment_unaccepted")
+        elif not prior_commitment.binds_to(
             proposal_id=str(expected_invocation.get("proposal_id", "")),
             tool_call_hash=str(expected_invocation.get("tool_call_hash", "")),
             target=str(expected_invocation.get("target", "")),
@@ -238,11 +391,19 @@ def admit_evidence(
             reasons.append("commitment_expired")
         else:
             facts["prior_commitment_established"] = EstablishmentStatus.ESTABLISHED
+    else:
+        reasons.append("prior_commitment_missing")
 
     return EvidenceAdmission(
         processing=ProcessingStatus.COMPLETED,
         reason_codes=tuple(dict.fromkeys(reasons)),
         established_facts=facts,
-        evidence_digest=evidence_digest,
+        evidence_digest=_typed_evidence_digest(
+            manifest=manifest,
+            coverage=coverage,
+            vantage=vantage,
+            binding=binding,
+            prior_commitment=prior_commitment,
+        ),
         scope=dict(expected_invocation),
     )

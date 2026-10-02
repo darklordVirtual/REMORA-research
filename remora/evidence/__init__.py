@@ -136,7 +136,8 @@ _ADMISSION_NAMES = frozenset({
     "EvidenceAdmission", "InvocationBindingProof", "KnownGap",
     "ManifestTrust", "ObservationVantage", "PriorCommitment",
     "ProcessingStatus", "ProducerCapabilityManifest", "TrustConfig",
-    "VantageIndependence", "admit_evidence",
+    "VantageIndependence", "admit_evidence", "process_evidence_payload",
+    "processing_failure",
 })
 
 __all__ += sorted(_ADMISSION_NAMES)

@@ -67,12 +67,16 @@ def test_admitted_evidence_does_not_change_a_policy_decision() -> None:
     """Runtime half: build a fully admitted record, then decide the same
     observation twice — with and without the admission in scope. The
     decisions must be identical because the engine never receives it."""
-    from remora.evidence.admission import EvidenceAdmission, EstablishmentStatus
+    from remora.evidence.admission import (
+        EstablishmentStatus,
+        EvidenceAdmission,
+        ProcessingStatus,
+    )
     from remora.policy.decision_engine import RemoraDecisionEngine
     from remora.policy.observation import PolicyObservation
 
     admission = EvidenceAdmission(
-        processing="completed",
+        processing=ProcessingStatus.COMPLETED,
         reason_codes=(),
         established_facts={"source_accepted": EstablishmentStatus.ESTABLISHED},
         evidence_digest="e" * 64,
@@ -113,7 +117,12 @@ def test_erasure_monotonicity() -> None:
     erased_all = _full(manifest=None, coverage=None, binding=None,
                        vantage=None, prior_commitment=None)
 
-    assert full.all_established(tuple(full.established_facts))
+    established_facts = tuple(
+        fact for fact in full.established_facts
+        if fact != "effect_observation_accepted"
+    )
+    assert full.all_established(established_facts)
+    assert not full.is_established("effect_observation_accepted")
     for name, status in erased_all.established_facts.items():
         assert status is EstablishmentStatus.NOT_ESTABLISHED
     assert not erased_once.is_established("prior_commitment_established")

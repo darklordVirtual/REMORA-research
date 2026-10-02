@@ -778,11 +778,14 @@ capabilities:
       admit_evidence(), which derives the premises the frozen conformance
       checkers take as trusted booleans from typed records joined against a
       deployment-owned TrustConfig. Evidence green at this revision:
-      tests/test_evidence_admission_models.py (23), the adversarial matrix in
-      tests/test_evidence_admission_adversarial.py (19), and the isolation and
+      tests/test_evidence_admission_models.py (25), the adversarial matrix in
+      tests/test_evidence_admission_adversarial.py (24), and the isolation and
       invariant suite tests/test_evidence_admission_isolation.py (5, including
       the AST guard against importing remora.enforcement/execution/policy and
       the erasure-monotonicity and scope-non-transitivity invariants) all pass.
+      Processing-boundary tests in tests/test_evidence_admission_processing.py
+      cover malformed input, unsupported schemas, parser/verifier failures,
+      acquisition failure reporting, and raw-byte digest derivation.
       Method: test execution plus review of the authority boundary; not an
       external audit. Bound to the commit carrying the layer.
     evidence:
@@ -793,5 +796,23 @@ capabilities:
       - tests/test_evidence_admission_models.py
       - tests/test_evidence_admission_adversarial.py
       - tests/test_evidence_admission_isolation.py
+      - tests/test_evidence_admission_processing.py
       - docs/design/evidence-admission-v1.md
-    caveat: "Library only: nothing in the runtime reads an EvidenceAdmission, and no adapter feeds it into the frozen conformance checkers (their synthetic-fixture premise boundary stands). The layer does not parse raw bytes itself; callers must construct typed records through the bounded parser first, and a construction failure is a processing failure, not an admission result. TrustConfig's accepted-producer map is the deployment's authority — a misconfigured deployment accepts what it configured, and a dishonest clock defeats the prior-commitment predating check. Claim ceiling in docs/design/evidence-admission-v1.md: no global completeness, no non-bypassability, no independence from a declaration, no absence outside the established denominator, no causation, no authorization from evidence."
+    caveat: >-
+      Library only: nothing in the runtime reads an EvidenceAdmission, and no
+      adapter feeds it into the frozen conformance checkers (their
+      synthetic-fixture premise boundary stands). process_evidence_payload
+      bounds raw JSON and separates malformed input, unsupported schemas,
+      parser errors, and verifier exceptions from property facts. A caller
+      supplies a schema-specific parser for the five typed evidence records;
+      the parser is trusted code and this does not authenticate its source.
+      Prior commitments must match deployment-pinned digests, and observer
+      domains must appear in the deployment trust configuration.
+      Acquisition code can report a processing failure through
+      processing_failure. TrustConfig's accepted-producer map is the
+      deployment's authority. A misconfigured deployment accepts what it
+      configured, and a dishonest clock defeats the prior-commitment predating
+      check. Claim ceiling in docs/design/evidence-admission-v1.md: no global
+      completeness, no non-bypassability, no independence from a declaration,
+      no accepted event content or property refutation, no absence outside the
+      established denominator, no causation, no authorization from evidence.
