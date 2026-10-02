@@ -438,6 +438,17 @@ class EnforcementGate:
 
         # One-time consumption (atomic check-and-consume under the lock):
         # a jti this gate has executed on can never authorise again.
+        if consume and allowed and self.strict and not token.jti:
+            # A jti-less token cannot be tracked, so it could be replayed
+            # without limit. Strict mode refuses it (fail closed); the
+            # non-strict development path keeps accepting hand-built tokens.
+            return EnforcementResult(
+                allowed=False,
+                action=token.action,
+                token_verified=vr.verified,
+                reason="token_missing_jti",
+                strict_mode=self.strict,
+            )
         if token.jti:
             if self._dsn:
                 import psycopg  # type: ignore

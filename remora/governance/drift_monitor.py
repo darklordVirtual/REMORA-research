@@ -146,7 +146,9 @@ class DriftMonitor:
             ),
         )
 
-        signal_risk = max((abs(signal.delta) for signal in signals), default=0.0)
+        # delta is already signed so that positive means adverse (see
+        # _lower_is_risky / _higher_is_risky); improvements are not risk.
+        signal_risk = max((max(0.0, signal.delta) for signal in signals), default=0.0)
         critical = any(signal.severity == "critical" for signal in signals)
         watch = any(signal.severity == "watch" for signal in signals)
 

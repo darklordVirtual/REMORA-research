@@ -27,6 +27,7 @@ from __future__ import annotations
 import json
 import urllib.error
 import urllib.request
+from urllib.parse import urlsplit
 from datetime import datetime
 from typing import Any, Mapping
 
@@ -46,6 +47,21 @@ class ReadBackFailed(RuntimeError):
     """The read-back could not be performed. Not evidence about the world."""
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Refuse every redirect.
+
+    A redirect to another host would carry the caller's ``Authorization``
+    header with it. A read-back that is redirected has not read the object the
+    postcondition names, so it is a failed read-back, not a followed one.
+    """
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):  # type: ignore[override]
+        raise urllib.error.HTTPError(req.full_url, code, msg, headers, fp)
+
+
+_OPENER = urllib.request.build_opener(_NoRedirect)
+
+
 def http_read_back(
     url: str,
     *,
@@ -53,11 +69,13 @@ def http_read_back(
     timeout_seconds: float = 10.0,
 ) -> dict[str, Any] | None:
     """GET ``url``; a JSON object, ``None`` for 404, ``ReadBackFailed`` otherwise."""
+    if urlsplit(url).scheme.lower() not in {"http", "https"}:
+        raise ReadBackFailed("read-back refused: only http and https URLs are allowed")
     request = urllib.request.Request(
         url, headers={"Accept": "application/json", **dict(headers or {})}, method="GET"
     )
     try:
-        with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
+        with _OPENER.open(request, timeout=timeout_seconds) as response:
             body = response.read()
     except urllib.error.HTTPError as exc:
         if exc.code == 404:

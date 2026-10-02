@@ -128,8 +128,11 @@ def policy_bundle_manifest(
     -------
     dict[str, str]
         ``{relative_path: hex_sha256}`` mapping for each file.
-        The composite bundle hash equals the SHA-256 of this manifest
-        (via :func:`compute_policy_bundle_hash`).
+        This is an inspection aid only. The composite bundle hash is NOT
+        the SHA-256 of this manifest: :func:`compute_policy_bundle_hash`
+        feeds one SHA-256 hasher, for each path in sorted order, the UTF-8
+        bytes of the relative path immediately followed by the raw bytes of
+        the file (plain concatenation, no separators or length prefixes).
     """
     root = repo_root if repo_root is not None else _REPO_ROOT
     manifest: dict[str, str] = {}

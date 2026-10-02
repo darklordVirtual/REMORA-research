@@ -424,7 +424,21 @@ class PolicyDecisionToken:
                     )
                 candidate_keys = [prev]
         else:
-            candidate_keys = [key, *_previous_keys().values()]
+            # A kid-less token never names the key it was signed with, so the
+            # revocation list has to be applied to the keys themselves: a
+            # revoked kid's key must not stay a candidate just because the
+            # token omits the kid.
+            revoked = _revoked_kids()
+            candidate_keys = [] if _current_kid() in revoked else [key]
+            candidate_keys += [
+                k for kid, k in _previous_keys().items() if kid not in revoked
+            ]
+            if not candidate_keys:
+                return TokenVerificationResult(
+                    verified=False,
+                    reason="kid_revoked",
+                    is_signed=True,
+                )
 
         sig_ok = any(
             hmac.compare_digest(_compute_signature(payload, k), self.signature)

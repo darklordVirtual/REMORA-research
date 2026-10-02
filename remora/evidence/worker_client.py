@@ -148,6 +148,10 @@ class REMORAWorkerClient:
             raise ConnectionError(f"Worker HTTP {exc.code}: {exc.read().decode()[:200]}") from exc
         except urllib.error.URLError as exc:
             raise ConnectionError(f"Worker unreachable: {exc.reason}") from exc
+        except TimeoutError as exc:
+            raise ConnectionError(f"Worker timed out after {self.timeout}s") from exc
+        except ValueError as exc:
+            raise ConnectionError(f"Worker returned invalid JSON: {exc}") from exc
 
     def status(self) -> dict[str, Any]:
         """Return worker health and oracle availability."""

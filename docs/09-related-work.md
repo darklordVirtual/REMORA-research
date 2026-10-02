@@ -45,9 +45,9 @@ How REMORA uses this:
 - conformal thresholding for accept/verify/abstain routing (`remora/selective/crc.py`),
 - explicit repeated-split artifacts,
 - claim-ledger entries that record failed and mixed robustness results,
-- a confidence sequence (`remora/selective/confidence_sequence.py`) for
-  continuous false-accept-rate monitoring without inflating the guarantee by
-  "peeking" (REM-020 / CLAIM-011).
+- a confidence sequence (`remora/selective/confidence_sequence.py`) computed
+  offline over the closed REM-020 audit series, so the false-accept-rate bound
+  is not inflated by "peeking" (CLAIM-011). It is not a running monitor.
 
 Boundary:
 
@@ -325,7 +325,7 @@ How REMORA uses this:
 - role and authority boundaries: RBAC in `servers/api.py`,
 - human approval workflows: `remora/governance/review_queue.py`,
 - audit ledgers: `remora/governance/audit_chain.py`,
-- rollout reference: `docs/../enterprise/togaf-enterprise-rollout-plan.md`,
+- rollout reference: `docs/enterprise/togaf-enterprise-rollout-plan.md`,
   runnable example `examples/enterprise_demo.py`.
 
 The wiring status of each is tracked machine-readably in

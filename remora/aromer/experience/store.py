@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -271,42 +272,63 @@ class EpisodicStore:
         with self.path.open("a", encoding="utf-8", newline="\n") as fh:
             fh.write(json.dumps(episode.to_dict(), separators=(",", ":")) + "\n")
 
-    def _rewrite_file(self) -> None:
-        """Rewrite JSONL with current in-memory state (after updates)."""
-        tmp = self.path.with_suffix(".tmp")
+    def _write_atomic(self, text: str) -> None:
+        """Write ``text`` to the store via a temp file and ``os.replace``."""
+        tmp = self.path.with_name(self.path.name + ".tmp")
         with tmp.open("w", encoding="utf-8", newline="\n") as fh:
-            for ep in self._episodes:
-                fh.write(json.dumps(ep.to_dict(), separators=(",", ":")) + "\n")
-        tmp.replace(self.path)
+            fh.write(text)
+        os.replace(tmp, self.path)
+
+    def _rewrite_file(self) -> None:
+        """Persist in-memory episodes without dropping episodes that are only on disk.
+
+        Only the lines of episodes held in memory are replaced; lines for episodes
+        beyond ``max_loaded`` (and any unparsable lines) are preserved verbatim.
+        """
+        lines: list[str] = []
+        if self.path.exists():
+            lines = self.path.read_text(encoding="utf-8").splitlines(keepends=True)
+        by_id = {ep.episode_id: ep for ep in self._episodes}
+        out: list[str] = []
+        written: set[str] = set()
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                out.append(line)
+                continue
+            try:
+                eid = json.loads(stripped).get("episode_id")
+            except Exception:
+                eid = None
+            ep = by_id.get(eid) if isinstance(eid, str) else None
+            if ep is not None and eid not in written:
+                out.append(json.dumps(ep.to_dict(), separators=(",", ":")) + "\n")
+                written.add(eid)
+            else:
+                out.append(line if line.endswith("\n") else line + "\n")
+        for eid, ep in by_id.items():
+            if eid not in written:
+                out.append(json.dumps(ep.to_dict(), separators=(",", ":")) + "\n")
+        self._write_atomic("".join(out))
 
     def _patch_file(self, episode_id: str, patch: dict[str, Any]) -> bool:
         """Patch a specific episode in the JSONL file without loading all."""
-        if not self.path.exists():
-            return False
-        lines = self.path.read_text(encoding="utf-8").splitlines(keepends=True)
-        found = False
-        out = []
-        for line in lines:
-            stripped = line.strip()
-            if not stripped:
-                out.append(line)
-                continue
-            try:
-                data = json.loads(stripped)
-                if data.get("episode_id") == episode_id:
-                    data.update(patch)
-                    out.append(json.dumps(data, separators=(",", ":")) + "\n")
-                    found = True
-                    continue
-            except Exception:
-                pass  # a malformed line is skipped, never allowed to poison the store
-            out.append(line)
-        if found:
-            self.path.write_text("".join(out), encoding="utf-8")
-        return found
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            data.update(patch)
+            return data
+
+        return self._patch_line(episode_id, _apply)
 
     def _patch_episode(self, episode_id: str, mutate: Any) -> bool:
         """Patch one JSONL episode by reconstructing derived fields."""
+        def _apply(data: dict[str, Any]) -> dict[str, Any]:
+            ep = Episode.from_dict(dict(data))
+            mutate(ep)
+            return ep.to_dict()
+
+        return self._patch_line(episode_id, _apply)
+
+    def _patch_line(self, episode_id: str, apply: Any) -> bool:
         if not self.path.exists():
             return False
         lines = self.path.read_text(encoding="utf-8").splitlines(keepends=True)
@@ -320,16 +342,14 @@ class EpisodicStore:
             try:
                 data = json.loads(stripped)
                 if data.get("episode_id") == episode_id:
-                    ep = Episode.from_dict(dict(data))
-                    mutate(ep)
-                    out.append(json.dumps(ep.to_dict(), separators=(",", ":")) + "\n")
+                    out.append(json.dumps(apply(data), separators=(",", ":")) + "\n")
                     found = True
                     continue
             except Exception:
                 pass  # a malformed line is skipped, never allowed to poison the store
             out.append(line)
         if found:
-            self.path.write_text("".join(out), encoding="utf-8")
+            self._write_atomic("".join(out))
         return found
 
 

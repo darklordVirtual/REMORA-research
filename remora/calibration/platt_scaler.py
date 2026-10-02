@@ -91,8 +91,9 @@ class PlattScaler:
     ----------
     A, B:
         Logistic regression coefficients after fitting.  A is initialised to
-        1.0 (identity) and B to 0.0 (no bias), so an un-fitted scaler is a
-        pass-through.
+        1.0 and B to 0.0, so an un-fitted scaler is ``sigmoid(x)``: it maps
+        a score to a different value (0.5 -> 0.62, 0 -> 0.5), not a
+        pass-through. Check :meth:`is_fitted` before relying on it.
     n_iter:
         Number of gradient-descent iterations.
     learning_rate:

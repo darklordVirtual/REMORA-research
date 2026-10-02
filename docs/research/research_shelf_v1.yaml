@@ -843,7 +843,7 @@ components:
   - id: SHELF-032
     name: "Dependency-scoped plan validity (PlanFence)"
     source:
-      title: "Fresh Memory, Stale Plans: Dependency-Scoped Validation for Distributed LLM-Agent Memory"
+      title: "Fresh Memory, Stale Plans: Derivation Currency for Distributed LLM-Agent Memory"
       authors: "Evan Chen, Shiqiang Wang, Christopher G. Brinton"
       venue: "arXiv preprint"
       url: "https://arxiv.org/abs/2609.03340"

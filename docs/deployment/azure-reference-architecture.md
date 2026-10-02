@@ -40,8 +40,7 @@ REMORA on Azure: mapping each component to the appropriate Azure service for ent
 │  └──────────────┘       │  │ REMORA Assurance Pod  │  │    │
 │                         │  │ • CascadeEngine       │  │    │
 │                         │  │ • RemoraDecisionEngine│  │    │
-│                         │  │ • ThermodynamicBraking│  │    │
-│                         │  └───────────┬───────────┘  │    │
+│                         │                         │  └───────────┬───────────┘  │    │
 │                         └──────────────┼──────────────┘    │
 │                                        │                    │
 │         ┌──────────────────────────────┼───────────┐       │
@@ -158,9 +157,13 @@ deployment-owned code baked into the image; request payloads can never add
 or replace callables. Full walkthrough and verification round:
 [`execution-quickstart.md`](execution-quickstart.md).
 
-Run **one replica** for the execution path until REM-025 (durable lease-nonce
-ledger) closes: the jti grant ledger is durable in PostgreSQL, but lease
-nonces are per-process.
+Lease nonces are durable when `REMORA_PG_DSN`, `REMORA_CHAIN_DB` or
+`REMORA_STATE_ENDPOINT` is set: `servers/execution_api.py::_lease_nonce_store`
+wires `DurableNonceStore` (`remora/enforcement/nonce_store.py`). Without any of
+them the library default `NonceLedger` is per-process, so run **one replica**
+for a deployment that configures none. Activation on a particular deployment is
+unclaimed (CAP-013 caveat). REM-025 is durable audit integrity, not nonces; see
+the `NonceLedger` docstring in `remora/enforcement/lease.py`.
 
 ### 4. Azure OpenAI configuration
 

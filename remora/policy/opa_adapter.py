@@ -640,9 +640,13 @@ def query_opa_policy(
                 # undefined at this policy path (OPA returns {} for a missing
                 # package/rule). A misconfigured policy_path must deny, not allow.
                 return "DENY"
-            if allow is False or str(allow).lower() in {"deny", "false"}:
-                return "DENY"
-            return "ALLOW"
+            # Fail-closed: only an explicit True or the string "allow"
+            # permits. escalate/abstain/0/"no"/anything else is not an allow.
+            if allow is True or (
+                isinstance(allow, str) and allow.strip().lower() == "allow"
+            ):
+                return "ALLOW"
+            return "DENY"
         if result is True:
             return "ALLOW"
         return "DENY"  # fail-closed: non-dict, non-True result is not an explicit allow
