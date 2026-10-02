@@ -14,7 +14,7 @@
     {
       "id": "runtime-surface-e7-v0.1",
       "edge": "E7",
-      "lifecycle": "DRAFT",
+      "lifecycle": "FROZEN",
       "external_verification": "PENDING",
       "source_revision": "35db242ffd212320576a0636e125cf8dbf12a25c",
       "manifest": "artifacts/interop/runtime-surface-e7-v0.1/manifest.json",
@@ -23,7 +23,12 @@
       "verifier_request": "artifacts/interop/runtime-surface-e7-v0.1/verifier-request.json",
       "fixtures": "artifacts/interop/runtime-surface-e7-v0.1/fixtures.json",
       "reference_verifier": "artifacts/interop/runtime-surface-e7-v0.1/reference_verifier.py",
-      "freeze_record": null,
+      "freeze_record": {
+        "revision": "e4fe474f488c3047b346abb01cbfd77ab447ad69",
+        "package_digest": "sha256:01dfdb7885bdbb18c025bc013edc28b482b0631ae282aca877bd0953b865e4bf",
+        "recorded_at": "2026-10-02",
+        "note": "The commit that records this freeze is later than the revision it names; the package never pins itself."
+      },
       "pin_confirmed_to": [],
       "external_runs": []
     }
