@@ -214,7 +214,45 @@ execution profile the two differ. A caught scope drift withholds a favourable
 signal from a call that stops at VERIFY anyway, so it is flagged without a
 stricter decision. Only a raised `adversarial_detected` makes the decision
 stricter. Jev's drift and target answers are therefore information for the
-reviewer at VERIFY, and are measured as such.
+step that resolves the decision, and are measured as such.
+
+That step differs by action. VERIFY is a machine step: a bounded lookup in a
+system of record, a RAG index or documentation, after which the router runs
+again on the fresh observation (`remora/policy/resolution.py`). ESCALATE is a
+human approval. Jev's reading tells the lookup what to check and the
+approver where to look.
+
+Both read it from
+`GET /v1/execution/proposals/{proposal_id}/semantic-assessment`. The response
+is built by `remora/decision_providers/review.py` and states in every body
+that it is advisory. `for` names the audience, `verifier` at VERIFY and
+`approver` at ESCALATE. `verification_focus` names the checks a lookup should
+make, one per concern and worst first:
+
+| Answer past its cut | Check | What the lookup establishes |
+|---|---|---|
+| `target_matches_request` low | `confirm_target` | the identifiers the request names, from the system of record, against the call's arguments |
+| `intent_match` low | `confirm_intent` | the procedure or documentation for the requested change, against the tool and arguments |
+| `scope_drift` high | `confirm_scope` | a source for every argument the request does not call for, against the signed ToolSpec |
+| any injection question high | `exclude_untrusted_text` | that the untrusted text is not used as a source for any lookup |
+
+The focus names checks and grants nothing. A `ResolutionPlan`'s resolver may
+still write only its target arguments from its source tools. `attention`
+lists the same answers in plain words with value and cut. Every answer is
+shown with the question that was asked, a score with the label of its
+nearest level, and the caveats come from REMORA's own evidence. When there is
+no reading, `status` says why: `not_enabled`, `pending`,
+`tenant_not_opted_in`, `request_not_resolved`, `dropped` or `unknown`. A failed
+provider is shown as `failed`, never as a clean reading. The endpoint is
+tenant-scoped like every proposal read. No code that approves, resolves or
+executes reads it, and `tests/test_semantic_review_view.py` checks that in
+the source of each approval and execution path.
+
+For a request to change the guest network on a customer's router, where the
+proposed call also moved the management VLAN, Jev put `scope_drift` at 0.94
+in a live check. The decision stayed VERIFY, and the view's first focus was
+`confirm_scope`. That is one call, shown to illustrate the view, and is not a
+measurement.
 
 ## Cloudflare Workers AI
 

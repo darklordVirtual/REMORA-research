@@ -1727,7 +1727,10 @@ def _toolspec_description(tool_name: str) -> str | None:
 
 # Off unless REMORA_SEMANTIC_SHADOW is set, and refused at startup when it is
 # set without the rest of its configuration (servers/semantic_shadow.py).
-from servers.semantic_shadow import build_semantic_shadow_from_env  # noqa: E402
+from servers.semantic_shadow import (  # noqa: E402
+    SemanticShadow,
+    build_semantic_shadow_from_env,
+)
 
 _SEMANTIC_SHADOW = build_semantic_shadow_from_env(
     engine=_ENGINE, tool_description=_toolspec_description,
@@ -2547,6 +2550,44 @@ def get_proposal(proposal_id: str, request: Request) -> dict[str, Any]:
         "dispatch": dispatch,
         "effect": _effect_projection(events),
     }
+
+
+@router.get("/proposals/{proposal_id}/semantic-assessment", responses={
+    200: {"description": "Jev's advisory reading of the proposal, for the verifier or approver."},
+    **_AUTH_RESPONSES,
+    404: {"model": ErrorDetail, "description": "No such proposal for this tenant."},
+})
+def get_semantic_assessment(proposal_id: str, request: Request) -> dict[str, Any]:
+    """The semantic shadow's reading of one proposal, for whoever resolves it.
+
+    At VERIFY that is a bounded machine lookup, which the reading tells what
+    to check; at ESCALATE it is the human approver. Advisory only: nothing on
+    the approval, resolution or execution path reads it, and the response
+    says so. ``status`` is ``available`` with the reading, ``failed`` when
+    the provider could not answer, or the reason there is none:
+    ``not_enabled``, ``pending``, ``tenant_not_opted_in``,
+    ``request_not_resolved``, ``dropped`` or ``unknown``. Tenant-scoped like
+    every proposal read: another tenant's proposal is a 404.
+    """
+    _note_proposal_id(proposal_id)
+    tenant, role, _principal = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "read")
+    if not _proposal_events(tenant, proposal_id):
+        raise HTTPException(status_code=404, detail="proposal not found")
+
+    from remora.decision_providers.review import ADVISORY, reviewer_view
+
+    shadow = _SEMANTIC_SHADOW
+    if not isinstance(shadow, SemanticShadow):
+        status, record = "not_enabled", None
+    else:
+        status, record = shadow.lookup(proposal_id, tenant)
+    if record is not None:
+        return reviewer_view(record)
+    return {"proposal_id": proposal_id, "status": status, "authoritative": False,
+            "advisory": ADVISORY}
 
 
 @router.post("/proposals/{proposal_id}/effect", responses={

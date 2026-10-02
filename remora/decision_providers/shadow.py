@@ -73,6 +73,9 @@ class ShadowRecord:
     #: afterwards (loop safety, capability). The counterfactual is computed by
     #: the same engine, so this is the like-for-like comparison.
     engine_action: str | None = None
+    #: The cuts the answers were admitted against, so the record can be read
+    #: on its own, by a reviewer or a later calibration study.
+    thresholds: dict[str, float] | None = None
     #: A shadow record is never authority. Stated in the record itself.
     authoritative: bool = False
 
@@ -111,6 +114,12 @@ def shadow_evaluate(
     """
     actual = getattr(actual_action, "name", str(actual_action))
     context = {
+        "thresholds": {
+            "intent_match": thresholds.intent_match,
+            "target_matches_request": thresholds.target_matches_request,
+            "possible_injection": thresholds.possible_injection,
+            "scope_drift": thresholds.scope_drift,
+        },
         "tenant": tenant,
         "tool_name": tool_name,
         "engine_action": (
@@ -195,3 +204,24 @@ class JsonlShadowSink:
                     handle.write(line + "\n")
         except OSError:
             self.failed_writes += 1
+
+    def find(self, proposal_id: str, tenant: str) -> dict[str, Any] | None:
+        """The latest record for ``proposal_id`` that belongs to ``tenant``.
+
+        A record of another tenant is treated as absent, so a lookup can never
+        reveal that someone else's proposal exists. Reads the file from the
+        end; records are small and one proposal has at most a few.
+        """
+        try:
+            with self._lock:
+                lines = self.path.read_text(encoding="utf-8").splitlines()
+        except OSError:
+            return None
+        for line in reversed(lines):
+            try:
+                record = json.loads(line)
+            except ValueError:
+                continue
+            if record.get("proposal_id") == proposal_id:
+                return record if record.get("tenant") == tenant else None
+        return None

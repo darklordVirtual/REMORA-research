@@ -49,6 +49,7 @@ from __future__ import annotations
 
 import os
 import threading
+from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Callable, Mapping
 
@@ -138,26 +139,62 @@ class SemanticShadow:
         self.dropped = 0
         self.skipped_tenant = 0
         self.skipped_unresolved = 0
+        #: Why a recent proposal has no record yet, bounded. Lets a reviewer
+        #: be told "not evaluated: tenant not opted in" instead of nothing.
+        self._status: OrderedDict[str, tuple[str, str]] = OrderedDict()
+        self._status_limit = 4096
+
+    def _note(self, context: Mapping[str, Any], status: str) -> None:
+        with self._lock:
+            self._status[context["proposal_id"]] = (context["tenant"], status)
+            self._status.move_to_end(context["proposal_id"])
+            while len(self._status) > self._status_limit:
+                self._status.popitem(last=False)
+
+    def lookup(self, proposal_id: str, tenant: str) -> tuple[str, dict[str, Any] | None]:
+        """``(status, record)`` for a proposal, scoped to ``tenant``.
+
+        ``recorded`` comes with the record. Otherwise the status says why
+        there is none: ``pending``, ``tenant_not_opted_in``,
+        ``request_not_resolved``, ``dropped`` or ``unknown`` (older than the
+        in-process memory, or assessed by another process).
+        """
+        record = self.sink.find(proposal_id, tenant)
+        if record is not None:
+            return "recorded", record
+        with self._lock:
+            noted = self._status.get(proposal_id)
+        if noted is None or noted[0] != tenant:
+            return "unknown", None
+        return noted[1], None
 
     def __call__(self, context: Mapping[str, Any]) -> None:
         if context["tenant"] not in self.tenants:
             self.skipped_tenant += 1
+            self._note(context, "tenant_not_opted_in")
             return
         if getattr(context["observation"], "intent_authority_present", None) is not True:
             self.skipped_unresolved += 1
+            self._note(context, "request_not_resolved")
             return
         with self._lock:
-            if self._pending >= self.max_pending:
+            full = self._pending >= self.max_pending
+            if full:
                 self.dropped += 1
-                return
-            self._pending += 1
-            self.submitted += 1
+            else:
+                self._pending += 1
+                self.submitted += 1
+        if full:
+            self._note(context, "dropped")
+            return
+        self._note(context, "pending")
         try:
             self._executor.submit(self._run, dict(context))
         except RuntimeError:
             with self._lock:
                 self._pending -= 1
                 self.dropped += 1
+            self._note(context, "dropped")
 
     def _state(self, context: Mapping[str, Any]) -> dict[str, Any]:
         proposal = context["proposal"]

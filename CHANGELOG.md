@@ -311,6 +311,15 @@ This file lists externally relevant changes by release. Fine-grained development
   reviewer labels, reports what the sensor missed and flagged separately
   from what would have changed the decision, since under the execution
   profile a caught scope drift is flagged without a stricter decision.
+- `GET /v1/execution/proposals/{proposal_id}/semantic-assessment` gives the
+  step that resolves a decision Jev's reading of the proposal. At VERIFY, a
+  bounded machine lookup, `verification_focus` names what the lookup should
+  check (`confirm_target`, `confirm_intent`, `confirm_scope`,
+  `exclude_untrusted_text`); at ESCALATE the human approver gets the same
+  answers in plain words. Advisory in every response, tenant-scoped, and read
+  by no approval, resolution or execution path. When there is no reading the
+  status says why. Shadow records now carry the thresholds they were
+  admitted against.
 - `remora.decision_providers.questions` and `remora.decision_providers.enrich`
   complete the provider integration end to end. The question set is versioned
   (`remora-semantic-v1`) because thresholds are calibrated against a specific
