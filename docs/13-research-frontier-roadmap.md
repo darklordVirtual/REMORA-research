@@ -19,7 +19,7 @@ RF-11 was added on 2026-08-10 (master, SHELF-024 VERIFIED_RETRIEVED). The
 "Already in the repo" subsections record what the draft's gap statements had to
 be corrected against.
 
-**Namespace note.** WP identifiers are RF-01…RF-13 (research frontier). The
+**Namespace note.** WP identifiers are RF-01…RF-14 (research frontier). The
 `REM-` prefix is deliberately not used: it is the namespace of
 `docs/assurance/remediation_register.yaml` (REM-001…REM-047, machine-consumed
 by release-profile gating), and roadmap WPs are not remediation items. Where a
@@ -58,7 +58,7 @@ is registered as a proposal, and nothing in it is implemented.
 | Benchmarks | In-house simulators (toolcall v1/v2/blind v3) + one externally authored dataset already adapted and scored: AgentHarm (CLAIM-002) | Externally authored agent-security benchmarks: AgentDojo (NeurIPS'24), MCPTox (2025) | **Medium** — widens dataset independence; does NOT close the external-replication limitation (run independence is a different evidence level) |
 
 **Priority order after grounding** (rationale in §10):
-P0 RF-04, RF-06, RF-08 · P1 RF-01, RF-02 (slice 1) · P2 RF-07, RF-09 ·
+P0 RF-04, RF-06, RF-08, RF-14 · P1 RF-01, RF-02 (slice 1) · P2 RF-07, RF-09 ·
 P3 RF-03, RF-05.
 (The pre-grounding draft had RF-01 and RF-05 higher; §10 records why they
 moved.)
@@ -1314,6 +1314,15 @@ not reproduce against the tree. Nothing here is a result.
   README limitation, and grounding showed the primitives already exist; the
   remaining work is wiring, one artifact, and a guide doc that fixes a
   dangling reference. The Aug 2026 AI Act Art. 12 date makes it timely.
+
+
+- **RF-14** upgrades the existing CLAIM-011/offline Beta-mixture confidence
+  sequence into an assumption-aware sequential assurance layer. It is P0
+  because the current artifact is cycle-level, offline, and its independence
+  premise is explicitly NOT_ESTABLISHED for the overlapping AROMER windows.
+  The first slice changes no action-authority semantics: it establishes a
+  per-decision evidence stream and reproducible anytime-valid monitoring
+  artifacts before any stronger operational safety-rate claim is made.
 
 **P1, scheduled, not idle:** RF-01 lands as prerequisite hardening with
 MCP/external tool fronting (REM-024/REM-030 residual; after the Assurance
