@@ -234,6 +234,24 @@ def build(snapshot: str, records: dict[str, dict[str, Any]], *, release: str | N
     return body
 
 
+def _differences(a: Any, b: Any, path: str = "", limit: int = 20) -> list[str]:
+    """The first ``limit`` leaf paths where two manifests disagree."""
+    out: list[str] = []
+    if isinstance(a, dict) and isinstance(b, dict):
+        for key in sorted(set(a) | set(b)):
+            if len(out) >= limit:
+                break
+            out += _differences(a.get(key, "<absent>"), b.get(key, "<absent>"), f"{path}/{key}", limit - len(out))
+    elif isinstance(a, list) and isinstance(b, list) and len(a) == len(b):
+        for i, (x, y) in enumerate(zip(a, b)):
+            if len(out) >= limit:
+                break
+            out += _differences(x, y, f"{path}[{i}]", limit - len(out))
+    elif a != b:
+        out.append(f"{path}: committed={str(a)[:80]!r} rebuilt={str(b)[:80]!r}")
+    return out
+
+
 def _stable(manifest: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in manifest.items() if k not in ("generated_at",)}
 
@@ -264,6 +282,8 @@ def main(argv: list[str] | None = None) -> int:
         if args.check:
             rebuilt = build(snapshot, records, release=committed.get("release"))
             if _stable(rebuilt) != _stable(committed):
+                for line in _differences(_stable(committed), _stable(rebuilt)):
+                    print(f"[DIFF] {line}")
                 print(f"[FAIL] {out_path.relative_to(ROOT)} does not reproduce from snapshot {snapshot[:12]}; run --write to record a new snapshot")
                 return 1
             print(f"[PASS] provenance ledger: {len(records)} records valid; manifest reproduces from snapshot {snapshot[:12]} (ledger_sha256 {committed['ledger_sha256'][:16]})")
