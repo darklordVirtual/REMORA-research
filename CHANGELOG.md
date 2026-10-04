@@ -462,6 +462,22 @@ This file lists externally relevant changes by release. Fine-grained development
   stated for C4. Library only; nothing in the runtime reads an admission.
   NEGATIVE_RESULTS §75 records the third asserted input and stays open.
 
+- Strict raw-JSON admission on the execution surface (2026-10-04,
+  `servers/strict_json_ingress.py`). Bodies for `/v1/execution/*` and
+  `/v1/assess` were decoded by the framework's permissive parser before
+  `canonical_tool_call_hash` saw them, so a repeated member name silently
+  kept its last value, `NaN` and `Infinity` were accepted as numbers and a
+  lone `\uD800` escape became an unpaired surrogate. A new ASGI guard,
+  registered inside the body-size limit, now refuses such bodies on the wire
+  with HTTP 400 and a stable `code` (duplicate member after escape decoding,
+  non-finite number, unpaired surrogate, Unicode noncharacter, invalid UTF-8
+  or byte order mark, nesting above `REMORA_MAX_EXECUTION_JSON_DEPTH`, size
+  above `REMORA_MAX_EXECUTION_JSON_BYTES`). An admitted body is replayed to
+  the framework unchanged, so every request that was valid before parses to
+  the same value and hashes the same; `remora/json-sorted-v1`, stored
+  signatures and the request models are untouched. Grounded in RFC 8259
+  section 4 and RFC 7493 sections 2.1 and 2.3.
+
 - Security review 2026-10-02, two fail-closed narrowings.
   `_is_low_consequence()` now excludes every production alias in `_PROD_ENVS`
   (`prod`, `production`, `live`). Before this fix, a low-risk `live` read
