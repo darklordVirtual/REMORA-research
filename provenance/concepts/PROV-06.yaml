@@ -1,0 +1,74 @@
+# Concept record. Hand-maintained; digests live in provenance/manifests/, not here.
+# Registration records priority and content. It is not a claim of invention (see provenance/README.md).
+schema_version: remora-concept-record-v1
+concept_id: PROV-06
+canonical_name: ExecutionLease, the short-lived execution capability
+invariant: A lease exists only for an accepted decision, and only for one exact call, with expiry and
+  one-time consumption.
+identifying_terms:
+- ExecutionLease
+origin:
+  authors:
+  - Stian Skogbrott
+  project: REMORA
+  status: claimed_original_contribution
+classification: UNKNOWN
+first_recorded:
+  commit: 9109c878713f35e20bda942fd50215bc9e160f50
+  authored: '2026-07-20T15:07:25+02:00'
+  committed: '2026-07-20T15:11:16+02:00'
+  signature: N
+  paths:
+  - remora/governance/envelope.py
+  method: first commit on the snapshot history that introduced an identifying term as its own token; docs/assurance/provenance_register_v1.json,
+    snapshot 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+canonical_spec:
+- path: docs/architecture/ADR-authority-custody-and-lease-durability.md
+- path: docs/execution-lifecycle.md
+implementation:
+- path: remora/enforcement/lease.py
+- path: remora/enforcement/lease_signing.py
+tests:
+- path: tests/test_execution_lease.py
+- path: tests/test_lease_verification_contracts.py
+conformance:
+- decision-to-effect-v1
+interop_contracts:
+- exact-call-binding-v1
+- fresh-authority-v1
+- agentavow-tool-manifest-e8-v0.1
+related_capabilities:
+- CAP-013
+related_claims:
+- CLAIM-014
+federation_produces: execution_authorization
+distinguishing_contribution: A short-lived signed capability that exists only for an accepted decision
+  and one exact call, with expiry, one-time consumption and the tool-definition, policy, task and runtime
+  identities signed into it.
+prior_art:
+  reviewed: false
+  review_sources:
+  - PA-SRC-001
+  - PA-SRC-002
+  records: []
+  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
+    Registration is not a claim of invention.
+evolution:
+- stage: first_recorded
+  commit: 9109c878713f35e20bda942fd50215bc9e160f50
+  date: '2026-07-20'
+  note: identifying term first introduced as its own token
+- stage: register_snapshot
+  commit: 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+  date: '2026-10-01'
+  note: coined-identifier markers and code fingerprints pinned in provenance_register_v1.json
+- stage: interop_fixture
+  commit: 66cbd4b1f3df95098e671867f9a3200980df61a8
+  date: '2026-10-04'
+  note: 'published as an execution-boundary interop fixture: exact-call-binding-v1, fresh-authority-v1,
+    agentavow-tool-manifest-e8-v0.1'
+external_adoption: []
+license:
+  spdx: BUSL-1.1
+  licensor: Stian Skogbrott
+  reference: legal/LICENSING.md

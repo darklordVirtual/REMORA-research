@@ -125,9 +125,10 @@ def test_every_referenced_path_exists(index: dict[str, Any]) -> None:
     assert missing == []
 
 
-def test_five_schemas_are_published(index: dict[str, Any]) -> None:
+def test_published_schemas_are_exactly_the_indexed_ones(index: dict[str, Any]) -> None:
     assert set(index["schemas"]) == {
         "claim_packet", "external_evidence_ref", "consumed_artifact", "action_lineage", "external_run_record",
+        "interop_result", "federation_manifest",
     }
     on_disk = {p.name for p in SCHEMAS.glob("*.schema.json")}
     assert on_disk == {Path(rel).name for rel in index["schemas"].values()}
@@ -544,7 +545,8 @@ def test_a_run_over_different_bytes_does_not_count(e7: dict[str, Any], schemas: 
 
 def test_foreign_evidence_formats_carry_no_authority_field(schemas: dict[str, dict[str, Any]]) -> None:
     gate_words = {"accept", "verify", "abstain", "escalate", "grant", "lease", "authority", "authorize", "authorise"}
-    for name in ("external_evidence_ref", "consumed_artifact", "action_lineage", "external_run_record"):
+    for name in ("external_evidence_ref", "consumed_artifact", "action_lineage", "external_run_record",
+                 "interop_result", "federation_manifest"):
         schema = schemas[name]
         assert schema["additionalProperties"] is False, name
         for prop in schema["properties"]:
@@ -626,13 +628,13 @@ def test_lifecycle_transitions_leave_the_package_digest_unchanged(tmp_path: Path
 
     contract["freeze_record"] = {"revision": "f" * 40, "package_digest": digest_before, "recorded_at": "2026-10-02"}
     module._set_lifecycle(contract, "FROZEN", root)
-    index["contracts"] = [contract]
+    index["contracts"] = [contract if c["id"] == contract["id"] else c for c in index["contracts"]]
     _dump = lambda p, d: p.write_text(json.dumps(d, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")  # noqa: E731
     _dump(index_path, index)
     module.confirm_pin("runtime-surface-e7-v0.1", "Probity", "https://example.invalid/707", root)
 
     after_index = _load(index_path)
-    (after,) = after_index["contracts"]
+    (after,) = [c for c in after_index["contracts"] if c["id"] == "runtime-surface-e7-v0.1"]
     assert after["lifecycle"] == "EXTERNAL_RUN_PENDING"
     assert _load(manifest_path)["lifecycle"] == "EXTERNAL_RUN_PENDING"
     assert {e["path"]: _sha256(root / e["path"]) for e in _load(manifest_path)["package_files"]} == before

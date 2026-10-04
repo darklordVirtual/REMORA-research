@@ -1,0 +1,65 @@
+# Concept record. Hand-maintained; digests live in provenance/manifests/, not here.
+# Registration records priority and content. It is not a claim of invention (see provenance/README.md).
+schema_version: remora-concept-record-v1
+concept_id: PROV-16
+canonical_name: Task identity bound into the lease
+invariant: A dispatch without the task identity the lease was bound to is refused. Authority does not
+  float free of the task.
+identifying_terms:
+- task_identity_required
+origin:
+  authors:
+  - Stian Skogbrott
+  project: REMORA
+  status: claimed_original_contribution
+classification: UNKNOWN
+first_recorded:
+  commit: ad044fa890f818a591b706a8ca4dfb4d2f2a8af6
+  authored: '2026-09-28T09:08:03+02:00'
+  committed: '2026-09-28T09:08:03+02:00'
+  signature: E
+  paths:
+  - docs/assurance/capability_register_v1.yaml
+  - remora/enforcement/lease.py
+  - tests/test_task_bound_lease_and_envelope.py
+  method: first commit on the snapshot history that introduced an identifying term as its own token; docs/assurance/provenance_register_v1.json,
+    snapshot 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+canonical_spec:
+- path: docs/design/task-bound-execution-authority-v1.md
+implementation:
+- path: remora/governance/task_identity.py
+- path: remora/enforcement/lease.py
+tests:
+- path: tests/test_task_bound_authority.py
+- path: tests/test_task_identity_server_path.py
+conformance: []
+interop_contracts: []
+related_capabilities:
+- CAP-018
+related_claims: []
+federation_produces: null
+distinguishing_contribution: The task an authorization was granted under is signed into the lease, and
+  a dispatch under another task or with no task is refused, so authority does not float free of the work
+  it was granted for.
+prior_art:
+  reviewed: false
+  review_sources:
+  - PA-SRC-001
+  - PA-SRC-002
+  records: []
+  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
+    Registration is not a claim of invention.
+evolution:
+- stage: first_recorded
+  commit: ad044fa890f818a591b706a8ca4dfb4d2f2a8af6
+  date: '2026-09-28'
+  note: identifying term first introduced as its own token
+- stage: register_snapshot
+  commit: 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+  date: '2026-10-01'
+  note: coined-identifier markers and code fingerprints pinned in provenance_register_v1.json
+external_adoption: []
+license:
+  spdx: BUSL-1.1
+  licensor: Stian Skogbrott
+  reference: legal/LICENSING.md

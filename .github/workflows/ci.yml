@@ -247,13 +247,25 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install PyYAML (version-locked via lockfile constraints)
+      - name: Install PyYAML and jsonschema (version-locked via lockfile constraints)
+        # jsonschema joined 2026-10-04: scripts/build_provenance_manifest.py
+        # validates the ledger records against their schemas.
         run: |
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
-          pip install pyyaml -c /tmp/constraints.txt
+          pip install pyyaml jsonschema -c /tmp/constraints.txt
 
       - name: License policy gate (BUSL-1.1, no legacy-license drift)
         run: python scripts/check_license_policy.py
+
+      - name: Provenance ledger (records, registers, snapshot manifest)
+        # Rebuilds the manifest from its recorded snapshot commit, which is why
+        # this job checks out full history.
+        run: python scripts/build_provenance_manifest.py --check
+
+      - name: Provenance signature gate (reports until POLICY.yaml arms it)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/check_provenance_signatures.py
 
       - name: Documentation-governance gate
         # Registers parse and are internally consistent, document register

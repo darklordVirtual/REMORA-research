@@ -1,0 +1,72 @@
+# Concept record. Hand-maintained; digests live in provenance/manifests/, not here.
+# Registration records priority and content. It is not a claim of invention (see provenance/README.md).
+schema_version: remora-concept-record-v1
+concept_id: PROV-05
+canonical_name: PolicyDecisionToken, the PDP-to-PEP decision token
+invariant: The policy decision point signs a token. The enforcement point verifies that token and does
+  not call the decision point.
+identifying_terms:
+- PolicyDecisionToken
+origin:
+  authors:
+  - Stian Skogbrott
+  project: REMORA
+  status: claimed_original_contribution
+classification: UNKNOWN
+first_recorded:
+  commit: 3ba703664a89cd399230547468ea5b7def0c25eb
+  authored: '2026-06-28T23:42:01+02:00'
+  committed: '2026-06-28T23:42:01+02:00'
+  signature: N
+  paths:
+  - docs/assurance/remediation_register.yaml
+  - remora/enforcement/__init__.py
+  - remora/enforcement/gate.py
+  - remora/enforcement/token.py
+  method: first commit on the snapshot history that introduced an identifying term as its own token; docs/assurance/provenance_register_v1.json,
+    snapshot 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+canonical_spec:
+- path: ARCHITECTURE.md
+- path: docs/08-security.md
+implementation:
+- path: remora/enforcement/token.py
+- path: remora/enforcement/gate.py
+tests:
+- path: tests/test_enforcement_gate_contract.py
+- path: tests/test_token_hardening.py
+conformance: []
+interop_contracts:
+- fresh-authority-v1
+related_capabilities:
+- CAP-003
+related_claims: []
+federation_produces: policy_decision
+distinguishing_contribution: The decision point signs a token with mandatory expiry, a one-time jti, audience
+  and a bound observation hash; the enforcement point verifies it and never calls back into the decision
+  point.
+prior_art:
+  reviewed: false
+  review_sources:
+  - PA-SRC-001
+  - PA-SRC-002
+  records: []
+  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
+    Registration is not a claim of invention.
+evolution:
+- stage: first_recorded
+  commit: 3ba703664a89cd399230547468ea5b7def0c25eb
+  date: '2026-06-28'
+  note: identifying term first introduced as its own token
+- stage: register_snapshot
+  commit: 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+  date: '2026-10-01'
+  note: coined-identifier markers and code fingerprints pinned in provenance_register_v1.json
+- stage: interop_fixture
+  commit: 66cbd4b1f3df95098e671867f9a3200980df61a8
+  date: '2026-10-04'
+  note: 'published as an execution-boundary interop fixture: fresh-authority-v1'
+external_adoption: []
+license:
+  spdx: BUSL-1.1
+  licensor: Stian Skogbrott
+  reference: legal/LICENSING.md

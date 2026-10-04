@@ -1,0 +1,61 @@
+{
+  "schema_version": "remora-claim-packet-v1",
+  "contract_id": "exact-call-binding-v1",
+  "producer": "REMORA-research",
+  "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
+  "package_identity": {
+    "manifest": "artifacts/interop/exact-call-binding-v1/manifest.json",
+    "rule": "content-addressed; package_digest is computed from manifest.package_files and recorded in manifest.json and index.json, never inside a hashed package file"
+  },
+  "subject": {
+    "class": "execution_authorization",
+    "id": "remora-execution-lease"
+  },
+  "artifact_refs": [
+    {
+      "path": "artifacts/interop/exact-call-binding-v1/fixtures.json",
+      "sha256": "4a9b43747c762c7dc73382e588c0477693b00449f8a6233dc93eabbc801aac95",
+      "role": "producer fixture contract"
+    },
+    {
+      "path": "artifacts/interop/exact-call-binding-v1/reference_verifier.py",
+      "sha256": "71daad03d965b3a294cb2f02e0bc88144b40401d17d60980704efadb9f997b02",
+      "role": "author reference implementation; not independent verification"
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "exact_call_binding",
+      "result_vocabulary": [
+        "ESTABLISHED",
+        "CONTRADICTED",
+        "NOT_ESTABLISHED"
+      ],
+      "claim_ceiling": "ESTABLISHED means only that, under this fixture contract, an authorization dispatches exactly the call it was issued for: a change in tool, argument content, argument type, array order, tenant, target or principal is refused, and object member order is not a change."
+    },
+    {
+      "claim_id": "single_use_authorization",
+      "result_vocabulary": [
+        "ESTABLISHED",
+        "CONTRADICTED",
+        "NOT_ESTABLISHED"
+      ],
+      "claim_ceiling": "ESTABLISHED means only that, under this fixture contract, one authorization dispatches at most once and a refused mismatch does not spend it."
+    }
+  ],
+  "assumptions": [
+    "an authorization with integrity `intact` is authentic under the implementation's own signing scheme",
+    "`unsigned` and `tampered` describe an authorization the implementation cannot verify; the expected outcome is a refusal and the claim result is NOT_ESTABLISHED",
+    "canonical content follows the fixture's `canonical_form` note; the algorithm that compares it is the implementation's"
+  ],
+  "explicit_non_claims": [
+    "correct semantic intent of the authorized call",
+    "that an external effect occurred",
+    "that every path to the tool passes through the enforcement point",
+    "a prescribed hash algorithm or wire format for the binding",
+    "production deployment safety",
+    "Federation endorsement",
+    "a second implementation is by itself an independent verification record"
+  ],
+  "temporal_scope": "Pinned fixture evaluation only; no live deployment time window is established."
+}

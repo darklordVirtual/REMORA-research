@@ -1,0 +1,342 @@
+{
+  "schema_version": "remora-effect-evidence-fixtures-v1",
+  "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
+  "claims": [
+    "effect_state_distinction"
+  ],
+  "result_vocabulary": [
+    "ESTABLISHED",
+    "CONTRADICTED",
+    "NOT_ESTABLISHED"
+  ],
+  "state_ladder": [
+    "NOT_DISPATCHED",
+    "DISPATCHED",
+    "EXECUTION_REPORTED_SUCCESS",
+    "EFFECT_VERIFIED"
+  ],
+  "effect_status_vocabulary": [
+    "NOT_EVALUATED",
+    "EFFECT_VERIFIED",
+    "EFFECT_MISMATCH",
+    "EFFECT_UNOBSERVABLE",
+    "EFFECT_UNSUPPORTED"
+  ],
+  "rules": {
+    "state": "The highest state the evidence supports. A success report raises the state to EXECUTION_REPORTED_SUCCESS only when the dispatch happened. Only an independent observation of the declared delta raises it to EFFECT_VERIFIED. A contradicted report falls back to DISPATCHED. An unobservable or vacuous postcondition leaves the state where it was.",
+    "comparison": "Only declared fields are compared. Rules: exact (default, with strict scalar kinds so true is not 1), present, absent, version_increment (observed must exceed the declared value), hash."
+  },
+  "claim_ceiling": "ESTABLISHED means only that, under this fixture contract, the evaluator keeps NOT_DISPATCHED, DISPATCHED, EXECUTION_REPORTED_SUCCESS and EFFECT_VERIFIED apart and never promotes a reported success to a verified effect without an observation of the declared delta. It does not establish that the reader is independent of the tool, that the observed object is the one the call targeted, that an effect outside the declared delta did not occur, or production deployment safety.",
+  "cases": [
+    {
+      "id": "verified_declared_delta",
+      "claim_id": "effect_state_distinction",
+      "note": "Dispatch, success report, and an independent read showing the declared delta.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed"
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "assignee": "ops"
+      },
+      "expected": {
+        "effect_status": "EFFECT_VERIFIED",
+        "highest_established_state": "EFFECT_VERIFIED",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "reader_returns_nothing",
+      "claim_id": "effect_state_distinction",
+      "note": "The reader could not see the object. Not knowing is neither success nor failure; the reported success is not upgraded.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed"
+        },
+        "comparison_rules": {}
+      },
+      "observed": null,
+      "expected": {
+        "effect_status": "EFFECT_UNOBSERVABLE",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "observed_contradicts_report",
+      "claim_id": "effect_state_distinction",
+      "note": "The tool reported success; the object says otherwise. A contradicted report establishes nothing beyond the dispatch.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed"
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "open"
+      },
+      "expected": {
+        "effect_status": "EFFECT_MISMATCH",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "vacuous_contract",
+      "claim_id": "effect_state_distinction",
+      "note": "No declared delta, so nothing can be verified. A verifier that reports VERIFIED here attests to nothing.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {},
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed"
+      },
+      "expected": {
+        "effect_status": "EFFECT_UNSUPPORTED",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "report_without_dispatch",
+      "claim_id": "effect_state_distinction",
+      "note": "A success report and a matching observation for a call the dispatcher refused. Neither is attributed to this action.",
+      "dispatch": {
+        "outcome": "REFUSED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed"
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed"
+      },
+      "expected": {
+        "effect_status": "NOT_EVALUATED",
+        "highest_established_state": "NOT_DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "dispatch_began_outcome_unknown",
+      "claim_id": "effect_state_distinction",
+      "note": "The dispatcher invoked the tool and lost the outcome; the reader sees nothing. UNKNOWN is kept as unknown.",
+      "dispatch": {
+        "outcome": "BEGAN_OUTCOME_UNKNOWN"
+      },
+      "execution_report": null,
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed"
+        },
+        "comparison_rules": {}
+      },
+      "observed": null,
+      "expected": {
+        "effect_status": "EFFECT_UNOBSERVABLE",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "unrelated_field_changed",
+      "claim_id": "effect_state_distinction",
+      "note": "Fields outside the declared delta are out of scope by construction.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed"
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "priority": "p1"
+      },
+      "expected": {
+        "effect_status": "EFFECT_VERIFIED",
+        "highest_established_state": "EFFECT_VERIFIED",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "version_advanced",
+      "claim_id": "effect_state_distinction",
+      "note": "A version counter that moved past the value at authorization.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "version": 3
+        },
+        "comparison_rules": {
+          "version": "version_increment"
+        }
+      },
+      "observed": {
+        "version": 4
+      },
+      "expected": {
+        "effect_status": "EFFECT_VERIFIED",
+        "highest_established_state": "EFFECT_VERIFIED",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "version_not_advanced",
+      "claim_id": "effect_state_distinction",
+      "note": "The counter did not move; the write did not land.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "version": 3
+        },
+        "comparison_rules": {
+          "version": "version_increment"
+        }
+      },
+      "observed": {
+        "version": 3
+      },
+      "expected": {
+        "effect_status": "EFFECT_MISMATCH",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "bool_is_not_int",
+      "claim_id": "effect_state_distinction",
+      "note": "true and 1 are different claims; a loose comparison would verify the wrong one.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "archived": true
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "archived": 1
+      },
+      "expected": {
+        "effect_status": "EFFECT_MISMATCH",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "no_report_no_contract",
+      "claim_id": "effect_state_distinction",
+      "note": "Dispatch only. With no report and no declared delta the state stays at DISPATCHED.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": null,
+      "postcondition": null,
+      "observed": null,
+      "expected": {
+        "effect_status": "NOT_EVALUATED",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "report_failure_observed_delta",
+      "claim_id": "effect_state_distinction",
+      "note": "The tool reported failure but the declared delta is observed. The observation, not the report, decides the effect state; the report is kept in the record.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "failure",
+        "message": "timeout"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed"
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed"
+      },
+      "expected": {
+        "effect_status": "EFFECT_VERIFIED",
+        "highest_established_state": "EFFECT_VERIFIED",
+        "claim_result": "ESTABLISHED"
+      }
+    }
+  ]
+}

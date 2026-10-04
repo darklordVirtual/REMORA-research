@@ -1,0 +1,68 @@
+# Concept record. Hand-maintained; digests live in provenance/manifests/, not here.
+# Registration records priority and content. It is not a claim of invention (see provenance/README.md).
+schema_version: remora-concept-record-v1
+concept_id: PROV-02
+canonical_name: ToolSpec, the deployment-owned tool contract
+invariant: The deployment, not the agent, owns the signed contract for what a tool call may be.
+identifying_terms:
+- ToolSpec
+origin:
+  authors:
+  - Stian Skogbrott
+  project: REMORA
+  status: claimed_original_contribution
+classification: UNKNOWN
+first_recorded:
+  commit: a85227059a0990c2af8916316f389f3a0bb8ec26
+  authored: '2026-08-05T09:03:15+02:00'
+  committed: '2026-08-05T09:03:15+02:00'
+  signature: N
+  paths:
+  - docs/assurance/fasttrack_register_v1.yaml
+  method: first commit on the snapshot history that introduced an identifying term as its own token; docs/assurance/provenance_register_v1.json,
+    snapshot 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+canonical_spec:
+- path: docs/design/toolspec-signed-registry-v1.md
+- path: schemas/tool_spec_v2.yaml
+implementation:
+- path: remora/toolcall/toolspec.py
+- path: remora/toolcall/deployment_registry.py
+tests:
+- path: tests/test_toolspec_schema_v1.py
+- path: tests/test_toolspec_runtime.py
+conformance: []
+interop_contracts:
+- agentavow-tool-manifest-e8-v0.1
+related_capabilities:
+- CAP-013
+- CAP-017
+related_claims: []
+federation_produces: null
+distinguishing_contribution: The deployment signs the contract for what a tool call may be; the agent
+  never supplies it, and a bundle whose signing identity disagrees with its specs is refused.
+prior_art:
+  reviewed: false
+  review_sources:
+  - PA-SRC-001
+  - PA-SRC-002
+  records: []
+  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
+    Registration is not a claim of invention.
+evolution:
+- stage: first_recorded
+  commit: a85227059a0990c2af8916316f389f3a0bb8ec26
+  date: '2026-08-05'
+  note: identifying term first introduced as its own token
+- stage: register_snapshot
+  commit: 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+  date: '2026-10-01'
+  note: coined-identifier markers and code fingerprints pinned in provenance_register_v1.json
+- stage: interop_fixture
+  commit: 66cbd4b1f3df95098e671867f9a3200980df61a8
+  date: '2026-10-04'
+  note: 'published as an execution-boundary interop fixture: agentavow-tool-manifest-e8-v0.1'
+external_adoption: []
+license:
+  spdx: BUSL-1.1
+  licensor: Stian Skogbrott
+  reference: legal/LICENSING.md

@@ -1,0 +1,500 @@
+{
+  "schema_version": "remora-fresh-authority-fixtures-v1",
+  "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
+  "claims": [
+    "fresh_authority_at_dispatch"
+  ],
+  "result_vocabulary": [
+    "ESTABLISHED",
+    "CONTRADICTED",
+    "NOT_ESTABLISHED"
+  ],
+  "stages": {
+    "grant": "a policy decision redeemed at the enforcement point",
+    "dispatch": "an execution lease presented to the governed dispatcher"
+  },
+  "outcome_vocabulary": [
+    "ADMITTED",
+    "DISPATCHED",
+    "REFUSED"
+  ],
+  "refusal_classes": {
+    "authority_expired": "presented at or after expires_at",
+    "authority_not_yet_valid": "presented before issued_at",
+    "authority_revoked": "the signing key was revoked after issue",
+    "authority_stale": "the observation, policy bundle or tool definition at presentation differs from the one at issue",
+    "authority_consumed": "already redeemed",
+    "decision_not_accept": "the decision was not an acceptance",
+    "authority_unverifiable": "unsigned or signature invalid"
+  },
+  "claim_ceiling": "ESTABLISHED means only that, under this fixture contract, an authorization is re-evaluated at the moment it is used and does not survive expiry, revocation, consumption or a change of observation, policy bundle or tool definition. It does not establish that the clock at the enforcement point is trustworthy, that revocation lists propagate in bounded time, that every execution path passes through the enforcement point, or production deployment safety.",
+  "cases": [
+    {
+      "id": "grant_within_window_admitted",
+      "stage": "grant",
+      "claim_id": "fresh_authority_at_dispatch",
+      "note": "Presented inside [issued_at, expires_at) for the observation it was issued for.",
+      "authorization": {
+        "decision": "accept",
+        "observation": "obs-7f3a",
+        "issued_at": "2026-10-04T12:00:00+00:00",
+        "expires_at": "2026-10-04T12:05:00+00:00",
+        "kid": "pdp-key-1"
+      },
+      "presentations": [
+        {
+          "at": "2026-10-04T12:01:00+00:00",
+          "observation": "obs-7f3a",
+          "revoked_kids": []
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "ADMITTED",
+            "refusal_class": null
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "grant_expired_at_presentation",
+      "stage": "grant",
+      "claim_id": "fresh_authority_at_dispatch",
+      "note": "Presented after expires_at.",
+      "authorization": {
+        "decision": "accept",
+        "observation": "obs-7f3a",
+        "issued_at": "2026-10-04T12:00:00+00:00",
+        "expires_at": "2026-10-04T12:05:00+00:00",
+        "kid": "pdp-key-1"
+      },
+      "presentations": [
+        {
+          "at": "2026-10-04T12:10:00+00:00",
+          "observation": "obs-7f3a",
+          "revoked_kids": []
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_expired"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "grant_presented_before_issued",
+      "stage": "grant",
+      "claim_id": "fresh_authority_at_dispatch",
+      "note": "Presented before issued_at; a future-dated grant is not usable early.",
+      "authorization": {
+        "decision": "accept",
+        "observation": "obs-7f3a",
+        "issued_at": "2026-10-04T12:00:00+00:00",
+        "expires_at": "2026-10-04T12:05:00+00:00",
+        "kid": "pdp-key-1"
+      },
+      "presentations": [
+        {
+          "at": "2026-10-04T11:59:00+00:00",
+          "observation": "obs-7f3a",
+          "revoked_kids": []
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_not_yet_valid"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "grant_signing_key_revoked",
+      "stage": "grant",
+      "claim_id": "fresh_authority_at_dispatch",
+      "note": "The key that signed the grant was revoked between issue and presentation. The grant still verifies cryptographically and is still refused.",
+      "authorization": {
+        "decision": "accept",
+        "observation": "obs-7f3a",
+        "issued_at": "2026-10-04T12:00:00+00:00",
+        "expires_at": "2026-10-04T12:05:00+00:00",
+        "kid": "pdp-key-1"
+      },
+      "presentations": [
+        {
+          "at": "2026-10-04T12:01:00+00:00",
+          "observation": "obs-7f3a",
+          "revoked_kids": [
+            "pdp-key-1"
+          ]
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_revoked"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "grant_for_other_observation",
+      "stage": "grant",
+      "claim_id": "fresh_authority_at_dispatch",
+      "note": "Presented against a different observation than the one decided.",
+      "authorization": {
+        "decision": "accept",
+        "observation": "obs-7f3a",
+        "issued_at": "2026-10-04T12:00:00+00:00",
+        "expires_at": "2026-10-04T12:05:00+00:00",
+        "kid": "pdp-key-1"
+      },
+      "presentations": [
+        {
+          "at": "2026-10-04T12:01:00+00:00",
+          "observation": "obs-0000",
+          "revoked_kids": []
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_stale"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "grant_presented_twice",
+      "stage": "grant",
+      "claim_id": "fresh_authority_at_dispatch",
+      "note": "The same grant redeemed twice; the second redemption is refused.",
+      "authorization": {
+        "decision": "accept",
+        "observation": "obs-7f3a",
+        "issued_at": "2026-10-04T12:00:00+00:00",
+        "expires_at": "2026-10-04T12:05:00+00:00",
+        "kid": "pdp-key-1"
+      },
+      "presentations": [
+        {
+          "at": "2026-10-04T12:01:00+00:00",
+          "observation": "obs-7f3a",
+          "revoked_kids": []
+        },
+        {
+          "at": "2026-10-04T12:01:00+00:00",
+          "observation": "obs-7f3a",
+          "revoked_kids": []
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "ADMITTED",
+            "refusal_class": null
+          },
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_consumed"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "grant_decision_not_accept",
+      "stage": "grant",
+      "claim_id": "fresh_authority_at_dispatch",
+      "note": "A VERIFY decision is not an authorization to execute.",
+      "authorization": {
+        "decision": "verify",
+        "observation": "obs-7f3a",
+        "issued_at": "2026-10-04T12:00:00+00:00",
+        "expires_at": "2026-10-04T12:05:00+00:00",
+        "kid": "pdp-key-1"
+      },
+      "presentations": [
+        {
+          "at": "2026-10-04T12:01:00+00:00",
+          "observation": "obs-7f3a",
+          "revoked_kids": []
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "decision_not_accept"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "lease_within_window_dispatches",
+      "stage": "dispatch",
+      "claim_id": "fresh_authority_at_dispatch",
+      "note": "Lease presented inside its window, under the same policy bundle and tool definition.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed"
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "issued_at": "2026-10-04T12:00:00+00:00",
+        "expires_at": "2026-10-04T12:05:00+00:00",
+        "policy_bundle": "sha256:a4404d5a409126838098e66442565947bd78733a1712eaba6a3996200ee29f1f",
+        "toolspec_hash": "8b66f7113ce2111c6292485ca4cbc5b17525effe54f39caed40668d389eb4ad8",
+        "toolspec_version": 3
+      },
+      "dispatch": {
+        "at": "2026-10-04T12:01:00+00:00",
+        "policy_bundle": "sha256:a4404d5a409126838098e66442565947bd78733a1712eaba6a3996200ee29f1f",
+        "toolspec_hash": "8b66f7113ce2111c6292485ca4cbc5b17525effe54f39caed40668d389eb4ad8",
+        "toolspec_version": 3
+      },
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "DISPATCHED",
+            "refusal_class": null
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "lease_expired_at_dispatch",
+      "stage": "dispatch",
+      "claim_id": "fresh_authority_at_dispatch",
+      "note": "Dispatch after expires_at.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed"
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "issued_at": "2026-10-04T12:00:00+00:00",
+        "expires_at": "2026-10-04T12:05:00+00:00",
+        "policy_bundle": "sha256:a4404d5a409126838098e66442565947bd78733a1712eaba6a3996200ee29f1f",
+        "toolspec_hash": "8b66f7113ce2111c6292485ca4cbc5b17525effe54f39caed40668d389eb4ad8",
+        "toolspec_version": 3
+      },
+      "dispatch": {
+        "at": "2026-10-04T12:10:00+00:00",
+        "policy_bundle": "sha256:a4404d5a409126838098e66442565947bd78733a1712eaba6a3996200ee29f1f",
+        "toolspec_hash": "8b66f7113ce2111c6292485ca4cbc5b17525effe54f39caed40668d389eb4ad8",
+        "toolspec_version": 3
+      },
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_expired"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "lease_not_yet_valid",
+      "stage": "dispatch",
+      "claim_id": "fresh_authority_at_dispatch",
+      "note": "Dispatch before issued_at.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed"
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "issued_at": "2026-10-04T12:00:00+00:00",
+        "expires_at": "2026-10-04T12:05:00+00:00",
+        "policy_bundle": "sha256:a4404d5a409126838098e66442565947bd78733a1712eaba6a3996200ee29f1f",
+        "toolspec_hash": "8b66f7113ce2111c6292485ca4cbc5b17525effe54f39caed40668d389eb4ad8",
+        "toolspec_version": 3
+      },
+      "dispatch": {
+        "at": "2026-10-04T11:59:00+00:00",
+        "policy_bundle": "sha256:a4404d5a409126838098e66442565947bd78733a1712eaba6a3996200ee29f1f",
+        "toolspec_hash": "8b66f7113ce2111c6292485ca4cbc5b17525effe54f39caed40668d389eb4ad8",
+        "toolspec_version": 3
+      },
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_not_yet_valid"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "policy_bundle_changed",
+      "stage": "dispatch",
+      "claim_id": "fresh_authority_at_dispatch",
+      "note": "The policy bundle in force at dispatch is not the one the lease was issued under.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed"
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "issued_at": "2026-10-04T12:00:00+00:00",
+        "expires_at": "2026-10-04T12:05:00+00:00",
+        "policy_bundle": "sha256:a4404d5a409126838098e66442565947bd78733a1712eaba6a3996200ee29f1f",
+        "toolspec_hash": "8b66f7113ce2111c6292485ca4cbc5b17525effe54f39caed40668d389eb4ad8",
+        "toolspec_version": 3
+      },
+      "dispatch": {
+        "at": "2026-10-04T12:01:00+00:00",
+        "policy_bundle": "sha256:a2563da4dcb292cb4ebda394c4e8ccb7728e0a5e675c689259e5bdf6c75a47b1",
+        "toolspec_hash": "8b66f7113ce2111c6292485ca4cbc5b17525effe54f39caed40668d389eb4ad8",
+        "toolspec_version": 3
+      },
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_stale"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "toolspec_changed",
+      "stage": "dispatch",
+      "claim_id": "fresh_authority_at_dispatch",
+      "note": "The tool definition resolved at dispatch is not the one the authorization was granted under.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed"
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "issued_at": "2026-10-04T12:00:00+00:00",
+        "expires_at": "2026-10-04T12:05:00+00:00",
+        "policy_bundle": "sha256:a4404d5a409126838098e66442565947bd78733a1712eaba6a3996200ee29f1f",
+        "toolspec_hash": "8b66f7113ce2111c6292485ca4cbc5b17525effe54f39caed40668d389eb4ad8",
+        "toolspec_version": 3
+      },
+      "dispatch": {
+        "at": "2026-10-04T12:01:00+00:00",
+        "policy_bundle": "sha256:a4404d5a409126838098e66442565947bd78733a1712eaba6a3996200ee29f1f",
+        "toolspec_hash": "0d1031fc31d0eab49f2f65f2c6f3565fe549e893dd3f13d76e3007449d7ac6c9",
+        "toolspec_version": 4
+      },
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_stale"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "toolspec_version_changed",
+      "stage": "dispatch",
+      "claim_id": "fresh_authority_at_dispatch",
+      "note": "Same hash, different declared version; the binding covers both.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed"
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "issued_at": "2026-10-04T12:00:00+00:00",
+        "expires_at": "2026-10-04T12:05:00+00:00",
+        "policy_bundle": "sha256:a4404d5a409126838098e66442565947bd78733a1712eaba6a3996200ee29f1f",
+        "toolspec_hash": "8b66f7113ce2111c6292485ca4cbc5b17525effe54f39caed40668d389eb4ad8",
+        "toolspec_version": 3
+      },
+      "dispatch": {
+        "at": "2026-10-04T12:01:00+00:00",
+        "policy_bundle": "sha256:a4404d5a409126838098e66442565947bd78733a1712eaba6a3996200ee29f1f",
+        "toolspec_hash": "8b66f7113ce2111c6292485ca4cbc5b17525effe54f39caed40668d389eb4ad8",
+        "toolspec_version": 4
+      },
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_stale"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "lease_unsigned",
+      "stage": "dispatch",
+      "claim_id": "fresh_authority_at_dispatch",
+      "note": "No authentic authorization exists; freshness cannot be evaluated. The expected outcome is still a refusal.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed"
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "issued_at": "2026-10-04T12:00:00+00:00",
+        "expires_at": "2026-10-04T12:05:00+00:00",
+        "policy_bundle": "sha256:a4404d5a409126838098e66442565947bd78733a1712eaba6a3996200ee29f1f",
+        "toolspec_hash": "8b66f7113ce2111c6292485ca4cbc5b17525effe54f39caed40668d389eb4ad8",
+        "toolspec_version": 3,
+        "integrity": "unsigned"
+      },
+      "dispatch": {
+        "at": "2026-10-04T12:01:00+00:00",
+        "policy_bundle": "sha256:a4404d5a409126838098e66442565947bd78733a1712eaba6a3996200ee29f1f",
+        "toolspec_hash": "8b66f7113ce2111c6292485ca4cbc5b17525effe54f39caed40668d389eb4ad8",
+        "toolspec_version": 3
+      },
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_unverifiable"
+          }
+        ],
+        "claim_result": "NOT_ESTABLISHED"
+      }
+    }
+  ]
+}

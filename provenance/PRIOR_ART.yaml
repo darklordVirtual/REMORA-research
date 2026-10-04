@@ -1,0 +1,39 @@
+# Prior-art register. A concept's classification moves off UNKNOWN only
+# through a dated review recorded here that names the works compared, the
+# overlap found, the difference found, and what REMORA's claimed contribution
+# is limited to. A review that finds the concept in earlier work is recorded
+# with the same care as one that does not.
+schema_version: remora-prior-art-v1
+
+sources:
+  - id: PA-SRC-001
+    kind: repository_document
+    locator: docs/09-related-work.md
+    covers: "sections 4 (tool-use safety and agent guardrails), 11 (task-bound execution authority), 12 (from authority to effect), 13 (capability minimization), 14 (test adequacy for conformance corpora)"
+    note: the related-work survey; names the works a review of PROV-03 to PROV-17 starts from
+  - id: PA-SRC-002
+    kind: repository_document
+    locator: docs/research/adjacent-systems-crosswalk-v2.md
+    covers: "adjacent systems compared against HEAD, with v1's errors reproduced rather than deleted"
+  - id: PA-SRC-003
+    kind: external_specification
+    locator: https://github.com/Agent-Authority-Conformance/aps-conformance-suite
+    covers: "Agent Passport System conformance vocabulary and fixtures; the A to G property model REMORA was assessed against"
+    note: an external vocabulary, not a REMORA artifact; relevant to PROV-03, PROV-05, PROV-06, PROV-13
+
+# No review has been recorded yet. Every concept record therefore carries
+# classification UNKNOWN and origin.status claimed_original_contribution.
+# A review entry has this shape:
+#   - id: PA-REV-001
+#     date: 2026-10-20
+#     reviewer: <name>
+#     concepts: [PROV-13]
+#     works:
+#       - title: <work>
+#         locator: <url or citation>
+#         overlap: <what the work already has>
+#         difference: <what it does not have>
+#     outcome:
+#       classification: COMPOSITIONAL_CONTRIBUTION
+#       claimed_contribution_limited_to: <one sentence>
+reviews: []

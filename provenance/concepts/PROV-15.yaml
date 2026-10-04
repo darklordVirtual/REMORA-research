@@ -1,0 +1,67 @@
+# Concept record. Hand-maintained; digests live in provenance/manifests/, not here.
+# Registration records priority and content. It is not a claim of invention (see provenance/README.md).
+schema_version: remora-concept-record-v1
+concept_id: PROV-15
+canonical_name: Custody split as a hard guard
+invariant: Under a strict profile the process must declare its domain role. An authority process holds
+  no effect credential and no tool callable. An executor process holds no lease-signing material.
+identifying_terms:
+- CustodyViolation
+- assert_custody_split
+- REMORA_EXECUTION_DOMAIN_ROLE
+origin:
+  authors:
+  - Stian Skogbrott
+  project: REMORA
+  status: claimed_original_contribution
+classification: UNKNOWN
+first_recorded:
+  commit: da47b8c67a70eea9492183b81be90e88a0f51cd2
+  authored: '2026-08-27T20:58:44+02:00'
+  committed: '2026-08-27T20:58:44+02:00'
+  signature: E
+  paths:
+  - remora/enforcement/custody.py
+  - remora/toolcall/runtime_profile.py
+  - tests/conformance/test_custody_guard.py
+  method: first commit on the snapshot history that introduced an identifying term as its own token; docs/assurance/provenance_register_v1.json,
+    snapshot 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+canonical_spec:
+- path: docs/architecture/ADR-authority-custody-and-lease-durability.md
+implementation:
+- path: remora/enforcement/custody.py
+- path: remora/toolcall/runtime_profile.py
+tests:
+- path: tests/conformance/test_custody_guard.py
+conformance: []
+interop_contracts: []
+related_capabilities:
+- CAP-017
+- CAP-024
+related_claims: []
+federation_produces: null
+distinguishing_contribution: Under a strict profile a process must declare its domain role, and an authority
+  process holds no effect credential or tool callable while an executor holds no lease-signing material;
+  a violation is a hard guard, not a warning.
+prior_art:
+  reviewed: false
+  review_sources:
+  - PA-SRC-001
+  - PA-SRC-002
+  records: []
+  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
+    Registration is not a claim of invention.
+evolution:
+- stage: first_recorded
+  commit: da47b8c67a70eea9492183b81be90e88a0f51cd2
+  date: '2026-08-27'
+  note: identifying term first introduced as its own token
+- stage: register_snapshot
+  commit: 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+  date: '2026-10-01'
+  note: coined-identifier markers and code fingerprints pinned in provenance_register_v1.json
+external_adoption: []
+license:
+  spdx: BUSL-1.1
+  licensor: Stian Skogbrott
+  reference: legal/LICENSING.md

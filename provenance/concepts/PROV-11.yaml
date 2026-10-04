@@ -1,0 +1,73 @@
+# Concept record. Hand-maintained; digests live in provenance/manifests/, not here.
+# Registration records priority and content. It is not a claim of invention (see provenance/README.md).
+schema_version: remora-concept-record-v1
+concept_id: PROV-11
+canonical_name: Evidence sufficiency (established, violated, not established)
+invariant: Accepted evidence can establish a bounded claim, refute it, or leave it not established. Missing
+  evidence is not establishment.
+identifying_terms:
+- evidence-sufficiency
+origin:
+  authors:
+  - Stian Skogbrott
+  project: REMORA
+  status: claimed_original_contribution
+classification: UNKNOWN
+first_recorded:
+  commit: f10ca2a493755f64df9225a8ccb5636aa344a43a
+  authored: '2026-09-10T22:34:45+02:00'
+  committed: '2026-09-10T22:34:45+02:00'
+  signature: N
+  paths:
+  - conformance/evidence-sufficiency-v1/README.md
+  - conformance/evidence-sufficiency-v1/cases.json
+  - conformance/evidence-sufficiency-v1/checker.py
+  - conformance/evidence-sufficiency-v1/run-record.json
+  method: first commit on the snapshot history that introduced an identifying term as its own token; docs/assurance/provenance_register_v1.json,
+    snapshot 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+canonical_spec:
+- path: docs/design/evidence-sufficiency-v1.1.md
+- path: docs/design/evidence-sufficiency-v1.3.md
+implementation:
+- path: conformance/evidence-sufficiency-v1/checker.py
+tests:
+- path: tests/test_evidence_sufficiency_v1_2.py
+- path: tests/test_evidence_sufficiency_rule_coverage.py
+conformance:
+- evidence-sufficiency-v1
+- evidence-sufficiency-v1.7
+interop_contracts: []
+related_capabilities:
+- CAP-019
+- CAP-025
+related_claims: []
+federation_produces: null
+distinguishing_contribution: Accepted evidence establishes a bounded claim, refutes it, or leaves it not
+  established; missing evidence is never establishment, and the corpus is adequacy-tested against seeded
+  faults.
+prior_art:
+  reviewed: false
+  review_sources:
+  - PA-SRC-001
+  - PA-SRC-002
+  records: []
+  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
+    Registration is not a claim of invention.
+evolution:
+- stage: first_recorded
+  commit: f10ca2a493755f64df9225a8ccb5636aa344a43a
+  date: '2026-09-10'
+  note: identifying term first introduced as its own token
+- stage: register_snapshot
+  commit: 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+  date: '2026-10-01'
+  note: coined-identifier markers and code fingerprints pinned in provenance_register_v1.json
+external_adoption:
+- EXT-0001
+- EXT-0004
+- EXT-0005
+
+license:
+  spdx: BUSL-1.1
+  licensor: Stian Skogbrott
+  reference: legal/LICENSING.md

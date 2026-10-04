@@ -1,0 +1,366 @@
+{
+  "schema_version": "remora-interop-result-v1",
+  "contract_id": "fresh-authority-v1",
+  "edge": "E-FA",
+  "claim": "fresh_authority_at_dispatch",
+  "subject": "execution_authorization:remora-policy-decision-token-and-execution-lease",
+  "status": "ESTABLISHED",
+  "producer": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a"
+  },
+  "consumer": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a"
+  },
+  "fixture": {
+    "path": "artifacts/interop/fresh-authority-v1/fixtures.json",
+    "digest": "sha256:77327dc7911f0046f558536e454ed981f96f92d1025d6c11893ef7d625741276",
+    "package_digest": "sha256:234c57d0ed79b0cd87e702b2efbc52e99af1c619bd7fed2aef7be5c14964b691"
+  },
+  "evaluator": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
+    "kind": "REFERENCE",
+    "maintained_by": "PRODUCER",
+    "imports_producer_runtime": false,
+    "imports_reference_evaluator": true,
+    "command": "python artifacts/interop/fresh-authority-v1/reference_verifier.py"
+  },
+  "operator": "PRODUCER",
+  "host": "PRODUCER_CONTROLLED",
+  "independence_level": "L0_SELF_TEST",
+  "runner": {
+    "path": "scripts/interop_author_run.py",
+    "revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a"
+  },
+  "environment": "Python 3.11.15, Linux x86_64",
+  "started_at": "2026-10-04T07:46:53+00:00",
+  "completed_at": "2026-10-04T07:46:53+00:00",
+  "cases": [
+    {
+      "case_id": "grant_within_window_admitted",
+      "claim_id": "fresh_authority_at_dispatch",
+      "expected": {
+        "value": [
+          {
+            "outcome": "ADMITTED",
+            "refusal_class": null
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "ADMITTED",
+            "refusal_class": null
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "grant_expired_at_presentation",
+      "claim_id": "fresh_authority_at_dispatch",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_expired"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_expired"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "grant_presented_before_issued",
+      "claim_id": "fresh_authority_at_dispatch",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_not_yet_valid"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_not_yet_valid"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "grant_signing_key_revoked",
+      "claim_id": "fresh_authority_at_dispatch",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_revoked"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_revoked"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "grant_for_other_observation",
+      "claim_id": "fresh_authority_at_dispatch",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_stale"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_stale"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "grant_presented_twice",
+      "claim_id": "fresh_authority_at_dispatch",
+      "expected": {
+        "value": [
+          {
+            "outcome": "ADMITTED",
+            "refusal_class": null
+          },
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_consumed"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "ADMITTED",
+            "refusal_class": null
+          },
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_consumed"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "grant_decision_not_accept",
+      "claim_id": "fresh_authority_at_dispatch",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "decision_not_accept"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "decision_not_accept"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "lease_within_window_dispatches",
+      "claim_id": "fresh_authority_at_dispatch",
+      "expected": {
+        "value": [
+          {
+            "outcome": "DISPATCHED",
+            "refusal_class": null
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "DISPATCHED",
+            "refusal_class": null
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "lease_expired_at_dispatch",
+      "claim_id": "fresh_authority_at_dispatch",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_expired"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_expired"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "lease_not_yet_valid",
+      "claim_id": "fresh_authority_at_dispatch",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_not_yet_valid"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_not_yet_valid"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "policy_bundle_changed",
+      "claim_id": "fresh_authority_at_dispatch",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_stale"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_stale"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "toolspec_changed",
+      "claim_id": "fresh_authority_at_dispatch",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_stale"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_stale"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "toolspec_version_changed",
+      "claim_id": "fresh_authority_at_dispatch",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_stale"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_stale"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "lease_unsigned",
+      "claim_id": "fresh_authority_at_dispatch",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_unverifiable"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_unverifiable"
+          }
+        ]
+      },
+      "result": "NOT_ESTABLISHED"
+    }
+  ],
+  "establishes": [
+    "fresh_authority_at_dispatch: ESTABLISHED means only that, under this fixture contract, an authorization is re-evaluated when presented and does not survive expiry, revocation of its signing key, redemption, or a change of the observation, policy bundle or tool definition it was issued under."
+  ],
+  "does_not_establish": [
+    "that the clock at the enforcement point is trustworthy",
+    "that revocation propagates to every enforcement point in bounded time",
+    "that every execution path passes through the enforcement point",
+    "production deployment safety",
+    "Federation endorsement",
+    "a second implementation is by itself an independent verification record"
+  ],
+  "ceiling": {
+    "implies_endorsement": false,
+    "implies_production_safety": false,
+    "implies_broader_validity": false,
+    "confers_authority": false
+  },
+  "run_ref": "artifacts/interop/runs/fresh-authority-v1-fresh_authority_at_dispatch-author-reference-L0.json",
+  "published_at": null
+}

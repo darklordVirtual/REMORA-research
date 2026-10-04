@@ -2074,7 +2074,7 @@ documents:
   topic: docs_interop_FEDERATION_md
   code_synced: verified
   verdict: current
-  last_reviewed: '2026-10-02'
+  last_reviewed: '2026-10-04'
   audience:
   - maintainers
   - evaluators
@@ -2675,7 +2675,43 @@ documents:
   - maintainers
   - evaluators
   - integrators
+- id: DOC-357
+  path: docs/interop/INTEROP_MATRIX.md
+  status: generated
+  generated_by: scripts/build_interop_matrix.py
+  topic: docs_interop_INTEROP_MATRIX_md
+  code_synced: verified
+  verdict: current
+  last_reviewed: '2026-10-04'
+  audience:
+  - maintainers
+  - evaluators
+  - integrators
+- id: DOC-358
+  path: provenance/README.md
+  status: supporting
+  topic: provenance_README_md
+  code_synced: verified
+  verdict: current
+  last_reviewed: '2026-10-04'
+  audience:
+  - maintainers
+  - evaluators
+- id: DOC-359
+  path: provenance/manifests/provenance-manifest-v1.json
+  status: generated
+  generated_by: scripts/build_provenance_manifest.py
+  topic: provenance_manifests_provenance-manifest-v1_json
+  code_synced: verified
+  verdict: current
+  last_reviewed: '2026-10-04'
+  audience:
+  - maintainers
+  - evaluators
 topics:
+- provenance_README_md
+- provenance_manifests_provenance-manifest-v1_json
+- docs_interop_INTEROP_MATRIX_md
 - docs_integrations_jev_decision_provider_md
 - docs_integrations_mcp-gateway_md
 - docs_design_aps-authority-profile-v0_md

@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "REMORA Federation participation manifest v1",
+  "description": "What a participating project produces, consumes and bounds. The manifest confers nothing: it carries no authority field, and an edge's status is derived from run records, never declared here.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project",
+    "repository",
+    "entry_point",
+    "participation",
+    "produces",
+    "consumes",
+    "boundaries",
+    "claim_ceiling",
+    "result_schema",
+    "result_vocabulary",
+    "independence_levels",
+    "invariants",
+    "edges"
+  ],
+  "properties": {
+    "schema_version": {"const": "remora-federation-manifest-v1"},
+    "project": {"type": "string", "minLength": 1},
+    "repository": {"type": "string", "minLength": 1},
+    "entry_point": {"type": "string", "minLength": 1},
+    "participation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "active_governance_member", "coordinator"],
+      "properties": {
+        "type": {"enum": ["technical", "observer"]},
+        "active_governance_member": {"type": "boolean"},
+        "coordinator": {"const": false}
+      }
+    },
+    "produces": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}},
+    "consumes": {"type": "array", "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}},
+    "boundaries": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}},
+    "claim_ceiling": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["production_certified", "external_validation", "note"],
+      "properties": {
+        "production_certified": {"type": "boolean"},
+        "external_validation": {"enum": ["none", "partial", "complete"]},
+        "external_validation_record": {"type": "string", "minLength": 1},
+        "note": {"type": "string", "minLength": 1}
+      }
+    },
+    "result_schema": {"type": "string", "minLength": 1},
+    "result_vocabulary": {
+      "type": "array",
+      "items": {"enum": ["ESTABLISHED", "CONTRADICTED", "NOT_ESTABLISHED"]},
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true
+    },
+    "independence_levels": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["L0_SELF_TEST", "L1_REPRODUCTION", "L2_SECOND_IMPLEMENTATION", "L3_INDEPENDENT_RECOMPUTATION", "L4_INDEPENDENT_HOST_RUN"],
+      "properties": {
+        "L0_SELF_TEST": {"type": "string"},
+        "L1_REPRODUCTION": {"type": "string"},
+        "L2_SECOND_IMPLEMENTATION": {"type": "string"},
+        "L3_INDEPENDENT_RECOMPUTATION": {"type": "string"},
+        "L4_INDEPENDENT_HOST_RUN": {"type": "string"}
+      }
+    },
+    "invariants": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "statement", "enforced_by"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^FED-INV-[0-9]{3}$"},
+          "statement": {"type": "string", "pattern": "MUST"},
+          "enforced_by": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "producer", "consumer", "artifact", "property", "declared"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[A-Z][A-Z0-9-]*$"},
+          "producer": {"type": "string", "minLength": 1},
+          "consumer": {"type": "string", "minLength": 1},
+          "artifact": {"type": "string", "minLength": 1},
+          "property": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+          "contract": {"type": "string", "minLength": 1},
+          "declared": {"enum": ["PROPOSED", "SPECIFIED", "PRIOR_RECORD"]},
+          "record": {"type": "string", "minLength": 1},
+          "experimental": {"type": "boolean"},
+          "note": {"type": "string"}
+        },
+        "allOf": [
+          {"if": {"properties": {"declared": {"const": "SPECIFIED"}}}, "then": {"required": ["contract"]}},
+          {"if": {"properties": {"declared": {"const": "PRIOR_RECORD"}}}, "then": {"required": ["record"]}}
+        ]
+      }
+    }
+  },
+  "not": {
+    "anyOf": [
+      {"required": ["authority"]},
+      {"required": ["trusted_projects"]},
+      {"required": ["status"]}
+    ]
+  }
+}

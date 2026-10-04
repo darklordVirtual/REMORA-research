@@ -1,0 +1,142 @@
+# REMORA Federation participation manifest.
+#
+# Machine-readable, validated by artifacts/interop/schemas/federation-manifest-v1.schema.json
+# and checked in CI by scripts/interop_package.py --check. This file states what
+# REMORA produces, consumes and bounds. It confers nothing: Federation membership
+# is not trust and not authority (FED-INV-001). Counterpart projects appear here
+# as data on an edge, never as a branch in REMORA policy, enforcement or
+# execution code.
+schema_version: remora-federation-manifest-v1
+project: REMORA
+repository: darklordVirtual/REMORA-research
+entry_point: artifacts/interop/index.json
+
+participation:
+  type: technical
+  active_governance_member: false
+  coordinator: false
+
+produces:
+  - decision_envelope
+  - policy_decision
+  - execution_authorization
+  - execution_evidence
+  - effect_verification
+
+consumes:
+  - identity_attestation
+  - delegation_evidence
+  - tool_manifest
+  - external_authority_evidence
+
+boundaries:
+  - semantic_authority
+  - exact_call_authorization
+  - governed_dispatch
+  - effect_verification
+
+claim_ceiling:
+  production_certified: false
+  external_validation: partial
+  external_validation_record: docs/assurance/external_adequacy_evidence_sufficiency_v1.md
+  note: >-
+    One external adequacy round has been run on a conformance corpus (#629).
+    No interop contract has reached EXTERNALLY_VERIFIED. A result under any
+    contract establishes only what that contract's claim packet names.
+
+result_schema: artifacts/interop/schemas/interop-result-v1.schema.json
+result_vocabulary: [ESTABLISHED, CONTRADICTED, NOT_ESTABLISHED]
+
+independence_levels:
+  L0_SELF_TEST: the producer's own evaluator, run by the producer
+  L1_REPRODUCTION: the producer's reference evaluator, run by an external operator
+  L2_SECOND_IMPLEMENTATION: a separately written evaluator that still fails one independence condition
+  L3_INDEPENDENT_RECOMPUTATION: a second implementation, maintained and run outside the producer, importing no producer code
+  L4_INDEPENDENT_HOST_RUN: L3, executed on a host the producer does not control, with the environment recorded
+
+invariants:
+  - id: FED-INV-001
+    statement: Federation membership MUST NOT confer execution authority.
+    enforced_by:
+      - tests/test_federation_interop_contract.py::test_foreign_evidence_formats_carry_no_authority_field
+      - tests/test_federation_interop_contract.py::test_federation_formats_are_not_wired_into_the_authority_path
+  - id: FED-INV-002
+    statement: External project claims MUST be evaluated only within their declared claim ceiling.
+    enforced_by:
+      - scripts/interop_package.py::check (every claim carries a ceiling; every result names what it does not establish)
+  - id: FED-INV-003
+    statement: Interop artifacts MUST bind producer revision, artifact digest and schema version.
+    enforced_by:
+      - artifacts/interop/schemas/interop-result-v1.schema.json (required producer.revision, fixture.digest, schema_version)
+  - id: FED-INV-004
+    statement: A cross-project PASS MUST NOT imply endorsement, production safety or broader project validity.
+    enforced_by:
+      - artifacts/interop/schemas/interop-result-v1.schema.json (ceiling booleans are schema constants set to false)
+  - id: FED-INV-005
+    statement: External evidence MUST NOT transitively acquire authority merely because REMORA consumed it.
+    enforced_by:
+      - artifacts/interop/authority_integrations.json (empty reviewed_integrations)
+      - tests/test_agentavow_edge.py (adapter output is UNADMITTED and carries no gate field)
+
+# Edges are data. Status on an edge is never written here; it is derived from
+# run records under artifacts/interop/runs/ by scripts/build_interop_matrix.py.
+# declared: PROPOSED (no fixtures), SPECIFIED (fixtures and a reference
+# evaluator exist), PRIOR_RECORD (an earlier record outside the result schema).
+edges:
+  - id: E-ECB
+    producer: REMORA
+    consumer: any
+    artifact: ExecutionLease
+    property: exact_call_binding
+    contract: exact-call-binding-v1
+    declared: SPECIFIED
+  - id: E-FA
+    producer: REMORA
+    consumer: any
+    artifact: PolicyDecisionToken, ExecutionLease
+    property: fresh_authority_at_dispatch
+    contract: fresh-authority-v1
+    declared: SPECIFIED
+  - id: E-EE
+    producer: REMORA
+    consumer: any
+    artifact: EffectVerification
+    property: effect_state_distinction
+    contract: effect-evidence-v1
+    declared: SPECIFIED
+  - id: E7
+    producer: REMORA
+    consumer: Probity
+    artifact: runtime observation bundle
+    property: bounded_observed_surface_matches_governed_set
+    contract: runtime-surface-e7-v0.1
+    declared: SPECIFIED
+  - id: E8
+    producer: AgentAvow
+    consumer: REMORA
+    artifact: signed tool manifest
+    property: attested_definition_binding
+    contract: agentavow-tool-manifest-e8-v0.1
+    declared: SPECIFIED
+    experimental: true
+    note: wire format assumed by REMORA's profile v0; not yet confirmed by AgentAvow
+  - id: APS-CANON
+    producer: REMORA
+    consumer: APS
+    artifact: canonical bytes
+    property: jcs_rfc8785_parity
+    declared: PRIOR_RECORD
+    record: artifacts/interop/aps-ba8e540-profile-v0.1/SOURCE.md
+  - id: APS-ARB
+    producer: REMORA
+    consumer: APS
+    artifact: action result binding
+    property: action_result_binding
+    declared: PRIOR_RECORD
+    record: artifacts/interop/aps-b64cc8df-action-result-binding/REPORT.md
+  - id: E-ATTR
+    producer: REMORA
+    consumer: any
+    artifact: consumed-artifact-v1, action-lineage-v1
+    property: attribution_without_transitive_credit
+    declared: PROPOSED

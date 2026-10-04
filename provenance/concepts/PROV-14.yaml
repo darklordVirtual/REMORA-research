@@ -1,0 +1,68 @@
+# Concept record. Hand-maintained; digests live in provenance/manifests/, not here.
+# Registration records priority and content. It is not a claim of invention (see provenance/README.md).
+schema_version: remora-concept-record-v1
+concept_id: PROV-14
+canonical_name: One-time lease nonce
+invariant: A lease nonce is consumed once. A second presentation of the same nonce is not a second execution.
+identifying_terms:
+- NonceLedger
+origin:
+  authors:
+  - Stian Skogbrott
+  project: REMORA
+  status: claimed_original_contribution
+classification: UNKNOWN
+first_recorded:
+  commit: 26888d623422b94f45cb0e0a4b300cc510444d99
+  authored: '2026-07-20T15:07:54+02:00'
+  committed: '2026-07-20T15:11:16+02:00'
+  signature: N
+  paths:
+  - remora/enforcement/__init__.py
+  - remora/enforcement/lease.py
+  - tests/test_execution_lease.py
+  method: first commit on the snapshot history that introduced an identifying term as its own token; docs/assurance/provenance_register_v1.json,
+    snapshot 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+canonical_spec:
+- path: docs/architecture/ADR-authority-custody-and-lease-durability.md
+implementation:
+- path: remora/enforcement/lease.py
+- path: remora/enforcement/nonce_store.py
+tests:
+- path: tests/test_authority_state_durability.py
+- path: tests/test_lease_verification_contracts.py
+conformance: []
+interop_contracts:
+- exact-call-binding-v1
+related_capabilities:
+- CAP-013
+related_claims: []
+federation_produces: null
+distinguishing_contribution: A lease nonce is consumed once, durably when a store is configured, and a
+  nonce burned by a failed execution reports that failure rather than a plain replay.
+prior_art:
+  reviewed: false
+  review_sources:
+  - PA-SRC-001
+  - PA-SRC-002
+  records: []
+  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
+    Registration is not a claim of invention.
+evolution:
+- stage: first_recorded
+  commit: 26888d623422b94f45cb0e0a4b300cc510444d99
+  date: '2026-07-20'
+  note: identifying term first introduced as its own token
+- stage: register_snapshot
+  commit: 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+  date: '2026-10-01'
+  note: coined-identifier markers and code fingerprints pinned in provenance_register_v1.json
+- stage: interop_fixture
+  commit: 66cbd4b1f3df95098e671867f9a3200980df61a8
+  date: '2026-10-04'
+  note: 'published as an execution-boundary interop fixture: exact-call-binding-v1'
+external_adoption: []
+license:
+  spdx: BUSL-1.1
+  licensor: Stian Skogbrott
+  reference: legal/LICENSING.md

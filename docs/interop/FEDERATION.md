@@ -2,7 +2,150 @@
 
 REMORA participates as a producer/runtime node, not as a Federation coordinator.
 
-The stable entry point is `artifacts/interop/index.json`.
+The stable entry point is `artifacts/interop/index.json`. The participation
+manifest is `artifacts/interop/FEDERATION.yaml`; the generated status table
+is [INTEROP_MATRIX.md](INTEROP_MATRIX.md).
+
+## Participation manifest
+
+`artifacts/interop/FEDERATION.yaml` is the machine-readable statement of what
+REMORA produces, consumes and bounds. Produced: decision envelope, policy
+decision, execution authorization, execution evidence, effect verification.
+Consumed: identity attestation, delegation evidence, tool manifest, external
+authority evidence. The claim ceiling is stated in the same file: not
+production certified, external validation partial. It validates against
+`federation-manifest-v1.schema.json` and is checked by
+`scripts/interop_package.py --check`.
+
+Counterpart projects appear in the manifest only as data on an edge. A test
+refuses a project name used as a condition in policy, enforcement, execution,
+governance, toolcall or server code: REMORA understands foreign artifacts
+through adapters and profiles, never by knowing who sent them.
+
+## Invariants
+
+The manifest names five invariants and, for each, the test or gate that
+enforces it.
+
+| Id | Statement |
+|---|---|
+| FED-INV-001 | Federation membership MUST NOT confer execution authority. |
+| FED-INV-002 | External project claims MUST be evaluated only within their declared claim ceiling. |
+| FED-INV-003 | Interop artifacts MUST bind producer revision, artifact digest and schema version. |
+| FED-INV-004 | A cross-project PASS MUST NOT imply endorsement, production safety or broader project validity. |
+| FED-INV-005 | External evidence MUST NOT transitively acquire authority merely because REMORA consumed it. |
+
+Membership, trust and authority stay three different things. A Federation
+registry can say where an artifact came from. Only cryptographic verification
+under keys the deployment holds, followed by local REMORA policy, can say what
+it is allowed to do, and the answer is never derived from the registry.
+
+## Bounded results
+
+A cross-project result is never a bare PASS. `interop-result-v1`
+(`artifacts/interop/schemas/interop-result-v1.schema.json`) requires more
+than a status. It names the claim and the subject, the producer and consumer
+revisions, and the fixture digest and package digest the result was computed
+over. It names the evaluator and its revision, the operator, the host, the
+environment and the timestamps. It carries one record per case, what the
+result establishes and what it does not. Four ceiling booleans (`implies_endorsement`,
+`implies_production_safety`, `implies_broader_validity`,
+`confers_authority`) are schema constants fixed at false, so a record that
+claims otherwise does not validate. The optional `runner_contract` block
+holds nine separate booleans for the runner properties E030 found collapsed
+into one flag; a single `runner_safe` is rejected.
+
+### Independence levels
+
+Every result states one of five levels, and the schema refuses a level whose
+conditions the record does not meet.
+
+| Level | Means |
+|---|---|
+| `L0_SELF_TEST` | the producer's own evaluator, run by the producer |
+| `L1_REPRODUCTION` | the producer's reference evaluator, run by an external operator |
+| `L2_SECOND_IMPLEMENTATION` | a separately written evaluator that still fails one independence condition |
+| `L3_INDEPENDENT_RECOMPUTATION` | a second implementation, maintained and run outside the producer, importing no producer code |
+| `L4_INDEPENDENT_HOST_RUN` | L3, executed on a host the producer does not control, with the environment recorded |
+
+`L3` and `L4` are what `external-run-record-v1` calls `INDEPENDENT`; the two
+schemas describe the same boundary from two sides. A second implementation
+is implementation diversity. It becomes independence only when every
+condition holds, and the schema, not the author, decides.
+
+## Execution-boundary fixtures
+
+Four packages under `artifacts/interop/` follow the producer contract above.
+Each has pinned fixtures, a reference verifier that imports no REMORA code, a
+claim packet, a verifier request and a manifest. Three export a REMORA
+boundary; one consumes a foreign artifact.
+
+| Package | Claim | What REMORA runs |
+|---|---|---|
+| `exact-call-binding-v1` | `exact_call_binding`, `single_use_authorization` | `ExecutionLease` and `GovernedToolDispatcher` |
+| `fresh-authority-v1` | `fresh_authority_at_dispatch` | `PolicyDecisionToken` with `EnforcementGate`, and the lease with the dispatcher |
+| `effect-evidence-v1` | `effect_state_distinction` | `verify_declared_delta` over the fixture's state ladder |
+| `agentavow-tool-manifest-e8-v0.1` | `attested_definition_binding` | `remora.interop.agentavow` against `toolspec_hash` inside a signed lease |
+
+`remora/interop/boundary_fixtures.py` runs the first three through the real
+primitives; `scripts/interop_author_run.py` writes the result of that run,
+and of the reference verifier, as `L0_SELF_TEST` records under
+`artifacts/interop/runs/`. The two evaluators are kept as two records per
+claim so their agreement is visible rather than asserted. The author records
+advance nothing; the four contracts are `DRAFT` until frozen.
+
+The fixtures are the invitation. A project that wants to attack a claim
+implements the contract without REMORA code, adds its own mutation, replay,
+malformed, stale and wrong-subject cases, and publishes an
+`interop-result-v1` record. A `CONTRADICTED` record is a result REMORA wants.
+It is recorded and it wins in the matrix over every other record on the
+edge. The fixture is then corrected in a new version and the old record is
+kept.
+
+### The foreign edge
+
+`agentavow-tool-manifest-e8-v0.1` is the first edge REMORA consumes. The
+adapter verifies a signed tool manifest under a key the deployment supplies
+and normalizes it into an observed tool definition with an `UNADMITTED`
+evidence reference. It then compares the definition's digest with the
+`toolspec_hash` signed into an authentic `ExecutionLease`. It establishes
+that the attested definition is the one the authorization was granted under.
+It does not establish that the signer is trustworthy, that the definition is
+safe, that the runtime exposed it (E7), or that the call ran. The wire format
+is REMORA's profile v0 assumption and is marked `experimental` in the
+manifest until AgentAvow confirms or corrects it.
+
+## Interop matrix
+
+[INTEROP_MATRIX.md](INTEROP_MATRIX.md) is generated by
+`scripts/build_interop_matrix.py` from the manifest's edges, the index's
+lifecycle states and the run records. Status is derived: a declared stage
+when no record exists, `AUTHOR_RUN` for L0, `REPRODUCED` for L1,
+`SECOND_IMPLEMENTATION` for L2, `INDEPENDENTLY_ESTABLISHED` for L3 or L4, and
+`CONTRADICTED` as soon as one record says so. CI refuses a committed matrix
+that differs from the records, so proposed, specified, self-tested and
+independently reproduced cannot be confused by editing a table.
+
+## Maturity of a claim
+
+The progression a boundary claim can make, and where the three exported
+claims stand on 2026-10-04:
+
+```text
+DESIGNED -> IMPLEMENTED -> SELF_TESTED -> MUTATION_TESTED
+   -> SECOND_IMPLEMENTATION -> INDEPENDENTLY_REPRODUCED -> HOST_OPERATED -> FIELD_OBSERVED
+```
+
+`exact_call_binding` and `single_use_authorization` are at `MUTATION_TESTED`:
+the grant and lease consumption paths are inside the mutation baseline in
+`docs/assurance/mutation_testing_v1.md`, and the L0 records exist.
+`fresh_authority_at_dispatch` shares that baseline for expiry and single use;
+revocation and the policy-bundle and tool-definition staleness checks are at
+`SELF_TESTED`. `effect_state_distinction` is at `SELF_TESTED`. Nothing is
+beyond `MUTATION_TESTED`, which is the point of publishing the fixtures. The
+next step for each is one second implementation and one externally operated
+reproduction, with a neutral evaluator recording the level; the claim
+register is upgraded only when such records exist, never before.
 
 ## Producer contract
 

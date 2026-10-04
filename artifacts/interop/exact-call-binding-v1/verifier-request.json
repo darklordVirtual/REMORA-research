@@ -1,0 +1,54 @@
+{
+  "schema_version": "remora-verifier-request-v1",
+  "contract_id": "exact-call-binding-v1",
+  "edge": "E-ECB",
+  "producer": {
+    "repository": "darklordVirtual/REMORA-research",
+    "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a"
+  },
+  "package_identity": {
+    "manifest": "artifacts/interop/exact-call-binding-v1/manifest.json",
+    "note": "package_digest and every package file digest are in manifest.json and index.json. The Git revision you consumed is recorded in your run record, not here."
+  },
+  "inputs": {
+    "fixtures": {
+      "path": "artifacts/interop/exact-call-binding-v1/fixtures.json",
+      "sha256": "4a9b43747c762c7dc73382e588c0477693b00449f8a6233dc93eabbc801aac95"
+    },
+    "claim_packet": {
+      "path": "artifacts/interop/exact-call-binding-v1/claim-packet.json",
+      "sha256": "1f47fbe5810338b90dc22305ff6cd5cde738620b48a6b441ab1e24bc1d214f2f"
+    }
+  },
+  "run_record_schema": "artifacts/interop/schemas/external-run-record-v1.schema.json",
+  "result_schema": "artifacts/interop/schemas/interop-result-v1.schema.json",
+  "requested_work": [
+    "implement the fixture contract in a separately maintained codebase",
+    "do not import REMORA runtime code",
+    "do not import or depend on REMORA's reference_verifier.py",
+    "attempt to falsify: add mutation, replay, malformed, stale and wrong-subject cases of your own and report them next to the fixture cases",
+    "publish one result per native claim and case",
+    "record exact implementation revision, command, environment, input digests, package_digest and the REMORA Git revision consumed",
+    "state the independence level (interop-result-v1) and, for external-run-record-v1, implementation diversity and independence as two separate fields",
+    "repeat the producer claim ceiling and explicit non-claims"
+  ],
+  "expected_result_vocabulary": [
+    "ESTABLISHED",
+    "CONTRADICTED",
+    "NOT_ESTABLISHED"
+  ],
+  "independence_requirement": "A qualifying external verification requires L3_INDEPENDENT_RECOMPUTATION or L4_INDEPENDENT_HOST_RUN under interop-result-v1 (equivalently INDEPENDENT under external-run-record-v1): a second implementation maintained outside REMORA, run by an external operator, importing neither REMORA runtime code nor reference_verifier.py. Running the reference verifier is L1_REPRODUCTION. A second implementation that misses a condition is L2_SECOND_IMPLEMENTATION and moves the contract to REPRODUCED only.",
+  "proposed_review_policy": {
+    "mode": "PUBLIC_AFTER_REVIEW",
+    "producer_review": "REQUIRED",
+    "review_window_days": 7,
+    "unresolved_disagreement": "PUBLISH_WITH_DISAGREEMENT"
+  },
+  "non_claims": [
+    "this request does not appoint a verifier",
+    "this request does not establish Federation membership",
+    "this request does not grant REMORA authority over another project",
+    "a successful run does not establish production safety or broader project validity",
+    "a second implementation does not by itself establish independent verification"
+  ]
+}

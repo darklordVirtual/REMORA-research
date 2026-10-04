@@ -1,0 +1,36 @@
+{
+  "schema_version": "remora-exact-call-binding-v1-manifest",
+  "lifecycle": "DRAFT",
+  "producer": "REMORA-research",
+  "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
+  "source_artifacts": [],
+  "package_files": [
+    {
+      "path": "artifacts/interop/exact-call-binding-v1/README.md",
+      "sha256": "7ba5800a490473e8c637d460ba34312affb38fdded858b28db17084b5658fafa"
+    },
+    {
+      "path": "artifacts/interop/exact-call-binding-v1/claim-packet.json",
+      "sha256": "1f47fbe5810338b90dc22305ff6cd5cde738620b48a6b441ab1e24bc1d214f2f"
+    },
+    {
+      "path": "artifacts/interop/exact-call-binding-v1/fixtures.json",
+      "sha256": "4a9b43747c762c7dc73382e588c0477693b00449f8a6233dc93eabbc801aac95"
+    },
+    {
+      "path": "artifacts/interop/exact-call-binding-v1/reference_verifier.py",
+      "sha256": "71daad03d965b3a294cb2f02e0bc88144b40401d17d60980704efadb9f997b02"
+    },
+    {
+      "path": "artifacts/interop/exact-call-binding-v1/verifier-request.json",
+      "sha256": "e79ac4855f9eb8fa323cc2e98ccad96ded2390cedd6564767d154f59831edb29"
+    }
+  ],
+  "package_digest": "sha256:48dd143c4e4f50d69063df8e2a2993a5d240a50d81dc4330b225015ea432c77c",
+  "package_digest_rule": "sha256 over the UTF-8 text formed by one line per package_files entry, '<path> <sha256>\\n', sorted by path. manifest.json and index.json are outside the package and are never hashed into it.",
+  "independence_boundary": "The reference verifier is author-produced and is not independent verification. A second implementation is implementation diversity, not independence. L3_INDEPENDENT_RECOMPUTATION requires a second implementation maintained outside REMORA, run by an external operator, importing neither REMORA code nor this verifier (interop-result-v1).",
+  "global_property": {
+    "id": "production_certified",
+    "status": "NOT_ESTABLISHED"
+  }
+}

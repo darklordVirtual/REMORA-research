@@ -1,0 +1,36 @@
+{
+  "schema_version": "remora-agentavow-tool-manifest-e8-v0.1-manifest",
+  "lifecycle": "DRAFT",
+  "producer": "REMORA-research",
+  "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
+  "source_artifacts": [],
+  "package_files": [
+    {
+      "path": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/README.md",
+      "sha256": "324e20a41535b562d1a4dc9b2a50f4b8ac53f75ab7028c68a88d5fe12b54017e"
+    },
+    {
+      "path": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/claim-packet.json",
+      "sha256": "91d6cefd03cc2901ab98cea78bb62320730eb4c1e237630149d8da478e7e611e"
+    },
+    {
+      "path": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/fixtures.json",
+      "sha256": "bc8750fd392764f53c3f52e0b285b628ba105308a20c6bf1dd52d35e95c1c68e"
+    },
+    {
+      "path": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/reference_verifier.py",
+      "sha256": "3c80f3a9407381175ec9a4aca3c9e898d7e16c3ce90eec7a99d4ea4602d7bb53"
+    },
+    {
+      "path": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/verifier-request.json",
+      "sha256": "d2f8a3f10f1667b099692fbd777c322bfd5a30a359307a05be8a8b503f56f11b"
+    }
+  ],
+  "package_digest": "sha256:991bd278056a4ce68aff9c30636fa746347d6385f1a42dcded844c0d09e24f1a",
+  "package_digest_rule": "sha256 over the UTF-8 text formed by one line per package_files entry, '<path> <sha256>\\n', sorted by path. manifest.json and index.json are outside the package and are never hashed into it.",
+  "independence_boundary": "The reference verifier is author-produced and is not independent verification. A second implementation is implementation diversity, not independence. L3_INDEPENDENT_RECOMPUTATION requires a second implementation maintained outside REMORA, run by an external operator, importing neither REMORA code nor this verifier (interop-result-v1).",
+  "global_property": {
+    "id": "production_certified",
+    "status": "NOT_ESTABLISHED"
+  }
+}

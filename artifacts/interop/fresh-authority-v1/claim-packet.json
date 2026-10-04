@@ -1,0 +1,51 @@
+{
+  "schema_version": "remora-claim-packet-v1",
+  "contract_id": "fresh-authority-v1",
+  "producer": "REMORA-research",
+  "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
+  "package_identity": {
+    "manifest": "artifacts/interop/fresh-authority-v1/manifest.json",
+    "rule": "content-addressed; package_digest is computed from manifest.package_files and recorded in manifest.json and index.json, never inside a hashed package file"
+  },
+  "subject": {
+    "class": "execution_authorization",
+    "id": "remora-policy-decision-token-and-execution-lease"
+  },
+  "artifact_refs": [
+    {
+      "path": "artifacts/interop/fresh-authority-v1/fixtures.json",
+      "sha256": "77327dc7911f0046f558536e454ed981f96f92d1025d6c11893ef7d625741276",
+      "role": "producer fixture contract"
+    },
+    {
+      "path": "artifacts/interop/fresh-authority-v1/reference_verifier.py",
+      "sha256": "ec13b88807b74021f18a64b997088465d65b7fd780bfcfc7bf17b797f4d50d0a",
+      "role": "author reference implementation; not independent verification"
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "fresh_authority_at_dispatch",
+      "result_vocabulary": [
+        "ESTABLISHED",
+        "CONTRADICTED",
+        "NOT_ESTABLISHED"
+      ],
+      "claim_ceiling": "ESTABLISHED means only that, under this fixture contract, an authorization is re-evaluated when presented and does not survive expiry, revocation of its signing key, redemption, or a change of the observation, policy bundle or tool definition it was issued under."
+    }
+  ],
+  "assumptions": [
+    "timestamps are UTC ISO-8601 and the window is [issued_at, expires_at)",
+    "`revoked_kids` at a presentation is the revocation state the enforcement point can see at that moment",
+    "a grant decision other than `accept` is never an execution authorization"
+  ],
+  "explicit_non_claims": [
+    "that the clock at the enforcement point is trustworthy",
+    "that revocation propagates to every enforcement point in bounded time",
+    "that every execution path passes through the enforcement point",
+    "production deployment safety",
+    "Federation endorsement",
+    "a second implementation is by itself an independent verification record"
+  ],
+  "temporal_scope": "Pinned fixture evaluation only; no live deployment time window is established."
+}

@@ -11,7 +11,13 @@
     "remora-external-run-record-v1",
     "external-run-record-v1",
     "artifacts/interop/schemas",
-    "artifacts/interop/index.json"
+    "artifacts/interop/index.json",
+    "remora-interop-result-v1",
+    "interop-result-v1",
+    "remora-federation-manifest-v1",
+    "FEDERATION.yaml",
+    "remora.interop.agentavow",
+    "remora.interop.boundary_fixtures"
   ],
   "reviewed_integrations": []
 }

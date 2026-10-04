@@ -1,0 +1,52 @@
+{
+  "schema_version": "remora-claim-packet-v1",
+  "contract_id": "effect-evidence-v1",
+  "producer": "REMORA-research",
+  "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
+  "package_identity": {
+    "manifest": "artifacts/interop/effect-evidence-v1/manifest.json",
+    "rule": "content-addressed; package_digest is computed from manifest.package_files and recorded in manifest.json and index.json, never inside a hashed package file"
+  },
+  "subject": {
+    "class": "effect_verification",
+    "id": "remora-effect-verification"
+  },
+  "artifact_refs": [
+    {
+      "path": "artifacts/interop/effect-evidence-v1/fixtures.json",
+      "sha256": "676978802d981f11ae0a40ba9c13ced4b41f302c8c40370eb3dd883e2b716e66",
+      "role": "producer fixture contract"
+    },
+    {
+      "path": "artifacts/interop/effect-evidence-v1/reference_verifier.py",
+      "sha256": "0c135d10c3f6e7e5bac64c98397d134be343137d16c7e8572689435f728d12d5",
+      "role": "author reference implementation; not independent verification"
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "effect_state_distinction",
+      "result_vocabulary": [
+        "ESTABLISHED",
+        "CONTRADICTED",
+        "NOT_ESTABLISHED"
+      ],
+      "claim_ceiling": "ESTABLISHED means only that, under this fixture contract, NOT_DISPATCHED, DISPATCHED, EXECUTION_REPORTED_SUCCESS and EFFECT_VERIFIED are kept apart, a reported success is never promoted to a verified effect without an observation of the declared delta, and an unobservable or vacuous postcondition leaves the state where it was."
+    }
+  ],
+  "assumptions": [
+    "`observed: null` means the reader returned nothing, not that the object is absent",
+    "only declared fields are compared, under the rules in the fixture's `rules.comparison` note",
+    "a success report for a refused dispatch is not attributed to the action"
+  ],
+  "explicit_non_claims": [
+    "that the reader is independent of the tool that acted",
+    "that the observed object is the one the call targeted",
+    "that no effect outside the declared delta occurred",
+    "causation of an observed effect",
+    "production deployment safety",
+    "Federation endorsement",
+    "a second implementation is by itself an independent verification record"
+  ],
+  "temporal_scope": "Pinned fixture evaluation only; no live deployment time window is established."
+}
