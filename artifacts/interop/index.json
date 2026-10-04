@@ -41,7 +41,7 @@
     {
       "id": "exact-call-binding-v1",
       "edge": "E-ECB",
-      "lifecycle": "FROZEN",
+      "lifecycle": "EXTERNAL_RUN_PENDING",
       "external_verification": "PENDING",
       "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
       "manifest": "artifacts/interop/exact-call-binding-v1/manifest.json",
@@ -56,13 +56,19 @@
         "recorded_at": "2026-10-04",
         "note": "The commit that records this freeze is later than the revision it names; the package never pins itself."
       },
-      "pin_confirmed_to": [],
+      "pin_confirmed_to": [
+        {
+          "verifier": "Probity",
+          "where": "https://github.com/darklordVirtual/REMORA-research/issues/707#issuecomment-5982027211",
+          "confirmed_at": "2026-10-04"
+        }
+      ],
       "external_runs": []
     },
     {
       "id": "fresh-authority-v1",
       "edge": "E-FA",
-      "lifecycle": "FROZEN",
+      "lifecycle": "EXTERNAL_RUN_PENDING",
       "external_verification": "PENDING",
       "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
       "manifest": "artifacts/interop/fresh-authority-v1/manifest.json",
@@ -77,13 +83,19 @@
         "recorded_at": "2026-10-04",
         "note": "The commit that records this freeze is later than the revision it names; the package never pins itself."
       },
-      "pin_confirmed_to": [],
+      "pin_confirmed_to": [
+        {
+          "verifier": "Probity",
+          "where": "https://github.com/darklordVirtual/REMORA-research/issues/707#issuecomment-5982027211",
+          "confirmed_at": "2026-10-04"
+        }
+      ],
       "external_runs": []
     },
     {
       "id": "effect-evidence-v1",
       "edge": "E-EE",
-      "lifecycle": "FROZEN",
+      "lifecycle": "EXTERNAL_RUN_PENDING",
       "external_verification": "PENDING",
       "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
       "manifest": "artifacts/interop/effect-evidence-v1/manifest.json",
@@ -98,7 +110,13 @@
         "recorded_at": "2026-10-04",
         "note": "The commit that records this freeze is later than the revision it names; the package never pins itself."
       },
-      "pin_confirmed_to": [],
+      "pin_confirmed_to": [
+        {
+          "verifier": "Probity",
+          "where": "https://github.com/darklordVirtual/REMORA-research/issues/707#issuecomment-5982027211",
+          "confirmed_at": "2026-10-04"
+        }
+      ],
       "external_runs": []
     },
     {
