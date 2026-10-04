@@ -218,7 +218,9 @@ repository updated. REMORA may afterwards run the verifier's reader in its own
 CI, pinned to the reader revision named in the run record, and retain the
 output as a CI artifact. That rerun is a `REPRODUCTION` of the external
 record, kept as evidence; it adds no state, creates no REMORA authority and
-never feeds a policy decision.
+never feeds a policy decision. For the three execution-boundary packages the
+rerun is `.github/workflows/probity-boundary-reproduction.yml`, pinned to the
+reader revision named on the control board.
 
 ### Diversity and independence
 
