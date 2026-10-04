@@ -222,7 +222,10 @@ def build(snapshot: str, records: dict[str, dict[str, Any]], *, release: str | N
     body = {
         "schema_version": "remora-provenance-manifest-v1",
         "snapshot": snapshot,
-        "snapshot_committed": _git("show", "-s", "--format=%cI", snapshot),
+        # From epoch seconds, formatted here: git's own %cI renders UTC as
+        # "+00:00" on one version and "Z" on another, which changed the digest
+        # between a workstation and the runner.
+        "snapshot_committed": dt.datetime.fromtimestamp(int(_git("show", "-s", "--format=%ct", snapshot)), dt.UTC).isoformat(),
         "release": release,
         "rule": policy["manifest"]["rule"],
         "concepts": concepts,
