@@ -1,0 +1,46 @@
+# Provenance ledger policy. Read by scripts/build_provenance_manifest.py and
+# scripts/check_provenance_signatures.py.
+schema_version: remora-provenance-policy-v1
+
+# Files whose history the signature gate covers. A change here is a change to
+# the record of what REMORA created and when, so it needs a higher bar than
+# ordinary documentation.
+protected_paths:
+  - provenance/
+  - docs/assurance/provenance_concepts_v1.yaml
+  - docs/assurance/provenance_register_v1.json
+  - legal/PROVENANCE.md
+
+signatures:
+  # Every commit touching a protected path after enforced_from must be
+  # signed and verified. null means the gate reports and does not fail: the
+  # ratchet is armed by recording the first signed commit's full sha here,
+  # in a signed commit. Set it once branch protection requires signed
+  # commits on master.
+  enforced_from: null
+  accepted_git_status: ["G", "U"]
+  verification_source: "GitHub commit verification record when GITHUB_TOKEN and GITHUB_REPOSITORY are set; git log %G? otherwise"
+
+# Vocabulary. A record may not use a value outside these lists.
+origin_status: [claimed_original_contribution, reviewed_original_contribution, compositional_contribution, derived]
+classification: [ORIGINAL_CLAIM, PRIOR_ART_OVERLAP, COMPOSITIONAL_CONTRIBUTION, IMPLEMENTATION_INNOVATION, TERMINOLOGY_ONLY, DERIVED, UNKNOWN]
+
+# A classification other than UNKNOWN requires a dated review in
+# PRIOR_ART.yaml that names the concept. The manifest builder refuses a
+# record that upgrades itself without one.
+classification_requires_review: true
+
+manifest:
+  path: provenance/manifests/provenance-manifest-v1.json
+  rule: "digests are taken from the tree of the recorded snapshot commit, so the manifest reproduces byte for byte until a new snapshot is written"
+  registers:
+    - docs/assurance/claim_register_v1.yaml
+    - docs/assurance/capability_register_v1.yaml
+    - docs/assurance/provenance_concepts_v1.yaml
+    - docs/assurance/provenance_register_v1.json
+    - artifacts/interop/index.json
+    - artifacts/interop/FEDERATION.yaml
+    - provenance/PRIOR_ART.yaml
+    - provenance/EXTERNAL_ADOPTION.yaml
+    - provenance/AUTHORS.yaml
+    - provenance/POLICY.yaml

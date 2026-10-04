@@ -1,0 +1,69 @@
+# Concept record. Hand-maintained; digests live in provenance/manifests/, not here.
+# Registration records priority and content. It is not a claim of invention (see provenance/README.md).
+schema_version: remora-concept-record-v1
+concept_id: PROV-04
+canonical_name: Fresh re-gate of a stale approval before execution
+invariant: A stored approval is re-decided on the observation presented at execution. It survives only
+  when the fresh decision is executable and no stricter.
+identifying_terms:
+- fresh re-gate
+origin:
+  authors:
+  - Stian Skogbrott
+  project: REMORA
+  status: claimed_original_contribution
+classification: UNKNOWN
+first_recorded:
+  commit: 5741508ba36068257cf66048db53af38db41f59b
+  authored: '2026-07-18T16:13:25+02:00'
+  committed: '2026-07-18T16:13:25+02:00'
+  signature: N
+  paths:
+  - docs/assurance/remediation_register.yaml
+  method: first commit on the snapshot history that introduced an identifying term as its own token; docs/assurance/provenance_register_v1.json,
+    snapshot 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+canonical_spec:
+- path: docs/execution-lifecycle.md
+- path: docs/architecture/ADR-tainted-argument-approval.md
+implementation:
+- path: remora/governance/review_queue.py
+tests:
+- path: tests/test_policy_change_during_review.py
+- path: tests/test_tainted_argument_approval_contract.py
+conformance:
+- autoreview-to-effect-v1
+interop_contracts:
+- fresh-authority-v1
+related_capabilities:
+- CAP-007
+related_claims: []
+federation_produces: null
+distinguishing_contribution: A stored approval is decided again on the observation presented at execution
+  and survives only when the fresh decision is executable and no stricter; approval freshness is a gate,
+  not a timestamp.
+prior_art:
+  reviewed: false
+  review_sources:
+  - PA-SRC-001
+  - PA-SRC-002
+  records: []
+  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
+    Registration is not a claim of invention.
+evolution:
+- stage: first_recorded
+  commit: 5741508ba36068257cf66048db53af38db41f59b
+  date: '2026-07-18'
+  note: identifying term first introduced as its own token
+- stage: register_snapshot
+  commit: 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+  date: '2026-10-01'
+  note: coined-identifier markers and code fingerprints pinned in provenance_register_v1.json
+- stage: interop_fixture
+  commit: 66cbd4b1f3df95098e671867f9a3200980df61a8
+  date: '2026-10-04'
+  note: 'published as an execution-boundary interop fixture: fresh-authority-v1'
+external_adoption: []
+license:
+  spdx: BUSL-1.1
+  licensor: Stian Skogbrott
+  reference: legal/LICENSING.md

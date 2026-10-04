@@ -1,0 +1,66 @@
+# Concept record. Hand-maintained; digests live in provenance/manifests/, not here.
+# Registration records priority and content. It is not a claim of invention (see provenance/README.md).
+schema_version: remora-concept-record-v1
+concept_id: PROV-10
+canonical_name: Non-transitivity of authority
+invariant: Authorization of one capability does not authorize a further capability reached through it.
+  Delegation may narrow authority. It does not widen it.
+identifying_terms:
+- non-transitivity
+origin:
+  authors:
+  - Stian Skogbrott
+  project: REMORA
+  status: claimed_original_contribution
+classification: UNKNOWN
+first_recorded:
+  commit: d4b62c4fb31e6772d551d4a9ebf4fd35f675316d
+  authored: '2026-09-29T12:28:54+02:00'
+  committed: '2026-09-29T12:28:54+02:00'
+  signature: E
+  paths:
+  - CHANGELOG.md
+  - conformance/non-transitivity-of-authority-v1/README.md
+  - conformance/non-transitivity-of-authority-v1/adapter.py
+  - conformance/non-transitivity-of-authority-v1/adapter_remora.py
+  method: first commit on the snapshot history that introduced an identifying term as its own token; docs/assurance/provenance_register_v1.json,
+    snapshot 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+canonical_spec:
+- path: docs/security/non-transitivity-of-authority.md
+implementation:
+- path: remora/capabilities/delegation.py
+- path: remora/enforcement/effect_domain.py
+tests:
+- path: tests/test_conformance_non_transitivity.py
+conformance:
+- non-transitivity-of-authority-v1
+interop_contracts: []
+related_capabilities:
+- CAP-024
+related_claims: []
+federation_produces: null
+distinguishing_contribution: Authorization of a capability does not authorize what is reachable through
+  it, and a tool's authorization does not cover the privileged effects its implementation can reach; delegation
+  may narrow authority and never widens it.
+prior_art:
+  reviewed: false
+  review_sources:
+  - PA-SRC-001
+  - PA-SRC-002
+  records: []
+  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
+    Registration is not a claim of invention.
+evolution:
+- stage: first_recorded
+  commit: d4b62c4fb31e6772d551d4a9ebf4fd35f675316d
+  date: '2026-09-29'
+  note: identifying term first introduced as its own token
+- stage: register_snapshot
+  commit: 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+  date: '2026-10-01'
+  note: coined-identifier markers and code fingerprints pinned in provenance_register_v1.json
+external_adoption: []
+license:
+  spdx: BUSL-1.1
+  licensor: Stian Skogbrott
+  reference: legal/LICENSING.md

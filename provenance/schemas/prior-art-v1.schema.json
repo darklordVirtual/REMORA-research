@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "REMORA prior-art register v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "sources", "reviews"],
+  "properties": {
+    "schema_version": {"const": "remora-prior-art-v1"},
+    "sources": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "kind", "locator", "covers"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^PA-SRC-[0-9]{3}$"},
+          "kind": {"enum": ["repository_document", "external_specification", "external_corpus", "publication"]},
+          "locator": {"type": "string", "minLength": 1},
+          "covers": {"type": "string", "minLength": 1},
+          "note": {"type": "string"}
+        }
+      }
+    },
+    "reviews": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "date", "reviewer", "concepts", "works", "outcome"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^PA-REV-[0-9]{3}$"},
+          "date": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+          "reviewer": {"type": "string", "minLength": 1},
+          "concepts": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^PROV-[0-9]{2}$"}},
+          "works": {
+            "type": "array", "minItems": 1,
+            "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["title", "locator", "overlap", "difference"],
+              "properties": {
+                "title": {"type": "string", "minLength": 1},
+                "locator": {"type": "string", "minLength": 1},
+                "overlap": {"type": "string", "minLength": 1},
+                "difference": {"type": "string", "minLength": 1}
+              }
+            }
+          },
+          "outcome": {
+            "type": "object", "additionalProperties": false,
+            "required": ["classification", "claimed_contribution_limited_to"],
+            "properties": {
+              "classification": {"enum": ["ORIGINAL_CLAIM", "PRIOR_ART_OVERLAP", "COMPOSITIONAL_CONTRIBUTION", "IMPLEMENTATION_INNOVATION", "TERMINOLOGY_ONLY", "DERIVED"]},
+              "claimed_contribution_limited_to": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    }
+  }
+}

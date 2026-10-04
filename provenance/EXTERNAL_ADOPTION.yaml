@@ -1,0 +1,79 @@
+# External adoption register. Each event records what an external source
+# documents about its own use of a REMORA concept or artifact, with the
+# source's revision. The register does not infer derivation; the
+# relationship field repeats what the source itself says.
+schema_version: remora-external-adoption-v1
+
+events:
+  - id: EXT-0001
+    date: '2026-09-29'
+    project: Rul1an/remora-es-v1-adequacy
+    event_type: independent_reproduction
+    concepts: [PROV-11]
+    source:
+      url: https://github.com/Rul1an/remora-es-v1-adequacy/blob/05f7a087b6462400f4eb9ea9e4fb7d4aa023ccd3/REPORT.md
+      commit: 05f7a087b6462400f4eb9ea9e4fb7d4aa023ccd3
+    attribution:
+      explicit: true
+      wording: "corpus-adequacy run against conformance/evidence-sufficiency-v1 at REMORA 31c4060, agreed in darklordVirtual/REMORA-research#629"
+    relationship:
+      claimed_by_external_source: "a separately maintained tool measured REMORA's corpus against an agreed seeded-fault list; survivors were published unchanged"
+      maintainer_overlap: false
+    recorded_in: docs/assurance/external_adequacy_evidence_sufficiency_v1.md
+  - id: EXT-0002
+    date: '2026-09-02'
+    project: Agent-Authority-Conformance/aps-conformance-suite
+    event_type: external_record
+    concepts: [PROV-13]
+    source:
+      url: https://github.com/Agent-Authority-Conformance/aps-conformance-suite/blob/main/interop/remora-edd8a4e/SOURCE.md
+    attribution:
+      explicit: true
+      wording: "interop/remora-edd8a4e record of REMORA's canonical-bytes run, author-produced, labelled as such by the corpus maintainer"
+    relationship:
+      claimed_by_external_source: "the corpus repository holds a record of a REMORA run against its fixtures; the mapping was criticised as drawn to fit the answers, which docs/interop/REMORA-APS-PROFILE-v0.1.md adopts as a rule"
+      maintainer_overlap: false
+    recorded_in: artifacts/interop/aps-ba8e540-profile-v0.1/SOURCE.md
+  - id: EXT-0003
+    date: '2026-10-02'
+    project: Probity
+    event_type: verifier_pin_accepted
+    concepts: [PROV-09]
+    source:
+      url: https://github.com/darklordVirtual/REMORA-research/issues/707#issuecomment-5954893715
+    attribution:
+      explicit: true
+      wording: "pin for runtime-surface-e7-v0.1 confirmed to Probity; contract moved to EXTERNAL_RUN_PENDING"
+    relationship:
+      claimed_by_external_source: "a named verifier accepted the frozen pin of the E7 package; no run record exists yet"
+      maintainer_overlap: false
+    recorded_in: artifacts/interop/index.json
+  - id: EXT-0004
+    date: '2026-10-03'
+    project: darklordVirtual/agent-authority-conformance
+    event_type: adapter_published
+    concepts: [PROV-11]
+    source:
+      url: https://github.com/darklordVirtual/agent-authority-conformance/tree/750c9a1c780a996a21c5bff75cb197650a710b63/adapters/remora-evidence-sufficiency-v1
+      commit: 750c9a1c780a996a21c5bff75cb197650a710b63
+    attribution:
+      explicit: true
+      wording: "resolution-only adapter over the #629 adequacy experiment; grants no property verdict"
+    relationship:
+      claimed_by_external_source: "the conformance repository resolves REMORA's pinned bytes through an adapter; same maintainer as REMORA, so this is not independent evidence"
+      maintainer_overlap: true
+    recorded_in: docs/interop/FEDERATION.md
+  - id: EXT-0005
+    date: '2026-10-02'
+    project: aeoess/agent-governance-vocabulary
+    event_type: federation_discussion
+    concepts: [PROV-09, PROV-11]
+    source:
+      url: https://github.com/aeoess/agent-governance-vocabulary/issues/177
+    attribution:
+      explicit: true
+      wording: "Federation edge E7 (REMORA runtime surface) and the claim and provenance discipline of #179"
+    relationship:
+      claimed_by_external_source: "the Federation vocabulary repository lists REMORA's E7 package as a producer-side contract awaiting an external run"
+      maintainer_overlap: false
+    recorded_in: docs/interop/FEDERATION.md

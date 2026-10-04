@@ -1,0 +1,72 @@
+# Concept record. Hand-maintained; digests live in provenance/manifests/, not here.
+# Registration records priority and content. It is not a claim of invention (see provenance/README.md).
+schema_version: remora-concept-record-v1
+concept_id: PROV-07
+canonical_name: GovernedToolDispatcher, enforcement in front of the tool
+invariant: The dispatcher holds the tool callable. The agent holds a lease. A call with no valid lease
+  does not run.
+identifying_terms:
+- GovernedToolDispatcher
+origin:
+  authors:
+  - Stian Skogbrott
+  project: REMORA
+  status: claimed_original_contribution
+classification: UNKNOWN
+first_recorded:
+  commit: 26888d623422b94f45cb0e0a4b300cc510444d99
+  authored: '2026-07-20T15:07:54+02:00'
+  committed: '2026-07-20T15:11:16+02:00'
+  signature: N
+  paths:
+  - remora/enforcement/__init__.py
+  - remora/enforcement/lease.py
+  - tests/test_execution_lease.py
+  method: first commit on the snapshot history that introduced an identifying term as its own token; docs/assurance/provenance_register_v1.json,
+    snapshot 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+canonical_spec:
+- path: docs/architecture/ADR-single-authoritative-execution-path.md
+implementation:
+- path: remora/enforcement/lease.py
+- path: remora/execution/dispatch.py
+tests:
+- path: tests/test_dispatcher_contract.py
+- path: tests/test_execution_lease.py
+conformance:
+- decision-to-effect-v1
+interop_contracts:
+- exact-call-binding-v1
+related_capabilities:
+- CAP-013
+related_claims:
+- CLAIM-014
+federation_produces: execution_evidence
+distinguishing_contribution: The dispatcher, not the agent, holds the tool callable and its credentials;
+  it re-verifies the whole binding before execution and burns the nonce, so a lease authorizes at most
+  one execution of exactly the approved call.
+prior_art:
+  reviewed: false
+  review_sources:
+  - PA-SRC-001
+  - PA-SRC-002
+  records: []
+  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
+    Registration is not a claim of invention.
+evolution:
+- stage: first_recorded
+  commit: 26888d623422b94f45cb0e0a4b300cc510444d99
+  date: '2026-07-20'
+  note: identifying term first introduced as its own token
+- stage: register_snapshot
+  commit: 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+  date: '2026-10-01'
+  note: coined-identifier markers and code fingerprints pinned in provenance_register_v1.json
+- stage: interop_fixture
+  commit: 66cbd4b1f3df95098e671867f9a3200980df61a8
+  date: '2026-10-04'
+  note: 'published as an execution-boundary interop fixture: exact-call-binding-v1'
+external_adoption: []
+license:
+  spdx: BUSL-1.1
+  licensor: Stian Skogbrott
+  reference: legal/LICENSING.md

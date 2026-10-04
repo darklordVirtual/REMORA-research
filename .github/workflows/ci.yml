@@ -255,6 +255,16 @@ jobs:
       - name: License policy gate (BUSL-1.1, no legacy-license drift)
         run: python scripts/check_license_policy.py
 
+      - name: Provenance ledger (records, registers, snapshot manifest)
+        # Rebuilds the manifest from its recorded snapshot commit, which is why
+        # this job checks out full history.
+        run: python scripts/build_provenance_manifest.py --check
+
+      - name: Provenance signature gate (reports until POLICY.yaml arms it)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/check_provenance_signatures.py
+
       - name: Documentation-governance gate
         # Registers parse and are internally consistent, document register
         # covers docs/ + paper/ + root docs exactly, canonical topics come

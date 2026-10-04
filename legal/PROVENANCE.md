@@ -25,6 +25,20 @@ A term counts only as its own token. The earlier string `regate` matched inside 
 Identifiers become `V`, strings `S` and numbers `N` before hashing. Renaming classes and variables, rewording comments or reformatting therefore does not change the fingerprints.
 The register is taken from a pinned snapshot commit, so it reproduces byte for byte and does not drift as the code changes. A test rebuilds it from git history. Code added after that snapshot is not in the fingerprints until a new snapshot is appended.
 
+## The ledger
+
+`provenance/` joins each concept in the register to the rest of the record:
+the documents, code and tests that express it, the conformance suites and
+interop contracts that test it, the claims and capabilities it relates to,
+and what external sources document about using it. Each record keeps the
+register's `PROV-xx` id and first-recorded commit, starts as
+`claimed_original_contribution` with classification `UNKNOWN`, and can move
+off `UNKNOWN` only through a dated prior-art review in
+`provenance/PRIOR_ART.yaml`. `provenance/manifests/provenance-manifest-v1.json`
+digests every expressing file and register from one snapshot commit, and CI
+refuses a manifest that no longer reproduces. `provenance/README.md` lists
+the files and the operator steps that remain outside the repository.
+
 ## Comparing other code
 
 ```bash
@@ -69,5 +83,6 @@ Nothing in the register changes code, identifiers, schemas, test vectors or conf
 These would strengthen the record further. Each is a deliberate, separate step:
 
 - Third-party timestamps: a Zenodo DOI per release (issue #390), and an OpenTimestamps proof of each `register_sha256`.
-- Signed commits everywhere: branch protection that requires signed commits, so all future history is Verified.
-- A new register snapshot at each release tag, appended to the record rather than replacing it.
+- Signed commits everywhere: branch protection that requires signed commits, so all future history is Verified. `provenance/POLICY.yaml` carries the gate; it is armed by recording the first signed commit in `signatures.enforced_from`.
+- A new register snapshot at each release tag, appended to the record rather than replacing it. The release workflow now writes a provenance manifest per tag; the register snapshot itself is still appended by hand.
+- A prior-art review per concept, recorded in `provenance/PRIOR_ART.yaml`. Until one exists every concept is classified `UNKNOWN`.

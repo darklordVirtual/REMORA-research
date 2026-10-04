@@ -1,0 +1,66 @@
+# Concept record. Hand-maintained; digests live in provenance/manifests/, not here.
+# Registration records priority and content. It is not a claim of invention (see provenance/README.md).
+schema_version: remora-concept-record-v1
+concept_id: PROV-01
+canonical_name: DecisionEnvelope, the signed record of one governance decision
+invariant: The decision leaves the gate as a signed, hash-chained record. The name alone is not the property.
+identifying_terms:
+- DecisionEnvelope
+origin:
+  authors:
+  - Stian Skogbrott
+  project: REMORA
+  status: claimed_original_contribution
+classification: UNKNOWN
+first_recorded:
+  commit: 131476910be1cd270f13ae34f6e4b932fcc1b3fe
+  authored: '2026-06-25T07:27:11+02:00'
+  committed: '2026-06-25T07:27:11+02:00'
+  signature: N
+  paths:
+  - .github/ISSUE_TEMPLATE/external_review.yml
+  - ARCHITECTURE.md
+  - CLAUDE.md
+  - README.md
+  method: first commit on the snapshot history that introduced an identifying term as its own token; docs/assurance/provenance_register_v1.json,
+    snapshot 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+canonical_spec:
+- path: ARCHITECTURE.md
+- path: schemas/decision_envelope_schema.yaml
+implementation:
+- path: remora/governance/envelope.py
+tests:
+- path: tests/test_decision_envelope_v2.py
+- path: tests/test_reporting_envelope.py
+conformance: []
+interop_contracts: []
+related_capabilities:
+- CAP-005
+related_claims:
+- CLAIM-014
+federation_produces: decision_envelope
+distinguishing_contribution: One signed, hash-chained record per decision, carrying the decision, the
+  observation hash and the policy identity, so an audit entry and an execution can be joined from either
+  end.
+prior_art:
+  reviewed: false
+  review_sources:
+  - PA-SRC-001
+  - PA-SRC-002
+  records: []
+  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
+    Registration is not a claim of invention.
+evolution:
+- stage: first_recorded
+  commit: 131476910be1cd270f13ae34f6e4b932fcc1b3fe
+  date: '2026-06-25'
+  note: identifying term first introduced as its own token
+- stage: register_snapshot
+  commit: 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+  date: '2026-10-01'
+  note: coined-identifier markers and code fingerprints pinned in provenance_register_v1.json
+external_adoption: []
+license:
+  spdx: BUSL-1.1
+  licensor: Stian Skogbrott
+  reference: legal/LICENSING.md

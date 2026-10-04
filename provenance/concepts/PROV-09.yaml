@@ -1,0 +1,69 @@
+# Concept record. Hand-maintained; digests live in provenance/manifests/, not here.
+# Registration records priority and content. It is not a claim of invention (see provenance/README.md).
+schema_version: remora-concept-record-v1
+concept_id: PROV-09
+canonical_name: Runtime capability surface completeness
+invariant: Completeness of an observed runtime capability surface is a separate claim. For an external
+  host it stays not established until the observation set distinguishes it.
+identifying_terms:
+- runtime_capability_surface_completeness
+origin:
+  authors:
+  - Stian Skogbrott
+  project: REMORA
+  status: claimed_original_contribution
+classification: UNKNOWN
+first_recorded:
+  commit: 3e8462312f4dbc7129ed4d5ed974a72a80ea9a59
+  authored: '2026-09-27T23:02:59+02:00'
+  committed: '2026-09-27T23:02:59+02:00'
+  signature: E
+  paths:
+  - docs/assurance/capability_register_v1.yaml
+  - tests/test_capability_register.py
+  method: first commit on the snapshot history that introduced an identifying term as its own token; docs/assurance/provenance_register_v1.json,
+    snapshot 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+canonical_spec:
+- path: docs/design/runtime-trust-base-identity-v1.md
+- path: artifacts/interop/runtime-surface-e7-v0.1/README.md
+implementation:
+- path: remora/toolcall/runtime_surface.py
+- path: remora/enforcement/runtime_identity.py
+tests:
+- path: tests/test_capability_register.py
+- path: tests/test_federation_interop_contract.py
+conformance: []
+interop_contracts:
+- runtime-surface-e7-v0.1
+related_capabilities:
+- CAP-022
+related_claims: []
+federation_produces: null
+distinguishing_contribution: Completeness of an observed runtime capability surface is kept as a separate,
+  unestablished claim; a bounded observation can match a governed set without establishing that nothing
+  else is callable.
+prior_art:
+  reviewed: false
+  review_sources:
+  - PA-SRC-001
+  - PA-SRC-002
+  records: []
+  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
+    Registration is not a claim of invention.
+evolution:
+- stage: first_recorded
+  commit: 3e8462312f4dbc7129ed4d5ed974a72a80ea9a59
+  date: '2026-09-27'
+  note: identifying term first introduced as its own token
+- stage: register_snapshot
+  commit: 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+  date: '2026-10-01'
+  note: coined-identifier markers and code fingerprints pinned in provenance_register_v1.json
+external_adoption:
+- EXT-0003
+- EXT-0005
+
+license:
+  spdx: BUSL-1.1
+  licensor: Stian Skogbrott
+  reference: legal/LICENSING.md

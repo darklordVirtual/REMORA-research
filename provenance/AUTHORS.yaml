@@ -1,0 +1,14 @@
+schema_version: remora-authors-v1
+# Scientific attribution and rights ownership are different facts
+# (legal/COPYRIGHT.md). This file records attribution for the ledger; the
+# economic rights holder is named in legal/COPYRIGHT.md and each record's
+# license block.
+authors:
+  - name: Stian Skogbrott
+    github: darklordVirtual
+    orcid: null   # pending; add here, in CITATION.cff and in .zenodo.json together
+    role: originating author of every concept record
+    rights_holder: true
+ai_assistance:
+  disclosed_in: docs/AI_USE.md
+  note: tool-generated text or code is not evidence of origin; the dated commit record is

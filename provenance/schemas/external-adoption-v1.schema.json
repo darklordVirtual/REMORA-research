@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "REMORA external adoption register v1",
+  "description": "What external sources document about their use of REMORA concepts or artifacts. The register records what the source says, not what REMORA infers.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "events"],
+  "properties": {
+    "schema_version": {"const": "remora-external-adoption-v1"},
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "date", "project", "event_type", "concepts", "source", "attribution", "relationship", "recorded_in"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^EXT-[0-9]{4}$"},
+          "date": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+          "project": {"type": "string", "minLength": 1},
+          "event_type": {"enum": ["independent_reproduction", "independent_implementation", "external_record", "verifier_pin_accepted", "adapter_published", "federation_discussion", "citation", "terminology_use"]},
+          "concepts": {"type": "array", "items": {"type": "string", "pattern": "^PROV-[0-9]{2}$"}},
+          "source": {
+            "type": "object", "additionalProperties": false,
+            "required": ["url"],
+            "properties": {"url": {"type": "string", "pattern": "^https://"}, "commit": {"type": "string", "pattern": "^[0-9a-f]{7,40}$"}}
+          },
+          "attribution": {"type": "object", "additionalProperties": false, "required": ["explicit"], "properties": {"explicit": {"type": "boolean"}, "wording": {"type": "string"}}},
+          "relationship": {
+            "type": "object", "additionalProperties": false,
+            "required": ["claimed_by_external_source", "maintainer_overlap"],
+            "properties": {
+              "claimed_by_external_source": {"type": "string", "minLength": 1},
+              "maintainer_overlap": {"type": "boolean"}
+            }
+          },
+          "recorded_in": {"type": "string", "minLength": 1},
+          "note": {"type": "string"}
+        }
+      }
+    }
+  }
+}

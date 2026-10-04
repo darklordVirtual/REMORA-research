@@ -1,0 +1,64 @@
+# Concept record. Hand-maintained; digests live in provenance/manifests/, not here.
+# Registration records priority and content. It is not a claim of invention (see provenance/README.md).
+schema_version: remora-concept-record-v1
+concept_id: PROV-12
+canonical_name: Separation of authority and effect domains
+invariant: The authority that signs is not the domain that performs the effect, and the executor that
+  dispatches does not sign its own authorization.
+identifying_terms:
+- authority_effect_separation
+origin:
+  authors:
+  - Stian Skogbrott
+  project: REMORA
+  status: claimed_original_contribution
+classification: UNKNOWN
+first_recorded:
+  commit: 3e8462312f4dbc7129ed4d5ed974a72a80ea9a59
+  authored: '2026-09-27T23:02:59+02:00'
+  committed: '2026-09-27T23:02:59+02:00'
+  signature: E
+  paths:
+  - docs/research/research_control_matrix.generated.md
+  - docs/research/research_control_matrix_v1.yaml
+  method: first commit on the snapshot history that introduced an identifying term as its own token; docs/assurance/provenance_register_v1.json,
+    snapshot 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+canonical_spec:
+- path: docs/architecture/ADR-authority-custody-and-lease-durability.md
+implementation:
+- path: remora/enforcement/custody.py
+- path: remora/enforcement/effect_domain.py
+tests:
+- path: tests/conformance/test_custody_effect_domain.py
+conformance:
+- non-transitivity-of-authority-v1
+interop_contracts: []
+related_capabilities:
+- CAP-024
+related_claims: []
+federation_produces: null
+distinguishing_contribution: The domain that signs authority does not perform effects, and the domain
+  that performs effects verifies authority it did not issue; the split is a process-role guard, not a
+  convention.
+prior_art:
+  reviewed: false
+  review_sources:
+  - PA-SRC-001
+  - PA-SRC-002
+  records: []
+  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
+    Registration is not a claim of invention.
+evolution:
+- stage: first_recorded
+  commit: 3e8462312f4dbc7129ed4d5ed974a72a80ea9a59
+  date: '2026-09-27'
+  note: identifying term first introduced as its own token
+- stage: register_snapshot
+  commit: 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+  date: '2026-10-01'
+  note: coined-identifier markers and code fingerprints pinned in provenance_register_v1.json
+external_adoption: []
+license:
+  spdx: BUSL-1.1
+  licensor: Stian Skogbrott
+  reference: legal/LICENSING.md

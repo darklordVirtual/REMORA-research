@@ -6,6 +6,16 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Added
 
+- Provenance ledger (`provenance/`): one record per register concept
+  (`PROV-01` to `PROV-17`) joining the first-recorded commit to the
+  canonical specification, implementation, tests, conformance suites,
+  interop contracts, capabilities and claims that express it; a prior-art
+  register with no review recorded yet, so every concept is classified
+  `UNKNOWN`; an external-adoption register of five documented events; a
+  snapshot manifest digested from one commit's tree, checked in CI; a
+  signature gate over the protected paths, armed by `POLICY.yaml`; and a
+  per-tag provenance manifest in the release workflow. Registration records
+  priority and content, not invention.
 - Federation interop surface (`artifacts/interop/`): `FEDERATION.yaml`
   participation manifest with five FED invariants; `interop-result-v1`, a
   bounded result schema with provenance, per-case records, five independence

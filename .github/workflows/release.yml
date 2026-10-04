@@ -62,9 +62,15 @@ jobs:
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/sbom-reqs.txt
           cyclonedx-py requirements /tmp/sbom-reqs.txt --of JSON -o dist/sbom-python.cdx.json
 
+      - name: Provenance manifest for this tag (concept records, registers, expressing files)
+        run: |
+          python -m pip install jsonschema pyyaml
+          python scripts/build_provenance_manifest.py --release "${GITHUB_REF_NAME}" --out dist/provenance-manifest-v1.json
+          cp docs/assurance/claim_register_v1.yaml docs/assurance/provenance_register_v1.json provenance/PRIOR_ART.yaml provenance/EXTERNAL_ADOPTION.yaml dist/
+
       - name: SHA256SUMS
         working-directory: dist
-        run: sha256sum remora_assurance-* sbom-python.cdx.json > SHA256SUMS.txt && cat SHA256SUMS.txt
+        run: sha256sum remora_assurance-* sbom-python.cdx.json provenance-manifest-v1.json claim_register_v1.yaml provenance_register_v1.json PRIOR_ART.yaml EXTERNAL_ADOPTION.yaml > SHA256SUMS.txt && cat SHA256SUMS.txt
 
       - name: Attest build provenance (wheel, sdist, checksums)
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
@@ -73,6 +79,7 @@ jobs:
             dist/*.whl
             dist/*.tar.gz
             dist/SHA256SUMS.txt
+            dist/provenance-manifest-v1.json
 
       - name: Attest SBOM against the wheel
         uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4.1.0
@@ -84,7 +91,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          for f in dist/*.whl dist/*.tar.gz dist/SHA256SUMS.txt; do
+          for f in dist/*.whl dist/*.tar.gz dist/SHA256SUMS.txt dist/provenance-manifest-v1.json; do
             gh attestation verify "$f" --repo "${GITHUB_REPOSITORY}"
           done
 
