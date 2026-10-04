@@ -95,7 +95,14 @@ def _commitment(**kw) -> PriorCommitment:
 def _trust_for(
     manifest: ProducerCapabilityManifest,
     prior_commitment: PriorCommitment | None = None,
+    coverage: CoverageAttestation | None = None,
 ) -> TrustConfig:
+    """Deployment trust that has accepted exactly these records.
+
+    Passing ``coverage`` models the deployment having recorded that exact
+    attestation; the content-level tests below then exercise the join, not
+    the acceptance check (tests/test_evidence_admission_coverage_trust.py).
+    """
     return TrustConfig(
         accepted_producers={manifest.producer_id: manifest.digest},
         accepted_prior_commitments=(
@@ -103,6 +110,10 @@ def _trust_for(
             if prior_commitment is not None else {}
         ),
         trusted_vantage_domains=("deployer-b",),
+        accepted_coverage=(
+            {coverage.producer_id: (coverage.digest,)}
+            if coverage is not None else {}
+        ),
     )
 
 
@@ -124,7 +135,7 @@ def _full(**overrides):
     kwargs.update(overrides)
     if kwargs["trust"] is None:
         kwargs["trust"] = (
-            _trust_for(kwargs["manifest"], kwargs["prior_commitment"])
+            _trust_for(kwargs["manifest"], kwargs["prior_commitment"], kwargs["coverage"])
             if kwargs["manifest"] is not None
             else TrustConfig()
         )
