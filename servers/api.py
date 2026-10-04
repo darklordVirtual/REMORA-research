@@ -3056,6 +3056,15 @@ class _BodySizeLimitMiddleware:
         await send({"type": "http.response.body", "body": body})
 
 
+# Strict raw-JSON admission on the surfaces that compute a tool-call hash
+# (servers/strict_json_ingress.py): duplicate member names, non-finite
+# numbers, unpaired surrogates, invalid UTF-8 and excessive depth are refused
+# on the wire, before the framework parser can collapse them. Registered
+# before the body-size limit so that limit stays outermost and bounds the
+# bytes this guard buffers. An admitted body is replayed unchanged.
+from servers.strict_json_ingress import StrictJsonIngressMiddleware  # noqa: E402
+
+app.add_middleware(StrictJsonIngressMiddleware)
 app.add_middleware(_BodySizeLimitMiddleware)
 
 app.include_router(_execution_router)

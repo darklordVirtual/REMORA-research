@@ -155,6 +155,8 @@ Useful variables beyond the strict-profile minimum:
 | `REMORA_OUTBOX_STALE_SECONDS` | stale dispatch reconciliation window; default 900 s |
 | `REMORA_MAX_TOOL_RESULT_BYTES` | retained tool-result preview cap; full result remains hashed |
 | `REMORA_MAX_REQUEST_BYTES` | request body cap in bytes (default 1048576); larger bodies get HTTP 413 |
+| `REMORA_MAX_EXECUTION_JSON_BYTES` | strict-JSON admission cap on `/v1/execution/*` and `/v1/assess` (default 1048576); refused bodies get HTTP 400 with a `code` |
+| `REMORA_MAX_EXECUTION_JSON_DEPTH` | maximum JSON nesting on the same surfaces (default 32); duplicate member names, `NaN`/`Infinity`, unpaired surrogates and invalid UTF-8 are refused regardless of this value |
 
 ## 4. Build a ToolSpec bundle
 
