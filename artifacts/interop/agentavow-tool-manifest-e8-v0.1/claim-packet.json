@@ -19,7 +19,7 @@
     },
     {
       "path": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/reference_verifier.py",
-      "sha256": "1b8f79e5bc5575e11cfe64007b44ea1bb619e7103fa2750c9fcc718e3f545d2f",
+      "sha256": "3c80f3a9407381175ec9a4aca3c9e898d7e16c3ce90eec7a99d4ea4602d7bb53",
       "role": "author reference implementation; not independent verification"
     }
   ],

@@ -93,7 +93,7 @@
       "external_verification": "PENDING",
       "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
       "manifest": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/manifest.json",
-      "package_digest": "sha256:323b357e7703c89c66c2b8937f03675a820737081e5568121d533d798fea8957",
+      "package_digest": "sha256:991bd278056a4ce68aff9c30636fa746347d6385f1a42dcded844c0d09e24f1a",
       "claim_packet": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/claim-packet.json",
       "verifier_request": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/verifier-request.json",
       "fixtures": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/fixtures.json",

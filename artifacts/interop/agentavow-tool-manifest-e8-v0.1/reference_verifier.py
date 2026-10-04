@@ -19,7 +19,9 @@ try:
     from cryptography.exceptions import InvalidSignature
     from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 except ImportError:  # pragma: no cover - exercised only on a host without the dependency
-    InvalidSignature = None  # type: ignore[assignment,misc]
+    class InvalidSignature(Exception):  # type: ignore[no-redef]
+        """Placeholder so the except clause below stays a real exception type."""
+
     Ed25519PublicKey = None  # type: ignore[assignment,misc]
 
 

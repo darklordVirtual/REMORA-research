@@ -17,7 +17,7 @@
     },
     "claim_packet": {
       "path": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/claim-packet.json",
-      "sha256": "45d207d6ecb7e8186f41fd189c987612fa51554fa9d1428719236ce3f480fc86"
+      "sha256": "91d6cefd03cc2901ab98cea78bb62320730eb4c1e237630149d8da478e7e611e"
     }
   },
   "run_record_schema": "artifacts/interop/schemas/external-run-record-v1.schema.json",
