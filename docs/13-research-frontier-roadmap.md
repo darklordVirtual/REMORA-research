@@ -1596,11 +1596,13 @@ describes tree state, not evidence about the candidate. The ladder
 composes with the shelf's adoption field and with the claim register's
 evidence levels, and no rung may be skipped silently.
 
-**Promotion path.** Before any candidate work: the prior-art reviews of
-PROV-01 to PROV-17, since `provenance/PRIOR_ART.yaml` records zero reviews
-and seventeen UNKNOWN classifications. That is the cheapest evidence-chain
-repair available and a prerequisite for any future novelty claim; it is
-tracked operationally in issue #707. Among candidates, LW-04 is the
+**Promotion path.** The first prior-art round landed on 2026-10-04:
+PA-REV-001 to PA-REV-017 in `provenance/PRIOR_ART.yaml` classify all
+seventeen concepts, with no ORIGINAL_CLAIM assigned and PACE recorded as
+independent convergence that postdates the REMORA records. The reviews are
+AI-assisted and marked as such; a human spot-check is the documented next
+step, and any novelty-grade classification still requires a wider
+literature and patent search. Among candidates, LW-04 is the
 cheapest: it is a conformance-vector pack over machinery that already
 exists, and it belongs beside the QV2-01 lease refusals. FS-01 and FS-11
 are contract tests and a metric over shipped surfaces. FS-04 is the

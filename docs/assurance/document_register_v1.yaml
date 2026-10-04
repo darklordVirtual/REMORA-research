@@ -2708,8 +2708,19 @@ documents:
   audience:
   - maintainers
   - evaluators
+- id: DOC-360
+  path: provenance/prior-art-review-2026-10-04.md
+  status: supporting
+  topic: provenance_prior-art-review-2026-10-04_md
+  code_synced: verified
+  verdict: current
+  last_reviewed: '2026-10-04'
+  audience:
+  - maintainers
+  - evaluators
 topics:
 - provenance_README_md
+- provenance_prior-art-review-2026-10-04_md
 - provenance_manifests_provenance-manifest-v1_json
 - docs_interop_INTEROP_MATRIX_md
 - docs_integrations_jev_decision_provider_md

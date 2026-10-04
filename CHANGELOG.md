@@ -6,6 +6,16 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Added
 
+- First prior-art review round for the provenance ledger: PA-REV-001 to
+  PA-REV-017 in `provenance/PRIOR_ART.yaml` classify PROV-01 to PROV-17
+  against canonical pre-2026 literature (seven KNOWN_PRIOR_ART, six
+  RELATED_PRIOR_ART, two REMORA_EXTENSION, two REMORA_COMPOSITION; no
+  ORIGINAL_CLAIM or POTENTIALLY_DISTINCT). PACE (arXiv:2610.01349,
+  2026-10-01) is recorded as independent convergence that postdates the
+  REMORA records. The classification vocabulary in `provenance/POLICY.yaml`
+  and both schemas gained the finer-grained values, each concept record now
+  names its review, and `provenance/prior-art-review-2026-10-04.md` is the
+  human-readable report. Reviews are AI-assisted and marked as such.
 - Sequential assurance layer, RF-14 slice 1 (`remora/selective/sequential_assurance.py`):
   per-decision resolved-outcome records with epoch and cluster identity, a
   premise gate reporting ESTABLISHED / PARTIALLY_ESTABLISHED / NOT_ESTABLISHED /
