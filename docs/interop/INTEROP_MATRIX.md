@@ -17,9 +17,9 @@ endorsement, production safety or authority (FED-INV-004).
 
 | Edge | Producer | Consumer | Artifact | Property | Contract (lifecycle) | Declared | Records | Highest level | Result | Status |
 |---|---|---|---|---|---|---|---|---|---|---|
-| E-ECB | REMORA | any | ExecutionLease | `exact_call_binding` | [`exact-call-binding-v1`](../../artifacts/interop/exact-call-binding-v1/README.md) (FROZEN) | SPECIFIED | 4 | L0_SELF_TEST | ESTABLISHED | **AUTHOR_RUN** |
-| E-FA | REMORA | any | PolicyDecisionToken, ExecutionLease | `fresh_authority_at_dispatch` | [`fresh-authority-v1`](../../artifacts/interop/fresh-authority-v1/README.md) (FROZEN) | SPECIFIED | 2 | L0_SELF_TEST | ESTABLISHED | **AUTHOR_RUN** |
-| E-EE | REMORA | any | EffectVerification | `effect_state_distinction` | [`effect-evidence-v1`](../../artifacts/interop/effect-evidence-v1/README.md) (FROZEN) | SPECIFIED | 2 | L0_SELF_TEST | ESTABLISHED | **AUTHOR_RUN** |
+| E-ECB | REMORA | any | ExecutionLease | `exact_call_binding` | [`exact-call-binding-v1`](../../artifacts/interop/exact-call-binding-v1/README.md) (EXTERNAL_RUN_PENDING) | SPECIFIED | 4 | L0_SELF_TEST | ESTABLISHED | **AUTHOR_RUN** |
+| E-FA | REMORA | any | PolicyDecisionToken, ExecutionLease | `fresh_authority_at_dispatch` | [`fresh-authority-v1`](../../artifacts/interop/fresh-authority-v1/README.md) (EXTERNAL_RUN_PENDING) | SPECIFIED | 2 | L0_SELF_TEST | ESTABLISHED | **AUTHOR_RUN** |
+| E-EE | REMORA | any | EffectVerification | `effect_state_distinction` | [`effect-evidence-v1`](../../artifacts/interop/effect-evidence-v1/README.md) (EXTERNAL_RUN_PENDING) | SPECIFIED | 2 | L0_SELF_TEST | ESTABLISHED | **AUTHOR_RUN** |
 | E7 | REMORA | Probity | runtime observation bundle | `bounded_observed_surface_matches_governed_set` | [`runtime-surface-e7-v0.1`](../../artifacts/interop/runtime-surface-e7-v0.1/README.md) (EXTERNAL_RUN_PENDING) | SPECIFIED | 0 |  |  | **SPECIFIED** |
 | E8 | AgentAvow | REMORA | signed tool manifest | `attested_definition_binding` | [`agentavow-tool-manifest-e8-v0.1`](../../artifacts/interop/agentavow-tool-manifest-e8-v0.1/README.md) (DRAFT) | SPECIFIED | 2 | L0_SELF_TEST | ESTABLISHED | **EXPERIMENTAL, AUTHOR_RUN** |
 | APS-CANON | REMORA | APS | canonical bytes | `jcs_rfc8785_parity` | [record](../../artifacts/interop/aps-ba8e540-profile-v0.1/SOURCE.md) | PRIOR_RECORD | 0 |  |  | **PRIOR_RECORD** |
