@@ -1,6 +1,6 @@
 {
   "schema_version": "remora-exact-call-binding-v1-manifest",
-  "lifecycle": "DRAFT",
+  "lifecycle": "FROZEN",
   "producer": "REMORA-research",
   "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
   "source_artifacts": [],
