@@ -18,7 +18,7 @@
   "fixture": {
     "path": "artifacts/interop/effect-evidence-v1/fixtures.json",
     "digest": "sha256:676978802d981f11ae0a40ba9c13ced4b41f302c8c40370eb3dd883e2b716e66",
-    "package_digest": "sha256:7eae91946296a011f3d44cfffacfe2e2c5e02d16425b3a6ebf63a91cf5556159"
+    "package_digest": "sha256:26c437c65a5c3890a0672845dd9e1e54b03c38ae5f05a6fbe7131402b952034c"
   },
   "evaluator": {
     "project": "REMORA",
@@ -38,8 +38,8 @@
     "revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a"
   },
   "environment": "Python 3.11.15, Linux x86_64",
-  "started_at": "2026-10-04T07:29:47+00:00",
-  "completed_at": "2026-10-04T07:29:47+00:00",
+  "started_at": "2026-10-04T07:46:53+00:00",
+  "completed_at": "2026-10-04T07:46:53+00:00",
   "cases": [
     {
       "case_id": "verified_declared_delta",

@@ -39,7 +39,7 @@ This package does **not** establish:
 `ExecutionLease` binds (tool, canonical arguments, tenant, target, principal) into a signed, single-use lease; `GovernedToolDispatcher` recomputes the binding immediately before execution and burns the nonce on dispatch. `remora/interop/boundary_fixtures.py` runs every case through those two classes.
 
 That run is an L0 self-test under `interop-result-v1`. Its record lives under
-`artifacts/interop/runs/` and advances nothing. exact-call binding and single-use consumption are also the scope of the mutation-testing baseline over the grant and lease code (`docs/assurance/mutation_testing_v1.md`); that baseline is author evidence and does not advance this contract.
+`artifacts/interop/runs/` and advances nothing. Exact-call binding and single-use consumption are also inside the mutation-testing baseline over the grant and lease code (`docs/assurance/mutation_testing_v1.md`). That baseline is author evidence and advances nothing here.
 
 ## Files
 

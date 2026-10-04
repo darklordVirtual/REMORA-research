@@ -37,7 +37,7 @@ This package does **not** establish:
 A grant case goes through `PolicyDecisionToken` and `EnforcementGate.check(consume=True)`: validity window, revoked signing key, observation binding, one-time redemption. A dispatch case goes through `ExecutionLease` and `GovernedToolDispatcher` with the policy bundle and tool-definition identity in force at dispatch. `remora/interop/boundary_fixtures.py` runs every case.
 
 That run is an L0 self-test under `interop-result-v1`. Its record lives under
-`artifacts/interop/runs/` and advances nothing. the single-use and expiry paths are also within the mutation-testing baseline (`docs/assurance/mutation_testing_v1.md`); author evidence only.
+`artifacts/interop/runs/` and advances nothing. The single-use and expiry paths are also inside the mutation-testing baseline (`docs/assurance/mutation_testing_v1.md`). That is author evidence only.
 
 ## Files
 

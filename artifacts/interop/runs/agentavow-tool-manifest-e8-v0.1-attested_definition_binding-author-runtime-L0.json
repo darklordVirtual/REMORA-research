@@ -18,7 +18,7 @@
   "fixture": {
     "path": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/fixtures.json",
     "digest": "sha256:bc8750fd392764f53c3f52e0b285b628ba105308a20c6bf1dd52d35e95c1c68e",
-    "package_digest": "sha256:ebf20e19357e9fa548b5893f6f815b580ae0c35441210224fd76812bfdcd9955"
+    "package_digest": "sha256:323b357e7703c89c66c2b8937f03675a820737081e5568121d533d798fea8957"
   },
   "evaluator": {
     "project": "REMORA",
@@ -38,8 +38,8 @@
     "revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a"
   },
   "environment": "Python 3.11.15, Linux x86_64",
-  "started_at": "2026-10-04T07:29:47+00:00",
-  "completed_at": "2026-10-04T07:29:47+00:00",
+  "started_at": "2026-10-04T07:46:53+00:00",
+  "completed_at": "2026-10-04T07:46:53+00:00",
   "cases": [
     {
       "case_id": "attested_definition_bound",

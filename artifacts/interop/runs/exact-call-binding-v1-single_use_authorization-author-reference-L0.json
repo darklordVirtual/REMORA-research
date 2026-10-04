@@ -18,7 +18,7 @@
   "fixture": {
     "path": "artifacts/interop/exact-call-binding-v1/fixtures.json",
     "digest": "sha256:4a9b43747c762c7dc73382e588c0477693b00449f8a6233dc93eabbc801aac95",
-    "package_digest": "sha256:0eb99bc6ffa02c137a1b9c98f58892e278948b272fbe3ad482984bae03e6f4c7"
+    "package_digest": "sha256:48dd143c4e4f50d69063df8e2a2993a5d240a50d81dc4330b225015ea432c77c"
   },
   "evaluator": {
     "project": "REMORA",
@@ -38,8 +38,8 @@
     "revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a"
   },
   "environment": "Python 3.11.15, Linux x86_64",
-  "started_at": "2026-10-04T07:29:47+00:00",
-  "completed_at": "2026-10-04T07:29:47+00:00",
+  "started_at": "2026-10-04T07:46:53+00:00",
+  "completed_at": "2026-10-04T07:46:53+00:00",
   "cases": [
     {
       "case_id": "replay_same_call_twice",

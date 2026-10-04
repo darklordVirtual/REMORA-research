@@ -38,7 +38,7 @@ This package does **not** establish:
 `verify_declared_delta` compares the observed object against the declared delta only and returns one of five statuses; the fixture's state ladder is applied over that status and the dispatcher's `DispatchResult`. `remora/interop/boundary_fixtures.py` runs every case.
 
 That run is an L0 self-test under `interop-result-v1`. Its record lives under
-`artifacts/interop/runs/` and advances nothing. the five-valued status is the one `remora/governance/effect_verification.py` has carried since the effect-verification capability was registered; this package adds the state ladder as a published contract.
+`artifacts/interop/runs/` and advances nothing. The five-valued status is the one `remora/governance/effect_verification.py` has carried since the effect-verification capability was registered. This package adds the state ladder as a published contract.
 
 ## Files
 

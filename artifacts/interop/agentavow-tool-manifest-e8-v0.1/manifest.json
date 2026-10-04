@@ -7,7 +7,7 @@
   "package_files": [
     {
       "path": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/README.md",
-      "sha256": "417cb78b1e93d84d1b2b97d4c8926f26ef9280e80e1b9436930e73d0cee8b0fd"
+      "sha256": "324e20a41535b562d1a4dc9b2a50f4b8ac53f75ab7028c68a88d5fe12b54017e"
     },
     {
       "path": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/claim-packet.json",
@@ -26,7 +26,7 @@
       "sha256": "aaa8c2784ae426d238e4ad5d0e5753dc1bb77b01bba2917a94085f7ce897eed9"
     }
   ],
-  "package_digest": "sha256:ebf20e19357e9fa548b5893f6f815b580ae0c35441210224fd76812bfdcd9955",
+  "package_digest": "sha256:323b357e7703c89c66c2b8937f03675a820737081e5568121d533d798fea8957",
   "package_digest_rule": "sha256 over the UTF-8 text formed by one line per package_files entry, '<path> <sha256>\\n', sorted by path. manifest.json and index.json are outside the package and are never hashed into it.",
   "independence_boundary": "The reference verifier is author-produced and is not independent verification. A second implementation is implementation diversity, not independence. L3_INDEPENDENT_RECOMPUTATION requires a second implementation maintained outside REMORA, run by an external operator, importing neither REMORA code nor this verifier (interop-result-v1).",
   "global_property": {

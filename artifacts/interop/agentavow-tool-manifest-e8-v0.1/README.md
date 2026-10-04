@@ -39,7 +39,7 @@ This package does **not** establish:
 `remora/interop/agentavow/adapter.py` verifies the manifest under a caller-supplied key, normalizes it to an observed tool definition with an `UNADMITTED` evidence reference, and compares the digest with `toolspec_hash` inside an authentic `ExecutionLease`. The adapter never admits, decides or mints.
 
 That run is an L0 self-test under `interop-result-v1`. Its record lives under
-`artifacts/interop/runs/` and advances nothing. this is the first foreign edge REMORA consumes. Its matrix status stays EXPERIMENTAL until AgentAvow confirms or corrects the profile.
+`artifacts/interop/runs/` and advances nothing. This is the first foreign edge REMORA consumes. Its matrix status stays EXPERIMENTAL until AgentAvow confirms or corrects the profile.
 
 ## Files
 

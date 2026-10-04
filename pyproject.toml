@@ -262,7 +262,10 @@ only_mutate = [
 # pilot image installs the security extra, which is a Dockerfile fact. Without
 # the directory in the sandbox that test errors and mutmut cannot even take a
 # clean baseline. 136 KB, copied once per sandbox.
-also_copy = ["servers/", "schemas/", "deploy/"]
+# artifacts/interop/ joined 2026-10-04 (512 KB): tests/test_agentavow_edge.py and
+# tests/test_interop_boundary_fixtures.py drive lease, gate and token through
+# the committed interop fixtures and run the packages' reference verifiers.
+also_copy = ["servers/", "schemas/", "deploy/", "artifacts/interop/"]
 # The meaningful metric: mutants on lines the runner executes. All-lines
 # numbers conflate untested behaviour with uncovered adapter branches the
 # coverage gate already documents (docs/assurance/mutation_testing_v1.md).
@@ -297,6 +300,8 @@ pytest_add_cli_args = [
 # one of the mutated modules and is missing here. Cost of the full set: the
 # selection runs in 4.2 s against 2.8 s for the frozen 17.
 pytest_add_cli_args_test_selection = [
+    "tests/test_agentavow_edge.py",
+    "tests/test_authorization_context_golden_vectors.py",
     "tests/test_callable_closure_digest.py",
     "tests/test_credential_issuer_scope.py",
     "tests/test_custody_split_dispatch.py",
@@ -320,18 +325,20 @@ pytest_add_cli_args_test_selection = [
     "tests/test_governance_event_contract.py",
     "tests/test_grant_ledger_tamper_evidence.py",
     "tests/test_independent_recorder.py",
+    "tests/test_interop_boundary_fixtures.py",
     "tests/test_lease_authority_custody.py",
     "tests/test_lease_nonce_durability.py",
-    "tests/test_nonce_store_consumed.py",
     "tests/test_lease_signing_contracts.py",
     "tests/test_lease_verification_completeness.py",
     "tests/test_lease_verification_contracts.py",
+    "tests/test_nonce_store_consumed.py",
     "tests/test_plan_binding.py",
     "tests/test_policy_engine_audit_v1.py",
     "tests/test_procedure_contracts.py",
     "tests/test_rem013_pdp_pep_boundary.py",
     "tests/test_remote_dispatch_boundary.py",
     "tests/test_resolved_effect_binding.py",
+    "tests/test_review_fixes_gate_jti.py",
     "tests/test_review_path_custody_split.py",
     "tests/test_runtime_trust_base_binding.py",
     "tests/test_sqlite_memory_refused.py",
@@ -341,12 +348,10 @@ pytest_add_cli_args_test_selection = [
     "tests/test_task_bound_lease_and_envelope.py",
     "tests/test_task_identity_server_path.py",
     "tests/test_tcb_edge_contracts.py",
-    "tests/test_authorization_context_golden_vectors.py",
     "tests/test_token_binding_contract.py",
     "tests/test_token_golden_vectors.py",
     "tests/test_token_hardening.py",
     "tests/test_token_key_lifecycle.py",
-    "tests/test_review_fixes_gate_jti.py",
     "tests/test_toolspec_binding_chain.py",
     "tests/test_toolspec_bound_at_dispatch.py",
     "tests/test_unsigned_issuance_family.py",

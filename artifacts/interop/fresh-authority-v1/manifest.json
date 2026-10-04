@@ -7,7 +7,7 @@
   "package_files": [
     {
       "path": "artifacts/interop/fresh-authority-v1/README.md",
-      "sha256": "138717f2696004cebe46b93808eace83a2478165b4b8664a66e87c5ecb30f630"
+      "sha256": "791b9092c3e5e44959712107624396dd443824c7d18657946b5fcb8db3b86830"
     },
     {
       "path": "artifacts/interop/fresh-authority-v1/claim-packet.json",
@@ -26,7 +26,7 @@
       "sha256": "ffa0dcd7ad2dc83f7d040600362cfc3ab9a9b8399b5a8266ebd862d5e6ed3c4b"
     }
   ],
-  "package_digest": "sha256:cb1c851f2cbacc738710ee360875886636e07a6d1e2befb158cae98c621627dd",
+  "package_digest": "sha256:234c57d0ed79b0cd87e702b2efbc52e99af1c619bd7fed2aef7be5c14964b691",
   "package_digest_rule": "sha256 over the UTF-8 text formed by one line per package_files entry, '<path> <sha256>\\n', sorted by path. manifest.json and index.json are outside the package and are never hashed into it.",
   "independence_boundary": "The reference verifier is author-produced and is not independent verification. A second implementation is implementation diversity, not independence. L3_INDEPENDENT_RECOMPUTATION requires a second implementation maintained outside REMORA, run by an external operator, importing neither REMORA code nor this verifier (interop-result-v1).",
   "global_property": {
