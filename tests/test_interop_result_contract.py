@@ -153,10 +153,13 @@ def test_committed_run_records_validate_and_pin_the_bytes_they_evaluated(
 
 
 def test_author_records_never_advance_a_contract(index: dict[str, Any], records: list[dict[str, Any]]) -> None:
+    """Freezing and pinning are producer steps, so a contract with author
+    records may be DRAFT, FROZEN or EXTERNAL_RUN_PENDING. REPRODUCED and
+    EXTERNALLY_VERIFIED need a record under external_runs, never an author run."""
     with_records = {r["contract_id"] for r in records}
     for contract in index["contracts"]:
         if contract["id"] in with_records:
-            assert contract["lifecycle"] == "DRAFT"
+            assert contract["lifecycle"] in ("DRAFT", "FROZEN", "EXTERNAL_RUN_PENDING")
             assert contract["external_runs"] == []
 
 

@@ -92,7 +92,9 @@ primitives; `scripts/interop_author_run.py` writes the result of that run,
 and of the reference verifier, as `L0_SELF_TEST` records under
 `artifacts/interop/runs/`. The two evaluators are kept as two records per
 claim so their agreement is visible rather than asserted. The author records
-advance nothing; the four contracts are `DRAFT` until frozen.
+advance nothing. The three boundary packages are `FROZEN` at master
+revision `fe324dd7`, so their pins can be handed to verifiers; the E8 package
+stays `DRAFT` until AgentAvow confirms the profile.
 
 The fixtures are the invitation. A project that wants to attack a claim
 implements the contract without REMORA code, adds its own mutation, replay,
