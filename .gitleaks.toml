@@ -38,6 +38,12 @@ paths = [
   # lines 372 and 373 are the Ed25519 PUBLIC verification keys of two
   # did:aps:example identities, which the fixture's signatures depend on.
   '''tests/fixtures/aps-action-result-binding-b64cc8df/chain\.json''',
+  # AgentAvow E8 interop fixture package, pinned byte for byte by SHA-256 in
+  # its manifest.json. Trip cause: line 29 is the Ed25519 PUBLIC verification
+  # key of the package's test signer "avow-key-1"; the private half was
+  # generated for the package and discarded, and the eight fixture signatures
+  # depend on this key. Same treatment as the APS chain.json above.
+  '''artifacts/interop/agentavow-tool-manifest-e8-v0\.1/fixtures\.json''',
 ]
 
 # Matched against the whole LINE, not the extracted secret. The default
