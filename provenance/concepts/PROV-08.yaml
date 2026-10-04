@@ -11,8 +11,8 @@ origin:
   authors:
   - Stian Skogbrott
   project: REMORA
-  status: claimed_original_contribution
-classification: UNKNOWN
+  status: compositional_contribution
+classification: RELATED_PRIOR_ART
 first_recorded:
   commit: ae78183bc81e728d3043be44a2b8aac5dee6afdf
   authored: '2026-08-05T21:13:32+02:00'
@@ -41,13 +41,17 @@ federation_produces: null
 distinguishing_contribution: Dispatch refuses when the ToolSpec about to run is not the ToolSpec the approval
   was granted over; a redeployed definition cannot inherit an earlier approval.
 prior_art:
-  reviewed: false
+  reviewed: true
   review_sources:
   - PA-SRC-001
   - PA-SRC-002
-  records: []
-  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
-    Registration is not a claim of invention.
+  - PA-SRC-014
+  - PA-SRC-023
+  records:
+  - PA-REV-008
+  note: "Reviewed 2026-10-04 in PA-REV-008: RELATED_PRIOR_ART. The review names the works compared,
+    the overlap, the difference and the sentence the claimed contribution is
+    limited to. Registration is not a claim of invention."
 evolution:
 - stage: first_recorded
   commit: ae78183bc81e728d3043be44a2b8aac5dee6afdf

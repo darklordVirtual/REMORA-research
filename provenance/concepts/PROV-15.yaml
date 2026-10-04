@@ -13,8 +13,8 @@ origin:
   authors:
   - Stian Skogbrott
   project: REMORA
-  status: claimed_original_contribution
-classification: UNKNOWN
+  status: compositional_contribution
+classification: RELATED_PRIOR_ART
 first_recorded:
   commit: da47b8c67a70eea9492183b81be90e88a0f51cd2
   authored: '2026-08-27T20:58:44+02:00'
@@ -44,13 +44,17 @@ distinguishing_contribution: Under a strict profile a process must declare its d
   process holds no effect credential or tool callable while an executor holds no lease-signing material;
   a violation is a hard guard, not a warning.
 prior_art:
-  reviewed: false
+  reviewed: true
   review_sources:
   - PA-SRC-001
   - PA-SRC-002
-  records: []
-  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
-    Registration is not a claim of invention.
+  - PA-SRC-015
+  - PA-SRC-016
+  records:
+  - PA-REV-015
+  note: "Reviewed 2026-10-04 in PA-REV-015: RELATED_PRIOR_ART. The review names the works compared,
+    the overlap, the difference and the sentence the claimed contribution is
+    limited to. Registration is not a claim of invention."
 evolution:
 - stage: first_recorded
   commit: da47b8c67a70eea9492183b81be90e88a0f51cd2

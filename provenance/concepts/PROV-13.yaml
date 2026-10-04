@@ -11,8 +11,8 @@ origin:
   authors:
   - Stian Skogbrott
   project: REMORA
-  status: claimed_original_contribution
-classification: UNKNOWN
+  status: derived
+classification: KNOWN_PRIOR_ART
 first_recorded:
   commit: ccf77613353d7a3bf3d9b54155ccc12269dc718c
   authored: '2026-07-03T02:19:42+02:00'
@@ -43,13 +43,17 @@ distinguishing_contribution: The call hash covers name, full canonical arguments
   a truncated preview, and is recomputed at the enforcement point so a grant cannot be reused over mutated
   arguments.
 prior_art:
-  reviewed: false
+  reviewed: true
   review_sources:
   - PA-SRC-001
   - PA-SRC-002
-  records: []
-  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
-    Registration is not a claim of invention.
+  - PA-SRC-009
+  - PA-SRC-014
+  records:
+  - PA-REV-013
+  note: "Reviewed 2026-10-04 in PA-REV-013: KNOWN_PRIOR_ART. The review names the works compared,
+    the overlap, the difference and the sentence the claimed contribution is
+    limited to. Registration is not a claim of invention."
 evolution:
 - stage: first_recorded
   commit: ccf77613353d7a3bf3d9b54155ccc12269dc718c

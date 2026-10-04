@@ -14,8 +14,8 @@ origin:
   authors:
   - Stian Skogbrott
   project: REMORA
-  status: claimed_original_contribution
-classification: UNKNOWN
+  status: compositional_contribution
+classification: REMORA_COMPOSITION
 first_recorded:
   commit: 26888d623422b94f45cb0e0a4b300cc510444d99
   authored: '2026-07-20T15:07:54+02:00'
@@ -62,13 +62,19 @@ distinguishing_contribution: 'The chain taken together: an intention is not an e
   and the executor does not sign; delegated authority does not widen; a reported success is not a verified
   effect.'
 prior_art:
-  reviewed: false
+  reviewed: true
   review_sources:
   - PA-SRC-001
   - PA-SRC-002
-  records: []
-  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
-    Registration is not a claim of invention.
+  - PA-SRC-006
+  - PA-SRC-010
+  - PA-SRC-011
+  - PA-SRC-021
+  records:
+  - PA-REV-017
+  note: "Reviewed 2026-10-04 in PA-REV-017: REMORA_COMPOSITION. The review names the works compared,
+    the overlap, the difference and the sentence the claimed contribution is
+    limited to. Registration is not a claim of invention."
 evolution:
 - stage: first_recorded
   commit: 26888d623422b94f45cb0e0a4b300cc510444d99

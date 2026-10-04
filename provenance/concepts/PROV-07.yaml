@@ -11,8 +11,8 @@ origin:
   authors:
   - Stian Skogbrott
   project: REMORA
-  status: claimed_original_contribution
-classification: UNKNOWN
+  status: compositional_contribution
+classification: RELATED_PRIOR_ART
 first_recorded:
   commit: 26888d623422b94f45cb0e0a4b300cc510444d99
   authored: '2026-07-20T15:07:54+02:00'
@@ -45,13 +45,19 @@ distinguishing_contribution: The dispatcher, not the agent, holds the tool calla
   it re-verifies the whole binding before execution and burns the nonce, so a lease authorizes at most
   one execution of exactly the approved call.
 prior_art:
-  reviewed: false
+  reviewed: true
   review_sources:
   - PA-SRC-001
   - PA-SRC-002
-  records: []
-  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
-    Registration is not a claim of invention.
+  - PA-SRC-010
+  - PA-SRC-011
+  - PA-SRC-019
+  - PA-SRC-021
+  records:
+  - PA-REV-007
+  note: "Reviewed 2026-10-04 in PA-REV-007: RELATED_PRIOR_ART. The review names the works compared,
+    the overlap, the difference and the sentence the claimed contribution is
+    limited to. Registration is not a claim of invention."
 evolution:
 - stage: first_recorded
   commit: 26888d623422b94f45cb0e0a4b300cc510444d99

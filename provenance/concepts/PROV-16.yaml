@@ -11,8 +11,8 @@ origin:
   authors:
   - Stian Skogbrott
   project: REMORA
-  status: claimed_original_contribution
-classification: UNKNOWN
+  status: compositional_contribution
+classification: RELATED_PRIOR_ART
 first_recorded:
   commit: ad044fa890f818a591b706a8ca4dfb4d2f2a8af6
   authored: '2026-09-28T09:08:03+02:00'
@@ -42,13 +42,17 @@ distinguishing_contribution: The task an authorization was granted under is sign
   a dispatch under another task or with no task is refused, so authority does not float free of the work
   it was granted for.
 prior_art:
-  reviewed: false
+  reviewed: true
   review_sources:
   - PA-SRC-001
   - PA-SRC-002
-  records: []
-  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
-    Registration is not a claim of invention.
+  - PA-SRC-009
+  - PA-SRC-017
+  records:
+  - PA-REV-016
+  note: "Reviewed 2026-10-04 in PA-REV-016: RELATED_PRIOR_ART. The review names the works compared,
+    the overlap, the difference and the sentence the claimed contribution is
+    limited to. Registration is not a claim of invention."
 evolution:
 - stage: first_recorded
   commit: ad044fa890f818a591b706a8ca4dfb4d2f2a8af6
