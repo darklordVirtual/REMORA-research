@@ -39,13 +39,14 @@ engine decides.
 | Type | Question it answers | Key rule |
 |---|---|---|
 | `ProducerCapabilityManifest` | What could this producer see, over which scope, when? | A manifest is a claim until the deployment's accepted-producer map carries its digest. `DECLARED` is not evidence. |
-| `CoverageAttestation` | What is the denominator — which fields, which interval, which named gaps? | `INCOMPLETE` and `UNKNOWN` never support absence. `COMPLETE` cannot carry known gaps (constructor refuses). |
+| `CoverageAttestation` | What is the denominator — which fields, which interval, which named gaps? | `INCOMPLETE` and `UNKNOWN` never support absence. `COMPLETE` cannot carry known gaps (constructor refuses). An attestation is a claim until the deployment's `accepted_coverage` carries its digest for that producer; an accepted producer is not an accepted statement. |
 | `ObservationVantage` | Who observed, relative to the observed system? | Independence is derived from control domains and forge/suppress facts. A self-declared `independent=true` is never read. |
 | `InvocationBindingProof` | Is this evidence about *this* action? | Every declared axis must match; identifier equality on one axis is not binding (C5). |
 | `PriorCommitment` | Did the expected effect exist as a commitment before execution? | `created_at` must predate the execution start; the commitment must bind to the exact proposal/call/target/operation. |
 
 `admit_evidence()` joins the five against a `TrustConfig` (deployment-owned:
-accepted producer and prior-commitment digests, trusted vantage domains) and returns an
+accepted producer, coverage-attestation and prior-commitment digests, trusted
+vantage domains) and returns an
 `EvidenceAdmission` with per-fact `EstablishmentStatus` and machine-readable
 reason codes. No caller-supplied boolean with a premise name is read; the
 facts are derived or absent.
@@ -57,7 +58,7 @@ facts are derived or absent.
 | **C1** — NOT_ESTABLISHED is a conclusion after verification ran; missing obligations are named | Completed processing returns a full per-fact map in `EvidenceAdmission.established_facts`. Processing failures return no property facts. Each report carries reason codes from the frozen tuple in `reasons.py`. |
 | **C2** — Malformed input / verifier failure is a processing failure, not NOT_ESTABLISHED | `process_evidence_payload` bounds JSON parsing and separates malformed input or parser errors (`REJECTED_EVIDENCE`), an unsupported schema (`UNSUPPORTED`), and admission exceptions (`VERIFIER_FAILED`). Each failure has no property facts. Acquisition code can use `processing_failure` to report `ACQUISITION_FAILED`. The payload path hashes raw bytes; direct typed admission hashes canonical record content. |
 | **C3** — Observation is asymmetric; self-report is not independent observation | `ObservationVantage.independence` derives from control domains and forge/suppress facts; `observer_id == observed_party` is NOT_INDEPENDENT regardless of any declared flag. This layer admits vantage metadata only. Event-content acceptance and asymmetric property refutation remain downstream; coverage is not used to accept a particular event. |
-| **C4** — Absence needs producer visibility AND coverage for the same scope | `observation_coverage_complete` is ESTABLISHED only when the manifest is accepted *and* covers every evaluated field *and* the attestation covers the fields and interval with no gaps. An empty-but-present field follows the same rule as a missing field, because the layer never reads field *values* — only the coverage and visibility of the field set. |
+| **C4** — Absence needs producer visibility AND coverage for the same scope | `observation_coverage_complete` is ESTABLISHED only when the manifest is accepted *and* covers every evaluated field *and* the attestation's digest is in the deployment's `accepted_coverage` for that producer *and* the attestation covers the fields and interval with no gaps. A statement that passes every content check but whose digest the deployment never recorded is `coverage_attestation_unaccepted` (added 2026-10-04; before that, producer identity plus content was enough). An empty-but-present field follows the same rule as a missing field, because the layer never reads field *values* — only the coverage and visibility of the field set. |
 | **C5** — Identifier equality alone is not binding | `InvocationBindingProof.matches()` requires every declared axis (proposal, execution, tool-call hash, dispatch, toolspec, tenant, target, operation, attempt) to agree; a proof naming a different tenant fails even when every identifier matches. |
 | **C6** — Expected verdicts stay outside admission inputs | `admit_evidence` takes no expected-outcome parameter; `expected_invocation` is lineage (IDs, hashes, scope), and the adversarial suite proves that adding lookalike premise keys to it changes nothing. |
 

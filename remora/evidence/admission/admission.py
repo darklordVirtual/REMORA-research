@@ -105,13 +105,19 @@ class TrustConfig:
     """Deployment-owned trust material. Never read from the evidence itself.
 
     ``accepted_producers`` and ``accepted_prior_commitments`` map identifiers
-    to deployment-reviewed content digests. Vantage independence also requires
-    membership in ``trusted_vantage_domains``.
+    to deployment-reviewed content digests. ``accepted_coverage`` maps a
+    producer to the digests of the coverage attestations the deployment has
+    accepted from it: an accepted producer's manifest says what it *could*
+    see, and only an accepted attestation says what it *did* cover for one
+    invocation. A statement whose digest is not in that set is a claim,
+    whatever its content says. Vantage independence also requires membership
+    in ``trusted_vantage_domains``.
     """
 
     accepted_producers: Mapping[str, str] = field(default_factory=dict)
     accepted_prior_commitments: Mapping[str, str] = field(default_factory=dict)
     trusted_vantage_domains: tuple[str, ...] = ()
+    accepted_coverage: Mapping[str, tuple[str, ...]] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -122,6 +128,17 @@ class TrustConfig:
             self, "accepted_prior_commitments",
             MappingProxyType(dict(self.accepted_prior_commitments)),
         )
+        object.__setattr__(
+            self, "accepted_coverage",
+            MappingProxyType({
+                str(producer): tuple(str(d) for d in digests)
+                for producer, digests in dict(self.accepted_coverage).items()
+            }),
+        )
+
+    def accepts_coverage(self, producer_id: str, digest: str) -> bool:
+        """True only when the deployment recorded this exact attestation."""
+        return bool(digest) and digest in self.accepted_coverage.get(producer_id, ())
 
 
 @dataclass(frozen=True)
@@ -304,11 +321,21 @@ def admit_evidence(
         facts["source_accepted"] = EstablishmentStatus.ESTABLISHED
 
     # ── Coverage: explicit denominator, scoped to this invocation ─────────
+    # An accepted producer is not an accepted statement. The attestation's
+    # digest must be in the deployment's accepted set for that producer, or
+    # a COMPLETE statement in an accepted producer's name is just a claim.
+    # The producer must also be able to see every field it attests (C4).
     if coverage is not None and manifest_accepted and manifest_scope_matches:
         if coverage.producer_id != (manifest.producer_id if manifest else ""):
             reasons.append("coverage_scope_mismatch")
         elif coverage.invocation_id != expected_invocation.get("invocation_id", ""):
             reasons.append("coverage_scope_mismatch")
+        elif not trust.accepts_coverage(coverage.producer_id, coverage.digest):
+            reasons.append("coverage_attestation_unaccepted")
+        elif manifest is not None and not all(
+            manifest.covers_field(f) for f in evaluated_fields
+        ):
+            reasons.append("producer_visibility_not_established")
         elif coverage.state is CoverageState.UNKNOWN:
             reasons.append("coverage_unknown")
         elif coverage.state is CoverageState.INCOMPLETE:

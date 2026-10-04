@@ -772,7 +772,7 @@ capabilities:
   - id: CAP-025
     name: "Evidence admission for sufficiency premises (CoSAI §7.4: visibility, coverage, vantage, binding, prior commitment)"
     status: IMPLEMENTED_LIBRARY
-    verified_at_sha: 52efe215633dbe47bd381acf4009fdfa66eb6eb8
+    verified_at_sha: 462f18c02605fb11607fc834e58fc1db0c61eef3
     verified_by: >-
       audit 2026-10-02 at registration: remora/evidence/admission/ adds five
       frozen types (ProducerCapabilityManifest, CoverageAttestation,
@@ -790,6 +790,13 @@ capabilities:
       acquisition failure reporting, and raw-byte digest derivation.
       Method: test execution plus review of the authority boundary; not an
       external audit. Bound to the commit carrying the layer.
+      Re-audit 2026-10-04 (rebound): the coverage join now requires the
+      attestation digest to be in TrustConfig.accepted_coverage for its
+      producer and the accepted manifest to cover every attested field;
+      additive reason code coverage_attestation_unaccepted. Fail-closed
+      only, no new fact, no authority path (AST guard unchanged).
+      Evidence green at this revision: the four suites above plus
+      tests/test_evidence_admission_coverage_trust.py (19); 81 in total.
     evidence:
       - remora/evidence/admission/models.py
       - remora/evidence/admission/admission.py
@@ -799,6 +806,7 @@ capabilities:
       - tests/test_evidence_admission_adversarial.py
       - tests/test_evidence_admission_isolation.py
       - tests/test_evidence_admission_processing.py
+      - tests/test_evidence_admission_coverage_trust.py
       - docs/design/evidence-admission-v1.md
     caveat: >-
       Library only: nothing in the runtime reads an EvidenceAdmission, and no
@@ -811,8 +819,8 @@ capabilities:
       Prior commitments must match deployment-pinned digests, and observer
       domains must appear in the deployment trust configuration.
       Acquisition code can report a processing failure through
-      processing_failure. TrustConfig's accepted-producer map is the
-      deployment's authority. A misconfigured deployment accepts what it
+      processing_failure. TrustConfig's accepted-producer map and
+      accepted-coverage digests are the deployment's authority. A misconfigured deployment accepts what it
       configured, and a dishonest clock defeats the prior-commitment predating
       check. Claim ceiling in docs/design/evidence-admission-v1.md: no global
       completeness, no non-bypassability, no independence from a declaration,

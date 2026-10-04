@@ -4504,3 +4504,19 @@ remembers they are inputs. The mitigations are external: trusted timestamping
 admission layer cannot reach authority modules (AST-guarded). A
 misconfigured trust map can only ever *accept* evidence: it cannot
 authorize, upgrade a decision, or reach execution.
+
+**Update 2026-10-04: a third asserted input, now bound.** The two inputs
+above were the ones named at introduction. A read of the coverage join found
+a third that was not named. `observation_coverage_complete` was ESTABLISHED
+for any `CoverageAttestation` that named an accepted producer and the right
+invocation and whose content said `COMPLETE` over the evaluated fields and
+interval. The attestation's own digest was never compared with anything the
+deployment holds. A statement fabricated or mutated in an accepted producer's
+name therefore passed on content alone. `TrustConfig` now carries
+`accepted_coverage` (producer to accepted attestation digests), and the join
+refuses any other statement with `coverage_attestation_unaccepted`. The C4
+condition the design document already stated, that the producer must be able
+to see every field it attests, is now enforced in the coverage branch as well.
+Tests: `tests/test_evidence_admission_coverage_trust.py`. The finding stays
+open: the accepted-coverage set is, like the producer map, the deployment's
+word, and the clock is unchanged.

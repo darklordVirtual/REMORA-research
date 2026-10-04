@@ -23,6 +23,7 @@ REASON_CODES: tuple[str, ...] = (
     "coverage_incomplete",
     "coverage_unknown",
     "coverage_scope_mismatch",
+    "coverage_attestation_unaccepted",
     # observation content
     "effect_observation_not_supplied",
     # vantage / independence

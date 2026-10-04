@@ -450,6 +450,18 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Fixed
 
+- Evidence admission, one fail-closed narrowing (2026-10-04). A
+  `CoverageAttestation` could establish `observation_coverage_complete` on
+  producer identity, invocation id and its own content; its digest was never
+  compared with deployment trust, so a statement fabricated or mutated in an
+  accepted producer's name passed. `TrustConfig.accepted_coverage` now maps a
+  producer to the attestation digests the deployment accepted, the join
+  refuses any other statement with the additive reason code
+  `coverage_attestation_unaccepted`, and the coverage branch also requires
+  the manifest to cover every attested field, as the design document already
+  stated for C4. Library only; nothing in the runtime reads an admission.
+  NEGATIVE_RESULTS §75 records the third asserted input and stays open.
+
 - Security review 2026-10-02, two fail-closed narrowings.
   `_is_low_consequence()` now excludes every production alias in `_PROD_ENVS`
   (`prod`, `production`, `live`). Before this fix, a low-risk `live` read
