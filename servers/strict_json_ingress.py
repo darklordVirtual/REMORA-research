@@ -72,8 +72,8 @@ class StrictJsonRefusal(ValueError):
         self.detail = detail
 
 
-def _env_int(name: str, default: int) -> int:
-    raw = os.getenv(name, "").strip()
+def _positive_int(raw: str, default: int) -> int:
+    raw = raw.strip()
     try:
         value = int(raw) if raw else default
     except ValueError:
@@ -81,12 +81,14 @@ def _env_int(name: str, default: int) -> int:
     return value if value > 0 else default
 
 
+# The two reads name their keys literally so the credential-topology gate
+# (scripts/check_credential_topology.py) can resolve them statically.
 def max_execution_json_bytes() -> int:
-    return _env_int("REMORA_MAX_EXECUTION_JSON_BYTES", DEFAULT_MAX_BYTES)
+    return _positive_int(os.getenv("REMORA_MAX_EXECUTION_JSON_BYTES", ""), DEFAULT_MAX_BYTES)
 
 
 def max_execution_json_depth() -> int:
-    return _env_int("REMORA_MAX_EXECUTION_JSON_DEPTH", DEFAULT_MAX_DEPTH)
+    return _positive_int(os.getenv("REMORA_MAX_EXECUTION_JSON_DEPTH", ""), DEFAULT_MAX_DEPTH)
 
 
 # ── scanning helpers (linear, no recursion) ─────────────────────────────────
