@@ -1,0 +1,203 @@
+name: Probity boundary readers (reproduction)
+
+# REMORA re-runs Probity's separately maintained readers for the three frozen
+# execution-boundary packages (exact-call-binding-v1, fresh-authority-v1,
+# effect-evidence-v1), pinned to the reader revision Probity named on #707.
+#
+# Per docs/interop/FEDERATION.md ("After an external run") this rerun is a
+# REPRODUCTION of the external record, kept as a CI artifact. It changes no
+# file under artifacts/interop, advances no lifecycle, creates no REMORA
+# authority and never feeds a policy decision. The independence of Probity's
+# own run is a property of their run record, not of this job.
+#
+# Deterministic: no secrets; network only for the pinned checkouts and the
+# pinned pip installs.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/workflows/probity-boundary-reproduction.yml"
+  push:
+    branches: [master]
+    paths:
+      - ".github/workflows/probity-boundary-reproduction.yml"
+      - "artifacts/interop/exact-call-binding-v1/**"
+      - "artifacts/interop/fresh-authority-v1/**"
+      - "artifacts/interop/effect-evidence-v1/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: probity-boundary-reproduction-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Reader head Probity named on #707 (agent-evidence-vectors#52).
+  READER_REPOSITORY: probityai/agent-evidence-vectors
+  READER_COMMIT: bf294ec7d01033cd967f45a0eb6b65c5b50ecc56
+  READER_PROFILE: interop/remora-boundary-readers
+  # Probity Verify revision the reader's own qualification installs.
+  VERIFY_REPOSITORY: probityai/probity-verify
+  VERIFY_COMMIT: e835ce2bd6a960e7a1cc2fa6522f16d55dce728a
+  # REMORA revision the three packages were frozen at (#728).
+  FROZEN_REVISION: fe324dd734734d9227aa894330ac52c2bb916b94
+
+jobs:
+  reproduce:
+    name: Reader qualification on Python ${{ matrix.python }} (REPRODUCTION; advances nothing)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        # The versions Probity qualified on; a reproduction keeps them.
+        python: ["3.13.15", "3.14.7"]
+
+    steps:
+      - name: Checkout REMORA (full history, so the frozen revision is reachable)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Checkout pinned Probity readers
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          repository: ${{ env.READER_REPOSITORY }}
+          ref: ${{ env.READER_COMMIT }}
+          path: probity-readers
+          persist-credentials: false
+
+      - name: Checkout pinned Probity Verify
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          repository: ${{ env.VERIFY_REPOSITORY }}
+          ref: ${{ env.VERIFY_COMMIT }}
+          path: probity-verify
+          persist-credentials: false
+
+      - name: Assert every pin
+        run: |
+          set -euo pipefail
+          test "$(git -C probity-readers rev-parse HEAD)" = "$READER_COMMIT"
+          test "$(git -C probity-verify rev-parse HEAD)" = "$VERIFY_COMMIT"
+          git cat-file -e "$FROZEN_REVISION^{commit}"
+          git merge-base --is-ancestor "$FROZEN_REVISION" HEAD
+          mkdir -p ci-artifacts/probity-boundary-reproduction
+          cat > ci-artifacts/probity-boundary-reproduction/PINS.txt <<EOF
+          class=REPRODUCTION (adds no state, no authority, no lifecycle change)
+          remora_head=$(git rev-parse HEAD)
+          remora_frozen_revision=$FROZEN_REVISION
+          reader_repository=$READER_REPOSITORY
+          reader_commit=$READER_COMMIT
+          verify_repository=$VERIFY_REPOSITORY
+          verify_commit=$VERIFY_COMMIT
+          python=${{ matrix.python }}
+          run=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EOF
+          cat ci-artifacts/probity-boundary-reproduction/PINS.txt
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: The reader consumed REMORA's frozen bytes
+        # Independent of anything Probity computed: every file in the reader's
+        # source-lock is re-read from REMORA's own tree at FROZEN_REVISION and
+        # hashed here. The lock's consumed_revision must be the frozen revision
+        # and every digest must match the bytes REMORA published.
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, subprocess, sys
+          frozen = os.environ["FROZEN_REVISION"]
+          lock_path = os.path.join("probity-readers", os.environ["READER_PROFILE"], "source-lock.json")
+          lock = json.load(open(lock_path, encoding="utf-8"))
+          problems = []
+          if lock.get("consumed_revision") != frozen:
+              problems.append(f"consumed_revision {lock.get('consumed_revision')} != {frozen}")
+          files = lock.get("files", [])
+          if not files:
+              problems.append("source-lock lists no files")
+          for entry in files:
+              if entry.get("repository") != "darklordVirtual/REMORA-research":
+                  problems.append(f"{entry.get('path')}: foreign repository {entry.get('repository')}")
+                  continue
+              if entry.get("revision") != frozen:
+                  problems.append(f"{entry['path']}: revision {entry.get('revision')} != {frozen}")
+              blob = subprocess.run(["git", "show", f"{frozen}:{entry['path']}"], capture_output=True, check=False)
+              if blob.returncode != 0:
+                  problems.append(f"{entry['path']}: not in REMORA tree at {frozen}")
+                  continue
+              digest = hashlib.sha256(blob.stdout).hexdigest()
+              if digest != entry.get("sha256"):
+                  problems.append(f"{entry['path']}: sha256 {digest} != lock {entry.get('sha256')}")
+              if len(blob.stdout) != entry.get("bytes"):
+                  problems.append(f"{entry['path']}: {len(blob.stdout)} bytes != lock {entry.get('bytes')}")
+          index = json.load(open("artifacts/interop/index.json", encoding="utf-8"))
+          for cid in ("exact-call-binding-v1", "fresh-authority-v1", "effect-evidence-v1"):
+              contract = next(c for c in index["contracts"] if c["id"] == cid)
+              freeze = contract.get("freeze_record") or {}
+              if freeze.get("revision") != frozen:
+                  problems.append(f"{cid}: index freeze_record.revision {freeze.get('revision')} != {frozen}")
+              if contract.get("lifecycle") not in ("FROZEN", "EXTERNAL_RUN_PENDING", "REPRODUCED", "EXTERNALLY_VERIFIED"):
+                  problems.append(f"{cid}: lifecycle {contract.get('lifecycle')} is not a frozen state")
+          out = {"frozen_revision": frozen, "files_checked": len(files), "problems": problems}
+          os.makedirs("ci-artifacts/probity-boundary-reproduction", exist_ok=True)
+          json.dump(out, open("ci-artifacts/probity-boundary-reproduction/source-lock-check.json", "w"), indent=2)
+          print(json.dumps(out, indent=2))
+          sys.exit(1 if problems else 0)
+          PY
+
+      - name: Install the readers and pinned Verify (no REMORA code)
+        run: |
+          set -euo pipefail
+          python -m venv "$RUNNER_TEMP/reader-venv"
+          "$RUNNER_TEMP/reader-venv/bin/python" -m pip install \
+            -r "probity-readers/$READER_PROFILE/requirements-check.txt"
+          "$RUNNER_TEMP/reader-venv/bin/python" -m pip install --no-deps --no-build-isolation \
+            "./probity-readers/$READER_PROFILE" ./probity-verify
+          "$RUNNER_TEMP/reader-venv/bin/python" -m pip freeze \
+            > ci-artifacts/probity-boundary-reproduction/installed-packages.txt
+          # The reader must not import REMORA. Nothing from this checkout is
+          # installed into the reader environment; assert it. Isolated mode
+          # (-I) keeps the current directory off sys.path, so the check sees
+          # the installed environment and not the repo checkout it runs in.
+          if "$RUNNER_TEMP/reader-venv/bin/python" -I -c "import remora" 2>/dev/null; then
+            echo "remora is installed inside the reader environment" >&2; exit 1
+          fi
+
+      - name: Run Probity's qualification against the frozen packages
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/reader-venv/bin/python" "probity-readers/$READER_PROFILE/qualify.py" \
+            --profile "probity-readers/$READER_PROFILE" \
+            --output ci-artifacts/probity-boundary-reproduction/qualification \
+            --revision "$READER_COMMIT" \
+            --verify-source probity-verify \
+            --verify-executable "$RUNNER_TEMP/reader-venv/bin/probity-verify" \
+            --run-ref "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            2>&1 | tee ci-artifacts/probity-boundary-reproduction/qualification.log
+
+      - name: Qualification passed and names the pinned reader revision
+        run: |
+          python - <<'PY'
+          import json, os, sys
+          summary = json.load(open("ci-artifacts/probity-boundary-reproduction/qualification/summary.json", encoding="utf-8"))
+          print(json.dumps({k: summary.get(k) for k in ("status", "revision")}, indent=2))
+          ok = summary.get("status") == "passed" and summary.get("revision") == os.environ["READER_COMMIT"]
+          sys.exit(0 if ok else 1)
+          PY
+
+      - name: Retain the reproduction (evidence only; nothing reads it back)
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: probity-boundary-reproduction-${{ matrix.python }}-${{ github.sha }}
+          include-hidden-files: true
+          retention-days: 90
+          if-no-files-found: error
+          path: ci-artifacts/probity-boundary-reproduction
