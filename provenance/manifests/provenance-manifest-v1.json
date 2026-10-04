@@ -1,0 +1,770 @@
+{
+  "schema_version": "remora-provenance-manifest-v1",
+  "snapshot": "01979990b545614dcd480924761d3010a98bcb0d",
+  "snapshot_committed": "2026-10-04T09:17:19+00:00",
+  "release": null,
+  "rule": "digests are taken from the tree of the recorded snapshot commit, so the manifest reproduces byte for byte until a new snapshot is written",
+  "concepts": {
+    "PROV-01": {
+      "canonical_spec": [
+        {
+          "path": "ARCHITECTURE.md",
+          "blob": "fa2743eb2944b4fab3df5738282e1497b699e424",
+          "sha256": "6a821223b6c3104856b75dd9e8743b91b32842df153c67a78a0cc81a86ad39fb"
+        },
+        {
+          "path": "schemas/decision_envelope_schema.yaml",
+          "blob": "0bf067e325432ec31e3274d7f39c5015bac76b4f",
+          "sha256": "299c2deb548681cd7eed6bbef9e88ede6fc73f927e2889d9d3e3bb6852dcaf99"
+        }
+      ],
+      "implementation": [
+        {
+          "path": "remora/governance/envelope.py",
+          "blob": "29be2791e81f2b4bf528f2b904d918bdc0c8d95c",
+          "sha256": "4e43946d88375facd5ce80fcdf822694195e1c0bf7693b712d1b4db57ec6a65e"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/test_decision_envelope_v2.py",
+          "blob": "6ad5f9ca269ae459fef176b9837600ec3307626b",
+          "sha256": "3f1b13cabce2d9ac7b9501a6d4ddcee249bb8fba96d0bf93e06db2138004dc01"
+        },
+        {
+          "path": "tests/test_reporting_envelope.py",
+          "blob": "3c7697b06c4b596ca0a37ab2998b7546aa788128",
+          "sha256": "14f14a588d66daf0d97716008d4e9235c9e351a855735e85cc64447dccdfd9c1"
+        }
+      ],
+      "first_recorded_commit": "131476910be1cd270f13ae34f6e4b932fcc1b3fe",
+      "classification": "UNKNOWN",
+      "aggregate_sha256": "f5237d849a56637fd6c24cd4e55686ebc98ad6fb8a323a0aa3cab321d631388f"
+    },
+    "PROV-02": {
+      "canonical_spec": [
+        {
+          "path": "docs/design/toolspec-signed-registry-v1.md",
+          "blob": "6a19271adf2f68d717a2b6f22c1b9b676e24b4e2",
+          "sha256": "ef18ee7a04e0ccd096aa90b2928434330d711f8edce3392870fd20db5dd7aa68"
+        },
+        {
+          "path": "schemas/tool_spec_v2.yaml",
+          "blob": "36b96b3085d34a77161337900d0abe92a7e215b2",
+          "sha256": "ed3a243c9767e0ca7c608dc2b5d2b3183dec0f9d2f54358df494c8c01a7208be"
+        }
+      ],
+      "implementation": [
+        {
+          "path": "remora/toolcall/toolspec.py",
+          "blob": "7dcfd93ce3917315a84c04ffa9dbf917cbff4de8",
+          "sha256": "26cf9b113e591e489014e073896de82a986b974d714086d430e71377657f775d"
+        },
+        {
+          "path": "remora/toolcall/deployment_registry.py",
+          "blob": "25b86d3c5d0192d64fd311a889113cdbbe8e939c",
+          "sha256": "8ae89007c2aa4091d6ace99c0a2e0cf718232709907399a46ef79c23f19a8369"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/test_toolspec_schema_v1.py",
+          "blob": "3ffe89a1f6d55b8faf5945b6ad73da44f96e1e51",
+          "sha256": "9cb21b766b048b2db2b8b49f715e211e682347a86630af7acb78db9b60335f36"
+        },
+        {
+          "path": "tests/test_toolspec_runtime.py",
+          "blob": "b5c7e447d0000e906b0ba15b6df8534b49aec751",
+          "sha256": "153042c529414f8d9bbd108ebadf9b73ddc7a9a3528621822cb6a6f2281c0c7a"
+        }
+      ],
+      "first_recorded_commit": "a85227059a0990c2af8916316f389f3a0bb8ec26",
+      "classification": "UNKNOWN",
+      "aggregate_sha256": "bd456a82122ddd7f053c2296a55832e40ae62d29e94f5e97c53361518df2f07e"
+    },
+    "PROV-03": {
+      "canonical_spec": [
+        {
+          "path": "docs/execution-lifecycle.md",
+          "blob": "155936e8070c40d3bdeecb474318439190924726",
+          "sha256": "1b732fa69202a008af7f976a8b5c4fef2c2b43c37b29dacbcc57e122e2904e33"
+        },
+        {
+          "path": "docs/deployment/execution-quickstart.md",
+          "blob": "ee95258da30f8ec4b0c5f34ee174ed07fd104222",
+          "sha256": "2b828a9c40804beda218f584c900fa98e3ff04a816998968ee939bbed463aa41"
+        }
+      ],
+      "implementation": [
+        {
+          "path": "remora/enforcement/lease.py",
+          "blob": "825225f7b77f37dea7909542dd6d9e939f120009",
+          "sha256": "e9a4385cb15f3e7414d10c26a2fbcec9182c016c58b6ef8e9e2c00343e92780b"
+        },
+        {
+          "path": "remora/policy/observation.py",
+          "blob": "62d7d496f37bf516940056d8ac44d2bb142b9fa2",
+          "sha256": "9a179030a83f664eeafb9b2ccf2f6539e1d38b03c6557595c89cc8e507cb388c"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/test_execution_lease.py",
+          "blob": "460f4e29b6571927e9b53ed7d958b69119961117",
+          "sha256": "0fda7ac8e26685cafe9d6a84ee0b1df3cd79e84ca9518a4efb13fee8e2eb8263"
+        },
+        {
+          "path": "tests/test_direct_accept_authority_binding.py",
+          "blob": "1ad3cccfc45d1fa8beb4a2cc2a37370f756d7141",
+          "sha256": "98010d54da5902bb99821b54ee9cd70bff74226af1d19f85ef2e4789c7e96fe2"
+        },
+        {
+          "path": "tests/test_interop_boundary_fixtures.py",
+          "blob": "b1790f958b890d3d61c992ba8475020f200235a4",
+          "sha256": "0755d86ad65fa68ad455ad716b126325c35a7de75cc1e7b36289b5d29489d201"
+        }
+      ],
+      "first_recorded_commit": "3e5dc19c528231fd69d64de7ade6fa32660a7708",
+      "classification": "UNKNOWN",
+      "aggregate_sha256": "b072cb1c1b15cd727ac25fa06b27142b71c918cc77f2b663000d484867ae83de"
+    },
+    "PROV-04": {
+      "canonical_spec": [
+        {
+          "path": "docs/execution-lifecycle.md",
+          "blob": "155936e8070c40d3bdeecb474318439190924726",
+          "sha256": "1b732fa69202a008af7f976a8b5c4fef2c2b43c37b29dacbcc57e122e2904e33"
+        },
+        {
+          "path": "docs/architecture/ADR-tainted-argument-approval.md",
+          "blob": "c17b14cf3079a5420b4dc28a3557f2dbf25c78c1",
+          "sha256": "9a25565f2365fb9000d9bfdf02c8aa274bef36f5e3f2a9600b16e80d5d715072"
+        }
+      ],
+      "implementation": [
+        {
+          "path": "remora/governance/review_queue.py",
+          "blob": "e5624589c0d7c21ef1219bc65da4743a83fb0a21",
+          "sha256": "22620bb27182a02d5dcb568a08e0812d1c1dd99a6c7ebed1a499f9c2f49ea622"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/test_policy_change_during_review.py",
+          "blob": "aecfee105f2a17e727183b3945d76458400bdc15",
+          "sha256": "d333ec0c93f20523a61eb3a799f23a7febd0694a68007d22a4c1fdb9c3415d5c"
+        },
+        {
+          "path": "tests/test_tainted_argument_approval_contract.py",
+          "blob": "6adfbdde3b7b43161e4b8d5f3fbb8b740c6b7744",
+          "sha256": "603012bfc74a74646eef47856a25ae82ae6169994fd4a259ac37a29e83d01eb6"
+        }
+      ],
+      "first_recorded_commit": "5741508ba36068257cf66048db53af38db41f59b",
+      "classification": "UNKNOWN",
+      "aggregate_sha256": "7b09d6b7025b98382a75e209feb29002474001346149c1d234e4b763c7f25434"
+    },
+    "PROV-05": {
+      "canonical_spec": [
+        {
+          "path": "ARCHITECTURE.md",
+          "blob": "fa2743eb2944b4fab3df5738282e1497b699e424",
+          "sha256": "6a821223b6c3104856b75dd9e8743b91b32842df153c67a78a0cc81a86ad39fb"
+        },
+        {
+          "path": "docs/08-security.md",
+          "blob": "54d61192af59a9555743cee0d8c358fa32205a7a",
+          "sha256": "3724045628312bdd6f3749608b63a4923ca42b5ed9d42d704a97d428f742d59c"
+        }
+      ],
+      "implementation": [
+        {
+          "path": "remora/enforcement/token.py",
+          "blob": "d510e367ef12192c12f63038eca6aaa749597cf6",
+          "sha256": "5f7d884916767f925f31bf326399dee03345547a3f6d365ae02b697d222296c3"
+        },
+        {
+          "path": "remora/enforcement/gate.py",
+          "blob": "0b9d3c0bc002f3420a92d78e01692bcc50c359aa",
+          "sha256": "93d78e1d3145452bace70892ed0c5ed8c2e5cfc3b42b8f49f403e0666877e367"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/test_enforcement_gate_contract.py",
+          "blob": "e75dbc9689335f4b32339cafd9de4c126db3d3a4",
+          "sha256": "f542b4e383f1d93817b61323bd1c685b40a7ce4d5d4df440d5a181bbcf7748d0"
+        },
+        {
+          "path": "tests/test_token_hardening.py",
+          "blob": "399cb8b627b3be7b06cfbdb7a75bac44f73f9dca",
+          "sha256": "397526379a4f9c35bf8de1b6151fbf20a49fa1d4a7c4e73079ee1a6e305d7bbb"
+        }
+      ],
+      "first_recorded_commit": "3ba703664a89cd399230547468ea5b7def0c25eb",
+      "classification": "UNKNOWN",
+      "aggregate_sha256": "2877144309cf962736f3a1bd27868c04635327ed9e921c59951e4e9369a8f0f8"
+    },
+    "PROV-06": {
+      "canonical_spec": [
+        {
+          "path": "docs/architecture/ADR-authority-custody-and-lease-durability.md",
+          "blob": "da3c0848d6f8f39dce68a215f402727aea3dc80b",
+          "sha256": "f95da6fa71238fe4a9ebc1fa153da03f3b3581e3fc3f525666067e1923ef3a54"
+        },
+        {
+          "path": "docs/execution-lifecycle.md",
+          "blob": "155936e8070c40d3bdeecb474318439190924726",
+          "sha256": "1b732fa69202a008af7f976a8b5c4fef2c2b43c37b29dacbcc57e122e2904e33"
+        }
+      ],
+      "implementation": [
+        {
+          "path": "remora/enforcement/lease.py",
+          "blob": "825225f7b77f37dea7909542dd6d9e939f120009",
+          "sha256": "e9a4385cb15f3e7414d10c26a2fbcec9182c016c58b6ef8e9e2c00343e92780b"
+        },
+        {
+          "path": "remora/enforcement/lease_signing.py",
+          "blob": "7247645145a2365406283c252e9a00eb3bd76948",
+          "sha256": "185f1068839fd36ee289e17044a729243b7887d6ecbcf1bd89a31b21d0093ead"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/test_execution_lease.py",
+          "blob": "460f4e29b6571927e9b53ed7d958b69119961117",
+          "sha256": "0fda7ac8e26685cafe9d6a84ee0b1df3cd79e84ca9518a4efb13fee8e2eb8263"
+        },
+        {
+          "path": "tests/test_lease_verification_contracts.py",
+          "blob": "d6267b57ff754adb430b0c6078fa1e702ee87b07",
+          "sha256": "ee3137168f4ce73f99fb5665e6cd6b3ad21ed67db1775ec754bfae1409e198cd"
+        }
+      ],
+      "first_recorded_commit": "9109c878713f35e20bda942fd50215bc9e160f50",
+      "classification": "UNKNOWN",
+      "aggregate_sha256": "26e1e9d521d545e0d93a234c821125ed9a77bd61cd7958ebb8e88b151a46bacf"
+    },
+    "PROV-07": {
+      "canonical_spec": [
+        {
+          "path": "docs/architecture/ADR-single-authoritative-execution-path.md",
+          "blob": "9984900651d0d2e73241e259851639cba83dbe12",
+          "sha256": "69cc19f7f1c4a31569952224546246fb8715794e4e6aa53174c90d745a22fb2e"
+        }
+      ],
+      "implementation": [
+        {
+          "path": "remora/enforcement/lease.py",
+          "blob": "825225f7b77f37dea7909542dd6d9e939f120009",
+          "sha256": "e9a4385cb15f3e7414d10c26a2fbcec9182c016c58b6ef8e9e2c00343e92780b"
+        },
+        {
+          "path": "remora/execution/dispatch.py",
+          "blob": "6a56baabeb92b2124232ef7c639b359f41da8af7",
+          "sha256": "ecbd29285bdf3d3e2b892bbe11bbcf977c35365882a32fe26008fb3498b2dd5e"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/test_dispatcher_contract.py",
+          "blob": "c6767da4554ac811b94fded6ff4f96b9f1979134",
+          "sha256": "a49fe7b21f0cbbb67d167b1bb615e473be2f78e1189fecf4cc012d9dc154607a"
+        },
+        {
+          "path": "tests/test_execution_lease.py",
+          "blob": "460f4e29b6571927e9b53ed7d958b69119961117",
+          "sha256": "0fda7ac8e26685cafe9d6a84ee0b1df3cd79e84ca9518a4efb13fee8e2eb8263"
+        }
+      ],
+      "first_recorded_commit": "26888d623422b94f45cb0e0a4b300cc510444d99",
+      "classification": "UNKNOWN",
+      "aggregate_sha256": "d4d83a8111b38f881ec2d208f39173fb6aea6934f4beb0a9eea08f402197a118"
+    },
+    "PROV-08": {
+      "canonical_spec": [
+        {
+          "path": "docs/design/toolspec-signed-registry-v1.md",
+          "blob": "6a19271adf2f68d717a2b6f22c1b9b676e24b4e2",
+          "sha256": "ef18ee7a04e0ccd096aa90b2928434330d711f8edce3392870fd20db5dd7aa68"
+        }
+      ],
+      "implementation": [
+        {
+          "path": "remora/toolcall/toolspec.py",
+          "blob": "7dcfd93ce3917315a84c04ffa9dbf917cbff4de8",
+          "sha256": "26cf9b113e591e489014e073896de82a986b974d714086d430e71377657f775d"
+        },
+        {
+          "path": "remora/execution/service.py",
+          "blob": "4e5a7c61f04c264857fd7ed83addc6e60433cf0e",
+          "sha256": "95c50bf3ad7b9ca3ae6160039671bef24efb2cd969e4d53a4f829b5748f5a962"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/test_execute_accepted_toolspec.py",
+          "blob": "2d10fa68fbb450c5ed60f737dd8004bcf4b54ca4",
+          "sha256": "4d60eb71ec3f9785422f934372ce6b68a5e2b6beb8d685ccf480c0a151665e1e"
+        },
+        {
+          "path": "tests/test_toolspec_runtime.py",
+          "blob": "b5c7e447d0000e906b0ba15b6df8534b49aec751",
+          "sha256": "153042c529414f8d9bbd108ebadf9b73ddc7a9a3528621822cb6a6f2281c0c7a"
+        }
+      ],
+      "first_recorded_commit": "ae78183bc81e728d3043be44a2b8aac5dee6afdf",
+      "classification": "UNKNOWN",
+      "aggregate_sha256": "0763fc2f431f7b5cfc916a8cf2aad53e5b406ba091a1ed3ae1c2499d6b9c0632"
+    },
+    "PROV-09": {
+      "canonical_spec": [
+        {
+          "path": "docs/design/runtime-trust-base-identity-v1.md",
+          "blob": "3fb5242adfbf68b7d8455546230c86fdaa89e51d",
+          "sha256": "c11e616b940cd654901608695bd94bbeaa5eac33debfb41ae0049168f5e69ca4"
+        },
+        {
+          "path": "artifacts/interop/runtime-surface-e7-v0.1/README.md",
+          "blob": "573c03fa23a4ce5f260eaca712ef3592214cccc2",
+          "sha256": "a12c3da58dd79e651a5a7cd8526d5b6e4ca6a1a24a176bfc0e13d6182540ae15"
+        }
+      ],
+      "implementation": [
+        {
+          "path": "remora/toolcall/runtime_surface.py",
+          "blob": "f4ef563f4d8243a46ad6b4e43071951bf5a55c7c",
+          "sha256": "f1644a487a3e2791c0e11c18bec35ab86b34f0d7395d42d1b88a027c444963d6"
+        },
+        {
+          "path": "remora/enforcement/runtime_identity.py",
+          "blob": "89e464d33f83a01b3c7fab35ec72f79c13a33be8",
+          "sha256": "1cff9cdea1aefed16bc9816f5e77fbd6cacb7ac75cb4e812f2bd52757b28c998"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/test_capability_register.py",
+          "blob": "813d136ca5d661ad448d4bb2c5697d56bd35ea5b",
+          "sha256": "7d9113f6423de9b6083d08eb3445565423159ec192d05c2eeb4e64759014026b"
+        },
+        {
+          "path": "tests/test_federation_interop_contract.py",
+          "blob": "63e59f071e11b775648c5557a5faf79b02eae41f",
+          "sha256": "5a3fc652c8cfd5f0779cee4d486e83f0122f59089c3c68e42b7299b8e325c2a0"
+        }
+      ],
+      "first_recorded_commit": "3e8462312f4dbc7129ed4d5ed974a72a80ea9a59",
+      "classification": "UNKNOWN",
+      "aggregate_sha256": "cc32394fbcde8da5e487d0dc8ee225f8803baa8c4c8ae08560b4f612a93d7914"
+    },
+    "PROV-10": {
+      "canonical_spec": [
+        {
+          "path": "docs/security/non-transitivity-of-authority.md",
+          "blob": "802f1d849c4b049531e8ce352e4508f0fdd75486",
+          "sha256": "3b2653894eb83809434955373307ecdef829a1094070b9626512a98ff3a8fc59"
+        }
+      ],
+      "implementation": [
+        {
+          "path": "remora/capabilities/delegation.py",
+          "blob": "8561fa1c36b2b041c4f1984ce93be951e66d8e83",
+          "sha256": "03f77634378dcb33756a635b504901a26f55fede513004dd6e66965c5a805469"
+        },
+        {
+          "path": "remora/enforcement/effect_domain.py",
+          "blob": "90f31af1494766627bd232207196529b474cc90d",
+          "sha256": "736f3a9ce06c9a61c6077e4ea8c34e03041f3d18d0e97d7d5159741b1ca83c8e"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/test_conformance_non_transitivity.py",
+          "blob": "32781ef6b6b6a36178322045a513e0dae5891780",
+          "sha256": "df404bd19627e1e7c9c0dc0189937225353aee5e262d05df64c63ba2e30f683e"
+        }
+      ],
+      "first_recorded_commit": "d4b62c4fb31e6772d551d4a9ebf4fd35f675316d",
+      "classification": "UNKNOWN",
+      "aggregate_sha256": "ba07a5f3749bb847fec9fc6fed4dfa3a60bd9d9991bb49edbe2eb96d770841bd"
+    },
+    "PROV-11": {
+      "canonical_spec": [
+        {
+          "path": "docs/design/evidence-sufficiency-v1.1.md",
+          "blob": "dd9c3107ec6d2d43f7c189e25b3ed2dd39b657a3",
+          "sha256": "a32103919a852578269b8cba0296a3753ab0bf27942123828ade137081258c78"
+        },
+        {
+          "path": "docs/design/evidence-sufficiency-v1.3.md",
+          "blob": "20484cb677b22dcf2180473011dcec96b2b718cb",
+          "sha256": "29dbca258e514658adfdb3a2e417f0fbef1a71ebd58d47d8c24d44385a6010e8"
+        }
+      ],
+      "implementation": [
+        {
+          "path": "conformance/evidence-sufficiency-v1/checker.py",
+          "blob": "209d3a51a04b60ab02577906ace0caa44887d358",
+          "sha256": "c4ca50aee2b2918b11c6fbde1f8615ca6c6bf1e5b6fa2ac1775f49c5e8c20be0"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/test_evidence_sufficiency_v1_2.py",
+          "blob": "d2e0b47d3735085c399f6a765158df5b128b3dcd",
+          "sha256": "c4b9a7f628e6bfb6e052bbf8d17ff8df764c7ac840e7209074002dcbfe4807c3"
+        },
+        {
+          "path": "tests/test_evidence_sufficiency_rule_coverage.py",
+          "blob": "2d5290a2ea3e26c815f977db641bd5820bfe6454",
+          "sha256": "5c66a8d027ec0f5f7e47740d17468a6f7d7f54f9436da05a077debda4bc88b71"
+        }
+      ],
+      "first_recorded_commit": "f10ca2a493755f64df9225a8ccb5636aa344a43a",
+      "classification": "UNKNOWN",
+      "aggregate_sha256": "3df778cec734d1e1119f35ec2b919bdc348945eda2c519f4d2888f0e261c3ce2"
+    },
+    "PROV-12": {
+      "canonical_spec": [
+        {
+          "path": "docs/architecture/ADR-authority-custody-and-lease-durability.md",
+          "blob": "da3c0848d6f8f39dce68a215f402727aea3dc80b",
+          "sha256": "f95da6fa71238fe4a9ebc1fa153da03f3b3581e3fc3f525666067e1923ef3a54"
+        }
+      ],
+      "implementation": [
+        {
+          "path": "remora/enforcement/custody.py",
+          "blob": "b04942396948f711c09030848139fc8a30a0483e",
+          "sha256": "41a5d85ef5d4e1674275845ccc9de805637afe7362b5e1f50656dfa384fdb664"
+        },
+        {
+          "path": "remora/enforcement/effect_domain.py",
+          "blob": "90f31af1494766627bd232207196529b474cc90d",
+          "sha256": "736f3a9ce06c9a61c6077e4ea8c34e03041f3d18d0e97d7d5159741b1ca83c8e"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/conformance/test_custody_effect_domain.py",
+          "blob": "9ccb8694fc7b2f776babadd1e27cbb6fbd5e1977",
+          "sha256": "05bb42832fc8a78f349818591ce8966604ded2e822366b147194e940efee08fd"
+        }
+      ],
+      "first_recorded_commit": "3e8462312f4dbc7129ed4d5ed974a72a80ea9a59",
+      "classification": "UNKNOWN",
+      "aggregate_sha256": "bb4d8b2f01a4abe9e2800fc8c9d87cf3cdf0ea2ff15d9fb51916f2ad40efda19"
+    },
+    "PROV-13": {
+      "canonical_spec": [
+        {
+          "path": "docs/08-security.md",
+          "blob": "54d61192af59a9555743cee0d8c358fa32205a7a",
+          "sha256": "3724045628312bdd6f3749608b63a4923ca42b5ed9d42d704a97d428f742d59c"
+        }
+      ],
+      "implementation": [
+        {
+          "path": "remora/policy/observation.py",
+          "blob": "62d7d496f37bf516940056d8ac44d2bb142b9fa2",
+          "sha256": "9a179030a83f664eeafb9b2ccf2f6539e1d38b03c6557595c89cc8e507cb388c"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/test_execution_lease.py",
+          "blob": "460f4e29b6571927e9b53ed7d958b69119961117",
+          "sha256": "0fda7ac8e26685cafe9d6a84ee0b1df3cd79e84ca9518a4efb13fee8e2eb8263"
+        },
+        {
+          "path": "tests/test_execute_accepted.py",
+          "blob": "1a7a9ee8db14ebb6a7aaf682462adf254041c089",
+          "sha256": "f9ac06495e0b38b9e23253214a67121e7a3e9b41161188d319550c12374b08eb"
+        }
+      ],
+      "first_recorded_commit": "ccf77613353d7a3bf3d9b54155ccc12269dc718c",
+      "classification": "UNKNOWN",
+      "aggregate_sha256": "b96d8efa08aaa9ce5e7c40d5486570424486ff81a42752cd78beda4e55c102e6"
+    },
+    "PROV-14": {
+      "canonical_spec": [
+        {
+          "path": "docs/architecture/ADR-authority-custody-and-lease-durability.md",
+          "blob": "da3c0848d6f8f39dce68a215f402727aea3dc80b",
+          "sha256": "f95da6fa71238fe4a9ebc1fa153da03f3b3581e3fc3f525666067e1923ef3a54"
+        }
+      ],
+      "implementation": [
+        {
+          "path": "remora/enforcement/lease.py",
+          "blob": "825225f7b77f37dea7909542dd6d9e939f120009",
+          "sha256": "e9a4385cb15f3e7414d10c26a2fbcec9182c016c58b6ef8e9e2c00343e92780b"
+        },
+        {
+          "path": "remora/enforcement/nonce_store.py",
+          "blob": "0ff5a0589f4ffef2b7b14ac7d73af5467c6c7849",
+          "sha256": "fde39315229d586364795cc257cba4ce8f9af324e717d166813c917fcb5ca8ec"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/test_authority_state_durability.py",
+          "blob": "d42e85b314b78375ccfe23476c214e9168832992",
+          "sha256": "b629963f55c1772b1657c0280f6a50bffcccf19a14a3e8c9c73a71808db35dfa"
+        },
+        {
+          "path": "tests/test_lease_verification_contracts.py",
+          "blob": "d6267b57ff754adb430b0c6078fa1e702ee87b07",
+          "sha256": "ee3137168f4ce73f99fb5665e6cd6b3ad21ed67db1775ec754bfae1409e198cd"
+        }
+      ],
+      "first_recorded_commit": "26888d623422b94f45cb0e0a4b300cc510444d99",
+      "classification": "UNKNOWN",
+      "aggregate_sha256": "cf13f0f32fbeb590f38706e5ca9f2da7f99961bc3229601e67756403513616cc"
+    },
+    "PROV-15": {
+      "canonical_spec": [
+        {
+          "path": "docs/architecture/ADR-authority-custody-and-lease-durability.md",
+          "blob": "da3c0848d6f8f39dce68a215f402727aea3dc80b",
+          "sha256": "f95da6fa71238fe4a9ebc1fa153da03f3b3581e3fc3f525666067e1923ef3a54"
+        }
+      ],
+      "implementation": [
+        {
+          "path": "remora/enforcement/custody.py",
+          "blob": "b04942396948f711c09030848139fc8a30a0483e",
+          "sha256": "41a5d85ef5d4e1674275845ccc9de805637afe7362b5e1f50656dfa384fdb664"
+        },
+        {
+          "path": "remora/toolcall/runtime_profile.py",
+          "blob": "fc57e599f4e66ad8365af9376d86219df027cb7a",
+          "sha256": "47da3cf85d51ea63e77dc010c0c0cf7be9fd2b2eba84cb2ca4f6da44bc6e8642"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/conformance/test_custody_guard.py",
+          "blob": "b089fd94bd95d71a1cab11ffb6f1ebcb0a6f6ebd",
+          "sha256": "5b3651064a0480d8cdc42fb72ca6972d1247d3b0ed9f4c55c14d44ceaffcea67"
+        }
+      ],
+      "first_recorded_commit": "da47b8c67a70eea9492183b81be90e88a0f51cd2",
+      "classification": "UNKNOWN",
+      "aggregate_sha256": "66a0133d16a2f771a9a8285a792a8cd6d76ce0d3371e8c245ca18b3cdb322649"
+    },
+    "PROV-16": {
+      "canonical_spec": [
+        {
+          "path": "docs/design/task-bound-execution-authority-v1.md",
+          "blob": "421105ca5e789e3d8896904ff3870ed8a023fa1d",
+          "sha256": "1f9260791f30ea5b4e06bd261e35813d47782fa7221511cc7d9667843f023a01"
+        }
+      ],
+      "implementation": [
+        {
+          "path": "remora/governance/task_identity.py",
+          "blob": "6cb9c44ef7d14b7bdbb5e1cfcca06b585d943ccd",
+          "sha256": "2594270d8406ff559963ad3ce282835b85619ae590d0f62e05fd1225a11e6c19"
+        },
+        {
+          "path": "remora/enforcement/lease.py",
+          "blob": "825225f7b77f37dea7909542dd6d9e939f120009",
+          "sha256": "e9a4385cb15f3e7414d10c26a2fbcec9182c016c58b6ef8e9e2c00343e92780b"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/test_task_bound_authority.py",
+          "blob": "c1ea95803995ca7236ff30edaae825771c32f4a1",
+          "sha256": "8729c77b23afe1b119f32eeb10174799af110e29a127adfb8238d58e968f49a1"
+        },
+        {
+          "path": "tests/test_task_identity_server_path.py",
+          "blob": "69af69e5b2afbc1b421f9db78d24a5e58c7e57f1",
+          "sha256": "1b7a6b4fa14059f33004f14827c10e12b8e2ceb89a0fdd65f084fa9c1f44d764"
+        }
+      ],
+      "first_recorded_commit": "ad044fa890f818a591b706a8ca4dfb4d2f2a8af6",
+      "classification": "UNKNOWN",
+      "aggregate_sha256": "827da4d5326149ce4f34d4583a7e5b16d009832d9ec556ec9110547bc441f127"
+    },
+    "PROV-17": {
+      "canonical_spec": [
+        {
+          "path": "ARCHITECTURE.md",
+          "blob": "fa2743eb2944b4fab3df5738282e1497b699e424",
+          "sha256": "6a821223b6c3104856b75dd9e8743b91b32842df153c67a78a0cc81a86ad39fb"
+        },
+        {
+          "path": "DEVELOPER_OVERVIEW.md",
+          "blob": "bbdbe9f3b0fef355145162c62d2a4cc77762618f",
+          "sha256": "7a317b9b98edfbf7ae3c8bcd3fd3dfa58169376e0794c5930f391417003b2274"
+        },
+        {
+          "path": "docs/execution-lifecycle.md",
+          "blob": "155936e8070c40d3bdeecb474318439190924726",
+          "sha256": "1b732fa69202a008af7f976a8b5c4fef2c2b43c37b29dacbcc57e122e2904e33"
+        }
+      ],
+      "implementation": [
+        {
+          "path": "remora/enforcement/token.py",
+          "blob": "d510e367ef12192c12f63038eca6aaa749597cf6",
+          "sha256": "5f7d884916767f925f31bf326399dee03345547a3f6d365ae02b697d222296c3"
+        },
+        {
+          "path": "remora/enforcement/gate.py",
+          "blob": "0b9d3c0bc002f3420a92d78e01692bcc50c359aa",
+          "sha256": "93d78e1d3145452bace70892ed0c5ed8c2e5cfc3b42b8f49f403e0666877e367"
+        },
+        {
+          "path": "remora/enforcement/lease.py",
+          "blob": "825225f7b77f37dea7909542dd6d9e939f120009",
+          "sha256": "e9a4385cb15f3e7414d10c26a2fbcec9182c016c58b6ef8e9e2c00343e92780b"
+        },
+        {
+          "path": "remora/enforcement/custody.py",
+          "blob": "b04942396948f711c09030848139fc8a30a0483e",
+          "sha256": "41a5d85ef5d4e1674275845ccc9de805637afe7362b5e1f50656dfa384fdb664"
+        },
+        {
+          "path": "remora/governance/effect_verification.py",
+          "blob": "96eae3799c1e65f9c20abe0fea78764e553188f6",
+          "sha256": "65972c29eb84652a0f1a4a043595289f10ae0aae6aa7c49b64a5f871d00f0259"
+        }
+      ],
+      "tests": [
+        {
+          "path": "tests/test_end_to_end_vertical.py",
+          "blob": "23eaed6f29031a249a0d1c380efb6bdd18bc0fc3",
+          "sha256": "a187bd3cf41e426710129759c4e96a52c769a4eb5a605898db85f416a4023549"
+        },
+        {
+          "path": "tests/test_interop_boundary_fixtures.py",
+          "blob": "b1790f958b890d3d61c992ba8475020f200235a4",
+          "sha256": "0755d86ad65fa68ad455ad716b126325c35a7de75cc1e7b36289b5d29489d201"
+        }
+      ],
+      "first_recorded_commit": "26888d623422b94f45cb0e0a4b300cc510444d99",
+      "classification": "UNKNOWN",
+      "aggregate_sha256": "4bf9ebb32113fd618786084d7828539a80eb7c9d15e1827923c561339f1f77fe"
+    }
+  },
+  "concept_records": {
+    "provenance/concepts/PROV-01.yaml": {
+      "blob": "1baa38677c589d0ef9f125e3a2acf549b24962c4",
+      "sha256": "fe2a682f8968cee31b54c8f3bed1e12d1bf51d40dda4b30c75e2ad5ad9f88de1"
+    },
+    "provenance/concepts/PROV-02.yaml": {
+      "blob": "9b98713dff6240c11a5f7fc47bd96f8dde48682d",
+      "sha256": "4e8504a5ec8d1569af000578e97e022ab41e53749d975f5e127fd375664be728"
+    },
+    "provenance/concepts/PROV-03.yaml": {
+      "blob": "e9a636f217dc37c45a52db96c9e2591c6be72f84",
+      "sha256": "9a608e7940e0d66463761bd054a17cd770a4003354a4a3f1f23d7ce84456001f"
+    },
+    "provenance/concepts/PROV-04.yaml": {
+      "blob": "bf562dcc1cd86ced3faf4f7bfcf8338d622bf917",
+      "sha256": "215b83609f74916013765ae50f5702d004690e1b3d7fceb13d5f1c69201b9ea2"
+    },
+    "provenance/concepts/PROV-05.yaml": {
+      "blob": "8b9ec5ffdae4e42d5da75d34a1a10e5234c2eeff",
+      "sha256": "fd4bac5bab44a8ac54d65940a72e7c80f4d6db9c501d28ad384a20fe59f5ed20"
+    },
+    "provenance/concepts/PROV-06.yaml": {
+      "blob": "c733981501547623e51d0e0a47058a1807fbb91c",
+      "sha256": "e0cc3cb5f8c1689209ef12f849d85ac5516cc8890226be198dff696c2d57b943"
+    },
+    "provenance/concepts/PROV-07.yaml": {
+      "blob": "ffadbede7528d01626639888c76815d54d535c0d",
+      "sha256": "9eaba087cd39fc5d40fb6ab291e7e74cb241d4eadfbcceebb55fead5d86543bf"
+    },
+    "provenance/concepts/PROV-08.yaml": {
+      "blob": "87736d6f365af44fc01510ccccf59fe00117629c",
+      "sha256": "ed346d926366e0ad9adb8e6c9972ea787ed030d0b0be655832ab2c627bd07b6f"
+    },
+    "provenance/concepts/PROV-09.yaml": {
+      "blob": "d1c74e2423adc2e7a89390daea363f9fe4adbab4",
+      "sha256": "351137daae377f3616b42aaf1b6bf9f5608e540a030ab222c140a09f8ce224b7"
+    },
+    "provenance/concepts/PROV-10.yaml": {
+      "blob": "78be3d70cb877841cfb0a74563b227025851a48a",
+      "sha256": "602194264d432b7e25724e0547f82ee0c13b943d964a7deaf4667eafd7075575"
+    },
+    "provenance/concepts/PROV-11.yaml": {
+      "blob": "832b9c39ddc68a4d0f0991ac7dd9b1e69902a636",
+      "sha256": "54e0c9a33841be83e9ba646bbda8015558ced81e1ea4dd68fdddc9809db94eaf"
+    },
+    "provenance/concepts/PROV-12.yaml": {
+      "blob": "758b612ed00b901af959bcc15205dbd8ccd6919b",
+      "sha256": "bf479f1816fa5d34a025677c250b711044ece831a9e7623861d4969e75a4b8b3"
+    },
+    "provenance/concepts/PROV-13.yaml": {
+      "blob": "7d399d11c704eb2e8309545d18ecf51da589f6df",
+      "sha256": "2f985b5c6814dd92ac6e0eb2fab90ce8571c9cbf0c520bc2b2d14cf06d88134a"
+    },
+    "provenance/concepts/PROV-14.yaml": {
+      "blob": "0b2fdb7b7304194115fc66226caae39800791f13",
+      "sha256": "cc9d19621f69b47825b231e9b99e4ad81a4a27a01a36662c900b7343ae5bf3ec"
+    },
+    "provenance/concepts/PROV-15.yaml": {
+      "blob": "4bc0a556a16f633a1942244f9ad14c9e572cd594",
+      "sha256": "d8df1c221cb057e508ed124f576732c69bb86322a37582fd30a1bbe99a4eccb0"
+    },
+    "provenance/concepts/PROV-16.yaml": {
+      "blob": "c826e754f7f3a76a87ab7092f321f91040a0fa24",
+      "sha256": "ec2eb7712adda60ddb0bfc5d67c9a38313dbf111a7fc21e0ff2aaff4bee4b7e9"
+    },
+    "provenance/concepts/PROV-17.yaml": {
+      "blob": "847f65e808f42f1a31ae070955e09868ddb5536f",
+      "sha256": "c29882d85408105f8f33a4390078c48070a8ff1ec647bce8f4ee3e2f6c91e425"
+    }
+  },
+  "registers": {
+    "docs/assurance/claim_register_v1.yaml": {
+      "blob": "6d3bc582f3cccedb794b6f5d75a59189f3880fb9",
+      "sha256": "1c3e7a654f9e0e2d2bebfe97b9f037a59924fd705e54deed736ca76a2d984e67"
+    },
+    "docs/assurance/capability_register_v1.yaml": {
+      "blob": "cc4885be815ef895e8c54dff108fdccd27bd16f0",
+      "sha256": "0089c223f7f1a076507d45f618622eb2516f7e78929cb55edf6f056317de0263"
+    },
+    "docs/assurance/provenance_concepts_v1.yaml": {
+      "blob": "16fe7fa9346ef36b7687d5e5243c8b66f44f247c",
+      "sha256": "5e39c4d92605b7dd1715792718e9826c8df5c20e3ff4e679ce61363d8356a920"
+    },
+    "docs/assurance/provenance_register_v1.json": {
+      "blob": "93acc70652d7f7463c93fa61332bf1f50e344330",
+      "sha256": "62abdd5f99a80645e1fe8e7423e6c1ed154e6a7b2b79632a1171e88d800671f1"
+    },
+    "artifacts/interop/index.json": {
+      "blob": "7a700335a5767fd9fa7bd990c2d5725be2ad3724",
+      "sha256": "73c9fd69c5024d37ab85fbc8ea2df73730e56e04a4367a0d3c6120551aa9b4cd"
+    },
+    "artifacts/interop/FEDERATION.yaml": {
+      "blob": "531e54025a20a2180da83b20fa9417f3f74467e9",
+      "sha256": "0fa66d8693275746e66db37ececc7e17f1191be86cdfd3b9c59e5feb0c9419f9"
+    },
+    "provenance/PRIOR_ART.yaml": {
+      "blob": "cb5a927b40331862248cddd250a651f33e1317b5",
+      "sha256": "e643669f96af1a6429c18e98dc1a43c1b06a380f74350a8465931980cc42a733"
+    },
+    "provenance/EXTERNAL_ADOPTION.yaml": {
+      "blob": "06f595305fe3eb0749bd6031780c487595412e8a",
+      "sha256": "8113e334f4a9564fbafb8df7439dd8d8e796bdf7ad190b45e13b9a8f2b218aac"
+    },
+    "provenance/AUTHORS.yaml": {
+      "blob": "db93173dcbcdc7f17ddb7261b6cf54045f46f3b7",
+      "sha256": "a2d71817fce26c570b97a045641f3e15ed2169ce50d06fe3dbcdfc7a8c8af8b3"
+    },
+    "provenance/POLICY.yaml": {
+      "blob": "6a3b893a023560057d9ada6ed4380e849384ec8c",
+      "sha256": "fe86ec1bf4eedf853f9ef4955a98c5a28f1a9f1c093a8cdb2d522be1fec09eb6"
+    }
+  },
+  "ledger_sha256": "f0917d6ba76c2206db1cbbaf6d9f417258e950d60813a79bb16e84e84438d475",
+  "generated_at": "2026-10-04T09:17:20+00:00"
+}

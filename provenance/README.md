@@ -1,11 +1,10 @@
 # Provenance ledger
 
 A machine-readable chain from each original REMORA concept to the documents,
-code and tests that express it, to the commit where it first appeared, to the
-conformance suites and interop contracts that test it, and to what external
-sources document about using it. `legal/PROVENANCE.md` is the canonical
-explanation of what such a record does and does not show; this directory is
-the record.
+code and tests that express it. The chain continues to the commit where the
+concept first appeared, to the conformance suites and interop contracts that
+test it, and to what external sources document about using it.
+`legal/PROVENANCE.md` explains what such a record does and does not show.
 
 ```text
 concept record (PROV-xx)
@@ -42,18 +41,19 @@ limited to. The builder refuses a record that upgrades itself without one.
 The classification vocabulary is `ORIGINAL_CLAIM`, `PRIOR_ART_OVERLAP`,
 `COMPOSITIONAL_CONTRIBUTION`, `IMPLEMENTATION_INNOVATION`, `TERMINOLOGY_ONLY`,
 `DERIVED` and `UNKNOWN`. A review that finds the concept in earlier work is
-recorded with the same care as one that does not; the point of the register
-is to know what REMORA does not claim before anyone else says so.
+recorded with the same care as one that does not. The register exists so
+that REMORA knows what it does not claim before anyone else says so.
 
 ## Gates
 
 `python scripts/build_provenance_manifest.py --check` runs in CI. It
-validates every record against its schema, checks that the first-recorded
-data matches the register, that every path, capability, claim, suite,
-contract, source and event a record names exists, and that the committed
-manifest reproduces byte for byte from its recorded snapshot commit. A new
-snapshot is written with `--write` after records or registers change, and
-with `--release TAG` by the release workflow.
+validates every record against its schema and checks the first-recorded data
+against the register. It checks that every path, capability, claim, suite,
+contract, source and event a record names exists. It then rebuilds the
+manifest from the recorded snapshot commit and refuses one that no longer
+reproduces byte for byte. A new snapshot is written with `--write` after
+records or registers change, and with `--release TAG` by the release
+workflow.
 
 `python scripts/check_provenance_signatures.py` lists every commit that
 touches a protected path and whether GitHub verified its signature. It

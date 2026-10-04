@@ -27,10 +27,11 @@ The register is taken from a pinned snapshot commit, so it reproduces byte for b
 
 ## The ledger
 
-`provenance/` joins each concept in the register to the rest of the record:
-the documents, code and tests that express it, the conformance suites and
-interop contracts that test it, the claims and capabilities it relates to,
-and what external sources document about using it. Each record keeps the
+`provenance/` joins each concept in the register to the rest of the record.
+That record names the documents, code and tests that express the concept
+and the conformance suites and interop contracts that test it. It also names
+the claims and capabilities it relates to and what external sources document
+about using it. Each record keeps the
 register's `PROV-xx` id and first-recorded commit, starts as
 `claimed_original_contribution` with classification `UNKNOWN`, and can move
 off `UNKNOWN` only through a dated prior-art review in
