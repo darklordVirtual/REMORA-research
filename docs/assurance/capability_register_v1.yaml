@@ -772,7 +772,7 @@ capabilities:
   - id: CAP-025
     name: "Evidence admission for sufficiency premises (CoSAI §7.4: visibility, coverage, vantage, binding, prior commitment)"
     status: IMPLEMENTED_LIBRARY
-    verified_at_sha: 462f18c02605fb11607fc834e58fc1db0c61eef3
+    verified_at_sha: fa0ae9f7a4ff244dd0cde7b3c843a48a3ec2eeee
     verified_by: >-
       audit 2026-10-02 at registration: remora/evidence/admission/ adds five
       frozen types (ProducerCapabilityManifest, CoverageAttestation,
