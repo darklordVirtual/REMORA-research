@@ -10,7 +10,10 @@ which builds on this one and does not replace it.
 
 ## What this profile is for
 
-The Agent Authority Conformance lab does not issue a project-level verdict. It
+The Agent Authority Conformance lab (the LF Decentralized Trust venue, not the
+Agent Authority Conformance Profiles repository; see
+[docs/interop/FEDERATION.md](../interop/FEDERATION.md#names)) does not issue a
+project-level verdict. It
 records an interop family: an adapter, its hash, the pinned revisions of every
 side, and per-family results labelled author-run or independent. A record can
 carry a passing family and eight unsupported families at once, and neither

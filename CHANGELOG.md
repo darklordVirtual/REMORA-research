@@ -384,6 +384,17 @@ execution-context binding.
   onto events lives in the evaluation layer
   (`remora/aromer/evals/sequential_assurance_adapter.py`), so the runtime
   package stays clean under `scripts/check_no_evaluation_leakage.py`.
+- `bcr-linkage-v1` (`artifacts/interop/schemas/`): the versioned join from a
+  committed run record to an Agent Authority Conformance Profiles profile
+  revision and a Bounded Claim Reproduction level. The record repeats the
+  run record's independence level and status verbatim, lists every condition
+  the method adds above the REMORA level with its evidence, and is refused by
+  `scripts/interop_package.py --check` when any of them differ. The REMORA
+  levels are documented as an intended correspondence to BCR-0 to BCR-4, not
+  as one to one. `docs/interop/FEDERATION.md` gains a names section that
+  separates REMORA, the profiles project, the method and the LF Decentralized
+  Trust lab, and records the AACP and BCR short-form collisions. No linkage
+  record exists yet.
 - Provenance ledger (`provenance/`): one record per register concept
   (`PROV-01` to `PROV-17`) joining the first-recorded commit to the
   canonical specification, implementation, tests, conformance suites,

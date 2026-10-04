@@ -562,7 +562,8 @@
     "action_lineage": "artifacts/interop/schemas/action-lineage-v1.schema.json",
     "external_run_record": "artifacts/interop/schemas/external-run-record-v1.schema.json",
     "interop_result": "artifacts/interop/schemas/interop-result-v1.schema.json",
-    "federation_manifest": "artifacts/interop/schemas/federation-manifest-v1.schema.json"
+    "federation_manifest": "artifacts/interop/schemas/federation-manifest-v1.schema.json",
+    "bcr_linkage": "artifacts/interop/schemas/bcr-linkage-v1.schema.json"
   },
   "lifecycle_model": {
     "states": [
@@ -586,5 +587,10 @@
     "directory": "artifacts/interop/runs",
     "schema": "artifacts/interop/schemas/interop-result-v1.schema.json",
     "note": "One interop-result-v1 record per run. Author runs are L0_SELF_TEST and advance no contract; the matrix in docs/interop/INTEROP_MATRIX.md is generated from these records."
+  },
+  "linkages": {
+    "directory": "artifacts/interop/linkages",
+    "schema": "artifacts/interop/schemas/bcr-linkage-v1.schema.json",
+    "note": "One bcr-linkage-v1 record per run record given an Agent Authority Conformance Profiles profile revision and a Bounded Claim Reproduction level. The record repeats the run record's level and status verbatim; a lifecycle state is not a level. None exists yet."
   }
 }

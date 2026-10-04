@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "remora-bcr-linkage-v1",
+  "description": "One versioned linkage from a committed REMORA run record to an Agent Authority Conformance Profiles profile revision and a Bounded Claim Reproduction level. The record copies the source record's independence level and status verbatim; it never translates a status and never upgrades a level. A BCR level above BCR-2 is accepted only when every additional condition the method requires is listed and documented as satisfied. The level describes who ran what; it says nothing about the safety of the implementation.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "linkage_id",
+    "contract_id",
+    "package_digest",
+    "source_record",
+    "profile",
+    "method",
+    "remora_independence_level",
+    "bcr_level",
+    "conditions",
+    "source_status",
+    "claim_ceiling",
+    "recorded_at",
+    "recorded_by"
+  ],
+  "properties": {
+    "schema_version": { "const": "remora-bcr-linkage-v1" },
+    "linkage_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*-[0-9]+$" },
+    "contract_id": { "type": "string", "minLength": 1 },
+    "package_digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+    "source_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "path", "sha256", "claim"],
+      "properties": {
+        "schema_version": { "enum": ["remora-interop-result-v1", "remora-external-run-record-v1"] },
+        "path": { "type": "string", "pattern": "^artifacts/interop/" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "claim": { "type": "string", "minLength": 1 },
+        "url": { "type": "string", "format": "uri" }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project", "repository", "profile_id", "revision"],
+      "properties": {
+        "project": { "const": "Agent Authority Conformance Profiles" },
+        "repository": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$" },
+        "profile_id": { "type": "string", "pattern": "^AACP-[A-Z0-9]+(-[A-Z0-9]+)*-[0-9]+$" },
+        "revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "profile_digest": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    },
+    "method": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "document", "revision"],
+      "properties": {
+        "name": { "const": "Bounded Claim Reproduction" },
+        "version": { "type": "string", "minLength": 1 },
+        "document": { "type": "string", "minLength": 1 },
+        "revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      }
+    },
+    "remora_independence_level": {
+      "enum": [
+        "L0_SELF_TEST",
+        "L1_REPRODUCTION",
+        "L2_SECOND_IMPLEMENTATION",
+        "L3_INDEPENDENT_RECOMPUTATION",
+        "L4_INDEPENDENT_HOST_RUN"
+      ]
+    },
+    "bcr_level": { "enum": ["BCR-0", "BCR-1", "BCR-2", "BCR-3", "BCR-4"] },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "statement", "satisfied", "evidence"],
+        "properties": {
+          "id": {
+            "enum": [
+              "BCR3-NEGATIVE-CASES",
+              "BCR3-MUTATION-CASES",
+              "BCR3-NO-PRODUCER-MAINTAINER",
+              "BCR4-EXTERNAL-ENVIRONMENT",
+              "BCR4-EXTERNAL-RUNNER",
+              "BCR4-EXTERNAL-EXECUTION",
+              "BCR4-EXTERNAL-EVIDENCE-CAPTURE",
+              "BCR4-PUBLISHED-EVIDENCE"
+            ]
+          },
+          "statement": { "type": "string", "minLength": 1 },
+          "satisfied": { "type": "boolean" },
+          "evidence": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "source_status": { "enum": ["ESTABLISHED", "CONTRADICTED", "NOT_ESTABLISHED"] },
+    "profile_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["value", "assigned_by", "assigned_at", "rationale"],
+      "properties": {
+        "value": { "enum": ["ESTABLISHED", "CONTRADICTED", "NOT_ESTABLISHED", "NOT_APPLICABLE", "INCOMPATIBLE", "NOT_RUN"] },
+        "assigned_by": { "type": "string", "minLength": 1 },
+        "assigned_at": { "type": "string", "format": "date" },
+        "rationale": { "type": "string", "minLength": 1 }
+      }
+    },
+    "claim_ceiling": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["implies_endorsement", "implies_production_safety", "implies_broader_validity", "confers_authority", "implies_certification"],
+      "properties": {
+        "implies_endorsement": { "const": false },
+        "implies_production_safety": { "const": false },
+        "implies_broader_validity": { "const": false },
+        "confers_authority": { "const": false },
+        "implies_certification": { "const": false }
+      }
+    },
+    "recorded_at": { "type": "string", "format": "date" },
+    "recorded_by": { "type": "string", "minLength": 1 },
+    "note": { "type": "string" }
+  },
+  "$defs": {
+    "satisfied": {
+      "BCR3-NEGATIVE-CASES": { "contains": { "properties": { "id": { "const": "BCR3-NEGATIVE-CASES" }, "satisfied": { "const": true } } } },
+      "BCR3-MUTATION-CASES": { "contains": { "properties": { "id": { "const": "BCR3-MUTATION-CASES" }, "satisfied": { "const": true } } } },
+      "BCR3-NO-PRODUCER-MAINTAINER": { "contains": { "properties": { "id": { "const": "BCR3-NO-PRODUCER-MAINTAINER" }, "satisfied": { "const": true } } } },
+      "BCR4-EXTERNAL-ENVIRONMENT": { "contains": { "properties": { "id": { "const": "BCR4-EXTERNAL-ENVIRONMENT" }, "satisfied": { "const": true } } } },
+      "BCR4-EXTERNAL-RUNNER": { "contains": { "properties": { "id": { "const": "BCR4-EXTERNAL-RUNNER" }, "satisfied": { "const": true } } } },
+      "BCR4-EXTERNAL-EXECUTION": { "contains": { "properties": { "id": { "const": "BCR4-EXTERNAL-EXECUTION" }, "satisfied": { "const": true } } } },
+      "BCR4-EXTERNAL-EVIDENCE-CAPTURE": { "contains": { "properties": { "id": { "const": "BCR4-EXTERNAL-EVIDENCE-CAPTURE" }, "satisfied": { "const": true } } } },
+      "BCR4-PUBLISHED-EVIDENCE": { "contains": { "properties": { "id": { "const": "BCR4-PUBLISHED-EVIDENCE" }, "satisfied": { "const": true } } } }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "remora_independence_level": { "const": "L0_SELF_TEST" } } },
+      "then": { "properties": { "bcr_level": { "const": "BCR-0" } } }
+    },
+    {
+      "if": { "properties": { "remora_independence_level": { "const": "L1_REPRODUCTION" } } },
+      "then": { "properties": { "bcr_level": { "enum": ["BCR-0", "BCR-1"] } } }
+    },
+    {
+      "if": { "properties": { "remora_independence_level": { "const": "L2_SECOND_IMPLEMENTATION" } } },
+      "then": { "properties": { "bcr_level": { "enum": ["BCR-0", "BCR-1", "BCR-2"] } } }
+    },
+    {
+      "if": { "properties": { "remora_independence_level": { "const": "L3_INDEPENDENT_RECOMPUTATION" } } },
+      "then": { "properties": { "bcr_level": { "enum": ["BCR-0", "BCR-1", "BCR-2", "BCR-3"] } } }
+    },
+    {
+      "if": { "properties": { "bcr_level": { "enum": ["BCR-3", "BCR-4"] } } },
+      "then": {
+        "properties": {
+          "conditions": {
+            "allOf": [
+              { "$ref": "#/$defs/satisfied/BCR3-NEGATIVE-CASES" },
+              { "$ref": "#/$defs/satisfied/BCR3-MUTATION-CASES" },
+              { "$ref": "#/$defs/satisfied/BCR3-NO-PRODUCER-MAINTAINER" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "bcr_level": { "const": "BCR-4" } } },
+      "then": {
+        "properties": {
+          "conditions": {
+            "allOf": [
+              { "$ref": "#/$defs/satisfied/BCR4-EXTERNAL-ENVIRONMENT" },
+              { "$ref": "#/$defs/satisfied/BCR4-EXTERNAL-RUNNER" },
+              { "$ref": "#/$defs/satisfied/BCR4-EXTERNAL-EXECUTION" },
+              { "$ref": "#/$defs/satisfied/BCR4-EXTERNAL-EVIDENCE-CAPTURE" },
+              { "$ref": "#/$defs/satisfied/BCR4-PUBLISHED-EVIDENCE" }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}

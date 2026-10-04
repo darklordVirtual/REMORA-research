@@ -148,7 +148,7 @@ Several topics have more than one document. This table says which to open.
 | [benchmarks/README.md](benchmarks/README.md) | Benchmark overview |
 | [benchmarks/stat_tests.md](benchmarks/stat_tests.md) | Statistical test methodology |
 | [benchmarks/toolcall_consensus_benchmark_v2.md](benchmarks/toolcall_consensus_benchmark_v2.md) | Tool-call benchmark v2 |
-| [benchmarks/agent-authority-conformance-v0.1.md](benchmarks/agent-authority-conformance-v0.1.md) | Agent Authority Conformance v0.1 (vendor-neutral A-G property model; draft) |
+| [benchmarks/agent-authority-conformance-v0.1.md](benchmarks/agent-authority-conformance-v0.1.md) | A-G property model v0.1 (vendor-neutral; draft; published under the earlier name Agent Authority Conformance and kept verbatim; the profiles project is now Agent Authority Conformance Profiles, see interop/FEDERATION.md) |
 | [benchmarks/aegis-remora-crosswalk.md](benchmarks/aegis-remora-crosswalk.md) | AEGIS Core 3.4.0 x REMORA A-G crosswalk (first application; not a ranking) |
 | [research/benchmark_round_2026_07.md](research/benchmark_round_2026_07.md) | July 2026 benchmark round |
 

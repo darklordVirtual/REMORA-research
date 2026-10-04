@@ -24,7 +24,11 @@ every run record under artifacts/interop/runs/ validates against
 interop-result-v1, names a known contract and claim, and pins the exact
 fixture bytes and package digest it evaluated (FED-INV-003). A record that
 fails any of these is refused, so a result without its ceiling or provenance
-cannot be published.
+cannot be published. Every ``bcr-linkage-v1`` record under
+artifacts/interop/linkages/ is validated the same way: it must resolve its
+source record by path and digest and repeat that record's level, claim and
+status verbatim, so a Bounded Claim Reproduction level can never exceed what
+the run record itself established.
 
 Nothing here touches policy, enforcement or execution code, and no step can
 advance a contract past EXTERNAL_RUN_PENDING: REPRODUCED and
@@ -117,6 +121,7 @@ def check(root: Path = ROOT) -> list[str]:
             problems.append(f"{contract['id']}: freeze_record names another package_digest; a frozen package must not change")
         problems.extend(_claim_ceiling_problems(contract["id"], packet))
     problems.extend(_federation_problems(index, root))
+    problems.extend(_linkage_problems(index, root))
     return problems
 
 
@@ -188,6 +193,85 @@ def _federation_problems(index: dict[str, Any], root: Path) -> list[str]:
             if case["claim_id"] != record["claim"]:
                 problems.append(f"{rel}: case {case['case_id']} belongs to claim {case['claim_id']!r}, record is {record['claim']!r}")
     return problems
+
+
+#: The REMORA level a NOT_INDEPENDENT external run record can at most be linked at.
+_DIVERSITY_LEVEL = {"REPRODUCTION": "L1_REPRODUCTION", "SECOND_IMPLEMENTATION": "L2_SECOND_IMPLEMENTATION"}
+
+
+def _linkage_problems(index: dict[str, Any], root: Path) -> list[str]:
+    """Every bcr-linkage-v1 record, checked against the run record it links."""
+    problems: list[str] = []
+    linkages = index.get("linkages")
+    schema_rel = index["schemas"].get("bcr_linkage")
+    if not linkages or not schema_rel:
+        return ["index.json names no linkages directory or bcr_linkage schema"]
+    link_dir = root / linkages["directory"]
+    if not link_dir.is_dir():
+        return problems
+    validator = _validator(root, schema_rel)
+    contracts = {c["id"]: c for c in index["contracts"]}
+    seen: set[str] = set()
+    for path in sorted(link_dir.glob("*.json")):
+        rel = path.relative_to(root).as_posix()
+        record = _load(path)
+        errors = sorted(validator.iter_errors(record), key=lambda e: list(e.path))
+        if errors:
+            problems.extend(f"{rel}: {e.message} at {'/'.join(map(str, e.path)) or '<root>'}" for e in errors)
+            continue
+        if record["linkage_id"] in seen:
+            problems.append(f"{rel}: linkage_id {record['linkage_id']!r} is used twice")
+        seen.add(record["linkage_id"])
+        ids = [c["id"] for c in record["conditions"]]
+        if len(ids) != len(set(ids)):
+            problems.append(f"{rel}: a condition id appears twice; one unmet copy must not hide behind a met one")
+        contract = contracts.get(record["contract_id"])
+        if contract is None:
+            problems.append(f"{rel}: unknown contract {record['contract_id']!r}")
+            continue
+        if record["package_digest"] != contract["package_digest"]:
+            problems.append(f"{rel}: package_digest differs from the contract's; a level over other bytes does not count")
+        source = record["source_record"]
+        source_path = root / source["path"]
+        if not source_path.is_file():
+            problems.append(f"{rel}: source record {source['path']} is not committed")
+            continue
+        if _sha256_bytes(source_path.read_bytes()) != source["sha256"]:
+            problems.append(f"{rel}: source record digest does not match the committed bytes")
+            continue
+        run = _load(source_path)
+        if run.get("schema_version") != source["schema_version"]:
+            problems.append(f"{rel}: source record is {run.get('schema_version')!r}, linkage says {source['schema_version']!r}")
+            continue
+        if run.get("contract_id") != record["contract_id"]:
+            problems.append(f"{rel}: source record belongs to contract {run.get('contract_id')!r}")
+        if source["schema_version"] == "remora-interop-result-v1":
+            if run["claim"] != source["claim"]:
+                problems.append(f"{rel}: source record is for claim {run['claim']!r}, linkage says {source['claim']!r}")
+            if run["independence_level"] != record["remora_independence_level"]:
+                problems.append(f"{rel}: level {record['remora_independence_level']} differs from the record's {run['independence_level']}; a linkage never changes a level")
+            if run["status"] != record["source_status"]:
+                problems.append(f"{rel}: source_status {record['source_status']} differs from the record's {run['status']}; a linkage never translates a status")
+        else:
+            claim_results = {r["result"] for r in run["results"] if r["claim_id"] == source["claim"]}
+            if not claim_results:
+                problems.append(f"{rel}: source record has no result for claim {source['claim']!r}")
+            elif len(claim_results) > 1:
+                problems.append(f"{rel}: source record has mixed results for claim {source['claim']!r}; link one case-level status, not a summary")
+            elif record["source_status"] not in claim_results:
+                problems.append(f"{rel}: source_status {record['source_status']} is not the record's result for {source['claim']!r}")
+            level = record["remora_independence_level"]
+            if run["independence"] == "INDEPENDENT":
+                if level not in {"L3_INDEPENDENT_RECOMPUTATION", "L4_INDEPENDENT_HOST_RUN"}:
+                    problems.append(f"{rel}: an INDEPENDENT run record maps to L3 or L4, not {level}")
+            else:
+                ceiling = _DIVERSITY_LEVEL.get(run["implementation_diversity"], "L0_SELF_TEST")
+                if _LEVELS.index(level) > _LEVELS.index(ceiling):
+                    problems.append(f"{rel}: a NOT_INDEPENDENT {run['implementation_diversity']} record is at most {ceiling}, not {level}")
+    return problems
+
+
+_LEVELS = ["L0_SELF_TEST", "L1_REPRODUCTION", "L2_SECOND_IMPLEMENTATION", "L3_INDEPENDENT_RECOMPUTATION", "L4_INDEPENDENT_HOST_RUN"]
 
 
 def _git_show(revision: str, rel: str, root: Path) -> bytes:
@@ -274,7 +358,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"[FAIL] {problem}")
             if problems:
                 return 1
-            print("[PASS] interop package: every digest, pin, lifecycle label, claim ceiling and run record agrees.")
+            print("[PASS] interop package: every digest, pin, lifecycle label, claim ceiling, run record and linkage agrees.")
             return 0
         if args.freeze:
             record = freeze(*args.freeze)

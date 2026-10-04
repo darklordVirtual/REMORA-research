@@ -14,6 +14,40 @@ not imply production evidence, owner confirmation, independent observation or
 Federation adoption. E7 remains externally unrun, and
 `runtime_capability_surface_completeness` remains `NOT_ESTABLISHED`.
 
+## Names
+
+Three names appear in this surface, and a fourth is deliberately absent. The
+table is the only place REMORA explains them; other documents link here.
+
+| Name | What it is | Where |
+|---|---|---|
+| REMORA | the implementation under test: the runtime, its primitives and this evidence surface | this repository |
+| Agent Authority Conformance Profiles (AACP) | portable, implementation-neutral profiles and falsification fixtures; a profile is cited with its repository and its revision | `darklordVirtual/agent-authority-conformance` at `4d2eee1`; the repository has not yet been renamed to match the project |
+| Bounded Claim Reproduction (BCR) | the profiles project's documented evidence method, still under development: the chain from claim to ceiling and levels BCR-0 to BCR-4 | `METHOD.md` in the same repository and revision |
+| Agent Authority Conformance (LF Decentralized Trust lab) | a separate external venue; neither REMORA nor the profiles project is part of it, and no participation or acceptance is recorded | not referenced by any REMORA record |
+
+Two short forms collide with established names in neighbouring fields. "AACP"
+is also used for the Agent Action Compression Protocol, an individual
+Internet-Draft, and for the Agent Autonomous Commerce Protocol. "BCR" is
+Binding Corporate Rules in data-protection law. REMORA therefore writes the
+full names at first mention in every document and in every record field, and
+never cites a profile or a level by the short form alone.
+
+REMORA's own `docs/benchmarks/agent-authority-conformance-v0.1.md` is the A to
+G property model as it was published, under the name the profiles project
+used until 2026-10. It is byte-pinned by the profiles repository's v0.1 test,
+so it keeps its title and text. Later records call the model "the A to G
+property model" and the project "Agent Authority Conformance Profiles". The
+AEGIS crosswalk and the APS authority profile were written under the earlier
+name and keep it, with the resolution above.
+
+Implementation neutrality is a governance rule of the profiles project, not
+organisational independence: both repositories have the same maintainer.
+Independence is therefore documented per evaluator and per run, in the run
+record's independence level and in the external run record's operator and
+import fields. It is never inferred from a project name, from the maintainer
+split, or from a lab affiliation.
+
 ## Participation manifest
 
 `artifacts/interop/FEDERATION.yaml` is the machine-readable statement of what
@@ -80,6 +114,43 @@ conditions the record does not meet.
 schemas describe the same boundary from two sides. A second implementation
 is implementation diversity. It becomes independence only when every
 condition holds, and the schema, not the author, decides.
+
+### Correspondence to Bounded Claim Reproduction levels
+
+The five levels were written to correspond to BCR-0 to BCR-4 in the profiles
+project's `METHOD.md`. The correspondence is intended, not one to one: the
+method requires conditions the REMORA schema does not check.
+
+| REMORA level | Intended BCR level | Conditions the method adds |
+|---|---|---|
+| `L0_SELF_TEST` | BCR-0 | none |
+| `L1_REPRODUCTION` | BCR-1 | none |
+| `L2_SECOND_IMPLEMENTATION` | BCR-2 | none |
+| `L3_INDEPENDENT_RECOMPUTATION` | BCR-3 | the negative and mutation cases of the pinned public specification were run; no producer maintainer took part in the run |
+| `L4_INDEPENDENT_HOST_RUN` | BCR-4 | BCR-3, and the external party controlled the environment, the runner, the execution and the evidence capture, and published the retained evidence |
+
+A run record therefore carries a REMORA level and nothing else. It receives
+a BCR level only through a linkage record that lists each added condition
+with the evidence that it held, and the level given can never exceed the
+REMORA level of the record. The level describes who ran what. It says nothing
+about the safety of the implementation, and a contract's lifecycle state is
+not a level.
+
+### Linkage records
+
+`bcr-linkage-v1` (`artifacts/interop/schemas/bcr-linkage-v1.schema.json`) is
+the versioned join between one committed run record and one profile revision.
+It names the profile with its repository, identifier and revision, the method
+with its document and revision, and the source record by path, digest and
+claim. It copies the record's independence level and status verbatim: the
+gate in `scripts/interop_package.py --check` resolves the source record and
+refuses a linkage whose level, status, claim or package digest differs. A
+profile-side result, if a reviewer assigns one, is a separate field with the
+reviewer's name, date and rationale. Nothing computes it from the REMORA
+status, and the six-valued profile vocabulary is never written into a REMORA
+record. Linkage records live under `artifacts/interop/linkages/`. None exists
+yet: the author runs are `L0_SELF_TEST`, and no profile revision has been
+published for them.
 
 ## Execution-boundary fixtures
 

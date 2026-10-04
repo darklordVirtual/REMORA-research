@@ -128,7 +128,7 @@ def test_every_referenced_path_exists(index: dict[str, Any]) -> None:
 def test_published_schemas_are_exactly_the_indexed_ones(index: dict[str, Any]) -> None:
     assert set(index["schemas"]) == {
         "claim_packet", "external_evidence_ref", "consumed_artifact", "action_lineage", "external_run_record",
-        "interop_result", "federation_manifest",
+        "interop_result", "federation_manifest", "bcr_linkage",
     }
     on_disk = {p.name for p in SCHEMAS.glob("*.schema.json")}
     assert on_disk == {Path(rel).name for rel in index["schemas"].values()}

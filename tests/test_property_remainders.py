@@ -3,7 +3,9 @@
 """Invariant tests for the code added against the A-G remainders.
 
 One test per behaviour, each pinned to the refusal or label it introduces.
-Property identifiers refer to the Agent Authority Conformance model.
+Property identifiers refer to the A-G property model in
+docs/benchmarks/agent-authority-conformance-v0.1.md, published under the
+earlier name of what is now Agent Authority Conformance Profiles.
 """
 from __future__ import annotations
 
