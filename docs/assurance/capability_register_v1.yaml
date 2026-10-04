@@ -70,7 +70,7 @@ capabilities:
   - id: CAP-001
     name: "Decision engine (hard guards -> conditional gates -> trust routing)"
     status: WIRED_API_PATH
-    verified_at_sha: cf64e66e8d592523c3ad14b38ed35743ddd741ab
+    verified_at_sha: d15b0d6bf0e935904bccd0130d283ca2e82f2814
     verified_by: >-
       re-audit 2026-10-02 for WP-1 (ADR-tainted-argument-floor-order, accepted): hard_guard_floor() applies the rollback-unavailable and uncertain-state-transition severity signals at HIGH risk before its tainted-argument VERIFY return, so a tainted HIGH-risk write with either condition escalates with TAINTED_ARGUMENT_ESCALATE instead of verifying. Strictly narrowing: the CRITICAL rung and the below-critical VERIFY residual (issue #40 option a) are unchanged, nothing new reaches ACCEPT, and no refusal is removed. Pinned by tests/test_tainted_argument_approval_contract.py::test_tainted_high_risk_no_rollback_escalates and ::test_tainted_high_risk_uncertain_state_escalates; decide/explain parity and the REM-017 mutation suite pass at this revision. Rebound to the squash-merge commit of #717 (ce25ac1).
       rebound 2026-10-02 to the squash-merge commit of #711 (8ad2192); the branch commit 780506a left the repository at squash. Verified content-identical on every cited implementation source with `git diff 780506a 8ad2192` on those paths (empty). No status, scope or caveat change.
@@ -314,7 +314,7 @@ capabilities:
   - id: CAP-009
     name: "RBAC (eight-role capability matrix, credential-bound audit identity)"
     status: WIRED_API_PATH
-    verified_at_sha: cf64e66e8d592523c3ad14b38ed35743ddd741ab
+    verified_at_sha: d15b0d6bf0e935904bccd0130d283ca2e82f2814
     verified_by: >-
       rebound 2026-10-02 to the squash-merge commit of #704 (d086764); the branch commit ef1a820 left the repository at squash. Verified content-identical on every cited implementation source with `git diff ef1a820 d086764` (empty), except for CAP-015's NEGATIVE_RESULTS.md, whose only difference is the §64 summary row from master commit adeb4c3, outside #704 and outside this capability. No status, scope or caveat change.
       Prior: re-audit 2026-10-02 for PR #704: API authentication trusts self-asserted roles only in explicit development values, bearer comparison stays constant-time over bytes, multi-tenant global metrics require admin, and request bodies gain a size cap. None removes the eight-role API wiring; the changes reduce privilege/data-exposure risk. Status and symmetric-token caveat unchanged.
@@ -538,7 +538,7 @@ capabilities:
   - id: CAP-017
     name: "Production fail-closed on signing keys"
     status: WIRED_API_PATH
-    verified_at_sha: cf64e66e8d592523c3ad14b38ed35743ddd741ab
+    verified_at_sha: d15b0d6bf0e935904bccd0130d283ca2e82f2814
     verified_by: >-
       rebound 2026-10-02 to the squash-merge commit of #704 (d086764); the branch commit ef1a820 left the repository at squash. Verified content-identical on every cited implementation source with `git diff ef1a820 d086764` (empty), except for CAP-015's NEGATIVE_RESULTS.md, whose only difference is the §64 summary row from master commit adeb4c3, outside #704 and outside this capability. No status, scope or caveat change.
       Prior: re-audit 2026-10-02 for PR #704: servers/api receives development-mode, RBAC, metrics and body-size hardening; the production signing-key prerequisite remains in place and is not relaxed. The capability still establishes key presence fail-closed, not key custody. Status and caveat unchanged.
