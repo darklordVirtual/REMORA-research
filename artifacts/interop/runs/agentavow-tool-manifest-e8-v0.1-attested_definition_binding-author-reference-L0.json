@@ -1,0 +1,202 @@
+{
+  "schema_version": "remora-interop-result-v1",
+  "contract_id": "agentavow-tool-manifest-e8-v0.1",
+  "edge": "E8",
+  "claim": "attested_definition_binding",
+  "subject": "tool_definition:remora-agentavow-profile-v0",
+  "status": "ESTABLISHED",
+  "producer": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a"
+  },
+  "consumer": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a"
+  },
+  "fixture": {
+    "path": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/fixtures.json",
+    "digest": "sha256:bc8750fd392764f53c3f52e0b285b628ba105308a20c6bf1dd52d35e95c1c68e",
+    "package_digest": "sha256:ebf20e19357e9fa548b5893f6f815b580ae0c35441210224fd76812bfdcd9955"
+  },
+  "evaluator": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
+    "kind": "REFERENCE",
+    "maintained_by": "PRODUCER",
+    "imports_producer_runtime": false,
+    "imports_reference_evaluator": true,
+    "command": "python artifacts/interop/agentavow-tool-manifest-e8-v0.1/reference_verifier.py"
+  },
+  "operator": "PRODUCER",
+  "host": "PRODUCER_CONTROLLED",
+  "independence_level": "L0_SELF_TEST",
+  "runner": {
+    "path": "scripts/interop_author_run.py",
+    "revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a"
+  },
+  "environment": "Python 3.11.15, Linux x86_64",
+  "started_at": "2026-10-04T07:29:47+00:00",
+  "completed_at": "2026-10-04T07:29:47+00:00",
+  "cases": [
+    {
+      "case_id": "attested_definition_bound",
+      "claim_id": "attested_definition_binding",
+      "expected": {
+        "value": {
+          "reason": "digest_bound",
+          "verdict": "ESTABLISHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "reason": "digest_bound",
+          "verdict": "ESTABLISHED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "definition_changed_after_attestation",
+      "claim_id": "attested_definition_binding",
+      "expected": {
+        "value": {
+          "reason": "digest_mismatch",
+          "verdict": "CONTRADICTED"
+        }
+      },
+      "observed": {
+        "value": {
+          "reason": "digest_mismatch",
+          "verdict": "CONTRADICTED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "signature_invalid",
+      "claim_id": "attested_definition_binding",
+      "expected": {
+        "value": {
+          "reason": "signature_invalid",
+          "verdict": "NOT_ESTABLISHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "reason": "signature_invalid",
+          "verdict": "NOT_ESTABLISHED"
+        }
+      },
+      "result": "NOT_ESTABLISHED"
+    },
+    {
+      "case_id": "signer_unknown",
+      "claim_id": "attested_definition_binding",
+      "expected": {
+        "value": {
+          "reason": "signer_unknown",
+          "verdict": "NOT_ESTABLISHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "reason": "signer_unknown",
+          "verdict": "NOT_ESTABLISHED"
+        }
+      },
+      "result": "NOT_ESTABLISHED"
+    },
+    {
+      "case_id": "digest_field_inconsistent",
+      "claim_id": "attested_definition_binding",
+      "expected": {
+        "value": {
+          "reason": "manifest_inconsistent",
+          "verdict": "NOT_ESTABLISHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "reason": "manifest_inconsistent",
+          "verdict": "NOT_ESTABLISHED"
+        }
+      },
+      "result": "NOT_ESTABLISHED"
+    },
+    {
+      "case_id": "manifest_malformed",
+      "claim_id": "attested_definition_binding",
+      "expected": {
+        "value": {
+          "reason": "manifest_malformed",
+          "verdict": "NOT_ESTABLISHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "reason": "manifest_malformed",
+          "verdict": "NOT_ESTABLISHED"
+        }
+      },
+      "result": "NOT_ESTABLISHED"
+    },
+    {
+      "case_id": "algorithm_unsupported",
+      "claim_id": "attested_definition_binding",
+      "expected": {
+        "value": {
+          "reason": "algorithm_unsupported",
+          "verdict": "NOT_ESTABLISHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "reason": "algorithm_unsupported",
+          "verdict": "NOT_ESTABLISHED"
+        }
+      },
+      "result": "NOT_ESTABLISHED"
+    },
+    {
+      "case_id": "authorization_unverifiable",
+      "claim_id": "attested_definition_binding",
+      "expected": {
+        "value": {
+          "reason": "authorization_unverifiable",
+          "verdict": "NOT_ESTABLISHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "reason": "authorization_unverifiable",
+          "verdict": "NOT_ESTABLISHED"
+        }
+      },
+      "result": "NOT_ESTABLISHED"
+    }
+  ],
+  "establishes": [
+    "attested_definition_binding: ESTABLISHED means only that, under profile v0, the edge reports digest_bound exactly when the tool definition a named signer attested is byte-identical, by digest, to the tool definition bound into the authentic authorization, reports digest_mismatch otherwise, and refuses to evaluate an unverifiable manifest or authorization."
+  ],
+  "does_not_establish": [
+    "that the signer or its project is trustworthy",
+    "that the tool definition is semantically correct or safe",
+    "that the runtime exposed exactly that definition (E7)",
+    "that the authorized call executed or had an effect",
+    "that AgentAvow's actual wire format is the one profile v0 assumes",
+    "production deployment safety",
+    "Federation endorsement",
+    "a second implementation is by itself an independent verification record"
+  ],
+  "ceiling": {
+    "implies_endorsement": false,
+    "implies_production_safety": false,
+    "implies_broader_validity": false,
+    "confers_authority": false
+  },
+  "run_ref": "artifacts/interop/runs/agentavow-tool-manifest-e8-v0.1-attested_definition_binding-author-reference-L0.json",
+  "published_at": null
+}

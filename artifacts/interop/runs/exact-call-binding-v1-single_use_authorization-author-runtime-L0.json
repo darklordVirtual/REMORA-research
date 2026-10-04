@@ -1,0 +1,123 @@
+{
+  "schema_version": "remora-interop-result-v1",
+  "contract_id": "exact-call-binding-v1",
+  "edge": "E-ECB",
+  "claim": "single_use_authorization",
+  "subject": "execution_authorization:remora-execution-lease",
+  "status": "ESTABLISHED",
+  "producer": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a"
+  },
+  "consumer": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a"
+  },
+  "fixture": {
+    "path": "artifacts/interop/exact-call-binding-v1/fixtures.json",
+    "digest": "sha256:4a9b43747c762c7dc73382e588c0477693b00449f8a6233dc93eabbc801aac95",
+    "package_digest": "sha256:0eb99bc6ffa02c137a1b9c98f58892e278948b272fbe3ad482984bae03e6f4c7"
+  },
+  "evaluator": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
+    "kind": "PRODUCER_RUNTIME",
+    "maintained_by": "PRODUCER",
+    "imports_producer_runtime": true,
+    "imports_reference_evaluator": false,
+    "command": "python scripts/interop_author_run.py --write  # remora/interop/boundary_fixtures.py"
+  },
+  "operator": "PRODUCER",
+  "host": "PRODUCER_CONTROLLED",
+  "independence_level": "L0_SELF_TEST",
+  "runner": {
+    "path": "scripts/interop_author_run.py",
+    "revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a"
+  },
+  "environment": "Python 3.11.15, Linux x86_64",
+  "started_at": "2026-10-04T07:29:47+00:00",
+  "completed_at": "2026-10-04T07:29:47+00:00",
+  "cases": [
+    {
+      "case_id": "replay_same_call_twice",
+      "claim_id": "single_use_authorization",
+      "expected": {
+        "value": [
+          {
+            "outcome": "DISPATCHED",
+            "refusal_class": null
+          },
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_consumed"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "DISPATCHED",
+            "refusal_class": null
+          },
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_consumed"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "mismatch_does_not_consume",
+      "claim_id": "single_use_authorization",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          },
+          {
+            "outcome": "DISPATCHED",
+            "refusal_class": null
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          },
+          {
+            "outcome": "DISPATCHED",
+            "refusal_class": null
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    }
+  ],
+  "establishes": [
+    "single_use_authorization: ESTABLISHED means only that, under this fixture contract, one authorization dispatches at most once and a refused mismatch does not spend it."
+  ],
+  "does_not_establish": [
+    "correct semantic intent of the authorized call",
+    "that an external effect occurred",
+    "that every path to the tool passes through the enforcement point",
+    "a prescribed hash algorithm or wire format for the binding",
+    "production deployment safety",
+    "Federation endorsement",
+    "a second implementation is by itself an independent verification record"
+  ],
+  "ceiling": {
+    "implies_endorsement": false,
+    "implies_production_safety": false,
+    "implies_broader_validity": false,
+    "confers_authority": false
+  },
+  "run_ref": "artifacts/interop/runs/exact-call-binding-v1-single_use_authorization-author-runtime-L0.json",
+  "published_at": null
+}

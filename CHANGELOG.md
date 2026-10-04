@@ -6,6 +6,19 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Added
 
+- Federation interop surface (`artifacts/interop/`): `FEDERATION.yaml`
+  participation manifest with five FED invariants; `interop-result-v1`, a
+  bounded result schema with provenance, per-case records, five independence
+  levels (`L0_SELF_TEST` to `L4_INDEPENDENT_HOST_RUN`) and ceiling booleans
+  fixed at false; three execution-boundary fixture packages
+  (`exact-call-binding-v1`, 15 cases; `fresh-authority-v1`, 14;
+  `effect-evidence-v1`, 12) with zero-REMORA reference verifiers and a
+  REMORA-side evaluator over the real lease, gate and effect-verification
+  primitives; one consumed edge, `agentavow-tool-manifest-e8-v0.1` (8 cases,
+  profile assumed, marked experimental); author-run records (L0, advance
+  nothing); a generated `docs/interop/INTEROP_MATRIX.md`; and a CI
+  publication gate that refuses a result without claim ceiling or
+  provenance. All four contracts are `DRAFT`. No external run exists.
 - `conformance/autoreview-to-effect-v1/`: five adversarial post-approval
   vectors (argument mutation, identity change, alternate tool, stale policy,
   claimed success versus authoritative state) and one control. Author-run

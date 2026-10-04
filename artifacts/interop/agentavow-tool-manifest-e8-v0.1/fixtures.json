@@ -1,0 +1,435 @@
+{
+  "schema_version": "remora-agentavow-tool-manifest-e8-fixtures-v0.1",
+  "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
+  "claims": [
+    "attested_definition_binding"
+  ],
+  "verdict_vocabulary": [
+    "ESTABLISHED",
+    "CONTRADICTED",
+    "NOT_ESTABLISHED"
+  ],
+  "verdict_rule": "verdict is the edge's finding for one manifest and one authorization; claim_result says whether the edge behaved as the contract requires on that case. A correct digest_mismatch finding is ESTABLISHED for the claim; a case the edge cannot evaluate is NOT_ESTABLISHED.",
+  "result_vocabulary": [
+    "ESTABLISHED",
+    "CONTRADICTED",
+    "NOT_ESTABLISHED"
+  ],
+  "profile": {
+    "id": "remora-agentavow-tool-manifest-profile-v0",
+    "status": "assumed by REMORA; not confirmed by AgentAvow",
+    "signature_preimage": "RFC 8785 (JCS) bytes of the manifest with the signature member removed",
+    "tool_definition_digest": "sha256 over the JCS bytes of tool_definition, written as sha256:<hex>",
+    "algorithms": [
+      "ed25519"
+    ],
+    "restriction": "fixtures use the JCS-trivial subset: no floating-point numbers, no control characters, ASCII strings"
+  },
+  "trusted_signers": {
+    "avow-key-1": "C9VVEhueIId/a5BiJvcN3O2kvY9Oiy2wf2tIR6wIKnA="
+  },
+  "trusted_signers_note": "Raw 32-byte Ed25519 public keys, base64. Test keys generated for this package; the private halves were discarded.",
+  "reasons": {
+    "digest_bound": "attested digest equals the tool-definition identity in the authentic authorization",
+    "digest_mismatch": "attested digest differs from the tool-definition identity in the authentic authorization",
+    "signature_invalid": "the signature does not verify under the named key",
+    "signer_unknown": "kid is not among the deployment's trusted signers",
+    "manifest_inconsistent": "the digest member does not match the definition",
+    "manifest_malformed": "a required member is missing",
+    "algorithm_unsupported": "signature algorithm outside the profile",
+    "authorization_unverifiable": "the authorization is unsigned or its signature does not verify"
+  },
+  "claim_ceiling": "ESTABLISHED means only that, under this profile, the edge reports digest_bound exactly when the tool definition a named signer attested is byte-identical, by digest, to the tool definition bound into the authentic authorization, reports digest_mismatch otherwise, and refuses to evaluate an unverifiable manifest or authorization. It does not establish that the signer is trustworthy, that the definition is semantically correct or safe, that the runtime exposed exactly that definition (E7), that the call executed, or production deployment safety.",
+  "cases": [
+    {
+      "id": "attested_definition_bound",
+      "claim_id": "attested_definition_binding",
+      "note": "The attested definition's digest is the tool-definition identity bound into the signed authorization.",
+      "manifest": {
+        "profile": "remora-agentavow-tool-manifest-profile-v0",
+        "manifest_id": "avow-m-0001",
+        "issuer": "agentavow.example",
+        "kid": "avow-key-1",
+        "issued_at": "2026-10-04T10:00:00+00:00",
+        "tool_definition": {
+          "name": "update_ticket",
+          "description": "Set the status of one support ticket.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "ticket_id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "open",
+                  "closed"
+                ]
+              }
+            },
+            "required": [
+              "ticket_id",
+              "status"
+            ]
+          },
+          "side_effects": [
+            "writes:ticket.status"
+          ]
+        },
+        "tool_definition_digest": "sha256:7f0295240fa0d88a26be3bbb898da4f71552cd68de29919d39e647a0aed295f1",
+        "signature": {
+          "alg": "ed25519",
+          "value": "+/pY313xhfd3HxTAoGX2y0KCjHrIxubLA7s0YCQYcCbHf1YHKq8qm6Z9+ObMd7wMbxhiB4azxDhawbf6Jh25BQ=="
+        }
+      },
+      "authorization": {
+        "toolspec_hash": "7f0295240fa0d88a26be3bbb898da4f71552cd68de29919d39e647a0aed295f1",
+        "integrity": "intact"
+      },
+      "expected": {
+        "verdict": "ESTABLISHED",
+        "reason": "digest_bound",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "definition_changed_after_attestation",
+      "claim_id": "attested_definition_binding",
+      "note": "The authorization was granted under a different tool definition than the one attested.",
+      "manifest": {
+        "profile": "remora-agentavow-tool-manifest-profile-v0",
+        "manifest_id": "avow-m-0001",
+        "issuer": "agentavow.example",
+        "kid": "avow-key-1",
+        "issued_at": "2026-10-04T10:00:00+00:00",
+        "tool_definition": {
+          "name": "update_ticket",
+          "description": "Set the status of one support ticket.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "ticket_id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "open",
+                  "closed"
+                ]
+              }
+            },
+            "required": [
+              "ticket_id",
+              "status"
+            ]
+          },
+          "side_effects": [
+            "writes:ticket.status"
+          ]
+        },
+        "tool_definition_digest": "sha256:7f0295240fa0d88a26be3bbb898da4f71552cd68de29919d39e647a0aed295f1",
+        "signature": {
+          "alg": "ed25519",
+          "value": "+/pY313xhfd3HxTAoGX2y0KCjHrIxubLA7s0YCQYcCbHf1YHKq8qm6Z9+ObMd7wMbxhiB4azxDhawbf6Jh25BQ=="
+        }
+      },
+      "authorization": {
+        "toolspec_hash": "67ef0e518b58c46d470e975699e174a643d8848cc89795b0cbaee2e1f6ffc5d8",
+        "integrity": "intact"
+      },
+      "expected": {
+        "verdict": "CONTRADICTED",
+        "reason": "digest_mismatch",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "signature_invalid",
+      "claim_id": "attested_definition_binding",
+      "note": "The definition was edited after signing.",
+      "manifest": {
+        "profile": "remora-agentavow-tool-manifest-profile-v0",
+        "manifest_id": "avow-m-0001",
+        "issuer": "agentavow.example",
+        "kid": "avow-key-1",
+        "issued_at": "2026-10-04T10:00:00+00:00",
+        "tool_definition": {
+          "name": "update_ticket",
+          "description": "Set the status of any ticket.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "ticket_id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "open",
+                  "closed"
+                ]
+              }
+            },
+            "required": [
+              "ticket_id",
+              "status"
+            ]
+          },
+          "side_effects": [
+            "writes:ticket.status"
+          ]
+        },
+        "tool_definition_digest": "sha256:7f0295240fa0d88a26be3bbb898da4f71552cd68de29919d39e647a0aed295f1",
+        "signature": {
+          "alg": "ed25519",
+          "value": "+/pY313xhfd3HxTAoGX2y0KCjHrIxubLA7s0YCQYcCbHf1YHKq8qm6Z9+ObMd7wMbxhiB4azxDhawbf6Jh25BQ=="
+        }
+      },
+      "authorization": {
+        "toolspec_hash": "7f0295240fa0d88a26be3bbb898da4f71552cd68de29919d39e647a0aed295f1",
+        "integrity": "intact"
+      },
+      "expected": {
+        "verdict": "NOT_ESTABLISHED",
+        "reason": "signature_invalid",
+        "claim_result": "NOT_ESTABLISHED"
+      }
+    },
+    {
+      "id": "signer_unknown",
+      "claim_id": "attested_definition_binding",
+      "note": "Signed by a key the consuming deployment does not hold. Membership of the signer's project in any registry does not substitute for the key.",
+      "manifest": {
+        "profile": "remora-agentavow-tool-manifest-profile-v0",
+        "manifest_id": "avow-m-0001",
+        "issuer": "agentavow.example",
+        "kid": "avow-key-9",
+        "issued_at": "2026-10-04T10:00:00+00:00",
+        "tool_definition": {
+          "name": "update_ticket",
+          "description": "Set the status of one support ticket.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "ticket_id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "open",
+                  "closed"
+                ]
+              }
+            },
+            "required": [
+              "ticket_id",
+              "status"
+            ]
+          },
+          "side_effects": [
+            "writes:ticket.status"
+          ]
+        },
+        "tool_definition_digest": "sha256:7f0295240fa0d88a26be3bbb898da4f71552cd68de29919d39e647a0aed295f1",
+        "signature": {
+          "alg": "ed25519",
+          "value": "ZiQJiF2ej8A32BZw8wKPqL3Cu5wp1aJr/mc35704Ds1phBG6wFm3eBIHFIQdl/We9ZMuPfp4EZCjTByXbvK8Dg=="
+        }
+      },
+      "authorization": {
+        "toolspec_hash": "7f0295240fa0d88a26be3bbb898da4f71552cd68de29919d39e647a0aed295f1",
+        "integrity": "intact"
+      },
+      "expected": {
+        "verdict": "NOT_ESTABLISHED",
+        "reason": "signer_unknown",
+        "claim_result": "NOT_ESTABLISHED"
+      }
+    },
+    {
+      "id": "digest_field_inconsistent",
+      "claim_id": "attested_definition_binding",
+      "note": "Validly signed, but the digest field does not match the definition it accompanies.",
+      "manifest": {
+        "profile": "remora-agentavow-tool-manifest-profile-v0",
+        "manifest_id": "avow-m-0001",
+        "issuer": "agentavow.example",
+        "kid": "avow-key-1",
+        "issued_at": "2026-10-04T10:00:00+00:00",
+        "tool_definition": {
+          "name": "update_ticket",
+          "description": "Set the status of one support ticket.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "ticket_id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "open",
+                  "closed"
+                ]
+              }
+            },
+            "required": [
+              "ticket_id",
+              "status"
+            ]
+          },
+          "side_effects": [
+            "writes:ticket.status"
+          ]
+        },
+        "tool_definition_digest": "sha256:67ef0e518b58c46d470e975699e174a643d8848cc89795b0cbaee2e1f6ffc5d8",
+        "signature": {
+          "alg": "ed25519",
+          "value": "7EDPHcoDH6EeWLdBxvHLKA5QkAOe9p3Ik8grz4eG8LimoDMZwIbqAZ2mIaUGeF/34BmnoJTgxjf+iV8BHf6dDg=="
+        }
+      },
+      "authorization": {
+        "toolspec_hash": "7f0295240fa0d88a26be3bbb898da4f71552cd68de29919d39e647a0aed295f1",
+        "integrity": "intact"
+      },
+      "expected": {
+        "verdict": "NOT_ESTABLISHED",
+        "reason": "manifest_inconsistent",
+        "claim_result": "NOT_ESTABLISHED"
+      }
+    },
+    {
+      "id": "manifest_malformed",
+      "claim_id": "attested_definition_binding",
+      "note": "No tool_definition member.",
+      "manifest": {
+        "profile": "remora-agentavow-tool-manifest-profile-v0",
+        "manifest_id": "avow-m-0001",
+        "issuer": "agentavow.example",
+        "kid": "avow-key-1",
+        "issued_at": "2026-10-04T10:00:00+00:00",
+        "tool_definition_digest": "sha256:7f0295240fa0d88a26be3bbb898da4f71552cd68de29919d39e647a0aed295f1",
+        "signature": {
+          "alg": "ed25519",
+          "value": "wxrGvOTHbxDPUtGQ4UmvtIZ0aFfVA26w70ypdjtliiy79LxfTlBMVlRjZdJrYY9G3FJTKeGrGbykvyoBCeW6Cg=="
+        }
+      },
+      "authorization": {
+        "toolspec_hash": "7f0295240fa0d88a26be3bbb898da4f71552cd68de29919d39e647a0aed295f1",
+        "integrity": "intact"
+      },
+      "expected": {
+        "verdict": "NOT_ESTABLISHED",
+        "reason": "manifest_malformed",
+        "claim_result": "NOT_ESTABLISHED"
+      }
+    },
+    {
+      "id": "algorithm_unsupported",
+      "claim_id": "attested_definition_binding",
+      "note": "Profile v0 accepts ed25519 only; nothing is downgraded.",
+      "manifest": {
+        "profile": "remora-agentavow-tool-manifest-profile-v0",
+        "manifest_id": "avow-m-0001",
+        "issuer": "agentavow.example",
+        "kid": "avow-key-1",
+        "issued_at": "2026-10-04T10:00:00+00:00",
+        "tool_definition": {
+          "name": "update_ticket",
+          "description": "Set the status of one support ticket.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "ticket_id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "open",
+                  "closed"
+                ]
+              }
+            },
+            "required": [
+              "ticket_id",
+              "status"
+            ]
+          },
+          "side_effects": [
+            "writes:ticket.status"
+          ]
+        },
+        "tool_definition_digest": "sha256:7f0295240fa0d88a26be3bbb898da4f71552cd68de29919d39e647a0aed295f1",
+        "signature": {
+          "alg": "hmac-sha256",
+          "value": "+/pY313xhfd3HxTAoGX2y0KCjHrIxubLA7s0YCQYcCbHf1YHKq8qm6Z9+ObMd7wMbxhiB4azxDhawbf6Jh25BQ=="
+        }
+      },
+      "authorization": {
+        "toolspec_hash": "7f0295240fa0d88a26be3bbb898da4f71552cd68de29919d39e647a0aed295f1",
+        "integrity": "intact"
+      },
+      "expected": {
+        "verdict": "NOT_ESTABLISHED",
+        "reason": "algorithm_unsupported",
+        "claim_result": "NOT_ESTABLISHED"
+      }
+    },
+    {
+      "id": "authorization_unverifiable",
+      "claim_id": "attested_definition_binding",
+      "note": "The manifest verifies, but the authorization it would bind to is not authentic.",
+      "manifest": {
+        "profile": "remora-agentavow-tool-manifest-profile-v0",
+        "manifest_id": "avow-m-0001",
+        "issuer": "agentavow.example",
+        "kid": "avow-key-1",
+        "issued_at": "2026-10-04T10:00:00+00:00",
+        "tool_definition": {
+          "name": "update_ticket",
+          "description": "Set the status of one support ticket.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "ticket_id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "open",
+                  "closed"
+                ]
+              }
+            },
+            "required": [
+              "ticket_id",
+              "status"
+            ]
+          },
+          "side_effects": [
+            "writes:ticket.status"
+          ]
+        },
+        "tool_definition_digest": "sha256:7f0295240fa0d88a26be3bbb898da4f71552cd68de29919d39e647a0aed295f1",
+        "signature": {
+          "alg": "ed25519",
+          "value": "+/pY313xhfd3HxTAoGX2y0KCjHrIxubLA7s0YCQYcCbHf1YHKq8qm6Z9+ObMd7wMbxhiB4azxDhawbf6Jh25BQ=="
+        }
+      },
+      "authorization": {
+        "toolspec_hash": "7f0295240fa0d88a26be3bbb898da4f71552cd68de29919d39e647a0aed295f1",
+        "integrity": "unsigned"
+      },
+      "expected": {
+        "verdict": "NOT_ESTABLISHED",
+        "reason": "authorization_unverifiable",
+        "claim_result": "NOT_ESTABLISHED"
+      }
+    }
+  ]
+}

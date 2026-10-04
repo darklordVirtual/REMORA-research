@@ -1,0 +1,53 @@
+{
+  "schema_version": "remora-claim-packet-v1",
+  "contract_id": "agentavow-tool-manifest-e8-v0.1",
+  "producer": "REMORA-research",
+  "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
+  "package_identity": {
+    "manifest": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/manifest.json",
+    "rule": "content-addressed; package_digest is computed from manifest.package_files and recorded in manifest.json and index.json, never inside a hashed package file"
+  },
+  "subject": {
+    "class": "tool_definition",
+    "id": "remora-agentavow-profile-v0"
+  },
+  "artifact_refs": [
+    {
+      "path": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/fixtures.json",
+      "sha256": "bc8750fd392764f53c3f52e0b285b628ba105308a20c6bf1dd52d35e95c1c68e",
+      "role": "producer fixture contract"
+    },
+    {
+      "path": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/reference_verifier.py",
+      "sha256": "1b8f79e5bc5575e11cfe64007b44ea1bb619e7103fa2750c9fcc718e3f545d2f",
+      "role": "author reference implementation; not independent verification"
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "attested_definition_binding",
+      "result_vocabulary": [
+        "ESTABLISHED",
+        "CONTRADICTED",
+        "NOT_ESTABLISHED"
+      ],
+      "claim_ceiling": "ESTABLISHED means only that, under profile v0, the edge reports digest_bound exactly when the tool definition a named signer attested is byte-identical, by digest, to the tool definition bound into the authentic authorization, reports digest_mismatch otherwise, and refuses to evaluate an unverifiable manifest or authorization."
+    }
+  ],
+  "assumptions": [
+    "the manifest wire format, signature preimage and digest rule are REMORA's profile v0 assumptions, recorded in `fixtures.json` under `profile`, and are not confirmed by AgentAvow",
+    "trusted signer keys are supplied by the consuming deployment; no registry is consulted",
+    "the fixtures use the JCS-trivial subset, so `json.dumps` with sorted keys and no whitespace reproduces RFC 8785"
+  ],
+  "explicit_non_claims": [
+    "that the signer or its project is trustworthy",
+    "that the tool definition is semantically correct or safe",
+    "that the runtime exposed exactly that definition (E7)",
+    "that the authorized call executed or had an effect",
+    "that AgentAvow's actual wire format is the one profile v0 assumes",
+    "production deployment safety",
+    "Federation endorsement",
+    "a second implementation is by itself an independent verification record"
+  ],
+  "temporal_scope": "Pinned fixture evaluation only; no live deployment time window is established."
+}

@@ -1,0 +1,863 @@
+{
+  "schema_version": "remora-exact-call-binding-fixtures-v1",
+  "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
+  "claims": [
+    "exact_call_binding",
+    "single_use_authorization"
+  ],
+  "result_vocabulary": [
+    "ESTABLISHED",
+    "CONTRADICTED",
+    "NOT_ESTABLISHED"
+  ],
+  "outcome_vocabulary": [
+    "DISPATCHED",
+    "REFUSED"
+  ],
+  "refusal_classes": {
+    "call_mismatch": "the presented call differs from the authorized call in tool, arguments, tenant or target",
+    "principal_mismatch": "the presented principal differs from the one the authorization was issued to",
+    "authority_consumed": "the authorization was already spent by an earlier dispatch",
+    "authority_unverifiable": "the authorization is unsigned or its signature does not verify"
+  },
+  "claim_ceiling": "ESTABLISHED means only that, under this fixture contract, an authorization dispatches exactly the call it was issued for and at most once. It does not establish correct semantic intent, that an external effect occurred, that every path to the tool passes through the enforcement point, or production deployment safety.",
+  "canonical_form": "Arguments are compared by canonical content: object member order is irrelevant, array order and scalar types are significant. The fixture does not prescribe a hash algorithm.",
+  "cases": [
+    {
+      "id": "same_call_dispatches",
+      "claim_id": "exact_call_binding",
+      "note": "The authorized call, presented once.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed",
+          "labels": [
+            "billing",
+            "p2"
+          ],
+          "meta": {
+            "source": "agent",
+            "retries": 0
+          }
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "integrity": "intact"
+      },
+      "dispatches": [
+        {
+          "tool": "update_ticket",
+          "arguments": {
+            "ticket_id": "T-1041",
+            "status": "closed",
+            "labels": [
+              "billing",
+              "p2"
+            ],
+            "meta": {
+              "source": "agent",
+              "retries": 0
+            }
+          },
+          "tenant": "acme",
+          "target": "production",
+          "actor": "agent-7"
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "DISPATCHED",
+            "refusal_class": null
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "argument_key_order_only",
+      "claim_id": "exact_call_binding",
+      "note": "Same arguments, different key order. Binding is over canonical content, not bytes as received.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed",
+          "labels": [
+            "billing",
+            "p2"
+          ],
+          "meta": {
+            "source": "agent",
+            "retries": 0
+          }
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "integrity": "intact"
+      },
+      "dispatches": [
+        {
+          "tool": "update_ticket",
+          "arguments": {
+            "meta": {
+              "retries": 0,
+              "source": "agent"
+            },
+            "labels": [
+              "billing",
+              "p2"
+            ],
+            "status": "closed",
+            "ticket_id": "T-1041"
+          },
+          "tenant": "acme",
+          "target": "production",
+          "actor": "agent-7"
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "DISPATCHED",
+            "refusal_class": null
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "argument_value_changed",
+      "claim_id": "exact_call_binding",
+      "note": "One scalar differs.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed",
+          "labels": [
+            "billing",
+            "p2"
+          ],
+          "meta": {
+            "source": "agent",
+            "retries": 0
+          }
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "integrity": "intact"
+      },
+      "dispatches": [
+        {
+          "tool": "update_ticket",
+          "arguments": {
+            "ticket_id": "T-1041",
+            "status": "reopened",
+            "labels": [
+              "billing",
+              "p2"
+            ],
+            "meta": {
+              "source": "agent",
+              "retries": 0
+            }
+          },
+          "tenant": "acme",
+          "target": "production",
+          "actor": "agent-7"
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "argument_added",
+      "claim_id": "exact_call_binding",
+      "note": "An argument the authorization did not cover.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed",
+          "labels": [
+            "billing",
+            "p2"
+          ],
+          "meta": {
+            "source": "agent",
+            "retries": 0
+          }
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "integrity": "intact"
+      },
+      "dispatches": [
+        {
+          "tool": "update_ticket",
+          "arguments": {
+            "ticket_id": "T-1041",
+            "status": "closed",
+            "labels": [
+              "billing",
+              "p2"
+            ],
+            "meta": {
+              "source": "agent",
+              "retries": 0
+            },
+            "assignee": "ops"
+          },
+          "tenant": "acme",
+          "target": "production",
+          "actor": "agent-7"
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "argument_removed",
+      "claim_id": "exact_call_binding",
+      "note": "A covered argument is missing.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed",
+          "labels": [
+            "billing",
+            "p2"
+          ],
+          "meta": {
+            "source": "agent",
+            "retries": 0
+          }
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "integrity": "intact"
+      },
+      "dispatches": [
+        {
+          "tool": "update_ticket",
+          "arguments": {
+            "ticket_id": "T-1041",
+            "status": "closed",
+            "meta": {
+              "source": "agent",
+              "retries": 0
+            }
+          },
+          "tenant": "acme",
+          "target": "production",
+          "actor": "agent-7"
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "argument_type_changed",
+      "claim_id": "exact_call_binding",
+      "note": "The string \"0\" is not the integer 0.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed",
+          "labels": [
+            "billing",
+            "p2"
+          ],
+          "meta": {
+            "source": "agent",
+            "retries": 0
+          }
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "integrity": "intact"
+      },
+      "dispatches": [
+        {
+          "tool": "update_ticket",
+          "arguments": {
+            "ticket_id": "T-1041",
+            "status": "closed",
+            "labels": [
+              "billing",
+              "p2"
+            ],
+            "meta": {
+              "source": "agent",
+              "retries": "0"
+            }
+          },
+          "tenant": "acme",
+          "target": "production",
+          "actor": "agent-7"
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "nested_array_order_changed",
+      "claim_id": "exact_call_binding",
+      "note": "Array order is content; it is not normalised.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed",
+          "labels": [
+            "billing",
+            "p2"
+          ],
+          "meta": {
+            "source": "agent",
+            "retries": 0
+          }
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "integrity": "intact"
+      },
+      "dispatches": [
+        {
+          "tool": "update_ticket",
+          "arguments": {
+            "ticket_id": "T-1041",
+            "status": "closed",
+            "labels": [
+              "p2",
+              "billing"
+            ],
+            "meta": {
+              "source": "agent",
+              "retries": 0
+            }
+          },
+          "tenant": "acme",
+          "target": "production",
+          "actor": "agent-7"
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "tool_name_changed",
+      "claim_id": "exact_call_binding",
+      "note": "Same arguments against another tool.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed",
+          "labels": [
+            "billing",
+            "p2"
+          ],
+          "meta": {
+            "source": "agent",
+            "retries": 0
+          }
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "integrity": "intact"
+      },
+      "dispatches": [
+        {
+          "tool": "delete_ticket",
+          "arguments": {
+            "ticket_id": "T-1041",
+            "status": "closed",
+            "labels": [
+              "billing",
+              "p2"
+            ],
+            "meta": {
+              "source": "agent",
+              "retries": 0
+            }
+          },
+          "tenant": "acme",
+          "target": "production",
+          "actor": "agent-7"
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "tenant_changed",
+      "claim_id": "exact_call_binding",
+      "note": "Same call under another tenant.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed",
+          "labels": [
+            "billing",
+            "p2"
+          ],
+          "meta": {
+            "source": "agent",
+            "retries": 0
+          }
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "integrity": "intact"
+      },
+      "dispatches": [
+        {
+          "tool": "update_ticket",
+          "arguments": {
+            "ticket_id": "T-1041",
+            "status": "closed",
+            "labels": [
+              "billing",
+              "p2"
+            ],
+            "meta": {
+              "source": "agent",
+              "retries": 0
+            }
+          },
+          "tenant": "globex",
+          "target": "production",
+          "actor": "agent-7"
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "target_changed",
+      "claim_id": "exact_call_binding",
+      "note": "Same call against another target environment.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed",
+          "labels": [
+            "billing",
+            "p2"
+          ],
+          "meta": {
+            "source": "agent",
+            "retries": 0
+          }
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "integrity": "intact"
+      },
+      "dispatches": [
+        {
+          "tool": "update_ticket",
+          "arguments": {
+            "ticket_id": "T-1041",
+            "status": "closed",
+            "labels": [
+              "billing",
+              "p2"
+            ],
+            "meta": {
+              "source": "agent",
+              "retries": 0
+            }
+          },
+          "tenant": "acme",
+          "target": "staging",
+          "actor": "agent-7"
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "actor_changed",
+      "claim_id": "exact_call_binding",
+      "note": "Authorization issued to one principal, presented by another.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed",
+          "labels": [
+            "billing",
+            "p2"
+          ],
+          "meta": {
+            "source": "agent",
+            "retries": 0
+          }
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "integrity": "intact"
+      },
+      "dispatches": [
+        {
+          "tool": "update_ticket",
+          "arguments": {
+            "ticket_id": "T-1041",
+            "status": "closed",
+            "labels": [
+              "billing",
+              "p2"
+            ],
+            "meta": {
+              "source": "agent",
+              "retries": 0
+            }
+          },
+          "tenant": "acme",
+          "target": "production",
+          "actor": "agent-9"
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "principal_mismatch"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "replay_same_call_twice",
+      "claim_id": "single_use_authorization",
+      "note": "The exact call, presented twice. The second presentation finds the authorization consumed.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed",
+          "labels": [
+            "billing",
+            "p2"
+          ],
+          "meta": {
+            "source": "agent",
+            "retries": 0
+          }
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "integrity": "intact"
+      },
+      "dispatches": [
+        {
+          "tool": "update_ticket",
+          "arguments": {
+            "ticket_id": "T-1041",
+            "status": "closed",
+            "labels": [
+              "billing",
+              "p2"
+            ],
+            "meta": {
+              "source": "agent",
+              "retries": 0
+            }
+          },
+          "tenant": "acme",
+          "target": "production",
+          "actor": "agent-7"
+        },
+        {
+          "tool": "update_ticket",
+          "arguments": {
+            "ticket_id": "T-1041",
+            "status": "closed",
+            "labels": [
+              "billing",
+              "p2"
+            ],
+            "meta": {
+              "source": "agent",
+              "retries": 0
+            }
+          },
+          "tenant": "acme",
+          "target": "production",
+          "actor": "agent-7"
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "DISPATCHED",
+            "refusal_class": null
+          },
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_consumed"
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "mismatch_does_not_consume",
+      "claim_id": "single_use_authorization",
+      "note": "A refused mismatch does not spend the authorization; the exact call still dispatches once.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed",
+          "labels": [
+            "billing",
+            "p2"
+          ],
+          "meta": {
+            "source": "agent",
+            "retries": 0
+          }
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "integrity": "intact"
+      },
+      "dispatches": [
+        {
+          "tool": "update_ticket",
+          "arguments": {
+            "ticket_id": "T-1041",
+            "status": "reopened",
+            "labels": [
+              "billing",
+              "p2"
+            ],
+            "meta": {
+              "source": "agent",
+              "retries": 0
+            }
+          },
+          "tenant": "acme",
+          "target": "production",
+          "actor": "agent-7"
+        },
+        {
+          "tool": "update_ticket",
+          "arguments": {
+            "ticket_id": "T-1041",
+            "status": "closed",
+            "labels": [
+              "billing",
+              "p2"
+            ],
+            "meta": {
+              "source": "agent",
+              "retries": 0
+            }
+          },
+          "tenant": "acme",
+          "target": "production",
+          "actor": "agent-7"
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          },
+          {
+            "outcome": "DISPATCHED",
+            "refusal_class": null
+          }
+        ],
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "unsigned_authorization",
+      "claim_id": "exact_call_binding",
+      "note": "No authentic authorization exists, so the binding cannot be evaluated. The expected outcome is still a refusal.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed",
+          "labels": [
+            "billing",
+            "p2"
+          ],
+          "meta": {
+            "source": "agent",
+            "retries": 0
+          }
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "integrity": "unsigned"
+      },
+      "dispatches": [
+        {
+          "tool": "update_ticket",
+          "arguments": {
+            "ticket_id": "T-1041",
+            "status": "closed",
+            "labels": [
+              "billing",
+              "p2"
+            ],
+            "meta": {
+              "source": "agent",
+              "retries": 0
+            }
+          },
+          "tenant": "acme",
+          "target": "production",
+          "actor": "agent-7"
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_unverifiable"
+          }
+        ],
+        "claim_result": "NOT_ESTABLISHED"
+      }
+    },
+    {
+      "id": "tampered_authorization",
+      "claim_id": "exact_call_binding",
+      "note": "The signature does not verify. Same ceiling as the unsigned case.",
+      "authorization": {
+        "tool": "update_ticket",
+        "arguments": {
+          "ticket_id": "T-1041",
+          "status": "closed",
+          "labels": [
+            "billing",
+            "p2"
+          ],
+          "meta": {
+            "source": "agent",
+            "retries": 0
+          }
+        },
+        "tenant": "acme",
+        "target": "production",
+        "actor": "agent-7",
+        "integrity": "tampered"
+      },
+      "dispatches": [
+        {
+          "tool": "update_ticket",
+          "arguments": {
+            "ticket_id": "T-1041",
+            "status": "closed",
+            "labels": [
+              "billing",
+              "p2"
+            ],
+            "meta": {
+              "source": "agent",
+              "retries": 0
+            }
+          },
+          "tenant": "acme",
+          "target": "production",
+          "actor": "agent-7"
+        }
+      ],
+      "expected": {
+        "outcomes": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_unverifiable"
+          }
+        ],
+        "claim_result": "NOT_ESTABLISHED"
+      }
+    }
+  ]
+}

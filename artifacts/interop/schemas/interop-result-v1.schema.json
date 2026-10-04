@@ -1,0 +1,202 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "REMORA interop result v1",
+  "description": "One bounded cross-project result. The status is never the whole record: the record names the claim, the exact bytes evaluated, who evaluated them at which independence level, what the result establishes and what it does not. The ceiling booleans are constants, so a record cannot claim endorsement, production safety, broader validity or authority (FED-INV-004).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "contract_id",
+    "edge",
+    "claim",
+    "subject",
+    "status",
+    "producer",
+    "consumer",
+    "fixture",
+    "evaluator",
+    "operator",
+    "host",
+    "independence_level",
+    "environment",
+    "started_at",
+    "completed_at",
+    "cases",
+    "establishes",
+    "does_not_establish",
+    "ceiling",
+    "run_ref"
+  ],
+  "properties": {
+    "schema_version": {"const": "remora-interop-result-v1"},
+    "contract_id": {"type": "string", "minLength": 1},
+    "edge": {"type": "string", "minLength": 1},
+    "claim": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+    "subject": {"type": "string", "minLength": 1},
+    "status": {"enum": ["ESTABLISHED", "CONTRADICTED", "NOT_ESTABLISHED"]},
+    "producer": {"$ref": "#/$defs/party"},
+    "consumer": {"$ref": "#/$defs/party"},
+    "adapter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "revision", "digest"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "revision": {"type": "string", "minLength": 1},
+        "digest": {"$ref": "#/$defs/sha256_prefixed"}
+      }
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "digest", "package_digest"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "digest": {"$ref": "#/$defs/sha256_prefixed"},
+        "package_digest": {"$ref": "#/$defs/sha256_prefixed"}
+      }
+    },
+    "evaluator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project", "repository", "revision", "kind", "maintained_by", "imports_producer_runtime", "imports_reference_evaluator", "command"],
+      "properties": {
+        "project": {"type": "string", "minLength": 1},
+        "repository": {"type": "string", "minLength": 1},
+        "revision": {"type": "string", "minLength": 1},
+        "kind": {"enum": ["REFERENCE", "PRODUCER_RUNTIME", "SECOND_IMPLEMENTATION"]},
+        "maintained_by": {"enum": ["PRODUCER", "EXTERNAL"]},
+        "imports_producer_runtime": {"type": "boolean"},
+        "imports_reference_evaluator": {"type": "boolean"},
+        "command": {"type": "string", "minLength": 1}
+      }
+    },
+    "operator": {"enum": ["PRODUCER", "EXTERNAL"]},
+    "host": {"enum": ["PRODUCER_CONTROLLED", "EXTERNAL"]},
+    "independence_level": {
+      "enum": ["L0_SELF_TEST", "L1_REPRODUCTION", "L2_SECOND_IMPLEMENTATION", "L3_INDEPENDENT_RECOMPUTATION", "L4_INDEPENDENT_HOST_RUN"]
+    },
+    "runner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "revision"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "revision": {"type": "string", "minLength": 1}
+      }
+    },
+    "runner_contract": {
+      "type": "object",
+      "description": "Separate booleans, one per runner-contract property (E030). A single runner_safe flag would collapse nine claims into one.",
+      "additionalProperties": false,
+      "required": [
+        "fresh_working_directory",
+        "verifier_success_exit_zero",
+        "verifier_failure_exit_nonzero",
+        "no_report_on_failure",
+        "no_pass_on_failure",
+        "existing_output_refused",
+        "dependency_failure_exit_nonzero",
+        "killed_verifier_nonzero_or_unknown",
+        "malformed_result_fails_closed"
+      ],
+      "properties": {
+        "fresh_working_directory": {"type": "boolean"},
+        "verifier_success_exit_zero": {"type": "boolean"},
+        "verifier_failure_exit_nonzero": {"type": "boolean"},
+        "no_report_on_failure": {"type": "boolean"},
+        "no_pass_on_failure": {"type": "boolean"},
+        "existing_output_refused": {"type": "boolean"},
+        "dependency_failure_exit_nonzero": {"type": "boolean"},
+        "killed_verifier_nonzero_or_unknown": {"type": "boolean"},
+        "malformed_result_fails_closed": {"type": "boolean"}
+      }
+    },
+    "environment": {"type": "string", "minLength": 1},
+    "started_at": {"type": "string", "format": "date-time", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T"},
+    "completed_at": {"type": "string", "format": "date-time", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T"},
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["case_id", "claim_id", "expected", "observed", "result"],
+        "properties": {
+          "case_id": {"type": "string", "minLength": 1},
+          "claim_id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+          "expected": {"type": "object"},
+          "observed": {"type": "object"},
+          "result": {"enum": ["ESTABLISHED", "CONTRADICTED", "NOT_ESTABLISHED"]},
+          "note": {"type": "string"}
+        }
+      }
+    },
+    "establishes": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "does_not_establish": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "ceiling": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["implies_endorsement", "implies_production_safety", "implies_broader_validity", "confers_authority"],
+      "properties": {
+        "implies_endorsement": {"const": false},
+        "implies_production_safety": {"const": false},
+        "implies_broader_validity": {"const": false},
+        "confers_authority": {"const": false}
+      }
+    },
+    "run_ref": {"type": "string", "minLength": 1},
+    "published_at": {"type": ["string", "null"]}
+  },
+  "$defs": {
+    "sha256_prefixed": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "party": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project", "revision"],
+      "properties": {
+        "project": {"type": "string", "minLength": 1},
+        "repository": {"type": "string", "minLength": 1},
+        "revision": {"type": "string", "minLength": 1}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "ESTABLISHED"}}},
+      "then": {"properties": {"establishes": {"minItems": 1}}}
+    },
+    {
+      "if": {"properties": {"independence_level": {"const": "L0_SELF_TEST"}}},
+      "then": {"properties": {"operator": {"const": "PRODUCER"}}}
+    },
+    {
+      "if": {"properties": {"independence_level": {"const": "L1_REPRODUCTION"}}},
+      "then": {"properties": {"operator": {"const": "EXTERNAL"}, "evaluator": {"properties": {"kind": {"const": "REFERENCE"}}}}}
+    },
+    {
+      "if": {"properties": {"independence_level": {"const": "L2_SECOND_IMPLEMENTATION"}}},
+      "then": {"properties": {"evaluator": {"properties": {"kind": {"const": "SECOND_IMPLEMENTATION"}}}}}
+    },
+    {
+      "if": {"properties": {"independence_level": {"enum": ["L3_INDEPENDENT_RECOMPUTATION", "L4_INDEPENDENT_HOST_RUN"]}}},
+      "then": {
+        "properties": {
+          "operator": {"const": "EXTERNAL"},
+          "evaluator": {
+            "properties": {
+              "kind": {"const": "SECOND_IMPLEMENTATION"},
+              "maintained_by": {"const": "EXTERNAL"},
+              "imports_producer_runtime": {"const": false},
+              "imports_reference_evaluator": {"const": false}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"independence_level": {"const": "L4_INDEPENDENT_HOST_RUN"}}},
+      "then": {"properties": {"host": {"const": "EXTERNAL"}}}
+    }
+  ]
+}

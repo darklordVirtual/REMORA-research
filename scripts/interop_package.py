@@ -17,6 +17,15 @@ performs the two producer-side lifecycle moves that must not be typed by hand.
                                   record that the pin was given to VERIFIER at WHERE and
                                   set the lifecycle to EXTERNAL_RUN_PENDING
 
+``--check`` also enforces the Federation publication gate: FEDERATION.yaml
+validates against its schema, every claim in every claim packet carries a
+claim ceiling and the packet names explicit non-claims (FED-INV-002), and
+every run record under artifacts/interop/runs/ validates against
+interop-result-v1, names a known contract and claim, and pins the exact
+fixture bytes and package digest it evaluated (FED-INV-003). A record that
+fails any of these is refused, so a result without its ceiling or provenance
+cannot be published.
+
 Nothing here touches policy, enforcement or execution code, and no step can
 advance a contract past EXTERNAL_RUN_PENDING: REPRODUCED and
 EXTERNALLY_VERIFIED come only from external run records.
@@ -32,6 +41,9 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import Any
+
+import jsonschema
+import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 INDEX = ROOT / "artifacts" / "interop" / "index.json"
@@ -105,6 +117,78 @@ def check(root: Path = ROOT) -> list[str]:
         freeze = contract.get("freeze_record")
         if freeze is not None and freeze.get("package_digest") != digest:
             problems.append(f"{contract['id']}: freeze_record names another package_digest; a frozen package must not change")
+        problems.extend(_claim_ceiling_problems(contract["id"], packet))
+    problems.extend(_federation_problems(index, root))
+    return problems
+
+
+def _validator(root: Path, rel: str) -> "jsonschema.Draft202012Validator":
+    return jsonschema.Draft202012Validator(_load(root / rel))
+
+
+def _claim_ceiling_problems(contract_id: str, packet: dict[str, Any]) -> list[str]:
+    """FED-INV-002: a claim without a ceiling, or a packet without non-claims,
+    cannot be published."""
+    problems: list[str] = []
+    if not packet.get("claims"):
+        problems.append(f"{contract_id}: claim packet names no claims")
+    for claim in packet.get("claims", []):
+        if not str(claim.get("claim_ceiling", "")).strip():
+            problems.append(f"{contract_id}: claim {claim.get('claim_id')!r} has no claim_ceiling")
+    if not packet.get("explicit_non_claims"):
+        problems.append(f"{contract_id}: claim packet has no explicit_non_claims")
+    return problems
+
+
+def _federation_problems(index: dict[str, Any], root: Path) -> list[str]:
+    """The manifest, the edges it declares and every run record."""
+    problems: list[str] = []
+    manifest_rel = index.get("federation_manifest")
+    if not manifest_rel:
+        return ["index.json names no federation_manifest"]
+    manifest = yaml.safe_load((root / manifest_rel).read_text(encoding="utf-8"))
+    schema_rel = index["schemas"].get("federation_manifest")
+    errors = sorted(_validator(root, schema_rel).iter_errors(manifest), key=lambda e: list(e.path))
+    problems.extend(f"{manifest_rel}: {e.message} at {'/'.join(map(str, e.path)) or '<root>'}" for e in errors)
+    contracts = {c["id"]: c for c in index["contracts"]}
+    for edge in manifest.get("edges", []):
+        contract_id = edge.get("contract")
+        if contract_id and contract_id not in contracts:
+            problems.append(f"{manifest_rel}: edge {edge.get('id')} names unknown contract {contract_id!r}")
+        record = edge.get("record")
+        if record and not (root / record).is_file():
+            problems.append(f"{manifest_rel}: edge {edge.get('id')} names missing record {record}")
+    runs = index.get("runs", {})
+    run_dir = root / runs.get("directory", "artifacts/interop/runs")
+    if not run_dir.is_dir():
+        return problems
+    validator = _validator(root, index["schemas"]["interop_result"])
+    for path in sorted(run_dir.glob("*.json")):
+        rel = path.relative_to(root).as_posix()
+        record = _load(path)
+        errors = sorted(validator.iter_errors(record), key=lambda e: list(e.path))
+        if errors:
+            problems.extend(f"{rel}: {e.message} at {'/'.join(map(str, e.path)) or '<root>'}" for e in errors)
+            continue
+        contract = contracts.get(record["contract_id"])
+        if contract is None:
+            problems.append(f"{rel}: unknown contract {record['contract_id']!r}")
+            continue
+        claim_ids = {c["claim_id"] for c in _load(root / contract["claim_packet"])["claims"]}
+        if record["claim"] not in claim_ids:
+            problems.append(f"{rel}: claim {record['claim']!r} is not in the contract's claim packet")
+        if record["edge"] != contract["edge"]:
+            problems.append(f"{rel}: edge {record['edge']!r} differs from the contract's {contract['edge']!r}")
+        fixture = record["fixture"]
+        if fixture["path"] != contract.get("fixtures"):
+            problems.append(f"{rel}: fixture path {fixture['path']} is not the contract's fixtures file")
+        elif "sha256:" + _sha256_bytes((root / fixture["path"]).read_bytes()) != fixture["digest"]:
+            problems.append(f"{rel}: fixture digest does not match the committed bytes; a result over other bytes does not count")
+        if fixture["package_digest"] != contract["package_digest"]:
+            problems.append(f"{rel}: package_digest differs from the contract's; a result over other bytes does not count")
+        for case in record["cases"]:
+            if case["claim_id"] != record["claim"]:
+                problems.append(f"{rel}: case {case['case_id']} belongs to claim {case['claim_id']!r}, record is {record['claim']!r}")
     return problems
 
 
@@ -192,7 +276,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"[FAIL] {problem}")
             if problems:
                 return 1
-            print("[PASS] interop package: every digest, pin and lifecycle label agrees.")
+            print("[PASS] interop package: every digest, pin, lifecycle label, claim ceiling and run record agrees.")
             return 0
         if args.freeze:
             record = freeze(*args.freeze)

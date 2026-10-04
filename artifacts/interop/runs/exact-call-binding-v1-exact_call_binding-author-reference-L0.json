@@ -1,0 +1,338 @@
+{
+  "schema_version": "remora-interop-result-v1",
+  "contract_id": "exact-call-binding-v1",
+  "edge": "E-ECB",
+  "claim": "exact_call_binding",
+  "subject": "execution_authorization:remora-execution-lease",
+  "status": "ESTABLISHED",
+  "producer": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a"
+  },
+  "consumer": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a"
+  },
+  "fixture": {
+    "path": "artifacts/interop/exact-call-binding-v1/fixtures.json",
+    "digest": "sha256:4a9b43747c762c7dc73382e588c0477693b00449f8a6233dc93eabbc801aac95",
+    "package_digest": "sha256:0eb99bc6ffa02c137a1b9c98f58892e278948b272fbe3ad482984bae03e6f4c7"
+  },
+  "evaluator": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
+    "kind": "REFERENCE",
+    "maintained_by": "PRODUCER",
+    "imports_producer_runtime": false,
+    "imports_reference_evaluator": true,
+    "command": "python artifacts/interop/exact-call-binding-v1/reference_verifier.py"
+  },
+  "operator": "PRODUCER",
+  "host": "PRODUCER_CONTROLLED",
+  "independence_level": "L0_SELF_TEST",
+  "runner": {
+    "path": "scripts/interop_author_run.py",
+    "revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a"
+  },
+  "environment": "Python 3.11.15, Linux x86_64",
+  "started_at": "2026-10-04T07:29:47+00:00",
+  "completed_at": "2026-10-04T07:29:47+00:00",
+  "cases": [
+    {
+      "case_id": "same_call_dispatches",
+      "claim_id": "exact_call_binding",
+      "expected": {
+        "value": [
+          {
+            "outcome": "DISPATCHED",
+            "refusal_class": null
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "DISPATCHED",
+            "refusal_class": null
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "argument_key_order_only",
+      "claim_id": "exact_call_binding",
+      "expected": {
+        "value": [
+          {
+            "outcome": "DISPATCHED",
+            "refusal_class": null
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "DISPATCHED",
+            "refusal_class": null
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "argument_value_changed",
+      "claim_id": "exact_call_binding",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "argument_added",
+      "claim_id": "exact_call_binding",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "argument_removed",
+      "claim_id": "exact_call_binding",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "argument_type_changed",
+      "claim_id": "exact_call_binding",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "nested_array_order_changed",
+      "claim_id": "exact_call_binding",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "tool_name_changed",
+      "claim_id": "exact_call_binding",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "tenant_changed",
+      "claim_id": "exact_call_binding",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "target_changed",
+      "claim_id": "exact_call_binding",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "actor_changed",
+      "claim_id": "exact_call_binding",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "principal_mismatch"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "principal_mismatch"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "unsigned_authorization",
+      "claim_id": "exact_call_binding",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_unverifiable"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_unverifiable"
+          }
+        ]
+      },
+      "result": "NOT_ESTABLISHED"
+    },
+    {
+      "case_id": "tampered_authorization",
+      "claim_id": "exact_call_binding",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_unverifiable"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_unverifiable"
+          }
+        ]
+      },
+      "result": "NOT_ESTABLISHED"
+    }
+  ],
+  "establishes": [
+    "exact_call_binding: ESTABLISHED means only that, under this fixture contract, an authorization dispatches exactly the call it was issued for: a change in tool, argument content, argument type, array order, tenant, target or principal is refused, and object member order is not a change."
+  ],
+  "does_not_establish": [
+    "correct semantic intent of the authorized call",
+    "that an external effect occurred",
+    "that every path to the tool passes through the enforcement point",
+    "a prescribed hash algorithm or wire format for the binding",
+    "production deployment safety",
+    "Federation endorsement",
+    "a second implementation is by itself an independent verification record"
+  ],
+  "ceiling": {
+    "implies_endorsement": false,
+    "implies_production_safety": false,
+    "implies_broader_validity": false,
+    "confers_authority": false
+  },
+  "run_ref": "artifacts/interop/runs/exact-call-binding-v1-exact_call_binding-author-reference-L0.json",
+  "published_at": null
+}

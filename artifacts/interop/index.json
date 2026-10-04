@@ -37,6 +37,70 @@
         }
       ],
       "external_runs": []
+    },
+    {
+      "id": "exact-call-binding-v1",
+      "edge": "E-ECB",
+      "lifecycle": "DRAFT",
+      "external_verification": "PENDING",
+      "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
+      "manifest": "artifacts/interop/exact-call-binding-v1/manifest.json",
+      "package_digest": "sha256:0eb99bc6ffa02c137a1b9c98f58892e278948b272fbe3ad482984bae03e6f4c7",
+      "claim_packet": "artifacts/interop/exact-call-binding-v1/claim-packet.json",
+      "verifier_request": "artifacts/interop/exact-call-binding-v1/verifier-request.json",
+      "fixtures": "artifacts/interop/exact-call-binding-v1/fixtures.json",
+      "reference_verifier": "artifacts/interop/exact-call-binding-v1/reference_verifier.py",
+      "freeze_record": null,
+      "pin_confirmed_to": [],
+      "external_runs": []
+    },
+    {
+      "id": "fresh-authority-v1",
+      "edge": "E-FA",
+      "lifecycle": "DRAFT",
+      "external_verification": "PENDING",
+      "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
+      "manifest": "artifacts/interop/fresh-authority-v1/manifest.json",
+      "package_digest": "sha256:cb1c851f2cbacc738710ee360875886636e07a6d1e2befb158cae98c621627dd",
+      "claim_packet": "artifacts/interop/fresh-authority-v1/claim-packet.json",
+      "verifier_request": "artifacts/interop/fresh-authority-v1/verifier-request.json",
+      "fixtures": "artifacts/interop/fresh-authority-v1/fixtures.json",
+      "reference_verifier": "artifacts/interop/fresh-authority-v1/reference_verifier.py",
+      "freeze_record": null,
+      "pin_confirmed_to": [],
+      "external_runs": []
+    },
+    {
+      "id": "effect-evidence-v1",
+      "edge": "E-EE",
+      "lifecycle": "DRAFT",
+      "external_verification": "PENDING",
+      "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
+      "manifest": "artifacts/interop/effect-evidence-v1/manifest.json",
+      "package_digest": "sha256:7eae91946296a011f3d44cfffacfe2e2c5e02d16425b3a6ebf63a91cf5556159",
+      "claim_packet": "artifacts/interop/effect-evidence-v1/claim-packet.json",
+      "verifier_request": "artifacts/interop/effect-evidence-v1/verifier-request.json",
+      "fixtures": "artifacts/interop/effect-evidence-v1/fixtures.json",
+      "reference_verifier": "artifacts/interop/effect-evidence-v1/reference_verifier.py",
+      "freeze_record": null,
+      "pin_confirmed_to": [],
+      "external_runs": []
+    },
+    {
+      "id": "agentavow-tool-manifest-e8-v0.1",
+      "edge": "E8",
+      "lifecycle": "DRAFT",
+      "external_verification": "PENDING",
+      "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
+      "manifest": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/manifest.json",
+      "package_digest": "sha256:ebf20e19357e9fa548b5893f6f815b580ae0c35441210224fd76812bfdcd9955",
+      "claim_packet": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/claim-packet.json",
+      "verifier_request": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/verifier-request.json",
+      "fixtures": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/fixtures.json",
+      "reference_verifier": "artifacts/interop/agentavow-tool-manifest-e8-v0.1/reference_verifier.py",
+      "freeze_record": null,
+      "pin_confirmed_to": [],
+      "external_runs": []
     }
   ],
   "schemas": {
@@ -44,7 +108,9 @@
     "external_evidence_ref": "artifacts/interop/schemas/external-evidence-ref-v1.schema.json",
     "consumed_artifact": "artifacts/interop/schemas/consumed-artifact-v1.schema.json",
     "action_lineage": "artifacts/interop/schemas/action-lineage-v1.schema.json",
-    "external_run_record": "artifacts/interop/schemas/external-run-record-v1.schema.json"
+    "external_run_record": "artifacts/interop/schemas/external-run-record-v1.schema.json",
+    "interop_result": "artifacts/interop/schemas/interop-result-v1.schema.json",
+    "federation_manifest": "artifacts/interop/schemas/federation-manifest-v1.schema.json"
   },
   "lifecycle_model": {
     "states": [
@@ -62,5 +128,11 @@
       "EXTERNALLY_VERIFIED": "FROZEN, and at least one external run record with independence INDEPENDENT over this package_digest covering every claim"
     },
     "note": "Author runs never advance the state. A state is derived from records; tests refuse an index whose state exceeds its records."
+  },
+  "federation_manifest": "artifacts/interop/FEDERATION.yaml",
+  "runs": {
+    "directory": "artifacts/interop/runs",
+    "schema": "artifacts/interop/schemas/interop-result-v1.schema.json",
+    "note": "One interop-result-v1 record per run. Author runs are L0_SELF_TEST and advance no contract; the matrix in docs/interop/INTEROP_MATRIX.md is generated from these records."
   }
 }
