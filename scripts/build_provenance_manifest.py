@@ -90,6 +90,11 @@ def _errors(validator: jsonschema.Draft202012Validator, instance: Any, label: st
 def validate(snapshot: str) -> tuple[list[str], dict[str, dict[str, Any]]]:
     """Every problem in the ledger, and the records keyed by id."""
     problems: list[str] = []
+    if not _git_commit_exists(snapshot):
+        raise LedgerError(
+            f"snapshot commit {snapshot[:12]} is not in this clone; fetch full history "
+            "(the CI job that enforces this gate checks out with fetch-depth 0)"
+        )
     policy = _yaml(POLICY)
     prior = _yaml(LEDGER / "PRIOR_ART.yaml")
     adoption = _yaml(LEDGER / "EXTERNAL_ADOPTION.yaml")

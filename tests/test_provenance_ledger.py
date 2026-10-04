@@ -35,6 +35,21 @@ def _module(name: str) -> Any:
     return module
 
 
+def _snapshot() -> str:
+    return json.loads((LEDGER / "manifests" / "provenance-manifest-v1.json").read_text(encoding="utf-8"))["snapshot"]
+
+
+#: The reproduction test reads the snapshot commit's tree, which a shallow CI
+#: checkout does not hold. The documentation-governance job checks out full
+#: history and runs scripts/build_provenance_manifest.py --check, so the gate
+#: is enforced there on every push.
+needs_history = pytest.mark.skipif(
+    subprocess.run(["git", "cat-file", "-e", f"{_snapshot()}^{{commit}}"], cwd=ROOT,
+                   capture_output=True, check=False).returncode != 0,
+    reason="the manifest's snapshot commit is not in this (shallow) clone",
+)
+
+
 @pytest.fixture(scope="module")
 def records() -> dict[str, dict[str, Any]]:
     return {p.stem: yaml.safe_load(p.read_text(encoding="utf-8")) for p in sorted((LEDGER / "concepts").glob("PROV-*.yaml"))}
@@ -72,6 +87,7 @@ def test_first_recorded_data_is_the_registers(records: dict[str, dict[str, Any]]
         assert record["evolution"][0]["commit"] == first[cid]["commit"], cid
 
 
+@needs_history
 def test_ledger_validates_and_manifest_reproduces_from_its_snapshot() -> None:
     module = _module("build_provenance_manifest")
     committed = json.loads((LEDGER / "manifests" / "provenance-manifest-v1.json").read_text(encoding="utf-8"))
