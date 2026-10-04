@@ -163,9 +163,11 @@ jobs:
           "$RUNNER_TEMP/reader-venv/bin/python" -m pip freeze \
             > ci-artifacts/probity-boundary-reproduction/installed-packages.txt
           # The reader must not import REMORA. Nothing from this checkout is
-          # installed into the reader environment; assert it.
-          if "$RUNNER_TEMP/reader-venv/bin/python" -c "import remora" 2>/dev/null; then
-            echo "remora is importable inside the reader environment" >&2; exit 1
+          # installed into the reader environment; assert it. Isolated mode
+          # (-I) keeps the current directory off sys.path, so the check sees
+          # the installed environment and not the repo checkout it runs in.
+          if "$RUNNER_TEMP/reader-venv/bin/python" -I -c "import remora" 2>/dev/null; then
+            echo "remora is installed inside the reader environment" >&2; exit 1
           fi
 
       - name: Run Probity's qualification against the frozen packages
