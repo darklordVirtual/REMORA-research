@@ -1761,8 +1761,10 @@ determinism.
 
 **Code.** Library: `remora/selective/sequential_assurance.py` (stdlib
 only). Generator: `scripts/compute_sequential_assurance.py`. Adapter:
-`outcomes_from_episode_records` maps AROMER episode exports onto the
-outcome record. Nothing in `remora/policy`, `remora/enforcement`,
+`outcomes_from_episode_records` in
+`remora/aromer/evals/sequential_assurance_adapter.py` maps AROMER episode
+exports onto the outcome record; label interpretation stays in that
+evaluation layer, outside the leakage-scanned runtime package. Nothing in `remora/policy`, `remora/enforcement`,
 `remora/execution`, `remora/governance` or `servers` imports it.
 
 **Acceptance.** Slice 1 merges with CLAIM-011 unchanged and cycle-scoped.

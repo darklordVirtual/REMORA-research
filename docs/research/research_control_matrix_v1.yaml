@@ -446,6 +446,7 @@ entries:
     code:
       - remora/selective/confidence_sequence.py
       - remora/selective/sequential_assurance.py
+      - remora/aromer/evals/sequential_assurance_adapter.py
     tests:
       - tests/test_confidence_sequence.py
       - tests/test_sequential_assurance.py

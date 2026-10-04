@@ -90,7 +90,6 @@ __all__ = [
     "SequentialAssuranceReceipt",
     "empirical_bernstein_upper_cs",
     "log_rate_eprocess",
-    "outcomes_from_episode_records",
 ]
 
 #: Assumption-status vocabulary (QV2-02 Phase D). Ordering is worst-first:
@@ -192,9 +191,16 @@ class DecisionOutcome:
 
     The remaining optional fields are the provenance spine the QV2-02
     resolved-outcome record requires. The monitor's statistics read only
-    ``decision_id``, ``event``, ``loss``, ``epoch``, ``resolved``,
-    ``cluster_id`` and ``harmful``; the rest is carried so the receipt can
-    bind its numbers to a population, a policy and a resolver.
+    ``decision_id``, ``event``, ``loss``, ``epoch``, ``resolved`` and
+    ``cluster_id``; the rest is carried so the receipt can bind its numbers
+    to a population, a policy and a resolver.
+
+    The monitor never interprets ground-truth labels. Which label makes a
+    decision an ``event`` is decided by the evaluation-layer adapter that
+    builds the stream (``remora.aromer.evals.sequential_assurance_adapter``
+    for AROMER episode exports) and is declared in the receipt's
+    ``monitored_event``; the leakage gate keeps label vocabulary out of this
+    runtime package.
     """
 
     decision_id: str
@@ -203,9 +209,6 @@ class DecisionOutcome:
     epoch: AssuranceEpoch
     resolved: bool = True
     verdict: str = ""
-    #: Ground-truth polarity of the action, None while unresolved. For
-    #: false-accept monitoring over the accept population, event == harmful.
-    harmful: bool | None = None
     cluster_id: str | None = None
     tenant: str = ""
     task_id: str = ""
@@ -407,7 +410,6 @@ class _Segment:
     events: list[bool] = field(default_factory=list)
     losses: list[float] = field(default_factory=list)
     duplicate_ids: list[str] = field(default_factory=list)
-    n_harmful: int = 0
     cluster_ids: set[str] = field(default_factory=set)
     missing_cluster_ids: int = 0
     resolved_timestamps: list[str] = field(default_factory=list)
@@ -419,7 +421,6 @@ class SegmentAssurance:
 
     epoch: AssuranceEpoch
     n_resolved: int
-    n_harmful: int
     false_accepts: int
     method: str
     point_estimate: float | None
@@ -439,7 +440,6 @@ class SegmentAssurance:
             "epoch": self.epoch.to_dict(),
             "policy_digest": self.epoch.policy,
             "n_resolved": self.n_resolved,
-            "n_harmful": self.n_harmful,
             "false_accepts": self.false_accepts,
             "point_estimate": self.point_estimate,
             "method": self.method,
@@ -525,8 +525,6 @@ class SequentialAssuranceMonitor:
         seg.decision_ids.add(outcome.decision_id)
         seg.events.append(outcome.event)
         seg.losses.append(outcome.loss)
-        if outcome.harmful:
-            seg.n_harmful += 1
         if outcome.cluster_id:
             seg.cluster_ids.add(outcome.cluster_id)
         else:
@@ -647,7 +645,6 @@ class SequentialAssuranceMonitor:
         return SegmentAssurance(
             epoch=seg.epoch,
             n_resolved=n,
-            n_harmful=seg.n_harmful,
             false_accepts=k,
             method=self.method,
             point_estimate=(k / n) if n else None,
@@ -754,77 +751,3 @@ class SequentialAssuranceReceipt:
             "segments": [s.to_dict() for s in self.segments],
             "provenance": {"git_commit": self.git_commit},
         }
-
-
-# ---------------------------------------------------------------------------
-# Adapter: AROMER episode records -> per-decision outcome stream
-# ---------------------------------------------------------------------------
-
-def outcomes_from_episode_records(
-    records: Iterable[dict[str, Any]],
-    *,
-    epoch: AssuranceEpoch,
-    population: str = "accept",
-) -> list[DecisionOutcome]:
-    """Build the per-decision stream from exported AROMER episode records.
-
-    Each record is one parsed JSONL row from an episode store export (for
-    example ``artifacts/aromer_holdout_episodes.jsonl``). The monitored event
-    is the false accept: verdict ACCEPT on an action whose ground truth is
-    harmful. ``population`` selects the verdict subset under monitoring;
-    "accept" is the operationally relevant one, because only accepted actions
-    reach the user without a gate stop.
-
-    Records whose ground truth is not a resolved benign/harmful label come
-    out with ``resolved=False`` so the monitor excludes and counts them.
-    Verdicts and labels are case-normalized; the store has carried both
-    casings. Rows without an ``id`` raise: a decision without identity cannot
-    enter a stream whose premise is per-decision identity.
-
-    The epoch comes from the caller, not the records: the committed fixtures
-    predate epoch tagging, so the deployment (or the demo script) declares
-    which population the stream belongs to.
-    """
-    outcomes: list[DecisionOutcome] = []
-    for i, record in enumerate(records):
-        decision_id = record.get("id") or record.get("episode_id")
-        if not decision_id:
-            raise ValueError(f"record {i} has no id; per-decision identity is required")
-        verdict = str(record.get("verdict", "")).strip().lower()
-        if population != "all" and verdict != population:
-            continue
-        truth = str(record.get("ground_truth", "")).strip().lower()
-        if truth in {"harmful", "benign"}:
-            event = truth == "harmful"
-            resolved = True
-            harmful: bool | None = event
-        else:
-            event = False
-            resolved = False
-            harmful = None
-        outcomes.append(
-            DecisionOutcome(
-                decision_id=str(decision_id),
-                event=event,
-                loss=float(event),
-                epoch=epoch,
-                resolved=resolved,
-                verdict=verdict,
-                harmful=harmful,
-                cluster_id=record.get("cluster_id"),
-                tenant=str(record.get("tenant", "")),
-                task_id=str(record.get("task_id", "")),
-                dispatch_id=str(record.get("dispatch_id", "")),
-                executed=record.get("executed"),
-                effect_status=str(record.get("effect_status", "")),
-                ground_truth_source=str(record.get("label_source", "")),
-                ground_truth_provenance=str(record.get("source", "")),
-                policy_sha=str(record.get("policy_sha", "")),
-                toolspec_digest=str(record.get("toolspec_digest", "")),
-                toolcall_digest=str(record.get("toolcall_digest", "")),
-                resolved_at=str(record.get("resolved_at", "")),
-                resolver=str(record.get("resolver", "")),
-                resolution_provenance=str(record.get("resolution_provenance", "")),
-            )
-        )
-    return outcomes

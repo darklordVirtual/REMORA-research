@@ -28,6 +28,10 @@ This file lists externally relevant changes by release. Fine-grained development
   fixture). Library and offline generator only; no action-authority path
   reads it, and CLAIM-011 stays cycle-scoped. The committed receipt reports
   PARTIALLY_ESTABLISHED because the fixture carries no cluster identifiers.
+  The monitor counts neutral `event` flags only; mapping ground-truth labels
+  onto events lives in the evaluation layer
+  (`remora/aromer/evals/sequential_assurance_adapter.py`), so the runtime
+  package stays clean under `scripts/check_no_evaluation_leakage.py`.
 - Provenance ledger (`provenance/`): one record per register concept
   (`PROV-01` to `PROV-17`) joining the first-recorded commit to the
   canonical specification, implementation, tests, conformance suites,

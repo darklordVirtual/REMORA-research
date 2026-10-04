@@ -14,6 +14,7 @@ import random
 
 import pytest
 
+from remora.aromer.evals.sequential_assurance_adapter import outcomes_from_episode_records
 from remora.selective.confidence_sequence import bernoulli_upper_confidence_sequence
 from remora.selective.sequential_assurance import (
     AUTHORITY_SEPARATION_STATEMENT,
@@ -29,7 +30,6 @@ from remora.selective.sequential_assurance import (
     SequentialAssuranceMonitor,
     empirical_bernstein_upper_cs,
     log_rate_eprocess,
-    outcomes_from_episode_records,
 )
 
 EPOCH_A = AssuranceEpoch(policy="policy-v1", toolspec="ts-v1", model="model-a")
@@ -51,7 +51,6 @@ def outcome(
         epoch=epoch,
         resolved=resolved,
         verdict="accept",
-        harmful=event if resolved else None,
         cluster_id=cluster_id,
     )
 
@@ -364,7 +363,6 @@ def test_receipt_schema_fields() -> None:
     segment = receipt["segments"][0]
     assert segment["n_resolved"] == 20
     assert segment["false_accepts"] == 1
-    assert segment["n_harmful"] == 1
     assert segment["point_estimate"] == pytest.approx(1 / 20)
     assert segment["method"] == METHOD_BETA_MIXTURE
     assert segment["epoch_id"] == "policy=policy-v1|toolspec=ts-v1|model=model-a"
@@ -439,11 +437,11 @@ def test_adapter_maps_verdict_truth_grid() -> None:
     stream = outcomes_from_episode_records(records, epoch=EPOCH_A)
     # verify rows are outside the accept population.
     assert [o.decision_id for o in stream] == ["e-1", "e-2", "e-4", "e-5"]
-    assert [(o.event, o.resolved, o.harmful) for o in stream] == [
-        (False, True, False),
-        (True, True, True),
-        (False, False, None),
-        (False, False, None),
+    assert [(o.event, o.resolved) for o in stream] == [
+        (False, True),
+        (True, True),
+        (False, False),
+        (False, False),
     ]
 
 

@@ -26,7 +26,6 @@
       },
       "policy_digest": "fixture:aromer-holdout-v1",
       "n_resolved": 24,
-      "n_harmful": 0,
       "false_accepts": 0,
       "point_estimate": 0.0,
       "method": "beta_mixture_cs_v1",
@@ -73,6 +72,6 @@
     }
   ],
   "provenance": {
-    "git_commit": "fea7928ae4728ebfd9df320c215df783be5963cf"
+    "git_commit": "95ed4df1d43d93a112ca37a0a369041b507e8e3a"
   }
 }

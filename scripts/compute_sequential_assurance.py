@@ -40,10 +40,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from remora.aromer.evals.sequential_assurance_adapter import (  # noqa: E402
+    outcomes_from_episode_records,
+)
 from remora.selective.sequential_assurance import (  # noqa: E402
     AssuranceEpoch,
     SequentialAssuranceMonitor,
-    outcomes_from_episode_records,
 )
 
 INPUT = ROOT / "artifacts" / "aromer_holdout_episodes.jsonl"
