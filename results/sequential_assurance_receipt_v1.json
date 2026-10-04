@@ -1,0 +1,78 @@
+{
+  "schema": "sequential_assurance_receipt_v1",
+  "generated_by": "scripts/compute_sequential_assurance.py",
+  "monitored_event": "false_accept",
+  "population_definition": "accept-verdict decisions in artifacts/aromer_holdout_episodes.jsonl",
+  "outcome_unit": "resolved_decision",
+  "cluster_unit": "independence cluster: one underlying task or template; decisions sharing a cluster are not independent trials",
+  "input": "artifacts/aromer_holdout_episodes.jsonl: synthetic replay fixture (label_source=replay_truth), one resolved episode per line; not operational telemetry",
+  "source_digest": "sha256:ac6f7bf3ef36242cdb093cf40da46c58abcd5fff089a7d72d75693d7879e814f",
+  "alpha": 0.05,
+  "threshold": 0.05,
+  "assumption_status": "PARTIALLY_ESTABLISHED",
+  "authority_separation": "Statistical population assurance only. This receipt summarizes a stream of past decisions and is not consumed by any per-action authority gate; it changes no ACCEPT/VERIFY/ESCALATE/BLOCK semantics and authorizes no future action.",
+  "standing_assumptions": "Within one epoch, each decision's adverse-event probability is conditionally stable given the past (independence is the strong form), ground-truth labels are correct, and the population does not drift inside an epoch. A policy, ToolSpec or model change starts a new epoch. These are assumptions, not findings; the receipt's premise checks cover only the machine-checkable parts (unique decision identity, resolved outcomes, bounded losses).",
+  "epoch_resets": 0,
+  "excluded": {
+    "unresolved": 0
+  },
+  "segments": [
+    {
+      "epoch_id": "policy=fixture:aromer-holdout-v1|toolspec=fixture:untagged|model=fixture:untagged",
+      "epoch": {
+        "policy": "fixture:aromer-holdout-v1",
+        "toolspec": "fixture:untagged",
+        "model": "fixture:untagged"
+      },
+      "policy_digest": "fixture:aromer-holdout-v1",
+      "n_resolved": 24,
+      "n_harmful": 0,
+      "false_accepts": 0,
+      "point_estimate": 0.0,
+      "method": "beta_mixture_cs_v1",
+      "assumption_status": "PARTIALLY_ESTABLISHED",
+      "premise_checks": [
+        {
+          "name": "unique_decision_identity",
+          "status": "passed",
+          "detail": "every decision id appears once in the whole stream"
+        },
+        {
+          "name": "resolved_outcomes_only",
+          "status": "passed",
+          "detail": "no unresolved outcomes were excluded"
+        },
+        {
+          "name": "independence_cluster_coverage",
+          "status": "degraded",
+          "detail": "24 of 24 decision(s) carry no cluster identifier; they are treated as one cluster per decision, which the stream cannot prove"
+        },
+        {
+          "name": "conditional_independence",
+          "status": "assumed",
+          "detail": "not machine-verifiable from the stream; violated by construction if decisions are re-scored overlapping windows (the CLAIM-011 cycle-level caveat)"
+        },
+        {
+          "name": "stable_population_within_epoch",
+          "status": "assumed",
+          "detail": "policy, ToolSpec and model identity fixed inside the segment"
+        }
+      ],
+      "upper_bound": 0.22813221311278936,
+      "supplementary_bounds": {
+        "empirical_bernstein_cs_v1": 0.2658939447137527
+      },
+      "e_process": {
+        "null": "event rate >= 0.05",
+        "log_e_value": 0.5102861345669585,
+        "reject_null_at_alpha": false
+      },
+      "n_clusters": 0,
+      "started_at": null,
+      "updated_at": null
+    }
+  ],
+  "provenance": {
+    "git_commit": "fea7928ae4728ebfd9df320c215df783be5963cf"
+  }
+}

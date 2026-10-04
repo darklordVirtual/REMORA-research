@@ -19,7 +19,7 @@ RF-11 was added on 2026-08-10 (master, SHELF-024 VERIFIED_RETRIEVED). The
 "Already in the repo" subsections record what the draft's gap statements had to
 be corrected against.
 
-**Namespace note.** WP identifiers are RF-01…RF-13 (research frontier). The
+**Namespace note.** WP identifiers are RF-01…RF-14 (research frontier). The
 `REM-` prefix is deliberately not used: it is the namespace of
 `docs/assurance/remediation_register.yaml` (REM-001…REM-047, machine-consumed
 by release-profile gating), and roadmap WPs are not remediation items. Where a
@@ -58,7 +58,7 @@ is registered as a proposal, and nothing in it is implemented.
 | Benchmarks | In-house simulators (toolcall v1/v2/blind v3) + one externally authored dataset already adapted and scored: AgentHarm (CLAIM-002) | Externally authored agent-security benchmarks: AgentDojo (NeurIPS'24), MCPTox (2025) | **Medium** — widens dataset independence; does NOT close the external-replication limitation (run independence is a different evidence level) |
 
 **Priority order after grounding** (rationale in §10):
-P0 RF-04, RF-06, RF-08 · P1 RF-01, RF-02 (slice 1) · P2 RF-07, RF-09 ·
+P0 RF-04, RF-06, RF-08, RF-14 · P1 RF-01, RF-02 (slice 1) · P2 RF-07, RF-09 ·
 P3 RF-03, RF-05.
 (The pre-grounding draft had RF-01 and RF-05 higher; §10 records why they
 moved.)
@@ -562,7 +562,7 @@ exists (`remora/selective/drift_detector.py` → VERIFY on
 explicitly unwired pending a fresh-data effect. What genuinely remains: online
 conformal (ACI/PID) for whichever selector survives the pending rebenchmark
 protocol, and extending the e-process from a one-shot script to continuous
-shadow-stream monitoring.
+shadow-stream monitoring (scoped under RF-14 slice 2 since 2026-10-04).
 
 **Already in the repo.** `remora/selective/conformal.py` (split-conformal,
 the component that actually assumes exchangeability); `crc.py`, and note that
@@ -1315,6 +1315,15 @@ not reproduce against the tree. Nothing here is a result.
   remaining work is wiring, one artifact, and a guide doc that fixes a
   dangling reference. The Aug 2026 AI Act Art. 12 date makes it timely.
 
+
+- **RF-14** upgrades the existing CLAIM-011/offline Beta-mixture confidence
+  sequence into an assumption-aware sequential assurance layer. It is P0
+  because the current artifact is cycle-level, offline, and its independence
+  premise is explicitly NOT_ESTABLISHED for the overlapping AROMER windows.
+  The first slice changes no action-authority semantics: it establishes a
+  per-decision evidence stream and reproducible anytime-valid monitoring
+  artifacts before any stronger operational safety-rate claim is made.
+
 **P1, scheduled, not idle:** RF-01 lands as prerequisite hardening with
 MCP/external tool fronting (REM-024/REM-030 residual; after the Assurance
 Kernel Freeze #35/#37/#38/#39, since open issue #37 touches the same execution
@@ -1428,6 +1437,44 @@ that WP rather than given an identifier of its own.
 
 ---
 
+## 13. Quality-uplift intake 2026-10-04 (assessed against the registers, deferred)
+
+**Status: deferred, mapped, not new work packages.** The Quality Uplift v2
+proposal of 2026-10-04 (a program document under review; operational
+tracking stays in issue #707) defines twelve packages, QV2-00 through
+QV2-12. QV2-02 is RF-14 and ships slice 1 with the change that adds this
+section. The remaining packages are recorded here so their mapping onto the
+existing registers is fixed and reviewable. None of them receives an RF
+identifier: each restates or extends work that a REM/RF/CAP entry already
+owns, and a parallel ledger would compete with those registers (the
+proposal itself forbids that). Promotion out of this table requires the
+normal grounding pass of §0. Items touching authority-critical code inherit
+the proposal's merge rules: full CI green, adversarial tests for new
+behavior, no lowered coverage floors, no weakened hard guards.
+
+| Item | Scope | Register home | Status 2026-10-04 | Lands when |
+|------|-------|---------------|-------------------|------------|
+| QV2-00 release-profile semantic integrity | authority-critical components declare earliest mandatory profile and maturity; CONTROLLED_PILOT requires CAP-013 | product_truth_contract.yaml, release_profiles_v1.yaml | ready to start; own PR, no runtime change | Wave 0, parallel to the RF-14 merge |
+| QV2-01 pilot authority boundary proof | bounded topology where bypass of the governed dispatcher fails closed | new; execution-safety evidence | not started | a pilot environment and harness exist |
+| QV2-02 sequential assurance v2 | per-decision assumption-aware monitoring | RF-14 | slice 1 shipped; slices 2 to 4 open | see RF-14 slice list |
+| QV2-03 independent harmful holdout | fresh sealed harmful set with valid units for a 0.5% FAR upper-bound target | quality program Q2.1/Q2.3 | not started; needs budget and labelers outside the authoring loop | after RF-14 slice 2 defines the unit |
+| QV2-04 validator contract v1 | typed validator outcomes (PRESENT/ABSENT/UNKNOWN/UNAVAILABLE/STALE/CONTRADICTED), fail-closed on required validators | follows the Q7.1 gate-correctness study | not started | adapter owners assigned |
+| QV2-05 trajectory and cumulative authority | deployment-owned durable trajectory state, cumulative risk budgets, TOCTOU-bound assessment | builds on task identity, loop safety, plan binding | not started | Wave 2 |
+| QV2-06 utility recovery | LLM-as-proposer with deterministic verification, derivation, gate ordering; monotonicity proof required | CLAIM-019 misses | not started; tuning against spent C-ext3 forbidden | Wave 3, on a fresh holdout |
+| QV2-07 durable audit integrity | transactional tenant sequences, external anchoring, ANCHOR_PENDING semantics | REM-025, RF-08 | not started | Wave 2 |
+| QV2-08 database tenant isolation | Postgres RLS bound to verified tenant identity | REM-026, RF-12 | not started | Wave 2; single-tenant pilot exception must be explicit |
+| QV2-09 supply-chain closure | hash-pinned lock, SBOM, image digests, provenance attestation | REM-027 | not started | Wave 2 |
+| QV2-10 independent review | frozen snapshot reviewed by R1/R2/R3 per the existing protocol | REM-021, REM-023, REM-030 | recruitment may start now; final sign-off on a frozen candidate | after load-bearing changes freeze |
+| QV2-11 core surface reduction | machine-readable TCB map; core must not import experimental | Q5.1 import contract | not started | P2, opportunistic |
+| QV2-12 continuous quality governance | single operational board, six-question intake rule | issue #707 | active | continuous |
+
+**Boundary with this document.** The proposal's stop-the-line conditions and
+Controlled Pilot exit contract bind release profiles and the remediation
+register, not research planning. This table records the research-facing
+subset and the register mapping; the proposal remains the program source.
+
+---
+
 Unresolved work packages remain proposals. The claim-hygiene rule applies to this document
 too: if a WP ships and misses its pre-committed target, the result goes to
 `NEGATIVE_RESULTS.md` with the number and the caveat, and this roadmap gets a
@@ -1479,3 +1526,112 @@ inventory. The process-local audit is exportable and tamper-detectable, not
 externally anchored or durable across restart. Production credential separation,
 external runtime adapters and independent deployment validation remain external
 work under the existing remediation gates. No release posture is promoted.
+
+---
+
+## RF-14 — Sequential assurance v2: per-decision, assumption-aware monitoring `[evidence/monitoring]` `[P0, slice 1 shipped, effort M]`
+
+**Gap (grounded).** CLAIM-011 bounds the cycle-level indicator "any false
+accept in this cycle" over 168 AROMER adapt cycles. Every cycle re-scores a
+fixed window of 200 episodes, so consecutive cycles share episodes and the
+independence premise is NOT_ESTABLISHED for that series; n=168 counts
+cycles, and a per-decision FAR cannot be recovered from it. The bound is
+also computed once, after the fact, by a script. None of the pieces slice 1
+needs existed. There was no per-decision resolved-outcome record with
+epoch, cluster and resolver identity, and no variance-adaptive bound for
+bounded losses. There was no e-process against the gate threshold, no
+machine-readable verdict on the statistical premises, and no guard that
+stops a recounted stream from producing a quotable number.
+
+**Already in the repo.** `remora/selective/confidence_sequence.py`
+(Beta-mixture confidence sequence) with `tests/test_confidence_sequence.py`,
+`scripts/compute_far_confidence_sequence.py` and
+`results/far_confidence_sequence_v1.json` (CLAIM-011, theoretical).
+`remora/aromer/experience/episode.py` defines the per-decision taxonomy
+(verdict × ground truth, including false_accept) that the outcome record
+reuses. `remora/capabilities/model.py` `CapabilityEpochs` already versions
+policy and ToolSpec for capability staleness; the assurance epoch applies
+the same change surfaces to evidence segmentation. Committed resolved
+episode fixtures exist (`artifacts/aromer_holdout_episodes.jsonl`, 65
+synthetic replay episodes, 24 in the accept population, 0 false accepts).
+
+**Literature.**
+
+- Ville, J. (1939). *Etude critique de la notion de collectif.*
+  Gauthier-Villars. Ville's inequality, the validity engine below.
+- Darling, D. A. & Robbins, H. (1967). Confidence sequences for mean,
+  variance, and median. *PNAS* 58(1).
+- Howard, S. R., Ramdas, A., McAuliffe, J. & Sekhon, J. (2021).
+  Time-uniform, nonparametric, nonasymptotic confidence sequences.
+  *Annals of Statistics* 49(2). arXiv:1810.08240. Grounding citation for
+  the empirical-Bernstein-style construction.
+- Waudby-Smith, I. & Ramdas, A. (2024). Estimating means of bounded random
+  variables by betting. *JRSS-B* 86(1). Predictable-plug-in betting form.
+- Ramdas, A., Grunwald, P., Vovk, V. & Shafer, G. (2023). Game-theoretic
+  statistics and safe anytime-valid inference. *Statistical Science* 38(4).
+  E-process framing for the threshold test.
+
+**Slices.**
+
+1. **Slice 1 (this change; shipped).** `remora/selective/sequential_assurance.py`:
+   the resolved-outcome record (decision identity, epoch, cluster,
+   resolver provenance) and the premise gate with the four-value vocabulary
+   (ESTABLISHED, PARTIALLY_ESTABLISHED, NOT_ESTABLISHED, CONTRADICTED).
+   The two confidence sequences, the rate e-process, epoch reset on
+   policy/ToolSpec/model changes, and the `SequentialAssuranceReceipt`
+   complete the module.
+   `scripts/compute_sequential_assurance.py` regenerates
+   `results/sequential_assurance_receipt_v1.json` over the committed
+   holdout fixture. No action-authority semantics change, and no claim is
+   promoted: the receipt itself reports PARTIALLY_ESTABLISHED, because the
+   fixture carries no cluster identifiers.
+2. **Slice 2.** Cluster-aware treatment: decisions sharing one underlying
+   task or template get a cluster-robust bound or are collapsed to the
+   cluster as the unit, and the stream schema gains a real exporter from
+   the live episode store (resolved_at, resolver, cluster ids). Includes
+   the RF-05 remainder: continuous monitoring over the shadow decision
+   stream instead of a one-shot script.
+3. **Slice 3.** Gate integration: restate REM-020-class monitoring criteria
+   as e-process thresholds in `docs/assurance/eprocess_monitoring_spec_v1.md`
+   (the spec slot RF-05 already names), with owner sign-off before any
+   criterion text changes. Statistics remain advisory to the gate; the
+   per-action authority path does not read the receipt.
+4. **Slice 4.** Independent replication: an externally produced decision
+   stream scored against the same receipt schema, feeding the statistical
+   reviewer scope of the quality-uplift program (issue #707, QV2-10 R1).
+
+**Artifact.**
+
+- `results/sequential_assurance_receipt_v1.json`: schema
+  `sequential_assurance_receipt_v1`, registered regenerable in the results
+  manifest and verified by the deterministic reproduction round.
+- The schema contract lives in the module docstring of
+  `remora/selective/sequential_assurance.py`; the authority-separation
+  statement and standing assumptions travel inside every receipt.
+
+**Test.** `tests/test_sequential_assurance.py`: closed-form and
+monotonicity checks, a seeded time-uniform coverage simulation for the
+bounded-outcome sequence, and e-process null-validity and power
+simulations. The suite also covers epoch reset on policy, ToolSpec and
+model changes, duplicate-decision and cross-epoch recount rejection
+(CONTRADICTED, bounds withheld), missing-cluster degradation and receipt
+determinism.
+
+**Code.** Library: `remora/selective/sequential_assurance.py` (stdlib
+only). Generator: `scripts/compute_sequential_assurance.py`. Adapter:
+`outcomes_from_episode_records` maps AROMER episode exports onto the
+outcome record. Nothing in `remora/policy`, `remora/enforcement`,
+`remora/execution`, `remora/governance` or `servers` imports it.
+
+**Acceptance.** Slice 1 merges with CLAIM-011 unchanged and cycle-scoped.
+External wording follows the claim discipline: "observed k/N false
+accepts; one-sided time-uniform 95% upper bound X% under the stated
+outcome unit and assumptions", never a flat zero-rate claim. A
+per-decision operational FAR claim requires slice-2 data on a real stream
+whose receipt reports ESTABLISHED; anything weaker stays
+PARTIALLY_ESTABLISHED or NOT_ESTABLISHED and promotes nothing.
+
+**Verdict after grounding: P0, slice 1 shipped.** The package closes the
+experimental-unit defect that CLAIM-011's own caveat names, and it does so
+without touching the authority path. The remaining slices are evidence
+deepening, each gated on the previous one existing.
