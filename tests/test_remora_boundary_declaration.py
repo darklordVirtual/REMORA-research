@@ -23,9 +23,24 @@ from scripts.check_remora_boundaries import (
 pytestmark = pytest.mark.docgate
 ROOT = Path(__file__).resolve().parents[1]
 
+_shallow = subprocess.run(
+    ["git", "rev-parse", "--is-shallow-repository"],
+    cwd=ROOT,
+    capture_output=True,
+    text=True,
+    check=False,
+)
+#: validate_boundary_register refuses a shallow clone before any other rule runs,
+#: so every test that validates the committed register needs full history. The
+#: pytest matrix in ci.yml checks out shallow; quality-gates.yml:verify and
+#: federation-interop.yml check out full history and run these tests there.
+HISTORY_UNAVAILABLE = _shallow.returncode != 0 or _shallow.stdout.strip() == "true"
+
 
 @pytest.fixture
 def declaration() -> dict[str, Any]:
+    if HISTORY_UNAVAILABLE:
+        pytest.skip("boundary freshness needs full Git history; this clone is shallow")
     return yaml.safe_load(REGISTER.read_text(encoding="utf-8"))
 
 
@@ -246,3 +261,31 @@ def test_implementation_changes_after_audit_fail_closed(tmp_path: Path) -> None:
     git("commit", "-qm", "changed source")
     with pytest.raises(BoundaryValidationError, match="changed since audit"):
         _check_revision_and_implementation_freshness(provenance, tmp_path, "HEAD")
+
+
+def test_shallow_history_fails_closed(tmp_path: Path) -> None:
+    def git(*args: str, cwd: Path) -> str:
+        return subprocess.run(
+            ["git", *args],
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+
+    origin = tmp_path / "origin"
+    origin.mkdir()
+    git("init", "-q", cwd=origin)
+    git("config", "user.email", "test@example.invalid", cwd=origin)
+    git("config", "user.name", "test", cwd=origin)
+    source = origin / "guard.py"
+    for value in ("True", "False"):
+        source.write_text(f"guard = {value}\n", encoding="utf-8")
+        git("add", "-A", cwd=origin)
+        git("commit", "-qm", f"guard {value}", cwd=origin)
+    audited = git("rev-parse", "HEAD", cwd=origin)
+    clone = tmp_path / "clone"
+    git("clone", "-q", "--depth", "1", origin.as_uri(), str(clone), cwd=tmp_path)
+    provenance = {"audited_revision": audited, "implementation_sources": ["guard.py"]}
+    with pytest.raises(BoundaryValidationError, match="shallow or invalid Git history"):
+        _check_revision_and_implementation_freshness(provenance, clone, "HEAD")
