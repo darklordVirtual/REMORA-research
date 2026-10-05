@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-10-02: **17 `open`**, **27 `accepted`**, **31 `superseded`**.
+Counts as of 2026-10-06: **18 `open`**, **27 `accepted`**, **31 `superseded`**.
 
 ## The actual backlog
 
@@ -111,6 +111,11 @@ cites only `open` sections and that no `open` section is missing a theme.
    accepted-producer map and the clock are taken on faith. Trusted
    timestamping and WORM-anchored trust configuration are the mitigations
    (REM-025), not this layer.
+12. **Pre-Federation red team repaired, not re-run** (§76): 36 of 46 targeted attacks succeeded against `master` 9a3d321.
+   The paths are closed and the probes are regression tests, but the
+   Federation successors `effect-evidence-v1.1` and `exact-call-binding-v1.1`
+   have only author runs. `E-ECB` and `E-EE` stay `TESTED` /
+   `NOT_ESTABLISHED` until an external verifier runs the v1.1 corpora.
 
 <!-- backlog-end -->
 
@@ -4520,3 +4525,62 @@ to see every field it attests, is now enforced in the coverage branch as well.
 Tests: `tests/test_evidence_admission_coverage_trust.py`. The finding stays
 open: the accepted-coverage set is, like the producer map, the deployment's
 word, and the clock is unchanged.
+
+## §76 Pre-Federation red team: 36 of 46 targeted attacks succeeded (2026-10-06)
+<!-- finding-status: open -->
+
+**Status:** recorded with the remediation of draft PR #744's probes. Open
+until the v1.1 Federation corpora have an external run.
+
+**What was measured.** Forty-six targeted attacks
+(`tests/test_pre_federation_*.py`) against `master` at 9a3d321: 36 red,
+10 green. The machine-confirmed failures, in the order they were closed:
+
+1. **Effect semantics.** A missing field satisfied an expected explicit
+   `null` under `exact`/`hash`, in the core verifier and the public SDK. An
+   unknown rule (`excat`) fell through to `exact` and could verify. A rule
+   for an undeclared field was never evaluated. `version_increment` coerced
+   with `int()`, so `"6"` or `true` advanced a counter.
+2. **Shallow immutability.** Effect verifications, postcondition contracts,
+   SDK specs, producer manifests and admission reports froze one level deep.
+   A nested alias changed the content after its digest was computed, and an
+   accepted manifest digest established producer visibility in another
+   tenant's scope.
+3. **Final-hop TOCTOU.** A lease authorized `amount=1`, a refusal hook
+   mutated the argument object after the hash check, and the tool ran with
+   `amount=999`; the dispatcher verified a new ToolSpec and ran the callable
+   fetched before verification.
+4. **Receipt integrity.** An unbound `EFFECT_UNSUPPORTED` took the terminal
+   slot with HTTP 200 and the legitimate `EFFECT_VERIFIED` was then refused
+   as `receipt_replayed`; the endpoint stored a forged `tool_id`, a forged
+   `toolspec_hash` and `EFFECT_VERIFIED` paired with a mismatch reason; an
+   empty verifier allowlist trusted everyone.
+5. **Federation false-green.** The `effect-evidence-v1` reference verifier
+   had the same missing/null defect as the core, and neither v1 corpus held
+   the discriminating case, so two implementations agreed on the wrong
+   answer.
+6. **Library exact-call canonicalization** merged object and string, numeric
+   and string keys, tuple and list, and accepted NaN/Infinity. Strict JSON
+   ingress protected `/v1/execution`; this was a library and adapter hole,
+   not a proven HTTP bypass.
+7. **Async authority.** A worker executed under ToolSpec v2 a call assessed
+   under v1, and ignored a fresh observation with `adversarial_detected`
+   (the activation gap #423 named, now reproducible).
+8. **Durability topology.** Production admitted `REMORA_STATE_ENDPOINT`
+   alone while the tenant audit chain and dispatch outbox stayed in process
+   memory, and health telemetry reported `in_process`.
+
+What held: strict JSON ingress, authenticated principal binding, authority
+and executor custody, the durable nonce and jti mechanisms, and
+`EffectiveCapabilitySet`, whose deep-freeze discipline `remora/frozen_json.py`
+now generalises.
+
+**What changed.** Each failure is closed in the reusable primitive, listed in
+CHANGELOG under "Pre-Federation boundary probes (2026-10-06)". The 46 probes
+pass and run in CI.
+
+**Why it stays open.** The repairs are tested by the same author who wrote
+the attacks. The v1 Federation packages keep their bytes and are marked
+superseded with these blind spots recorded; their successors are `DRAFT`
+with author (L0) runs only. Neither edge is lifted above `TESTED` /
+`NOT_ESTABLISHED` by this section.
