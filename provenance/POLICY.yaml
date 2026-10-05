@@ -23,7 +23,16 @@ signatures:
 
 # Vocabulary. A record may not use a value outside these lists.
 origin_status: [claimed_original_contribution, reviewed_original_contribution, compositional_contribution, derived]
-classification: [ORIGINAL_CLAIM, PRIOR_ART_OVERLAP, COMPOSITIONAL_CONTRIBUTION, IMPLEMENTATION_INNOVATION, TERMINOLOGY_ONLY, DERIVED, UNKNOWN]
+# Classification values. The original coarse set stands; the finer-grained
+# set added 2026-10-04 maps onto it as follows: KNOWN_PRIOR_ART and
+# RELATED_PRIOR_ART are strengths of PRIOR_ART_OVERLAP; INDEPENDENT
+# CONVERGENCE is recorded with the later work named and dated;
+# REMORA_EXTENSION sits between PRIOR_ART_OVERLAP and IMPLEMENTATION_
+# INNOVATION; REMORA_COMPOSITION is COMPOSITIONAL_CONTRIBUTION;
+# POTENTIALLY_DISTINCT is below ORIGINAL_CLAIM and requires a wider
+# literature and patent search before any upgrade; NOT_ENOUGH_EVIDENCE
+# means the review ran and could not classify.
+classification: [ORIGINAL_CLAIM, PRIOR_ART_OVERLAP, COMPOSITIONAL_CONTRIBUTION, IMPLEMENTATION_INNOVATION, TERMINOLOGY_ONLY, DERIVED, UNKNOWN, KNOWN_PRIOR_ART, RELATED_PRIOR_ART, INDEPENDENT_CONVERGENCE, REMORA_EXTENSION, REMORA_COMPOSITION, POTENTIALLY_DISTINCT, NOT_ENOUGH_EVIDENCE]
 
 # A classification other than UNKNOWN requires a dated review in
 # PRIOR_ART.yaml that names the concept. The manifest builder refuses a

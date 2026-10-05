@@ -20,20 +20,416 @@ sources:
     locator: https://github.com/Agent-Authority-Conformance/aps-conformance-suite
     covers: "Agent Passport System conformance vocabulary and fixtures; the A to G property model REMORA was assessed against"
     note: an external vocabulary, not a REMORA artifact; relevant to PROV-03, PROV-05, PROV-06, PROV-13
+  # Canonical pre-2026 literature used by the 2026-10-04 review round
+  # (PA-REV-001 to PA-REV-017). Identifiers below are standards documents
+  # and widely cited publications; each predates every first_recorded date
+  # in the concept records.
+  - id: PA-SRC-004
+    kind: publication
+    locator: "Schneier & Kelsey (1999), Secure Audit Logs to Withstand Computer Break-ins, ACM TISSEC 2(2); https://www.schneier.com/academic/paperfiles/paper-auditlogs.pdf"
+    covers: "hash-chained, authenticated audit logs that survive a compromised writer; relevant to PROV-01"
+  - id: PA-SRC-005
+    kind: external_specification
+    locator: https://www.rfc-editor.org/rfc/rfc6962
+    covers: "Certificate Transparency: signed, append-only Merkle logs with consistency proofs; relevant to PROV-01"
+  - id: PA-SRC-006
+    kind: publication
+    locator: "Torres-Arias et al. (2019), in-toto: Providing farm-to-table guarantees for bits and bytes, USENIX Security; https://www.usenix.org/conference/usenixsecurity19/presentation/torres-arias"
+    covers: "signed supply-chain metadata binding steps, actors and artifacts; relevant to PROV-01, PROV-02, PROV-17"
+  - id: PA-SRC-007
+    kind: external_specification
+    locator: "OASIS XACML 3.0 (2013); http://docs.oasis-open.org/xacml/3.0/xacml-3.0-core-spec-os-en.html"
+    covers: "PDP/PEP separation as a standardized architecture; relevant to PROV-05"
+  - id: PA-SRC-008
+    kind: external_specification
+    locator: https://www.rfc-editor.org/rfc/rfc7519
+    covers: "JSON Web Token: signed, expiring, audience-restricted claims; relevant to PROV-05, PROV-06"
+  - id: PA-SRC-009
+    kind: publication
+    locator: "Birgisson et al. (2014), Macaroons: Cookies with Contextual Caveats, USENIX Security; https://research.google/pubs/macaroons-cookies-with-contextual-caveats/"
+    covers: "bearer tokens with contextual caveats attenuating exact operations; relevant to PROV-03, PROV-06, PROV-16"
+  - id: PA-SRC-010
+    kind: publication
+    locator: "Anderson (1972), Computer Security Technology Planning Study, ESD-TR-73-51; https://csrc.nist.gov/publications/history/ande72.pdf"
+    covers: "the reference monitor concept: tamper-proof, always invoked, small enough to verify; relevant to PROV-07, PROV-12"
+  - id: PA-SRC-011
+    kind: publication
+    locator: "Saltzer & Schroeder (1975), The Protection of Information in Computer Systems, Proc. IEEE 63(9); doi:10.1109/PROC.1975.9939"
+    covers: "least privilege, complete mediation, separation of privilege; relevant to PROV-07, PROV-10, PROV-12"
+  - id: PA-SRC-012
+    kind: external_specification
+    locator: https://www.rfc-editor.org/rfc/rfc2693
+    covers: "SPKI certificate theory, including the delegation bit that controls whether authority may be re-delegated; relevant to PROV-10"
+  - id: PA-SRC-013
+    kind: publication
+    locator: "Hardy (1988), The Confused Deputy; http://cap-lore.com/CapTheory/ConfusedDeputy.html"
+    covers: "why authority must be bound to the concrete operation, not ambient; relevant to PROV-03, PROV-10"
+  - id: PA-SRC-014
+    kind: external_specification
+    locator: https://www.rfc-editor.org/rfc/rfc8785
+    covers: "JSON Canonicalization Scheme: deterministic serialization for hashing; cited in remora/interop/jcs.py; relevant to PROV-13"
+  - id: PA-SRC-015
+    kind: external_specification
+    locator: https://www.rfc-editor.org/rfc/rfc4120
+    covers: "Kerberos v5: short-lived service tickets, replay caches, mutual verification; relevant to PROV-06, PROV-14"
+  - id: PA-SRC-016
+    kind: publication
+    locator: "Provos, Friedl & Honeyman (2003), Preventing Privilege Escalation, USENIX Security (privilege separation); CITI Technical Report 03-2"
+    covers: "privilege separation as an enforced process architecture; relevant to PROV-12, PROV-15"
+  - id: PA-SRC-017
+    kind: external_specification
+    locator: https://www.rfc-editor.org/rfc/rfc8707
+    covers: "OAuth 2.0 resource indicators: binding an authorization to its intended target; relevant to PROV-03, PROV-16"
+  - id: PA-SRC-018
+    kind: external_specification
+    locator: https://www.rfc-editor.org/rfc/rfc9449
+    covers: "DPoP: sender-constraining tokens to a client key; relevant to PROV-03, PROV-05"
+  - id: PA-SRC-019
+    kind: publication
+    locator: "Miller, Yee & Shapiro (2003), Capability Myths Demolished; https://erights.org/elib/capability/dual.html"
+    covers: "object-capability discipline: authority as unforgeable reference, attenuation on delegation; relevant to PROV-06, PROV-07, PROV-10"
+  - id: PA-SRC-020
+    kind: publication
+    locator: https://arxiv.org/abs/2607.21835
+    covers: "ToolGuardian: declarative security contracts for agent-tool interactions; registered in research_shelf_v1.yaml as SHELF-001, VERIFIED_RETRIEVED; relevant to PROV-02"
+  - id: PA-SRC-021
+    kind: publication
+    locator: https://arxiv.org/abs/2610.01349
+    covers: "PACE: provenance-aware capability enforcement immediately before tool execution, with effect verification; abstract retrieved 2026-10-04; relevant to PROV-07, PROV-17"
+    note: "dated 2026-10-01, after every REMORA first_recorded commit it resembles; recorded as independent convergence, not as prior art"
+  - id: PA-SRC-022
+    kind: publication
+    locator: "Shafer (1976), A Mathematical Theory of Evidence, Princeton University Press"
+    covers: "the formal distinction between disbelief and absence of evidence; relevant to PROV-11"
+  - id: PA-SRC-023
+    kind: publication
+    locator: "Bishop & Dilger (1996), Checking for Race Conditions in File Accesses, Computing Systems 9(2)"
+    covers: "canonical statement of the time-of-check to time-of-use problem; relevant to PROV-04, PROV-08"
+  - id: PA-SRC-024
+    kind: publication
+    locator: "Howard, Pincus & Wing (2005), Measuring Relative Attack Surfaces, in Computer Security in the 21st Century, Springer"
+    covers: "attack-surface measurement as an empirical discipline; relevant to PROV-09"
+  - id: PA-SRC-025
+    kind: external_specification
+    locator: https://modelcontextprotocol.io
+    covers: "MCP tool descriptions: server-supplied, unsigned tool metadata; the contrast case for PROV-02"
 
-# No review has been recorded yet. Every concept record therefore carries
-# classification UNKNOWN and origin.status claimed_original_contribution.
-# A review entry has this shape:
-#   - id: PA-REV-001
-#     date: 2026-10-20
-#     reviewer: <name>
-#     concepts: [PROV-13]
-#     works:
-#       - title: <work>
-#         locator: <url or citation>
-#         overlap: <what the work already has>
-#         difference: <what it does not have>
-#     outcome:
-#       classification: COMPOSITIONAL_CONTRIBUTION
-#       claimed_contribution_limited_to: <one sentence>
-reviews: []
+# First review round: 2026-10-04, one review per concept. Reviewer is an
+# AI-assisted pass directed by the maintainer; per docs/AI_USE.md the text is
+# not evidence by itself, and each entry is written to be checkable against
+# the named locators. No review in this round assigns ORIGINAL_CLAIM or
+# POTENTIALLY_DISTINCT: those grades require a wider literature and patent
+# search than this round performed.
+reviews:
+  - id: PA-REV-001
+    date: "2026-10-04"
+    reviewer: "AI-assisted review (GitHub Copilot), directed by the maintainer; human spot-check pending"
+    concepts: [PROV-01]
+    works:
+      - title: "Schneier & Kelsey (1999), Secure Audit Logs"
+        locator: PA-SRC-004
+        overlap: "Signed, hash-chained records that a later verifier can check entry by entry."
+        difference: "Protects a log of events; it does not bind one governance decision to the execution it authorizes."
+      - title: "RFC 6962 Certificate Transparency"
+        locator: PA-SRC-005
+        overlap: "Signed, append-only records with cryptographic verification by third parties."
+        difference: "Logs certificates for public audit; the DecisionEnvelope is per-decision and carries the policy identity and observation hash."
+      - title: "in-toto (2019)"
+        locator: PA-SRC-006
+        overlap: "Signed metadata binds a step to the actor and artifacts it produced."
+        difference: "Supply-chain steps, not runtime governance decisions of an agent gate."
+    outcome:
+      classification: REMORA_COMPOSITION
+      claimed_contribution_limited_to: "Applying the signed, hash-chained record to one agent governance decision so an audit entry and an execution can be joined from either end."
+  - id: PA-REV-002
+    date: "2026-10-04"
+    reviewer: "AI-assisted review (GitHub Copilot), directed by the maintainer; human spot-check pending"
+    concepts: [PROV-02]
+    works:
+      - title: "ToolGuardian (arXiv:2607.21835)"
+        locator: PA-SRC-020
+        overlap: "Declarative contracts describing what a tool call may be, checked at runtime."
+        difference: "Contracts are part of the proposal surface; ToolSpec adds deployment-owned signing and refuses bundles whose signing identity disagrees with their specs."
+      - title: "in-toto (2019)"
+        locator: PA-SRC-006
+        overlap: "Signed metadata about artifacts, verified against a supply-chain layout."
+        difference: "Signs artifacts and steps, not the behavioral contract a tool call is assessed against."
+      - title: "Model Context Protocol specification"
+        locator: PA-SRC-025
+        overlap: "Servers advertise tool descriptions the agent consumes."
+        difference: "MCP tool metadata is server-supplied and unsigned; the ToolSpec is deployment-owned and signed."
+    outcome:
+      classification: REMORA_EXTENSION
+      claimed_contribution_limited_to: "Deployment-owned signing of the tool contract itself, with refusal when signing identity and specs disagree, in the agent tool-call setting."
+  - id: PA-REV-003
+    date: "2026-10-04"
+    reviewer: "AI-assisted review (GitHub Copilot), directed by the maintainer; human spot-check pending"
+    concepts: [PROV-03]
+    works:
+      - title: "Macaroons (2014)"
+        locator: PA-SRC-009
+        overlap: "Contextual caveats attenuate a token down to exact operations and arguments."
+        difference: "Caveats attenuate a bearer token; the REMORA binding is recomputed at the enforcement point instead of traveling with the credential."
+      - title: "RFC 9449 DPoP"
+        locator: PA-SRC-018
+        overlap: "Binds a token presentation to the exact request, including method and target."
+        difference: "Binds HTTP requests to a client key; REMORA binds a governance authorization to one tool call and its policy identity."
+      - title: "Hardy (1988), The Confused Deputy"
+        locator: PA-SRC-013
+        overlap: "States why ambient authority detached from the concrete operation is unsafe."
+        difference: "Diagnosis only; no binding mechanism."
+      - title: "RFC 8707 resource indicators"
+        locator: PA-SRC-017
+        overlap: "Binds an authorization to its intended target resource."
+        difference: "Target only; not the full canonical argument set and policy-bundle identity."
+    outcome:
+      classification: KNOWN_PRIOR_ART
+      claimed_contribution_limited_to: "The application pattern at the agent tool boundary: authorization bound to one tool, canonical arguments, target and policy identity, recomputed at dispatch."
+  - id: PA-REV-004
+    date: "2026-10-04"
+    reviewer: "AI-assisted review (GitHub Copilot), directed by the maintainer; human spot-check pending"
+    concepts: [PROV-04]
+    works:
+      - title: "Bishop & Dilger (1996), TOCTOU"
+        locator: PA-SRC-023
+        overlap: "Names the check-to-use gap that a stale approval exploits."
+        difference: "File-system races; says nothing about human approvals of agent actions."
+      - title: "RFC 4120 Kerberos"
+        locator: PA-SRC-015
+        overlap: "Credentials carry lifetimes and are re-validated rather than trusted indefinitely."
+        difference: "Expiry is a clock property; the REMORA re-gate re-decides on the fresh observation and refuses anything stricter."
+    outcome:
+      classification: KNOWN_PRIOR_ART
+      claimed_contribution_limited_to: "Treating approval freshness as a fresh decision on the execution-time observation, in an agent governance gate."
+  - id: PA-REV-005
+    date: "2026-10-04"
+    reviewer: "AI-assisted review (GitHub Copilot), directed by the maintainer; human spot-check pending"
+    concepts: [PROV-05]
+    works:
+      - title: "OASIS XACML 3.0"
+        locator: PA-SRC-007
+        overlap: "PDP/PEP separation with the decision produced by the PDP and enforced by the PEP."
+        difference: "XACML does not specify a signed, one-time decision token carrying the observation hash; PEPs typically trust the transport."
+      - title: "RFC 7519 JWT"
+        locator: PA-SRC-008
+        overlap: "Signed, expiring, audience-restricted claims verified without calling the issuer."
+        difference: "General claims container; the PolicyDecisionToken profiles it with a one-time jti and a bound observation hash."
+    outcome:
+      classification: RELATED_PRIOR_ART
+      claimed_contribution_limited_to: "The specific token profile: one-time use, mandatory expiry, audience, and the decision bound to the hash of the observation it decided on."
+  - id: PA-REV-006
+    date: "2026-10-04"
+    reviewer: "AI-assisted review (GitHub Copilot), directed by the maintainer; human spot-check pending"
+    concepts: [PROV-06]
+    works:
+      - title: "RFC 4120 Kerberos"
+        locator: PA-SRC-015
+        overlap: "Short-lived tickets authorize a specific service access and are verified locally."
+        difference: "Tickets authorize a service class; the lease authorizes one exact call and dies with it."
+      - title: "Macaroons (2014)"
+        locator: PA-SRC-009
+        overlap: "Attenuated bearer capabilities with expiry and contextual caveats."
+        difference: "Macaroons delegate and attenuate; the lease is minted only from an accepted decision and consumed at most once."
+      - title: "Miller, Yee & Shapiro (2003), Capability Myths Demolished"
+        locator: PA-SRC-019
+        overlap: "Authority as an unforgeable, attenuable reference."
+        difference: "Object capabilities are persistent references; the lease is single-use and exact-call-bound."
+    outcome:
+      classification: REMORA_COMPOSITION
+      claimed_contribution_limited_to: "Combining single-use consumption, expiry, exact-call binding and signed policy and task identities in one execution capability."
+  - id: PA-REV-007
+    date: "2026-10-04"
+    reviewer: "AI-assisted review (GitHub Copilot), directed by the maintainer; human spot-check pending"
+    concepts: [PROV-07]
+    works:
+      - title: "Anderson (1972), reference monitor"
+        locator: PA-SRC-010
+        overlap: "A tamper-proof mediation point that every access must pass through."
+        difference: "Frames the security kernel generally; says nothing about LLM agents or tool callables."
+      - title: "Saltzer & Schroeder (1975)"
+        locator: PA-SRC-011
+        overlap: "Complete mediation as a design principle."
+        difference: "Principle only; no dispatch mechanism holding credentials."
+      - title: "Miller, Yee & Shapiro (2003)"
+        locator: PA-SRC-019
+        overlap: "Holding the capability separate from the subject that may invoke it."
+        difference: "Assumes capability-holding subjects; the REMORA agent holds only a lease and never the callable."
+      - title: "PACE (arXiv:2610.01349, abstract reviewed 2026-10-04)"
+        locator: PA-SRC-021
+        overlap: "Mediates every tool call immediately before execution with capability and effect verification."
+        difference: "PACE is dated 2026-10-01, after PROV-07's first record (2026-07-20); this is independent convergence, and only the abstract was compared."
+    outcome:
+      classification: RELATED_PRIOR_ART
+      claimed_contribution_limited_to: "The dispatcher custody arrangement for LLM-agent tools: the agent never holds the callable or its credential, and the dispatcher re-verifies the full binding and burns the nonce."
+  - id: PA-REV-008
+    date: "2026-10-04"
+    reviewer: "AI-assisted review (GitHub Copilot), directed by the maintainer; human spot-check pending"
+    concepts: [PROV-08]
+    works:
+      - title: "Bishop & Dilger (1996), TOCTOU"
+        locator: PA-SRC-023
+        overlap: "The object of authorization changing between check and use is the classic race."
+        difference: "File-system scope; the REMORA refusal binds the approved ToolSpec identity, not a pathname."
+      - title: "RFC 8785 JCS"
+        locator: PA-SRC-014
+        overlap: "Canonical serialization makes digest equality over a document meaningful."
+        difference: "A serialization rule; the refusal semantics over a changed tool definition are REMORA's."
+    outcome:
+      classification: RELATED_PRIOR_ART
+      claimed_contribution_limited_to: "Refusing dispatch when the ToolSpec about to run is not the ToolSpec the approval was granted over, so a redeployed definition cannot inherit an earlier approval."
+  - id: PA-REV-009
+    date: "2026-10-04"
+    reviewer: "AI-assisted review (GitHub Copilot), directed by the maintainer; human spot-check pending"
+    concepts: [PROV-09]
+    works:
+      - title: "Howard, Pincus & Wing (2005), attack-surface measurement"
+        locator: PA-SRC-024
+        overlap: "Enumerating and measuring what a system exposes."
+        difference: "Produces a measurement; REMORA's point is epistemic: completeness of the observation is a separate claim that usually stays unestablished."
+      - title: "RFC 6962 Certificate Transparency"
+        locator: PA-SRC-005
+        overlap: "Third parties verify logs against observed state and flag inconsistency."
+        difference: "Public logs with global observers; REMORA observes a runtime tool surface from one host's vantage."
+    outcome:
+      classification: REMORA_EXTENSION
+      claimed_contribution_limited_to: "Holding runtime capability-surface completeness as a separately gated claim instead of an assumed property of the observation."
+  - id: PA-REV-010
+    date: "2026-10-04"
+    reviewer: "AI-assisted review (GitHub Copilot), directed by the maintainer; human spot-check pending"
+    concepts: [PROV-10]
+    works:
+      - title: "RFC 2693 SPKI"
+        locator: PA-SRC-012
+        overlap: "The delegation bit controls whether a subject may re-delegate the authority it received."
+        difference: "Certificate-level control; PROV-10 also states that a tool's authorization does not cover the privileged effects its implementation can reach."
+      - title: "Hardy (1988), The Confused Deputy"
+        locator: PA-SRC-013
+        overlap: "Authority exercised on behalf of another party must not be ambient."
+        difference: "Motivates the rule; does not enforce narrowing-only delegation in an agent toolchain."
+      - title: "Miller, Yee & Shapiro (2003)"
+        locator: PA-SRC-019
+        overlap: "Attenuation on delegation is standard capability practice."
+        difference: "Ocaps permit further delegation by default; PROV-10 makes non-widening an explicit, tested invariant."
+    outcome:
+      classification: KNOWN_PRIOR_ART
+      claimed_contribution_limited_to: "Stating and testing non-transitivity as an explicit invariant of the REMORA capability and effect domains, including what a tool's implementation can reach."
+  - id: PA-REV-011
+    date: "2026-10-04"
+    reviewer: "AI-assisted review (GitHub Copilot), directed by the maintainer; human spot-check pending"
+    concepts: [PROV-11]
+    works:
+      - title: "Shafer (1976), A Mathematical Theory of Evidence"
+        locator: PA-SRC-022
+        overlap: "Formal distinction between evidence against and absence of evidence."
+        difference: "A calculus of belief; REMORA operationalizes the tri-state as a conformance verdict over evidence sets."
+      - title: "in-toto (2019)"
+        locator: PA-SRC-006
+        overlap: "Verification passes, fails, or cannot be performed with the metadata present."
+        difference: "Supply-chain metadata; the sufficiency vocabulary is applied to governance claims with adequacy-tested corpora."
+    outcome:
+      classification: RELATED_PRIOR_ART
+      claimed_contribution_limited_to: "The operational tri-state verdict for governance evidence, with missing evidence never counting as establishment and the corpus adequacy-tested against seeded faults."
+  - id: PA-REV-012
+    date: "2026-10-04"
+    reviewer: "AI-assisted review (GitHub Copilot), directed by the maintainer; human spot-check pending"
+    concepts: [PROV-12]
+    works:
+      - title: "Provos, Friedl & Honeyman (2003), privilege separation"
+        locator: PA-SRC-016
+        overlap: "Splitting a system so the privileged component does not perform the untrusted work."
+        difference: "Process privileges in one operating system; PROV-12 splits the signing domain from the effect domain across a governance pipeline."
+      - title: "Saltzer & Schroeder (1975)"
+        locator: PA-SRC-011
+        overlap: "Least privilege and separation of privilege as principles."
+        difference: "Principles; the REMORA split is a process-role guard wired into token, gate and executor."
+    outcome:
+      classification: KNOWN_PRIOR_ART
+      claimed_contribution_limited_to: "Applying the authority/effect domain split to an agent governance pipeline, with the executor verifying authority it did not issue."
+  - id: PA-REV-013
+    date: "2026-10-04"
+    reviewer: "AI-assisted review (GitHub Copilot), directed by the maintainer; human spot-check pending"
+    concepts: [PROV-13]
+    works:
+      - title: "RFC 8785 JCS"
+        locator: PA-SRC-014
+        overlap: "Deterministic JSON canonicalization so a hash covers the logical content; REMORA's interop code cites it directly."
+        difference: "The canonicalization rule only; PROV-13 is its application to tool calls, recomputed at the enforcement point."
+      - title: "Macaroons (2014)"
+        locator: PA-SRC-009
+        overlap: "Keyed hashing binds caveats to a token so mutation is detected."
+        difference: "Binds caveats to credentials; PROV-13 binds the canonical call to the lease and recomputes at dispatch."
+    outcome:
+      classification: KNOWN_PRIOR_ART
+      claimed_contribution_limited_to: "Hashing the full canonical call including tenant and target, never a truncated preview, and recomputing it at the enforcement point."
+  - id: PA-REV-014
+    date: "2026-10-04"
+    reviewer: "AI-assisted review (GitHub Copilot), directed by the maintainer; human spot-check pending"
+    concepts: [PROV-14]
+    works:
+      - title: "RFC 4120 Kerberos"
+        locator: PA-SRC-015
+        overlap: "Replay caches reject re-presented authenticators."
+        difference: "Detects replay within a time window; the REMORA nonce is consumed durably when a store is configured."
+      - title: "RFC 7519 JWT"
+        locator: PA-SRC-008
+        overlap: "The jti claim exists for one-time token semantics."
+        difference: "The claim is optional and unconsumed by default; PROV-14 makes consumption mandatory and distinguishes a nonce burned by a failed execution from a replay."
+    outcome:
+      classification: KNOWN_PRIOR_ART
+      claimed_contribution_limited_to: "Durable one-time consumption with the burned-by-failure distinction, as a property of the execution lease."
+  - id: PA-REV-015
+    date: "2026-10-04"
+    reviewer: "AI-assisted review (GitHub Copilot), directed by the maintainer; human spot-check pending"
+    concepts: [PROV-15]
+    works:
+      - title: "Provos, Friedl & Honeyman (2003), privilege separation"
+        locator: PA-SRC-016
+        overlap: "Enforced separation between the privileged and unprivileged parts of one system."
+        difference: "Code structure in one OS process model; PROV-15 is a deployment-profile guard over which process may hold which material."
+      - title: "RFC 4120 Kerberos"
+        locator: PA-SRC-015
+        overlap: "Key distribution centers hold signing keys that services never see."
+        difference: "A protocol role split; PROV-15 makes custody a hard guard a strict profile refuses to start without."
+    outcome:
+      classification: RELATED_PRIOR_ART
+      claimed_contribution_limited_to: "Making custody split a runtime hard guard: under a strict profile the process must declare its domain role, and a violation is a refusal, not a warning."
+  - id: PA-REV-016
+    date: "2026-10-04"
+    reviewer: "AI-assisted review (GitHub Copilot), directed by the maintainer; human spot-check pending"
+    concepts: [PROV-16]
+    works:
+      - title: "RFC 8707 resource indicators"
+        locator: PA-SRC-017
+        overlap: "Binding an authorization to the context it was granted for."
+        difference: "Binds to a target resource; the lease binds to the task identity the decision was made under."
+      - title: "Macaroons (2014)"
+        locator: PA-SRC-009
+        overlap: "Caveats can scope a token to a context identifier."
+        difference: "General caveat mechanism; the REMORA binding is to a governance task identity with dispatch-time refusal."
+    outcome:
+      classification: RELATED_PRIOR_ART
+      claimed_contribution_limited_to: "Signing the task identity into the lease and refusing dispatch under another task or none, so authority does not float free of the work it was granted for."
+  - id: PA-REV-017
+    date: "2026-10-04"
+    reviewer: "AI-assisted review (GitHub Copilot), directed by the maintainer; human spot-check pending"
+    concepts: [PROV-17]
+    works:
+      - title: "Anderson (1972), reference monitor"
+        locator: PA-SRC-010
+        overlap: "End-to-end mediation between a subject and every sensitive operation."
+        difference: "One component of the chain; PROV-17 is the composition of decision record, contract, token, lease, dispatch and effect check."
+      - title: "in-toto (2019)"
+        locator: PA-SRC-006
+        overlap: "A chain of signed steps whose links are verified together."
+        difference: "Offline supply-chain verification; the REMORA chain mediates live agent executions."
+      - title: "Saltzer & Schroeder (1975)"
+        locator: PA-SRC-011
+        overlap: "The design principles the chain operationalizes."
+        difference: "Principles, not a mechanism."
+      - title: "PACE (arXiv:2610.01349, abstract reviewed 2026-10-04)"
+        locator: PA-SRC-021
+        overlap: "A boundary that mediates every tool call with capability and effect verification, published 2026-10-01."
+        difference: "PACE postdates the REMORA records (first 2026-07-20) and is recorded as independent convergence; a full-text comparison is future work, and only the abstract supports this row."
+    outcome:
+      classification: REMORA_COMPOSITION
+      claimed_contribution_limited_to: "The integrated, tested chain from agent proposal to verified effect under deployment-owned authority, as one governance artifact; each link in the chain is established practice, and no link is claimed novel."

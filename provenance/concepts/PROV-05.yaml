@@ -11,8 +11,8 @@ origin:
   authors:
   - Stian Skogbrott
   project: REMORA
-  status: claimed_original_contribution
-classification: UNKNOWN
+  status: derived
+classification: RELATED_PRIOR_ART
 first_recorded:
   commit: 3ba703664a89cd399230547468ea5b7def0c25eb
   authored: '2026-06-28T23:42:01+02:00'
@@ -45,13 +45,17 @@ distinguishing_contribution: The decision point signs a token with mandatory exp
   and a bound observation hash; the enforcement point verifies it and never calls back into the decision
   point.
 prior_art:
-  reviewed: false
+  reviewed: true
   review_sources:
   - PA-SRC-001
   - PA-SRC-002
-  records: []
-  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
-    Registration is not a claim of invention.
+  - PA-SRC-007
+  - PA-SRC-008
+  records:
+  - PA-REV-005
+  note: "Reviewed 2026-10-04 in PA-REV-005: RELATED_PRIOR_ART. The review names the works compared,
+    the overlap, the difference and the sentence the claimed contribution is
+    limited to. Registration is not a claim of invention."
 evolution:
 - stage: first_recorded
   commit: 3ba703664a89cd399230547468ea5b7def0c25eb

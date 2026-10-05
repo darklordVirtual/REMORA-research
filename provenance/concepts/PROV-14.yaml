@@ -10,8 +10,8 @@ origin:
   authors:
   - Stian Skogbrott
   project: REMORA
-  status: claimed_original_contribution
-classification: UNKNOWN
+  status: derived
+classification: KNOWN_PRIOR_ART
 first_recorded:
   commit: 26888d623422b94f45cb0e0a4b300cc510444d99
   authored: '2026-07-20T15:07:54+02:00'
@@ -41,13 +41,17 @@ federation_produces: null
 distinguishing_contribution: A lease nonce is consumed once, durably when a store is configured, and a
   nonce burned by a failed execution reports that failure rather than a plain replay.
 prior_art:
-  reviewed: false
+  reviewed: true
   review_sources:
   - PA-SRC-001
   - PA-SRC-002
-  records: []
-  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
-    Registration is not a claim of invention.
+  - PA-SRC-008
+  - PA-SRC-015
+  records:
+  - PA-REV-014
+  note: "Reviewed 2026-10-04 in PA-REV-014: KNOWN_PRIOR_ART. The review names the works compared,
+    the overlap, the difference and the sentence the claimed contribution is
+    limited to. Registration is not a claim of invention."
 evolution:
 - stage: first_recorded
   commit: 26888d623422b94f45cb0e0a4b300cc510444d99

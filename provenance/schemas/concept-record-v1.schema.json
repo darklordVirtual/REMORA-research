@@ -20,7 +20,7 @@
         "status": {"enum": ["claimed_original_contribution", "reviewed_original_contribution", "compositional_contribution", "derived"]}
       }
     },
-    "classification": {"enum": ["ORIGINAL_CLAIM", "PRIOR_ART_OVERLAP", "COMPOSITIONAL_CONTRIBUTION", "IMPLEMENTATION_INNOVATION", "TERMINOLOGY_ONLY", "DERIVED", "UNKNOWN"]},
+    "classification": {"enum": ["ORIGINAL_CLAIM", "PRIOR_ART_OVERLAP", "COMPOSITIONAL_CONTRIBUTION", "IMPLEMENTATION_INNOVATION", "TERMINOLOGY_ONLY", "DERIVED", "KNOWN_PRIOR_ART", "RELATED_PRIOR_ART", "INDEPENDENT_CONVERGENCE", "REMORA_EXTENSION", "REMORA_COMPOSITION", "POTENTIALLY_DISTINCT", "NOT_ENOUGH_EVIDENCE", "UNKNOWN"]},
     "first_recorded": {
       "type": "object", "additionalProperties": false,
       "required": ["commit", "authored", "committed", "signature", "paths", "method"],

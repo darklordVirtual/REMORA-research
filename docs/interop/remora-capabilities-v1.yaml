@@ -1,0 +1,858 @@
+schema: remora-capabilities/v1
+declaration_version: 1
+project: REMORA
+repository: https://github.com/darklordVirtual/REMORA-research
+updated: "2026-10-05"
+
+provenance:
+  audited_revision: 30ff46e5941b62fdd3ef9c034bd01e6ea290c09c
+  source_of_truth:
+    - docs/assurance/claim_register_v1.yaml
+    - docs/assurance/capability_register_v1.yaml
+    - docs/deployment/execution-quickstart.md
+    - docs/assurance/evidence_levels.md
+    - docs/interop/FEDERATION.md
+    - NEGATIVE_RESULTS.md
+    - artifacts/interop/index.json
+
+purpose:
+  discovery: true
+  automatic_composition: false
+  endorsement: false
+  certification: false
+  statement: >-
+    Discovery of bounded workflow properties and procedures an outside
+    operator can run against frozen fixture contracts. This declaration is
+    neither a certification nor evidence that any deployment has enabled a
+    capability.
+
+non_goals:
+  automatic_trust: false
+  endorsement: false
+  ranking: false
+  certification: false
+  required_participation: false
+  federation_membership_implication: false
+  automatic_dependency_installation: false
+  remote_execution: false
+  cross_project_semantic_equivalence: false
+
+maturity_levels:
+  - DECLARED
+  - IMPLEMENTED
+  - TESTED
+  - REPRODUCIBLE
+  - EXTERNALLY_REPRODUCED
+  - OPERATOR_OBSERVED
+
+workflow_capabilities:
+  - id: deterministic_policy_gate
+    title: Deterministic policy decision floor
+    property:
+      class: policy_enforcement
+      statement: >-
+        The execution API runs deterministic policy guards before granting
+        execution authority; a hard guard cannot be overridden by model
+        consensus.
+    role:
+      stage: [AUTHORITY]
+      provides: [policy_decision]
+      does_not_provide: [business_authority, proof_of_intent_legitimacy]
+    inputs: [deployment_policy_observation, proposed_tool_call]
+    outputs: [ACCEPT, VERIFY, ABSTAIN, ESCALATE]
+    trust_boundary:
+      remora_is_authority: false
+      remora_executor_holds_execution_credentials: true
+      remora_authority_process_holds_execution_credentials: false
+      credential_custody_scope: "The strict-profile executor holds deployment-owned credentials; its authority process does not."
+      observes_dispatch: conditional
+      observes_external_effect: conditional
+      bypass_protection: false
+    trust_assumptions:
+      - Deployment-owned facts and policy inputs are correct.
+      - Protected calls are routed through the governed execution API.
+    dependencies:
+      - remora/policy/decision_engine.py
+      - servers/execution_api.py
+    maturity:
+      level: TESTED
+      implemented: true
+      tested: true
+      reproducible: false
+      externally_reproduced: false
+      operator_observed: false
+      production_established: false
+    evidence:
+      capability_ids: [CAP-001]
+      claim_ids: []
+      implementation: [remora/policy/decision_engine.py, servers/execution_api.py]
+      tests: [tests/test_rem017_policy_mutations.py]
+      external_runs: []
+      operator_records: []
+      production: []
+    limitations:
+      - The capability register records API wiring, not field validation or safety.
+      - The research assessment endpoint is advisory unless execution is forced through the governed dispatcher.
+      - The deterministic floor does not establish that policy inputs represent legitimate business intent.
+    composition:
+      capability_class: policy_decision
+      provider_role: candidate
+      required: false
+      replaceable: true
+      notes: Workflow ownership decides whether this property is required.
+
+  - id: exact_call_binding
+    title: Exact call binding before dispatch
+    property:
+      class: authorization_execution_binding
+      statement: >-
+        A signed execution lease is checked against the tool, canonical
+        arguments, tenant, target and principal presented to the governed
+        dispatcher.
+    role:
+      stage: [PRE_DISPATCH_VERIFICATION]
+      provides: [call_binding_check, mismatch_refusal]
+      does_not_provide: [semantic_intent_validation, effect_verification]
+    inputs: [signed_execution_lease, proposed_tool_call, tenant, target, principal]
+    outputs: [dispatch_admitted_or_refused, refusal_class]
+    trust_boundary:
+      remora_is_authority: false
+      remora_executor_holds_execution_credentials: true
+      remora_authority_process_holds_execution_credentials: false
+      credential_custody_scope: "The strict-profile executor holds deployment-owned credentials; its authority process does not."
+      observes_dispatch: true
+      observes_external_effect: conditional
+      bypass_protection: false
+    trust_assumptions:
+      - The deployment verifies the lease under trusted key material.
+      - The governed dispatcher is the only path to the protected callable.
+    dependencies:
+      - CAP-004
+      - CAP-013
+      - signed ToolSpec and deployment-owned callable registry
+    maturity:
+      level: TESTED
+      implemented: true
+      tested: true
+      reproducible: false
+      externally_reproduced: false
+      operator_observed: false
+      production_established: false
+    evidence:
+      capability_ids: [CAP-004, CAP-013]
+      claim_ids: []
+      implementation: [remora/enforcement/lease.py, servers/execution_api.py]
+      tests: [tests/test_execution_api.py, tests/test_lease_authority_custody.py]
+      external_runs: []
+      operator_records: []
+      production: []
+    limitations:
+      - The legacy /v1/assess surface retains summary binding.
+      - Exact binding does not establish that a call matches legitimate intent or that its effect occurred.
+      - An alternate credential or network path outside the dispatcher is not governed.
+    composition:
+      capability_class: exact_action_authority
+      provider_role: candidate
+      required: false
+      replaceable: true
+      notes: A workflow must decide whether this property is required at pre-dispatch.
+
+  - id: fresh_authority_at_dispatch
+    title: Fresh authority checks before dispatch
+    property:
+      class: fresh_pre_dispatch_authority
+      statement: >-
+        On the execution path, approval is re-gated against fresh execution
+        context and the lease is checked at dispatch against its validity and
+        bound policy and tool identity.
+    role:
+      stage: [PRE_DISPATCH_VERIFICATION]
+      provides: [approval_freshness_check, lease_validity_check]
+      does_not_provide: [trusted_clock, bounded_global_revocation_propagation]
+    inputs: [approval_record, fresh_policy_observation, signed_execution_lease, dispatch_time]
+    outputs: [fresh_dispatch_admitted_or_refused, refusal_class]
+    trust_boundary:
+      remora_is_authority: false
+      remora_executor_holds_execution_credentials: true
+      remora_authority_process_holds_execution_credentials: false
+      credential_custody_scope: "The strict-profile executor holds deployment-owned credentials; its authority process does not."
+      observes_dispatch: true
+      observes_external_effect: conditional
+      bypass_protection: false
+    trust_assumptions:
+      - The enforcement point can read current policy and revocation state.
+      - The clock supplied to the enforcement point is sufficiently trustworthy for the configured validity window.
+    dependencies:
+      - CAP-003
+      - CAP-004
+      - CAP-007
+      - artifacts/interop/fresh-authority-v1
+    maturity:
+      level: TESTED
+      implemented: true
+      tested: true
+      reproducible: false
+      externally_reproduced: false
+      operator_observed: false
+      production_established: false
+    evidence:
+      capability_ids: [CAP-003, CAP-004, CAP-007]
+      claim_ids: []
+      implementation: [remora/enforcement/gate.py, remora/enforcement/lease.py, servers/execution_api.py]
+      tests: [tests/test_token_hardening.py, tests/test_review_queue.py]
+      external_runs: []
+      operator_records: []
+      production: []
+    limitations:
+      - Durability depends on configured storage; the default is in-process.
+      - The frozen fixture contract does not establish the trustworthiness of a deployed clock or global revocation propagation.
+      - No external run record exists for this contract.
+    composition:
+      capability_class: fresh_authority_at_dispatch
+      provider_role: candidate
+      required: false
+      replaceable: true
+      notes: Current evidence supports implementation and tests, not external verification.
+
+  - id: single_use_execution_authorization
+    title: Single-use execution authorization
+    property:
+      class: bounded_single_use_authority
+      statement: >-
+        The policy grant and dispatch lease have one-time consumption paths
+        that refuse replay at their enforcement points.
+    role:
+      stage: [PRE_DISPATCH_VERIFICATION, EXECUTION]
+      provides: [one_time_grant_consumption, lease_nonce_consumption]
+      does_not_provide: [global_replay_resistance_when_state_is_not_shared]
+    inputs: [signed_policy_grant, signed_execution_lease, consumption_state]
+    outputs: [first_use_admitted, replay_refused]
+    trust_boundary:
+      remora_is_authority: false
+      remora_executor_holds_execution_credentials: true
+      remora_authority_process_holds_execution_credentials: false
+      credential_custody_scope: "The strict-profile executor holds deployment-owned credentials; its authority process does not."
+      observes_dispatch: true
+      observes_external_effect: conditional
+      bypass_protection: false
+    trust_assumptions:
+      - All enforcement points that share authority also share the durable consumption ledger.
+      - Protected calls cannot bypass the enforcement point.
+    dependencies: [CAP-003, CAP-013, configured shared durable state for multi-process use]
+    maturity:
+      level: TESTED
+      implemented: true
+      tested: true
+      reproducible: false
+      externally_reproduced: false
+      operator_observed: false
+      production_established: false
+    evidence:
+      capability_ids: [CAP-003, CAP-013]
+      claim_ids: []
+      implementation: [remora/enforcement/gate.py, remora/enforcement/nonce_store.py, remora/enforcement/lease.py]
+      tests: [tests/test_token_hardening.py, tests/test_lease_nonce_durability.py]
+      external_runs: []
+      operator_records: []
+      production: []
+    limitations:
+      - Token replay state is in-process unless durable storage is configured.
+      - A test reuses a shared ledger across gates but does not spawn a new interpreter to observe restart behavior.
+      - The PDP token uses HMAC-SHA256; the verifier holds material that can mint tokens.
+    composition:
+      capability_class: single_use_authorization
+      provider_role: candidate
+      required: false
+      replaceable: true
+      notes: The deployment must configure shared durable state for multi-process replay resistance.
+
+  - id: human_review_freshness
+    title: Human review lifecycle with re-gating
+    property:
+      class: review_lifecycle
+      statement: >-
+        The execution API provides a review queue with expiration to ABSTAIN
+        and re-gates approved work against fresh state before execution.
+    role:
+      stage: [HUMAN_REVIEW, PRE_DISPATCH_VERIFICATION]
+      provides: [review_queue, approval_freshness_re_gate]
+      does_not_provide: [human_reviewer_competence, correctness_of_external_approval]
+    inputs: [review_proposal, authenticated_approver, current_policy_observation]
+    outputs: [review_state, fresh_execution_decision]
+    trust_boundary:
+      remora_is_authority: false
+      remora_executor_holds_execution_credentials: true
+      remora_authority_process_holds_execution_credentials: false
+      credential_custody_scope: "The strict-profile executor holds deployment-owned credentials; its authority process does not."
+      observes_dispatch: true
+      observes_external_effect: conditional
+      bypass_protection: false
+    trust_assumptions:
+      - The deployment authenticates the approver and supplies the correct tenant identity.
+      - Durable review state is configured where restart or multi-process operation is required.
+    dependencies: [CAP-007, servers/execution_api.py]
+    maturity:
+      level: TESTED
+      implemented: true
+      tested: true
+      reproducible: false
+      externally_reproduced: false
+      operator_observed: false
+      production_established: false
+    evidence:
+      capability_ids: [CAP-007]
+      claim_ids: []
+      implementation: [remora/governance/review_queue.py, servers/execution_api.py]
+      tests: [tests/test_review_queue.py]
+      external_runs: []
+      operator_records: []
+      production: []
+    limitations:
+      - Queue and approval durability depends on configured storage; the default is in-process.
+      - The Postgres review-state branch is not yet contract-tested.
+      - Human review does not independently establish that the requested business action is legitimate.
+    composition:
+      capability_class: human_review
+      provider_role: candidate
+      required: false
+      replaceable: true
+      notes: Workflow ownership decides whether a human review path is required.
+
+  - id: governed_tool_dispatch
+    title: Lease-bound tool dispatch
+    property:
+      class: governed_execution
+      statement: >-
+        The execution API dispatches registered tools through the governed
+        dispatcher under an execution lease; callable registration is
+        deployment-owned and tool credentials remain app-side.
+    role:
+      stage: [EXECUTION]
+      provides: [lease_bound_dispatch, dispatch_outcome]
+      does_not_provide: [coverage_of_unregistered_or_bypass_paths]
+    inputs: [authorized_call, signed_execution_lease, deployment_tool_registry]
+    outputs: [dispatch_outcome, execution_lifecycle_record]
+    trust_boundary:
+      remora_is_authority: false
+      remora_executor_holds_execution_credentials: true
+      remora_authority_process_holds_execution_credentials: false
+      credential_custody_scope: "The strict-profile executor holds deployment-owned credentials; its authority process does not."
+      observes_dispatch: true
+      observes_external_effect: conditional
+      bypass_protection: false
+    trust_assumptions:
+      - The deployment-owned registry resolves the intended callable.
+      - The executor process fronts the credentials for the protected system.
+    dependencies: [CAP-013, signed ToolSpec, GovernedToolDispatcher]
+    maturity:
+      level: TESTED
+      implemented: true
+      tested: true
+      reproducible: false
+      externally_reproduced: false
+      operator_observed: false
+      production_established: false
+    evidence:
+      capability_ids: [CAP-013]
+      claim_ids: []
+      implementation: [remora/enforcement/lease.py, remora/execution/dispatch.py, servers/execution_api.py]
+      tests: [tests/test_execution_api.py, tests/test_toolspec_execution_wiring.py]
+      external_runs: []
+      operator_records: []
+      production: []
+    limitations:
+      - The enforcing path covers only callables and credentials routed through its dispatcher.
+      - Strict profiles require deployment configuration and fail closed when required prerequisites are absent.
+      - This implementation status is not evidence that a production deployment is using the path.
+    composition:
+      capability_class: governed_tool_execution
+      provider_role: candidate
+      required: false
+      replaceable: true
+      notes: The workflow owner must ensure no alternate access path reaches the same effect.
+
+  - id: authority_executor_custody_separation
+    title: Authority and executor credential separation
+    property:
+      class: credential_custody_separation
+      statement: >-
+        Strict runtime profiles require distinct authority and executor roles
+        and declared downstream effect credentials, refusing startup when the
+        required role or credential-name configuration is absent.
+    role:
+      stage: [AUTHORITY, EXECUTION]
+      provides: [strict_profile_role_separation, declared_effect_credential_boundary]
+      does_not_provide: [proof_that_every_credential_is_declared, protection_from_alternate_access_paths]
+    inputs: [strict_runtime_profile, execution_domain_role, effect_credential_environment_names]
+    outputs: [startup_admitted_or_refused, role_specific_execution_boundary]
+    trust_boundary:
+      remora_is_authority: false
+      remora_executor_holds_execution_credentials: true
+      remora_authority_process_holds_execution_credentials: false
+      credential_custody_scope: "The strict-profile executor holds deployment-owned credentials; its authority process does not."
+      observes_dispatch: true
+      observes_external_effect: conditional
+      bypass_protection: false
+    trust_assumptions:
+      - The deployment declares every downstream effect credential name.
+      - The authority and executor roles run with the intended process and host separation.
+      - Protected effects cannot be reached through another credential or network path.
+    dependencies:
+      - CAP-013
+      - CAP-017
+      - review or controlled_pilot runtime profile
+      - docs/deployment/execution-quickstart.md
+    maturity:
+      level: TESTED
+      implemented: true
+      tested: true
+      reproducible: false
+      externally_reproduced: false
+      operator_observed: false
+      production_established: false
+    evidence:
+      capability_ids: [CAP-013, CAP-017]
+      claim_ids: []
+      implementation: [remora/enforcement/custody.py, servers/execution_api.py]
+      tests: [tests/test_runtime_profile.py, tests/test_lease_authority_custody.py]
+      external_runs: []
+      operator_records: []
+      production: []
+    limitations:
+      - No deployment is claimed to run the split.
+      - Credential names are deployment-supplied and do not prove that every credential or side channel was declared.
+      - The split does not block alternate paths outside the governed executor.
+      - This does not establish KMS or HSM custody.
+    composition:
+      capability_class: authority_executor_custody
+      provider_role: candidate
+      required: false
+      replaceable: true
+      notes: A workflow must independently assess the deployment's process and credential topology.
+
+  - id: effect_state_distinction
+    title: Dispatch and effect evidence state distinction
+    property:
+      class: effect_evidence
+      statement: >-
+        REMORA distinguishes refusal, dispatch, reported execution success and
+        a verified declared delta when a configured observer supplies usable
+        post-dispatch evidence.
+    role:
+      stage: [EFFECT_OBSERVATION, EVIDENCE]
+      provides: [effect_status, highest_established_lifecycle_state]
+      does_not_provide: [causal_attribution, complete_state_change_detection]
+    inputs: [dispatch_outcome, declared_postcondition, observer_result]
+    outputs: [NOT_EVALUATED, EFFECT_UNSUPPORTED, EFFECT_UNOBSERVABLE, EFFECT_MISMATCH, EFFECT_VERIFIED]
+    trust_boundary:
+      remora_is_authority: false
+      remora_executor_holds_execution_credentials: true
+      remora_authority_process_holds_execution_credentials: false
+      credential_custody_scope: "The strict-profile executor holds deployment-owned credentials; its authority process does not."
+      observes_dispatch: true
+      observes_external_effect: conditional
+      bypass_protection: false
+    trust_assumptions:
+      - The deployment supplies a truthful observer and a meaningful declared postcondition.
+      - The observed object is the one the deployment intends to verify.
+    dependencies: [CAP-013, deployment-supplied postcondition and observer]
+    maturity:
+      level: TESTED
+      implemented: true
+      tested: true
+      reproducible: false
+      externally_reproduced: false
+      operator_observed: false
+      production_established: false
+    evidence:
+      capability_ids: [CAP-013]
+      claim_ids: []
+      implementation: [remora/governance/effect_verification.py, remora/governance/effect_receipt.py]
+      tests: [tests/test_effect_record_endpoint.py, tests/test_effect_receipt_atomicity.py]
+      external_runs: []
+      operator_records: []
+      production: []
+    limitations:
+      - EFFECT_VERIFIED means the declared delta matched the supplied observation; it does not prove causation or detect undeclared effects.
+      - Missing observations and vacuous postconditions do not establish success.
+      - The effect reader can be the same system component that performed the action.
+    composition:
+      capability_class: effect_state_distinction
+      provider_role: candidate
+      required: false
+      replaceable: true
+      notes: A workflow requiring effect verification must supply and assess its own observer.
+
+  - id: unknown_execution_and_reconciliation
+    title: UNKNOWN dispatch outcome and reconciliation
+    property:
+      class: execution_state_reconciliation
+      statement: >-
+        An uncertain outcome after dispatch is recorded as UNKNOWN rather than
+        treated as success or blindly retried; the outbox has a reconciliation
+        path for unresolved dispatch state.
+    role:
+      stage: [EXECUTION, RECONCILIATION, EVIDENCE]
+      provides: [unknown_outcome_state, reconciliation_input]
+      does_not_provide: [automatic_resolution_without_authoritative_observation]
+    inputs: [durable_dispatch_intent, dispatch_attempt, reconciliation_observation]
+    outputs: [UNKNOWN_or_terminal_state, reconciliation_record]
+    trust_boundary:
+      remora_is_authority: false
+      remora_executor_holds_execution_credentials: true
+      remora_authority_process_holds_execution_credentials: false
+      credential_custody_scope: "The strict-profile executor holds deployment-owned credentials; its authority process does not."
+      observes_dispatch: true
+      observes_external_effect: conditional
+      bypass_protection: false
+    trust_assumptions:
+      - Durable outbox and reconciler storage are configured for the deployment.
+      - Reconciliation observations are authoritative for the system of record.
+    dependencies: [CAP-013, durable outbox, scripts/run_outbox_reconciler.py]
+    maturity:
+      level: TESTED
+      implemented: true
+      tested: true
+      reproducible: false
+      externally_reproduced: false
+      operator_observed: false
+      production_established: false
+    evidence:
+      capability_ids: [CAP-013]
+      claim_ids: []
+      implementation: [remora/enforcement/outbox.py, scripts/run_outbox_reconciler.py, scripts/run_dispatch_worker.py]
+      tests: [tests/test_execution_outbox_wiring.py]
+      external_runs: []
+      operator_records: []
+      production: []
+    limitations:
+      - Durable state is a deployment prerequisite, not a default in-process guarantee.
+      - UNKNOWN preserves uncertainty; it does not itself determine whether an external effect occurred.
+      - Retry safety depends on the tool's declared idempotency contract and configured reconciliation.
+    composition:
+      capability_class: unknown_execution_state
+      provider_role: candidate
+      required: false
+      replaceable: true
+      notes: Use a separate effect observer when the workflow needs to resolve UNKNOWN.
+
+  - id: tenant_audit_chain
+    title: Tenant-scoped hash-chained audit records
+    property:
+      class: provenance_and_evidence_lineage
+      statement: >-
+        The execution path can persist tenant-scoped, hash-chained decision and
+        execution records when durable storage is configured.
+    role:
+      stage: [EVIDENCE]
+      provides: [tenant_scoped_audit_chain, record_integrity_checks]
+      does_not_provide: [external_append_only_storage, proof_of_real_world_effect]
+    inputs: [decision_record, execution_lifecycle_record, tenant_id, configured_storage]
+    outputs: [hash_chained_audit_record, chain_verification_result]
+    trust_boundary:
+      remora_is_authority: false
+      remora_executor_holds_execution_credentials: true
+      remora_authority_process_holds_execution_credentials: false
+      credential_custody_scope: "The strict-profile executor holds deployment-owned credentials; its authority process does not."
+      observes_dispatch: true
+      observes_external_effect: conditional
+      bypass_protection: false
+    trust_assumptions:
+      - Tenant identity and durable storage are deployment-controlled.
+      - Signing and verification keys are protected by the deployment.
+    dependencies: [CAP-005, configured REMORA_CHAIN_DB or REMORA_PG_DSN]
+    maturity:
+      level: TESTED
+      implemented: true
+      tested: true
+      reproducible: false
+      externally_reproduced: false
+      operator_observed: false
+      production_established: false
+    evidence:
+      capability_ids: [CAP-005, CAP-013]
+      claim_ids: []
+      implementation: [remora/governance/tenant_chain.py, servers/execution_api.py]
+      tests: [tests/test_execution_api.py, tests/test_audit_chain_integrity.py]
+      external_runs: []
+      operator_records: []
+      production: []
+    limitations:
+      - Persistence is conditional on configured storage; the default can be in-process.
+      - A hash chain is tamper-evident, not tamper-proof without an external anchor.
+      - The chain records evidence supplied to REMORA and does not prove an external effect.
+    composition:
+      capability_class: evidence_lineage
+      provider_role: candidate
+      required: false
+      replaceable: true
+      notes: The workflow owner must decide whether separate append-only anchoring is required.
+
+self_service_capabilities:
+  - id: exact_call_binding_fixture_replay
+    capability_ref: exact_call_binding
+    availability: self_service
+    scope: frozen_fixture_contract_only
+    runtime_reproduction_status: NOT_READY
+    operator_assistance_required: false
+    frozen_target:
+      repository: https://github.com/darklordVirtual/REMORA-research
+      source_revision: e6d41c71e95a7ae07f349c28e791e99bde0b9a5a
+      frozen_at_revision: fe324dd734734d9227aa894330ac52c2bb916b94
+      manifest: artifacts/interop/exact-call-binding-v1/manifest.json
+      package_digest: sha256:48dd143c4e4f50d69063df8e2a2993a5d240a50d81dc4330b225015ea432c77c
+      artifacts:
+        - path: artifacts/interop/exact-call-binding-v1/README.md
+          sha256: 7ba5800a490473e8c637d460ba34312affb38fdded858b28db17084b5658fafa
+        - path: artifacts/interop/exact-call-binding-v1/fixtures.json
+          sha256: 4a9b43747c762c7dc73382e588c0477693b00449f8a6233dc93eabbc801aac95
+        - path: artifacts/interop/exact-call-binding-v1/reference_verifier.py
+          sha256: 71daad03d965b3a294cb2f02e0bc88144b40401d17d60980704efadb9f997b02
+    procedure:
+      reference: artifacts/interop/exact-call-binding-v1/README.md
+      command: python artifacts/interop/exact-call-binding-v1/reference_verifier.py
+      mode: executable
+      executable: true
+    expected_results:
+      vocabulary: [ESTABLISHED, CONTRADICTED, NOT_ESTABLISHED]
+      aggregate_verdict: false
+      success_condition: JSON output has an empty failures list.
+    negative_controls:
+      - Changed tool, arguments, argument types, nested array order, tenant, target or actor refuse.
+      - Unsigned and tampered authorizations are not accepted as established evidence.
+      - Replay of the same call is refused, while a refused mismatch does not consume the authorization.
+    evidence_output:
+      - Per-case actual and expected outcomes, claim result and failures array on stdout.
+    claim_ceiling: >-
+      A successful run shows only that the publisher's standalone reference
+      verifier reproduces the expected outcomes for this frozen fixture package.
+      It does not execute REMORA code, verify the mapping from REMORA runtime
+      code to this contract, establish an external reproduction, or establish
+      production deployment behavior.
+    independence:
+      allowed_labels: [L0_SELF_TEST, L1_REPRODUCTION, L2_SECOND_IMPLEMENTATION, L3_INDEPENDENT_RECOMPUTATION, L4_INDEPENDENT_HOST_RUN]
+      automatic_independence_claim: false
+    publication:
+      operator_may_publish_own_attributed_result: true
+      may_speak_for_remora: false
+      remora_endorsement_implied: false
+
+  - id: fresh_authority_fixture_replay
+    capability_ref: fresh_authority_at_dispatch
+    availability: self_service
+    scope: frozen_fixture_contract_only
+    runtime_reproduction_status: NOT_READY
+    operator_assistance_required: false
+    frozen_target:
+      repository: https://github.com/darklordVirtual/REMORA-research
+      source_revision: e6d41c71e95a7ae07f349c28e791e99bde0b9a5a
+      frozen_at_revision: fe324dd734734d9227aa894330ac52c2bb916b94
+      manifest: artifacts/interop/fresh-authority-v1/manifest.json
+      package_digest: sha256:234c57d0ed79b0cd87e702b2efbc52e99af1c619bd7fed2aef7be5c14964b691
+      artifacts:
+        - path: artifacts/interop/fresh-authority-v1/README.md
+          sha256: 791b9092c3e5e44959712107624396dd443824c7d18657946b5fcb8db3b86830
+        - path: artifacts/interop/fresh-authority-v1/fixtures.json
+          sha256: 77327dc7911f0046f558536e454ed981f96f92d1025d6c11893ef7d625741276
+        - path: artifacts/interop/fresh-authority-v1/reference_verifier.py
+          sha256: ec13b88807b74021f18a64b997088465d65b7fd780bfcfc7bf17b797f4d50d0a
+    procedure:
+      reference: artifacts/interop/fresh-authority-v1/README.md
+      command: python artifacts/interop/fresh-authority-v1/reference_verifier.py
+      mode: executable
+      executable: true
+    expected_results:
+      vocabulary: [ESTABLISHED, CONTRADICTED, NOT_ESTABLISHED]
+      aggregate_verdict: false
+      success_condition: JSON output has an empty failures list.
+    negative_controls:
+      - Expired, not-yet-valid, revoked, stale, replayed or non-ACCEPT authority is refused.
+      - A changed policy bundle or ToolSpec identity is refused at dispatch.
+      - Unsigned lease evidence is not accepted as established.
+    evidence_output:
+      - Per-case actual and expected outcomes, claim result and failures array on stdout.
+    claim_ceiling: >-
+      A successful run shows only that the publisher's standalone reference
+      verifier reproduces the expected outcomes for this frozen fixture package.
+      It does not execute REMORA code, establish clock trust or bounded global
+      revocation propagation, or establish an external or production result.
+    independence:
+      allowed_labels: [L0_SELF_TEST, L1_REPRODUCTION, L2_SECOND_IMPLEMENTATION, L3_INDEPENDENT_RECOMPUTATION, L4_INDEPENDENT_HOST_RUN]
+      automatic_independence_claim: false
+    publication:
+      operator_may_publish_own_attributed_result: true
+      may_speak_for_remora: false
+      remora_endorsement_implied: false
+
+  - id: effect_evidence_fixture_replay
+    capability_ref: effect_state_distinction
+    availability: self_service
+    scope: frozen_fixture_contract_only
+    runtime_reproduction_status: NOT_READY
+    operator_assistance_required: false
+    frozen_target:
+      repository: https://github.com/darklordVirtual/REMORA-research
+      source_revision: e6d41c71e95a7ae07f349c28e791e99bde0b9a5a
+      frozen_at_revision: fe324dd734734d9227aa894330ac52c2bb916b94
+      manifest: artifacts/interop/effect-evidence-v1/manifest.json
+      package_digest: sha256:26c437c65a5c3890a0672845dd9e1e54b03c38ae5f05a6fbe7131402b952034c
+      artifacts:
+        - path: artifacts/interop/effect-evidence-v1/README.md
+          sha256: a098e7e9f25902a2eac43343d520b5f8f148e51e884dadb247e529b70993952f
+        - path: artifacts/interop/effect-evidence-v1/fixtures.json
+          sha256: 676978802d981f11ae0a40ba9c13ced4b41f302c8c40370eb3dd883e2b716e66
+        - path: artifacts/interop/effect-evidence-v1/reference_verifier.py
+          sha256: 0c135d10c3f6e7e5bac64c98397d134be343137d16c7e8572689435f728d12d5
+    procedure:
+      reference: artifacts/interop/effect-evidence-v1/README.md
+      command: python artifacts/interop/effect-evidence-v1/reference_verifier.py
+      mode: executable
+      executable: true
+    expected_results:
+      vocabulary: [ESTABLISHED, CONTRADICTED, NOT_ESTABLISHED]
+      aggregate_verdict: false
+      success_condition: JSON output has an empty failures list.
+    negative_controls:
+      - Missing observations and vacuous postconditions do not become EFFECT_VERIFIED.
+      - A reported success without dispatch is not promoted to a verified effect.
+      - A mismatch and an UNKNOWN dispatch preserve the lower evidence state.
+    evidence_output:
+      - Per-case actual and expected state, claim result and failures array on stdout.
+    claim_ceiling: >-
+      A successful run shows only that the publisher's standalone reference
+      verifier reproduces the expected outcomes for this frozen fixture package.
+      It does not execute REMORA code, establish causal attribution, establish
+      that an observed object was the intended target, or prove production use.
+    independence:
+      allowed_labels: [L0_SELF_TEST, L1_REPRODUCTION, L2_SECOND_IMPLEMENTATION, L3_INDEPENDENT_RECOMPUTATION, L4_INDEPENDENT_HOST_RUN]
+      automatic_independence_claim: false
+    publication:
+      operator_may_publish_own_attributed_result: true
+      may_speak_for_remora: false
+      remora_endorsement_implied: false
+
+capability_audit:
+  investigated:
+    - id: deterministic_policy_gate
+      disposition: DECLARED
+      evidence: [CAP-001, remora/policy/decision_engine.py, tests/test_rem017_policy_mutations.py]
+      reason: Wired to the execution API; declared without a general safety or intent-legitimacy claim.
+    - id: exact_call_binding
+      disposition: DECLARED
+      evidence: [CAP-004, CAP-013, artifacts/interop/exact-call-binding-v1]
+      reason: API-path binding and a frozen fixture contract support a bounded claim.
+    - id: fresh_authority_at_dispatch
+      disposition: DECLARED
+      evidence: [CAP-003, CAP-004, CAP-007, artifacts/interop/fresh-authority-v1]
+      reason: Re-gating and dispatch-time lease checks are wired; external runs remain absent.
+    - id: single_use_execution_authorization
+      disposition: DECLARED
+      evidence: [CAP-003, CAP-013, tests/test_token_hardening.py, tests/test_lease_nonce_durability.py]
+      reason: One-time consumption is implemented and tested; durable state is conditional.
+    - id: human_review_freshness
+      disposition: DECLARED
+      evidence: [CAP-007, remora/governance/review_queue.py, tests/test_review_queue.py]
+      reason: The execution API review path re-gates; persistence limits are stated.
+    - id: governed_tool_dispatch
+      disposition: DECLARED
+      evidence: [CAP-013, servers/execution_api.py, tests/test_toolspec_execution_wiring.py]
+      reason: Registered calls use the lease-bound dispatcher; alternate paths remain outside the claim.
+    - id: effect_state_distinction
+      disposition: DECLARED
+      evidence: [CAP-013, remora/governance/effect_verification.py, artifacts/interop/effect-evidence-v1]
+      reason: The bounded state contract distinguishes observed delta from execution report.
+    - id: unknown_execution_and_reconciliation
+      disposition: DECLARED
+      evidence: [CAP-013, remora/enforcement/outbox.py, scripts/run_outbox_reconciler.py]
+      reason: UNKNOWN is explicit and reconciliation tooling exists; authoritative observations remain deployment-owned.
+    - id: tenant_audit_chain
+      disposition: DECLARED
+      evidence: [CAP-005, remora/governance/tenant_chain.py, tests/test_audit_chain_integrity.py]
+      reason: Persistence is conditional and hash chaining is not external append-only anchoring.
+    - id: delegation_attenuation
+      disposition: NOT_DECLARED
+      evidence: [CAP-006, remora/governance/a2a_envelope.py, tests/test_a2a_envelope.py]
+      reason: The register classifies this as a reference-path HMAC implementation; production key and trust-anchor requirements are unmet.
+    - id: authority_executor_custody_separation
+      disposition: DECLARED
+      evidence: [CAP-013, docs/deployment/execution-quickstart.md, tests/test_lease_authority_custody.py]
+      reason: Strict profiles and tests support a conditional configuration claim; no deployment is claimed to run it.
+    - id: semantic_authority_check
+      disposition: NOT_DECLARED
+      evidence: [CAP-001, CLAIM-019, NEGATIVE_RESULTS.md]
+      reason: A benchmark result is not evidence of general semantic correctness or live runtime authority.
+    - id: idempotency_evidence_atomicity
+      disposition: NOT_DECLARED
+      evidence: [CAP-005, remora/governance/effect_receipt.py]
+      reason: The assess idempotency cache remains in-process and does not establish a general atomic effect and evidence transaction.
+    - id: enforcement_completeness
+      disposition: NOT_DECLARED
+      evidence: [docs/assurance/capability_register_v1.yaml]
+      reason: runtime_capability_surface_completeness is explicitly NOT_ESTABLISHED.
+    - id: production_field_enforcement
+      disposition: NOT_DECLARED
+      evidence: [docs/assurance/release_profiles_v1.yaml, docs/assurance/capability_register_v1.yaml]
+      reason: Current release profile is SHADOW_PILOT and deployment status is SHADOW_ONLY.
+
+self_service_gaps:
+  - capability_ref: exact_call_binding
+    package_replay_status: SELF_SERVICE_AVAILABLE
+    runtime_reproduction_status: NOT_READY
+    implementation: PRESENT
+    tests: PRESENT
+    frozen_input: PRESENT
+    negative_controls: PRESENT
+    public_procedure: PRESENT
+    claim_ceiling: PRESENT
+    missing:
+      - A procedure that exercises the pinned REMORA implementation from outside the maintainer environment.
+      - An external run record linking an independent operator result to the frozen claim.
+    smallest_change: >-
+      Publish a runtime-level reproduction procedure and accept an attributed
+      external run record; do not treat a reference-verifier run as runtime evidence.
+  - capability_ref: fresh_authority_at_dispatch
+    package_replay_status: SELF_SERVICE_AVAILABLE
+    runtime_reproduction_status: NOT_READY
+    implementation: PRESENT
+    tests: PRESENT
+    frozen_input: PRESENT
+    negative_controls: PRESENT
+    public_procedure: PRESENT
+    claim_ceiling: PRESENT
+    missing:
+      - A procedure that exercises the pinned REMORA implementation and its dispatch-time clock and revocation inputs.
+      - An external run record linking an independent operator result to the frozen claim.
+    smallest_change: >-
+      Publish a runtime-level reproduction procedure and accept an attributed
+      external run record; retain the explicit clock and revocation boundaries.
+  - capability_ref: effect_state_distinction
+    package_replay_status: SELF_SERVICE_AVAILABLE
+    runtime_reproduction_status: NOT_READY
+    implementation: PRESENT
+    tests: PRESENT
+    frozen_input: PRESENT
+    negative_controls: PRESENT
+    public_procedure: PRESENT
+    claim_ceiling: PRESENT
+    missing:
+      - A procedure that exercises REMORA's API and a deployment-supplied observer rather than only the standalone reference verifier.
+      - An external run record covering the observer and its target binding.
+    smallest_change: >-
+      Publish a runtime-level reproduction procedure with a controlled observer
+      fixture and accept an attributed external run record.
+  - capability_ref: authority_executor_custody_separation
+    package_replay_status: NOT_READY
+    runtime_reproduction_status: NOT_READY
+    implementation: PRESENT
+    tests: PRESENT
+    frozen_input: MISSING
+    negative_controls: MISSING
+    public_procedure: MISSING
+    claim_ceiling: PRESENT
+    missing:
+      - Frozen authority and executor process configuration with credential-presence and credential-absence controls.
+      - A standalone public procedure and an external run record.
+    smallest_change: >-
+      Freeze a minimal two-role configuration fixture, including undeclared
+      credential and bypass-path negative controls, then document a self-service
+      run without claiming deployment or production use.

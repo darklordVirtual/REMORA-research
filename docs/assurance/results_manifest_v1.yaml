@@ -372,6 +372,12 @@ results:
   class: regenerable
   generator: python experiments/selective_trust_curve.py
   verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
+- path: results/sequential_assurance_receipt_v1.json
+  class: regenerable
+  generator: python scripts/compute_sequential_assurance.py
+  verified_by: 'ci.yml: Deterministic reproduction round job, scripts/reproduce_results.py'
+  volatile:
+  - .provenance.git_commit
 - path: results/stat_tests.json
   class: regenerable
   generator: python scripts/statistical_tests.py

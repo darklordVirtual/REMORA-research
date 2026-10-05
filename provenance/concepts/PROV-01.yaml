@@ -10,8 +10,8 @@ origin:
   authors:
   - Stian Skogbrott
   project: REMORA
-  status: claimed_original_contribution
-classification: UNKNOWN
+  status: compositional_contribution
+classification: REMORA_COMPOSITION
 first_recorded:
   commit: 131476910be1cd270f13ae34f6e4b932fcc1b3fe
   authored: '2026-06-25T07:27:11+02:00'
@@ -43,13 +43,18 @@ distinguishing_contribution: One signed, hash-chained record per decision, carry
   observation hash and the policy identity, so an audit entry and an execution can be joined from either
   end.
 prior_art:
-  reviewed: false
+  reviewed: true
   review_sources:
   - PA-SRC-001
   - PA-SRC-002
-  records: []
-  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
-    Registration is not a claim of invention.
+  - PA-SRC-004
+  - PA-SRC-005
+  - PA-SRC-006
+  records:
+  - PA-REV-001
+  note: "Reviewed 2026-10-04 in PA-REV-001: REMORA_COMPOSITION. The review names the works compared,
+    the overlap, the difference and the sentence the claimed contribution is
+    limited to. Registration is not a claim of invention."
 evolution:
 - stage: first_recorded
   commit: 131476910be1cd270f13ae34f6e4b932fcc1b3fe

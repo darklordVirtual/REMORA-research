@@ -11,8 +11,8 @@ origin:
   authors:
   - Stian Skogbrott
   project: REMORA
-  status: claimed_original_contribution
-classification: UNKNOWN
+  status: derived
+classification: KNOWN_PRIOR_ART
 first_recorded:
   commit: 3e8462312f4dbc7129ed4d5ed974a72a80ea9a59
   authored: '2026-09-27T23:02:59+02:00'
@@ -41,13 +41,17 @@ distinguishing_contribution: The domain that signs authority does not perform ef
   that performs effects verifies authority it did not issue; the split is a process-role guard, not a
   convention.
 prior_art:
-  reviewed: false
+  reviewed: true
   review_sources:
   - PA-SRC-001
   - PA-SRC-002
-  records: []
-  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
-    Registration is not a claim of invention.
+  - PA-SRC-011
+  - PA-SRC-016
+  records:
+  - PA-REV-012
+  note: "Reviewed 2026-10-04 in PA-REV-012: KNOWN_PRIOR_ART. The review names the works compared,
+    the overlap, the difference and the sentence the claimed contribution is
+    limited to. Registration is not a claim of invention."
 evolution:
 - stage: first_recorded
   commit: 3e8462312f4dbc7129ed4d5ed974a72a80ea9a59

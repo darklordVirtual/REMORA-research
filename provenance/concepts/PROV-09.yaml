@@ -11,8 +11,8 @@ origin:
   authors:
   - Stian Skogbrott
   project: REMORA
-  status: claimed_original_contribution
-classification: UNKNOWN
+  status: compositional_contribution
+classification: REMORA_EXTENSION
 first_recorded:
   commit: 3e8462312f4dbc7129ed4d5ed974a72a80ea9a59
   authored: '2026-09-27T23:02:59+02:00'
@@ -43,13 +43,17 @@ distinguishing_contribution: Completeness of an observed runtime capability surf
   unestablished claim; a bounded observation can match a governed set without establishing that nothing
   else is callable.
 prior_art:
-  reviewed: false
+  reviewed: true
   review_sources:
   - PA-SRC-001
   - PA-SRC-002
-  records: []
-  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
-    Registration is not a claim of invention.
+  - PA-SRC-005
+  - PA-SRC-024
+  records:
+  - PA-REV-009
+  note: "Reviewed 2026-10-04 in PA-REV-009: REMORA_EXTENSION. The review names the works compared,
+    the overlap, the difference and the sentence the claimed contribution is
+    limited to. Registration is not a claim of invention."
 evolution:
 - stage: first_recorded
   commit: 3e8462312f4dbc7129ed4d5ed974a72a80ea9a59

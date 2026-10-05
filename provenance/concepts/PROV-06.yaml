@@ -11,8 +11,8 @@ origin:
   authors:
   - Stian Skogbrott
   project: REMORA
-  status: claimed_original_contribution
-classification: UNKNOWN
+  status: compositional_contribution
+classification: REMORA_COMPOSITION
 first_recorded:
   commit: 9109c878713f35e20bda942fd50215bc9e160f50
   authored: '2026-07-20T15:07:25+02:00'
@@ -46,13 +46,19 @@ distinguishing_contribution: A short-lived signed capability that exists only fo
   and one exact call, with expiry, one-time consumption and the tool-definition, policy, task and runtime
   identities signed into it.
 prior_art:
-  reviewed: false
+  reviewed: true
   review_sources:
   - PA-SRC-001
   - PA-SRC-002
-  records: []
-  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
-    Registration is not a claim of invention.
+  - PA-SRC-008
+  - PA-SRC-009
+  - PA-SRC-015
+  - PA-SRC-019
+  records:
+  - PA-REV-006
+  note: "Reviewed 2026-10-04 in PA-REV-006: REMORA_COMPOSITION. The review names the works compared,
+    the overlap, the difference and the sentence the claimed contribution is
+    limited to. Registration is not a claim of invention."
 evolution:
 - stage: first_recorded
   commit: 9109c878713f35e20bda942fd50215bc9e160f50

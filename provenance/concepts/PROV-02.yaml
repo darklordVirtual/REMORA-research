@@ -10,8 +10,8 @@ origin:
   authors:
   - Stian Skogbrott
   project: REMORA
-  status: claimed_original_contribution
-classification: UNKNOWN
+  status: compositional_contribution
+classification: REMORA_EXTENSION
 first_recorded:
   commit: a85227059a0990c2af8916316f389f3a0bb8ec26
   authored: '2026-08-05T09:03:15+02:00'
@@ -41,13 +41,18 @@ federation_produces: null
 distinguishing_contribution: The deployment signs the contract for what a tool call may be; the agent
   never supplies it, and a bundle whose signing identity disagrees with its specs is refused.
 prior_art:
-  reviewed: false
+  reviewed: true
   review_sources:
   - PA-SRC-001
   - PA-SRC-002
-  records: []
-  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
-    Registration is not a claim of invention.
+  - PA-SRC-006
+  - PA-SRC-020
+  - PA-SRC-025
+  records:
+  - PA-REV-002
+  note: "Reviewed 2026-10-04 in PA-REV-002: REMORA_EXTENSION. The review names the works compared,
+    the overlap, the difference and the sentence the claimed contribution is
+    limited to. Registration is not a claim of invention."
 evolution:
 - stage: first_recorded
   commit: a85227059a0990c2af8916316f389f3a0bb8ec26

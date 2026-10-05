@@ -115,7 +115,13 @@ def test_a_self_upgraded_classification_is_refused(tmp_path: Path) -> None:
     module = _module("build_provenance_manifest")
     src = LEDGER / "concepts" / "PROV-13.yaml"
     record = yaml.safe_load(src.read_text(encoding="utf-8"))
+    # Strip the real review first: the schema must refuse a classification
+    # that has none. Before the 2026-10-04 review round (PA-REV-001 to 017)
+    # this happened by default, because every record was UNKNOWN and
+    # unreviewed; the committed record now carries a genuine review.
     record["classification"] = "ORIGINAL_CLAIM"
+    record["prior_art"]["reviewed"] = False
+    record["prior_art"]["records"] = []
     validator = module._validator("concept-record-v1")
     errors = module._errors(validator, record, "PROV-13")
     assert errors, "schema must require a review before a classification"
@@ -123,7 +129,10 @@ def test_a_self_upgraded_classification_is_refused(tmp_path: Path) -> None:
     record["prior_art"]["records"] = ["PA-REV-999"]
     assert module._errors(validator, record, "PROV-13") == []
     # The schema is satisfied, so the builder's cross-check must be the one
-    # that refuses it: PA-REV-999 is not in PRIOR_ART.yaml.
+    # that refuses it: PA-REV-999 is not in PRIOR_ART.yaml. The builder's
+    # "classification without a review naming the concept" rule stays armed
+    # for future concepts; it cannot fire here because PA-REV-013 names
+    # PROV-13 for real.
     original = src.read_text(encoding="utf-8")
     try:
         src.write_text(yaml.safe_dump(record, sort_keys=False), encoding="utf-8")
@@ -132,7 +141,6 @@ def test_a_self_upgraded_classification_is_refused(tmp_path: Path) -> None:
     finally:
         src.write_text(original, encoding="utf-8")
     assert any("PA-REV-999" in p for p in problems)
-    assert any("without a review naming PROV-13" in p for p in problems)
 
 
 def test_external_events_say_what_the_source_says_and_mark_maintainer_overlap() -> None:

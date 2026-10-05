@@ -1,0 +1,356 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/darklordVirtual/REMORA-research/blob/master/docs/interop/remora-capabilities-v1.schema.json",
+  "title": "REMORA capability declaration v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "declaration_version",
+    "project",
+    "repository",
+    "updated",
+    "provenance",
+    "purpose",
+    "non_goals",
+    "maturity_levels",
+    "workflow_capabilities",
+    "self_service_capabilities",
+    "capability_audit",
+    "self_service_gaps"
+  ],
+  "properties": {
+    "schema": {"const": "remora-capabilities/v1"},
+    "declaration_version": {"const": 1},
+    "project": {"const": "REMORA"},
+    "repository": {"type": "string", "format": "uri"},
+    "updated": {"type": "string", "format": "date"},
+    "provenance": {
+      "type": "object",
+      "required": ["audited_revision", "source_of_truth"],
+      "properties": {
+        "audited_revision": {"$ref": "#/$defs/sha40"},
+        "source_of_truth": {"type": "array", "minItems": 1, "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "purpose": {
+      "type": "object",
+      "required": [
+        "discovery", "automatic_composition", "endorsement", "certification", "statement"
+      ],
+      "properties": {
+        "discovery": {"const": true},
+        "automatic_composition": {"const": false},
+        "endorsement": {"const": false},
+        "certification": {"const": false},
+        "statement": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "non_goals": {
+      "type": "object",
+      "required": [
+        "automatic_trust", "endorsement", "ranking", "certification",
+        "required_participation", "federation_membership_implication",
+        "automatic_dependency_installation", "remote_execution",
+        "cross_project_semantic_equivalence"
+      ],
+      "properties": {
+        "automatic_trust": {"const": false},
+        "endorsement": {"const": false},
+        "ranking": {"const": false},
+        "certification": {"const": false},
+        "required_participation": {"const": false},
+        "federation_membership_implication": {"const": false},
+        "automatic_dependency_installation": {"const": false},
+        "remote_execution": {"const": false},
+        "cross_project_semantic_equivalence": {"const": false}
+      },
+      "additionalProperties": false
+    },
+    "maturity_levels": {
+      "type": "array",
+      "const": [
+        "DECLARED", "IMPLEMENTED", "TESTED", "REPRODUCIBLE",
+        "EXTERNALLY_REPRODUCED", "OPERATOR_OBSERVED"
+      ]
+    },
+    "workflow_capabilities": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/workflowCapability"}
+    },
+    "self_service_capabilities": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/selfServiceCapability"}
+    },
+    "capability_audit": {
+      "type": "object",
+      "required": ["investigated"],
+      "properties": {
+        "investigated": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/auditCandidate"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "self_service_gaps": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/selfServiceGap"}
+    }
+  },
+  "$defs": {
+    "sha40": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "stringList": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "productionEvidence": {
+      "type": "object",
+      "required": ["class", "reference"],
+      "properties": {
+        "class": {"enum": ["field_observed", "externally_validated"]},
+        "reference": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "workflowCapability": {
+      "type": "object",
+      "required": [
+        "id", "title", "property", "role", "inputs", "outputs",
+        "trust_boundary", "trust_assumptions", "dependencies", "maturity",
+        "evidence", "limitations", "composition"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "title": {"type": "string", "minLength": 1},
+        "property": {
+          "type": "object",
+          "required": ["class", "statement"],
+          "properties": {
+            "class": {"type": "string", "minLength": 1},
+            "statement": {"type": "string", "minLength": 1}
+          },
+          "additionalProperties": false
+        },
+        "role": {
+          "type": "object",
+          "required": ["stage", "provides", "does_not_provide"],
+          "properties": {
+            "stage": {"$ref": "#/$defs/stringList"},
+            "provides": {"$ref": "#/$defs/stringList"},
+            "does_not_provide": {"$ref": "#/$defs/stringList"}
+          },
+          "additionalProperties": false
+        },
+        "inputs": {"$ref": "#/$defs/stringList"},
+        "outputs": {"$ref": "#/$defs/stringList"},
+        "trust_boundary": {
+          "type": "object",
+          "required": [
+            "remora_is_authority", "remora_executor_holds_execution_credentials",
+            "remora_authority_process_holds_execution_credentials", "credential_custody_scope",
+            "observes_dispatch", "observes_external_effect", "bypass_protection"
+          ],
+          "properties": {
+            "remora_is_authority": {"type": "boolean"},
+            "remora_executor_holds_execution_credentials": {"type": "boolean"},
+            "remora_authority_process_holds_execution_credentials": {"type": "boolean"},
+            "credential_custody_scope": {"type": "string", "minLength": 1},
+            "observes_dispatch": {"type": ["boolean", "string"], "enum": [true, false, "conditional"]},
+            "observes_external_effect": {"enum": [true, false, "conditional"]},
+            "bypass_protection": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        },
+        "trust_assumptions": {"$ref": "#/$defs/stringList"},
+        "dependencies": {"$ref": "#/$defs/stringList"},
+        "maturity": {
+          "type": "object",
+          "required": [
+            "level", "implemented", "tested", "reproducible",
+            "externally_reproduced", "operator_observed", "production_established"
+          ],
+          "properties": {
+            "level": {
+              "enum": [
+                "DECLARED", "IMPLEMENTED", "TESTED", "REPRODUCIBLE",
+                "EXTERNALLY_REPRODUCED", "OPERATOR_OBSERVED"
+              ]
+            },
+            "implemented": {"type": "boolean"},
+            "tested": {"type": "boolean"},
+            "reproducible": {"type": "boolean"},
+            "externally_reproduced": {"type": "boolean"},
+            "operator_observed": {"type": "boolean"},
+            "production_established": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        },
+        "evidence": {
+          "type": "object",
+          "required": [
+            "capability_ids", "claim_ids", "implementation", "tests",
+            "external_runs", "operator_records", "production"
+          ],
+          "properties": {
+            "capability_ids": {"$ref": "#/$defs/stringList"},
+            "claim_ids": {"$ref": "#/$defs/stringList"},
+            "implementation": {"$ref": "#/$defs/stringList"},
+            "tests": {"$ref": "#/$defs/stringList"},
+            "external_runs": {"$ref": "#/$defs/stringList"},
+            "operator_records": {"$ref": "#/$defs/stringList"},
+            "production": {
+              "type": "array",
+              "items": {"$ref": "#/$defs/productionEvidence"}
+            }
+          },
+          "additionalProperties": false
+        },
+        "limitations": {"$ref": "#/$defs/stringList"},
+        "composition": {
+          "type": "object",
+          "required": ["capability_class", "provider_role", "required", "replaceable", "notes"],
+          "properties": {
+            "capability_class": {"type": "string", "minLength": 1},
+            "provider_role": {"const": "candidate"},
+            "required": {"type": "boolean"},
+            "replaceable": {"type": "boolean"},
+            "notes": {"type": "string", "minLength": 1}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "selfServiceCapability": {
+      "type": "object",
+      "required": [
+        "id", "capability_ref", "availability", "scope",
+        "runtime_reproduction_status", "operator_assistance_required",
+        "frozen_target", "procedure", "expected_results", "negative_controls",
+        "evidence_output", "claim_ceiling", "independence", "publication"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+        "capability_ref": {"type": "string"},
+        "availability": {"enum": ["self_service", "NOT_READY"]},
+        "scope": {"enum": ["frozen_fixture_contract_only", "runtime_capability"]},
+        "runtime_reproduction_status": {"enum": ["READY", "NOT_READY"]},
+        "operator_assistance_required": {"type": "boolean"},
+        "frozen_target": {
+          "type": "object",
+          "required": [
+            "repository", "source_revision", "frozen_at_revision",
+            "manifest", "package_digest", "artifacts"
+          ],
+          "properties": {
+            "repository": {"type": "string", "format": "uri"},
+            "source_revision": {"$ref": "#/$defs/sha40"},
+            "frozen_at_revision": {"$ref": "#/$defs/sha40"},
+            "manifest": {"type": "string", "minLength": 1},
+            "package_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+            "artifacts": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "required": ["path", "sha256"],
+                "properties": {
+                  "path": {"type": "string", "minLength": 1},
+                  "sha256": {"$ref": "#/$defs/sha256"}
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "procedure": {
+          "type": "object",
+          "required": ["reference", "command", "mode", "executable"],
+          "properties": {
+            "reference": {"type": "string", "minLength": 1},
+            "command": {"type": "string", "minLength": 1},
+            "mode": {"enum": ["executable", "manual"]},
+            "executable": {"type": "boolean"}
+          },
+          "additionalProperties": false
+        },
+        "expected_results": {
+          "type": "object",
+          "required": ["vocabulary", "aggregate_verdict", "success_condition"],
+          "properties": {
+            "vocabulary": {
+              "type": "array",
+              "minItems": 3,
+              "uniqueItems": true,
+              "items": {"enum": ["ESTABLISHED", "CONTRADICTED", "NOT_ESTABLISHED"]}
+            },
+            "aggregate_verdict": {"const": false},
+            "success_condition": {"type": "string", "minLength": 1}
+          },
+          "additionalProperties": false
+        },
+        "negative_controls": {"$ref": "#/$defs/stringList"},
+        "evidence_output": {"$ref": "#/$defs/stringList"},
+        "claim_ceiling": {"type": "string", "minLength": 1},
+        "independence": {
+          "type": "object",
+          "required": ["allowed_labels", "automatic_independence_claim"],
+          "properties": {
+            "allowed_labels": {"$ref": "#/$defs/stringList"},
+            "automatic_independence_claim": {"const": false}
+          },
+          "additionalProperties": false
+        },
+        "publication": {
+          "type": "object",
+          "required": [
+            "operator_may_publish_own_attributed_result",
+            "may_speak_for_remora", "remora_endorsement_implied"
+          ],
+          "properties": {
+            "operator_may_publish_own_attributed_result": {"type": "boolean"},
+            "may_speak_for_remora": {"const": false},
+            "remora_endorsement_implied": {"const": false}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "auditCandidate": {
+      "type": "object",
+      "required": ["id", "disposition", "evidence", "reason"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "disposition": {"enum": ["DECLARED", "NOT_DECLARED"]},
+        "evidence": {"$ref": "#/$defs/stringList"},
+        "reason": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "selfServiceGap": {
+      "type": "object",
+      "required": [
+        "capability_ref", "package_replay_status", "runtime_reproduction_status",
+        "implementation", "tests", "frozen_input", "negative_controls",
+        "public_procedure", "claim_ceiling", "missing", "smallest_change"
+      ],
+      "properties": {
+        "capability_ref": {"type": "string"},
+        "package_replay_status": {"enum": ["SELF_SERVICE_AVAILABLE", "NOT_READY"]},
+        "runtime_reproduction_status": {"enum": ["READY", "NOT_READY"]},
+        "implementation": {"enum": ["PRESENT", "MISSING"]},
+        "tests": {"enum": ["PRESENT", "MISSING"]},
+        "frozen_input": {"enum": ["PRESENT", "MISSING"]},
+        "negative_controls": {"enum": ["PRESENT", "MISSING"]},
+        "public_procedure": {"enum": ["PRESENT", "MISSING"]},
+        "claim_ceiling": {"enum": ["PRESENT", "MISSING"]},
+        "missing": {"$ref": "#/$defs/stringList"},
+        "smallest_change": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

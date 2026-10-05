@@ -1,7 +1,7 @@
 {
   "schema_version": "remora-provenance-manifest-v1",
-  "snapshot": "01979990b545614dcd480924761d3010a98bcb0d",
-  "snapshot_committed": "2026-10-04T09:17:19+00:00",
+  "snapshot": "ed3b8cdb26336ef19c5969b0a48ac42959394f22",
+  "snapshot_committed": "2026-10-04T17:45:27+00:00",
   "release": null,
   "rule": "digests are taken from the tree of the recorded snapshot commit, so the manifest reproduces byte for byte until a new snapshot is written",
   "concepts": {
@@ -38,7 +38,7 @@
         }
       ],
       "first_recorded_commit": "131476910be1cd270f13ae34f6e4b932fcc1b3fe",
-      "classification": "UNKNOWN",
+      "classification": "REMORA_COMPOSITION",
       "aggregate_sha256": "f5237d849a56637fd6c24cd4e55686ebc98ad6fb8a323a0aa3cab321d631388f"
     },
     "PROV-02": {
@@ -79,7 +79,7 @@
         }
       ],
       "first_recorded_commit": "a85227059a0990c2af8916316f389f3a0bb8ec26",
-      "classification": "UNKNOWN",
+      "classification": "REMORA_EXTENSION",
       "aggregate_sha256": "bd456a82122ddd7f053c2296a55832e40ae62d29e94f5e97c53361518df2f07e"
     },
     "PROV-03": {
@@ -125,7 +125,7 @@
         }
       ],
       "first_recorded_commit": "3e5dc19c528231fd69d64de7ade6fa32660a7708",
-      "classification": "UNKNOWN",
+      "classification": "KNOWN_PRIOR_ART",
       "aggregate_sha256": "b072cb1c1b15cd727ac25fa06b27142b71c918cc77f2b663000d484867ae83de"
     },
     "PROV-04": {
@@ -161,7 +161,7 @@
         }
       ],
       "first_recorded_commit": "5741508ba36068257cf66048db53af38db41f59b",
-      "classification": "UNKNOWN",
+      "classification": "KNOWN_PRIOR_ART",
       "aggregate_sha256": "7b09d6b7025b98382a75e209feb29002474001346149c1d234e4b763c7f25434"
     },
     "PROV-05": {
@@ -202,7 +202,7 @@
         }
       ],
       "first_recorded_commit": "3ba703664a89cd399230547468ea5b7def0c25eb",
-      "classification": "UNKNOWN",
+      "classification": "RELATED_PRIOR_ART",
       "aggregate_sha256": "2877144309cf962736f3a1bd27868c04635327ed9e921c59951e4e9369a8f0f8"
     },
     "PROV-06": {
@@ -243,7 +243,7 @@
         }
       ],
       "first_recorded_commit": "9109c878713f35e20bda942fd50215bc9e160f50",
-      "classification": "UNKNOWN",
+      "classification": "REMORA_COMPOSITION",
       "aggregate_sha256": "26e1e9d521d545e0d93a234c821125ed9a77bd61cd7958ebb8e88b151a46bacf"
     },
     "PROV-07": {
@@ -279,7 +279,7 @@
         }
       ],
       "first_recorded_commit": "26888d623422b94f45cb0e0a4b300cc510444d99",
-      "classification": "UNKNOWN",
+      "classification": "RELATED_PRIOR_ART",
       "aggregate_sha256": "d4d83a8111b38f881ec2d208f39173fb6aea6934f4beb0a9eea08f402197a118"
     },
     "PROV-08": {
@@ -315,7 +315,7 @@
         }
       ],
       "first_recorded_commit": "ae78183bc81e728d3043be44a2b8aac5dee6afdf",
-      "classification": "UNKNOWN",
+      "classification": "RELATED_PRIOR_ART",
       "aggregate_sha256": "0763fc2f431f7b5cfc916a8cf2aad53e5b406ba091a1ed3ae1c2499d6b9c0632"
     },
     "PROV-09": {
@@ -356,7 +356,7 @@
         }
       ],
       "first_recorded_commit": "3e8462312f4dbc7129ed4d5ed974a72a80ea9a59",
-      "classification": "UNKNOWN",
+      "classification": "REMORA_EXTENSION",
       "aggregate_sha256": "cc32394fbcde8da5e487d0dc8ee225f8803baa8c4c8ae08560b4f612a93d7914"
     },
     "PROV-10": {
@@ -387,7 +387,7 @@
         }
       ],
       "first_recorded_commit": "d4b62c4fb31e6772d551d4a9ebf4fd35f675316d",
-      "classification": "UNKNOWN",
+      "classification": "KNOWN_PRIOR_ART",
       "aggregate_sha256": "ba07a5f3749bb847fec9fc6fed4dfa3a60bd9d9991bb49edbe2eb96d770841bd"
     },
     "PROV-11": {
@@ -423,7 +423,7 @@
         }
       ],
       "first_recorded_commit": "f10ca2a493755f64df9225a8ccb5636aa344a43a",
-      "classification": "UNKNOWN",
+      "classification": "RELATED_PRIOR_ART",
       "aggregate_sha256": "3df778cec734d1e1119f35ec2b919bdc348945eda2c519f4d2888f0e261c3ce2"
     },
     "PROV-12": {
@@ -454,7 +454,7 @@
         }
       ],
       "first_recorded_commit": "3e8462312f4dbc7129ed4d5ed974a72a80ea9a59",
-      "classification": "UNKNOWN",
+      "classification": "KNOWN_PRIOR_ART",
       "aggregate_sha256": "bb4d8b2f01a4abe9e2800fc8c9d87cf3cdf0ea2ff15d9fb51916f2ad40efda19"
     },
     "PROV-13": {
@@ -485,7 +485,7 @@
         }
       ],
       "first_recorded_commit": "ccf77613353d7a3bf3d9b54155ccc12269dc718c",
-      "classification": "UNKNOWN",
+      "classification": "KNOWN_PRIOR_ART",
       "aggregate_sha256": "b96d8efa08aaa9ce5e7c40d5486570424486ff81a42752cd78beda4e55c102e6"
     },
     "PROV-14": {
@@ -521,7 +521,7 @@
         }
       ],
       "first_recorded_commit": "26888d623422b94f45cb0e0a4b300cc510444d99",
-      "classification": "UNKNOWN",
+      "classification": "KNOWN_PRIOR_ART",
       "aggregate_sha256": "cf13f0f32fbeb590f38706e5ca9f2da7f99961bc3229601e67756403513616cc"
     },
     "PROV-15": {
@@ -552,7 +552,7 @@
         }
       ],
       "first_recorded_commit": "da47b8c67a70eea9492183b81be90e88a0f51cd2",
-      "classification": "UNKNOWN",
+      "classification": "RELATED_PRIOR_ART",
       "aggregate_sha256": "66a0133d16a2f771a9a8285a792a8cd6d76ce0d3371e8c245ca18b3cdb322649"
     },
     "PROV-16": {
@@ -588,7 +588,7 @@
         }
       ],
       "first_recorded_commit": "ad044fa890f818a591b706a8ca4dfb4d2f2a8af6",
-      "classification": "UNKNOWN",
+      "classification": "RELATED_PRIOR_ART",
       "aggregate_sha256": "827da4d5326149ce4f34d4583a7e5b16d009832d9ec556ec9110547bc441f127"
     },
     "PROV-17": {
@@ -649,78 +649,78 @@
         }
       ],
       "first_recorded_commit": "26888d623422b94f45cb0e0a4b300cc510444d99",
-      "classification": "UNKNOWN",
+      "classification": "REMORA_COMPOSITION",
       "aggregate_sha256": "4bf9ebb32113fd618786084d7828539a80eb7c9d15e1827923c561339f1f77fe"
     }
   },
   "concept_records": {
     "provenance/concepts/PROV-01.yaml": {
-      "blob": "1baa38677c589d0ef9f125e3a2acf549b24962c4",
-      "sha256": "fe2a682f8968cee31b54c8f3bed1e12d1bf51d40dda4b30c75e2ad5ad9f88de1"
+      "blob": "b3b754d608cf417f51c62b2b9492ff607abe79ee",
+      "sha256": "f65010e26aa84fb4b7d53fe1a45ba6de7a048e1be4e0c0c6f2829343761d1a40"
     },
     "provenance/concepts/PROV-02.yaml": {
-      "blob": "9b98713dff6240c11a5f7fc47bd96f8dde48682d",
-      "sha256": "4e8504a5ec8d1569af000578e97e022ab41e53749d975f5e127fd375664be728"
+      "blob": "304e63b0913b6e2d0f3688f3604ce76df67197c9",
+      "sha256": "12dee2209860cd07a17ebdaad0edf7fcc94d5ecce0d3f190cdbb401f660a8265"
     },
     "provenance/concepts/PROV-03.yaml": {
-      "blob": "e9a636f217dc37c45a52db96c9e2591c6be72f84",
-      "sha256": "9a608e7940e0d66463761bd054a17cd770a4003354a4a3f1f23d7ce84456001f"
+      "blob": "d9e308518de4dc758e700bca7a1d36b32643f868",
+      "sha256": "914d070479c459a26da5f90cb377e85fd137944fdc37ca2209ed71e5f3f0127d"
     },
     "provenance/concepts/PROV-04.yaml": {
-      "blob": "bf562dcc1cd86ced3faf4f7bfcf8338d622bf917",
-      "sha256": "215b83609f74916013765ae50f5702d004690e1b3d7fceb13d5f1c69201b9ea2"
+      "blob": "0426be4772600318b81963659989c13b7f399899",
+      "sha256": "51419c8c0aba1aae370ba1b9506b6b032c136331d101a7c4223d56baa97bd707"
     },
     "provenance/concepts/PROV-05.yaml": {
-      "blob": "8b9ec5ffdae4e42d5da75d34a1a10e5234c2eeff",
-      "sha256": "fd4bac5bab44a8ac54d65940a72e7c80f4d6db9c501d28ad384a20fe59f5ed20"
+      "blob": "aeee0956330233940563589fcc9a4a1137867cde",
+      "sha256": "bf168a7c4800befaa95617ccb5811581ef31d3e56573eac09376a89241985876"
     },
     "provenance/concepts/PROV-06.yaml": {
-      "blob": "c733981501547623e51d0e0a47058a1807fbb91c",
-      "sha256": "e0cc3cb5f8c1689209ef12f849d85ac5516cc8890226be198dff696c2d57b943"
+      "blob": "91a3d1e7c97911c41f09b002cd497f6523109431",
+      "sha256": "8c486104b3afa8363dcef6bda0527a1966e66dbac4b94626372ddc58faf80626"
     },
     "provenance/concepts/PROV-07.yaml": {
-      "blob": "ffadbede7528d01626639888c76815d54d535c0d",
-      "sha256": "9eaba087cd39fc5d40fb6ab291e7e74cb241d4eadfbcceebb55fead5d86543bf"
+      "blob": "697937864938dd7a3a8c962b13cf0a6f0b2ad71a",
+      "sha256": "e787f79ea37dd14e86af1fe11812bea48eec3b9e3a39741b663abc9ac99e1e2d"
     },
     "provenance/concepts/PROV-08.yaml": {
-      "blob": "87736d6f365af44fc01510ccccf59fe00117629c",
-      "sha256": "ed346d926366e0ad9adb8e6c9972ea787ed030d0b0be655832ab2c627bd07b6f"
+      "blob": "3dbc162df68f0c4d66b2853a9b6276edf934a907",
+      "sha256": "017914d9111fee005aab9e4aafb62a11bbb1c8ac75eaedd29cb3f9c87f4a7487"
     },
     "provenance/concepts/PROV-09.yaml": {
-      "blob": "d1c74e2423adc2e7a89390daea363f9fe4adbab4",
-      "sha256": "351137daae377f3616b42aaf1b6bf9f5608e540a030ab222c140a09f8ce224b7"
+      "blob": "3fbf4b46af33a10450fc7c2774856f603deafa1e",
+      "sha256": "c1d2dadd4fba0d1896c2d8cde69a9897edb90fd8a6ce3f7a850265d3d3851e64"
     },
     "provenance/concepts/PROV-10.yaml": {
-      "blob": "78be3d70cb877841cfb0a74563b227025851a48a",
-      "sha256": "602194264d432b7e25724e0547f82ee0c13b943d964a7deaf4667eafd7075575"
+      "blob": "4bec8b8e58f85580059fa19071a1176f40ff20ad",
+      "sha256": "e5f4ed1d71bb6f7217236718ae00b18bf7021f50d422d79c403101405f9d18a4"
     },
     "provenance/concepts/PROV-11.yaml": {
-      "blob": "832b9c39ddc68a4d0f0991ac7dd9b1e69902a636",
-      "sha256": "54e0c9a33841be83e9ba646bbda8015558ced81e1ea4dd68fdddc9809db94eaf"
+      "blob": "06a17f739e02bffe33ab0e98337c713e7fe3f30d",
+      "sha256": "6987ee4654c99cb54bf785d86e8ca596507369f661998cade0c2cf53ce70fec8"
     },
     "provenance/concepts/PROV-12.yaml": {
-      "blob": "758b612ed00b901af959bcc15205dbd8ccd6919b",
-      "sha256": "bf479f1816fa5d34a025677c250b711044ece831a9e7623861d4969e75a4b8b3"
+      "blob": "6482335532f4191dd857651938a2be3bd4d0c050",
+      "sha256": "b493e9e2f2eb6558c1d7101f554bc87d129678de7e655421fb2ccca42bd3b822"
     },
     "provenance/concepts/PROV-13.yaml": {
-      "blob": "7d399d11c704eb2e8309545d18ecf51da589f6df",
-      "sha256": "2f985b5c6814dd92ac6e0eb2fab90ce8571c9cbf0c520bc2b2d14cf06d88134a"
+      "blob": "988a7a8f7c5aabc8b7797dd50ac18de4437faaea",
+      "sha256": "ef70892d7b0d8720e50b4be8e02e9c3afcfef7d5bfb868ea5d57546945b33a94"
     },
     "provenance/concepts/PROV-14.yaml": {
-      "blob": "0b2fdb7b7304194115fc66226caae39800791f13",
-      "sha256": "cc9d19621f69b47825b231e9b99e4ad81a4a27a01a36662c900b7343ae5bf3ec"
+      "blob": "41fef7bc42a81a12d095d246300ed6253c8bbd4b",
+      "sha256": "2b1b50d56dd299cd88b77d1109a796d2d14bde1b364dc45b04068850d1afe996"
     },
     "provenance/concepts/PROV-15.yaml": {
-      "blob": "4bc0a556a16f633a1942244f9ad14c9e572cd594",
-      "sha256": "d8df1c221cb057e508ed124f576732c69bb86322a37582fd30a1bbe99a4eccb0"
+      "blob": "5d2be7aa471c83a306a28bd9178496f385d05c25",
+      "sha256": "50a95d21bc8f285ef1e8e397982f98e1b98e4fdf9fdeb365e9faa110e7300aab"
     },
     "provenance/concepts/PROV-16.yaml": {
-      "blob": "c826e754f7f3a76a87ab7092f321f91040a0fa24",
-      "sha256": "ec2eb7712adda60ddb0bfc5d67c9a38313dbf111a7fc21e0ff2aaff4bee4b7e9"
+      "blob": "b56a8511a01dbe274749274461f2834a3ebf6152",
+      "sha256": "c8567d269534ea257d942b16e1f560e22a19e1bbe2c7ac8ca25dd923a00f27f8"
     },
     "provenance/concepts/PROV-17.yaml": {
-      "blob": "847f65e808f42f1a31ae070955e09868ddb5536f",
-      "sha256": "c29882d85408105f8f33a4390078c48070a8ff1ec647bce8f4ee3e2f6c91e425"
+      "blob": "15e38d8cb1c9a278625b9c5565199b5dc3738b1d",
+      "sha256": "7e84487008ef36f0a75c0db304da7fbdd8f676b1205776f17307463bbf7d2671"
     }
   },
   "registers": {
@@ -741,16 +741,16 @@
       "sha256": "62abdd5f99a80645e1fe8e7423e6c1ed154e6a7b2b79632a1171e88d800671f1"
     },
     "artifacts/interop/index.json": {
-      "blob": "7a700335a5767fd9fa7bd990c2d5725be2ad3724",
-      "sha256": "73c9fd69c5024d37ab85fbc8ea2df73730e56e04a4367a0d3c6120551aa9b4cd"
+      "blob": "78f93e4a934294af465a920afe8523a8cee835e8",
+      "sha256": "dac4446d72fd9e4b6a86ce39838cc966177b0882f43bcedd8c2cf9d077b8273c"
     },
     "artifacts/interop/FEDERATION.yaml": {
       "blob": "531e54025a20a2180da83b20fa9417f3f74467e9",
       "sha256": "0fa66d8693275746e66db37ececc7e17f1191be86cdfd3b9c59e5feb0c9419f9"
     },
     "provenance/PRIOR_ART.yaml": {
-      "blob": "cb5a927b40331862248cddd250a651f33e1317b5",
-      "sha256": "e643669f96af1a6429c18e98dc1a43c1b06a380f74350a8465931980cc42a733"
+      "blob": "7a4f86c8ea388ee3a88a6819292180e03e5ace3a",
+      "sha256": "d7ee4aa622488ffc7f6df4059328f21c931e307aa53ed03e467405acfc46c3d8"
     },
     "provenance/EXTERNAL_ADOPTION.yaml": {
       "blob": "06f595305fe3eb0749bd6031780c487595412e8a",
@@ -761,10 +761,10 @@
       "sha256": "a2d71817fce26c570b97a045641f3e15ed2169ce50d06fe3dbcdfc7a8c8af8b3"
     },
     "provenance/POLICY.yaml": {
-      "blob": "6a3b893a023560057d9ada6ed4380e849384ec8c",
-      "sha256": "fe86ec1bf4eedf853f9ef4955a98c5a28f1a9f1c093a8cdb2d522be1fec09eb6"
+      "blob": "bc94661e6e8e2ab830bc341a609729749c792cac",
+      "sha256": "9fd42db3699e0dde5558f0ce7d0d894f87946fc7309c706aa9ee27e48edf2941"
     }
   },
-  "ledger_sha256": "f0917d6ba76c2206db1cbbaf6d9f417258e950d60813a79bb16e84e84438d475",
-  "generated_at": "2026-10-04T09:17:20+00:00"
+  "ledger_sha256": "3eb662065d49f4cc0dec5047dcc23553a12d32f45814f0cbf2acc10429e5e606",
+  "generated_at": "2026-10-04T17:45:30+00:00"
 }

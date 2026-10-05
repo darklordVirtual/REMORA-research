@@ -11,8 +11,8 @@ origin:
   authors:
   - Stian Skogbrott
   project: REMORA
-  status: claimed_original_contribution
-classification: UNKNOWN
+  status: derived
+classification: KNOWN_PRIOR_ART
 first_recorded:
   commit: 5741508ba36068257cf66048db53af38db41f59b
   authored: '2026-07-18T16:13:25+02:00'
@@ -42,13 +42,17 @@ distinguishing_contribution: A stored approval is decided again on the observati
   and survives only when the fresh decision is executable and no stricter; approval freshness is a gate,
   not a timestamp.
 prior_art:
-  reviewed: false
+  reviewed: true
   review_sources:
   - PA-SRC-001
   - PA-SRC-002
-  records: []
-  note: Classification stays UNKNOWN until a dated prior-art review is recorded in provenance/PRIOR_ART.yaml.
-    Registration is not a claim of invention.
+  - PA-SRC-015
+  - PA-SRC-023
+  records:
+  - PA-REV-004
+  note: "Reviewed 2026-10-04 in PA-REV-004: KNOWN_PRIOR_ART. The review names the works compared,
+    the overlap, the difference and the sentence the claimed contribution is
+    limited to. Registration is not a claim of invention."
 evolution:
 - stage: first_recorded
   commit: 5741508ba36068257cf66048db53af38db41f59b
