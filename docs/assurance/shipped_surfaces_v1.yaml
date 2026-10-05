@@ -85,9 +85,9 @@ surfaces:
       The Vite/TanStack frontend: lint at zero warnings, typecheck, tests and
       dependency audit.
     contracts:
-      - { kind: smoke, job: "quality-gates.yml:verify" }
-      - { kind: lint, job: "quality-gates.yml:verify" }
-      - { kind: type, job: "quality-gates.yml:verify" }
+      - { kind: smoke, job: "quality-gates.yml:frontend" }
+      - { kind: lint, job: "quality-gates.yml:frontend" }
+      - { kind: type, job: "quality-gates.yml:frontend" }
       - { kind: audit, job: "supply-chain.yml:npm-audit" }
 
   - name: workers

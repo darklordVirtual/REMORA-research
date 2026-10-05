@@ -47,6 +47,7 @@ docstring_parser==0.18.0
 dowhy==0.8
 email-validator==2.3.0
 exceptiongroup==1.2.2
+execnet==2.1.2
 ezdxf==1.4.3
 face==26.0.0
 fastapi==0.141.1
@@ -186,6 +187,7 @@ PySocks==1.7.1
 pytest==9.1.1
 pytest-asyncio==1.4.0
 pytest-cov==7.1.0
+pytest-xdist==3.8.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
 python-multipart==0.0.31
