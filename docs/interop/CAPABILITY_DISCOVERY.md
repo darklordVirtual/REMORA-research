@@ -39,6 +39,27 @@ replay is self-service, while runtime-level self-service reproduction remains
 external run must be recorded under the Federation result contract before
 external reproduction can be claimed.
 
+For a separate check of the **local REMORA reference runtime**, run:
+
+```bash
+python scripts/reproduce_runtime_surface.py --output /tmp/remora-runtime-run
+python scripts/reproduce_runtime_surface.py --verify /tmp/remora-runtime-run
+```
+
+Use a fresh output directory. The run executes `SignedSurfaceRuntime` against
+a temporary local record, checks the verified effect and negative controls,
+and writes `environment.json`, `inputs.json`, `results.json`,
+`negative-controls.json`, `evidence.json`, `claim-boundary.json`, and
+`hashes.json`. `environment.json` records the Git revision, working-tree
+status and hashes of selected executed source files, so a dirty checkout is
+visible. The verifier checks the output bytes against the manifest;
+an operator must pin that manifest separately before treating it as an
+integrity record. This exercises REMORA code, unlike fixture replay, but it
+does not run the strict HTTP deployment, inventory an external host, establish
+credential custody, or constitute independent external reproduction. It does
+not change the three capability declarations' `runtime_reproduction_status`
+or the global surface-completeness claim.
+
 ## Audit and gaps
 
 `capability_audit.investigated` records candidates included and rejected.
