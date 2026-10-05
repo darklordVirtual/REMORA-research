@@ -501,7 +501,15 @@ This file lists externally relevant changes by release. Fine-grained development
   - final hop: `GovernedToolDispatcher.dispatch` executes a private copy of
     the arguments, reads the callable after spec resolution, and re-checks
     the argument hash and registry generation before spending the nonce
-    (`tool_args_changed_after_verify`, `tool_registry_changed`).
+    (`tool_args_changed_after_verify`, `tool_registry_changed`);
+  - deep immutability: `PostconditionContract`, `EffectVerification`,
+    `PostconditionSpec`, `ProducerCapabilityManifest` and `EvidenceAdmission`
+    froze one level deep, so a nested alias held by the caller could change
+    the content after its digest was computed, and an accepted manifest
+    digest could establish producer visibility in another tenant's scope.
+    `remora/frozen_json.py` now takes a private deep copy and refuses values
+    outside the JSON domain; `effect_digest` drops `default=str` and keeps its
+    historic encoding for JSON-domain values.
 - Evidence admission, one fail-closed narrowing (2026-10-04). A
   `CoverageAttestation` could establish `observation_coverage_complete` on
   producer identity, invocation id and its own content; its digest was never
