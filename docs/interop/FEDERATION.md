@@ -4,7 +4,15 @@ REMORA participates as a producer/runtime node, not as a Federation coordinator.
 
 The stable entry point is `artifacts/interop/index.json`. The participation
 manifest is `artifacts/interop/FEDERATION.yaml`; the generated status table
-is [INTEROP_MATRIX.md](INTEROP_MATRIX.md).
+is [INTEROP_MATRIX.md](INTEROP_MATRIX.md). The bounded boundary declaration
+summary is generated at
+[remora-boundary-summary-v1.json](../../artifacts/interop/remora-boundary-summary-v1.json).
+
+The boundary summary keeps internal trust boundaries, external interfaces,
+Federation edges, role mappings and claim ceilings distinct. Its statuses do
+not imply production evidence, owner confirmation, independent observation or
+Federation adoption. E7 remains externally unrun, and
+`runtime_capability_surface_completeness` remains `NOT_ESTABLISHED`.
 
 ## Participation manifest
 
@@ -314,4 +322,3 @@ native claim and result as an opaque reference (`external-evidence-ref-v1`).
 Open an issue with the artifact's revision, digest and the role you intend.
 The reference is admitted by a deployment-owned step and never alters a
 decision. Attribution stays attached to the originating project.
-

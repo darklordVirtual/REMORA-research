@@ -318,6 +318,12 @@ jobs:
         # wiring for real or recording the honest weaker status.
         run: python scripts/check_capability_semantics.py
 
+      - name: Boundary declaration and generated summary
+        run: |
+          python scripts/check_remora_capabilities.py
+          python scripts/check_remora_boundaries.py
+          python scripts/build_remora_boundary_summary.py --check
+
       - name: Credential topology (Agent Authority property E, static half)
         # docs/assurance/credential_topology.yaml declares every
         # secret-bearing environment credential, who holds it and whether the

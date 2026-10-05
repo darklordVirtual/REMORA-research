@@ -12,14 +12,18 @@ on:
       - "artifacts/interop/**"
       - "docs/interop/FEDERATION.md"
       - "docs/interop/INTEROP_MATRIX.md"
+      - "docs/interop/remora-boundaries-v1.*"
       - "remora/interop/**"
       - "scripts/interop_package.py"
       - "scripts/interop_author_run.py"
       - "scripts/build_interop_matrix.py"
+      - "scripts/check_remora_boundaries.py"
+      - "scripts/build_remora_boundary_summary.py"
       - "tests/test_federation_interop_contract.py"
       - "tests/test_runtime_surface_e7_fixture_contract.py"
       - "tests/test_interop_boundary_fixtures.py"
       - "tests/test_interop_result_contract.py"
+      - "tests/test_remora_boundary_declaration.py"
       - "tests/test_agentavow_edge.py"
       - ".github/workflows/federation-interop.yml"
   push:
@@ -28,14 +32,18 @@ on:
       - "artifacts/interop/**"
       - "docs/interop/FEDERATION.md"
       - "docs/interop/INTEROP_MATRIX.md"
+      - "docs/interop/remora-boundaries-v1.*"
       - "remora/interop/**"
       - "scripts/interop_package.py"
       - "scripts/interop_author_run.py"
       - "scripts/build_interop_matrix.py"
+      - "scripts/check_remora_boundaries.py"
+      - "scripts/build_remora_boundary_summary.py"
       - "tests/test_federation_interop_contract.py"
       - "tests/test_runtime_surface_e7_fixture_contract.py"
       - "tests/test_interop_boundary_fixtures.py"
       - "tests/test_interop_result_contract.py"
+      - "tests/test_remora_boundary_declaration.py"
       - "tests/test_agentavow_edge.py"
       - ".github/workflows/federation-interop.yml"
   workflow_dispatch:
@@ -57,6 +65,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Setup Python
@@ -72,7 +81,7 @@ jobs:
           pip install -e ".[dev]" -c /tmp/constraints.txt
 
       - name: Federation producer contract
-        run: python -m pytest tests/test_federation_interop_contract.py tests/test_runtime_surface_e7_fixture_contract.py tests/test_interop_result_contract.py tests/test_interop_boundary_fixtures.py tests/test_agentavow_edge.py -q --no-cov -p no:cacheprovider
+        run: python -m pytest tests/test_federation_interop_contract.py tests/test_runtime_surface_e7_fixture_contract.py tests/test_interop_result_contract.py tests/test_interop_boundary_fixtures.py tests/test_agentavow_edge.py tests/test_remora_boundary_declaration.py -q --no-cov -p no:cacheprovider
 
       - name: Publication gate (claim ceiling, provenance, run records, manifest)
         run: python scripts/interop_package.py --check
@@ -82,6 +91,12 @@ jobs:
 
       - name: Interop matrix is generated from the records
         run: python scripts/build_interop_matrix.py --check
+
+      - name: Boundary declaration and generated summary
+        run: |
+          python scripts/check_remora_capabilities.py
+          python scripts/check_remora_boundaries.py
+          python scripts/build_remora_boundary_summary.py --check
 
       - name: Reference verifier (author run; not independent verification)
         run: python artifacts/interop/runtime-surface-e7-v0.1/reference_verifier.py > /tmp/reference-run.json && python -c "import json; d=json.load(open('/tmp/reference-run.json')); assert d['failures']==[], d; print(len(d['results']), 'results, no failures')"
