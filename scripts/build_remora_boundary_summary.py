@@ -13,7 +13,11 @@ from typing import Any
 
 import yaml
 
-from scripts.check_remora_boundaries import (
+# Run as `python scripts/<name>.py` in jobs without an installed package
+# (documentation-governance): put the repository root on sys.path first.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from scripts.check_remora_boundaries import (  # noqa: E402
     REGISTER,
     ROOT,
     validate_boundary_register,

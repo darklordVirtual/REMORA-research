@@ -15,7 +15,11 @@ from typing import Any
 import yaml
 from jsonschema import Draft202012Validator
 
-from scripts.interop_package import package_digest
+# Run as `python scripts/<name>.py` in jobs without an installed package
+# (documentation-governance): put the repository root on sys.path first.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from scripts.interop_package import package_digest  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 REGISTER = ROOT / "docs/interop/remora-boundaries-v1.yaml"
