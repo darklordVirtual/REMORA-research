@@ -1,6 +1,6 @@
 {
   "schema_version": "remora-fresh-authority-v1-manifest",
-  "lifecycle": "EXTERNAL_RUN_PENDING",
+  "lifecycle": "REPRODUCED",
   "producer": "REMORA-research",
   "source_revision": "e6d41c71e95a7ae07f349c28e791e99bde0b9a5a",
   "source_artifacts": [],
