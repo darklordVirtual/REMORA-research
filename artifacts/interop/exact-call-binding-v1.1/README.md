@@ -24,10 +24,11 @@ things v1 does not cover:
   that was changed after its binding was checked.
 
 v1.1 carries every v1 case unchanged and seven new ones marked
-`"added_in": "v1.1"`: integer and integral float in both directions and one
-level down, a positive control that an unchanged float still dispatches,
-`true` against `1`, an added argument whose value is `null`, and two
-integers beyond 2^53 that a binary double cannot tell apart. They were
+`"added_in": "v1.1"`. Three set an integer against an integral float, in
+both directions and one level down. One is a positive control: an unchanged
+float still dispatches. The rest set `true` against `1`, add an argument
+whose value is `null`, and change an integer beyond 2^53 that a binary double
+cannot tell apart from its neighbour. They were
 written with the gap known, so they are repair cases, not independent
 evidence. v1 stays published with its records; its blind spots are a
 preserved negative result.

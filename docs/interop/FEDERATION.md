@@ -94,7 +94,7 @@ boundary; one consumes a foreign artifact.
 | `fresh-authority-v1` | `fresh_authority_at_dispatch` | `PolicyDecisionToken` with `EnforcementGate`, and the lease with the dispatcher |
 | `effect-evidence-v1` | `effect_state_distinction` | `verify_declared_delta` over the fixture's state ladder |
 | `exact-call-binding-v1.1` | as v1 | as v1; adds scalar-type cases and names the temporal boundary |
-| `effect-evidence-v1.1` | as v1 | as v1; a rejected rule map is `CONTRACT_REJECTED` |
+| `effect-evidence-v1.1` | as v1 | as v1; a rejected rule map is `CONTRACT_REJECTED` and versions compare as integers only |
 | `agentavow-tool-manifest-e8-v0.1` | `attested_definition_binding` | `remora.interop.agentavow` against `toolspec_hash` inside a signed lease |
 
 `remora/interop/boundary_fixtures.py` runs the first three through the real

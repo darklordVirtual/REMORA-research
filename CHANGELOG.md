@@ -541,14 +541,16 @@ This file lists externally relevant changes by release. Fine-grained development
     `effect-evidence-v1.1` (edge `E-EE-V1-1`) and `exact-call-binding-v1.1`
     (`E-ECB-V1-1`) instead of rewritten bytes. The effect reference verifier
     no longer reads a missing field as `null` and rejects an unknown rule or
-    a rule for an undeclared field (`CONTRACT_REJECTED`). Ten effect cases
-    and seven call cases were added: missing against explicit `null` under
-    `exact`, `hash`, `absent` and `present`; rejected rule maps; `1` against
-    `1.0` in both directions and nested; nested `true` against `1`; an added
-    `null` argument; two integers beyond 2^53. The exact-call README names
+    a rule for an undeclared field (`CONTRACT_REJECTED`), and its
+    `version_increment` compares integers only on both sides. Fourteen effect
+    cases and seven call cases were added: missing against explicit `null`
+    under `exact`, `hash`, `absent` and `present`; rejected rule maps; `1`
+    against `1.0` in both directions and nested; nested `true` against `1`;
+    `"4"`, `true` and `4.0` as observed versions and `"3"` as a declared one;
+    an added `null` argument; two integers beyond 2^53. The exact-call README names
     verify-then-mutate (TOCTOU) as outside a static corpus and points at
     `tests/test_pre_federation_toctou_adversarial.py`. REMORA's core and the
-    v1.1 reference verifiers agree on all 44 v1.1 cases (L0 author records). The
+    v1.1 reference verifiers agree on all 48 v1.1 cases (L0 author records). The
     v1 packages keep their bytes and are marked superseded in `index.json`
     and `FEDERATION.yaml`; their blind spots are pinned by tests as a
     preserved negative result. The new cases are repair, not independent

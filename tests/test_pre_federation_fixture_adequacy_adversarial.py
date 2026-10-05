@@ -196,5 +196,9 @@ def test_v1_effect_reference_verifier_fails_exactly_the_v1_1_repair_cases():
         "rule_for_undeclared_field",
         "integer_is_not_integral_float",
         "nested_bool_is_not_int",
+        "version_as_string",
+        "version_as_bool",
+        "version_as_integral_float",
+        "declared_version_as_string",
     }
     assert all(case.get("added_in") == "v1.1" for case in doc["cases"] if case["id"] in wrong)
