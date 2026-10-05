@@ -197,6 +197,9 @@ reason_codes:
     meaning: a spec declares downstream_capabilities in a schema_version 1 bundle
   - code: toolspec_downstream_declaration_invalid
     meaning: the downstream_capabilities declaration is malformed or ambiguous
+  # Additive (2026-10-06): the async worker's dispatch-time comparison.
+  - code: toolspec_changed_between_authorization_and_dispatch
+    meaning: the spec hash when a durably authorized intent is dispatched differs from the one assessed, or cannot be shown
 
 # ── Binding chain (handoff gate §1.3/§1.5) ─────────────────────────────────
 # The same ToolSpec hash must appear at every stage. Any difference means
