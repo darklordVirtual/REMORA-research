@@ -95,3 +95,37 @@ def test_exact_call_federation_contract_names_temporal_mutation_boundary():
         "executes a call mutated after its binding check; the temporal boundary "
         "is neither tested nor named in the package ceiling"
     )
+
+
+def test_exact_call_fixture_corpus_contains_integral_float_type_change():
+    """Scalar-type significance needs a discriminator portable verifiers can fail.
+
+    JSON's textual 1 and 1.0 parse to different Python scalar kinds but collapse
+    to one JavaScript Number.  A verifier can pass the current string-vs-int
+    case while still being unable to implement the published contract here.
+    """
+    path = ROOT / "artifacts/interop/exact-call-binding-v1/fixtures.json"
+    doc = json.loads(path.read_text(encoding="utf-8"))
+
+    found = False
+    for case in doc["cases"]:
+        auth = case.get("authorization", {}).get("arguments", {})
+        for presented in case.get("dispatches", []):
+            args = presented.get("arguments", {})
+            for key, before in auth.items():
+                if key not in args:
+                    continue
+                after = args[key]
+                if (
+                    type(before) is int and type(after) is float
+                    and float(before) == after
+                ) or (
+                    type(before) is float and type(after) is int
+                    and before == float(after)
+                ):
+                    found = True
+                    assert case["expected"]["outcomes"][0]["outcome"] == "REFUSED"
+    assert found, (
+        "exact-call-binding-v1 says scalar types are significant but has no "
+        "integer-vs-integral-float discriminator"
+    )
