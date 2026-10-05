@@ -1,7 +1,7 @@
 {
   "schema_version": "remora-provenance-manifest-v1",
-  "snapshot": "ed3b8cdb26336ef19c5969b0a48ac42959394f22",
-  "snapshot_committed": "2026-10-04T17:45:27+00:00",
+  "snapshot": "c7cfc683ed906ffa0e3dcce8e3a31e88f08b0b5d",
+  "snapshot_committed": "2026-10-05T18:47:56+00:00",
   "release": null,
   "rule": "digests are taken from the tree of the recorded snapshot commit, so the manifest reproduces byte for byte until a new snapshot is written",
   "concepts": {
@@ -91,8 +91,8 @@
         },
         {
           "path": "docs/deployment/execution-quickstart.md",
-          "blob": "ee95258da30f8ec4b0c5f34ee174ed07fd104222",
-          "sha256": "2b828a9c40804beda218f584c900fa98e3ff04a816998968ee939bbed463aa41"
+          "blob": "f6007a6f9d42884803d91d7d1454a5e9fc370391",
+          "sha256": "c538ad203d58654d77189657eabcdd67b63f8fc130b0624b9a6f938a40c2fed4"
         }
       ],
       "implementation": [
@@ -126,7 +126,7 @@
       ],
       "first_recorded_commit": "3e5dc19c528231fd69d64de7ade6fa32660a7708",
       "classification": "KNOWN_PRIOR_ART",
-      "aggregate_sha256": "b072cb1c1b15cd727ac25fa06b27142b71c918cc77f2b663000d484867ae83de"
+      "aggregate_sha256": "9c78e2f334d4576345c7b52b3053f528da5b8135cb5cf1d450f7347abc5a818a"
     },
     "PROV-04": {
       "canonical_spec": [
@@ -729,8 +729,8 @@
       "sha256": "1c3e7a654f9e0e2d2bebfe97b9f037a59924fd705e54deed736ca76a2d984e67"
     },
     "docs/assurance/capability_register_v1.yaml": {
-      "blob": "cc4885be815ef895e8c54dff108fdccd27bd16f0",
-      "sha256": "0089c223f7f1a076507d45f618622eb2516f7e78929cb55edf6f056317de0263"
+      "blob": "fba4338badc8e4e1aaa35db9fc20023f887cf800",
+      "sha256": "b5b36717b78f5a5ddb6b02782d42007e9c9354340a7788dac9d5e9baf5f39172"
     },
     "docs/assurance/provenance_concepts_v1.yaml": {
       "blob": "16fe7fa9346ef36b7687d5e5243c8b66f44f247c",
@@ -741,8 +741,8 @@
       "sha256": "62abdd5f99a80645e1fe8e7423e6c1ed154e6a7b2b79632a1171e88d800671f1"
     },
     "artifacts/interop/index.json": {
-      "blob": "78f93e4a934294af465a920afe8523a8cee835e8",
-      "sha256": "dac4446d72fd9e4b6a86ce39838cc966177b0882f43bcedd8c2cf9d077b8273c"
+      "blob": "8a50a3c3d88dde0b132b76aa58491f96a52cbd04",
+      "sha256": "305753d1acc5a6eb2ba87e4661252cc2ce13dea64ebe948b01b9284cc7314c14"
     },
     "artifacts/interop/FEDERATION.yaml": {
       "blob": "531e54025a20a2180da83b20fa9417f3f74467e9",
@@ -765,6 +765,6 @@
       "sha256": "9fd42db3699e0dde5558f0ce7d0d894f87946fc7309c706aa9ee27e48edf2941"
     }
   },
-  "ledger_sha256": "3eb662065d49f4cc0dec5047dcc23553a12d32f45814f0cbf2acc10429e5e606",
-  "generated_at": "2026-10-04T17:45:30+00:00"
+  "ledger_sha256": "7b0c1b4f5497c773977bf1953ccaecfd45af28d9761099e0acd1da2f7caffb98",
+  "generated_at": "2026-10-05T18:52:10+00:00"
 }
