@@ -261,6 +261,9 @@ Design documents describe a proposal at the time it was written; whether it ship
 | [interop/FEDERATION.md](interop/FEDERATION.md) | Federation interoperability: producer contract, foreign evidence as opaque reference, action lineage and attribution without transitive credit; entry point `artifacts/interop/index.json` |
 | [interop/INTEROP_MATRIX.md](interop/INTEROP_MATRIX.md) | Generated interop matrix: one row per Federation edge with status derived from run records (`scripts/build_interop_matrix.py`) |
 | [interop/CAPABILITY_DISCOVERY.md](interop/CAPABILITY_DISCOVERY.md) | Machine-readable workflow capabilities, fixture self-service procedures and runtime reproduction gaps |
+| [interop/remora-boundaries-v1.yaml](interop/remora-boundaries-v1.yaml) | Canonical boundary types, role mappings, evidence freshness and claim ceilings |
+| [interop/remora-boundaries-v1.schema.json](interop/remora-boundaries-v1.schema.json) | JSON Schema for the boundary declaration |
+| [../artifacts/interop/remora-boundary-summary-v1.json](../artifacts/interop/remora-boundary-summary-v1.json) | Generated bounded Federation-facing boundary summary |
 | [design/task-bound-execution-authority-v1.md](design/task-bound-execution-authority-v1.md) | Binding an authorization to the task it was granted under: the gap, the three lines that found it, and the signature-preserving field rule (open proposal) |
 | [design/capability-minimized-execution-v1.md](design/capability-minimized-execution-v1.md) | Capability minimization before reasoning: the owner's SDD mapped onto existing REMORA code, the four gaps, the deviations, and WS8 Q8.1 to Q8.9 (implemented) |
 | [design/plan-premise-authority-v1.md](design/plan-premise-authority-v1.md) | Taking the minimum safety dependencies of a plan out of the planner's trust domain: the gap at `plan_binding.py`, the Q8.1 rule applied to premises, and WS9 Q9.1 to Q9.8 (open proposal) |

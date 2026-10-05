@@ -1,0 +1,487 @@
+schema_version: remora-boundaries/v1
+
+provenance:
+  audited_revision: c1e1e313882b44156942f2d04d831449f5710ebd
+  implementation_sources:
+    - remora/policy/decision_engine.py
+    - remora/enforcement/lease.py
+    - remora/enforcement/gate.py
+    - remora/enforcement/custody.py
+    - remora/execution/dispatch.py
+    - remora/governance/effect_verification.py
+    - remora/enforcement/outbox.py
+    - servers/execution_api.py
+  source_pins:
+    - path: docs/interop/remora-capabilities-v1.yaml
+      sha256: 9bc6ac29ab4bf4b59b83509d1354580b9933fe4ced06e5e3bb9aeedee257032b
+      role: workflow capability declarations
+    - path: docs/assurance/capability_register_v1.yaml
+      sha256: b5b36717b78f5a5ddb6b02782d42007e9c9354340a7788dac9d5e9baf5f39172
+      role: implementation maturity and freshness source
+    - path: artifacts/interop/index.json
+      sha256: 8915522105648a80703af887ce09da4f9faa55db89776db7d8bd70ba26fcc715
+      role: Federation contract and run-record index
+    - path: artifacts/interop/FEDERATION.yaml
+      sha256: 0fa66d8693275746e66db37ececc7e17f1191be86cdfd3b9c59e5feb0c9419f9
+      role: Federation edge declarations
+    - path: artifacts/interop/runtime-surface-e7-v0.1/manifest.json
+      sha256: f67b6a88ec79219a567b5d47b528f9c47437d6ae6a42bec94d6d5d6c85379ddf
+      role: E7 artifact digest source
+
+runtime_capability_surface_completeness:
+  status: NOT_ESTABLISHED
+  evidence: artifacts/runtime_surface/negative_cases_v1.json
+  claim_ceiling_ref: cc-runtime-surface-completeness
+
+internal_trust_boundaries:
+  - id: authority-executor-custody
+    kind: AUTHORITY_EXECUTOR_CUSTODY
+    supporting_capabilities:
+      - authority_executor_custody_separation
+      - governed_tool_dispatch
+    maturity: TESTED
+    credential_custody:
+      authority_process_holds_execution_credentials: false
+      executor_holds_execution_credentials: true
+      scope: >-
+        The strict-profile executor holds deployment-owned credentials; the
+        authority process does not.
+    strict_profile_required: true
+    bypass_paths:
+      - Direct tool clients or credentials outside the governed dispatcher are not controlled here.
+      - Research-profile tools that use credentials directly are not stopped by this boundary.
+    claim_ceiling_ref: cc-authority-executor-custody
+  - id: governed-dispatch-entry
+    kind: GOVERNED_DISPATCH
+    supporting_capabilities:
+      - exact_call_binding
+      - governed_tool_dispatch
+    maturity: TESTED
+    credential_custody:
+      authority_process_holds_execution_credentials: false
+      executor_holds_execution_credentials: true
+      scope: >-
+        The deployment-owned execution lease is checked at the governed
+        dispatcher; credentials remain on the executor side.
+    strict_profile_required: true
+    bypass_paths:
+      - Unregistered callables and external credential paths are outside the governed dispatcher.
+    claim_ceiling_ref: cc-governed-dispatch
+
+external_interfaces:
+  - id: execution-api
+    interface: POST /v1/execution/*
+    direction: BIDIRECTIONAL
+    supporting_capabilities:
+      - deterministic_policy_gate
+      - exact_call_binding
+      - fresh_authority_at_dispatch
+      - governed_tool_dispatch
+    maturity: TESTED
+    claim_ceiling_ref: cc-execution-api
+  - id: effect-verification-interface
+    interface: Declared effect receipt and state-delta verification
+    direction: INBOUND
+    supporting_capabilities:
+      - effect_state_distinction
+    maturity: TESTED
+    claim_ceiling_ref: cc-effect-verification-interface
+  - id: reconciliation-interface
+    interface: Outbox dispatch outcome and reconciliation observation
+    direction: BIDIRECTIONAL
+    supporting_capabilities:
+      - unknown_execution_and_reconciliation
+    maturity: TESTED
+    claim_ceiling_ref: cc-reconciliation-interface
+
+federation_edges:
+  - id: E-ECB
+    contract_id: exact-call-binding-v1
+    package_digest: sha256:48dd143c4e4f50d69063df8e2a2993a5d240a50d81dc4330b225015ea432c77c
+    supporting_capabilities:
+      - exact_call_binding
+      - single_use_execution_authorization
+    maturity: TESTED
+    producer_role: REMORA produces a bounded execution-lease fixture contract.
+    consumer_role: An external verifier consumes the pinned contract and records case-level results.
+    claim: exact_call_binding and single_use_authorization
+    claim_ceiling_ref: cc-edge-e-ecb
+    negative_case_ids: []
+    pinned_artifacts: []
+    status_dimensions:
+      owner_confirmation:
+        status: NOT_CONFIRMED
+        evidence: []
+      pinning:
+        status: PIN_CONFIRMED
+        evidence:
+          - https://github.com/darklordVirtual/REMORA-research/issues/707#issuecomment-5982027211
+      execution:
+        status: EXTERNAL_RUN_RECORDED
+        evidence:
+          - https://github.com/probityai/agent-evidence-vectors/actions/runs/37232420650
+      independence:
+        status: NOT_INDEPENDENT
+        evidence:
+          - https://github.com/probityai/agent-evidence-vectors/actions/runs/37232420650
+      claim_result:
+        status: NOT_ESTABLISHED
+        evidence:
+          - https://github.com/probityai/agent-evidence-vectors/actions/runs/37232420650
+      production:
+        status: NOT_ESTABLISHED
+        evidence: []
+      federation_adoption:
+        status: NOT_ADOPTED
+        evidence: []
+  - id: E-FA
+    contract_id: fresh-authority-v1
+    package_digest: sha256:234c57d0ed79b0cd87e702b2efbc52e99af1c619bd7fed2aef7be5c14964b691
+    supporting_capabilities:
+      - fresh_authority_at_dispatch
+    maturity: TESTED
+    producer_role: REMORA produces a bounded fresh-authority fixture contract.
+    consumer_role: An external verifier records results for the declared fixture cases.
+    claim: fresh_authority_at_dispatch
+    claim_ceiling_ref: cc-edge-e-fa
+    negative_case_ids: []
+    pinned_artifacts: []
+    status_dimensions:
+      owner_confirmation:
+        status: NOT_CONFIRMED
+        evidence: []
+      pinning:
+        status: PIN_CONFIRMED
+        evidence:
+          - https://github.com/darklordVirtual/REMORA-research/issues/707#issuecomment-5982027211
+      execution:
+        status: EXTERNAL_RUN_RECORDED
+        evidence:
+          - https://github.com/probityai/agent-evidence-vectors/actions/runs/37232420650
+      independence:
+        status: NOT_INDEPENDENT
+        evidence:
+          - https://github.com/probityai/agent-evidence-vectors/actions/runs/37232420650
+      claim_result:
+        status: NOT_ESTABLISHED
+        evidence:
+          - https://github.com/probityai/agent-evidence-vectors/actions/runs/37232420650
+      production:
+        status: NOT_ESTABLISHED
+        evidence: []
+      federation_adoption:
+        status: NOT_ADOPTED
+        evidence: []
+  - id: E-EE
+    contract_id: effect-evidence-v1
+    package_digest: sha256:26c437c65a5c3890a0672845dd9e1e54b03c38ae5f05a6fbe7131402b952034c
+    supporting_capabilities:
+      - effect_state_distinction
+    maturity: TESTED
+    producer_role: REMORA produces declared effect-evidence fixtures.
+    consumer_role: An external verifier records case-level effect-state results.
+    claim: effect_state_distinction
+    claim_ceiling_ref: cc-edge-e-ee
+    negative_case_ids: []
+    pinned_artifacts: []
+    status_dimensions:
+      owner_confirmation:
+        status: NOT_CONFIRMED
+        evidence: []
+      pinning:
+        status: PIN_CONFIRMED
+        evidence:
+          - https://github.com/darklordVirtual/REMORA-research/issues/707#issuecomment-5982027211
+      execution:
+        status: EXTERNAL_RUN_RECORDED
+        evidence:
+          - https://github.com/probityai/agent-evidence-vectors/actions/runs/37232420650
+      independence:
+        status: NOT_INDEPENDENT
+        evidence:
+          - https://github.com/probityai/agent-evidence-vectors/actions/runs/37232420650
+      claim_result:
+        status: NOT_ESTABLISHED
+        evidence:
+          - https://github.com/probityai/agent-evidence-vectors/actions/runs/37232420650
+      production:
+        status: NOT_ESTABLISHED
+        evidence: []
+      federation_adoption:
+        status: NOT_ADOPTED
+        evidence: []
+  - id: E7
+    contract_id: runtime-surface-e7-v0.1
+    package_digest: sha256:01dfdb7885bdbb18c025bc013edc28b482b0631ae282aca877bd0953b865e4bf
+    supporting_capabilities:
+      - governed_tool_dispatch
+    maturity: DECLARED
+    producer_role: REMORA publishes the pinned E7 fixture package.
+    consumer_role: Probity is the named verifier; no external run record exists.
+    claim: bounded_observed_surface_matches_governed_set
+    claim_ceiling_ref: cc-edge-e7
+    negative_case_ids:
+      - undeclared_tool_invocation_surface
+      - runtime_identity_changed
+      - observation_coverage_incomplete
+      - alternative_effect_path_observed
+    pinned_artifacts:
+      - path: artifacts/interop/runtime-surface-e7-v0.1/README.md
+        sha256: a12c3da58dd79e651a5a7cd8526d5b6e4ca6a1a24a176bfc0e13d6182540ae15
+        role: package file
+      - path: artifacts/interop/runtime-surface-e7-v0.1/claim-packet.json
+        sha256: 6c140d12f66e06aa3ae60e6aec62e38836509a91a32056649520f2bbb8aa2833
+        role: package file
+      - path: artifacts/interop/runtime-surface-e7-v0.1/fixtures.json
+        sha256: b09b937ad263169682fd0d6175564d084b4a61f5c996adb1237fd2eac31aaccf
+        role: package file
+      - path: artifacts/interop/runtime-surface-e7-v0.1/reference_verifier.py
+        sha256: 3b8525a5d5b570a9e736c3b8c6f31053b49268965540bb098147a2e10ec1e388
+        role: package file
+      - path: artifacts/interop/runtime-surface-e7-v0.1/verifier-request.json
+        sha256: d9241cebf42d539767bf161e33557dfafc6d34f14fa842d55138a05e359d6119
+        role: package file
+      - path: artifacts/runtime_surface/negative_cases_v1.json
+        sha256: 49b96e5da46ed9584691f6efd40d7e36957e0498315cff3723846fa230e9e19b
+        role: "source artifact: bounded surface negative cases"
+      - path: artifacts/runtime_surface/reference_runtime_v1.json
+        sha256: 18876e5c94374c47a6a3f56b9e6642be7823a5242d7708320ff4a89fa3f33886
+        role: "source artifact: alternative effect-path case"
+      - path: artifacts/runtime_surface/surface_binding_shadow_v1.json
+        sha256: 954e76b3aebeb3ece530b8c14f15d46da334b628fe7183727f9fcfc92c17fd6e
+        role: "source artifact: related author-run evidence, not required by fixtures"
+    status_dimensions:
+      owner_confirmation:
+        status: NOT_CONFIRMED
+        evidence: []
+      pinning:
+        status: PIN_CONFIRMED
+        evidence:
+          - https://github.com/darklordVirtual/REMORA-research/issues/707#issuecomment-5954893715
+      execution:
+        status: NOT_RUN
+        evidence: []
+      independence:
+        status: NOT_ASSESSED
+        evidence: []
+      claim_result:
+        status: NOT_ESTABLISHED
+        evidence: []
+      production:
+        status: NOT_ESTABLISHED
+        evidence: []
+      federation_adoption:
+        status: NOT_ADOPTED
+        evidence: []
+  - id: E8
+    contract_id: agentavow-tool-manifest-e8-v0.1
+    package_digest: sha256:991bd278056a4ce68aff9c30636fa746347d6385f1a42dcded844c0d09e24f1a
+    supporting_capabilities:
+      - exact_call_binding
+    maturity: DECLARED
+    producer_role: AgentAvow supplies the experimental signed tool-manifest profile.
+    consumer_role: REMORA evaluates the profile under deployment-supplied keys.
+    claim: attested_definition_binding
+    claim_ceiling_ref: cc-edge-e8
+    negative_case_ids: []
+    pinned_artifacts: []
+    status_dimensions:
+      owner_confirmation:
+        status: NOT_CONFIRMED
+        evidence: []
+      pinning:
+        status: UNPINNED
+        evidence: []
+      execution:
+        status: AUTHOR_RUN
+        evidence:
+          - artifacts/interop/runs/agentavow-tool-manifest-e8-v0.1-attested_definition_binding-author-reference-L0.json
+          - artifacts/interop/runs/agentavow-tool-manifest-e8-v0.1-attested_definition_binding-author-runtime-L0.json
+      independence:
+        status: NOT_ASSESSED
+        evidence: []
+      claim_result:
+        status: NOT_ESTABLISHED
+        evidence:
+          - artifacts/interop/runs/agentavow-tool-manifest-e8-v0.1-attested_definition_binding-author-reference-L0.json
+          - artifacts/interop/runs/agentavow-tool-manifest-e8-v0.1-attested_definition_binding-author-runtime-L0.json
+      production:
+        status: NOT_ESTABLISHED
+        evidence: []
+      federation_adoption:
+        status: NOT_ADOPTED
+        evidence: []
+
+claim_ceilings:
+  - id: cc-runtime-surface-completeness
+    applies_to: RUNTIME_PROPERTY
+    target_id: runtime_capability_surface_completeness
+    statement: >-
+      E7 fixtures evaluate supplied observations only. They do not establish
+      completeness for an external runtime.
+    non_claims:
+      - Host credential absence is not established.
+      - Unobserved alternative effect paths are not ruled out.
+  - id: cc-authority-executor-custody
+    applies_to: INTERNAL_TRUST_BOUNDARY
+    target_id: authority-executor-custody
+    statement: >-
+      Repository tests cover the reference custody split; they do not establish
+      deployment KMS or HSM custody.
+    non_claims:
+      - Alternate credential or network paths are not universally prevented.
+      - No production deployment claim.
+  - id: cc-governed-dispatch
+    applies_to: INTERNAL_TRUST_BOUNDARY
+    target_id: governed-dispatch-entry
+    statement: >-
+      Exact call fields are checked at the governed dispatch boundary when the
+      protected callable is routed through that boundary.
+    non_claims:
+      - Paths that bypass the dispatcher are outside this boundary.
+      - The authorized action is not proven to reflect legitimate intent.
+  - id: cc-execution-api
+    applies_to: EXTERNAL_INTERFACE
+    target_id: execution-api
+    statement: >-
+      The execution API is the enforcing reference surface; the assessment
+      endpoint remains advisory unless execution is forced through its
+      governed dispatcher.
+    non_claims:
+      - Every deployment is not established to route protected calls through this API.
+      - External runtime surface completeness is not established.
+  - id: cc-effect-verification-interface
+    applies_to: EXTERNAL_INTERFACE
+    target_id: effect-verification-interface
+    statement: >-
+      Verification compares declared evidence and state deltas under the
+      configured observer and fixture contract.
+    non_claims:
+      - Causation is not established.
+      - Undeclared effects are not detected by this claim.
+      - Independent observation is not established.
+  - id: cc-reconciliation-interface
+    applies_to: EXTERNAL_INTERFACE
+    target_id: reconciliation-interface
+    statement: >-
+      Reconciliation consumes deployment-owned observations and keeps
+      unresolved dispatch outcomes explicit.
+    non_claims:
+      - An unknown outcome is not a success result.
+      - Retry safety or idempotency requires the deployment contract.
+  - id: cc-edge-e-ecb
+    applies_to: FEDERATION_EDGE
+    target_id: E-ECB
+    statement: >-
+      The external record is not independent and covers only the cases and
+      bytes named by the contract.
+    non_claims:
+      - A boundary-level aggregate claim result is not recorded.
+      - Production evidence and Federation adoption are not established.
+  - id: cc-edge-e-fa
+    applies_to: FEDERATION_EDGE
+    target_id: E-FA
+    statement: >-
+      The run does not establish a trusted deployment clock, bounded global
+      revocation propagation, or production behavior.
+    non_claims:
+      - A boundary-level aggregate claim result is not recorded.
+      - Federation adoption is not established.
+  - id: cc-edge-e-ee
+    applies_to: FEDERATION_EDGE
+    target_id: E-EE
+    statement: >-
+      The contract distinguishes declared effect states. It does not prove
+      causation, inventory undeclared side effects, or demonstrate observer
+      independence.
+    non_claims:
+      - A boundary-level aggregate claim result is not recorded.
+      - Production evidence and Federation adoption are not established.
+  - id: cc-edge-e7
+    applies_to: FEDERATION_EDGE
+    target_id: E7
+    statement: >-
+      The fixtures assess supplied observations only. They do not establish
+      runtime_capability_surface_completeness.
+    non_claims:
+      - Host credential absence is not established.
+      - Unobserved alternative paths are not ruled out.
+      - No external run, independent observation, production evidence or Federation adoption is recorded.
+  - id: cc-edge-e8
+    applies_to: FEDERATION_EDGE
+    target_id: E8
+    statement: >-
+      The profile is experimental and does not confirm signer trust, safe
+      definitions, runtime exposure or call execution.
+    non_claims:
+      - No owner confirmation or external pin is recorded.
+      - Production evidence and Federation adoption are not established.
+  - id: cc-role-agv-186-187
+    applies_to: ROLE_MAPPING
+    target_id: agv-186-187-boundary-roles
+    statement: >-
+      Exact-call authorization and tool enforcement are candidate mappings.
+      Pre-action decision and revocation are partial mappings.
+    non_claims:
+      - Semantic equivalence between vocabularies is not claimed.
+      - Mappings do not establish enforcement on every execution path.
+  - id: cc-role-agv-179
+    applies_to: ROLE_MAPPING
+    target_id: agv-179-runtime-observation
+    statement: The runtime observation role mapping is partial.
+    non_claims:
+      - E7 has no external run record.
+      - Independent observation or runtime surface completeness is not established.
+  - id: cc-observation-effect-verifier
+    applies_to: OBSERVATION_ROLE
+    target_id: effect-verifier
+    statement: Candidate for bounded verification of declared effects only.
+    non_claims:
+      - Causation is not established.
+      - Undeclared effects are not inventoried.
+      - Observer independence is not established.
+  - id: cc-observation-reconciliation
+    applies_to: OBSERVATION_ROLE
+    target_id: reconciliation-observer
+    statement: Candidate for resolving explicit execution lifecycle states.
+    non_claims:
+      - Unknown outcomes are not success.
+      - This role does not make an unsafe retry safe.
+      - Causation and observer independence are not established.
+
+role_mappings:
+  - id: agv-186-187-boundary-roles
+    repository: aeoess/agent-governance-vocabulary
+    issue_numbers: [186, 187]
+    assessment: CANDIDATE
+    candidate_roles:
+      - exact_call_authorization
+      - tool_enforcement
+    partial_roles:
+      - pre_action_decision
+      - revocation
+    claim_ceiling_ref: cc-role-agv-186-187
+  - id: agv-179-runtime-observation
+    repository: aeoess/agent-governance-vocabulary
+    issue_numbers: [179]
+    assessment: PARTIAL
+    candidate_roles: []
+    partial_roles:
+      - runtime_surface_observation
+    claim_ceiling_ref: cc-role-agv-179
+
+observation_roles:
+  - id: effect-verifier
+    supporting_capabilities:
+      - effect_state_distinction
+    maturity: TESTED
+    status: CANDIDATE
+    observes: Declared effect receipts and state deltas under configured evidence inputs.
+    claim_ceiling_ref: cc-observation-effect-verifier
+  - id: reconciliation-observer
+    supporting_capabilities:
+      - unknown_execution_and_reconciliation
+    maturity: TESTED
+    status: CANDIDATE
+    observes: Deployment-owned observations used to reconcile an unknown dispatch outcome.
+    claim_ceiling_ref: cc-observation-reconciliation

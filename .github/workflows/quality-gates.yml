@@ -27,7 +27,10 @@ jobs:
     # the evidence-sufficiency v1.5-v1.7 suites, and #650's run 36832213464 was
     # cancelled by the limit in the documentation-gate step with every earlier
     # step green.
-    timeout-minutes: 20
+    # 30, not 20 (2026-10-05): master run 37363291699 reached 99% of the
+    # coverage suite before the job limit cancelled it; leave time for the
+    # remaining tests and downstream quality gates.
+    timeout-minutes: 30
 
     # Real Postgres alongside the coverage run (2026-08-26, external review):
     # the Postgres adapters in enforcement/gate.py and enforcement/outbox.py
