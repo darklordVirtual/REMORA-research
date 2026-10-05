@@ -64,3 +64,24 @@ def test_digest_matches_the_historic_effect_digest_encoding():
 def test_strict_equal_keeps_kinds_apart_at_every_depth(left, right, equal):
     assert frozen_json.strict_equal(left, right) is equal
     assert frozen_json.strict_equal(right, left) is equal
+
+
+@pytest.mark.parametrize("observed", ["6", True, 6.0, 6.9, None])
+def test_version_increment_accepts_integers_only(observed):
+    from remora.governance.effect_verification import (
+        EffectStatus,
+        PostconditionContract,
+        verify_declared_delta,
+    )
+
+    contract = PostconditionContract(
+        tool_id="t", reader="r", target_selector={"id": "1"},
+        expected_fields={"version": 5},
+        comparison_rules={"version": "version_increment"},
+    )
+    kwargs = dict(proposal_id="p", execution_id="e", toolspec_hash="d" * 64,
+                  verifier_identity="r")
+    assert verify_declared_delta(
+        contract, {"version": observed}, **kwargs).status is EffectStatus.MISMATCH
+    assert verify_declared_delta(
+        contract, {"version": 6}, **kwargs).status is EffectStatus.VERIFIED

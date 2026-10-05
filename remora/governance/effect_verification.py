@@ -306,16 +306,15 @@ def verify_declared_delta(
                 problems.append(f"{name}: expected to be absent")
             continue
         if rule == "version_increment":
-            try:
-                if actual is None:
-                    raise TypeError("absent")
-                if not (int(actual) > int(expected_value)):
-                    problems.append(
-                        f"{name}: expected to advance beyond {expected_value}, "
-                        f"got {actual}"
-                    )
-            except (TypeError, ValueError):
+            # Integers only. ``int()`` used to coerce, so "6", True and 6.9
+            # all counted as versions and a string could advance a counter.
+            if not (type(actual) is int and type(expected_value) is int):
                 problems.append(f"{name}: not comparable as a version")
+            elif not actual > expected_value:
+                problems.append(
+                    f"{name}: expected to advance beyond {expected_value}, "
+                    f"got {actual}"
+                )
             continue
         if rule == "hash":
             if _digest(actual) != str(expected_value):
