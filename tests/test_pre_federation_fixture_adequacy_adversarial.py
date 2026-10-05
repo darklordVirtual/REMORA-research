@@ -26,7 +26,7 @@ def _load_reference(package: str):
 
 
 def test_effect_reference_verifier_distinguishes_missing_from_exact_null():
-    verifier = _load_reference("effect-evidence-v1")
+    verifier = _load_reference("effect-evidence-v1.1")
     postcondition = {
         "tool_id": "update_ticket",
         "expected_fields": {"deleted_at": None},
@@ -38,7 +38,7 @@ def test_effect_reference_verifier_distinguishes_missing_from_exact_null():
 
 
 def test_effect_fixture_corpus_contains_missing_vs_null_discriminator():
-    path = ROOT / "artifacts/interop/effect-evidence-v1/fixtures.json"
+    path = ROOT / "artifacts/interop/effect-evidence-v1.1/fixtures.json"
     doc = json.loads(path.read_text(encoding="utf-8"))
 
     found = False
@@ -59,7 +59,7 @@ def test_effect_fixture_corpus_contains_missing_vs_null_discriminator():
 
 
 def test_effect_reference_verifier_rejects_unknown_rule_instead_of_exact_fallback():
-    verifier = _load_reference("effect-evidence-v1")
+    verifier = _load_reference("effect-evidence-v1.1")
     postcondition = {
         "tool_id": "update_ticket",
         "expected_fields": {"status": "closed"},
@@ -82,7 +82,7 @@ def test_exact_call_federation_contract_names_temporal_mutation_boundary():
     outside the contract ceiling.
     """
     readme = (
-        ROOT / "artifacts/interop/exact-call-binding-v1/README.md"
+        ROOT / "artifacts/interop/exact-call-binding-v1.1/README.md"
     ).read_text(encoding="utf-8").lower()
     ceiling_terms = (
         "post-verification mutation",
@@ -104,7 +104,7 @@ def test_exact_call_fixture_corpus_contains_integral_float_type_change():
     to one JavaScript Number.  A verifier can pass the current string-vs-int
     case while still being unable to implement the published contract here.
     """
-    path = ROOT / "artifacts/interop/exact-call-binding-v1/fixtures.json"
+    path = ROOT / "artifacts/interop/exact-call-binding-v1.1/fixtures.json"
     doc = json.loads(path.read_text(encoding="utf-8"))
 
     found = False
@@ -129,3 +129,72 @@ def test_exact_call_fixture_corpus_contains_integral_float_type_change():
         "exact-call-binding-v1 says scalar types are significant but has no "
         "integer-vs-integral-float discriminator"
     )
+
+
+# ── Preserved negative result: the frozen v1 packages keep their blind spots ──
+#
+# exact-call-binding-v1 and effect-evidence-v1 are frozen and external runs
+# pin their digests, so the probes above were answered by v1.1 successors
+# rather than by rewriting v1. These tests pin the v1 blind spots as they are.
+# If one starts failing, the v1 bytes changed, which a frozen package must not.
+
+
+def test_v1_effect_reference_verifier_still_reads_missing_as_null():
+    verifier = _load_reference("effect-evidence-v1")
+    postcondition = {
+        "tool_id": "update_ticket",
+        "expected_fields": {"deleted_at": None},
+        "comparison_rules": {"deleted_at": "exact"},
+    }
+    assert verifier.effect_status(postcondition, {}) == "EFFECT_VERIFIED"
+
+
+def test_v1_effect_reference_verifier_still_falls_back_to_exact_for_unknown_rule():
+    verifier = _load_reference("effect-evidence-v1")
+    postcondition = {
+        "tool_id": "update_ticket",
+        "expected_fields": {"status": "closed"},
+        "comparison_rules": {"status": "excat"},
+    }
+    assert verifier.effect_status(postcondition, {"status": "closed"}) == "EFFECT_VERIFIED"
+
+
+def test_v1_corpora_still_lack_the_discriminators():
+    effect = json.loads((ROOT / "artifacts/interop/effect-evidence-v1/fixtures.json").read_text(encoding="utf-8"))
+    for case in effect["cases"]:
+        expected = (case.get("postcondition") or {}).get("expected_fields") or {}
+        observed = case.get("observed")
+        assert observed is None or not any(
+            wanted is None and name not in observed for name, wanted in expected.items())
+    call = json.loads((ROOT / "artifacts/interop/exact-call-binding-v1/fixtures.json").read_text(encoding="utf-8"))
+    for case in call["cases"]:
+        auth = case["authorization"]["arguments"]
+        for presented in case["dispatches"]:
+            for key, before in auth.items():
+                after = presented["arguments"].get(key)
+                assert {type(before), type(after)} != {int, float}, case["id"]
+    readme = (ROOT / "artifacts/interop/exact-call-binding-v1/README.md").read_text(encoding="utf-8").lower()
+    for term in ("post-verification mutation", "verify-then-mutate", "mutable argument", "toctou"):
+        assert term not in readme
+
+
+def test_v1_effect_reference_verifier_fails_exactly_the_v1_1_repair_cases():
+    """The v1.1 additions discriminate: the v1 verifier is wrong on the cases
+    that target its blind spots and right on every carried-over v1 case."""
+    v1 = _load_reference("effect-evidence-v1")
+    doc = json.loads((ROOT / "artifacts/interop/effect-evidence-v1.1/fixtures.json").read_text(encoding="utf-8"))
+    wrong = set()
+    for case in doc["cases"]:
+        expected = {k: case["expected"][k] for k in ("effect_status", "highest_established_state")}
+        if v1.evaluate(case) != expected:
+            wrong.add(case["id"])
+    assert wrong == {
+        "exact_null_field_missing",
+        "hash_rule_field_missing",
+        "unknown_comparison_rule",
+        "unknown_rule_with_unobservable_object",
+        "rule_for_undeclared_field",
+        "integer_is_not_integral_float",
+        "nested_bool_is_not_int",
+    }
+    assert all(case.get("added_in") == "v1.1" for case in doc["cases"] if case["id"] in wrong)

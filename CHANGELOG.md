@@ -509,7 +509,25 @@ This file lists externally relevant changes by release. Fine-grained development
     digest could establish producer visibility in another tenant's scope.
     `remora/frozen_json.py` now takes a private deep copy and refuses values
     outside the JSON domain; `effect_digest` drops `default=str` and keeps its
-    historic encoding for JSON-domain values.
+    historic encoding for JSON-domain values;
+  - Federation fixture adequacy: `effect-evidence-v1` and
+    `exact-call-binding-v1` are frozen with external runs against their
+    digests, so the probes are answered by `DRAFT` successors
+    `effect-evidence-v1.1` (edge `E-EE-V1-1`) and `exact-call-binding-v1.1`
+    (`E-ECB-V1-1`) instead of rewritten bytes. The effect reference verifier
+    no longer reads a missing field as `null` and rejects an unknown rule or
+    a rule for an undeclared field (`CONTRACT_REJECTED`). Ten effect cases
+    and seven call cases were added: missing against explicit `null` under
+    `exact`, `hash`, `absent` and `present`; rejected rule maps; `1` against
+    `1.0` in both directions and nested; nested `true` against `1`; an added
+    `null` argument; two integers beyond 2^53. The exact-call README names
+    verify-then-mutate (TOCTOU) as outside a static corpus and points at
+    `tests/test_pre_federation_toctou_adversarial.py`. REMORA's core and the
+    v1.1 reference verifiers agree on all 44 v1.1 cases (L0 author records). The
+    v1 packages keep their bytes and are marked superseded in `index.json`
+    and `FEDERATION.yaml`; their blind spots are pinned by tests as a
+    preserved negative result. The new cases are repair, not independent
+    evidence.
 - Evidence admission, one fail-closed narrowing (2026-10-04). A
   `CoverageAttestation` could establish `observation_coverage_complete` on
   producer identity, invocation id and its own content; its digest was never

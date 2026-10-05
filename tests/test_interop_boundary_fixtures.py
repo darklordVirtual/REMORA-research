@@ -3,7 +3,7 @@
 """The three execution-boundary interop fixtures describe REMORA.
 
 For each of ``exact-call-binding-v1``, ``fresh-authority-v1`` and
-``effect-evidence-v1``: the manifest pins the committed bytes; the
+``effect-evidence-v1``, and the v1.1 successors of the first and third: the manifest pins the committed bytes; the
 zero-dependency reference verifier reproduces every expected outcome; and,
 separately, REMORA's real primitives reproduce every expected outcome through
 ``remora.interop.boundary_fixtures``. The two agree case by case. Negative
@@ -27,7 +27,8 @@ from remora.interop import boundary_fixtures as bf
 
 ROOT = Path(__file__).resolve().parents[1]
 INTEROP = ROOT / "artifacts" / "interop"
-PACKAGES = ("exact-call-binding-v1", "fresh-authority-v1", "effect-evidence-v1")
+PACKAGES = ("exact-call-binding-v1", "fresh-authority-v1", "effect-evidence-v1",
+            "exact-call-binding-v1.1", "effect-evidence-v1.1")
 
 
 @pytest.fixture(autouse=True)
@@ -138,3 +139,49 @@ def test_an_unsigned_process_cannot_report_a_binding_result(monkeypatch: pytest.
     (case,) = [c for c in fixtures["cases"] if c["id"] == "same_call_dispatches"]
     with pytest.raises(bf.FixtureEnvironmentError):
         bf.evaluate_exact_call_binding(case)
+
+
+# ── v1.1 successors ────────────────────────────────────────────────────────
+
+
+def test_v1_1_packages_carry_every_v1_case_unchanged() -> None:
+    for package in ("exact-call-binding", "effect-evidence"):
+        v1 = _fixtures(f"{package}-v1")["cases"]
+        v11 = _fixtures(f"{package}-v1.1")["cases"]
+        assert v11[: len(v1)] == v1
+        assert all(case.get("added_in") == "v1.1" for case in v11[len(v1):])
+
+
+def test_a_fixture_that_expects_an_integral_float_to_dispatch_is_contradicted() -> None:
+    fixtures = copy.deepcopy(_fixtures("exact-call-binding-v1.1"))
+    (case,) = [c for c in fixtures["cases"] if c["id"] == "argument_integer_became_integral_float"]
+    case["expected"]["outcomes"] = [{"outcome": "DISPATCHED", "refusal_class": None}]
+    (record,) = [r for r in bf.evaluate_package(fixtures) if r["case_id"] == case["id"]]
+    assert record["result"] == "CONTRADICTED"
+    assert record["observed"]["value"] == [{"outcome": "REFUSED", "refusal_class": "call_mismatch"}]
+
+
+def test_a_fixture_that_verifies_a_missing_field_as_null_is_contradicted() -> None:
+    fixtures = copy.deepcopy(_fixtures("effect-evidence-v1.1"))
+    (case,) = [c for c in fixtures["cases"] if c["id"] == "exact_null_field_missing"]
+    case["expected"]["effect_status"] = "EFFECT_VERIFIED"
+    case["expected"]["highest_established_state"] = "EFFECT_VERIFIED"
+    (record,) = [r for r in bf.evaluate_package(fixtures) if r["case_id"] == case["id"]]
+    assert record["result"] == "CONTRADICTED"
+    assert record["observed"]["value"]["effect_status"] == "EFFECT_MISMATCH"
+
+
+def test_contract_rejected_maps_only_the_rule_map_refusal(monkeypatch: pytest.MonkeyPatch) -> None:
+    """CONTRACT_REJECTED is the fixture name for validate_comparison_rules
+    refusing; any other ValueError is a failure of the run, not an outcome."""
+    (case,) = [c for c in _fixtures("effect-evidence-v1.1")["cases"] if c["id"] == "unknown_comparison_rule"]
+    assert bf.evaluate_effect_evidence_v1_1(case) == {
+        "effect_status": "CONTRACT_REJECTED", "highest_established_state": "EXECUTION_REPORTED_SUCCESS"}
+
+    def _boom(*_args: Any, **_kwargs: Any) -> Any:
+        raise ValueError("something_else")
+
+    monkeypatch.setattr(bf, "verify_declared_delta", _boom)
+    (ok_case,) = [c for c in _fixtures("effect-evidence-v1.1")["cases"] if c["id"] == "verified_declared_delta"]
+    with pytest.raises(ValueError, match="something_else"):
+        bf.evaluate_effect_evidence_v1_1(ok_case)
