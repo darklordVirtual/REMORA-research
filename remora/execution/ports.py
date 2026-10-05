@@ -304,6 +304,12 @@ class ReviewQueuePort(Protocol):
         now: datetime | None = None,
     ) -> "ExecutionOutcome": ...
 
+    def regate_authorized(
+        self,
+        item_id: str,
+        fresh_observation: "PolicyObservation",
+    ) -> "ExecutionOutcome": ...
+
     def record_execution_outcome(
         self,
         item_id: str,

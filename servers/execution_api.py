@@ -670,10 +670,14 @@ def dispatch_pending_intents(tenant: str, *, worker_id: str) -> list[dict[str, A
             dispatch_under_lease=_dispatch_under_lease,
             token_audience=PEP_AUDIENCE,
             token_ttl_seconds=EXECUTION_TOKEN_TTL_SECONDS,
-            resolve_toolspec=_resolve_toolspec,
+            # The domain resolver, not the route wrapper: a spec refused at
+            # dispatch settles the row under its reason code instead of
+            # escaping the worker loop as an HTTP 409.
+            resolve_toolspec=_resolve_toolspec_unwrapped,
             policy_coverage=_policy_coverage,
             policy_bundle_hash=_current_policy_bundle_hash,
             rebuild_call=_rebuild_tool_call,
+            assessed_record=_assessed_record,
         )
         if result is not None:
             results.append(result)
@@ -699,6 +703,15 @@ def _resolve_toolspec(
         )
     except ToolSpecRefused as exc:
         raise HTTPException(status_code=409, detail=exc.reason_code) from exc
+
+
+def _resolve_toolspec_unwrapped(
+    tool_name: str, arguments: dict[str, Any], target_environment: str
+) -> dict[str, Any]:
+    """:func:`_resolve_toolspec` for the worker: raises ``ToolSpecRefused``."""
+    return _authz_resolve_toolspec(
+        _toolspec_bundle(), tool_name, arguments, target_environment
+    )
 
 
 def _assessed_record(tenant: str, item_id: str) -> tuple[str, str]:

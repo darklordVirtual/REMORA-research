@@ -509,7 +509,23 @@ This file lists externally relevant changes by release. Fine-grained development
     digest could establish producer visibility in another tenant's scope.
     `remora/frozen_json.py` now takes a private deep copy and refuses values
     outside the JSON domain; `effect_digest` drops `default=str` and keeps its
-    historic encoding for JSON-domain values.
+    historic encoding for JSON-domain values;
+  - async authorization seam (`REMORA_ASYNC_DISPATCH`): the worker honoured a
+    202 under whatever ToolSpec was current when it woke up, and it built a
+    fresh observation only to hash it before minting a new ACCEPT, so a hard
+    guard that fired after the 202 was never decided. Before claiming,
+    minting or consuming anything, `dispatch_pending_intent` now compares the
+    spec in force with the hash the assessment recorded in the chain and
+    refuses with the additive reason code
+    `toolspec_changed_between_authorization_and_dispatch`, and re-decides the
+    fresh observation through the queue's own engine
+    (`ReviewQueue.regate_authorized`, the equal-or-safer rule of the 202),
+    refusing with `fresh_regate_refused`. Both settle REFUSED with the grant
+    unminted. No row schema changed: the authorized hash is read from the
+    chain, so rows written before this change get the same check, and an item
+    with no recorded hash fails closed whenever a bundle is enforced at
+    dispatch. A spec the bundle refuses at dispatch now settles under its own
+    code instead of escaping the worker loop as an HTTP 409.
 - Evidence admission, one fail-closed narrowing (2026-10-04). A
   `CoverageAttestation` could establish `observation_coverage_complete` on
   producer identity, invocation id and its own content; its digest was never
