@@ -8,22 +8,22 @@
   "producer": {
     "project": "REMORA",
     "repository": "darklordVirtual/REMORA-research",
-    "revision": "537a1a123932bf93bb2a28786ce67d426d671739"
+    "revision": "5879bf444bfc587e4b725b205fb0ded6454d8d84"
   },
   "consumer": {
     "project": "REMORA",
     "repository": "darklordVirtual/REMORA-research",
-    "revision": "537a1a123932bf93bb2a28786ce67d426d671739"
+    "revision": "5879bf444bfc587e4b725b205fb0ded6454d8d84"
   },
   "fixture": {
     "path": "artifacts/interop/exact-call-binding-v1.1/fixtures.json",
-    "digest": "sha256:eb1abc071fca08bbac6ba723f1878cfa5aa3ea806f956c2fd3a2119f621357c8",
-    "package_digest": "sha256:85fc94d92fbc1b4937409b0f1e40cde248e8c2f92fb68febfa0a0bc2fa146380"
+    "digest": "sha256:81a48ff5514823a71ebe35658fd162d18b1367d0a437c78052bc0b52450cb352",
+    "package_digest": "sha256:a902ddaa586d2be2940302be67d768964a1c3d562ccec8af27a4a3a692e53ed2"
   },
   "evaluator": {
     "project": "REMORA",
     "repository": "darklordVirtual/REMORA-research",
-    "revision": "537a1a123932bf93bb2a28786ce67d426d671739",
+    "revision": "5879bf444bfc587e4b725b205fb0ded6454d8d84",
     "kind": "REFERENCE",
     "maintained_by": "PRODUCER",
     "imports_producer_runtime": false,
@@ -35,11 +35,11 @@
   "independence_level": "L0_SELF_TEST",
   "runner": {
     "path": "scripts/interop_author_run.py",
-    "revision": "537a1a123932bf93bb2a28786ce67d426d671739"
+    "revision": "5879bf444bfc587e4b725b205fb0ded6454d8d84"
   },
   "environment": "Python 3.14.0, Windows AMD64",
-  "started_at": "2026-10-05T23:46:35+00:00",
-  "completed_at": "2026-10-05T23:46:35+00:00",
+  "started_at": "2026-10-05T23:51:32+00:00",
+  "completed_at": "2026-10-05T23:51:32+00:00",
   "cases": [
     {
       "case_id": "replay_same_call_twice",

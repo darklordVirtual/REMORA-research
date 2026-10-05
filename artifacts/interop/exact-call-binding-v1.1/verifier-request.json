@@ -4,7 +4,7 @@
   "edge": "E-ECB-V1-1",
   "producer": {
     "repository": "darklordVirtual/REMORA-research",
-    "source_revision": "537a1a123932bf93bb2a28786ce67d426d671739"
+    "source_revision": "5879bf444bfc587e4b725b205fb0ded6454d8d84"
   },
   "package_identity": {
     "manifest": "artifacts/interop/exact-call-binding-v1.1/manifest.json",
@@ -13,11 +13,11 @@
   "inputs": {
     "fixtures": {
       "path": "artifacts/interop/exact-call-binding-v1.1/fixtures.json",
-      "sha256": "eb1abc071fca08bbac6ba723f1878cfa5aa3ea806f956c2fd3a2119f621357c8"
+      "sha256": "81a48ff5514823a71ebe35658fd162d18b1367d0a437c78052bc0b52450cb352"
     },
     "claim_packet": {
       "path": "artifacts/interop/exact-call-binding-v1.1/claim-packet.json",
-      "sha256": "59ca2744d40c38f2b2f91ce229d5da7efcd919a074406bfb7d463c2daa5aed38"
+      "sha256": "35d82c8b24a08a00b4990b03ba9353e465590ec0a648ff427c9491b6407262fe"
     }
   },
   "run_record_schema": "artifacts/interop/schemas/external-run-record-v1.schema.json",

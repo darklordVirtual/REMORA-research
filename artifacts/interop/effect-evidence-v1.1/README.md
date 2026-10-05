@@ -22,17 +22,20 @@ could be passed by a verifier that shares REMORA's own former blind spots:
 - a comparison rule outside the vocabulary (`excat`) fell back to `exact`,
   and a rule for a field the contract does not declare was ignored;
 - `exact` compared containers with native equality, so `1` matched `1.0`
-  and `{"archived": true}` matched `{"archived": 1}`.
+  and `{"archived": true}` matched `{"archived": 1}`;
+- `version_increment` coerced with `int()`, so `"4"`, `true` and `4.0`
+  counted as versions on either side.
 
-REMORA's `verify_declared_delta` had the first two faults as well and was
-fixed in the same change. v1.1 carries every v1 case unchanged and ten new
+REMORA's `verify_declared_delta` had the first two faults and the version
+coercion as well, and was fixed in the same change. v1.1 carries every v1
+case unchanged and fourteen new
 ones marked `"added_in": "v1.1"`. They were written with the faults known, so
 they are repair cases, not independent evidence. v1 stays published with its
 records; its blind spots are a preserved negative result.
 
 ## Purpose
 
-Let a verifier maintained by another project reproduce twenty-two bounded outcomes about what an execution's evidence establishes, from pinned bytes, without importing REMORA code.
+Let a verifier maintained by another project reproduce twenty-six bounded outcomes about what an execution's evidence establishes, from pinned bytes, without importing REMORA code.
 
 ## Claims and result vocabulary
 
@@ -68,7 +71,7 @@ That run is an L0 self-test under `interop-result-v1`. Its record lives under
 
 ## Files
 
-- `fixtures.json`: 22 machine-readable cases with expected outcomes and claim results.
+- `fixtures.json`: 26 machine-readable cases with expected outcomes and claim results.
 - `reference_verifier.py`: author implementation of the contract. It imports no REMORA code.
 - `manifest.json`: source revision, SHA-256 of every package file, `package_digest` and the independence boundary.
 - `claim-packet.json`, `verifier-request.json`: the producer claims and the request to external verifiers; both are package files and are pinned by the manifest.

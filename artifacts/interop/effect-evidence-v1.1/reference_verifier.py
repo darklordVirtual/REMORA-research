@@ -17,7 +17,10 @@ verifier passed by accident:
   ``CONTRACT_REJECTED`` in the fixture vocabulary) instead of falling back
   to ``exact`` or being ignored;
 * ``exact`` keeps null, bool, int, float and string apart at every depth,
-  so ``1`` is not ``1.0`` and ``{"a": true}`` is not ``{"a": 1}``.
+  so ``1`` is not ``1.0`` and ``{"a": true}`` is not ``{"a": 1}``;
+* ``version_increment`` compares integers only, on both sides. The v1
+  verifier coerced with ``int()``, so ``"4"``, ``true`` and ``4.0`` all
+  counted as versions.
 """
 from __future__ import annotations
 
@@ -78,10 +81,8 @@ def effect_status(postcondition: dict | None, observed: dict | None) -> str:
             if name in observed:
                 return "EFFECT_MISMATCH"
         elif rule == "version_increment":
-            try:
-                if have is None or not int(have) > int(want):
-                    return "EFFECT_MISMATCH"
-            except (TypeError, ValueError):
+            # Integers only, on both sides; bool is not an integer here.
+            if not (type(have) is int and type(want) is int) or not have > want:
                 return "EFFECT_MISMATCH"
         elif rule == "hash":
             if _digest(have) != str(want):

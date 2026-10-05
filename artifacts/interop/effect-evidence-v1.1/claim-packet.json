@@ -2,7 +2,7 @@
   "schema_version": "remora-claim-packet-v1",
   "contract_id": "effect-evidence-v1.1",
   "producer": "REMORA-research",
-  "source_revision": "537a1a123932bf93bb2a28786ce67d426d671739",
+  "source_revision": "5879bf444bfc587e4b725b205fb0ded6454d8d84",
   "package_identity": {
     "manifest": "artifacts/interop/effect-evidence-v1.1/manifest.json",
     "rule": "content-addressed; package_digest is computed from manifest.package_files and recorded in manifest.json and index.json, never inside a hashed package file"
@@ -14,12 +14,12 @@
   "artifact_refs": [
     {
       "path": "artifacts/interop/effect-evidence-v1.1/fixtures.json",
-      "sha256": "f7b48f520716ee70efb00aa4b06d76b72ae0556f18255d8b9f972beddccdd174",
+      "sha256": "045491524d3ede6f5eae79d0346cca3563010260f27f747d9ef1f8a30c8cd21c",
       "role": "producer fixture contract"
     },
     {
       "path": "artifacts/interop/effect-evidence-v1.1/reference_verifier.py",
-      "sha256": "a67850df3f58be1a761dd34b5c3de257917f0a984ba244fff05d4c4f64f26fbf",
+      "sha256": "a51f84701b479df87e6e9a299ee3dcc6f8588d1ed7f90232ba5825fa9e997fc9",
       "role": "author reference implementation; not independent verification"
     }
   ],

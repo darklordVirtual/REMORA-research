@@ -1,6 +1,6 @@
 {
   "schema_version": "remora-effect-evidence-fixtures-v1.1",
-  "source_revision": "537a1a123932bf93bb2a28786ce67d426d671739",
+  "source_revision": "5879bf444bfc587e4b725b205fb0ded6454d8d84",
   "claims": [
     "effect_state_distinction"
   ],
@@ -25,7 +25,7 @@
   ],
   "rules": {
     "state": "The highest state the evidence supports. A success report raises the state to EXECUTION_REPORTED_SUCCESS only when the dispatch happened. Only an independent observation of the declared delta raises it to EFFECT_VERIFIED. A contradicted report falls back to DISPATCHED. An unobservable or vacuous postcondition leaves the state where it was.",
-    "comparison": "Only declared fields are compared. Rules: exact (default; null, bool, int, float and string are distinct kinds at every depth, so true is not 1 and 1 is not 1.0), present, absent, version_increment (observed must exceed the declared value), hash. Under exact and hash a declared field the object does not carry is a mismatch, also when the declared value is null.",
+    "comparison": "Only declared fields are compared. Rules: exact (default; null, bool, int, float and string are distinct kinds at every depth, so true is not 1 and 1 is not 1.0), present, absent, version_increment (both the declared and the observed value must be integers, bool excluded, and the observed must exceed the declared; a string, bool or float on either side is a mismatch), hash. Under exact and hash a declared field the object does not carry is a mismatch, also when the declared value is null.",
     "contract": "The rule map is checked before the observation. A rule outside the vocabulary, or a rule for a field the contract does not declare, rejects the contract: effect_status CONTRACT_REJECTED, and the state stays where it was. REMORA raises ValueError from validate_comparison_rules here; CONTRACT_REJECTED is the fixture's name for that refusal, not a sixth EffectStatus."
   },
   "claim_ceiling": "ESTABLISHED means only that, under this fixture contract, the evaluator keeps NOT_DISPATCHED, DISPATCHED, EXECUTION_REPORTED_SUCCESS and EFFECT_VERIFIED apart, never promotes a reported success to a verified effect without an observation of the declared delta, treats an absent field as different from an explicit null, and rejects a postcondition whose rule map is outside the vocabulary or names an undeclared field instead of evaluating it. It does not establish that the reader is independent of the tool, that the observed object is the one the call targeted, that an effect outside the declared delta did not occur, or production deployment safety.",
@@ -635,6 +635,126 @@
         "flags": {
           "archived": 1
         }
+      },
+      "expected": {
+        "effect_status": "EFFECT_MISMATCH",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "version_as_string",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "The observed version is the string \"4\" against a declared 3. A string is not a version, even one that parses as a larger number. Added in v1.1 after the #744 pre-Federation probes found v1 had no case for this distinction; written with the gap known, so it is a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "version": 3
+        },
+        "comparison_rules": {
+          "version": "version_increment"
+        }
+      },
+      "observed": {
+        "version": "4"
+      },
+      "expected": {
+        "effect_status": "EFFECT_MISMATCH",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "version_as_bool",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "The observed version is true against a declared 0. Coercing true to 1 would advance the counter. Added in v1.1 after the #744 pre-Federation probes found v1 had no case for this distinction; written with the gap known, so it is a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "version": 0
+        },
+        "comparison_rules": {
+          "version": "version_increment"
+        }
+      },
+      "observed": {
+        "version": true
+      },
+      "expected": {
+        "effect_status": "EFFECT_MISMATCH",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "version_as_integral_float",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "The observed version is the float 4.0 against a declared 3. Versions are integers; a float is not comparable as one. Added in v1.1 after the #744 pre-Federation probes found v1 had no case for this distinction; written with the gap known, so it is a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "version": 3
+        },
+        "comparison_rules": {
+          "version": "version_increment"
+        }
+      },
+      "observed": {
+        "version": 4.0
+      },
+      "expected": {
+        "effect_status": "EFFECT_MISMATCH",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "declared_version_as_string",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "The contract declares the string \"3\" and the object carries 4. The declared side must be an integer too. Added in v1.1 after the #744 pre-Federation probes found v1 had no case for this distinction; written with the gap known, so it is a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "version": "3"
+        },
+        "comparison_rules": {
+          "version": "version_increment"
+        }
+      },
+      "observed": {
+        "version": 4
       },
       "expected": {
         "effect_status": "EFFECT_MISMATCH",

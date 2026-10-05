@@ -2,20 +2,20 @@
   "schema_version": "remora-exact-call-binding-v1.1-manifest",
   "lifecycle": "DRAFT",
   "producer": "REMORA-research",
-  "source_revision": "537a1a123932bf93bb2a28786ce67d426d671739",
+  "source_revision": "5879bf444bfc587e4b725b205fb0ded6454d8d84",
   "source_artifacts": [],
   "package_files": [
     {
       "path": "artifacts/interop/exact-call-binding-v1.1/README.md",
-      "sha256": "9f3192b5d33ee75b73f8d263653b9fc9caa222470bad3598e00950ba95a580e3"
+      "sha256": "bbf5ebc829bd23fb6f59aa430b08894ec73cb0654f4304d8fc140bc662c833e5"
     },
     {
       "path": "artifacts/interop/exact-call-binding-v1.1/claim-packet.json",
-      "sha256": "59ca2744d40c38f2b2f91ce229d5da7efcd919a074406bfb7d463c2daa5aed38"
+      "sha256": "35d82c8b24a08a00b4990b03ba9353e465590ec0a648ff427c9491b6407262fe"
     },
     {
       "path": "artifacts/interop/exact-call-binding-v1.1/fixtures.json",
-      "sha256": "eb1abc071fca08bbac6ba723f1878cfa5aa3ea806f956c2fd3a2119f621357c8"
+      "sha256": "81a48ff5514823a71ebe35658fd162d18b1367d0a437c78052bc0b52450cb352"
     },
     {
       "path": "artifacts/interop/exact-call-binding-v1.1/reference_verifier.py",
@@ -23,10 +23,10 @@
     },
     {
       "path": "artifacts/interop/exact-call-binding-v1.1/verifier-request.json",
-      "sha256": "11d6b811c83be09d7637a7876c61a57c6a652e7c217f414fea8c738e69ca68f9"
+      "sha256": "3c20fcab88809e207d1ca1d07309df455f7517493c5a269d1032b6f48d03c693"
     }
   ],
-  "package_digest": "sha256:85fc94d92fbc1b4937409b0f1e40cde248e8c2f92fb68febfa0a0bc2fa146380",
+  "package_digest": "sha256:a902ddaa586d2be2940302be67d768964a1c3d562ccec8af27a4a3a692e53ed2",
   "package_digest_rule": "sha256 over the UTF-8 text formed by one line per package_files entry, '<path> <sha256>\\n', sorted by path. manifest.json and index.json are outside the package and are never hashed into it.",
   "independence_boundary": "The reference verifier is author-produced and is not independent verification. A second implementation is implementation diversity, not independence. L3_INDEPENDENT_RECOMPUTATION requires a second implementation maintained outside REMORA, run by an external operator, importing neither REMORA code nor this verifier (interop-result-v1).",
   "global_property": {

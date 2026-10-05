@@ -8,22 +8,22 @@
   "producer": {
     "project": "REMORA",
     "repository": "darklordVirtual/REMORA-research",
-    "revision": "537a1a123932bf93bb2a28786ce67d426d671739"
+    "revision": "5879bf444bfc587e4b725b205fb0ded6454d8d84"
   },
   "consumer": {
     "project": "REMORA",
     "repository": "darklordVirtual/REMORA-research",
-    "revision": "537a1a123932bf93bb2a28786ce67d426d671739"
+    "revision": "5879bf444bfc587e4b725b205fb0ded6454d8d84"
   },
   "fixture": {
     "path": "artifacts/interop/effect-evidence-v1.1/fixtures.json",
-    "digest": "sha256:f7b48f520716ee70efb00aa4b06d76b72ae0556f18255d8b9f972beddccdd174",
-    "package_digest": "sha256:38b2e877344c80436b158be54d8357035a0f07d2ca35892aaff8ecad43b24fe9"
+    "digest": "sha256:045491524d3ede6f5eae79d0346cca3563010260f27f747d9ef1f8a30c8cd21c",
+    "package_digest": "sha256:3a59b89335acadf9c5851c542c4e9c69e3736a8150fbcb6e7c86ee44e958e706"
   },
   "evaluator": {
     "project": "REMORA",
     "repository": "darklordVirtual/REMORA-research",
-    "revision": "537a1a123932bf93bb2a28786ce67d426d671739",
+    "revision": "5879bf444bfc587e4b725b205fb0ded6454d8d84",
     "kind": "PRODUCER_RUNTIME",
     "maintained_by": "PRODUCER",
     "imports_producer_runtime": true,
@@ -35,11 +35,11 @@
   "independence_level": "L0_SELF_TEST",
   "runner": {
     "path": "scripts/interop_author_run.py",
-    "revision": "537a1a123932bf93bb2a28786ce67d426d671739"
+    "revision": "5879bf444bfc587e4b725b205fb0ded6454d8d84"
   },
   "environment": "Python 3.14.0, Windows AMD64",
-  "started_at": "2026-10-05T23:46:35+00:00",
-  "completed_at": "2026-10-05T23:46:35+00:00",
+  "started_at": "2026-10-05T23:51:33+00:00",
+  "completed_at": "2026-10-05T23:51:33+00:00",
   "cases": [
     {
       "case_id": "verified_declared_delta",
@@ -400,6 +400,74 @@
     },
     {
       "case_id": "nested_bool_is_not_int",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "version_as_string",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "version_as_bool",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "version_as_integral_float",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "declared_version_as_string",
       "claim_id": "effect_state_distinction",
       "expected": {
         "value": {
