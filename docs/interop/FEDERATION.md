@@ -14,6 +14,13 @@ not imply production evidence, owner confirmation, independent observation or
 Federation adoption. E7 remains externally unrun, and
 `runtime_capability_surface_completeness` remains `NOT_ESTABLISHED`.
 
+For a fresh local handoff package, use the combined reproduction procedure in
+[CAPABILITY_DISCOVERY.md](CAPABILITY_DISCOVERY.md#combined-local-handoff-reproduction).
+It retains runtime and custody results, test evidence and publication checks
+under an externally pinnable manifest. It does not advance external lifecycle.
+The matrix separately displays native external lifecycle records, so an L0
+author-run row cannot obscure existing second-implementation evidence.
+
 ## Participation manifest
 
 `artifacts/interop/FEDERATION.yaml` is the machine-readable statement of what

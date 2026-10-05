@@ -62,6 +62,45 @@ or the global surface-completeness claim.
 
 ## Audit and gaps
 
+### Combined local handoff reproduction
+
+From a pinned checkout with the development and security dependencies installed:
+
+```bash
+python -m pip install -e ".[dev,security]"
+python scripts/reproduce_federation_readiness.py --output /tmp/remora-handoff-run
+python scripts/reproduce_federation_readiness.py --verify /tmp/remora-handoff-run --manifest-sha256 DIGEST_PRINTED_BY_RUN
+```
+
+Use a new output directory outside the checkout. Retain the printed manifest
+digest through a separate trusted channel. Verification checks the complete
+file set against that pin, including additions and removals; it does not
+authenticate an operator or establish correctness merely from matching bytes.
+For shared results, use a clean pinned checkout and retain its environment
+record. A dirty checkout is recorded and must not be described as the named
+commit's unmodified behavior.
+
+The runner executes the local runtime, separate authority/executor processes,
+the listed UNKNOWN/reconciliation, receipt-lineage and interop tests, and six
+publication gates. It retains logs and JUnit output and refuses zero tests,
+failures, errors or skips. Failure exits nonzero and leaves diagnostic output;
+only a completed run receives a final manifest. Test plugin auto-discovery is
+disabled so unrelated host plugins cannot change the run.
+
+The process reproduction uses ephemeral signing keys, a synthetic credential,
+a temporary local file and SQLite nonce storage. It checks exact-call, tenant,
+principal and runtime binding, expiry, tampering, forbidden self-minting,
+declared custody violations, concurrent dispatch, response loss after an
+effect, and replay after process restart. No private keys or credential values
+are exported. Separate processes run as the same OS user: this does not prove
+host isolation, HTTP transport authentication, exhaustive credential inventory
+or the absence of undeclared external effect routes.
+
+The combined package is producer-authored evidence. Full authority-to-audit
+digest lineage, independent reproduction, E7 external execution, E8 format
+confirmation and Federation owner acceptance remain separate open obligations.
+No package lifecycle or capability maturity is advanced by this command.
+
 `capability_audit.investigated` records candidates included and rejected.
 `self_service_gaps` separates an available package replay from the missing
 runtime-level procedure and evidence. In particular, the declaration does not
