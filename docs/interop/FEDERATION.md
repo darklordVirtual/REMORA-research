@@ -83,9 +83,9 @@ condition holds, and the schema, not the author, decides.
 
 ## Execution-boundary fixtures
 
-Four packages under `artifacts/interop/` follow the producer contract above.
+Six packages under `artifacts/interop/` follow the producer contract above.
 Each has pinned fixtures, a reference verifier that imports no REMORA code, a
-claim packet, a verifier request and a manifest. Three export a REMORA
+claim packet, a verifier request and a manifest. Five export a REMORA
 boundary; one consumes a foreign artifact.
 
 | Package | Claim | What REMORA runs |
@@ -93,6 +93,8 @@ boundary; one consumes a foreign artifact.
 | `exact-call-binding-v1` | `exact_call_binding`, `single_use_authorization` | `ExecutionLease` and `GovernedToolDispatcher` |
 | `fresh-authority-v1` | `fresh_authority_at_dispatch` | `PolicyDecisionToken` with `EnforcementGate`, and the lease with the dispatcher |
 | `effect-evidence-v1` | `effect_state_distinction` | `verify_declared_delta` over the fixture's state ladder |
+| `exact-call-binding-v1.1` | as v1 | as v1; adds scalar-type cases and names the temporal boundary |
+| `effect-evidence-v1.1` | as v1 | as v1; a rejected rule map is `CONTRACT_REJECTED` |
 | `agentavow-tool-manifest-e8-v0.1` | `attested_definition_binding` | `remora.interop.agentavow` against `toolspec_hash` inside a signed lease |
 
 `remora/interop/boundary_fixtures.py` runs the first three through the real
@@ -103,6 +105,16 @@ claim so their agreement is visible rather than asserted. The author records
 advance nothing. The three boundary packages are `FROZEN` at master
 revision `fe324dd7`, so their pins can be handed to verifiers; the E8 package
 stays `DRAFT` until AgentAvow confirms the profile.
+
+The v1.1 packages are `DRAFT` successors on their own edges (`E-ECB-V1-1`,
+`E-EE-V1-1`). The pre-Federation probes of 2026-10-06 found two gaps. A
+verifier could pass `effect-evidence-v1` while reading a missing field as
+`null` and treating an unknown comparison rule as `exact`. A verifier could
+pass `exact-call-binding-v1` without telling `1` from `1.0`, and that package
+never named the verify-then-mutate boundary a static corpus cannot test. The
+v1 packages keep their bytes, their freeze and the external runs against
+them, and the index marks them `superseded_by` with that note. The new cases
+were written with the faults known and are labelled as repair.
 
 The fixtures are the invitation. A project that wants to attack a claim
 implements the contract without REMORA code, adds its own mutation, replay,

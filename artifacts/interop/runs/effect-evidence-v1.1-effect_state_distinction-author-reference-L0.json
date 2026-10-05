@@ -1,0 +1,439 @@
+{
+  "schema_version": "remora-interop-result-v1",
+  "contract_id": "effect-evidence-v1.1",
+  "edge": "E-EE-V1-1",
+  "claim": "effect_state_distinction",
+  "subject": "effect_verification:remora-effect-verification",
+  "status": "ESTABLISHED",
+  "producer": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "537a1a123932bf93bb2a28786ce67d426d671739"
+  },
+  "consumer": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "537a1a123932bf93bb2a28786ce67d426d671739"
+  },
+  "fixture": {
+    "path": "artifacts/interop/effect-evidence-v1.1/fixtures.json",
+    "digest": "sha256:f7b48f520716ee70efb00aa4b06d76b72ae0556f18255d8b9f972beddccdd174",
+    "package_digest": "sha256:38b2e877344c80436b158be54d8357035a0f07d2ca35892aaff8ecad43b24fe9"
+  },
+  "evaluator": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "537a1a123932bf93bb2a28786ce67d426d671739",
+    "kind": "REFERENCE",
+    "maintained_by": "PRODUCER",
+    "imports_producer_runtime": false,
+    "imports_reference_evaluator": true,
+    "command": "python artifacts/interop/effect-evidence-v1.1/reference_verifier.py"
+  },
+  "operator": "PRODUCER",
+  "host": "PRODUCER_CONTROLLED",
+  "independence_level": "L0_SELF_TEST",
+  "runner": {
+    "path": "scripts/interop_author_run.py",
+    "revision": "537a1a123932bf93bb2a28786ce67d426d671739"
+  },
+  "environment": "Python 3.14.0, Windows AMD64",
+  "started_at": "2026-10-05T23:46:35+00:00",
+  "completed_at": "2026-10-05T23:46:35+00:00",
+  "cases": [
+    {
+      "case_id": "verified_declared_delta",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EFFECT_VERIFIED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EFFECT_VERIFIED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "reader_returns_nothing",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_UNOBSERVABLE",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_UNOBSERVABLE",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "observed_contradicts_report",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "vacuous_contract",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_UNSUPPORTED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_UNSUPPORTED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "report_without_dispatch",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "NOT_DISPATCHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "NOT_DISPATCHED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "dispatch_began_outcome_unknown",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_UNOBSERVABLE",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_UNOBSERVABLE",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "unrelated_field_changed",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EFFECT_VERIFIED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EFFECT_VERIFIED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "version_advanced",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EFFECT_VERIFIED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EFFECT_VERIFIED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "version_not_advanced",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "bool_is_not_int",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "no_report_no_contract",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "report_failure_observed_delta",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EFFECT_VERIFIED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EFFECT_VERIFIED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "exact_null_field_missing",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "exact_null_field_present",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EFFECT_VERIFIED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EFFECT_VERIFIED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "hash_rule_field_missing",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "absent_rule_rejects_explicit_null",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "present_rule_accepts_explicit_null",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EFFECT_VERIFIED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EFFECT_VERIFIED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "unknown_comparison_rule",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "CONTRACT_REJECTED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "CONTRACT_REJECTED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "unknown_rule_with_unobservable_object",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "CONTRACT_REJECTED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "CONTRACT_REJECTED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "rule_for_undeclared_field",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "CONTRACT_REJECTED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "CONTRACT_REJECTED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "integer_is_not_integral_float",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "nested_bool_is_not_int",
+      "claim_id": "effect_state_distinction",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED"
+        }
+      },
+      "result": "ESTABLISHED"
+    }
+  ],
+  "establishes": [
+    "effect_state_distinction: ESTABLISHED means only that, under this fixture contract, NOT_DISPATCHED, DISPATCHED, EXECUTION_REPORTED_SUCCESS and EFFECT_VERIFIED are kept apart, a reported success is never promoted to a verified effect without an observation of the declared delta, an absent field is not an explicit null, a postcondition whose rule map is outside the vocabulary or names an undeclared field is rejected rather than evaluated, and an unobservable or vacuous postcondition leaves the state where it was."
+  ],
+  "does_not_establish": [
+    "that the reader is independent of the tool that acted",
+    "that the observed object is the one the call targeted",
+    "that no effect outside the declared delta occurred",
+    "causation of an observed effect",
+    "production deployment safety",
+    "Federation endorsement",
+    "a second implementation is by itself an independent verification record"
+  ],
+  "ceiling": {
+    "implies_endorsement": false,
+    "implies_production_safety": false,
+    "implies_broader_validity": false,
+    "confers_authority": false
+  },
+  "run_ref": "artifacts/interop/runs/effect-evidence-v1.1-effect_state_distinction-author-reference-L0.json",
+  "published_at": null
+}

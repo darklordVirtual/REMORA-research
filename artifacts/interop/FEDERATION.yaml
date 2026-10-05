@@ -90,6 +90,18 @@ edges:
     property: exact_call_binding
     contract: exact-call-binding-v1
     declared: SPECIFIED
+    note: >-
+      Superseded by E-ECB-V1-1 and retained: external runs pin this digest.
+      Preserved negative result (#744 probes): no integer-versus-integral-float
+      discriminator, and the verify-then-mutate boundary is not named.
+  - id: E-ECB-V1-1
+    producer: REMORA
+    consumer: any
+    artifact: ExecutionLease
+    property: exact_call_binding
+    contract: exact-call-binding-v1.1
+    declared: SPECIFIED
+    note: Successor of E-ECB; adds scalar-type discriminators and names the temporal boundary.
   - id: E-FA
     producer: REMORA
     consumer: any
@@ -104,6 +116,19 @@ edges:
     property: effect_state_distinction
     contract: effect-evidence-v1
     declared: SPECIFIED
+    note: >-
+      Superseded by E-EE-V1-1 and retained: external runs pin this digest.
+      Preserved negative result (#744 probes): the reference verifier reads a
+      missing field as null and falls back to exact for an unknown rule, and
+      no case tells a missing field from an explicit null.
+  - id: E-EE-V1-1
+    producer: REMORA
+    consumer: any
+    artifact: EffectVerification
+    property: effect_state_distinction
+    contract: effect-evidence-v1.1
+    declared: SPECIFIED
+    note: Successor of E-EE; adds missing-versus-null, rule-vocabulary and scalar-kind discriminators.
   - id: E7
     producer: REMORA
     consumer: Probity
