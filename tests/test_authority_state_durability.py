@@ -244,9 +244,11 @@ class TestItReadsTheWiring:
         """The defect as it shipped, reconstructed against a real symbol.
 
         The wiring source is read from the tree, so this needs a symbol that
-        genuinely reads only two switches. ``_execution_state_backend`` in
+        genuinely reads only two switches. ``_execution_state_dsn`` in
         servers/api.py is one: it names the DSN and the chain path and not
-        the endpoint.
+        the endpoint, deliberately since the #744 probes, because the endpoint
+        alone is not durable execution state. (``_execution_state_backend``
+        served here until it learned to report the endpoint.)
         """
         module = self._module("gate_wiring_1")
 
@@ -263,7 +265,7 @@ class TestItReadsTheWiring:
             "wiring": [{
                 "id": "ASW-TEST",
                 "for": "AST-TEST",
-                "symbol": "servers/api.py::_execution_state_backend",
+                "symbol": "servers/api.py::_execution_state_dsn",
                 "switches": ["REMORA_PG_DSN", "REMORA_CHAIN_DB",
                              "REMORA_STATE_ENDPOINT"],
             }],

@@ -54,6 +54,7 @@ from remora.enforcement.outbox import (
     ExecutionOutbox,
     PostgresExecutionOutbox,
     SQLiteExecutionOutbox,
+    UnbackedExecutionOutbox,
 )
 from remora.governance.effect_verification import (
     EffectVerification,
@@ -334,9 +335,11 @@ _LOGGER = _logging.getLogger("remora.execution_api")
 EXECUTION_STATE_BACKEND = (
     "postgres" if _os.environ.get("REMORA_PG_DSN", "").strip()
     else "sqlite" if _os.environ.get("REMORA_CHAIN_DB", "").strip()
+    else "state_endpoint_partial"
+    if _os.environ.get("REMORA_STATE_ENDPOINT", "").strip()
     else "in_process"
 )
-EXECUTION_STATE_DURABLE = EXECUTION_STATE_BACKEND != "in_process"
+EXECUTION_STATE_DURABLE = EXECUTION_STATE_BACKEND in ("postgres", "sqlite")
 
 if not EXECUTION_STATE_DURABLE:
     _LOGGER.warning(
@@ -429,6 +432,17 @@ def _build_outbox() -> ExecutionOutbox:
         return PostgresExecutionOutbox(dsn)
     if db:
         return SQLiteExecutionOutbox(db)
+    if _os.environ.get("REMORA_STATE_ENDPOINT", "").strip():
+        # The endpoint keeps the ledgers durable, not this. Production is
+        # refused here as well as at startup, so an import-time build cannot
+        # hand a production worker a process-local outbox.
+        if _os.environ.get("REMORA_ENV", "").strip().lower() in {
+                "prod", "production"}:
+            raise RuntimeError(
+                "REMORA_STATE_ENDPOINT has no dispatch-outbox adapter; "
+                "production requires REMORA_PG_DSN or REMORA_CHAIN_DB")
+        _LOGGER.warning(UnbackedExecutionOutbox.reason)
+        return UnbackedExecutionOutbox()
     return ExecutionOutbox()
 
 

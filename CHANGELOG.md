@@ -509,7 +509,16 @@ This file lists externally relevant changes by release. Fine-grained development
     digest could establish producer visibility in another tenant's scope.
     `remora/frozen_json.py` now takes a private deep copy and refuses values
     outside the JSON domain; `effect_digest` drops `default=str` and keeps its
-    historic encoding for JSON-domain values.
+    historic encoding for JSON-domain values;
+  - durability topology: the production guard admitted
+    `REMORA_STATE_ENDPOINT` alone, although the tenant audit chain and the
+    dispatch outbox have no D1 adapter and stayed in process memory, and
+    `/v1/health` reported that deployment as `in_process`. Production now
+    requires `REMORA_PG_DSN` or `REMORA_CHAIN_DB` (the endpoint may sit
+    beside them); the outbox selection is wiring point ASW-005 and names the
+    endpoint-only case `UnbackedExecutionOutbox`; the backend is reported as
+    `state_endpoint_partial` and not durable. **Breaking for a deployment
+    that ran production on the endpoint alone.**
 - Evidence admission, one fail-closed narrowing (2026-10-04). A
   `CoverageAttestation` could establish `observation_coverage_complete` on
   producer identity, invocation id and its own content; its digest was never

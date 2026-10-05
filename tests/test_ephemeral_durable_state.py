@@ -206,28 +206,36 @@ def test_the_refusal_points_at_the_escape_hatch(api, tmp_path, monkeypatch):
 
 # ── durable state over a Worker binding ─────────────────────────────────────
 
-def test_a_state_endpoint_counts_as_durable(api, monkeypatch):
-    """A container with no writable disk can still keep durable state.
+def test_a_state_endpoint_alone_is_not_durable_execution_state(api, monkeypatch):
+    """The endpoint survives the instance, but only for some stores.
 
-    The storage behind the endpoint is not this container's filesystem, so it
-    survives the instance — which is the property the guard is protecting.
+    This test used to assert the opposite. The #744 probes showed that a
+    deployment admitted on the endpoint alone kept the tenant audit chain and
+    the dispatch outbox in process memory, because neither has an endpoint
+    adapter (the review queue and the ledgers do).
     """
     monkeypatch.setenv("REMORA_STATE_ENDPOINT", "http://state.internal/query")
-    api._validate_production_prerequisites()
+    with pytest.raises(RuntimeError) as exc:
+        api._validate_production_prerequisites()
+    assert "REMORA_STATE_ENDPOINT alone" in str(exc.value)
 
 
-def test_the_filesystem_is_not_probed_for_a_state_endpoint(api, monkeypatch):
+def test_a_chain_db_beside_a_state_endpoint_is_still_probed(api, monkeypatch):
+    """The chain lives in the SQLite file whatever else is configured.
+
+    The probe used to be skipped whenever an endpoint was set, so an
+    ephemeral chain file passed beside it.
+    """
     monkeypatch.setenv("REMORA_STATE_ENDPOINT", "http://state.internal/query")
     monkeypatch.setenv("REMORA_CHAIN_DB", "/var/lib/remora/state.db")
-
-    def explode(path):  # pragma: no cover - fails the test if reached
-        raise AssertionError("the filesystem was probed for a network store")
-
-    monkeypatch.setattr(api, "filesystem_type_for", explode)
-    api._validate_production_prerequisites()
+    monkeypatch.setattr(api, "filesystem_type_for", lambda p: "overlay")
+    with pytest.raises(RuntimeError) as exc:
+        api._validate_production_prerequisites()
+    assert api.EPHEMERAL_ACK_ENV in str(exc.value)
 
 
-def test_the_refusal_names_the_endpoint_as_an_option(api):
+def test_the_refusal_says_the_endpoint_is_not_sufficient_alone(api):
     with pytest.raises(RuntimeError) as exc:
         api._validate_production_prerequisites()
     assert "REMORA_STATE_ENDPOINT" in str(exc.value)
+    assert "not sufficient alone" in str(exc.value)
