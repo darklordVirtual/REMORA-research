@@ -547,6 +547,7 @@ selective routing is phase-aware rather than a single global threshold. See
 | `remora/verifier/`, `remora/oracles/` | **EXPERIMENTAL** | Oracle backends and verification stages for the `/v1/assess` surface |
 | `remora/cli.py`, `remora/__main__.py` | **CORE** | The `remora` command: try, demo, assess, explain, whatif, replay, serve, provenance, verify, maturity, init-review, effect-verify, doctor (`python -m remora --help`) |
 | `remora/canonical.py`, `remora/action_semantics.py` | **CORE** | Canonical hashing and action-semantics vocabulary used by the binding hashes |
+| `remora/frozen_json.py` | **CORE** | Deep-frozen JSON-domain values and the effect digest encoding; records that carry their own digest freeze through it |
 | `remora/provenance.py` | **CORE** | Build/commit provenance stamped into result artifacts |
 | `remora/agent_hook/` | **EXPERIMENTAL** | Cross-call session tracking for the agent hook and MCP surface |
 | `remora/agent_hook/shell_ast.py` | **CORE** | Shell AST parser behind the CORE destructive-command guard (`remora/safety/ast_guard.py`). A leaf: it imports nothing from `remora` |

@@ -17,6 +17,7 @@ from datetime import UTC, datetime
 from threading import RLock
 from typing import Any, Callable, Mapping
 
+from remora import frozen_json
 from remora.enforcement.lease import (
     DispatchResult, ExecutionLease, GovernedToolDispatcher, ToolExecutionStateUnknown,
 )
@@ -160,8 +161,8 @@ class SurfaceRuntime:
                     raise ValueError("postcondition_tool_mismatch")
                 self._contracts[assessment.assessment_id] = json.loads(canonical_json(dict(
                     tool_id=postcondition.tool_id, reader=postcondition.reader,
-                    target_selector=dict(postcondition.target_selector),
-                    expected_fields=dict(postcondition.expected_fields),
+                    target_selector=frozen_json.thaw(postcondition.target_selector),
+                    expected_fields=frozen_json.thaw(postcondition.expected_fields),
                     comparison_rules=dict(postcondition.comparison_rules),
                     observation_deadline_seconds=postcondition.observation_deadline_seconds,
                     repeatable=postcondition.repeatable, evidence_fields=list(postcondition.evidence_fields))))

@@ -12,6 +12,7 @@ import json
 from datetime import datetime
 from typing import Any, Mapping, Sequence
 
+from remora import frozen_json
 from remora.governance.effect_receipt import ReceiptRefused, verify_receipt
 from remora.governance.effect_verification import (
     EffectStatus, PostconditionContract, verify_declared_delta,
@@ -21,8 +22,8 @@ from remora.toolcall.runtime_surface import canonical_json
 
 def _contract(contract: PostconditionContract) -> dict[str, Any]:
     return dict(tool_id=contract.tool_id, reader=contract.reader,
-                target_selector=dict(contract.target_selector),
-                expected_fields=dict(contract.expected_fields),
+                target_selector=frozen_json.thaw(contract.target_selector),
+                expected_fields=frozen_json.thaw(contract.expected_fields),
                 comparison_rules=dict(contract.comparison_rules),
                 observation_deadline_seconds=contract.observation_deadline_seconds,
                 repeatable=contract.repeatable, evidence_fields=list(contract.evidence_fields))

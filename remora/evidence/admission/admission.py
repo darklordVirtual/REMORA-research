@@ -20,6 +20,7 @@ from dataclasses import dataclass, field, replace
 from types import MappingProxyType
 from typing import Any, Callable, Mapping
 
+from remora import frozen_json
 from remora.evidence.admission.canonical import canonical_digest, decode_bounded
 from remora.evidence.admission.models import (
     CoverageAttestation,
@@ -157,7 +158,7 @@ class EvidenceAdmission:
         object.__setattr__(
             self, "established_facts", MappingProxyType(dict(self.established_facts)),
         )
-        object.__setattr__(self, "scope", MappingProxyType(dict(self.scope)))
+        object.__setattr__(self, "scope", frozen_json.freeze(self.scope))
 
     def is_established(self, fact: str) -> bool:
         return self.established_facts.get(fact) is EstablishmentStatus.ESTABLISHED
@@ -301,8 +302,7 @@ def admit_evidence(
     if manifest is not None and manifest.scope:
         manifest_scope_matches = all(
             key in expected_invocation
-            and type(expected_invocation[key]) is type(value)
-            and expected_invocation[key] == value
+            and frozen_json.strict_equal(value, expected_invocation[key])
             for key, value in manifest.scope.items()
         )
 

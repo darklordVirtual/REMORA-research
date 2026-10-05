@@ -32,13 +32,13 @@ to a caller's judgement:
 """
 from __future__ import annotations
 
-import hashlib
-import json
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
 from types import MappingProxyType
 from typing import Any, Mapping
+
+from remora import frozen_json
 
 __all__ = [
     "COMPARISON_RULES",
@@ -109,11 +109,13 @@ class PostconditionContract:
     evidence_fields: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
+        # Deep copies: a nested alias held by the declarer must not be able
+        # to rewrite the contract after it was declared.
         object.__setattr__(
-            self, "target_selector", MappingProxyType(dict(self.target_selector))
+            self, "target_selector", frozen_json.freeze(self.target_selector)
         )
         object.__setattr__(
-            self, "expected_fields", MappingProxyType(dict(self.expected_fields))
+            self, "expected_fields", frozen_json.freeze(self.expected_fields)
         )
         object.__setattr__(
             self, "comparison_rules", MappingProxyType(dict(self.comparison_rules))
@@ -131,13 +133,11 @@ def effect_digest(value: Any) -> str:
     surface without tripping a single test.
 
     Sorted keys and no whitespace, so two callers that agree on the value
-    agree on the digest. ``default=str`` keeps non-JSON scalars (datetimes,
-    Decimals) hashable rather than raising at verification time.
+    agree on the digest. Values outside the JSON domain raise ``TypeError``.
+    Until the #744 probes this used ``default=str``, which gave a datetime and
+    its ISO string, or an object and its repr, the same digest.
     """
-    return hashlib.sha256(
-        json.dumps(value, sort_keys=True, separators=(",", ":"),
-                   default=str).encode("utf-8")
-    ).hexdigest()
+    return frozen_json.digest(value)
 
 
 #: Deprecated private alias, kept so any out-of-tree caller keeps working.
@@ -190,8 +190,11 @@ class EffectVerification:
     ) -> "EffectVerification":
         """Both sides are hashed, so a later reader can re-check the
         comparison rather than trust this record's verdict."""
-        expected_map = dict(expected or {})
-        observed_map = dict(observed or {})
+        # Private deep copies, hashed from the copy the record keeps: the
+        # caller's nested objects can change afterwards without the stored
+        # content drifting from its digest.
+        expected_map = frozen_json.freeze(expected or {})
+        observed_map = frozen_json.freeze(observed or {})
         return cls(
             proposal_id=proposal_id,
             execution_id=execution_id,
@@ -200,8 +203,8 @@ class EffectVerification:
             status=status,
             reason_code=reason_code,
             verifier_identity=verifier_identity,
-            expected=MappingProxyType(expected_map),
-            observed=MappingProxyType(observed_map),
+            expected=expected_map,
+            observed=observed_map,
             expected_sha256=_digest(expected_map),
             observed_sha256=_digest(observed_map),
             verified_at=(now or datetime.now(UTC)).isoformat(),
@@ -218,8 +221,8 @@ class EffectVerification:
             "status": self.status.value,
             "reason_code": self.reason_code,
             "verifier_identity": self.verifier_identity,
-            "expected": dict(self.expected),
-            "observed": dict(self.observed),
+            "expected": frozen_json.thaw(self.expected),
+            "observed": frozen_json.thaw(self.observed),
             "expected_sha256": self.expected_sha256,
             "observed_sha256": self.observed_sha256,
             "dispatch_id": self.dispatch_id,
@@ -320,9 +323,9 @@ def verify_declared_delta(
             continue
         # bool is an int subclass: 1 == True, but "flag is true" and "count
         # is 1" are different claims. Compare the kinds strictly.
-        if isinstance(actual, bool) != isinstance(expected_value, bool) or (
-            actual != expected_value
-        ):
+        # The same holds at every depth, and a frozen tuple must still match
+        # the list the reader returned.
+        if not frozen_json.strict_equal(expected_value, actual):
             problems.append(f"{name}: expected {expected_value!r}, got {actual!r}")
 
     if problems:
