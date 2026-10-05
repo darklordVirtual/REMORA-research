@@ -1,0 +1,258 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/darklordVirtual/REMORA-research/blob/master/docs/interop/remora-boundaries-v1.schema.json",
+  "title": "REMORA boundary declaration v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "provenance",
+    "runtime_capability_surface_completeness",
+    "internal_trust_boundaries",
+    "external_interfaces",
+    "federation_edges",
+    "claim_ceilings",
+    "role_mappings",
+    "observation_roles"
+  ],
+  "properties": {
+    "schema_version": {"const": "remora-boundaries/v1"},
+    "provenance": {
+      "type": "object",
+      "required": ["audited_revision", "implementation_sources", "source_pins"],
+      "properties": {
+        "audited_revision": {"$ref": "#/$defs/sha40"},
+        "implementation_sources": {"$ref": "#/$defs/paths"},
+        "source_pins": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"$ref": "#/$defs/artifact"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "runtime_capability_surface_completeness": {
+      "type": "object",
+      "required": ["status", "evidence", "claim_ceiling_ref"],
+      "properties": {
+        "status": {"const": "NOT_ESTABLISHED"},
+        "evidence": {"$ref": "#/$defs/path"},
+        "claim_ceiling_ref": {"$ref": "#/$defs/id"}
+      },
+      "additionalProperties": false
+    },
+    "internal_trust_boundaries": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id", "kind", "supporting_capabilities", "maturity",
+          "credential_custody", "strict_profile_required", "bypass_paths",
+          "claim_ceiling_ref"
+        ],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "kind": {"enum": ["AUTHORITY_EXECUTOR_CUSTODY", "GOVERNED_DISPATCH"]},
+          "supporting_capabilities": {"$ref": "#/$defs/ids"},
+          "maturity": {"$ref": "#/$defs/maturity"},
+          "credential_custody": {
+            "type": "object",
+            "required": ["authority_process_holds_execution_credentials", "executor_holds_execution_credentials", "scope"],
+            "properties": {
+              "authority_process_holds_execution_credentials": {"const": false},
+              "executor_holds_execution_credentials": {"const": true},
+              "scope": {"type": "string", "minLength": 1}
+            },
+            "additionalProperties": false
+          },
+          "strict_profile_required": {"type": "boolean"},
+          "bypass_paths": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "claim_ceiling_ref": {"$ref": "#/$defs/id"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "external_interfaces": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id", "interface", "direction", "supporting_capabilities",
+          "maturity", "claim_ceiling_ref"
+        ],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "interface": {"type": "string", "minLength": 1},
+          "direction": {"enum": ["INBOUND", "OUTBOUND", "BIDIRECTIONAL"]},
+          "supporting_capabilities": {"$ref": "#/$defs/ids"},
+          "maturity": {"$ref": "#/$defs/maturity"},
+          "claim_ceiling_ref": {"$ref": "#/$defs/id"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "federation_edges": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id", "contract_id", "package_digest", "supporting_capabilities", "maturity",
+          "producer_role", "consumer_role", "claim", "claim_ceiling_ref",
+          "negative_case_ids", "pinned_artifacts", "status_dimensions"
+        ],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "contract_id": {"$ref": "#/$defs/id"},
+          "package_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+          "supporting_capabilities": {"$ref": "#/$defs/ids"},
+          "maturity": {"$ref": "#/$defs/maturity"},
+          "producer_role": {"type": "string", "minLength": 1},
+          "consumer_role": {"type": "string", "minLength": 1},
+          "claim": {"type": "string", "minLength": 1},
+          "claim_ceiling_ref": {"$ref": "#/$defs/id"},
+          "negative_case_ids": {"$ref": "#/$defs/strings"},
+          "pinned_artifacts": {
+            "type": "array",
+            "items": {"$ref": "#/$defs/artifact"}
+          },
+          "status_dimensions": {"$ref": "#/$defs/statusDimensions"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "claim_ceilings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/claimCeiling"}
+    },
+    "role_mappings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "repository", "issue_numbers", "assessment", "candidate_roles", "partial_roles", "claim_ceiling_ref"],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "repository": {"const": "aeoess/agent-governance-vocabulary"},
+          "issue_numbers": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {"enum": [179, 186, 187]}
+          },
+          "assessment": {"enum": ["CANDIDATE", "PARTIAL"]},
+          "candidate_roles": {"$ref": "#/$defs/strings"},
+          "partial_roles": {"$ref": "#/$defs/strings"},
+          "claim_ceiling_ref": {"$ref": "#/$defs/id"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "observation_roles": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id", "supporting_capabilities", "maturity", "status", "observes",
+          "claim_ceiling_ref"
+        ],
+        "properties": {
+          "id": {"$ref": "#/$defs/id"},
+          "supporting_capabilities": {"$ref": "#/$defs/ids"},
+          "maturity": {"$ref": "#/$defs/maturity"},
+          "status": {"const": "CANDIDATE"},
+          "observes": {"type": "string", "minLength": 1},
+          "claim_ceiling_ref": {"$ref": "#/$defs/id"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.-]*$"},
+    "sha40": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "path": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"},
+    "paths": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/path"}},
+    "ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/id"}},
+    "strings": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "maturity": {
+      "enum": ["DECLARED", "IMPLEMENTED", "TESTED", "REPRODUCIBLE", "EXTERNALLY_REPRODUCED", "OPERATOR_OBSERVED"]
+    },
+    "artifact": {
+      "type": "object",
+      "required": ["path", "sha256", "role"],
+      "properties": {
+        "path": {"$ref": "#/$defs/path"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "role": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "claimCeiling": {
+      "type": "object",
+      "required": ["id", "applies_to", "target_id", "statement", "non_claims"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "applies_to": {
+          "enum": [
+            "INTERNAL_TRUST_BOUNDARY",
+            "EXTERNAL_INTERFACE",
+            "FEDERATION_EDGE",
+            "ROLE_MAPPING",
+            "OBSERVATION_ROLE",
+            "RUNTIME_PROPERTY"
+          ]
+        },
+        "target_id": {"$ref": "#/$defs/id"},
+        "statement": {"type": "string", "minLength": 1},
+        "non_claims": {"$ref": "#/$defs/strings"}
+      },
+      "additionalProperties": false
+    },
+    "dimension": {
+      "type": "object",
+      "required": ["status", "evidence"],
+      "properties": {
+        "status": {"type": "string", "minLength": 1},
+        "evidence": {"$ref": "#/$defs/strings"}
+      },
+      "additionalProperties": false
+    },
+    "statusDimensions": {
+      "type": "object",
+      "required": [
+        "owner_confirmation", "pinning", "execution", "independence",
+        "claim_result", "production", "federation_adoption"
+      ],
+      "properties": {
+        "owner_confirmation": {
+          "allOf": [{"$ref": "#/$defs/dimension"}, {"properties": {"status": {"enum": ["NOT_CONFIRMED", "CONFIRMED"]}}}]
+        },
+        "pinning": {
+          "allOf": [{"$ref": "#/$defs/dimension"}, {"properties": {"status": {"enum": ["UNPINNED", "PIN_CONFIRMED"]}}}]
+        },
+        "execution": {
+          "allOf": [{"$ref": "#/$defs/dimension"}, {"properties": {"status": {"enum": ["NOT_RUN", "AUTHOR_RUN", "EXTERNAL_RUN_RECORDED"]}}}]
+        },
+        "independence": {
+          "allOf": [{"$ref": "#/$defs/dimension"}, {"properties": {"status": {"enum": ["NOT_ASSESSED", "NOT_INDEPENDENT", "INDEPENDENT"]}}}]
+        },
+        "claim_result": {
+          "allOf": [{"$ref": "#/$defs/dimension"}, {"properties": {"status": {"enum": ["NOT_ESTABLISHED", "ESTABLISHED", "CONTRADICTED"]}}}]
+        },
+        "production": {
+          "allOf": [{"$ref": "#/$defs/dimension"}, {"properties": {"status": {"enum": ["NOT_ESTABLISHED", "ESTABLISHED"]}}}]
+        },
+        "federation_adoption": {
+          "allOf": [{"$ref": "#/$defs/dimension"}, {"properties": {"status": {"enum": ["NOT_ADOPTED", "ADOPTED"]}}}]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

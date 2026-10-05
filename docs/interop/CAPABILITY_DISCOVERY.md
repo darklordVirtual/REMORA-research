@@ -48,6 +48,31 @@ claim enforcement completeness: the capability register keeps
 `runtime_capability_surface_completeness` at `NOT_ESTABLISHED`. It does not
 claim that `EFFECT_VERIFIED` proves causation or observes every side effect.
 
+## Boundary discovery
+
+[remora-boundaries-v1.yaml](remora-boundaries-v1.yaml) keeps workflow
+capabilities, internal trust boundaries, external interfaces, Federation
+edges, role mappings, observation roles and claim ceilings as separate
+records. Each boundary names its supporting workflow capabilities and cannot
+claim higher maturity than those capabilities. Its audit revision,
+implementation sources, capability freshness and artifact digests are checked
+before the declaration can pass.
+
+The Federation-facing
+[boundary summary](../../artifacts/interop/remora-boundary-summary-v1.json)
+is generated from that register and listed by the stable interop index. Pin
+confirmation, execution records, independence, claim results, production
+evidence and Federation adoption remain separate statuses. E7 has pinned
+fixtures but no external run record. It does not establish
+`runtime_capability_surface_completeness`; no independent observation,
+production status or Federation adoption is implied.
+
+The AGV role mappings are candidates for exact-call authorization and tool
+enforcement. Pre-action decision and revocation mappings remain partial.
+Effect verification and reconciliation are candidate observation roles. They
+do not establish causation, detection of undeclared effects, observer
+independence or a successful outcome for an unresolved dispatch.
+
 ## Non-goals
 
 The declaration provides no automatic trust, endorsement, ranking or
@@ -62,4 +87,6 @@ Validate the committed declaration with:
 ```bash
 python scripts/check_remora_capabilities.py
 python -m pytest tests/test_remora_capability_declaration.py -q
+python scripts/check_remora_boundaries.py
+python scripts/build_remora_boundary_summary.py --check
 ```

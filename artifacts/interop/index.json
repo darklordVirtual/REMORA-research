@@ -10,6 +10,7 @@
     "note": "Interop artifacts are evidence inputs and references. They do not create REMORA authority or alter ACCEPT/VERIFY/ABSTAIN/ESCALATE semantics.",
     "second_implementation_is_independent": false
   },
+  "boundary_summary": "artifacts/interop/remora-boundary-summary-v1.json",
   "contracts": [
     {
       "id": "runtime-surface-e7-v0.1",
