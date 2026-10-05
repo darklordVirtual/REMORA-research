@@ -63,4 +63,3 @@ Validate the committed declaration with:
 python scripts/check_remora_capabilities.py
 python -m pytest tests/test_remora_capability_declaration.py -q
 ```
-

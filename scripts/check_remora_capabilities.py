@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Author: Stian Skogbrott
+# SPDX-License-Identifier: BUSL-1.1
 """Validate the machine-readable REMORA capability declaration."""
 from __future__ import annotations
 
