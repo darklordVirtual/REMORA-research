@@ -41,9 +41,11 @@ from types import MappingProxyType
 from typing import Any, Mapping
 
 __all__ = [
+    "COMPARISON_RULES",
     "EffectStatus",
     "EffectVerification",
     "PostconditionContract",
+    "validate_comparison_rules",
     "verify_declared_delta",
 ]
 
@@ -64,6 +66,31 @@ class EffectStatus(str, Enum):
         Marking them terminal would freeze an unknown into a verdict."""
         return self in (EffectStatus.VERIFIED, EffectStatus.MISMATCH,
                         EffectStatus.UNSUPPORTED)
+
+
+#: The frozen vocabulary of ``schemas/postcondition_contract_v1.yaml``.
+COMPARISON_RULES = frozenset(
+    {"exact", "hash", "present", "absent", "version_increment"})
+
+
+def validate_comparison_rules(expected_fields: Mapping[str, Any],
+                              comparison_rules: Mapping[str, str]) -> None:
+    """Refuse a rule map that would change meaning without saying so.
+
+    An unknown rule used to fall through to ``exact``, so a typo such as
+    ``excat`` silently became a different check that could still report
+    VERIFIED. A rule for a field the contract does not declare was never
+    evaluated at all. Both are a safety clause that reads as present and is
+    not, so both raise ``ValueError``.
+    """
+    unknown = sorted(r for r in comparison_rules.values()
+                     if r not in COMPARISON_RULES)
+    if unknown:
+        raise ValueError(f"unsupported_comparison_rule: {unknown}")
+    undeclared = sorted(set(comparison_rules) - set(expected_fields))
+    if undeclared:
+        raise ValueError(
+            f"comparison_rule_for_undeclared_field: {undeclared}")
 
 
 @dataclass(frozen=True)
@@ -226,6 +253,9 @@ def verify_declared_delta(
     Fields the contract does not name are ignored on purpose. A concurrent
     legitimate write to an unrelated column is not this action's problem,
     and reporting it would train operators to dismiss the signal.
+
+    Raises ``ValueError`` for a rule map outside the frozen vocabulary or
+    naming an undeclared field (``validate_comparison_rules``).
     """
     def _build(status: EffectStatus, reason: str, detail: str = "") -> EffectVerification:
         return EffectVerification.build(
@@ -237,6 +267,8 @@ def verify_declared_delta(
             detail=detail, now=now,
         )
 
+    validate_comparison_rules(contract.expected_fields,
+                              contract.comparison_rules)
     if not contract.expected_fields:
         # A vacuous contract proves nothing; "verified" would be a false
         # attestation. There is no declared delta to compare.
@@ -256,6 +288,12 @@ def verify_declared_delta(
     for name, expected_value in contract.expected_fields.items():
         rule = contract.comparison_rules.get(name, "exact")
         actual = observed.get(name)
+        if rule in ("exact", "hash") and name not in observed:
+            # A missing field and an explicit null both read as None. Without
+            # this, a contract expecting ``deleted_at: null`` verified
+            # against an object that never had the field.
+            problems.append(f"{name}: expected to be present")
+            continue
         if rule == "present":
             if name not in observed:
                 problems.append(f"{name}: expected to be present")

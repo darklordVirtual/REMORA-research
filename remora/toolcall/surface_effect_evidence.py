@@ -55,12 +55,6 @@ def build_effect_evidence(*, contract: PostconditionContract,
         contract, observed, proposal_id=proposal_id, execution_id=grant_jti,
         toolspec_hash="", verifier_identity=verifier_identity, now=now)
     status = verification.status
-    # Missing fields cannot satisfy an exact null or a hash-of-null condition.
-    if observed is not None and any(
-        name not in observed and rules.get(name, "exact") in {"exact", "hash"}
-        for name in contract.expected_fields
-    ):
-        status = EffectStatus.MISMATCH
     try:
         lineage, _ = verify_receipt(
             events=events, proposal_id=proposal_id, claimed_status=status,

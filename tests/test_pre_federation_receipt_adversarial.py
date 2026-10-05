@@ -136,14 +136,24 @@ def _execute(api_client):
 
 
 def _binding(api_client, proposal_id):
+    """The binding a legitimate verifier would read from the chain.
+
+    ``toolspec_hash`` is the assessed spec identity (empty when no signed
+    bundle is configured). An earlier revision of this probe sent ``"d" * 64``
+    as its baseline, which is itself a forged spec claim and is refused now
+    that the recorder checks it.
+    """
     trail = api_client.get(
         f"/v1/execution/proposals/{proposal_id}/lifecycle").json()
+    assessed = next(e["payload"] for e in trail["events"]
+                    if e.get("event") == "assessed")
     for event in reversed(trail["events"]):
         if event.get("event") == "execution_result":
             payload = event.get("payload") or event
             return {
                 "tool_call_hash": payload.get("tool_call_hash", ""),
                 "grant_jti": payload.get("grant_jti", ""),
+                "toolspec_hash": assessed.get("toolspec_hash", ""),
             }
     raise AssertionError("no execution_result")
 
@@ -153,7 +163,6 @@ def _effect_body(api_client, proposal_id, **overrides):
         **_binding(api_client, proposal_id),
         "execution_id": "e-1",
         "tool_id": "store_artifact",
-        "toolspec_hash": "d" * 64,
         "status": "EFFECT_VERIFIED",
         "reason_code": "postcondition_verified",
         "verifier_identity": "acme.reader/v1",

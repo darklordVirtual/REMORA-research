@@ -81,6 +81,18 @@ MAX_CLOCK_SKEW = timedelta(minutes=5)
 
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 
+#: Reason codes ``verify_declared_delta`` emits, with the one status each
+#: belongs to. Reason codes are otherwise free text from the deployment's
+#: verifier; these are refused only when paired with a different status,
+#: because a VERIFIED record saying "field mismatch" contradicts itself.
+_REASON_STATUS: Mapping[str, EffectStatus] = {
+    "postcondition_verified": EffectStatus.VERIFIED,
+    "postcondition_field_mismatch": EffectStatus.MISMATCH,
+    "postcondition_version_not_advanced": EffectStatus.MISMATCH,
+    "postcondition_object_absent": EffectStatus.UNOBSERVABLE,
+    "empty_postcondition": EffectStatus.UNSUPPORTED,
+}
+
 
 class ReceiptRefused(RemoraError):
     """The receipt cannot be bound to a dispatch, or contradicts itself.
@@ -253,14 +265,27 @@ def verify_receipt(
     verifier_identity: str,
     trusted_verifiers: Sequence[str],
     already_recorded: Sequence[Mapping[str, Any]] = (),
+    reason_code: str = "",
 ) -> tuple[DispatchLineage, EffectStatus]:
     """Bind a receipt to its dispatch and adjudicate the claimed status.
 
     Returns the resolved lineage and adjudicated status, or raises
     ``ReceiptRefused`` with a specific reason. The order of checks is the order
     of the rule, so the first failure names the first missing conjunct.
+
+    ``trusted_verifiers`` is an allowlist: empty trusts nobody. A caller that
+    has already bound the identity to an authenticated principal passes that
+    one identity.
     """
     lineage = resolve_lineage(events)
+
+    owner = _REASON_STATUS.get(reason_code)
+    if owner is not None and owner is not claimed_status:
+        raise ReceiptRefused(
+            "reason_status_contradiction",
+            f"reason {reason_code!r} belongs to {owner.value}, not "
+            f"{claimed_status.value}; a self-contradicting record is not "
+            "evidence of either")
 
     # ── the receipt must be about THIS dispatch ────────────────────────────
     if proposal_id != lineage.proposal_id:
@@ -271,7 +296,10 @@ def verify_receipt(
     # comparison by simply omitting what it would have been compared against,
     # which is the opposite of binding.
     settling = claimed_status in (EffectStatus.VERIFIED, EffectStatus.MISMATCH)
-    if settling:
+    # UNSUPPORTED is terminal as well: it takes the one settled slot, so an
+    # unbound UNSUPPORTED could close a dispatch it never named and turn the
+    # later real observation into a "replay".
+    if claimed_status.is_terminal:
         for name, value in (("tool_call_hash", tool_call_hash),
                             ("grant_jti", grant_jti)):
             if not value:
@@ -292,7 +320,9 @@ def verify_receipt(
     # ── who observed it ────────────────────────────────────────────────────
     # An allowlist rather than merely a non-empty name. "Signed by someone" is
     # not the same as "signed by someone this deployment trusts to look".
-    if trusted_verifiers and verifier_identity not in trusted_verifiers:
+    # Empty means nobody is trusted. It used to mean "no restriction", which
+    # left the safety of this check to every caller remembering to bind first.
+    if verifier_identity not in trusted_verifiers:
         raise ReceiptRefused(
             "untrusted_verifier",
             f"{verifier_identity!r} is not a verifier this deployment trusts")

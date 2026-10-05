@@ -81,10 +81,17 @@ class PostconditionSpec:
     observation_deadline_seconds: int = 30
 
     def __post_init__(self) -> None:
+        from remora.governance.effect_verification import (
+            validate_comparison_rules,
+        )
+
         for name in ("target_selector", "expected_fields", "comparison_rules"):
             object.__setattr__(
                 self, name, MappingProxyType(dict(getattr(self, name)))
             )
+        # A typo'd or orphaned rule is refused at declaration, where the
+        # product author can still fix it, not discovered at verification.
+        validate_comparison_rules(self.expected_fields, self.comparison_rules)
 
 
 @dataclass(frozen=True)

@@ -82,7 +82,7 @@ def _submit(events=None, **over):
         observed_sha256=DIGEST,
         verified_at=OBSERVED_AT.isoformat(),
         verifier_identity="deployment-graph-verifier",
-        trusted_verifiers=[],
+        trusted_verifiers=["deployment-graph-verifier"],
     )
     kwargs.update(over)
     return verify_receipt(**kwargs)
@@ -218,11 +218,17 @@ def test_an_untrusted_verifier_is_refused():
     assert exc.value.reason == "untrusted_verifier"
 
 
-def test_an_empty_allowlist_accepts_any_named_verifier():
-    """The research default, asserted so that tightening it is a visible change."""
-    _lineage, status = _submit(trusted_verifiers=[],
-                               verifier_identity="some-other-verifier")
-    assert status is EffectStatus.VERIFIED
+def test_an_empty_allowlist_trusts_nobody():
+    """Tightened 2026-10-06 (pre-Federation probes, PR #744).
+
+    This test used to pin the research default, under which an empty
+    allowlist accepted any named verifier. The execution API was safe only
+    because it bound the identity to the principal first; any other caller of
+    this primitive inherited a fail-open default. Empty now trusts nobody.
+    """
+    with pytest.raises(ReceiptRefused) as exc:
+        _submit(trusted_verifiers=[], verifier_identity="some-other-verifier")
+    assert exc.value.reason == "untrusted_verifier"
 
 
 # ── the verdict is derived, not reported ────────────────────────────────────

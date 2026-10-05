@@ -2472,6 +2472,16 @@ def _verifier_bindings() -> dict[str, set[str]]:
     return out
 
 
+def _assessed_tool_identity(events: list[dict[str, Any]]) -> tuple[str, str]:
+    """``(tool_name, toolspec_hash)`` of the latest assessment in the chain."""
+    for event in reversed(events):
+        if event.get("event") == "assessed":
+            payload = event.get("payload") or event
+            return (str(payload.get("tool_name") or ""),
+                    str(payload.get("toolspec_hash") or ""))
+    return "", ""
+
+
 def _authorised_verifier(principal: str, verifier_identity: str) -> bool:
     bindings = _verifier_bindings()
     if not bindings:
@@ -2657,7 +2667,11 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
             observed_sha256=req.observed_sha256,
             verified_at=verified_at,
             verifier_identity=req.verifier_identity,
-            trusted_verifiers=(),
+            # Bound to the authenticated principal just above, so it is the
+            # one identity trusted for this receipt. An empty allowlist would
+            # trust nobody.
+            trusted_verifiers=(req.verifier_identity,),
+            reason_code=req.reason_code,
             already_recorded=[
                 e.get("payload", {}) for e in events
                 if e.get("event") == "effect_verified"
@@ -2671,11 +2685,25 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
             detail=f"effect receipt refused ({exc.reason}): {exc.detail}",
         ) from exc
 
+    # The record names the governed tool and spec, so both come from the
+    # assessment in the chain. Copying them from the request let a receipt
+    # store evidence about a tool or spec the dispatch never ran under.
+    tool_id, toolspec_hash = _assessed_tool_identity(events)
+    for name, claimed, recorded in (("tool_id", req.tool_id, tool_id),
+                                    ("toolspec_hash", req.toolspec_hash,
+                                     toolspec_hash)):
+        if claimed and claimed != recorded:
+            raise HTTPException(
+                status_code=409,
+                detail=(f"effect receipt refused ({name}_mismatch): the "
+                        f"dispatch was assessed under {name}="
+                        f"{recorded or '<none>'!r}"))
+
     verification = EffectVerification(
         proposal_id=proposal_id,
         execution_id=req.execution_id,
-        tool_id=req.tool_id,
-        toolspec_hash=req.toolspec_hash,
+        tool_id=tool_id,
+        toolspec_hash=toolspec_hash,
         status=status,
         reason_code=req.reason_code,
         verifier_identity=req.verifier_identity,

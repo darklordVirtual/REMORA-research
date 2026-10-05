@@ -43,6 +43,7 @@ from __future__ import annotations
 
 from remora.errors import RemoraError
 
+import copy
 import hashlib
 import hmac
 import json
@@ -528,12 +529,17 @@ class ExecutionLease:
                 return LeaseVerificationResult(False, "toolspec_hash_mismatch")
         if toolspec_version is not None and toolspec_version != self.toolspec_version:
             return LeaseVerificationResult(False, "toolspec_version_mismatch")
-        recomputed = canonical_tool_call_hash(
-            name=tool_name,
-            arguments=arguments,
-            tenant=tenant_id,
-            target=target_environment,
-        )
+        try:
+            recomputed = canonical_tool_call_hash(
+                name=tool_name,
+                arguments=arguments,
+                tenant=tenant_id,
+                target=target_environment,
+            )
+        except (TypeError, ValueError):
+            # Outside the JSON domain the hash would be shared with another
+            # call, so there is no exact call to compare.
+            return LeaseVerificationResult(False, "tool_args_not_canonical")
         if not hmac.compare_digest(recomputed, self.tool_args_hash):
             return LeaseVerificationResult(False, "tool_args_hash_mismatch")
         if expected_policy_bundle_hash is not None:
@@ -1203,7 +1209,22 @@ class GovernedToolDispatcher:
                 proposal_id=proposal_id,
             )
 
-        fn = self._tools[tool_name]
+        # The tool runs on a private copy. The caller's object stays aliased
+        # outside this call, so verifying it and then executing it would leave
+        # a window in which the executed call is not the verified one.
+        try:
+            arguments = copy.deepcopy(arguments)
+        except Exception:  # noqa: BLE001 - an uncopyable payload has no exact form
+            governance_event(
+                "dispatch.refused", level=logging.WARNING,
+                reason="tool_args_not_canonical", tenant_id=tenant_id,
+                tool_name=tool_name, proposal_id=proposal_id,
+            )
+            return DispatchResult(
+                executed=False, refusal_reason="tool_args_not_canonical",
+                proposal_id=proposal_id,
+            )
+
         # The signed spec identity, resolved at the moment of dispatch. A
         # mismatch means the spec moved between approval and execution: the
         # action about to run is not the action that was reviewed.
@@ -1229,6 +1250,24 @@ class GovernedToolDispatcher:
                 )
             if identity is not None:
                 spec_hash, spec_version = identity[0], int(identity[1])
+
+        # Read AFTER the spec is resolved, with its generation, so a callable
+        # replaced during resolution is not the one that runs under the new
+        # spec's identity. The generation is re-checked before the nonce is
+        # spent.
+        with self._registry_lock:
+            fn = self._tools.get(tool_name)
+            fn_generation = self._registry_versions.get(tool_name, 0)
+        if fn is None:
+            governance_event(
+                "dispatch.refused", level=logging.WARNING,
+                reason="unknown_tool", tenant_id=tenant_id, tool_name=tool_name,
+                proposal_id=proposal_id,
+            )
+            return DispatchResult(
+                executed=False, refusal_reason="unknown_tool",
+                proposal_id=proposal_id,
+            )
 
         if self._require_task and task_identity is None:
             governance_event(
@@ -1312,6 +1351,38 @@ class GovernedToolDispatcher:
             )
             return DispatchResult(
                 executed=False, refusal_reason=mediation_refusal,
+                proposal_id=proposal_id,
+            )
+
+        # The refusal hooks above received the verified payload and the
+        # registry may have been rewritten meanwhile. Re-establish both before
+        # anything is spent: the call that runs must be the call that verified.
+        with self._registry_lock:
+            registry_moved = (
+                self._tools.get(tool_name) is not fn
+                or self._registry_versions.get(tool_name, 0) != fn_generation
+            )
+        final_hop_refusal: str | None = None
+        if registry_moved:
+            final_hop_refusal = "tool_registry_changed"
+        else:
+            try:
+                rehashed = canonical_tool_call_hash(
+                    name=tool_name, arguments=arguments, tenant=tenant_id,
+                    target=target_environment or "")
+            except (TypeError, ValueError):
+                rehashed = ""
+            if not hmac.compare_digest(rehashed, lease.tool_args_hash):
+                final_hop_refusal = "tool_args_changed_after_verify"
+        if final_hop_refusal is not None:
+            governance_event(
+                "dispatch.refused", level=logging.ERROR,
+                reason=final_hop_refusal, tenant_id=tenant_id,
+                tool_name=tool_name, proposal_id=proposal_id,
+                grant_jti=lease.grant_jti,
+            )
+            return DispatchResult(
+                executed=False, refusal_reason=final_hop_refusal,
                 proposal_id=proposal_id,
             )
 

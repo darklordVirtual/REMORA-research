@@ -476,6 +476,32 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Fixed
 
+- Pre-Federation boundary probes (2026-10-06, `tests/test_pre_federation_*`),
+  each a fail-open path closed in the reusable primitive rather than only in
+  its strictest caller:
+  - effect verification: `verify_declared_delta` treated a missing field as
+    an explicit `null` under `exact`/`hash`, so `{"deleted_at": null}`
+    verified against `{}`; an unknown comparison rule (`excat`) fell through
+    to `exact`; a rule for an undeclared field was never evaluated. The core
+    verifier and `remora.sdk.effects.PostconditionSpec` now refuse the rule
+    map (`ValueError`) and a missing field is a mismatch;
+  - exact-call binding: `canonical_tool_call_hash` stringified non-JSON
+    values (`default=str`), merged int and string keys, merged tuples into
+    arrays and accepted NaN/Infinity. It now refuses values outside the JSON
+    domain; bytes for JSON-domain calls are unchanged, so existing leases and
+    chain entries still verify. `ExecutionLease.verify` reports
+    `tool_args_not_canonical`;
+  - effect receipts: an empty `trusted_verifiers` allowlist trusted any
+    verifier and now trusts nobody (the execution API passes the identity it
+    has bound to the principal); a terminal `EFFECT_UNSUPPORTED` no longer
+    takes the dispatch's settled slot without naming the dispatch; a reason
+    code `verify_declared_delta` emits for one status is refused with
+    another; the recorded `tool_id` and `toolspec_hash` come from the
+    assessment in the chain and a differing claim is a 409;
+  - final hop: `GovernedToolDispatcher.dispatch` executes a private copy of
+    the arguments, reads the callable after spec resolution, and re-checks
+    the argument hash and registry generation before spending the nonce
+    (`tool_args_changed_after_verify`, `tool_registry_changed`).
 - Evidence admission, one fail-closed narrowing (2026-10-04). A
   `CoverageAttestation` could establish `observation_coverage_complete` on
   producer identity, invocation id and its own content; its digest was never
