@@ -185,12 +185,21 @@ def test_terminal_unsupported_cannot_poison_the_dispatch_slot(api_client):
     )
     first = api_client.post(
         f"/v1/execution/proposals/{proposal_id}/effect", json=unsupported)
-    assert first.status_code in {409, 422}, first.text
+
+    # Either the unbound terminal report is refused immediately, or — if a
+    # deployment elects to record UNSUPPORTED — it must remain non-settling so
+    # a later real observation can close the dispatch.  The unsafe combination
+    # is 200 here followed by replay refusal below.
+    if first.status_code not in {409, 422}:
+        assert first.status_code == 200, first.text
 
     verified = api_client.post(
         f"/v1/execution/proposals/{proposal_id}/effect",
         json=_effect_body(api_client, proposal_id))
-    assert verified.status_code == 200, verified.text
+    assert verified.status_code == 200, (
+        "an unbound EFFECT_UNSUPPORTED occupied the terminal dispatch slot "
+        f"and poisoned later verification: first={first.text}; later={verified.text}"
+    )
 
 
 @pytest.mark.parametrize(
