@@ -23,10 +23,14 @@ remain the backstop.
 from __future__ import annotations
 
 import re
+import json
 import tomllib
 from pathlib import Path
 
+import pytest
 import yaml
+from packaging.requirements import Requirement
+from packaging.version import Version
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 WORKFLOWS_DIR = REPO_ROOT / ".github" / "workflows"
@@ -107,3 +111,40 @@ def test_lock_click_pin_satisfies_the_pinned_huggingface_hub_floor() -> None:
         f"click is pinned at {pins['click']}, below the >=8.4.2 floor that the pinned "
         "huggingface-hub requires; the nli extra cannot resolve."
     )
+
+
+@pytest.mark.parametrize(("package", "patched"), [
+    ("datasets", "5.0.1"),
+    ("fsspec", "2026.6.0"),
+    ("s3fs", "2026.6.0"),
+    ("langgraph-sdk", "0.4.4"),
+    ("mako", "1.4.2"),
+    ("multidict", "6.9.1"),
+    ("scapy", "2.7.0"),
+])
+def test_lock_excludes_known_vulnerable_dependency_versions(package, patched) -> None:
+    assert Version(_lock_pins()[package]) >= Version(patched)
+
+
+def test_unlocked_datasets_extra_excludes_the_vulnerable_release() -> None:
+    with (REPO_ROOT / "pyproject.toml").open("rb") as handle:
+        extras = tomllib.load(handle)["project"]["optional-dependencies"]
+    requirement = next(Requirement(value) for value in extras["datasets"]
+                       if Requirement(value).name == "datasets")
+    assert Version("5.0.0") not in requirement.specifier
+    assert Version("5.0.1") in requirement.specifier
+
+
+@pytest.mark.parametrize("manifest", [
+    "frontend/package-lock.json", "workers/mcp-gateway/package-lock.json",
+])
+@pytest.mark.parametrize(("package", "patched"), [
+    ("source-map-js", "1.2.2"),
+    ("shell-quote", "1.11.0"),
+    ("sharp", "0.35.5"),
+])
+def test_npm_locks_exclude_known_vulnerable_dependency_versions(manifest, package, patched) -> None:
+    lock = json.loads((REPO_ROOT / manifest).read_text(encoding="utf-8"))
+    for path, entry in lock["packages"].items():
+        if path.endswith(f"/{package}"):
+            assert Version(entry["version"]) >= Version(patched), path
