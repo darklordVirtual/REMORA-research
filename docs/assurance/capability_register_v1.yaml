@@ -16,11 +16,22 @@
 # EXTERNALLY_VERIFIED — deployment_status is SHADOW_ONLY until REM-021.
 
 schema_version: "1"
-updated: "2026-09-29"
+updated: "2026-10-06"
 
 # Research gaps are property verdicts, not capability maturity rungs. They do
 # not imply that a library test establishes a deployed runtime property.
 unestablished_properties:
+  - id: execution_context_authoritative_binding
+    phase: RESEARCH
+    status: NOT_ESTABLISHED
+    evidence: tests/test_execution_context_binding.py
+    caveat: >-
+      The opt-in execution-context path binds deployment-supplied subject,
+      proposal-initiating model, scoped data classification and build/runtime
+      provenance through assessment, review, grant, lease, dispatch and effect
+      recording. Internal tests do not establish the authority of deployment
+      sources or a deployed end-to-end property. TRACE export and hardware
+      attestation are not implemented by this path.
   - id: runtime_capability_surface_completeness
     phase: RESEARCH
     status: NOT_ESTABLISHED

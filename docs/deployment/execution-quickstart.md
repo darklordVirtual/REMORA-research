@@ -69,6 +69,71 @@ The profiles mean:
 An unset `REMORA_RUNTIME_PROFILE` remains `research` for backward compatibility.
 Nothing is silently promoted into a stronger trust contract.
 
+### Optional authoritative execution context
+
+Set `REMORA_REQUIRE_EXECUTION_CONTEXT=1` and
+`REMORA_EXECUTION_CONTEXT_MODULE=my_app.execution_identity` to require the
+execution-context binding on assessment, review, ACCEPT redemption and
+dispatch. Existing profiles do not enable it automatically.
+
+The module exports `execution_context_provider`, implementing
+`ExecutionContextProvider` from
+[`remora/governance/execution_identity.py`](../../remora/governance/execution_identity.py):
+
+| Method | Deployment responsibility |
+|---|---|
+| `capture(proposal_id, tenant, principal, tool_call_hash)` (keyword arguments) | Return an immutable `ExecutionContextV1` from trusted session, inference-gateway and deployment records. Its subject must match the authenticated principal, and its proposal, tenant and call must match the arguments. |
+| `current_build_provenance_digest()` | Return the executor's current build-provenance SHA-256 digest from deployment-owned state. |
+| `data_scope_valid(context)` | Return exactly `True` only while the recorded classification and declared access scope remain valid under deployment policy. |
+
+Provider failures must raise `ExecutionContextRefused` with a bounded reason;
+they must not return guessed values. Capture requires a deployment-declared
+runtime hash, a build-provenance digest and named authorities with evidence
+references for subject, initiating model, runtime and data scope. V1 accepts
+no arbitrary extensions, floats or free-form metadata maps. Digest values are
+lowercase SHA-256 hex; authority references are identifiers, not evidence
+validated independently by REMORA.
+
+The model authority's evidence reference must identify the exact initiating
+inference event. A current model configuration or an ambiguous match between
+identical calls is insufficient; the provider must refuse capture when it
+cannot establish that lineage.
+
+Capture happens before assessment. The context digest enters the observation,
+the grant's call/context/proposal binding and authorization-context hash, and
+the signed lease. Review and workers read the original canonical context from
+the tenant chain; they never recapture it. The executor checks its own cached
+startup runtime identity, current build provenance and classification validity
+before consuming the lease nonce. It does not compare the initiating model to
+a currently active model.
+
+In a custody split, configure the provider on both domains. The authority
+captures the intended executor runtime identity; the executor supplies its own
+build and data-scope checks. The remote hop carries the historical context,
+whose digest and lineage must match the signed lease. Runtime declarations
+remain deployment assertions, not hardware attestation.
+
+The tenant chain retains canonical context bytes and their digest on the
+assessment. Execution results retain the context hash, execution ID (the
+single-use grant JTI) and dispatch-check evidence. Durable outbox settlement
+preserves these fields for crash recovery. Persistence across restart requires
+the durable chain configuration described below; an in-memory development
+chain is not durable evidence.
+
+Effect receipts for a context-bound dispatch must carry its `execution_id`
+and `execution_context_hash`. SDK consumers pass the latter to `verify_effect`
+and use the recorded execution ID, rather than a locally invented ID.
+Evidence export projects the historical context without consulting today's
+provider or configuration. This path implements no TRACE exporter or TRACE
+signing identity.
+
+`execution_context_authoritative_binding` remains `NOT_ESTABLISHED` pending
+deployment evidence for source authority and the end-to-end property. Neither
+`runtime_capability_surface_completeness` nor
+`implementation_effect_non_transitivity` is upgraded. Data scope covers
+`proposal_input` and/or `declared_tool_access`; it does not classify unknown
+downstream data.
+
 ## 3. Configure the strict execution path
 
 For `review` and `controlled_pilot`, the execution path refuses to resolve tool

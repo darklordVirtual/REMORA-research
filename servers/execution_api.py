@@ -59,6 +59,10 @@ from remora.enforcement.outbox import (
 from remora.governance.effect_verification import (
     EffectVerification,
 )
+from remora.governance.execution_identity import (
+    ExecutionContextRefused, ExecutionContextV1, historical_context,
+)
+from servers.execution_identity import context_provider, context_required
 from remora.governance.lifecycle import (
     IllegalTransition,
     check_transition,
@@ -692,6 +696,7 @@ def dispatch_pending_intents(tenant: str, *, worker_id: str) -> list[dict[str, A
             policy_bundle_hash=_current_policy_bundle_hash,
             rebuild_call=_rebuild_tool_call,
             assessed_record=_assessed_record,
+            require_execution_context=context_required(),
         )
         if result is not None:
             results.append(result)
@@ -1209,6 +1214,8 @@ def _tool_dispatcher() -> GovernedToolDispatcher | None:
                     nonce_store=_lease_nonce_store(),
                     require_task_identity=_require_task_identity(),
                     require_capability_set=_require_capability_set(),
+                    require_execution_context=context_required(),
+                    execution_context_provider=context_provider(),
                 )
                 # RMR-004: the lease has always carried the signed spec
                 # identity and verify() has always been able to check it.
@@ -1730,6 +1737,8 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
             status_code=503,
             detail="loop safety store unavailable; nothing was assessed "
                    "and this call must be retried") from exc
+    except ExecutionContextRefused as exc:
+        raise HTTPException(status_code=409, detail=exc.reason) from exc
     api_mod.record_execution_assess(response["decision"])
 
     if idemp_key:
@@ -1783,6 +1792,8 @@ def _assess_proposal_with_loop_state(
         capability_gate=(lambda proposal: _capability_block(proposal, principal, tenant))
         if _capability_resolver() is not None else None,
         semantic_shadow=_SEMANTIC_SHADOW,
+        execution_context_provider=context_provider(),
+        require_execution_context=context_required(),
     )
 
 
@@ -1834,7 +1845,10 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
             lifecycle_guard=_lifecycle_guard,
             note_proposal_id=_note_proposal_id,
             transactional_append=chain_append_transactional,
+            require_execution_context=context_required(),
         )
+    except ExecutionContextRefused as exc:
+        raise HTTPException(status_code=409, detail=exc.reason) from exc
     except ReviewNotFound as exc:
         raise HTTPException(status_code=404, detail="review item not found") from exc
     except ReviewConflict as exc:
@@ -2230,7 +2244,10 @@ def execute(req: ExecuteRequest, request: Request) -> "dict[str, Any] | JSONResp
             policy_bundle_hash=_current_policy_bundle_hash,
             async_dispatch=async_mode,
             transactional_append=chain_append_transactional,
+            require_execution_context=context_required(),
         )
+    except ExecutionContextRefused as exc:
+        raise HTTPException(status_code=409, detail=exc.reason) from exc
     except ToolSpecChanged as exc:
         raise HTTPException(status_code=409, detail=exc.reason) from exc
     except ReviewNotFound as exc:
@@ -2315,7 +2332,10 @@ def execute_accepted(req: ExecuteAcceptedRequest, request: Request) -> dict[str,
             resolve_toolspec=_resolve_toolspec,
             assessed_toolspec=_assessed_toolspec_for_proposal,
             policy_bundle_hash=_current_policy_bundle_hash,
+            require_execution_context=context_required(),
         )
+    except ExecutionContextRefused as exc:
+        raise HTTPException(status_code=409, detail=exc.reason) from exc
     except ToolSpecChanged as exc:
         api_mod.record_execution_execute(executed=False, refusal=exc.reason)
         raise HTTPException(status_code=409, detail=exc.reason) from exc
@@ -2383,6 +2403,14 @@ def dispatch_leased(req: DispatchLeasedRequest, request: Request) -> dict[str, A
                    "needs a policy bundle and a tool registry")
 
     now = _dt.datetime.now(_dt.UTC)
+    semantic = {"tool_contract_bundle_hash": lease.tool_contract_bundle_hash,
+                "intent_authority_hash": lease.intent_authority_hash}
+    if req.execution_context is not None:
+        try:
+            context = ExecutionContextV1.from_dict(req.execution_context)
+        except ExecutionContextRefused as exc:
+            raise HTTPException(status_code=409, detail=exc.reason) from exc
+        semantic["execution_context_canonical"] = context.canonical_bytes().decode("utf-8")
     tool_execution = _dispatch_under_lease(
         tenant=tenant,
         # From the SIGNED lease, never the request body and never the hop's
@@ -2391,8 +2419,7 @@ def dispatch_leased(req: DispatchLeasedRequest, request: Request) -> dict[str, A
         # end actor, so using it would refuse every legitimate call.
         principal=lease.actor_identity,
         tool_call=req.tool_call,
-        semantic={"tool_contract_bundle_hash": lease.tool_contract_bundle_hash,
-                  "intent_authority_hash": lease.intent_authority_hash},
+        semantic=semantic,
         now=now,
         proposal_id=lease.proposal_id,
         grant_jti=lease.grant_jti,
@@ -2744,6 +2771,7 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
         observed_state_hash=req.observed_state_hash,
         verifier_version=req.verifier_version,
         submitted_by=principal,
+        execution_context_hash=req.execution_context_hash,
     )
     try:
         audit = record_effect_verification(
@@ -2759,6 +2787,8 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
             detail=("effect receipt refused (receipt_replayed): this "
                     "dispatch already has a settled verdict"),
         ) from exc
+    except ExecutionContextRefused as exc:
+        raise HTTPException(status_code=409, detail=exc.reason) from exc
     return {
         "proposal_id": proposal_id,
         # The adjudicated attestation status. REMORA binds and refuses; it
@@ -2876,6 +2906,15 @@ def export_evidence(proposal_id: str, request: Request) -> dict[str, Any]:
         # Q8.7: which capability set each assessment was checked against.
         "capability_decision": _capability_decision(events),
     }
+    try:
+        context = historical_context(_CHAIN, tenant, proposal_id)
+    except ExecutionContextRefused as exc:
+        raise HTTPException(status_code=409, detail=exc.reason) from exc
+    if context is not None:
+        sections["execution_context"] = {
+            "canonical": context.canonical_bytes().decode("utf-8"),
+            "sha256": context.digest(),
+        }
 
     def _digest(value: Any) -> str:
         canonical = json.dumps(value, sort_keys=True, separators=(",", ":"),

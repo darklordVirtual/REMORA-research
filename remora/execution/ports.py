@@ -43,6 +43,7 @@ if TYPE_CHECKING:
     from remora.governance.tenant_chain import ChainEntry
     from remora.policy.observation import PolicyObservation
     from remora.policy.report import DecisionAction
+    from remora.governance.execution_identity import ExecutionContextV1
 
 __all__ = [
     "AuditChainPort",
@@ -211,6 +212,7 @@ class ToolDispatcherPort(Protocol):
         now: str | None = None,
         actor_identity: str | None = None,
         task_identity: Any = None,
+        execution_context: ExecutionContextV1 | None = None,
     ) -> Any: ...
 
 

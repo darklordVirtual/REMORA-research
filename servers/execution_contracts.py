@@ -412,6 +412,9 @@ class DispatchLeasedRequest(BaseModel):
     # Q8.2: the capability set the lease was minted under. Checked against the
     # lease's signed digest before use, so a widened set is refused.
     capability_set: dict[str, Any] | None = None
+    execution_context: dict[str, Any] | None = Field(
+        None, description="Historical deployment context; trusted only after "
+                          "its digest and lineage match the signed lease.")
 
 
 class ExecuteAcceptedRequest(BaseModel):
@@ -457,6 +460,10 @@ class EffectVerificationRequest(BaseModel):
     """
 
     execution_id: str = Field(..., min_length=1, max_length=200)
+    execution_context_hash: str = Field(
+        "", pattern=r"^([0-9a-f]{64})?$",
+        description="Required for a context-bound dispatch; must match its "
+                    "historical context, never current configuration.")
     tool_id: str = Field(..., min_length=1, max_length=200)
     toolspec_hash: str = Field("", max_length=128)
     tool_call_hash: str = Field(

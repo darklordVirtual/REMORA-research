@@ -170,6 +170,7 @@ class EffectVerification:
     observed_state_hash: str = ""
     verifier_version: str = ""
     submitted_by: str = ""
+    execution_context_hash: str = ""
 
     @classmethod
     def build(
@@ -213,7 +214,7 @@ class EffectVerification:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        record = {
             "proposal_id": self.proposal_id,
             "execution_id": self.execution_id,
             "tool_id": self.tool_id,
@@ -234,6 +235,9 @@ class EffectVerification:
             "detail": self.detail,
             "evidence_refs": list(self.evidence_refs),
         }
+        if self.execution_context_hash:
+            record["execution_context_hash"] = self.execution_context_hash
+        return record
 
 
 def verify_declared_delta(

@@ -24,6 +24,9 @@ from remora.execution.ports import (AuditChainPort, ReviewQueuePort,
                                     audit_ref)
 
 from remora.governance.audit_outbox import encode_key
+from remora.governance.execution_identity import (
+    ExecutionContextRefused, historical_context,
+)
 
 from collections.abc import Callable
 from datetime import timedelta
@@ -70,6 +73,7 @@ def approve_item(
     lifecycle_guard: Callable[..., None],
     note_proposal_id: Callable[[Any], None],
     transactional_append: TransactionalAppendPort | None = None,
+    require_execution_context: bool = False,
 ) -> dict[str, Any]:
     """Record an approval by the authenticated reviewer.
 
@@ -94,6 +98,10 @@ def approve_item(
     authorize_approval(item)
 
     proposal_id = getattr(item.observation, "proposal_id", None)
+    context = historical_context(
+        chain, tenant, str(proposal_id or ""), required=require_execution_context)
+    if (context.digest() if context is not None else "") != item.observation.execution_context_hash:
+        raise ExecutionContextRefused("execution_context_review_mismatch")
     # Deterministic, and once per item: an approval is terminal for the
     # pending state, so the same key can never name two different events.
     key = encode_key(tenant, "approved", item_id)
