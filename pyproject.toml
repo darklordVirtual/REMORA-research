@@ -334,6 +334,7 @@ pytest_add_cli_args_test_selection = [
     "tests/test_nonce_store_consumed.py",
     "tests/test_plan_binding.py",
     "tests/test_policy_engine_audit_v1.py",
+    "tests/test_pre_federation_toctou_adversarial.py",
     "tests/test_procedure_contracts.py",
     "tests/test_rem013_pdp_pep_boundary.py",
     "tests/test_remote_dispatch_boundary.py",

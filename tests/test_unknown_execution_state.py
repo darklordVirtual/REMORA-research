@@ -270,7 +270,8 @@ def test_an_unknown_dispatch_can_still_be_verified_later():
         tool_call_hash="c" * 64, grant_jti="jti-1",
         expected_sha256="d" * 64, observed_sha256="d" * 64,
         verified_at=now.isoformat(),
-        verifier_identity="deployment-verifier", trusted_verifiers=())
+        verifier_identity="deployment-verifier",
+        trusted_verifiers=("deployment-verifier",))
     assert status is EffectStatus.VERIFIED
 
 

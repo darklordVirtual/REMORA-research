@@ -78,6 +78,7 @@ def _cmd_effect_verify(args: argparse.Namespace) -> int:
     import dataclasses
     import json as _json
 
+    from remora import frozen_json
     from remora.governance.effect_verification import EffectStatus, PostconditionContract
     from remora.integrations.http_readback import verify_http_effect
 
@@ -110,8 +111,8 @@ def _cmd_effect_verify(args: argparse.Namespace) -> int:
     # keep the status as its wire value.
     payload = {f.name: getattr(record, f.name) for f in dataclasses.fields(record)}
     payload["status"] = record.status.value
-    payload["expected"] = dict(record.expected)
-    payload["observed"] = dict(record.observed)
+    payload["expected"] = frozen_json.thaw(record.expected)
+    payload["observed"] = frozen_json.thaw(record.observed)
     print(_json.dumps(payload, default=str, sort_keys=True))
     return {
         EffectStatus.VERIFIED: 0,

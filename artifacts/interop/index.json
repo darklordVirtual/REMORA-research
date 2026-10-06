@@ -185,7 +185,26 @@
             "repository": "probityai/agent-evidence-vectors"
           }
         }
-      ]
+      ],
+      "superseded_by": "exact-call-binding-v1.1",
+      "superseded_note": "Superseded by exact-call-binding-v1.1 on 2026-10-06 and retained unchanged: external runs pin this digest. Preserved negative result from the #744 pre-Federation probes: the corpus has no integer-versus-integral-float discriminator (1 against 1.0), so a verifier that reads every JSON number as a double passes it, and the README does not name the verify-then-mutate (TOCTOU) temporal boundary."
+    },
+    {
+      "id": "exact-call-binding-v1.1",
+      "edge": "E-ECB-V1-1",
+      "lifecycle": "DRAFT",
+      "external_verification": "PENDING",
+      "source_revision": "5879bf444bfc587e4b725b205fb0ded6454d8d84",
+      "manifest": "artifacts/interop/exact-call-binding-v1.1/manifest.json",
+      "package_digest": "sha256:a902ddaa586d2be2940302be67d768964a1c3d562ccec8af27a4a3a692e53ed2",
+      "claim_packet": "artifacts/interop/exact-call-binding-v1.1/claim-packet.json",
+      "verifier_request": "artifacts/interop/exact-call-binding-v1.1/verifier-request.json",
+      "fixtures": "artifacts/interop/exact-call-binding-v1.1/fixtures.json",
+      "reference_verifier": "artifacts/interop/exact-call-binding-v1.1/reference_verifier.py",
+      "supersedes": "exact-call-binding-v1",
+      "freeze_record": null,
+      "pin_confirmed_to": [],
+      "external_runs": []
     },
     {
       "id": "fresh-authority-v1",
@@ -461,7 +480,26 @@
             "repository": "probityai/agent-evidence-vectors"
           }
         }
-      ]
+      ],
+      "superseded_by": "effect-evidence-v1.1",
+      "superseded_note": "Superseded by effect-evidence-v1.1 on 2026-10-06 and retained unchanged: external runs pin this digest. Preserved negative result from the #744 pre-Federation probes: the reference verifier reads a missing field as an explicit null under exact and hash, falls back to exact for an unknown rule such as excat, ignores a rule for an undeclared field and compares containers loosely (1 matches 1.0, nested true matches 1); the corpus has no case that tells a missing field from an explicit null."
+    },
+    {
+      "id": "effect-evidence-v1.1",
+      "edge": "E-EE-V1-1",
+      "lifecycle": "DRAFT",
+      "external_verification": "PENDING",
+      "source_revision": "5879bf444bfc587e4b725b205fb0ded6454d8d84",
+      "manifest": "artifacts/interop/effect-evidence-v1.1/manifest.json",
+      "package_digest": "sha256:3a59b89335acadf9c5851c542c4e9c69e3736a8150fbcb6e7c86ee44e958e706",
+      "claim_packet": "artifacts/interop/effect-evidence-v1.1/claim-packet.json",
+      "verifier_request": "artifacts/interop/effect-evidence-v1.1/verifier-request.json",
+      "fixtures": "artifacts/interop/effect-evidence-v1.1/fixtures.json",
+      "reference_verifier": "artifacts/interop/effect-evidence-v1.1/reference_verifier.py",
+      "supersedes": "effect-evidence-v1",
+      "freeze_record": null,
+      "pin_confirmed_to": [],
+      "external_runs": []
     },
     {
       "id": "agentavow-tool-manifest-e8-v0.1",

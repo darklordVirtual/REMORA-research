@@ -594,11 +594,26 @@ def _validate_production_prerequisites() -> None:
         # already consumed by one worker is accepted again by a second worker
         # or after a restart, because the ledger that refused the replay is
         # gone. Production must not run in that mode.
-        missing.append(
-            "REMORA_PG_DSN, REMORA_STATE_ENDPOINT or REMORA_CHAIN_DB "
-            "(durable execution state: tenant audit chain, review queue, and "
-            "one-time-grant ledger)"
-        )
+        if os.getenv("REMORA_STATE_ENDPOINT", "").strip():
+            # The endpoint was admitted on its own until the #744 probes. It
+            # keeps the review state and the grant, nonce, revocation and loop
+            # ledgers, but the tenant audit chain and the dispatch outbox have
+            # no adapter for it and stayed in process memory under a
+            # configuration this guard called durable. Losing the outbox is
+            # what lets a retry become a second execution.
+            missing.append(
+                "REMORA_PG_DSN or REMORA_CHAIN_DB (REMORA_STATE_ENDPOINT alone "
+                "is not durable execution state: it stores the review queue "
+                "and the grant, nonce, revocation and loop ledgers, but not "
+                "the tenant audit chain or the dispatch outbox)"
+            )
+        else:
+            missing.append(
+                "REMORA_PG_DSN or REMORA_CHAIN_DB (durable execution state: "
+                "tenant audit chain, review queue, dispatch outbox and "
+                "one-time-grant ledger; REMORA_STATE_ENDPOINT may be added "
+                "for the review queue and ledgers but is not sufficient alone)"
+            )
     else:
         # Configured is not the same as durable. See the finding recorded in
         # docs/design/cloudflare-mcp-gateway-v1.md.
@@ -783,8 +798,6 @@ def _refuse_ephemeral_execution_state(missing: list[str]) -> None:
     # A state endpoint is a network service like a DSN: the storage behind it
     # is not this container's filesystem, so probing the filesystem would say
     # nothing about it.
-    if os.getenv("REMORA_STATE_ENDPOINT", "").strip():
-        return
     chain_db = os.getenv("REMORA_CHAIN_DB", "").strip()
     if not chain_db:
         return
@@ -830,28 +843,34 @@ def _refuse_ephemeral_execution_state(missing: list[str]) -> None:
 def _execution_state_dsn() -> str:
     """Return the configured durable backing store for execution-layer state.
 
-    The execution layer (``servers/execution_api.py``) keeps three pieces of
-    safety-relevant state: the per-tenant audit chain, the review queue, and
-    the PEP's consumed-jti ledger. All three are durable only when
-    ``REMORA_PG_DSN`` or ``REMORA_CHAIN_DB`` is set; otherwise they are
-    in-process. Empty string means no durable store is configured.
+    The execution layer (``servers/execution_api.py``) keeps the per-tenant
+    audit chain, the review queue, the dispatch outbox and the PEP's
+    consumed-jti ledger. All of them are durable only when ``REMORA_PG_DSN``
+    or ``REMORA_CHAIN_DB`` is set. The Worker state endpoint makes the review
+    state and the ledgers durable, not the chain or the outbox, so it does not
+    count here on its own
+    (it did until the #744 probes). Empty string means no durable store.
     """
     return (
         os.getenv("REMORA_PG_DSN", "").strip()
-        # Durable state over a Worker binding, for a container with no
-        # writable disk. Durable in the sense that matters here: it survives
-        # the instance, so a consumed grant stays consumed.
-        or os.getenv("REMORA_STATE_ENDPOINT", "").strip()
         or os.getenv("REMORA_CHAIN_DB", "").strip()
     )
 
 
 def _execution_state_backend() -> str:
-    """Name the execution-layer state backend: postgres, sqlite, or in_process."""
+    """Name the execution-layer state backend.
+
+    ``postgres`` and ``sqlite`` are durable for every execution store.
+    ``state_endpoint_partial`` means the review state and ledgers are durable
+    while the chain and outbox are in process; it used to be reported as
+    ``in_process`` although the endpoint's ledgers were not.
+    """
     if os.getenv("REMORA_PG_DSN", "").strip():
         return "postgres"
     if os.getenv("REMORA_CHAIN_DB", "").strip():
         return "sqlite"
+    if os.getenv("REMORA_STATE_ENDPOINT", "").strip():
+        return "state_endpoint_partial"
     return "in_process"
 
 
@@ -2667,7 +2686,7 @@ def metrics(request: Request) -> dict:
         "control_plane_backend": _CONTROL_PLANE_BACKEND,
         "control_plane_durable": _CONTROL_PLANE_DURABLE,
         "execution_state_backend": _execution_state_backend(),
-        "execution_state_durable": _execution_state_backend() != "in_process",
+        "execution_state_durable": _execution_state_backend() in ("postgres", "sqlite"),
         "decision_counts": decision_counts,
         "decision_counts_by_risk": _dict_metric("decision_counts_by_risk"),
         # Enforcement path, reported separately from the advisory path above
@@ -2735,7 +2754,7 @@ def policy_version(request: Request) -> dict:
         "control_plane_backend": _CONTROL_PLANE_BACKEND,
         "control_plane_durable": _CONTROL_PLANE_DURABLE,
         "execution_state_backend": _execution_state_backend(),
-        "execution_state_durable": _execution_state_backend() != "in_process",
+        "execution_state_durable": _execution_state_backend() in ("postgres", "sqlite"),
     }
 
 

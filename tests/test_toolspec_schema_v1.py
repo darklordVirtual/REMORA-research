@@ -157,6 +157,8 @@ EXPECTED_REASON_CODES = {
     "toolspec_downstream_declaration_invalid",
     # Additive 2026-10-02: the unsigned bundle label must match each signed spec.
     "toolspec_signing_identity_mismatch",
+    # Additive 2026-10-06: the async worker compares at dispatch time.
+    "toolspec_changed_between_authorization_and_dispatch",
 }
 
 

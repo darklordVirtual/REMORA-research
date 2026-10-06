@@ -423,9 +423,18 @@ Both were missing when the capability test ran, and both are now in place.
 **Durable execution state without a credential.** The container has no
 writable disk worth the name, and no database token. It posts to
 `state.internal`; the Worker answers from a D1 binding
-(`remora-execution-state`, EEUR). `REMORA_STATE_ENDPOINT` is treated as
-durable by the guard for the same reason a DSN is; the storage behind it is
-not this container's filesystem.
+(`remora-execution-state`, EEUR). The storage behind
+`REMORA_STATE_ENDPOINT` is not this container's filesystem, so the review
+queue and the grant, nonce, revocation and loop ledgers it holds survive the
+container.
+
+It does not hold the tenant audit chain or the dispatch outbox; neither has a
+D1 adapter. The Python production guard admitted the endpoint alone anyway
+until the 2026-10-06 pre-Federation probes, which left those two stores in
+process memory under a configuration reported as durable. Production now
+requires `REMORA_PG_DSN` or `REMORA_CHAIN_DB` beside the endpoint, which is
+what the Worker's own readiness check (`productionReadiness` in
+`workers/mcp-gateway/src/admission.ts`) already demanded.
 
 D1 over HTTP has no interactive transaction, so writes are buffered and sent
 as one atomic batch at commit, and a rollback is simply never sending them.

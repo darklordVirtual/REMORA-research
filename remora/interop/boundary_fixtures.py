@@ -4,7 +4,10 @@
 
 The packages under ``artifacts/interop/exact-call-binding-v1``,
 ``fresh-authority-v1`` and ``effect-evidence-v1`` describe three bounded
-properties of the execution boundary in implementation-agnostic terms. The
+properties of the execution boundary in implementation-agnostic terms.
+``exact-call-binding-v1.1`` and ``effect-evidence-v1.1`` succeed the first
+and third with the discriminators the #744 pre-Federation probes found
+missing; the v1 packages keep their bytes and are still evaluated here. The
 reference verifiers next to them model the property without REMORA code.
 This module is the other half: it runs every fixture case through the real
 primitives (``PolicyDecisionToken`` and ``EnforcementGate`` for a grant,
@@ -38,6 +41,7 @@ __all__ = [
     "FixtureEnvironmentError",
     "REFUSAL_CLASS_BY_REASON",
     "evaluate_effect_evidence",
+    "evaluate_effect_evidence_v1_1",
     "evaluate_exact_call_binding",
     "evaluate_fresh_authority",
     "evaluate_package",
@@ -261,12 +265,35 @@ def evaluate_effect_evidence(case: Mapping[str, Any]) -> dict[str, Any]:
     return {"effect_status": status.value, "highest_established_state": state}
 
 
+def evaluate_effect_evidence_v1_1(case: Mapping[str, Any]) -> dict[str, Any]:
+    """As :func:`evaluate_effect_evidence`, with the v1.1 contract outcome.
+
+    ``verify_declared_delta`` raises ``ValueError`` for a rule outside the
+    vocabulary or a rule for an undeclared field. v1.1 names that refusal
+    ``CONTRACT_REJECTED``; the contract is never evaluated, so the state
+    stays where the dispatch and report left it. A ``ValueError`` from any
+    other cause is not caught here and fails the run.
+    """
+    try:
+        return evaluate_effect_evidence(case)
+    except ValueError as exc:
+        reason = str(exc)
+        if not reason.startswith(("unsupported_comparison_rule", "comparison_rule_for_undeclared_field")):
+            raise
+    report = case.get("execution_report")
+    state = ("EXECUTION_REPORTED_SUCCESS"
+             if report is not None and report.get("status") == "success" else "DISPATCHED")
+    return {"effect_status": "CONTRACT_REJECTED", "highest_established_state": state}
+
+
 # ── package runner ─────────────────────────────────────────────────────────
 
 _EVALUATORS: dict[str, Callable[[Mapping[str, Any]], Any]] = {
     "remora-exact-call-binding-fixtures-v1": evaluate_exact_call_binding,
     "remora-fresh-authority-fixtures-v1": evaluate_fresh_authority,
     "remora-effect-evidence-fixtures-v1": evaluate_effect_evidence,
+    "remora-exact-call-binding-fixtures-v1.1": evaluate_exact_call_binding,
+    "remora-effect-evidence-fixtures-v1.1": evaluate_effect_evidence_v1_1,
 }
 
 

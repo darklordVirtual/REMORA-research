@@ -14,9 +14,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import StrEnum
-from types import MappingProxyType
 from typing import Any, Mapping
 
+from remora import frozen_json
 from remora.evidence.admission.canonical import (
     canonical_digest,
     require_identifier,
@@ -99,7 +99,9 @@ class ProducerCapabilityManifest:
         require_identifier(self.schema_version, "schema_version")
         object.__setattr__(self, "fields_visible",
                            tuple(sorted(set(self.fields_visible))))
-        object.__setattr__(self, "scope", MappingProxyType(dict(self.scope)))
+        # Deep copy: the digest below must keep describing the scope this
+        # record holds, whatever the caller does with its own nested dicts.
+        object.__setattr__(self, "scope", frozen_json.freeze(self.scope))
         if self.valid_until <= self.valid_from:
             raise ValueError("valid_until must be after valid_from")
         computed_digest = canonical_digest({
@@ -107,7 +109,7 @@ class ProducerCapabilityManifest:
             "manifest_id": self.manifest_id,
             "schema_version": self.schema_version,
             "fields_visible": list(self.fields_visible),
-            "scope": dict(self.scope),
+            "scope": frozen_json.thaw(self.scope),
             "trust": self.trust.value,
             "valid_from": self.valid_from,
             "valid_until": self.valid_until,
