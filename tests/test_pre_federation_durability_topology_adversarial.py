@@ -88,3 +88,48 @@ def test_production_prerequisite_text_does_not_claim_d1_tenant_chain_durability(
         "one-time-grant ledger)"
     )
     assert needle not in source
+
+
+def test_endpoint_only_outbox_is_named_and_refused_in_production(monkeypatch):
+    """The endpoint-only outbox is explicit in development and refused in
+    production, at construction as well as at the startup guard."""
+    import pytest
+
+    monkeypatch.delenv("REMORA_PG_DSN", raising=False)
+    monkeypatch.delenv("REMORA_CHAIN_DB", raising=False)
+    monkeypatch.setenv("REMORA_STATE_ENDPOINT", "http://state.internal/query")
+
+    import servers.execution_api as execution_api
+    from remora.enforcement.outbox import UnbackedExecutionOutbox
+
+    monkeypatch.setenv("REMORA_ENV", "development")
+    outbox = execution_api._build_outbox()
+    assert isinstance(outbox, UnbackedExecutionOutbox)
+    assert outbox.durable is False
+
+    monkeypatch.setenv("REMORA_ENV", "production")
+    with pytest.raises(RuntimeError, match="no dispatch-outbox adapter"):
+        execution_api._build_outbox()
+
+
+def test_no_switch_still_selects_the_reference_outbox(monkeypatch):
+    for name in ("REMORA_PG_DSN", "REMORA_CHAIN_DB", "REMORA_STATE_ENDPOINT"):
+        monkeypatch.delenv(name, raising=False)
+    import servers.execution_api as execution_api
+    from remora.enforcement.outbox import ExecutionOutbox
+
+    assert type(execution_api._build_outbox()) is ExecutionOutbox
+
+
+def test_assessed_tool_identity_reads_the_latest_assessment():
+    import servers.execution_api as execution_api
+
+    events = [
+        {"event": "assessed", "payload": {"tool_name": "a", "toolspec_hash": "h1"}},
+        {"event": "approved", "payload": {}},
+        {"event": "assessed", "tool_name": "b", "toolspec_hash": "h2"},
+        {"event": "dispatched", "payload": {}},
+    ]
+    assert execution_api._assessed_tool_identity(events) == ("b", "h2")
+    assert execution_api._assessed_tool_identity(events[:2]) == ("a", "h1")
+    assert execution_api._assessed_tool_identity([]) == ("", "")
