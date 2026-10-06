@@ -21,6 +21,12 @@
     "requirements_lock_history": [
       {
         "path": "requirements-lock.txt",
+        "git_revision": "619117600190f1d9d576f5aa616656d226086fe7",
+        "sha256_lf": "ef93b1c041924efcab6f9eac1f6c9afc991a3b895b5a58e8a3548e628b5cc556",
+        "reason": "Lock after the datasets 5.0.1 fix (#734), which merged while this remediation was open. Same caveat: the pin verifies the environment, not regeneration of historical results."
+      },
+      {
+        "path": "requirements-lock.txt",
         "git_revision": "ed1bb27c18d3ce875d3f5d9c983eebf2e3989ff7",
         "sha256_lf": "7177533acbdacc33344913bfa6b2a6b8a0e4bcc11fde1935a601ee822d447a77",
         "reason": "Previous verification lock before dependency security remediation. The current lock pin verifies the updated environment; it does not establish regeneration of historical results under the new dependencies."
