@@ -138,7 +138,6 @@
             "type": "number"
           },
           "envelope": {
-            "additionalProperties": true,
             "title": "Envelope",
             "type": "object"
           },
@@ -174,14 +173,12 @@
             "type": "boolean"
           },
           "review_requirements": {
-            "additionalProperties": true,
             "title": "Review Requirements",
             "type": "object"
           },
           "semantic": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -195,7 +192,6 @@
             "type": "string"
           },
           "thermodynamic": {
-            "additionalProperties": true,
             "title": "Thermodynamic",
             "type": "object"
           },
@@ -228,7 +224,6 @@
         "description": "Optional concrete tool call accompanying an assess question.\n\nWhen present and a semantic bundle is configured\n(``REMORA_SEMANTIC_BUNDLE_MODULE``), the assess path runs the same\nauthoritative context builder as ``/v1/execution/assess`` and records\nthe computed bundle/intent hashes and semantic verdicts into the\nDecisionEnvelope. ``extra=\"forbid\"``: semantic verdicts\n(``tool_matches_goal`` etc.) are computed server-side and can never be\nsmuggled in through this block.",
         "properties": {
           "arguments": {
-            "additionalProperties": true,
             "title": "Arguments",
             "type": "object"
           },
@@ -344,7 +339,6 @@
             "type": "string"
           },
           "params": {
-            "additionalProperties": true,
             "title": "Params",
             "type": "object"
           },
@@ -402,7 +396,6 @@
           "capability_set": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -411,8 +404,19 @@
             ],
             "title": "Capability Set"
           },
+          "execution_context": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Historical deployment context; trusted only after its digest and lineage match the signed lease.",
+            "title": "Execution Context"
+          },
           "lease": {
-            "additionalProperties": true,
             "title": "Lease",
             "type": "object"
           },
@@ -451,6 +455,13 @@
             "default": "",
             "maxLength": 2000,
             "title": "Detail",
+            "type": "string"
+          },
+          "execution_context_hash": {
+            "default": "",
+            "description": "Required for a context-bound dispatch; must match its historical context, never current configuration.",
+            "pattern": "^([0-9a-f]{64})?$",
+            "title": "Execution Context Hash",
             "type": "string"
           },
           "execution_id": {
@@ -570,7 +581,6 @@
             "type": "string"
           },
           "payload": {
-            "additionalProperties": true,
             "title": "Payload",
             "type": "object"
           },
@@ -605,7 +615,6 @@
         "description": "Redeem an ACCEPT execution token (issue #36).\n\nThe token IS the authorization: it was bound to the exact tool call at\nassess time, so no review item exists or is needed. The full payload is\nre-presented so the server can verify that binding rather than trust\nthe caller's word about what was approved.",
         "properties": {
           "execution_token": {
-            "additionalProperties": true,
             "title": "Execution Token",
             "type": "object"
           },
@@ -963,7 +972,6 @@
           "toolspec": {
             "anyOf": [
               {
-                "additionalProperties": true,
                 "type": "object"
               },
               {
@@ -993,7 +1001,6 @@
             "type": "string"
           },
           "payload": {
-            "additionalProperties": true,
             "title": "Payload",
             "type": "object"
           },
@@ -1461,7 +1468,6 @@
         ],
         "properties": {
           "arguments": {
-            "additionalProperties": true,
             "title": "Arguments",
             "type": "object"
           },
@@ -1687,13 +1693,6 @@
       },
       "ValidationError": {
         "properties": {
-          "ctx": {
-            "title": "Context",
-            "type": "object"
-          },
-          "input": {
-            "title": "Input"
-          },
           "loc": {
             "items": {
               "anyOf": [
@@ -1758,7 +1757,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Index  Get",
                   "type": "object"
                 }
@@ -1847,7 +1845,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Verify Audit Chain V1 Audit Chain Verify Get",
                   "type": "object"
                 }
@@ -1882,7 +1879,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Get Audit Record V1 Audit  Request Id  Get",
                   "type": "object"
                 }
@@ -1927,7 +1923,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Get Envelope V1 Envelope  Request Id  Get",
                   "type": "object"
                 }
@@ -1971,7 +1966,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Evidence V1 Evidence Post",
                   "type": "object"
                 }
@@ -2016,7 +2010,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ExecutionApproveResponse",
-                  "additionalProperties": true,
                   "title": "Response Approve V1 Execution Approve Post",
                   "type": "object"
                 }
@@ -2101,7 +2094,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ExecutionAssessResponse",
-                  "additionalProperties": true,
                   "title": "Response Assess V1 Execution Assess Post",
                   "type": "object"
                 }
@@ -2156,7 +2148,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ExecutionAuditVerifyResponse",
-                  "additionalProperties": true,
                   "title": "Response Audit Verify V1 Execution Audit Verify Get",
                   "type": "object"
                 }
@@ -2222,7 +2213,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Capability Projection V1 Execution Capabilities Get",
                   "type": "object"
                 }
@@ -2297,7 +2287,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ExecutionExecuteResponse",
-                  "additionalProperties": true,
                   "title": "Response Dispatch Leased V1 Execution Dispatch Leased Post",
                   "type": "object"
                 }
@@ -2360,7 +2349,6 @@
           "content": {
             "application/json": {
               "schema": {
-                "additionalProperties": true,
                 "title": "Payload",
                 "type": "object"
               }
@@ -2373,7 +2361,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Serve Effect V1 Execution Effects Post",
                   "type": "object"
                 }
@@ -2406,7 +2393,6 @@
           "content": {
             "application/json": {
               "schema": {
-                "additionalProperties": true,
                 "title": "Payload",
                 "type": "object"
               }
@@ -2419,7 +2405,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Close Effects V1 Execution Effects Close Post",
                   "type": "object"
                 }
@@ -2556,7 +2541,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ExecutionExecuteResponse",
-                  "additionalProperties": true,
                   "title": "Response Execute Accepted V1 Execution Execute Accepted Post",
                   "type": "object"
                 }
@@ -2630,7 +2614,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Loop Safety Reset V1 Execution Loop Safety Reset Post",
                   "type": "object"
                 }
@@ -2705,7 +2688,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Loop Safety State V1 Execution Loop Safety  Context Id  Get",
                   "type": "object"
                 }
@@ -2780,7 +2762,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Get Proposal V1 Execution Proposals  Proposal Id  Get",
                   "type": "object"
                 }
@@ -2865,7 +2846,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Record Effect V1 Execution Proposals  Proposal Id  Effect Post",
                   "type": "object"
                 }
@@ -2940,7 +2920,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Get Envelope V1 Execution Proposals  Proposal Id  Envelope Get",
                   "type": "object"
                 }
@@ -3015,7 +2994,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Export Evidence V1 Execution Proposals  Proposal Id  Evidence Get",
                   "type": "object"
                 }
@@ -3090,7 +3068,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Get Lifecycle V1 Execution Proposals  Proposal Id  Lifecycle Get",
                   "type": "object"
                 }
@@ -3165,7 +3142,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Get Semantic Assessment V1 Execution Proposals  Proposal Id  Semantic Assessment Get",
                   "type": "object"
                 }
@@ -3239,7 +3215,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Reject V1 Execution Reject Post",
                   "type": "object"
                 }
@@ -3323,7 +3298,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Revoke Principal V1 Execution Revoke Principal Post",
                   "type": "object"
                 }
@@ -3387,7 +3361,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Follow Up V1 Follow Up Post",
                   "type": "object"
                 }
@@ -3444,7 +3417,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Metrics V1 Metrics Get",
                   "type": "object"
                 }
@@ -3468,7 +3440,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Policy Version V1 Policy Version Get",
                   "type": "object"
                 }
@@ -3502,7 +3473,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Rerun V1 Rerun Post",
                   "type": "object"
                 }
@@ -3546,7 +3516,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
                   "title": "Response Review V1 Review Post",
                   "type": "object"
                 }
