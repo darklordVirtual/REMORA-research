@@ -27,6 +27,19 @@ def test_excessively_nested_json_is_an_explicit_evidence_error():
         decode_json("[" * 10_000 + "0" + "]" * 10_000)
 
 
+def test_json_nesting_limit_is_exact_and_ignores_brackets_in_strings():
+    from remora.interop.evidence_io import MAX_JSON_DEPTH, decode_json
+
+    deepest = "[" * MAX_JSON_DEPTH + "0" + "]" * MAX_JSON_DEPTH
+    assert decode_json(deepest) is not None
+    with pytest.raises(EvidenceError, match="nesting exceeds parser limit"):
+        decode_json("[" + deepest + "]")
+    brackets = "[" * (MAX_JSON_DEPTH + 1)
+    assert decode_json('{"s": "' + brackets + '", "e": "\\\\\\"' + brackets + '"}') == {
+        "s": brackets, "e": '\\"' + brackets,
+    }
+
+
 @pytest.fixture
 def observation(tmp_path):
     digest = "sha256:" + "a" * 64
