@@ -70,8 +70,14 @@ capabilities:
   - id: CAP-001
     name: "Decision engine (hard guards -> conditional gates -> trust routing)"
     status: WIRED_API_PATH
-    verified_at_sha: d6c630e8c4aecc8c5233c19952596c8c4f3cc5c7
+    verified_at_sha: 58ebc0b2fec241056a362977adcf59e05e88674e
     verified_by: >-
+      Rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b2);
+      the branch commits d6c630e8 and 537a1a12 left master at squash and
+      made the strict freshness gate report 16 UNKNOWN. Verified
+      content-identical on all 68 cited implementation sources across the
+      16 affected capabilities (git rev-parse on each path at the orphan
+      sha and at 58ebc0b2). No status, scope or caveat change.
       re-audit 2026-10-06 (second pass) for the pre-Federation durability and async remediation: Durability: servers/api.py no longer admits REMORA_STATE_ENDPOINT alone as durable execution state in production (the endpoint has no tenant-chain or outbox adapter), still probes a REMORA_CHAIN_DB file beside an endpoint, and reports that configuration as state_endpoint_partial and not durable; servers/execution_api.py reports the same and selects UnbackedExecutionOutbox for it, refusing it in production (wiring point ASW-005). For this capability the decision engine is unchanged; servers/api.py changes only the production prerequisite and backend reporting. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: re-audit 2026-10-02 for WP-1 (ADR-tainted-argument-floor-order, accepted): hard_guard_floor() applies the rollback-unavailable and uncertain-state-transition severity signals at HIGH risk before its tainted-argument VERIFY return, so a tainted HIGH-risk write with either condition escalates with TAINTED_ARGUMENT_ESCALATE instead of verifying. Strictly narrowing: the CRITICAL rung and the below-critical VERIFY residual (issue #40 option a) are unchanged, nothing new reaches ACCEPT, and no refusal is removed. Pinned by tests/test_tainted_argument_approval_contract.py::test_tainted_high_risk_no_rollback_escalates and ::test_tainted_high_risk_uncertain_state_escalates; decide/explain parity and the REM-017 mutation suite pass at this revision. Rebound to the squash-merge commit of #717 (ce25ac1).
       rebound 2026-10-02 to the squash-merge commit of #711 (8ad2192); the branch commit 780506a left the repository at squash. Verified content-identical on every cited implementation source with `git diff 780506a 8ad2192` on those paths (empty). No status, scope or caveat change.
@@ -117,8 +123,14 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    verified_at_sha: d6c630e8c4aecc8c5233c19952596c8c4f3cc5c7
+    verified_at_sha: 58ebc0b2fec241056a362977adcf59e05e88674e
     verified_by: >-
+      Rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b2);
+      the branch commits d6c630e8 and 537a1a12 left master at squash and
+      made the strict freshness gate report 16 UNKNOWN. Verified
+      content-identical on all 68 cited implementation sources across the
+      16 affected capabilities (git rev-parse on each path at the orphan
+      sha and at 58ebc0b2). No status, scope or caveat change.
       re-audit 2026-10-06 (second pass) for the pre-Federation durability and async remediation: Durability: servers/api.py no longer admits REMORA_STATE_ENDPOINT alone as durable execution state in production (the endpoint has no tenant-chain or outbox adapter), still probes a REMORA_CHAIN_DB file beside an endpoint, and reports that configuration as state_endpoint_partial and not durable; servers/execution_api.py reports the same and selects UnbackedExecutionOutbox for it, refusing it in production (wiring point ASW-005). Async worker: servers/execution_api.py hands the worker the domain ToolSpec resolver and the chain's assessed record; remora/execution/service.py dispatch_pending_intent, before claiming, minting or consuming, refuses toolspec_changed_between_authorization_and_dispatch when the spec in force differs from the assessed hash (fail-closed for an item with no recorded hash under an enforced bundle) and re-decides the fresh observation through ReviewQueue.regate_authorized, refusing fresh_regate_refused. Every refusal settles REFUSED with the grant unminted. For this capability token issuance, expiry, audience, max age and jti consumption are unchanged; the async refusals happen before any token is minted. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: re-audit 2026-10-06 for the pre-Federation red-team remediation (#744 probes): servers/execution_api.py changes only in record_effect: the receipt now trusts only the verifier identity already bound to the authenticated principal (an empty allowlist trusts nobody), passes the reason code to the status/reason contradiction check, and takes tool_id and toolspec_hash from the assessed chain entry, refusing a receipt that names another with 409 instead of storing it. No approval, token, lease, dispatch or other route changes; only new refusals. For this capability: token issuance, expiry, audience, max age and jti consumption are unchanged. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: rebound 2026-10-02 to the squash-merge commit of #705 (e73e852); the branch commit 5de88db left the repository at squash. Verified content-identical on every cited implementation source with `git diff 5de88db e73e852` on those paths (empty). No status, scope or caveat change.
@@ -196,8 +208,14 @@ capabilities:
   - id: CAP-004
     name: "Tool-call payload binding (canonical hash, recomputed before execution)"
     status: WIRED_API_PATH
-    verified_at_sha: d6c630e8c4aecc8c5233c19952596c8c4f3cc5c7
+    verified_at_sha: 58ebc0b2fec241056a362977adcf59e05e88674e
     verified_by: >-
+      Rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b2);
+      the branch commits d6c630e8 and 537a1a12 left master at squash and
+      made the strict freshness gate report 16 UNKNOWN. Verified
+      content-identical on all 68 cited implementation sources across the
+      16 affected capabilities (git rev-parse on each path at the orphan
+      sha and at 58ebc0b2). No status, scope or caveat change.
       re-audit 2026-10-06 (second pass) for the pre-Federation durability and async remediation: Async worker: servers/execution_api.py hands the worker the domain ToolSpec resolver and the chain's assessed record; remora/execution/service.py dispatch_pending_intent, before claiming, minting or consuming, refuses toolspec_changed_between_authorization_and_dispatch when the spec in force differs from the assessed hash (fail-closed for an item with no recorded hash under an enforced bundle) and re-decides the fresh observation through ReviewQueue.regate_authorized, refusing fresh_regate_refused. Every refusal settles REFUSED with the grant unminted. For this capability the payload binding is unchanged and the worker re-checks it in regate_authorized. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: re-audit 2026-10-06 for the pre-Federation red-team remediation (#744 probes): remora/policy/observation.py: canonical_tool_call_hash refuses argument values its encoder would bind lossily (non-string keys, tuples, NaN/Infinity, arbitrary objects) instead of giving two different calls one hash; the preimage bytes of every JSON-domain call are unchanged, so existing leases and audit entries still verify. servers/execution_api.py changes only in record_effect: the receipt now trusts only the verifier identity already bound to the authenticated principal (an empty allowlist trusts nobody), passes the reason code to the status/reason contradiction check, and takes tool_id and toolspec_hash from the assessed chain entry, refusing a receipt that names another with 409 instead of storing it. No approval, token, lease, dispatch or other route changes; only new refusals. For this capability the binding is strictly narrower. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: rebound 2026-10-02 to the squash-merge commit of #705 (e73e852); the branch commit 5de88db left the repository at squash. Verified content-identical on every cited implementation source with `git diff 5de88db e73e852` on those paths (empty). No status, scope or caveat change.
@@ -227,8 +245,14 @@ capabilities:
   - id: CAP-005
     name: "Audit chain (hash-chained decision history)"
     status: PERSISTED_ATOMIC
-    verified_at_sha: d6c630e8c4aecc8c5233c19952596c8c4f3cc5c7
+    verified_at_sha: 58ebc0b2fec241056a362977adcf59e05e88674e
     verified_by: >-
+      Rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b2);
+      the branch commits d6c630e8 and 537a1a12 left master at squash and
+      made the strict freshness gate report 16 UNKNOWN. Verified
+      content-identical on all 68 cited implementation sources across the
+      16 affected capabilities (git rev-parse on each path at the orphan
+      sha and at 58ebc0b2). No status, scope or caveat change.
       re-audit 2026-10-06 (second pass) for the pre-Federation durability and async remediation: Durability: servers/api.py no longer admits REMORA_STATE_ENDPOINT alone as durable execution state in production (the endpoint has no tenant-chain or outbox adapter), still probes a REMORA_CHAIN_DB file beside an endpoint, and reports that configuration as state_endpoint_partial and not durable; servers/execution_api.py reports the same and selects UnbackedExecutionOutbox for it, refusing it in production (wiring point ASW-005). For this capability the chain adapters are unchanged; an endpoint-only production deployment is refused instead of keeping the chain in process. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: re-audit 2026-10-06 for the pre-Federation red-team remediation (#744 probes): servers/execution_api.py changes only in record_effect: the receipt now trusts only the verifier identity already bound to the authenticated principal (an empty allowlist trusts nobody), passes the reason code to the status/reason contradiction check, and takes tool_id and toolspec_hash from the assessed chain entry, refusing a receipt that names another with 409 instead of storing it. No approval, token, lease, dispatch or other route changes; only new refusals. For this capability: chain appends and their durability are unchanged; a refused receipt appends nothing. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: rebound 2026-10-02 to the squash-merge commit of #705 (e73e852); the branch commit 5de88db left the repository at squash. Verified content-identical on every cited implementation source with `git diff 5de88db e73e852` on those paths (empty). No status, scope or caveat change.
@@ -274,8 +298,14 @@ capabilities:
   - id: CAP-007
     name: "Review queue with TTL-to-ABSTAIN and approval freshness re-gate"
     status: WIRED_API_PATH
-    verified_at_sha: d6c630e8c4aecc8c5233c19952596c8c4f3cc5c7
+    verified_at_sha: 58ebc0b2fec241056a362977adcf59e05e88674e
     verified_by: >-
+      Rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b2);
+      the branch commits d6c630e8 and 537a1a12 left master at squash and
+      made the strict freshness gate report 16 UNKNOWN. Verified
+      content-identical on all 68 cited implementation sources across the
+      16 affected capabilities (git rev-parse on each path at the orphan
+      sha and at 58ebc0b2). No status, scope or caveat change.
       re-audit 2026-10-06 (second pass) for the pre-Federation durability and async remediation: remora/governance/review_queue.py factors the step 4c equal-or-safer rule into _approval_survives, used unchanged by execute, and adds the read-only regate_authorized (payload binding, approver revocation, same engine and rule; writes nothing). Async worker: servers/execution_api.py hands the worker the domain ToolSpec resolver and the chain's assessed record; remora/execution/service.py dispatch_pending_intent, before claiming, minting or consuming, refuses toolspec_changed_between_authorization_and_dispatch when the spec in force differs from the assessed hash (fail-closed for an item with no recorded hash under an enforced bundle) and re-decides the fresh observation through ReviewQueue.regate_authorized, refusing fresh_regate_refused. Every refusal settles REFUSED with the grant unminted. For this capability TTL, approval and the execute re-gate are unchanged. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: re-audit 2026-10-06 for the pre-Federation red-team remediation (#744 probes): servers/execution_api.py changes only in record_effect: the receipt now trusts only the verifier identity already bound to the authenticated principal (an empty allowlist trusts nobody), passes the reason code to the status/reason contradiction check, and takes tool_id and toolspec_hash from the assessed chain entry, refusing a receipt that names another with 409 instead of storing it. No approval, token, lease, dispatch or other route changes; only new refusals. For this capability: the review queue, TTL and approval re-gate are unchanged. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: rebound 2026-10-02 to the squash-merge commit of #705 (e73e852); the branch commit 5de88db left the repository at squash. Verified content-identical on every cited implementation source with `git diff 5de88db e73e852` on those paths (empty). No status, scope or caveat change.
@@ -323,8 +353,14 @@ capabilities:
   - id: CAP-009
     name: "RBAC (eight-role capability matrix, credential-bound audit identity)"
     status: WIRED_API_PATH
-    verified_at_sha: d6c630e8c4aecc8c5233c19952596c8c4f3cc5c7
+    verified_at_sha: 58ebc0b2fec241056a362977adcf59e05e88674e
     verified_by: >-
+      Rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b2);
+      the branch commits d6c630e8 and 537a1a12 left master at squash and
+      made the strict freshness gate report 16 UNKNOWN. Verified
+      content-identical on all 68 cited implementation sources across the
+      16 affected capabilities (git rev-parse on each path at the orphan
+      sha and at 58ebc0b2). No status, scope or caveat change.
       re-audit 2026-10-06 (second pass) for the pre-Federation durability and async remediation: Durability: servers/api.py no longer admits REMORA_STATE_ENDPOINT alone as durable execution state in production (the endpoint has no tenant-chain or outbox adapter), still probes a REMORA_CHAIN_DB file beside an endpoint, and reports that configuration as state_endpoint_partial and not durable; servers/execution_api.py reports the same and selects UnbackedExecutionOutbox for it, refusing it in production (wiring point ASW-005). For this capability the role matrix and credential-bound identity are unchanged. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: rebound 2026-10-02 to the squash-merge commit of #704 (d086764); the branch commit ef1a820 left the repository at squash. Verified content-identical on every cited implementation source with `git diff ef1a820 d086764` (empty), except for CAP-015's NEGATIVE_RESULTS.md, whose only difference is the §64 summary row from master commit adeb4c3, outside #704 and outside this capability. No status, scope or caveat change.
       Prior: re-audit 2026-10-02 for PR #704: API authentication trusts self-asserted roles only in explicit development values, bearer comparison stays constant-time over bytes, multi-tenant global metrics require admin, and request bodies gain a size cap. None removes the eight-role API wiring; the changes reduce privilege/data-exposure risk. Status and symmetric-token caveat unchanged.
@@ -398,8 +434,14 @@ capabilities:
       - tests/test_effect_receipt_atomicity.py
       - tests/test_effect_record_endpoint.py
       - docs/deployment/authority-custody-evidence.md
-    verified_at_sha: d6c630e8c4aecc8c5233c19952596c8c4f3cc5c7
+    verified_at_sha: 58ebc0b2fec241056a362977adcf59e05e88674e
     verified_by: >-
+      Rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b2);
+      the branch commits d6c630e8 and 537a1a12 left master at squash and
+      made the strict freshness gate report 16 UNKNOWN. Verified
+      content-identical on all 68 cited implementation sources across the
+      16 affected capabilities (git rev-parse on each path at the orphan
+      sha and at 58ebc0b2). No status, scope or caveat change.
       re-audit 2026-10-06 (second pass) for the pre-Federation durability and async remediation: Durability: servers/api.py no longer admits REMORA_STATE_ENDPOINT alone as durable execution state in production (the endpoint has no tenant-chain or outbox adapter), still probes a REMORA_CHAIN_DB file beside an endpoint, and reports that configuration as state_endpoint_partial and not durable; servers/execution_api.py reports the same and selects UnbackedExecutionOutbox for it, refusing it in production (wiring point ASW-005). Async worker: servers/execution_api.py hands the worker the domain ToolSpec resolver and the chain's assessed record; remora/execution/service.py dispatch_pending_intent, before claiming, minting or consuming, refuses toolspec_changed_between_authorization_and_dispatch when the spec in force differs from the assessed hash (fail-closed for an item with no recorded hash under an enforced bundle) and re-decides the fresh observation through ReviewQueue.regate_authorized, refusing fresh_regate_refused. Every refusal settles REFUSED with the grant unminted. For this capability dispatch settlement is unchanged; the new worker refusals settle REFUSED before dispatch begins. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: re-audit 2026-10-06 for the pre-Federation red-team remediation (#744 probes): remora/enforcement/lease.py: ExecutionLease.verify refuses arguments outside the JSON domain as tool_args_not_canonical; GovernedToolDispatcher executes a private deep copy of the arguments, reads the callable with its registry generation after the ToolSpec identity is resolved, and immediately before the recorder and nonce re-checks that the callable and generation are unchanged and that the copy still hashes to the lease (tool_registry_changed, tool_args_changed_after_verify). Every new refusal leaves the nonce unspent; a JSON-domain call hashes exactly as before. remora/governance/effect_receipt.py: verify_receipt treats an empty trusted_verifiers allowlist as trusting nobody, requires dispatch binding (tool_call_hash, grant_jti) for every terminal status including UNSUPPORTED, which could otherwise take the settled slot of a dispatch it never named, and refuses a reason code paired with a status it contradicts (reason_status_contradiction). servers/execution_api.py changes only in record_effect: the receipt now trusts only the verifier identity already bound to the authenticated principal (an empty allowlist trusts nobody), passes the reason code to the status/reason contradiction check, and takes tool_id and toolspec_hash from the assessed chain entry, refusing a receipt that names another with 409 instead of storing it. No approval, token, lease, dispatch or other route changes; only new refusals. For this capability: dispatch settlement (REFUSED/UNKNOWN/FAILED) is unchanged; the new refusals all happen before dispatch begins and settle as REFUSED. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: rebound 2026-10-02 to the squash-merge commit of #705 (e73e852); the branch commit 5de88db left the repository at squash. Verified content-identical on every cited implementation source with `git diff 5de88db e73e852` on those paths (empty). No status, scope or caveat change.
@@ -550,8 +592,14 @@ capabilities:
   - id: CAP-017
     name: "Production fail-closed on signing keys"
     status: WIRED_API_PATH
-    verified_at_sha: d6c630e8c4aecc8c5233c19952596c8c4f3cc5c7
+    verified_at_sha: 58ebc0b2fec241056a362977adcf59e05e88674e
     verified_by: >-
+      Rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b2);
+      the branch commits d6c630e8 and 537a1a12 left master at squash and
+      made the strict freshness gate report 16 UNKNOWN. Verified
+      content-identical on all 68 cited implementation sources across the
+      16 affected capabilities (git rev-parse on each path at the orphan
+      sha and at 58ebc0b2). No status, scope or caveat change.
       re-audit 2026-10-06 (second pass) for the pre-Federation durability and async remediation: Durability: servers/api.py no longer admits REMORA_STATE_ENDPOINT alone as durable execution state in production (the endpoint has no tenant-chain or outbox adapter), still probes a REMORA_CHAIN_DB file beside an endpoint, and reports that configuration as state_endpoint_partial and not durable; servers/execution_api.py reports the same and selects UnbackedExecutionOutbox for it, refusing it in production (wiring point ASW-005). For this capability the signing-key prerequisites are unchanged; the durability prerequisite is strictly narrower. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: rebound 2026-10-02 to the squash-merge commit of #704 (d086764); the branch commit ef1a820 left the repository at squash. Verified content-identical on every cited implementation source with `git diff ef1a820 d086764` (empty), except for CAP-015's NEGATIVE_RESULTS.md, whose only difference is the §64 summary row from master commit adeb4c3, outside #704 and outside this capability. No status, scope or caveat change.
       Prior: re-audit 2026-10-02 for PR #704: servers/api receives development-mode, RBAC, metrics and body-size hardening; the production signing-key prerequisite remains in place and is not relaxed. The capability still establishes key presence fail-closed, not key custody. Status and caveat unchanged.
@@ -572,8 +620,14 @@ capabilities:
   - id: CAP-018
     name: "Task-bound authority and non-decaying loop safety on the execution API"
     status: WIRED_API_PATH
-    verified_at_sha: d6c630e8c4aecc8c5233c19952596c8c4f3cc5c7
+    verified_at_sha: 58ebc0b2fec241056a362977adcf59e05e88674e
     verified_by: >-
+      Rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b2);
+      the branch commits d6c630e8 and 537a1a12 left master at squash and
+      made the strict freshness gate report 16 UNKNOWN. Verified
+      content-identical on all 68 cited implementation sources across the
+      16 affected capabilities (git rev-parse on each path at the orphan
+      sha and at 58ebc0b2). No status, scope or caveat change.
       re-audit 2026-10-06 (second pass) for the pre-Federation durability and async remediation: Async worker: servers/execution_api.py hands the worker the domain ToolSpec resolver and the chain's assessed record; remora/execution/service.py dispatch_pending_intent, before claiming, minting or consuming, refuses toolspec_changed_between_authorization_and_dispatch when the spec in force differs from the assessed hash (fail-closed for an item with no recorded hash under an enforced bundle) and re-decides the fresh observation through ReviewQueue.regate_authorized, refusing fresh_regate_refused. Every refusal settles REFUSED with the grant unminted. For this capability task binding and loop safety are unchanged. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: re-audit 2026-10-06 for the pre-Federation red-team remediation (#744 probes): servers/execution_api.py changes only in record_effect: the receipt now trusts only the verifier identity already bound to the authenticated principal (an empty allowlist trusts nobody), passes the reason code to the status/reason contradiction check, and takes tool_id and toolspec_hash from the assessed chain entry, refusing a receipt that names another with 409 instead of storing it. No approval, token, lease, dispatch or other route changes; only new refusals. For this capability: task binding and loop safety are unchanged. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: re-audit 2026-10-02 for the worker-identity fix: remora/execution/service.py dispatch_pending_intent now refuses a pending row with no requested_by as requester_identity_missing and never adopts the worker principal as actor. Task binding and loop safety are unchanged. Strictly narrowing; status and caveat unchanged. Evidence: tests/test_dispatch_worker.py. Bound to 1cbeca65.
@@ -602,8 +656,14 @@ capabilities:
   - id: CAP-019
     name: "Evidence coverage verdicts on the evidence export"
     status: WIRED_API_PATH
-    verified_at_sha: d6c630e8c4aecc8c5233c19952596c8c4f3cc5c7
+    verified_at_sha: 58ebc0b2fec241056a362977adcf59e05e88674e
     verified_by: >-
+      Rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b2);
+      the branch commits d6c630e8 and 537a1a12 left master at squash and
+      made the strict freshness gate report 16 UNKNOWN. Verified
+      content-identical on all 68 cited implementation sources across the
+      16 affected capabilities (git rev-parse on each path at the orphan
+      sha and at 58ebc0b2). No status, scope or caveat change.
       re-audit 2026-10-06 (second pass) for the pre-Federation durability and async remediation: Async worker: servers/execution_api.py hands the worker the domain ToolSpec resolver and the chain's assessed record; remora/execution/service.py dispatch_pending_intent, before claiming, minting or consuming, refuses toolspec_changed_between_authorization_and_dispatch when the spec in force differs from the assessed hash (fail-closed for an item with no recorded hash under an enforced bundle) and re-decides the fresh observation through ReviewQueue.regate_authorized, refusing fresh_regate_refused. Every refusal settles REFUSED with the grant unminted. For this capability the evidence export is unchanged; the worker's refusal records carry refusal_detail. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: re-audit 2026-10-06 for the pre-Federation red-team remediation (#744 probes): servers/execution_api.py changes only in record_effect: the receipt now trusts only the verifier identity already bound to the authenticated principal (an empty allowlist trusts nobody), passes the reason code to the status/reason contradiction check, and takes tool_id and toolspec_hash from the assessed chain entry, refusing a receipt that names another with 409 instead of storing it. No approval, token, lease, dispatch or other route changes; only new refusals. For this capability: the evidence export and coverage contracts are unchanged; a receipt that would have recorded a forged tool or spec identity is now refused rather than exported. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: rebound 2026-10-02 to the squash-merge commit of #705 (e73e852); the branch commit 5de88db left the repository at squash. Verified content-identical on every cited implementation source with `git diff 5de88db e73e852` on those paths (empty). No status, scope or caveat change.
@@ -627,8 +687,14 @@ capabilities:
   - id: CAP-020
     name: "Pre-dispatch premise checks: resolved effect, plan premises, procedure obligations"
     status: WIRED_API_PATH
-    verified_at_sha: d6c630e8c4aecc8c5233c19952596c8c4f3cc5c7
+    verified_at_sha: 58ebc0b2fec241056a362977adcf59e05e88674e
     verified_by: >-
+      Rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b2);
+      the branch commits d6c630e8 and 537a1a12 left master at squash and
+      made the strict freshness gate report 16 UNKNOWN. Verified
+      content-identical on all 68 cited implementation sources across the
+      16 affected capabilities (git rev-parse on each path at the orphan
+      sha and at 58ebc0b2). No status, scope or caveat change.
       re-audit 2026-10-06 (second pass) for the pre-Federation durability and async remediation: Async worker: servers/execution_api.py hands the worker the domain ToolSpec resolver and the chain's assessed record; remora/execution/service.py dispatch_pending_intent, before claiming, minting or consuming, refuses toolspec_changed_between_authorization_and_dispatch when the spec in force differs from the assessed hash (fail-closed for an item with no recorded hash under an enforced bundle) and re-decides the fresh observation through ReviewQueue.regate_authorized, refusing fresh_regate_refused. Every refusal settles REFUSED with the grant unminted. For this capability the premise checks are unchanged. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: re-audit 2026-10-06 for the pre-Federation red-team remediation (#744 probes): remora/enforcement/lease.py: ExecutionLease.verify refuses arguments outside the JSON domain as tool_args_not_canonical; GovernedToolDispatcher executes a private deep copy of the arguments, reads the callable with its registry generation after the ToolSpec identity is resolved, and immediately before the recorder and nonce re-checks that the callable and generation are unchanged and that the copy still hashes to the lease (tool_registry_changed, tool_args_changed_after_verify). Every new refusal leaves the nonce unspent; a JSON-domain call hashes exactly as before. servers/execution_api.py changes only in record_effect: the receipt now trusts only the verifier identity already bound to the authenticated principal (an empty allowlist trusts nobody), passes the reason code to the status/reason contradiction check, and takes tool_id and toolspec_hash from the assessed chain entry, refusing a receipt that names another with 409 instead of storing it. No approval, token, lease, dispatch or other route changes; only new refusals. For this capability: the premise checks and their order are unchanged; the final-hop re-check runs after them and before the recorder. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: rebound 2026-10-02 to the squash-merge commit of #705 (e73e852); the branch commit 5de88db left the repository at squash. Verified content-identical on every cited implementation source with `git diff 5de88db e73e852` on those paths (empty). No status, scope or caveat change.
@@ -663,8 +729,14 @@ capabilities:
   - id: CAP-021
     name: "Independent recorder: evidence captured outside the executing process"
     status: WIRED_API_PATH
-    verified_at_sha: d6c630e8c4aecc8c5233c19952596c8c4f3cc5c7
+    verified_at_sha: 58ebc0b2fec241056a362977adcf59e05e88674e
     verified_by: >-
+      Rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b2);
+      the branch commits d6c630e8 and 537a1a12 left master at squash and
+      made the strict freshness gate report 16 UNKNOWN. Verified
+      content-identical on all 68 cited implementation sources across the
+      16 affected capabilities (git rev-parse on each path at the orphan
+      sha and at 58ebc0b2). No status, scope or caveat change.
       re-audit 2026-10-06 (second pass) for the pre-Federation durability and async remediation: Async worker: servers/execution_api.py hands the worker the domain ToolSpec resolver and the chain's assessed record; remora/execution/service.py dispatch_pending_intent, before claiming, minting or consuming, refuses toolspec_changed_between_authorization_and_dispatch when the spec in force differs from the assessed hash (fail-closed for an item with no recorded hash under an enforced bundle) and re-decides the fresh observation through ReviewQueue.regate_authorized, refusing fresh_regate_refused. Every refusal settles REFUSED with the grant unminted. For this capability the recorder is unchanged; a worker refusal records nothing to it. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: re-audit 2026-10-06 for the pre-Federation red-team remediation (#744 probes): remora/enforcement/lease.py: ExecutionLease.verify refuses arguments outside the JSON domain as tool_args_not_canonical; GovernedToolDispatcher executes a private deep copy of the arguments, reads the callable with its registry generation after the ToolSpec identity is resolved, and immediately before the recorder and nonce re-checks that the callable and generation are unchanged and that the copy still hashes to the lease (tool_registry_changed, tool_args_changed_after_verify). Every new refusal leaves the nonce unspent; a JSON-domain call hashes exactly as before. servers/execution_api.py changes only in record_effect: the receipt now trusts only the verifier identity already bound to the authenticated principal (an empty allowlist trusts nobody), passes the reason code to the status/reason contradiction check, and takes tool_id and toolspec_hash from the assessed chain entry, refusing a receipt that names another with 409 instead of storing it. No approval, token, lease, dispatch or other route changes; only new refusals. For this capability: the recorder call and its position before the nonce are unchanged; a final-hop refusal records nothing. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: rebound 2026-10-02 to the squash-merge commit of #705 (e73e852); the branch commit 5de88db left the repository at squash. Verified content-identical on every cited implementation source with `git diff 5de88db e73e852` on those paths (empty). No status, scope or caveat change.
@@ -693,8 +765,14 @@ capabilities:
   - id: CAP-022
     name: "Runtime surface reference path: surface binding, closure identity, issuer scope, durable evidence"
     status: WIRED_REFERENCE_PATH
-    verified_at_sha: 537a1a123932bf93bb2a28786ce67d426d671739
+    verified_at_sha: 58ebc0b2fec241056a362977adcf59e05e88674e
     verified_by: >-
+      Rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b2);
+      the branch commits d6c630e8 and 537a1a12 left master at squash and
+      made the strict freshness gate report 16 UNKNOWN. Verified
+      content-identical on all 68 cited implementation sources across the
+      16 affected capabilities (git rev-parse on each path at the orphan
+      sha and at 58ebc0b2). No status, scope or caveat change.
       re-audit 2026-10-06 for the pre-Federation red-team remediation (#744 probes): remora/enforcement/lease.py: ExecutionLease.verify refuses arguments outside the JSON domain as tool_args_not_canonical; GovernedToolDispatcher executes a private deep copy of the arguments, reads the callable with its registry generation after the ToolSpec identity is resolved, and immediately before the recorder and nonce re-checks that the callable and generation are unchanged and that the copy still hashes to the lease (tool_registry_changed, tool_args_changed_after_verify). Every new refusal leaves the nonce unspent; a JSON-domain call hashes exactly as before. remora/toolcall/surface_runtime.py serialises the postcondition through frozen_json.thaw because contracts are now deep-frozen (remora/frozen_json.py); the stored contract bytes are unchanged for JSON-domain contracts. For this capability: surface binding, closure identity and issuer scope are unchanged. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: re-audit 2026-09-29 for NTA-2 phase 3 (docs/design/authority-preserving-capability-mediation-v1.md): remora/enforcement/lease.py adds ExecutionLease.verify_authenticity (the signature, decision and validity-window half of verify(), which now calls it, so behaviour is unchanged), bind_effect_domain, and a strict-profile refusal of a mediated tool whose ToolSpec declares no ceiling (downstream_declaration_required); servers/execution_api.py adds the effect role, which serves only /v1/execution/effects and /v1/execution/effects/close while every other role refuses them, and binds a RemoteEffectClient on an executor with REMORA_EFFECT_ENDPOINT; remora/enforcement/nonce_store.py adds a read-only consumed() lookup. No existing refusal is removed and the two-domain configuration is unchanged. For this capability: surface binding is unchanged. Status and caveat unchanged. Evidence green at this revision. Bound to the branch commit 7a215710 (left the repository; rebound to 0b83e2a).
       Prior: re-audit 2026-09-29 for NTA-2 phase 2 (docs/design/authority-preserving-capability-mediation-v1.md): remora/enforcement/lease.py adds register(..., mediated=True), bind_downstream_ceilings, bind_effect_executors, a mediation step after the premise checks and before the recorder and nonce, ExecutionLease.digest(), and nested_effects/effect_graph on DispatchResult and ToolExecutionStateUnknown; servers/execution_api.py binds the downstream ceiling from the signed ToolSpec bundle and optional effect executors from the registry module, and assesses success_established_v2 in the evidence export; remora/execution/service.py and dispatch.py carry the nested-effect summary into execution_result and the outbox projection. Unmediated tools are called exactly as before; their execution_result gains nested_effects {mediated: false, count: 0, settled: true}. No refusal is removed. For this capability: surface binding, closure identity and issuer scope are unchanged. Status and caveat unchanged. Evidence green at this revision. Bound to the branch commit b8103e81 (left the repository; rebound to 73166aa).
@@ -720,8 +798,14 @@ capabilities:
   - id: CAP-023
     name: "Capability minimization: task-scoped capability sets enforced at assess, execution and dispatch"
     status: WIRED_API_PATH
-    verified_at_sha: d6c630e8c4aecc8c5233c19952596c8c4f3cc5c7
+    verified_at_sha: 58ebc0b2fec241056a362977adcf59e05e88674e
     verified_by: >-
+      Rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b2);
+      the branch commits d6c630e8 and 537a1a12 left master at squash and
+      made the strict freshness gate report 16 UNKNOWN. Verified
+      content-identical on all 68 cited implementation sources across the
+      16 affected capabilities (git rev-parse on each path at the orphan
+      sha and at 58ebc0b2). No status, scope or caveat change.
       re-audit 2026-10-06 (second pass) for the pre-Federation durability and async remediation: Async worker: servers/execution_api.py hands the worker the domain ToolSpec resolver and the chain's assessed record; remora/execution/service.py dispatch_pending_intent, before claiming, minting or consuming, refuses toolspec_changed_between_authorization_and_dispatch when the spec in force differs from the assessed hash (fail-closed for an item with no recorded hash under an enforced bundle) and re-decides the fresh observation through ReviewQueue.regate_authorized, refusing fresh_regate_refused. Every refusal settles REFUSED with the grant unminted. For this capability capability-set checks are unchanged. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: re-audit 2026-10-06 for the pre-Federation red-team remediation (#744 probes): remora/enforcement/lease.py: ExecutionLease.verify refuses arguments outside the JSON domain as tool_args_not_canonical; GovernedToolDispatcher executes a private deep copy of the arguments, reads the callable with its registry generation after the ToolSpec identity is resolved, and immediately before the recorder and nonce re-checks that the callable and generation are unchanged and that the copy still hashes to the lease (tool_registry_changed, tool_args_changed_after_verify). Every new refusal leaves the nonce unspent; a JSON-domain call hashes exactly as before. servers/execution_api.py changes only in record_effect: the receipt now trusts only the verifier identity already bound to the authenticated principal (an empty allowlist trusts nobody), passes the reason code to the status/reason contradiction check, and takes tool_id and toolspec_hash from the assessed chain entry, refusing a receipt that names another with 409 instead of storing it. No approval, token, lease, dispatch or other route changes; only new refusals. For this capability: capability-set issuance and the dispatch-time capability check are unchanged. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: re-audit 2026-10-02 for the worker-identity fix: remora/execution/service.py dispatch_pending_intent now refuses a pending row with no requested_by as requester_identity_missing and never adopts the worker principal as actor. Capability checks, projection, constraints and delegation are unchanged. Strictly narrowing; status and caveat unchanged. Evidence: tests/test_dispatch_worker.py. Bound to 1cbeca65.
@@ -765,8 +849,14 @@ capabilities:
   - id: CAP-024
     name: "Capability mediation for implementation effects, with an effect domain for strict deployments (NTA-2 phases 1 to 3)"
     status: WIRED_API_PATH
-    verified_at_sha: d6c630e8c4aecc8c5233c19952596c8c4f3cc5c7
+    verified_at_sha: 58ebc0b2fec241056a362977adcf59e05e88674e
     verified_by: >-
+      Rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b2);
+      the branch commits d6c630e8 and 537a1a12 left master at squash and
+      made the strict freshness gate report 16 UNKNOWN. Verified
+      content-identical on all 68 cited implementation sources across the
+      16 affected capabilities (git rev-parse on each path at the orphan
+      sha and at 58ebc0b2). No status, scope or caveat change.
       re-audit 2026-10-06 (second pass) for the pre-Federation durability and async remediation: Durability: servers/api.py no longer admits REMORA_STATE_ENDPOINT alone as durable execution state in production (the endpoint has no tenant-chain or outbox adapter), still probes a REMORA_CHAIN_DB file beside an endpoint, and reports that configuration as state_endpoint_partial and not durable; servers/execution_api.py reports the same and selects UnbackedExecutionOutbox for it, refusing it in production (wiring point ASW-005). Async worker: servers/execution_api.py hands the worker the domain ToolSpec resolver and the chain's assessed record; remora/execution/service.py dispatch_pending_intent, before claiming, minting or consuming, refuses toolspec_changed_between_authorization_and_dispatch when the spec in force differs from the assessed hash (fail-closed for an item with no recorded hash under an enforced bundle) and re-decides the fresh observation through ReviewQueue.regate_authorized, refusing fresh_regate_refused. Every refusal settles REFUSED with the grant unminted. For this capability mediation and the effect domain are unchanged. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: re-audit 2026-10-06 for the pre-Federation red-team remediation (#744 probes): remora/enforcement/lease.py: ExecutionLease.verify refuses arguments outside the JSON domain as tool_args_not_canonical; GovernedToolDispatcher executes a private deep copy of the arguments, reads the callable with its registry generation after the ToolSpec identity is resolved, and immediately before the recorder and nonce re-checks that the callable and generation are unchanged and that the copy still hashes to the lease (tool_registry_changed, tool_args_changed_after_verify). Every new refusal leaves the nonce unspent; a JSON-domain call hashes exactly as before. servers/execution_api.py changes only in record_effect: the receipt now trusts only the verifier identity already bound to the authenticated principal (an empty allowlist trusts nobody), passes the reason code to the status/reason contradiction check, and takes tool_id and toolspec_hash from the assessed chain entry, refusing a receipt that names another with 409 instead of storing it. No approval, token, lease, dispatch or other route changes; only new refusals. For this capability: mediation and the effect domain are unchanged; the deep copy is what the mediated tool receives. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: rebound 2026-10-02 to the squash-merge commit of #705 (e73e852); the branch commit 7295332 left the repository at squash. Verified content-identical on every cited implementation source with `git diff 7295332 e73e852` on those paths (empty). No status, scope or caveat change.
@@ -816,8 +906,14 @@ capabilities:
   - id: CAP-025
     name: "Evidence admission for sufficiency premises (CoSAI §7.4: visibility, coverage, vantage, binding, prior commitment)"
     status: IMPLEMENTED_LIBRARY
-    verified_at_sha: 537a1a123932bf93bb2a28786ce67d426d671739
+    verified_at_sha: 58ebc0b2fec241056a362977adcf59e05e88674e
     verified_by: >-
+      Rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b2);
+      the branch commits d6c630e8 and 537a1a12 left master at squash and
+      made the strict freshness gate report 16 UNKNOWN. Verified
+      content-identical on all 68 cited implementation sources across the
+      16 affected capabilities (git rev-parse on each path at the orphan
+      sha and at 58ebc0b2). No status, scope or caveat change.
       re-audit 2026-10-06 for the pre-Federation red-team remediation (#744 probes): remora/evidence/admission/models.py and admission.py deep-freeze ProducerCapabilityManifest.scope and EvidenceAdmission.scope through remora/frozen_json.py, so a nested alias can no longer change a manifest after its digest was accepted (the probe re-used an accepted digest to establish producer visibility in another tenant's scope); scope matching uses strict_equal at every depth instead of a top-level type check. The manifest digest of an unmutated JSON-domain scope is unchanged. Library only, as before. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
       Prior: audit 2026-10-02 at registration: remora/evidence/admission/ adds five
       frozen types (ProducerCapabilityManifest, CoverageAttestation,

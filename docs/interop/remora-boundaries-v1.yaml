@@ -1,7 +1,10 @@
 schema_version: remora-boundaries/v1
 
 provenance:
-  audited_revision: 7ff9adca98ecd82d23b619f0a3d1ee469e99ec9d
+  # Rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b2); the
+  # branch commit 7ff9adca left master at squash. All 8 implementation
+  # sources verified content-identical between 7ff9adca and 58ebc0b2.
+  audited_revision: 58ebc0b2fec241056a362977adcf59e05e88674e
   implementation_sources:
     - remora/policy/decision_engine.py
     - remora/enforcement/lease.py
@@ -16,7 +19,7 @@ provenance:
       sha256: 9bc6ac29ab4bf4b59b83509d1354580b9933fe4ced06e5e3bb9aeedee257032b
       role: workflow capability declarations
     - path: docs/assurance/capability_register_v1.yaml
-      sha256: 2f99834f4329bcb101f6bd94d0fa95dcc2b1ff15dd2a71b3546bd357a0535686
+      sha256: 1b7d0ecc3a34ac0e1312750103c7110f9a379cc486393d2deafd6edd7519a79d
       role: implementation maturity and freshness source
     - path: artifacts/interop/index.json
       sha256: 37af8c0197df7f3b738489785184e2ad62383a532b79552675626e5e3f6562b5
