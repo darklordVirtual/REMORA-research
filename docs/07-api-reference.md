@@ -234,7 +234,7 @@ backend.
 ## PolicyObservation, input contract
 
 `PolicyObservation` (`remora/policy/observation.py`) is a frozen dataclass
-with 76 fields; on the research `/v1/assess` path **all fields except
+with 77 fields; on the research `/v1/assess` path **all fields except
 `question` are optional and caller-populated**, REMORA is stateless and
 performs no detection itself (the engine treats `None` as "unknown, not
 safe"); see the assess-time authorities subsection below for the two
@@ -255,6 +255,7 @@ Selected fields by group:
 | Verification | `counterfactual_passed`, `distribution_shift_detected`, `classification_confidence`, `classification_alternatives`, `model_misspecification_risk` |
 | Session & fleet | `session_action_count`, `session_cumulative_risk`, `similar_action_seen_count`, `policy_generalization_risk`, `fleet_level_effect` |
 | Binding | `tool_call_hash`, SHA-256 of the full canonical tool call (name, exact args, tenant, target); recompute before execution and refuse on mismatch |
+| Execution identity | `execution_context_hash`, optional digest of deployment-owned context captured before assessment and bound through authorization, dispatch and effect evidence; see [execution quickstart](deployment/execution-quickstart.md#authoritative-execution-context-optional) |
 
 Construct from a dict with `PolicyObservation.from_json_record(record)`
 (unknown keys are ignored, misspelled safety flags therefore silently default

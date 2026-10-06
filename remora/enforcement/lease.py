@@ -61,6 +61,7 @@ from remora.observability.events import governance_event
 from remora.policy.observation import canonical_tool_call_hash
 
 if TYPE_CHECKING:
+    from remora.governance.execution_identity import ExecutionContextV1, ExecutionContextProvider
     from remora.audit.recorder import RecorderClient
     from remora.capabilities.model import EffectiveCapabilitySet
     from remora.enforcement.resolved_effect import EffectResolver, ResolvedEffect
@@ -101,6 +102,9 @@ class ToolExecutionStateUnknown(RemoraError, RuntimeError):
         #: unknown parent can still carry which children executed.
         self.nested_effects: dict[str, Any] = dict(_UNMEDIATED)
         self.effect_graph: Any = None
+        self.execution_context_hash = ""
+        self.execution_id = ""
+        self.dispatch_check: dict[str, Any] | None = None
 
 
 class LeaseRefused(RemoraError):
@@ -186,6 +190,7 @@ class ExecutionLease:
     #: implementation nobody authorized. Empty string means the authorizing
     #: side declared no runtime; it is carried, never invented here.
     runtime_identity_hash: str = ""
+    execution_context_hash: str = ""
     #: Q7.2: the task this authorization was granted under
     #: (:mod:`remora.governance.task_identity`). Signed only when set, so an
     #: unbound lease signs byte-identical bytes to one issued before these
@@ -229,6 +234,7 @@ class ExecutionLease:
         proposal_id: str = "",
         grant_jti: str = "",
         runtime_identity_hash: str = "",
+        execution_context: ExecutionContextV1 | None = None,
         task_identity: "TaskIdentity | None" = None,
         resolved_effect: ResolvedEffect | None = None,
         plan: PlanBinding | None = None,
@@ -247,6 +253,16 @@ class ExecutionLease:
         from remora.enforcement.custody import assert_may_mint_authority
 
         assert_may_mint_authority()
+        if execution_context is not None:
+            execution_context.check_binding(
+                proposal_id=proposal_id, tenant=tenant_id, principal=actor_identity,
+                tool_call_hash=canonical_tool_call_hash(
+                    name=tool_name, arguments=arguments, tenant=tenant_id,
+                    target=target_environment))
+            if (runtime_identity_hash
+                    and runtime_identity_hash != execution_context.runtime.runtime_identity_hash):
+                raise LeaseRefused("execution_context_runtime_mismatch")
+            runtime_identity_hash = execution_context.runtime.runtime_identity_hash
         issued_dt = _parse_utc(issued_at)
         if expires_at is None:
             expires_at = (
@@ -295,6 +311,8 @@ class ExecutionLease:
             fields["surface_digest"] = surface_digest
         if capability_set is not None:
             fields["capability_digest"] = capability_set.digest
+        if execution_context is not None:
+            fields["execution_context_hash"] = execution_context.digest()
         task_event_fields: dict[str, Any] = dict(task_fields(task_identity))
         alg = _signing.issuer_algorithm()
         if alg:
@@ -402,6 +420,8 @@ class ExecutionLease:
             fields["surface_digest"] = self.surface_digest
         if self.capability_digest:
             fields["capability_digest"] = self.capability_digest
+        if self.execution_context_hash:
+            fields["execution_context_hash"] = self.execution_context_hash
         return fields
 
     def task_identity(self) -> "TaskIdentity | None":
@@ -586,6 +606,7 @@ class ExecutionLease:
         "proposal_id", "grant_jti", "runtime_identity_hash", "sig_alg", "kid",
         "context_id", "task_id", "resolved_effect_hash", "plan_binding_hash",
         "surface_digest", "capability_digest",
+        "execution_context_hash",
     })
 
     @classmethod
@@ -691,6 +712,9 @@ class DispatchResult:
     #: ``effect_graph`` the full, bounded ResolvedEffectGraph.
     nested_effects: Mapping[str, Any] = field(default_factory=lambda: dict(_UNMEDIATED))
     effect_graph: Any = None
+    execution_context_hash: str = ""
+    execution_id: str = ""
+    dispatch_check: Mapping[str, Any] | None = None
 
 
 class GovernedToolDispatcher:
@@ -713,6 +737,8 @@ class GovernedToolDispatcher:
         require_task_identity: bool = False,
         require_capability_set: bool = False,
         require_downstream_declaration: bool | None = None,
+        require_execution_context: bool = False,
+        execution_context_provider: ExecutionContextProvider | None = None,
     ) -> None:
         """
         ``require_capability_set`` (Q8.2) refuses a lease that carries no
@@ -749,6 +775,8 @@ class GovernedToolDispatcher:
         self._spec_identity: Callable[[str], tuple[str, int] | None] | None = None
         self._require_task = require_task_identity
         self._require_capability = require_capability_set
+        self._require_execution_context = require_execution_context
+        self._execution_context_provider = execution_context_provider
         # NTA-2 phase 3: under a strict profile a mediated tool whose spec
         # declares no downstream ceiling is refused rather than run with none.
         if require_downstream_declaration is None:
@@ -1178,6 +1206,7 @@ class GovernedToolDispatcher:
         task_identity: "TaskIdentity | None" = None,
         plan: PlanBinding | None = None,
         capability_set: EffectiveCapabilitySet | None = None,
+        execution_context: ExecutionContextV1 | None = None,
     ) -> DispatchResult:
         """Execute ``tool_name`` iff the lease covers this exact call.
 
@@ -1302,6 +1331,49 @@ class GovernedToolDispatcher:
                 executed=False, refusal_reason=verdict.reason,
                 proposal_id=proposal_id,
             )
+        check: dict[str, Any] | None = None
+        if lease.execution_context_hash or execution_context is not None or self._require_execution_context:
+            from remora.governance.execution_identity import ExecutionContextRefused
+            from remora.enforcement.runtime_identity import current_runtime_identity_hash
+
+            observed_runtime = current_runtime_identity_hash()
+            check = {
+                "expected_runtime_identity_hash": lease.runtime_identity_hash,
+                "observed_runtime_identity_hash": observed_runtime,
+                "checked_at": now or datetime.now(UTC).isoformat(),
+                "result": "refused",
+            }
+            try:
+                if execution_context is None:
+                    raise ExecutionContextRefused("execution_context_missing")
+                if execution_context.digest() != lease.execution_context_hash:
+                    raise ExecutionContextRefused("execution_context_hash_mismatch")
+                execution_context.check_binding(
+                    proposal_id=lease.proposal_id, tenant=tenant_id,
+                    principal=lease.actor_identity, tool_call_hash=lease.tool_args_hash)
+                if (lease.runtime_identity_hash != execution_context.runtime.runtime_identity_hash
+                        or observed_runtime != lease.runtime_identity_hash):
+                    raise ExecutionContextRefused("runtime_identity_mismatch")
+                provider = self._execution_context_provider
+                if provider is None:
+                    raise ExecutionContextRefused("execution_context_provider_missing")
+                observed_build = provider.current_build_provenance_digest()
+                check["expected_build_provenance_digest"] = execution_context.runtime.build_provenance_digest
+                check["observed_build_provenance_digest"] = observed_build
+                if observed_build != execution_context.runtime.build_provenance_digest:
+                    raise ExecutionContextRefused("build_provenance_mismatch")
+                if provider.data_scope_valid(execution_context) is not True:
+                    raise ExecutionContextRefused("execution_context_data_scope_invalid")
+                check["result"] = "matched"
+            except ExecutionContextRefused as exc:
+                check["reason"] = exc.reason
+                governance_event(
+                    "dispatch.refused", level=logging.WARNING, reason=exc.reason,
+                    tenant_id=tenant_id, tool_name=tool_name, proposal_id=proposal_id)
+                return DispatchResult(
+                    executed=False, refusal_reason=exc.reason, proposal_id=proposal_id,
+                    execution_context_hash=lease.execution_context_hash,
+                    execution_id=lease.grant_jti, dispatch_check=check)
         if task_identity is None and (lease.context_id or lease.task_id):
             # Allowed, because the caller opted out of the check, but recorded:
             # a task-bound authorization that ran with no task compared is the
@@ -1336,6 +1408,8 @@ class GovernedToolDispatcher:
             return DispatchResult(
                 executed=False, refusal_reason=runtime_refusal,
                 proposal_id=proposal_id,
+                execution_context_hash=lease.execution_context_hash,
+                execution_id=lease.grant_jti, dispatch_check=check,
             )
 
         # NTA-2: the mediated execution's authority, prepared before anything
@@ -1501,6 +1575,8 @@ class GovernedToolDispatcher:
                 executed=True, result=res, proposal_id=proposal_id,
                 dispatch_began=True, recorder_seq=recorder_seq,
                 nested_effects=nested_effects, effect_graph=effect_graph,
+                execution_context_hash=lease.execution_context_hash,
+                execution_id=lease.grant_jti, dispatch_check=check,
             )
         except Exception as e:
             # Burn is recorded with its reason so failure() can surface it;
@@ -1526,4 +1602,7 @@ class GovernedToolDispatcher:
                 tool_name=tool_name,
             )
             unknown.nested_effects, unknown.effect_graph = _nested()
+            unknown.execution_context_hash = lease.execution_context_hash
+            unknown.execution_id = lease.grant_jti
+            unknown.dispatch_check = check
             raise unknown from e

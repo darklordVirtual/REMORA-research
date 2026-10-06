@@ -121,6 +121,7 @@ class EffectVerificationView:
     verified_at: str
     detail: str = ""
     raw: Mapping[str, Any] = field(default_factory=dict, repr=False)
+    execution_context_hash: str = ""
 
     @classmethod
     def from_payload(cls, payload: Mapping[str, Any]) -> "EffectVerificationView":
@@ -137,11 +138,12 @@ class EffectVerificationView:
             verified_at=str(payload.get("verified_at", "")),
             detail=str(payload.get("detail", "")),
             raw=MappingProxyType(dict(payload)),
+            execution_context_hash=str(payload.get("execution_context_hash", "")),
         )
 
     def to_dict(self) -> dict[str, Any]:
         """The wire form, ready to hand back to REMORA for recording."""
-        return {
+        record = {
             "proposal_id": self.proposal_id,
             "execution_id": self.execution_id,
             "tool_id": self.tool_id,
@@ -154,6 +156,9 @@ class EffectVerificationView:
             "verified_at": self.verified_at,
             "detail": self.detail,
         }
+        if self.execution_context_hash:
+            record["execution_context_hash"] = self.execution_context_hash
+        return record
 
 
 def content_digest(value: Any) -> str:
@@ -196,6 +201,7 @@ def verify_effect(
     execution_id: str,
     toolspec_hash: str,
     verifier_identity: str,
+    execution_context_hash: str = "",
 ) -> EffectVerificationView:
     """Compare an observation against the declared delta.
 
@@ -224,4 +230,7 @@ def verify_effect(
         proposal_id=proposal_id, execution_id=execution_id,
         toolspec_hash=toolspec_hash, verifier_identity=verifier_identity,
     )
-    return EffectVerificationView.from_payload(record.to_dict())
+    payload = record.to_dict()
+    if execution_context_hash:
+        payload["execution_context_hash"] = execution_context_hash
+    return EffectVerificationView.from_payload(payload)

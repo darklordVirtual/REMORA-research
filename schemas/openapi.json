@@ -411,6 +411,19 @@
             ],
             "title": "Capability Set"
           },
+          "execution_context": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Historical deployment context; trusted only after its digest and lineage match the signed lease.",
+            "title": "Execution Context"
+          },
           "lease": {
             "additionalProperties": true,
             "title": "Lease",
@@ -451,6 +464,13 @@
             "default": "",
             "maxLength": 2000,
             "title": "Detail",
+            "type": "string"
+          },
+          "execution_context_hash": {
+            "default": "",
+            "description": "Required for a context-bound dispatch; must match its historical context, never current configuration.",
+            "pattern": "^([0-9a-f]{64})?$",
+            "title": "Execution Context Hash",
             "type": "string"
           },
           "execution_id": {

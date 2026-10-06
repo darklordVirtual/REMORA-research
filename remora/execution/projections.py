@@ -82,6 +82,22 @@ def record_effect_verification(chain: Any, tenant: str, verification: Any, *,
     than reaching out to a third party from inside governance.
     """
     record = verification.to_dict()
+    from remora.governance.execution_identity import (
+        ExecutionContextRefused, historical_context,
+    )
+    from remora.governance.effect_receipt import resolve_lineage
+
+    proposal_id = str(record.get("proposal_id", ""))
+    context = historical_context(chain, tenant, proposal_id) if proposal_id else None
+    if context is not None or record.get("execution_context_hash"):
+        if context is None:
+            raise ExecutionContextRefused("execution_context_history_missing")
+        lineage = resolve_lineage(proposal_events(chain, tenant, proposal_id))
+        if (record.get("execution_context_hash") != context.digest()
+                or lineage.execution_context_hash != context.digest()
+                or record.get("execution_id") != lineage.execution_id
+                or not lineage.execution_id):
+            raise ExecutionContextRefused("execution_context_effect_mismatch")
     payload = {
         "event": "effect_verified",
         # Who OBSERVED is the verifier identity inside the record; this is

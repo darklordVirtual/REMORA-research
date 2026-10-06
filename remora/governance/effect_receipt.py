@@ -126,6 +126,8 @@ class DispatchLineage:
     executed: bool
     state_unknown: bool
     attempted_at: str
+    execution_context_hash: str = ""
+    execution_id: str = ""
 
     @property
     def effect_possible(self) -> bool:
@@ -181,6 +183,8 @@ def resolve_lineage(events: Sequence[Mapping[str, Any]]) -> DispatchLineage:
         executed=executed,
         state_unknown=state_unknown,
         attempted_at=str(result.get("timestamp") or ""),
+        execution_context_hash=str(payload.get("execution_context_hash", "")),
+        execution_id=str(payload.get("execution_id", "")),
     )
     if not lineage.effect_possible:
         raise ReceiptRefused(

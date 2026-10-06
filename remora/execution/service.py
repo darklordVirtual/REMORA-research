@@ -38,9 +38,28 @@ from remora.governance.proposal_lineage import derive_lineage, lineage_key_for
 from remora.governance.task_identity import TaskIdentity
 from remora.policy.report import DecisionAction, DecisionReason
 from remora.toolcall.toolspec import ToolSpecRefused
+from remora.governance.execution_identity import (
+    ExecutionContextProvider, ExecutionContextRefused, ExecutionContextV1,
+    historical_context, observation_binding,
+)
 
 
 logger = logging.getLogger(__name__)
+
+
+def _bind_execution_context(
+    obs: Any, semantic: dict[str, Any], context: ExecutionContextV1 | None,
+    *, proposal_id: str, tenant: str, principal: str,
+) -> Any:
+    if context is None:
+        return obs
+    context.check_binding(
+        proposal_id=proposal_id, tenant=tenant, principal=principal,
+        tool_call_hash=obs.tool_call_hash or "")
+    semantic["execution_context_hash"] = context.digest()
+    semantic["execution_context_canonical"] = context.canonical_bytes().decode("utf-8")
+    return dataclasses.replace(
+        obs, proposal_id=proposal_id, execution_context_hash=context.digest())
 
 
 #: The outbox state each outcome settles as. A table rather than a chain of
@@ -166,6 +185,8 @@ def assess_proposal(
     loop_safety: Any = None,
     capability_gate: Callable[[Any], dict[str, Any] | None] | None = None,
     semantic_shadow: Callable[[dict[str, Any]], None] | None = None,
+    execution_context_provider: ExecutionContextProvider | None = None,
+    require_execution_context: bool = False,
 ) -> dict[str, Any]:
     """Assess a proposed tool call — nothing executes here.
 
@@ -214,6 +235,17 @@ def assess_proposal(
     proposal_id = str(uuid4())
     note_proposal_id(proposal_id)
     obs = dataclasses.replace(obs, proposal_id=proposal_id)
+    if require_execution_context and execution_context_provider is None:
+        raise ExecutionContextRefused("execution_context_provider_missing")
+    context = None
+    if execution_context_provider is not None:
+        context = execution_context_provider.capture(
+            proposal_id=proposal_id, tenant=tenant, principal=principal,
+            tool_call_hash=obs.tool_call_hash or "")
+        if not isinstance(context, ExecutionContextV1):
+            raise ExecutionContextRefused("execution_context_capture_invalid")
+    obs = _bind_execution_context(
+        obs, semantic, context, proposal_id=proposal_id, tenant=tenant, principal=principal)
     report = engine.decide(obs)
     engine_action = report.action
     if (prior_loop is not None and prior_loop.action == "escalate"
@@ -277,6 +309,10 @@ def assess_proposal(
     if task is not None:
         record["context_id"] = task.context_id
         record["task_id"] = task.task_id
+    if context is not None:
+        record["execution_context_hash"] = context.digest()
+        record["execution_context_canonical"] = context.canonical_bytes().decode("utf-8")
+        record["observation_binding_hash"] = observation_binding(obs)
     if capability is not None:
         record["capability"] = capability
     response: dict[str, Any] = {
@@ -324,7 +360,7 @@ def assess_proposal(
         # or redemption has nothing to check them against (RMR-001).
         token = PolicyDecisionToken.issue(
             action="accept",
-            observation_hash=obs.tool_call_hash or "",
+            observation_hash=observation_binding(obs),
             request_id=proposal_id,
             issued_at=now.isoformat(),
             expires_at=(now + timedelta(seconds=token_ttl_seconds)).isoformat(),
@@ -424,6 +460,7 @@ def execute_approved_item(
     policy_bundle_hash: Callable[[], str] | None = None,
     async_dispatch: bool = False,
     transactional_append: TransactionalAppendPort | None = None,
+    require_execution_context: bool = False,
 ) -> dict[str, Any]:
     """Execute a previously approved item under full re-gating.
 
@@ -465,6 +502,11 @@ def execute_approved_item(
         )
 
     fresh_obs, fresh_semantic = build_observation(tool_call, tenant)
+    context = historical_context(
+        chain, tenant, assessed_proposal_id, required=require_execution_context)
+    fresh_obs = _bind_execution_context(
+        fresh_obs, fresh_semantic, context, proposal_id=assessed_proposal_id,
+        tenant=tenant, principal=principal)
     append = appender(chain, transactional_append)
     refusal_entry: Any = None
     refusal_key = ""
@@ -585,7 +627,7 @@ def execute_approved_item(
     )
     token = PolicyDecisionToken.issue(
         action="accept",
-        observation_hash=fresh_obs.tool_call_hash or "",
+        observation_hash=observation_binding(fresh_obs),
         # FT-01: the grant carries the canonical proposal identity; the
         # legacy composite only for pre-lifecycle items with no proposal.
         request_id=proposal_id or f"{tenant}:{item_id}",
@@ -597,7 +639,7 @@ def execute_approved_item(
     # PEP consumption happens HERE: the grant is consumed atomically the
     # moment it is honoured - a re-presented token can never execute twice.
     gate_result = gate.check(
-        token, fresh_obs.tool_call_hash, consume=True, context=review_context)
+        token, observation_binding(fresh_obs), consume=True, context=review_context)
     response["execution_grant"] = token.to_dict()
     response["pep"] = {"allowed": gate_result.allowed,
                        "reason": gate_result.reason}
@@ -622,6 +664,9 @@ def execute_approved_item(
         "tool_call_hash": fresh_obs.tool_call_hash,
         "grant_jti": token.jti,
         "pep_allowed": gate_result.allowed,
+        **({"execution_context_hash": fresh_obs.execution_context_hash,
+            "observation_binding_hash": observation_binding(fresh_obs)}
+           if fresh_obs.execution_context_hash else {}),
         "tool_contract_bundle_hash": fresh_semantic["tool_contract_bundle_hash"],
         "intent_authority_hash": fresh_semantic["intent_authority_hash"],
         # The trust base as THIS decision resolved it, per component, inside
@@ -729,7 +774,11 @@ def _nested_effects_fields(tool_execution: dict[str, Any]) -> dict[str, Any]:
     dispatch reported one. Absent for dispatches that never reached the
     dispatcher, which report no nested effects because none could occur."""
     nested = tool_execution.get("nested_effects")
-    return {"nested_effects": dict(nested)} if nested else {}
+    fields = {"nested_effects": dict(nested)} if nested else {}
+    for name in ("execution_context_hash", "execution_id", "dispatch_check"):
+        if name in tool_execution:
+            fields[name] = tool_execution[name]
+    return fields
 
 
 def _projection_payload(
@@ -788,6 +837,9 @@ def _result_record_from_projection(p: dict[str, Any]) -> dict[str, Any]:
         record["intent_sequence_no"] = p["intent_sequence_no"]
     if p.get("refusal_reason"):
         record["tool_refusal_reason"] = p["refusal_reason"]
+    for key in ("execution_context_hash", "execution_id", "dispatch_check"):
+        if key in p:
+            record[key] = p[key]
     for key in ("result_sha256", "result_size_bytes", "result_truncated", "nested_effects"):
         if key in p:
             record[key] = p[key]
@@ -914,6 +966,7 @@ def dispatch_pending_intent(
     policy_bundle_hash: Callable[[], str] | None = None,
     rebuild_call: Callable[[dict[str, Any]], Any] | None = None,
     assessed_record: Callable[[str, str], tuple[str, str]] | None = None,
+    require_execution_context: bool = False,
 ) -> dict[str, Any] | None:
     """Dispatch one DISPATCH_PENDING intent from a separate worker (issue #82).
 
@@ -1006,6 +1059,23 @@ def dispatch_pending_intent(
         refusal, toolspec_identity, refusal_detail = _toolspec_at_dispatch(
             tool_call, resolve_toolspec=resolve_toolspec,
             authorized_hash=authorized_hash)
+    actor = (row.requested_by or "").strip()
+    proposal_id = row.proposal_id
+    if refusal is None:
+        try:
+            assert fresh_obs is not None and fresh_semantic is not None
+            context = historical_context(
+                chain, tenant, proposal_id, required=require_execution_context)
+            fresh_obs = _bind_execution_context(
+                fresh_obs, fresh_semantic, context, proposal_id=proposal_id,
+                tenant=tenant, principal=actor)
+            if context is not None or require_execution_context:
+                with transaction(tenant) as q:
+                    approved_hash = q.item(row.item_id).observation.execution_context_hash
+                if approved_hash != fresh_obs.execution_context_hash:
+                    raise ExecutionContextRefused("execution_context_mismatch")
+        except ExecutionContextRefused as exc:
+            refusal = exc.reason
     # The fresh observation used to be hashed and nothing more, so a hard
     # guard that fired after the 202 was wrapped in a new ACCEPT. Re-decide it
     # with the engine the 202 used, before the claim and before any grant.
@@ -1033,8 +1103,6 @@ def dispatch_pending_intent(
     # separately as executed_by and never substituted for the requester's.
     # ``principal`` remains the worker binder's process identity and is not
     # an actor fallback.
-    actor = (row.requested_by or "").strip()
-    proposal_id = row.proposal_id
     if refusal is not None:
         if outbox().claim(row.outbox_id, worker_id=worker_id) is None:
             return None
@@ -1116,7 +1184,7 @@ def dispatch_pending_intent(
     )
     token = PolicyDecisionToken.issue(
         action="accept",
-        observation_hash=fresh_obs.tool_call_hash or "",
+        observation_hash=observation_binding(fresh_obs),
         request_id=proposal_id or f"{tenant}:{row.item_id}",
         issued_at=now.isoformat(),
         expires_at=token_expiry.isoformat(),
@@ -1124,7 +1192,7 @@ def dispatch_pending_intent(
         context=honour_context,
     )
     gate_result = gate.check(
-        token, fresh_obs.tool_call_hash, consume=True, context=honour_context)
+        token, observation_binding(fresh_obs), consume=True, context=honour_context)
     coverage = policy_coverage() if policy_coverage is not None else None
     intent_entry = chain.append(tenant, {
         "event": "execution_authorized",
@@ -1135,6 +1203,9 @@ def dispatch_pending_intent(
         "tool_call_hash": fresh_obs.tool_call_hash,
         "grant_jti": token.jti,
         "pep_allowed": gate_result.allowed,
+        **({"execution_context_hash": fresh_obs.execution_context_hash,
+            "observation_binding_hash": observation_binding(fresh_obs)}
+           if fresh_obs.execution_context_hash else {}),
         "tool_contract_bundle_hash": fresh_semantic["tool_contract_bundle_hash"],
         "intent_authority_hash": fresh_semantic["intent_authority_hash"],
         "policy_components": coverage,
@@ -1264,6 +1335,7 @@ def authorization_context(
         intent_authority_hash=str(semantic.get("intent_authority_hash", "")),
         context_id=task.context_id if task is not None else "",
         task_id=task.task_id if task is not None else "",
+        execution_context_hash=str(semantic.get("execution_context_hash", "")),
     )
 
 
@@ -1323,6 +1395,7 @@ def redeem_accept_token(
     resolve_toolspec: Callable[[str, dict[str, Any], str], dict[str, Any]] | None = None,
     assessed_toolspec: Callable[[str, str], str] | None = None,
     policy_bundle_hash: Callable[[], str] | None = None,
+    require_execution_context: bool = False,
 ) -> dict[str, Any]:
     """Execute a directly-ACCEPTed proposal under its single-use token.
 
@@ -1345,6 +1418,11 @@ def redeem_accept_token(
     obs, semantic = build_observation(tool_call, tenant)
     proposal_id = token.request_id or None
     note_proposal_id(proposal_id)
+    context = historical_context(
+        chain, tenant, str(proposal_id or ""), required=require_execution_context)
+    obs = _bind_execution_context(
+        obs, semantic, context, proposal_id=str(proposal_id or ""),
+        tenant=tenant, principal=principal)
 
     toolspec_identity: dict[str, Any] | None = None
     if resolve_toolspec is not None:
@@ -1370,7 +1448,7 @@ def redeem_accept_token(
                 "in force is not the one this grant was issued under"
             )
 
-    if token.observation_hash != (obs.tool_call_hash or ""):
+    if token.observation_hash != observation_binding(obs):
         chain.append(tenant, {
             "event": "execution_binding_refused",
             "proposal_id": proposal_id,
@@ -1402,7 +1480,7 @@ def redeem_accept_token(
         toolspec_hash=str((toolspec_identity or {}).get("hash", "")),
         task=task_identity_of(tool_call),
     )
-    context_check = token.verify(obs.tool_call_hash, context=current_context)
+    context_check = token.verify(observation_binding(obs), context=current_context)
     if not context_check.verified and context_check.reason in {
         "context_mismatch",
         "context_unbound",
@@ -1423,7 +1501,7 @@ def redeem_accept_token(
     # Consume exactly once. A refused check here is expiry, audience
     # mismatch, a bad signature, or a replay - all terminal for this token.
     gate_result = gate.check(
-        token, obs.tool_call_hash, consume=True, context=current_context)
+        token, observation_binding(obs), consume=True, context=current_context)
     if not gate_result.allowed:
         chain.append(tenant, {
             "event": "execution_grant_refused",
@@ -1465,6 +1543,9 @@ def redeem_accept_token(
         "tool_call_hash": obs.tool_call_hash,
         "grant_jti": token.jti,
         "pep_allowed": gate_result.allowed,
+        **({"execution_context_hash": obs.execution_context_hash,
+            "observation_binding_hash": observation_binding(obs)}
+           if obs.execution_context_hash else {}),
         "tool_contract_bundle_hash": semantic["tool_contract_bundle_hash"],
         "intent_authority_hash": semantic["intent_authority_hash"],
     })

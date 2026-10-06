@@ -503,6 +503,13 @@ class ReviewQueue:
                 "tool-call hash differs from the approved payload",
             )
 
+        if item.observation.execution_context_hash != fresh_observation.execution_context_hash:
+            self._log.append("binding_refused", {
+                "item_id": item_id, "reason": "execution_context_mismatch"})
+            return ExecutionOutcome(
+                ExecutionDecision.BINDING_REFUSED, None,
+                "execution context differs from the approved observation")
+
         # 4c. Re-gate on the fresh observation: the approval survives only an
         # equal-or-safer world (decision monotonicity over time) AND only when
         # the fresh decision is itself an executable outcome. ABSTAIN and
