@@ -1059,6 +1059,23 @@ def dispatch_pending_intent(
         refusal, toolspec_identity, refusal_detail = _toolspec_at_dispatch(
             tool_call, resolve_toolspec=resolve_toolspec,
             authorized_hash=authorized_hash)
+    actor = (row.requested_by or "").strip()
+    proposal_id = row.proposal_id
+    if refusal is None:
+        try:
+            assert fresh_obs is not None and fresh_semantic is not None
+            context = historical_context(
+                chain, tenant, proposal_id, required=require_execution_context)
+            fresh_obs = _bind_execution_context(
+                fresh_obs, fresh_semantic, context, proposal_id=proposal_id,
+                tenant=tenant, principal=actor)
+            if context is not None or require_execution_context:
+                with transaction(tenant) as q:
+                    approved_hash = q.item(row.item_id).observation.execution_context_hash
+                if approved_hash != fresh_obs.execution_context_hash:
+                    raise ExecutionContextRefused("execution_context_mismatch")
+        except ExecutionContextRefused as exc:
+            refusal = exc.reason
     # The fresh observation used to be hashed and nothing more, so a hard
     # guard that fired after the 202 was wrapped in a new ACCEPT. Re-decide it
     # with the engine the 202 used, before the claim and before any grant.
@@ -1086,23 +1103,6 @@ def dispatch_pending_intent(
     # separately as executed_by and never substituted for the requester's.
     # ``principal`` remains the worker binder's process identity and is not
     # an actor fallback.
-    actor = (row.requested_by or "").strip()
-    proposal_id = row.proposal_id
-    if refusal is None:
-        try:
-            assert fresh_obs is not None and fresh_semantic is not None
-            context = historical_context(
-                chain, tenant, proposal_id, required=require_execution_context)
-            fresh_obs = _bind_execution_context(
-                fresh_obs, fresh_semantic, context, proposal_id=proposal_id,
-                tenant=tenant, principal=actor)
-            if context is not None or require_execution_context:
-                with transaction(tenant) as q:
-                    approved_hash = q.item(row.item_id).observation.execution_context_hash
-                if approved_hash != fresh_obs.execution_context_hash:
-                    raise ExecutionContextRefused("execution_context_mismatch")
-        except ExecutionContextRefused as exc:
-            refusal = exc.reason
     if refusal is not None:
         if outbox().claim(row.outbox_id, worker_id=worker_id) is None:
             return None
