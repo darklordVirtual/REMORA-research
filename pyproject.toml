@@ -69,7 +69,7 @@ sdk = ["httpx>=0.25"]
 # Data analysis and visualisation
 analysis = ["matplotlib>=3.11.1", "numpy>=2.4.6"]
 stats = ["scipy>=1.17.1"]
-datasets = ["datasets>=2.0"]
+datasets = ["datasets>=5.0.1"]
 # NLI semantic-entropy backend (NLISemanticBackend in remora/semantic_entropy.py).
 # Executed on CI-Linux via .github/workflows/nli-parity.yml (RF-06); local
 # Windows execution can be blocked by application control on torch's shm.dll
