@@ -72,7 +72,7 @@
 % Paper version - kept in lockstep with paper/remora_paper.md by
 % scripts/check_paper_sync.py (CI-enforced). The version and revision
 % strings below MUST match the .md version line.
-\newcommand{\paperversion}{Preprint v0.11.0, revision 2026-10-02; repository release tag \texttt{v0.11.0}}
+\newcommand{\paperversion}{Preprint v0.12.0, revision 2026-10-06; repository release tag \texttt{v0.12.0} (to be cut when this revision is published; latest published tag \texttt{v0.11.0})}
 
 \author{
   Stian Skogbrott\thanks{Developer and maintainer of REMORA. Luftfiber AS.
@@ -105,12 +105,18 @@ effect. A deterministic policy gate routes a proposed call to
 \textsc{accept}, \textsc{verify}, \textsc{abstain} or \textsc{escalate}
 before dispatch. A signed ToolSpec identifies what approval covers;
 an exact-call \texttt{ExecutionLease} binds that approval to one tool,
-argument set, target and policy bundle. The signer has no downstream
-credential, and the executor has no signing key. A single-use grant is
+argument set, target and policy bundle. Within the strict
+governed-execution profile and its declared credential topology, the
+authority domain holds no declared downstream execution credential, and
+the executor holds no lease-signing key; this boundary does not
+establish the absence of alternate credential, network or execution
+paths. A single-use grant is
 consumed at an enforcement point that re-evaluates policy. Lifecycle
 records distinguish \emph{authorized}, \emph{dispatched},
-\emph{executed} and \emph{verified effect}. A hash-chained
-\texttt{DecisionEnvelope} declares which trust-base components each
+\emph{executed} and \emph{verified effect}. Every decision emits a
+\texttt{DecisionEnvelope}; the API path finalizes it into a
+tenant-scoped hash chain and HMAC-signs it when a signing key is
+configured, and the envelope declares which trust-base components each
 record covers. The deterministic policy floor carries the safety rule:
 model consensus cannot override a hard block.
 
@@ -167,6 +173,8 @@ typed evidence-admission module can establish bounded premises for a
 particular observation without changing policy outcomes. Federation
 packages publish content-addressed
 contracts and distinguish reproduction from independent verification.
+Machine-readable capability and boundary declarations bound each claim
+with explicit claim ceilings and record what is not established.
 Neither an external attestation nor a model judgment grants execution
 permission.
 
@@ -184,8 +192,11 @@ bundle and excludes wrong-argument values because BFCL has no independently
 vouchable state table. It therefore confirms the complete routing pipeline,
 not the isolated causal effect of semantic intent matching. REMORA is a
 governed autonomy layer, not a replacement for domain authority. The system
-is \texttt{SHADOW\_ONLY}: independent external replication and production
-field evidence remain pending.
+is \texttt{SHADOW\_ONLY}: bounded external reproductions now exist for
+several frozen interoperability contracts, recorded as author-attributed
+runs rather than independent verification; independent runtime
+verification, production enforcement evidence and Federation adoption
+remain unestablished.
 \end{abstract}
 
 \textbf{Keywords:} agentic AI safety, multi-oracle consensus, selective
@@ -247,6 +258,16 @@ target system. The decision record also states which parts of the trust
 base its evidence covers. This makes it possible to ask a sharper
 question than whether an agent \emph{wanted} to act: what authorized the
 action, what ran, and what evidence supports the reported outcome?
+
+A second design decision constrains the first: the boundary itself is
+declared, not implied. Machine-readable capability and boundary
+declarations (\S\ref{sec:boundary-declarations}) state which properties
+REMORA establishes at the governed boundary and under which execution
+profile. Explicit claim ceilings record what remains unestablished:
+alternate credential paths, and the privileged effects an authorized
+tool's implementation can reach. REMORA therefore does not claim that
+all agent effects are governed; it makes the governed boundary
+explicit, and falsifiable.
 
 Related work approaches the same control boundary from different
 directions. Progent studies least-privilege tool permissioning
@@ -350,8 +371,10 @@ hash-chaining, and the Replay Engine publishes governance episodes for
 third-party inspection. The EU AI Act (2024) \cite{euaiact2024} mandates human oversight and
 audit trails for high-risk AI systems. Open Policy Agent (OPA)
 \cite{opa} provides a production-grade Rego policy engine. REMORA
-ships an OPA adapter (failing closed to a Python fallback) as a
-concrete instantiation of policy-as-code for AI decisions; the reference
+ships an OPA adapter as a concrete instantiation of policy-as-code for
+AI decisions; on OPA unavailability it falls back to the parity-tested
+deterministic Python policy engine and records the fallback, without
+bypassing policy enforcement. The reference
 API currently invokes the Python engine directly (\S\ref{sec:architecture}).
 
 \subsection{Assurance Cases}
@@ -415,7 +438,9 @@ monotonicity-tested to \emph{never weaken} policy
 whereas AgentTrust's distillation pipeline makes learned judgments
 load-bearing for enforcement; (2) uncertainty is structural (multi-oracle
 disagreement with conformal abstention), not a single judge's confidence;
-(3) every decision emits a signed, hash-chained DecisionEnvelope.
+(3) every decision emits a DecisionEnvelope, which the API path
+finalizes into a tenant-scoped hash chain and HMAC-signs when a signing
+key is configured.
 Conversely, AgentTrust reports zero benign hard-blocks across 45{,}000
 actions, the opposite end of the safety/friction trade-off from REMORA's
 FBR=100\% AgentHarm corner point (\S\ref{sec:agentharm}), and an explicit
@@ -502,6 +527,8 @@ executed action, key-custody separation between decision and execution
 domains, re-policying at the execution boundary, per-component
 trust-base coverage declared on the decision record, explicit
 effect-evidence states in which transport success is never execution,
+machine-readable capability and boundary declarations whose claim
+ceilings state what is not established,
 and a machine-enforced register of claims and negative results
 governing every number reported here. A mechanism-level crosswalk is
 maintained in the repository
@@ -634,12 +661,19 @@ whose identity travels inside the lease; a spec that moved between
 approval and dispatch refuses. Dispatch itself happens only under an
 exact-call \texttt{ExecutionLease} (tenant, actor, tool, canonical
 argument hash, target, policy-bundle identity, single-use nonce,
-expiry), signed with Ed25519 under an architectural custody split: the
-authority domain holds the private key and no tool credential; the
-execution domain holds the public key and the credentials. The
+expiry), signed with Ed25519 under an architectural custody split
+claimed within the strict governed-execution profile under the declared
+credential topology: the
+authority domain holds the private key and no declared downstream tool
+credential; the
+execution domain holds the public key and the declared execution
+credentials. The
 \texttt{GovernedToolDispatcher} re-verifies the entire binding against
 the concrete call, against the clock the lease was issued under, before
-anything runs. Authorization and result are separate hash-chained
+anything runs. The split does not establish the absence of alternate
+credential, network or execution paths that bypass the governed
+dispatcher; that boundary is stated explicitly in
+\S\ref{sec:boundary-declarations} and \S\ref{sec:negative}. Authorization and result are separate hash-chained
 records, each carrying the per-component trust-base view resolved at
 that moment: the closure record re-reads rather than copies, so a
 stale policy snapshot is detectable as a failed component-level join. A
@@ -722,12 +756,74 @@ frozen conformance checkers, effect verification or the execution decision;
 it supplies a contract for evaluating the provenance of future observations.
 The federation interop package pins source revisions and file digests,
 preserves native claim vocabulary and distinguishes reproduction from an
-independent second implementation. Its E7 package is
-\texttt{EXTERNAL\_RUN\_PENDING}, with no external run recorded as of
-2026-10-02. Federation records are evidence references, never execution
+independent second implementation. Bounded external run records now
+exist for the exact-call-binding, fresh-authority and effect-evidence
+contracts (E-ECB, E-FA, E-EE). They are author-attributed reproductions
+of frozen fixture packages, explicitly not independent verification, and
+each boundary-level claim result is recorded as \texttt{NOT\_ESTABLISHED}.
+The E7 runtime-surface package remains pinned with no external run
+recorded as of 2026-10-06 (\path{artifacts/interop/index.json},
+\path{docs/interop/remora-boundaries-v1.yaml}).
+Federation records are evidence references, never execution
 authority. On the enforcing API, Jev's typed semantic judgments are
 opt-in shadow records appended after audit; they can guide a lookup or
 an approver but do not change a verdict.
+
+\subsection{Machine-Readable Capability and Boundary Declarations}
+\label{sec:boundary-declarations}
+
+The properties above are published as machine-readable declarations,
+not only as prose. \path{docs/interop/remora-capabilities-v1.yaml}
+declares each workflow capability with its stage in the chain from
+authority through dispatch to effect. It records the roles a capability
+provides and does not provide, its trust assumptions, its maturity
+level, its evidence links and its limitations. Maturity runs from
+\texttt{DECLARED} to \texttt{OPERATOR\_OBSERVED}; no declared capability
+currently claims the external or operator-observed states.
+\path{docs/interop/remora-boundaries-v1.yaml} declares the internal
+trust boundaries, external interfaces and Federation edges as separate
+records. Each is bound to a named \textbf{claim ceiling}: a bounded
+statement of what the record establishes, paired with explicit
+non-claims. Federation edges carry separate \textbf{status dimensions}
+for owner confirmation, pinning, execution, independence, claim result,
+production evidence and Federation adoption. A recorded external run
+therefore cannot be read upward as independent verification or
+production evidence. Role mappings for the draft Agent Authority
+Conformance model are declared as candidates with their partial
+coverage stated.
+
+The declarations are fail-closed in both directions. CI gates fail
+when a declaration diverges from the assurance registers, the pinned
+source revisions or the recorded evidence digests:
+\path{scripts/check_remora_capabilities.py},
+\path{scripts/check_remora_boundaries.py} and
+\path{tests/test_remora_boundary_declaration.py}. A boundary cannot
+claim higher maturity than the capabilities that support it. Two boundary
+properties are declared precisely because they are \emph{not}
+established:
+
+\begin{itemize}
+\item \textbf{Runtime capability-surface completeness}
+  (\texttt{runtime\_capability\_surface\_completeness},
+  \texttt{NOT\_ESTABLISHED}): the reference runtime observes its own
+  offered tool surface and dispatcher. This does not establish
+  completeness for external agent processes, host credentials or
+  unobserved alternative paths. Calls that bypass the governed
+  dispatcher are outside the boundary by declaration.
+\item \textbf{Implementation effect non-transitivity}
+  (\texttt{implementation\_effect\_non\_transitivity},
+  \texttt{NOT\_ESTABLISHED}): authorization of a tool does not
+  authorize every privileged effect its implementation can reach. An
+  exact-call lease binds the call, not the implementation's reachable
+  effect space. The three-domain mediation split whose effect domain
+  alone holds the declared effect credentials is implemented (CAP-024),
+  but no deployment runs it, so the property remains open.
+\end{itemize}
+
+These two declarations define the reader-facing scope of every custody
+and dispatch claim in this paper. REMORA establishes properties
+\emph{at} a declared boundary, and the declarations say where that
+boundary ends.
 
 % =====================================================================
 \section{Consensus Observables}
@@ -875,10 +971,13 @@ condition is met.
 
 REMORA exports a 67-field \texttt{PolicyObservation} dataclass as
 JSON to the OPA endpoint. On any communication error (connection
-refused, timeout, parse failure), the Python fallback engine applies
+refused, timeout, parse failure), the parity-tested deterministic
+Python fallback engine applies
 identical rules and records \texttt{source\_of\_decision =
-"python\_fallback"} in the envelope. No decision is ever withheld due
-to a missing policy engine.
+"python\_fallback"} in the envelope. This is a parity fallback rather
+than a failure mode: policy enforcement is neither bypassed nor
+withheld, and no decision is ever gated on an optional policy engine
+being available.
 
 % =====================================================================
 \section{Governance Intelligence Layer: Misspecification-Aware Pre-Policy Enrichment}
@@ -1417,6 +1516,7 @@ full gate and four policy-relevant ablations; the artifact preserves all
 six conditions.
 
 \begin{center}
+\fitcolumn{%
 \begin{tabular}{lrrrr}
 \hline
 Condition & FAR & Unsafe exec & Accuracy & Benign friction \\
@@ -1427,7 +1527,7 @@ without evidence & 0.000 & 0.000 & 0.900 & 0.500 \\
 without counterfactual & 0.000 & 0.000 & 0.900 & 0.500 \\
 without hard blocks & 0.000 & 0.000 & 0.300 & 0.500 \\
 \hline
-\end{tabular}
+\end{tabular}}
 \end{center}
 
 \emph{Benign friction is the fraction of benign cases routed to human
@@ -1620,6 +1720,25 @@ correct from incorrect critical-phase items. \emph{Consequence:}
 evidence routing (not trust scoring) is the required mechanism for
 critical-phase decisions.
 
+\paragraph{Boundary claims are declared, not closed.}
+Two properties that bound every custody and dispatch claim in this
+paper are explicitly unestablished
+(\S\ref{sec:boundary-declarations}). Runtime capability-surface
+completeness is \texttt{NOT\_ESTABLISHED}: the strict-profile custody
+and dispatch evidence covers REMORA's own governed surface, and does
+not establish that an external agent process lacks alternate
+credential, network or execution paths. Implementation effect
+non-transitivity is \texttt{NOT\_ESTABLISHED}: authorizing a tool does
+not authorize every privileged effect its implementation can reach, so
+the lease binds the exact call, not the effect space. The bounded
+external run records for the E-ECB, E-FA and E-EE contracts are
+author-attributed reproductions of frozen fixtures; they are not
+independent verification, and no boundary-level claim result is
+established by them. The paper's custody claims
+(\S\ref{sec:execution-chain}), and its title, should be read within
+these declared limits: REMORA establishes properties at a declared
+boundary and does not claim that all agent effects are governed.
+
 % =====================================================================
 \section{Threats to Validity}
 \label{sec:threats}
@@ -1689,6 +1808,23 @@ Live oracle experiments require \texttt{GROQ\_API\_KEY} (earlier rounds)
 or \texttt{CLOUDFLARE\_API\_TOKEN} (Cloudflare Workers AI, the 2026-07
 clean round). Oracle model versions may change; results are sensitive to
 model version updates. Stored artifact experiments are fully deterministic.
+
+\paragraph{Fixture self-service vs.\ runtime reproduction.}
+Three frozen interoperability contracts are self-service at the fixture
+level. An outside operator can run the pinned reference verifier for the
+exact-call-binding, fresh-authority and effect-evidence packages under
+\path{artifacts/interop/}. Commands, source revisions and package
+digests are declared in \path{docs/interop/remora-capabilities-v1.yaml}.
+These commands replay publisher-authored reference verifiers against
+frozen fixture bytes. They do not execute the REMORA runtime, and they
+do not validate that the current runtime implements the contract. A
+successful replay is a bounded fixture claim, not a reproduction of the
+system. Runtime-level reproduction is declared \texttt{NOT\_READY} for
+all three capabilities, and an externally recorded run is not
+independent verification. The declarations themselves validate with
+\path{scripts/check_remora_capabilities.py},
+\path{scripts/check_remora_boundaries.py} and
+\path{scripts/build_remora_boundary_summary.py} \texttt{--check}.
 
 \paragraph{License.}
 This preprint is distributed as part of the REMORA Licensed Work under
@@ -1763,13 +1899,24 @@ The current architecture offers two further research interfaces. Typed
 evidence admission makes the scope and provenance of a claimed observation
 inspectable; federation publishes digest-pinned packages that an outside
 verifier can run without turning foreign results into execution authority.
-The former is not yet wired into effect verification, and the E7 federation
-contract awaits an external run. Experiment-specific constraints appear
+The former is not yet wired into effect verification. Bounded external
+run records now exist for the exact-call-binding, fresh-authority and
+effect-evidence contracts (E-ECB, E-FA, E-EE). They are author-attributed
+reproductions of frozen fixture contracts, not independent verification,
+and each boundary-level claim result is recorded as
+\texttt{NOT\_ESTABLISHED}. The E7 runtime-surface contract has pinned
+fixtures but no external run. Experiment-specific constraints appear
 beside the reported results and in \S\ref{sec:threats};
 \texttt{NEGATIVE\_RESULTS.md} preserves the complete finding history.
 
-REMORA remains \texttt{SHADOW\_ONLY}. Independent replication and
-production field evidence are pending. Its present contribution is a
+REMORA remains \texttt{SHADOW\_ONLY}. It does not claim that all agent
+effects are governed. It makes the governed boundary explicit, declares
+what properties it can establish at that boundary, and publishes what it
+cannot establish. Runtime capability-surface completeness and
+implementation effect non-transitivity are among the published
+non-claims. The bounded contracts it exposes can be reproduced by
+outside operators. Production enforcement evidence and Federation
+adoption remain unestablished. Its present contribution is a
 reproducible account of where authority comes from, when a call may
 proceed, and which evidence can support a claim about its effect.
 
