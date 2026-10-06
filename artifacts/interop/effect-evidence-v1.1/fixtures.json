@@ -1,6 +1,6 @@
 {
   "schema_version": "remora-effect-evidence-fixtures-v1.1",
-  "source_revision": "5879bf444bfc587e4b725b205fb0ded6454d8d84",
+  "source_revision": "58ebc0b2fec241056a362977adcf59e05e88674e",
   "claims": [
     "effect_state_distinction"
   ],
