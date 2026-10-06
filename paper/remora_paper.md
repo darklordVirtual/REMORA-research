@@ -2,11 +2,11 @@
 
 **Stian Skogbrott** (Luftfiber AS) · [https://github.com/darklordVirtual/REMORA-research](https://github.com/darklordVirtual/REMORA-research)
 
-*Paper version v0.12.0 · revision 2026-10-06 · repository release tag `v0.12.0` (to be cut when this revision is published; the latest published tag is `v0.11.0`).*
+*Paper version v0.11.0 · revision 2026-10-06 · repository release tag `v0.11.0`.*
 
 <!-- PAPER_SYNC: this version + revision line is the single authority for the
      paper's version stamp. scripts/check_paper_sync.py requires the SAME
-    "v0.12.0" and "revision 2026-10-06" strings to appear in paper/remora_paper.tex
+    "v0.11.0" and "revision 2026-10-06" strings to appear in paper/remora_paper.tex
      (which compiles the PDF), so the .md, .tex and .pdf can never diverge on
      version, date, or the guarded process claims again. To revise the paper:
      bump both strings here, mirror them in the .tex \paperversion/\date, and
@@ -1038,7 +1038,7 @@ REMORA is designed to *reduce* unsafe autonomous AI actions, not to enable them.
 
 ## 16. Reproducibility and Artifact Availability
 
-**Repository:** Available at [https://github.com/darklordVirtual/REMORA-research](https://github.com/darklordVirtual/REMORA-research). Release tag: `v0.12.0`, cut when this revision is published; the latest published tag is `v0.11.0`, a frozen, CI-green commit with sdist/wheel checksums published on the GitHub release. The paper is versioned in lockstep with the release (see the version line at the top of this paper).
+**Repository:** Available at [https://github.com/darklordVirtual/REMORA-research](https://github.com/darklordVirtual/REMORA-research). Release tag: `v0.11.0`, a frozen, CI-green commit with sdist/wheel checksums published on the GitHub release. The paper is versioned in lockstep with it (see the version line at the top of this paper).
 
 **Python version:** 3.11+
 
