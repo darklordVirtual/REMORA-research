@@ -36,7 +36,7 @@ contourpy==1.3.3
 coverage==7.16.2
 cryptography==50.0.1
 cycler==0.12.1
-datasets==4.8.5
+datasets==5.0.1
 debugpy==1.8.21
 deepdiff==9.1.0
 defusedxml==0.7.1
@@ -57,7 +57,7 @@ filelock==3.20.3
 fonttools==4.61.1
 fpdf2==2.8.7
 frozenlist==1.8.0
-fsspec==2026.2.0
+fsspec==2026.6.0
 ghp-import==2.1.0
 git-filter-repo==2.47.0
 glom==25.12.0
@@ -106,11 +106,11 @@ langchain-protocol==0.0.19
 langgraph==1.2.6
 langgraph-checkpoint==4.1.1
 langgraph-prebuilt==1.1.0
-langgraph-sdk==0.4.2
+langgraph-sdk==0.4.4
 langsmith==0.14.1
 lark==1.3.1
 linkify-it-py==2.1.0
-Mako==1.3.12
+Mako==1.4.2
 Markdown==3.9
 markdown-it-py==4.0.0
 MarkupSafe==3.0.3
@@ -126,7 +126,7 @@ mkdocs-material-extensions==1.3.1
 mmh3==5.2.1
 momentchi2==0.1.8
 mpmath==1.3.0
-multidict==6.7.0
+multidict==6.9.1
 multiprocess==0.70.16
 mypy==2.3.1
 mypy_extensions==1.1.0
@@ -207,7 +207,7 @@ ruff==0.16.9
 s3fs==2026.2.0
 s3transfer==0.19.2
 safetensors==0.8.0
-scapy==2.6.1
+scapy==2.7.0rc1
 scikit-learn==1.9.1
 scipy==1.17.1
 seaborn==0.13.2
