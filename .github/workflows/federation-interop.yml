@@ -10,41 +10,39 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "artifacts/interop/**"
-      - "docs/interop/FEDERATION.md"
-      - "docs/interop/INTEROP_MATRIX.md"
-      - "docs/interop/remora-boundaries-v1.*"
-      - "remora/interop/**"
-      - "scripts/interop_package.py"
-      - "scripts/interop_author_run.py"
-      - "scripts/build_interop_matrix.py"
-      - "scripts/check_remora_boundaries.py"
-      - "scripts/build_remora_boundary_summary.py"
-      - "tests/test_federation_interop_contract.py"
+      - "docs/interop/**"
+      - "docs/assurance/**"
+      - "remora/**"
+      - "servers/**"
+      - "scripts/**"
+      - "schemas/**"
+      - "tests/test_*interop*.py"
+      - "tests/test_remora_*.py"
       - "tests/test_runtime_surface_e7_fixture_contract.py"
-      - "tests/test_interop_boundary_fixtures.py"
-      - "tests/test_interop_result_contract.py"
-      - "tests/test_remora_boundary_declaration.py"
       - "tests/test_agentavow_edge.py"
+      - "tests/conftest.py"
+      - "pyproject.toml"
+      - "requirements-lock.txt"
+      - "requirements-federation*"
       - ".github/workflows/federation-interop.yml"
   push:
     branches: [master]
     paths:
       - "artifacts/interop/**"
-      - "docs/interop/FEDERATION.md"
-      - "docs/interop/INTEROP_MATRIX.md"
-      - "docs/interop/remora-boundaries-v1.*"
-      - "remora/interop/**"
-      - "scripts/interop_package.py"
-      - "scripts/interop_author_run.py"
-      - "scripts/build_interop_matrix.py"
-      - "scripts/check_remora_boundaries.py"
-      - "scripts/build_remora_boundary_summary.py"
-      - "tests/test_federation_interop_contract.py"
+      - "docs/interop/**"
+      - "docs/assurance/**"
+      - "remora/**"
+      - "servers/**"
+      - "scripts/**"
+      - "schemas/**"
+      - "tests/test_*interop*.py"
+      - "tests/test_remora_*.py"
       - "tests/test_runtime_surface_e7_fixture_contract.py"
-      - "tests/test_interop_boundary_fixtures.py"
-      - "tests/test_interop_result_contract.py"
-      - "tests/test_remora_boundary_declaration.py"
       - "tests/test_agentavow_edge.py"
+      - "tests/conftest.py"
+      - "pyproject.toml"
+      - "requirements-lock.txt"
+      - "requirements-federation*"
       - ".github/workflows/federation-interop.yml"
   workflow_dispatch:
 
@@ -71,20 +69,46 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.12.15"
           cache: "pip"
+          cache-dependency-path: |
+            requirements-federation-bootstrap.lock
+            requirements-federation.lock
 
       - name: Install (pinned)
         run: |
-          python -m pip install --upgrade pip
-          grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
-          pip install -e ".[dev]" -c /tmp/constraints.txt
+          python -m pip install --no-deps --only-binary=:all: --require-hashes -r requirements-federation-bootstrap.lock
+          python -m pip install --no-deps --only-binary=:all: --require-hashes -r requirements-federation.lock
+          python -m pip install --no-deps --no-build-isolation -e .
+          python -m pip check
 
       - name: Federation producer contract
         run: python -m pytest tests/test_federation_interop_contract.py tests/test_runtime_surface_e7_fixture_contract.py tests/test_interop_result_contract.py tests/test_interop_boundary_fixtures.py tests/test_agentavow_edge.py tests/test_remora_boundary_declaration.py -q --no-cov -p no:cacheprovider
 
       - name: Publication gate (claim ceiling, provenance, run records, manifest)
         run: python scripts/interop_package.py --check
+
+      - name: Runtime self-service and separate runner failure dimensions
+        run: python -m pytest tests/test_interop_self_service.py tests/test_interop_operator_statement.py tests/test_interop_external_admission.py tests/test_interop_contract_graph.py tests/test_interop_ci_contract.py tests/test_remora_capability_declaration.py -q --no-cov -p no:cacheprovider
+
+      - name: Optional contract graph (no inherited claims)
+        run: python scripts/interop_contract_graph.py
+
+      - name: Unaided pinned runtime procedure (producer CI; not external evidence)
+        run: |
+          exit_code=0
+          python scripts/interop_self_service.py --revision "$(git rev-parse HEAD)" --operator "REMORA producer CI" --host "GitHub-hosted producer job" --output "$RUNNER_TEMP/remora-runtime-observation.json" || exit_code=$?
+          case "$exit_code" in
+            0|3) echo "Execution completed; inspect per-case claim_status in the observation." ;;
+            *) exit "$exit_code" ;;
+          esac
+
+      - name: Retain completed producer observation (not an admitted external run)
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: producer-runtime-observation
+          path: ${{ runner.temp }}/remora-runtime-observation.json
+          if-no-files-found: error
 
       - name: Author run records agree with the committed packages (L0; advances nothing)
         run: python scripts/interop_author_run.py --check

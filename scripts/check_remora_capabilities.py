@@ -89,6 +89,55 @@ def validate_declaration(data: Any, root: Path = ROOT) -> None:
         errors.append("self-service capability IDs must be unique")
     workflow_by_id = {cap["id"]: cap for cap in workflow}
 
+    procedures = data.get("runtime_self_service_procedures", [])
+    procedure_ids = [item["id"] for item in procedures]
+    if len(procedure_ids) != len(set(procedure_ids)):
+        errors.append("runtime self-service procedure IDs must be unique")
+    contracts_by_id = {item["id"]: item for item in interop_index["contracts"]}
+    for procedure in procedures:
+        for ref in procedure["capability_refs"]:
+            if ref not in workflow_by_id:
+                errors.append(f"{procedure['id']}: unknown workflow capability {ref}")
+        for name in procedure["frozen_fixture_contracts"]:
+            contract = contracts_by_id.get(name)
+            if contract is None or not contract.get("freeze_record") or contract["lifecycle"] == "DRAFT":
+                errors.append(f"{procedure['id']}: fixture contract is not frozen: {name}")
+        for ref in [
+            procedure["runner"], procedure["procedure_reference"],
+            procedure["result_schema"], *procedure["tests"],
+            procedure["operator_statement"]["tool"], procedure["operator_statement"]["schema"],
+            procedure["operator_statement"]["procedure"],
+            *[procedure["external_admission"][field]
+              for field in ("validator", "operator_registry", "submission_schema", "workflow")],
+        ]:
+            if not _relative_file_exists(root, ref):
+                errors.append(f"{procedure['id']}: procedure evidence reference does not exist: {ref}")
+
+    runtime_entry = interop_index.get("runtime_self_service")
+    if runtime_entry is not None:
+        if not any(
+            runtime_entry == {
+                "runner": procedure["runner"],
+                "procedure": procedure["procedure_reference"],
+                "result_schema": procedure["result_schema"],
+                "capability_declaration": DECLARATION.relative_to(ROOT).as_posix(),
+                "independence": procedure["independence"],
+                "advances_lifecycle": procedure["advances_lifecycle"],
+            }
+            for procedure in procedures
+        ):
+            errors.append("runtime self-service index entry must match a declared procedure")
+    statement_entry = interop_index.get("operator_statement")
+    if statement_entry is not None and not any(
+        statement_entry == procedure["operator_statement"] for procedure in procedures
+    ):
+        errors.append("operator statement index entry must match a declared procedure")
+    admission_entry = interop_index.get("external_admission")
+    if admission_entry is not None and not any(
+        admission_entry == procedure["external_admission"] for procedure in procedures
+    ):
+        errors.append("external admission index entry must match a declared procedure")
+
     for cap in workflow:
         evidence = cap["evidence"]
         trust_boundary = cap["trust_boundary"]

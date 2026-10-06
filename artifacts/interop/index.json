@@ -11,6 +11,43 @@
     "second_implementation_is_independent": false
   },
   "boundary_summary": "artifacts/interop/remora-boundary-summary-v1.json",
+  "runtime_self_service": {
+    "runner": "scripts/interop_self_service.py",
+    "procedure": "docs/interop/CAPABILITY_DISCOVERY.md#runtime-self-service",
+    "result_schema": "schemas/runtime-self-service-v1.schema.json",
+    "capability_declaration": "docs/interop/remora-capabilities-v1.yaml",
+    "independence": "NOT_CLASSIFIED",
+    "advances_lifecycle": false
+  },
+  "operator_statement": {
+    "tool": "scripts/interop_operator_statement.py",
+    "schema": "schemas/interop-operator-statement-v1.schema.json",
+    "procedure": "docs/interop/CAPABILITY_DISCOVERY.md#operator-statements",
+    "requires_extra": "security",
+    "admission": "UNADMITTED",
+    "signature_confers_authority": false
+  },
+  "external_admission": {
+    "validator": "scripts/interop_external_admission.py",
+    "operator_registry": "artifacts/interop/operators-v1.json",
+    "submission_schema": "schemas/interop-submission-v1.schema.json",
+    "workflow": ".github/workflows/external-interop-admission.yml",
+    "decision": "REVIEW_ONLY",
+    "reruns_runtime": false
+  },
+  "contract_dependencies": "artifacts/interop/contract-dependencies-v1.json",
+  "optional_contracts": [
+    {
+      "id": "attested-execution-v1",
+      "lifecycle": "DRAFT",
+      "implementation_status": "NOT_IMPLEMENTED",
+      "source_revision": "ed1bb27c18d3ce875d3f5d9c983eebf2e3989ff7",
+      "definition": "artifacts/interop/attested-execution-v1/contract.json",
+      "definition_digest": "sha256:d604cade0da8587ab5607d88508c99b1bede1c4c015e9d03a2f68d67810da140",
+      "record_schema": "schemas/attested-execution-v1.schema.json",
+      "record_schema_digest": "sha256:e5e06397d1ca159352f2ba5f4dd358d4986604709352c0bb801ee2f4650df406"
+    }
+  ],
   "contracts": [
     {
       "id": "runtime-surface-e7-v0.1",

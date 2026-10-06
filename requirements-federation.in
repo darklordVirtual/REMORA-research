@@ -1,0 +1,9 @@
+# Producer/admission tooling only; runtime extras are not inferred from dev.
+-c requirements-lock.txt
+pytest
+pytest-cov
+pyyaml
+jsonschema
+cryptography
+hatchling
+editables

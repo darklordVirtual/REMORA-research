@@ -1,0 +1,5 @@
+{
+  "schema_version": "remora-interop-operator-registry-v1",
+  "trust_rule": "Base-revision entries only; new keys require separate maintainer review and merge before an observation submission.",
+  "operators": []
+}

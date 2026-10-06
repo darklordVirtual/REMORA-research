@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Optional attested-execution candidate v1 (DRAFT), not locally verified",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract_id", "provider", "verifier_profile", "attestation_document_digest", "workload_measurement", "challenge", "appraisal", "execution_binding", "claims", "local_verification", "confers_authority"],
+  "properties": {
+    "contract_id": {"const": "attested-execution-v1"},
+    "provider": {"type": "string", "minLength": 1},
+    "verifier_profile": {"type": "string", "minLength": 1},
+    "attestation_document_digest": {"$ref": "#/$defs/digest"},
+    "workload_measurement": {
+      "type": "object", "additionalProperties": false,
+      "required": ["native_format", "value", "approved_workload_digest"],
+      "properties": {
+        "native_format": {"type": "string", "minLength": 1},
+        "value": {"type": "string", "minLength": 1},
+        "approved_workload_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "challenge": {
+      "type": "object", "additionalProperties": false,
+      "required": ["nonce", "issued_at", "maximum_age_seconds"],
+      "properties": {
+        "nonce": {"type": "string", "minLength": 32, "maxLength": 512},
+        "issued_at": {"type": "string", "format": "date-time"},
+        "maximum_age_seconds": {
+          "type": "integer", "minimum": 1,
+          "description": "Declared window; the selected deployment/verifier profile must independently bound and enforce it."
+        }
+      }
+    },
+    "appraisal": {
+      "type": "object", "additionalProperties": false,
+      "required": ["verifier_identity", "at", "verdict", "challenge_nonce", "evidence_digest"],
+      "properties": {
+        "verifier_identity": {"type": "string", "minLength": 1},
+        "at": {"type": "string", "format": "date-time"},
+        "verdict": {"enum": ["AFFIRMING", "NEGATIVE", "UNKNOWN"]},
+        "challenge_nonce": {"type": "string", "minLength": 32, "maxLength": 512},
+        "evidence_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "execution_binding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["observation_digest", "execution_context_digest", "runner_digest"],
+      "properties": {
+        "observation_digest": {"$ref": "#/$defs/digest"},
+        "execution_context_digest": {"$ref": "#/$defs/digest"},
+        "runner_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "claims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["tee_execution", "workload_measurement", "attestation_freshness", "application_correctness", "runtime_surface_completeness", "effect_correctness"],
+      "properties": {
+        "tee_execution": {"$ref": "#/$defs/status"},
+        "workload_measurement": {"$ref": "#/$defs/status"},
+        "attestation_freshness": {"$ref": "#/$defs/status"},
+        "application_correctness": {"const": "NOT_ESTABLISHED"},
+        "runtime_surface_completeness": {"const": "NOT_ESTABLISHED"},
+        "effect_correctness": {"const": "NOT_ESTABLISHED"}
+      }
+    },
+    "local_verification": {"const": "NOT_EVALUATED"},
+    "confers_authority": {"const": false}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "status": {"enum": ["ESTABLISHED", "NOT_ESTABLISHED", "CONTRADICTED"]}
+  },
+  "allOf": [{
+    "if": {
+      "properties": {"claims": {"anyOf": [
+        {"properties": {"tee_execution": {"const": "ESTABLISHED"}}},
+        {"properties": {"workload_measurement": {"const": "ESTABLISHED"}}},
+        {"properties": {"attestation_freshness": {"const": "ESTABLISHED"}}}
+      ]}}
+    },
+    "then": {"properties": {"appraisal": {"properties": {"verdict": {"const": "AFFIRMING"}}}}}
+  }]
+}

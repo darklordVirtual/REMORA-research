@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "confers_authority", "status_inheritance", "properties", "contracts"],
+  "properties": {
+    "schema_version": {"const": "remora-contract-dependencies-v1"},
+    "confers_authority": {"const": false},
+    "status_inheritance": {"const": false},
+    "properties": {"$ref": "#/$defs/names", "minItems": 1},
+    "contracts": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["contract_id", "depends_on", "strengthens", "does_not_establish"],
+        "properties": {
+          "contract_id": {"type": "string", "minLength": 1},
+          "depends_on": {"$ref": "#/$defs/names"},
+          "strengthens": {"$ref": "#/$defs/names"},
+          "does_not_establish": {"$ref": "#/$defs/names"},
+          "relationship_scope": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "names": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+  }
+}

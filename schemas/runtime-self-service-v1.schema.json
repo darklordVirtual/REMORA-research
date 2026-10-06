@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "REMORA bounded runtime observation, not an admitted external run",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "execution_status", "host_isolation", "runtime_revision", "operator_declaration", "host_declaration", "independence", "evaluator", "authority", "boundary", "started_at", "completed_at", "environment", "source_files", "runtime_modules", "contracts"],
+  "properties": {
+    "schema_version": {"const": "remora-runtime-self-service-v1"},
+    "execution_status": {"const": "COMPLETED"},
+    "host_isolation": {"const": "NOT_ESTABLISHED"},
+    "runtime_revision": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "operator_declaration": {"type": "string", "minLength": 1},
+    "host_declaration": {"type": "string", "minLength": 1},
+    "independence": {"const": "NOT_CLASSIFIED"},
+    "evaluator": {"const": "PRODUCER_RUNTIME"},
+    "authority": {"const": "NONE"},
+    "boundary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["register", "register_digest", "summary", "summary_digest", "audited_revision"],
+      "properties": {
+        "register": {"const": "docs/interop/remora-boundaries-v1.yaml"},
+        "register_digest": {"$ref": "#/$defs/digest"},
+        "summary": {"const": "artifacts/interop/remora-boundary-summary-v1.json"},
+        "summary_digest": {"$ref": "#/$defs/digest"},
+        "audited_revision": {"type": "string", "pattern": "^[0-9a-f]{40}$"}
+      }
+    },
+    "started_at": {"type": "string", "format": "date-time"},
+    "completed_at": {"type": "string", "format": "date-time"},
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["python", "os", "machine", "distributions"],
+      "properties": {
+        "python": {"type": "string", "minLength": 1},
+        "os": {"type": "string", "minLength": 1},
+        "machine": {"type": "string", "minLength": 1},
+        "distributions": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+      }
+    },
+    "source_files": {"$ref": "#/$defs/digests"},
+    "runtime_modules": {"$ref": "#/$defs/digests"},
+    "contracts": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["contract_id", "fixture_source_revision", "fixture_digest", "package_digest", "claim_ceilings", "does_not_establish", "cases"],
+        "properties": {
+          "contract_id": {"enum": ["exact-call-binding-v1", "fresh-authority-v1", "effect-evidence-v1"]},
+          "fixture_source_revision": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+          "fixture_digest": {"$ref": "#/$defs/digest"},
+          "package_digest": {"$ref": "#/$defs/digest"},
+          "claim_ceilings": {
+            "type": "array", "minItems": 1,
+            "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["claim_id", "result_vocabulary", "claim_ceiling"],
+              "properties": {
+                "claim_id": {"type": "string", "minLength": 1},
+                "claim_ceiling": {"type": "string", "minLength": 1},
+                "result_vocabulary": {"type": "array", "items": {"enum": ["ESTABLISHED", "NOT_ESTABLISHED", "CONTRADICTED"]}}
+              }
+            }
+          },
+          "does_not_establish": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+          "cases": {
+            "type": "array", "minItems": 1,
+            "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["case_id", "claim_id", "expected", "observed", "claim_status"],
+              "properties": {
+                "case_id": {"type": "string", "minLength": 1},
+                "claim_id": {"type": "string", "minLength": 1},
+                "expected": {"$ref": "#/$defs/value"},
+                "observed": {"$ref": "#/$defs/value"},
+                "claim_status": {"enum": ["ESTABLISHED", "NOT_ESTABLISHED", "CONTRADICTED"]}
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "digests": {"type": "object", "minProperties": 1, "additionalProperties": {"$ref": "#/$defs/digest"}},
+    "value": {
+      "type": "object", "additionalProperties": false, "required": ["value"],
+      "properties": {
+        "value": {
+          "oneOf": [
+            {
+              "type": "array", "minItems": 1,
+              "items": {
+                "type": "object", "additionalProperties": false,
+                "required": ["outcome", "refusal_class"],
+                "properties": {
+                  "outcome": {"type": "string", "minLength": 1},
+                  "refusal_class": {"type": ["string", "null"]}
+                }
+              }
+            },
+            {
+              "type": "object", "additionalProperties": false,
+              "required": ["effect_status", "highest_established_state"],
+              "properties": {
+                "effect_status": {"type": "string", "minLength": 1},
+                "highest_established_state": {"type": "string", "minLength": 1}
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

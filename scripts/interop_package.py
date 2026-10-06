@@ -46,6 +46,10 @@ import jsonschema
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+from remora.interop.package_identity import package_digest  # noqa: E402
+
 INDEX = ROOT / "artifacts" / "interop" / "index.json"
 SHA40 = re.compile(r"\b[0-9a-f]{40}\b")
 
@@ -64,12 +68,6 @@ def _dump(path: Path, data: Any) -> None:
 
 def _sha256_bytes(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
-
-
-def package_digest(package_files: list[dict[str, str]]) -> str:
-    """SHA-256 over '<path> <sha256>\\n' lines sorted by path."""
-    lines = "".join(f"{e['path']} {e['sha256']}\n" for e in sorted(package_files, key=lambda e: e["path"]))
-    return "sha256:" + _sha256_bytes(lines.encode("utf-8"))
 
 
 def _contract(index: dict[str, Any], contract_id: str) -> dict[str, Any]:

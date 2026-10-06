@@ -46,6 +46,8 @@ requires-python = ">=3.11"
 dependencies = []
 
 [project.optional-dependencies]
+# Runtime-primitive self-service report validation; no API or model clients.
+interop = ["jsonschema>=4.25"]
 # Core LLM API clients
 llm = ["openai>=3.3.1", "groq>=1.6.0"]
 # Cloud provider SDKs for storage / secrets

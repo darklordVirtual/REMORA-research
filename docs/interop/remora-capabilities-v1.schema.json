@@ -83,6 +83,53 @@
       "type": "array",
       "items": {"$ref": "#/$defs/selfServiceCapability"}
     },
+    "runtime_self_service_procedures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "availability", "scope", "capability_refs", "frozen_fixture_contracts", "runner", "procedure_reference", "result_schema", "tests", "revision_rule", "claim_ceiling", "independence", "advances_lifecycle", "operator_statement", "external_admission"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"},
+          "availability": {"const": "self_service"},
+          "scope": {"const": "pinned_runtime_primitive_fixtures"},
+          "capability_refs": {"$ref": "#/$defs/stringList", "minItems": 1, "uniqueItems": true},
+          "frozen_fixture_contracts": {"$ref": "#/$defs/stringList", "minItems": 1, "uniqueItems": true},
+          "runner": {"type": "string", "minLength": 1},
+          "procedure_reference": {"type": "string", "minLength": 1},
+          "result_schema": {"type": "string", "minLength": 1},
+          "tests": {"$ref": "#/$defs/stringList", "minItems": 1, "uniqueItems": true},
+          "revision_rule": {"const": "explicit_full_commit_at_HEAD_committed_snapshot"},
+          "claim_ceiling": {"type": "string", "minLength": 1},
+          "independence": {"const": "NOT_CLASSIFIED"},
+          "advances_lifecycle": {"const": false},
+          "operator_statement": {
+            "type": "object", "additionalProperties": false,
+            "required": ["tool", "schema", "procedure", "requires_extra", "admission", "signature_confers_authority"],
+            "properties": {
+              "tool": {"type": "string", "minLength": 1},
+              "schema": {"type": "string", "minLength": 1},
+              "procedure": {"type": "string", "minLength": 1},
+              "requires_extra": {"const": "security"},
+              "admission": {"const": "UNADMITTED"},
+              "signature_confers_authority": {"const": false}
+            }
+          },
+          "external_admission": {
+            "type": "object", "additionalProperties": false,
+            "required": ["validator", "operator_registry", "submission_schema", "workflow", "decision", "reruns_runtime"],
+            "properties": {
+              "validator": {"type": "string", "minLength": 1},
+              "operator_registry": {"type": "string", "minLength": 1},
+              "submission_schema": {"type": "string", "minLength": 1},
+              "workflow": {"type": "string", "minLength": 1},
+              "decision": {"const": "REVIEW_ONLY"},
+              "reruns_runtime": {"const": false}
+            }
+          }
+        }
+      }
+    },
     "capability_audit": {
       "type": "object",
       "required": ["investigated"],

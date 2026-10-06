@@ -1,0 +1,63 @@
+name: External Interop Admission (review only)
+
+# pull_request_target supplies base-owned workflow/code. Head Git blobs are
+# data only: never install, import or run the incoming checkout.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "artifacts/interop/submissions/**"
+      - "artifacts/interop/operators-v1.json"
+      - "scripts/interop_external_admission.py"
+      - "schemas/interop-*"
+      - "requirements-federation*"
+      - ".github/workflows/external-interop-admission.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: external-interop-admission-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: trusted
+    steps:
+      - name: Checkout base-owned validator and trust registry
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: trusted
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Fetch incoming Git objects (never execute this tree)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: incoming
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup exact Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12.15"
+
+      - name: Install only base-owned hash-locked tooling and source
+        run: |
+          python -m pip install --no-deps --only-binary=:all: --require-hashes -r requirements-federation-bootstrap.lock
+          python -m pip install --no-deps --only-binary=:all: --require-hashes -r requirements-federation.lock
+          python -m pip install --no-deps --no-build-isolation -e .
+          python -m pip check
+
+      - name: Validate operator, source, boundary and claim bindings without rerunning
+        env:
+          TRUST_REVISION: ${{ github.event.pull_request.base.sha }}
+          SUBMISSION_REVISION: ${{ github.event.pull_request.head.sha }}
+        run: python scripts/interop_external_admission.py --repo ../incoming --base "$TRUST_REVISION" --head "$SUBMISSION_REVISION"

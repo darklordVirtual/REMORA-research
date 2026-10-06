@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Detached operator statement v1; key possession is not independent conformance",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["statement", "signature"],
+  "properties": {
+    "statement": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_version", "canonical_format", "runtime_revision", "revision_digest", "runner_digest", "boundary_digest", "package_digests", "observation_digest", "operator_identity", "host_declaration", "execution_started_at", "execution_completed_at", "issued_at", "key_id", "host_isolation", "independence", "admission", "authority"],
+      "properties": {
+        "schema_version": {"const": "remora-operator-statement-v1"},
+        "canonical_format": {"const": "remora/jcs-rfc8785-v0"},
+        "runtime_revision": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "revision_digest": {"$ref": "#/$defs/digest"},
+        "runner_digest": {"$ref": "#/$defs/digest"},
+        "boundary_digest": {"$ref": "#/$defs/digest"},
+        "package_digests": {
+          "type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["contract_id", "package_digest", "fixture_digest"],
+            "properties": {
+              "contract_id": {"enum": ["exact-call-binding-v1", "fresh-authority-v1", "effect-evidence-v1"]},
+              "package_digest": {"$ref": "#/$defs/digest"},
+              "fixture_digest": {"$ref": "#/$defs/digest"}
+            }
+          }
+        },
+        "observation_digest": {"$ref": "#/$defs/digest"},
+        "operator_identity": {"type": "string", "minLength": 1},
+        "host_declaration": {"type": "string", "minLength": 1},
+        "execution_started_at": {"type": "string", "format": "date-time"},
+        "execution_completed_at": {"type": "string", "format": "date-time"},
+        "issued_at": {"type": "string", "format": "date-time"},
+        "key_id": {"$ref": "#/$defs/digest"},
+        "host_isolation": {"const": "NOT_ESTABLISHED"},
+        "independence": {"const": "NOT_CLASSIFIED"},
+        "admission": {"const": "UNADMITTED"},
+        "authority": {"const": "NONE"}
+      }
+    },
+    "signature": {
+      "type": "object", "additionalProperties": false,
+      "required": ["algorithm", "public_key_jwk", "value"],
+      "properties": {
+        "algorithm": {"const": "Ed25519"},
+        "value": {"type": "string", "pattern": "^[A-Za-z0-9_-]{86}$"},
+        "public_key_jwk": {
+          "type": "object", "additionalProperties": false,
+          "required": ["kty", "crv", "x"],
+          "properties": {
+            "kty": {"const": "OKP"},
+            "crv": {"const": "Ed25519"},
+            "x": {"type": "string", "pattern": "^[A-Za-z0-9_-]{43}$"}
+          }
+        }
+      }
+    }
+  },
+  "$defs": {"digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}}
+}
