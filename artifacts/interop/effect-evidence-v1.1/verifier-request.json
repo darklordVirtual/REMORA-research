@@ -4,7 +4,7 @@
   "edge": "E-EE-V1-1",
   "producer": {
     "repository": "darklordVirtual/REMORA-research",
-    "source_revision": "5879bf444bfc587e4b725b205fb0ded6454d8d84"
+    "source_revision": "58ebc0b2fec241056a362977adcf59e05e88674e"
   },
   "package_identity": {
     "manifest": "artifacts/interop/effect-evidence-v1.1/manifest.json",
@@ -13,11 +13,11 @@
   "inputs": {
     "fixtures": {
       "path": "artifacts/interop/effect-evidence-v1.1/fixtures.json",
-      "sha256": "045491524d3ede6f5eae79d0346cca3563010260f27f747d9ef1f8a30c8cd21c"
+      "sha256": "fb8e4df5309f8d442ec1b8ca544eaff7fe0fdd4a71d73e3277f57f955374d6a5"
     },
     "claim_packet": {
       "path": "artifacts/interop/effect-evidence-v1.1/claim-packet.json",
-      "sha256": "e5fb0218e98e1791aee3e252333bc229310a7567413914a4f193a05c2dd76364"
+      "sha256": "0f43f8e46309c9eacaeb3e502f1361de999fff3ae278952f6e4bafe2e5c4b009"
     }
   },
   "run_record_schema": "artifacts/interop/schemas/external-run-record-v1.schema.json",

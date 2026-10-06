@@ -2,7 +2,7 @@
   "schema_version": "remora-exact-call-binding-v1.1-manifest",
   "lifecycle": "DRAFT",
   "producer": "REMORA-research",
-  "source_revision": "5879bf444bfc587e4b725b205fb0ded6454d8d84",
+  "source_revision": "58ebc0b2fec241056a362977adcf59e05e88674e",
   "source_artifacts": [],
   "package_files": [
     {
@@ -11,11 +11,11 @@
     },
     {
       "path": "artifacts/interop/exact-call-binding-v1.1/claim-packet.json",
-      "sha256": "35d82c8b24a08a00b4990b03ba9353e465590ec0a648ff427c9491b6407262fe"
+      "sha256": "3eec20bfecf43111d80956baea3d9dc365a4dc0722aa3cfe947cceadd0926611"
     },
     {
       "path": "artifacts/interop/exact-call-binding-v1.1/fixtures.json",
-      "sha256": "81a48ff5514823a71ebe35658fd162d18b1367d0a437c78052bc0b52450cb352"
+      "sha256": "b1ac9dba6f99d5b2aa9f4214efabfad491822f9d627a96fe3caea3d889431e6c"
     },
     {
       "path": "artifacts/interop/exact-call-binding-v1.1/reference_verifier.py",
@@ -23,10 +23,10 @@
     },
     {
       "path": "artifacts/interop/exact-call-binding-v1.1/verifier-request.json",
-      "sha256": "3c20fcab88809e207d1ca1d07309df455f7517493c5a269d1032b6f48d03c693"
+      "sha256": "cc3229bfc0fb33a83d920ff7a9c08fdf2964fb1a1fd7b47713686d7b070e2751"
     }
   ],
-  "package_digest": "sha256:a902ddaa586d2be2940302be67d768964a1c3d562ccec8af27a4a3a692e53ed2",
+  "package_digest": "sha256:e2f5a40d29733522db4e70d6bbe1c3a7b0ebb6a153a15c02339660828471f8b5",
   "package_digest_rule": "sha256 over the UTF-8 text formed by one line per package_files entry, '<path> <sha256>\\n', sorted by path. manifest.json and index.json are outside the package and are never hashed into it.",
   "independence_boundary": "The reference verifier is author-produced and is not independent verification. A second implementation is implementation diversity, not independence. L3_INDEPENDENT_RECOMPUTATION requires a second implementation maintained outside REMORA, run by an external operator, importing neither REMORA code nor this verifier (interop-result-v1).",
   "global_property": {

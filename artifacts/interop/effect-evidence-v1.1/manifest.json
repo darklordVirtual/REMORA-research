@@ -2,7 +2,7 @@
   "schema_version": "remora-effect-evidence-v1.1-manifest",
   "lifecycle": "DRAFT",
   "producer": "REMORA-research",
-  "source_revision": "5879bf444bfc587e4b725b205fb0ded6454d8d84",
+  "source_revision": "58ebc0b2fec241056a362977adcf59e05e88674e",
   "source_artifacts": [],
   "package_files": [
     {
@@ -11,11 +11,11 @@
     },
     {
       "path": "artifacts/interop/effect-evidence-v1.1/claim-packet.json",
-      "sha256": "e5fb0218e98e1791aee3e252333bc229310a7567413914a4f193a05c2dd76364"
+      "sha256": "0f43f8e46309c9eacaeb3e502f1361de999fff3ae278952f6e4bafe2e5c4b009"
     },
     {
       "path": "artifacts/interop/effect-evidence-v1.1/fixtures.json",
-      "sha256": "045491524d3ede6f5eae79d0346cca3563010260f27f747d9ef1f8a30c8cd21c"
+      "sha256": "fb8e4df5309f8d442ec1b8ca544eaff7fe0fdd4a71d73e3277f57f955374d6a5"
     },
     {
       "path": "artifacts/interop/effect-evidence-v1.1/reference_verifier.py",
@@ -23,10 +23,10 @@
     },
     {
       "path": "artifacts/interop/effect-evidence-v1.1/verifier-request.json",
-      "sha256": "0d805f869aa518665d8876a49ce8bbaa183f492f95e47163f4ad1a8a0734254f"
+      "sha256": "197c50f264d646a08edaa780689beacf758af76c6d92c85e1e4e2b67358b5378"
     }
   ],
-  "package_digest": "sha256:3a59b89335acadf9c5851c542c4e9c69e3736a8150fbcb6e7c86ee44e958e706",
+  "package_digest": "sha256:a09ac49137a6a94990fcdb52663cce25e4ecf8e35469f0f45e8274f09949ec31",
   "package_digest_rule": "sha256 over the UTF-8 text formed by one line per package_files entry, '<path> <sha256>\\n', sorted by path. manifest.json and index.json are outside the package and are never hashed into it.",
   "independence_boundary": "The reference verifier is author-produced and is not independent verification. A second implementation is implementation diversity, not independence. L3_INDEPENDENT_RECOMPUTATION requires a second implementation maintained outside REMORA, run by an external operator, importing neither REMORA code nor this verifier (interop-result-v1).",
   "global_property": {

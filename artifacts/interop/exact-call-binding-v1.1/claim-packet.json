@@ -2,7 +2,7 @@
   "schema_version": "remora-claim-packet-v1",
   "contract_id": "exact-call-binding-v1.1",
   "producer": "REMORA-research",
-  "source_revision": "5879bf444bfc587e4b725b205fb0ded6454d8d84",
+  "source_revision": "58ebc0b2fec241056a362977adcf59e05e88674e",
   "package_identity": {
     "manifest": "artifacts/interop/exact-call-binding-v1.1/manifest.json",
     "rule": "content-addressed; package_digest is computed from manifest.package_files and recorded in manifest.json and index.json, never inside a hashed package file"
@@ -14,7 +14,7 @@
   "artifact_refs": [
     {
       "path": "artifacts/interop/exact-call-binding-v1.1/fixtures.json",
-      "sha256": "81a48ff5514823a71ebe35658fd162d18b1367d0a437c78052bc0b52450cb352",
+      "sha256": "b1ac9dba6f99d5b2aa9f4214efabfad491822f9d627a96fe3caea3d889431e6c",
       "role": "producer fixture contract"
     },
     {
