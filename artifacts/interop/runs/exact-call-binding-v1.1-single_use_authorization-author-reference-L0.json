@@ -1,0 +1,124 @@
+{
+  "schema_version": "remora-interop-result-v1",
+  "contract_id": "exact-call-binding-v1.1",
+  "edge": "E-ECB-V1-1",
+  "claim": "single_use_authorization",
+  "subject": "execution_authorization:remora-execution-lease",
+  "status": "ESTABLISHED",
+  "producer": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "58ebc0b2fec241056a362977adcf59e05e88674e"
+  },
+  "consumer": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "58ebc0b2fec241056a362977adcf59e05e88674e"
+  },
+  "fixture": {
+    "path": "artifacts/interop/exact-call-binding-v1.1/fixtures.json",
+    "digest": "sha256:b1ac9dba6f99d5b2aa9f4214efabfad491822f9d627a96fe3caea3d889431e6c",
+    "package_digest": "sha256:e2f5a40d29733522db4e70d6bbe1c3a7b0ebb6a153a15c02339660828471f8b5"
+  },
+  "evaluator": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "58ebc0b2fec241056a362977adcf59e05e88674e",
+    "kind": "REFERENCE",
+    "maintained_by": "PRODUCER",
+    "imports_producer_runtime": false,
+    "imports_reference_evaluator": true,
+    "command": "python artifacts/interop/exact-call-binding-v1.1/reference_verifier.py"
+  },
+  "operator": "PRODUCER",
+  "host": "PRODUCER_CONTROLLED",
+  "independence_level": "L0_SELF_TEST",
+  "runner": {
+    "path": "scripts/interop_author_run.py",
+    "revision": "58ebc0b2fec241056a362977adcf59e05e88674e"
+  },
+  "environment": "Python 3.14.0, Windows AMD64",
+  "started_at": "2026-10-06T00:52:51+00:00",
+  "completed_at": "2026-10-06T00:52:51+00:00",
+  "cases": [
+    {
+      "case_id": "replay_same_call_twice",
+      "claim_id": "single_use_authorization",
+      "expected": {
+        "value": [
+          {
+            "outcome": "DISPATCHED",
+            "refusal_class": null
+          },
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_consumed"
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "DISPATCHED",
+            "refusal_class": null
+          },
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "authority_consumed"
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "mismatch_does_not_consume",
+      "claim_id": "single_use_authorization",
+      "expected": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          },
+          {
+            "outcome": "DISPATCHED",
+            "refusal_class": null
+          }
+        ]
+      },
+      "observed": {
+        "value": [
+          {
+            "outcome": "REFUSED",
+            "refusal_class": "call_mismatch"
+          },
+          {
+            "outcome": "DISPATCHED",
+            "refusal_class": null
+          }
+        ]
+      },
+      "result": "ESTABLISHED"
+    }
+  ],
+  "establishes": [
+    "single_use_authorization: ESTABLISHED means only that, under this fixture contract, one authorization dispatches at most once and a refused mismatch does not spend it."
+  ],
+  "does_not_establish": [
+    "correct semantic intent of the authorized call",
+    "that an external effect occurred",
+    "that every path to the tool passes through the enforcement point",
+    "a prescribed hash algorithm or wire format for the binding",
+    "production deployment safety",
+    "Federation endorsement",
+    "a second implementation is by itself an independent verification record",
+    "that a call object mutated after the binding check and before the tool reads it is refused (verify-then-mutate, TOCTOU); a static corpus cannot express post-verification mutation"
+  ],
+  "ceiling": {
+    "implies_endorsement": false,
+    "implies_production_safety": false,
+    "implies_broader_validity": false,
+    "confers_authority": false
+  },
+  "run_ref": "artifacts/interop/runs/exact-call-binding-v1.1-single_use_authorization-author-reference-L0.json",
+  "published_at": null
+}

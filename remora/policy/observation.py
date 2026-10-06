@@ -43,6 +43,39 @@ def _canonical_json(data: Any) -> str:
     return _json.dumps(data, sort_keys=True, separators=(",", ":"), default=str)
 
 
+def _require_json_domain(value: Any, path: str = "arguments") -> None:
+    """Refuse argument values that ``_canonical_json`` would encode lossily.
+
+    ``default=str`` stringifies unknown objects, ``json.dumps`` turns an int key
+    into a string key and a tuple into an array, and NaN/Infinity are not JSON.
+    Each of those lets two different Python calls share one binding, so an
+    approval for one could be presented for the other. Refusing them here
+    instead of changing the encoder leaves the bytes for every JSON-domain call
+    as they were, so historical leases and audit entries still verify.
+    """
+    if value is None or isinstance(value, (str, bool, int)):
+        return
+    if isinstance(value, float):
+        if value != value or value in (float("inf"), float("-inf")):
+            raise ValueError(f"{path}: non-finite number has no JSON form")
+        return
+    if isinstance(value, list):
+        for i, item in enumerate(value):
+            _require_json_domain(item, f"{path}[{i}]")
+        return
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if not isinstance(key, str):
+                raise TypeError(
+                    f"{path}: object key {key!r} is not a string and would "
+                    "collide with its string form")
+            _require_json_domain(item, f"{path}.{key}")
+        return
+    raise TypeError(
+        f"{path}: {type(value).__name__} is outside the JSON tool-call domain "
+        "and would be bound by its string or array form")
+
+
 def canonical_tool_call_hash(
     *,
     name: str,
@@ -55,7 +88,12 @@ def canonical_tool_call_hash(
     truncated preview. An enforcement point recomputes this immediately before
     execution and refuses on mismatch, preventing an approved decision from
     being reused for different arguments.
+
+    Arguments must be JSON-domain values (see ``_require_json_domain``);
+    anything else raises ``TypeError``/``ValueError`` instead of receiving a
+    hash it shares with a different call.
     """
+    _require_json_domain(arguments)
     preimage = _canonical_json({
         "name": name,
         "arguments": arguments,

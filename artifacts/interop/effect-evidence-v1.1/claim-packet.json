@@ -1,0 +1,54 @@
+{
+  "schema_version": "remora-claim-packet-v1",
+  "contract_id": "effect-evidence-v1.1",
+  "producer": "REMORA-research",
+  "source_revision": "58ebc0b2fec241056a362977adcf59e05e88674e",
+  "package_identity": {
+    "manifest": "artifacts/interop/effect-evidence-v1.1/manifest.json",
+    "rule": "content-addressed; package_digest is computed from manifest.package_files and recorded in manifest.json and index.json, never inside a hashed package file"
+  },
+  "subject": {
+    "class": "effect_verification",
+    "id": "remora-effect-verification"
+  },
+  "artifact_refs": [
+    {
+      "path": "artifacts/interop/effect-evidence-v1.1/fixtures.json",
+      "sha256": "fb8e4df5309f8d442ec1b8ca544eaff7fe0fdd4a71d73e3277f57f955374d6a5",
+      "role": "producer fixture contract"
+    },
+    {
+      "path": "artifacts/interop/effect-evidence-v1.1/reference_verifier.py",
+      "sha256": "a51f84701b479df87e6e9a299ee3dcc6f8588d1ed7f90232ba5825fa9e997fc9",
+      "role": "author reference implementation; not independent verification"
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "effect_state_distinction",
+      "result_vocabulary": [
+        "ESTABLISHED",
+        "CONTRADICTED",
+        "NOT_ESTABLISHED"
+      ],
+      "claim_ceiling": "ESTABLISHED means only that, under this fixture contract, NOT_DISPATCHED, DISPATCHED, EXECUTION_REPORTED_SUCCESS and EFFECT_VERIFIED are kept apart, a reported success is never promoted to a verified effect without an observation of the declared delta, an absent field is not an explicit null, a postcondition whose rule map is outside the vocabulary or names an undeclared field is rejected rather than evaluated, and an unobservable or vacuous postcondition leaves the state where it was."
+    }
+  ],
+  "assumptions": [
+    "`observed: null` means the reader returned nothing, not that the object is absent",
+    "only declared fields are compared, under the rules in the fixture's `rules.comparison` note",
+    "a success report for a refused dispatch is not attributed to the action",
+    "an absent field and a field whose value is null are different observations",
+    "a comparison rule outside the vocabulary, or for an undeclared field, rejects the contract instead of being evaluated"
+  ],
+  "explicit_non_claims": [
+    "that the reader is independent of the tool that acted",
+    "that the observed object is the one the call targeted",
+    "that no effect outside the declared delta occurred",
+    "causation of an observed effect",
+    "production deployment safety",
+    "Federation endorsement",
+    "a second implementation is by itself an independent verification record"
+  ],
+  "temporal_scope": "Pinned fixture evaluation only; no live deployment time window is established."
+}

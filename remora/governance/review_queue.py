@@ -67,6 +67,17 @@ _SEVERITY: dict[DecisionAction, int] = {
 }
 
 
+_EXECUTABLE = (DecisionAction.ACCEPT, DecisionAction.VERIFY)
+
+
+def _approval_survives(
+    fresh_action: DecisionAction, approved_action: DecisionAction
+) -> bool:
+    """Step 4c: an executable fresh action no stricter than the approval."""
+    return (fresh_action in _EXECUTABLE
+            and _SEVERITY[fresh_action] <= _SEVERITY[approved_action])
+
+
 _OUTCOME_STATUS: "dict[DispatchOutcome, ItemStatus]" = {}
 
 
@@ -498,11 +509,7 @@ class ReviewQueue:
         # ESCALATE never execute — a numerically-lower severity (e.g. approved
         # ESCALATE=3, fresh ABSTAIN=2) must NOT be read as "safe to run".
         fresh = self._engine.decide(fresh_observation)
-        _EXECUTABLE = (DecisionAction.ACCEPT, DecisionAction.VERIFY)
-        if (
-            fresh.action in _EXECUTABLE
-            and _SEVERITY[fresh.action] <= _SEVERITY[approval.approved_action]
-        ):
+        if _approval_survives(fresh.action, approval.approved_action):
             item.status = ItemStatus.AUTHORIZED
             self._log.append(
                 "authorized",
@@ -541,6 +548,63 @@ class ReviewQueue:
             "executable outcome (ABSTAIN/ESCALATE never execute, even at "
             "equal severity); approval voided and item re-queued",
         )
+
+    # ------------------------------------------------------------------
+    # 4'. Dispatch-time re-gate (async worker, pre-Federation probe)
+    # ------------------------------------------------------------------
+
+    def regate_authorized(
+        self,
+        item_id: str,
+        fresh_observation: PolicyObservation,
+    ) -> ExecutionOutcome:
+        """Re-decide an AUTHORIZED item on an observation built at dispatch.
+
+        The async path (issue #82) runs :meth:`execute` when the 202 is
+        answered, and a worker honours the authorization later. Whatever
+        changed in between must be decided again, not merely hashed: this
+        applies the payload binding, the approver revocation check and the
+        same equal-or-safer rule as step 4c, through the same engine.
+
+        Read-only. It neither re-queues the item nor writes the log, so two
+        workers racing one row cannot leave two records of one decision. The
+        caller settles a refusal through :meth:`record_execution_outcome`.
+        An item that is not AUTHORIZED raises ``ValueError``.
+        """
+        with self._lock:
+            item = self._items[item_id]
+            approval = item.approval
+            if item.status is not ItemStatus.AUTHORIZED or approval is None:
+                raise ValueError(
+                    f"item {item_id} is {item.status.value}, not authorized")
+            if (not approval.tool_call_hash
+                    or approval.tool_call_hash
+                    != fresh_observation.tool_call_hash):
+                return ExecutionOutcome(
+                    ExecutionDecision.BINDING_REFUSED,
+                    None,
+                    "tool-call hash at dispatch differs from the approved "
+                    "payload",
+                )
+            if self.is_revoked(approval.approver):
+                return ExecutionOutcome(
+                    ExecutionDecision.APPROVAL_INVALIDATED,
+                    None,
+                    "approver revoked after authorization",
+                )
+            fresh = self._engine.decide(fresh_observation)
+            if _approval_survives(fresh.action, approval.approved_action):
+                return ExecutionOutcome(
+                    ExecutionDecision.EXECUTE,
+                    fresh.action,
+                    "fresh decision at dispatch is equal or safer",
+                )
+            return ExecutionOutcome(
+                ExecutionDecision.APPROVAL_INVALIDATED,
+                fresh.action,
+                "fresh decision at dispatch is stricter than the approval, "
+                "or is not an executable outcome",
+            )
 
     # ------------------------------------------------------------------
     # 5. Execution outcome (external review 2026-07-27)

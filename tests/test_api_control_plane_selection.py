@@ -144,10 +144,7 @@ def test_production_refuses_volatile_execution_state(monkeypatch, tmp_path) -> N
         "REMORA_CONTROL_PLANE_DB", _durable_sqlite(monkeypatch, tmp_path, "cp.db")
     )
 
-    # The message names all three durable options. REMORA_STATE_ENDPOINT was
-    # added for a container with no writable disk: it keeps state through a
-    # Worker binding, so there is no local file and no credential.
-    with pytest.raises(RuntimeError, match="REMORA_PG_DSN, REMORA_STATE_ENDPOINT"):
+    with pytest.raises(RuntimeError, match="REMORA_PG_DSN or REMORA_CHAIN_DB"):
         api._validate_production_prerequisites()
 
     monkeypatch.setenv(
@@ -155,15 +152,23 @@ def test_production_refuses_volatile_execution_state(monkeypatch, tmp_path) -> N
     )
     api._validate_production_prerequisites()  # must not raise
 
+    # REMORA_STATE_ENDPOINT alone was admitted here until the #744 probes.
+    # It keeps the review queue and ledgers durable, but the tenant chain and
+    # dispatch outbox have no adapter for it, so it is refused on its own.
     monkeypatch.delenv("REMORA_CHAIN_DB")
     monkeypatch.setenv("REMORA_STATE_ENDPOINT", "http://state.internal/query")
-    api._validate_production_prerequisites()  # also durable, also must not raise
+    with pytest.raises(RuntimeError, match="REMORA_STATE_ENDPOINT alone"):
+        api._validate_production_prerequisites()
 
 
 def test_execution_state_backend_is_reported(monkeypatch, tmp_path) -> None:
     monkeypatch.delenv("REMORA_PG_DSN", raising=False)
     monkeypatch.delenv("REMORA_CHAIN_DB", raising=False)
+    monkeypatch.delenv("REMORA_STATE_ENDPOINT", raising=False)
     assert api._execution_state_backend() == "in_process"
+
+    monkeypatch.setenv("REMORA_STATE_ENDPOINT", "http://state.internal/query")
+    assert api._execution_state_backend() == "state_endpoint_partial"
 
     monkeypatch.setenv("REMORA_CHAIN_DB", str(tmp_path / "chain.db"))
     assert api._execution_state_backend() == "sqlite"

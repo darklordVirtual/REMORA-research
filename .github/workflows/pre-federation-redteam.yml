@@ -1,0 +1,42 @@
+name: Pre-Federation Red Team
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "tests/test_pre_federation_*.py"
+      - "remora/**"
+      - "servers/**"
+      - "artifacts/interop/**"
+      - "docs/interop/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prefederation-redteam-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  adversarial:
+    name: adversarial boundary probes
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install test surface
+        run: |
+          python -m pip install --upgrade pip
+          grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
+          pip install -e ".[dev,causal,api,security]" -c /tmp/constraints.txt
+      - name: Run adversarial probes
+        env:
+          REMORA_REQUIRE_SECURITY_EXTRA: "1"
+        run: python -m pytest tests/test_pre_federation_*.py -q -ra

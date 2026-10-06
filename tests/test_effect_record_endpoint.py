@@ -40,7 +40,11 @@ def _record(**overrides) -> dict:
     payload = {
         "execution_id": "e-1",
         "tool_id": "store_artifact",
-        "toolspec_hash": "d" * 64,
+        # Empty, because this client runs without a signed ToolSpec bundle and
+        # the assessment recorded no spec identity. A non-empty value here was
+        # a spec claim the dispatch never ran under, and the recorder now
+        # refuses it (toolspec_hash_mismatch).
+        "toolspec_hash": "",
         "status": "EFFECT_VERIFIED",
         "reason_code": "postcondition_verified",
         "verifier_identity": "acme.reader/v1",

@@ -62,6 +62,7 @@ __all__ = [
     "OutboxState",
     "PostgresExecutionOutbox",
     "SQLiteExecutionOutbox",
+    "UnbackedExecutionOutbox",
     "idempotency_key",
 ]
 
@@ -579,6 +580,24 @@ CREATE TABLE IF NOT EXISTS execution_outbox (
 CREATE INDEX IF NOT EXISTS execution_outbox_pending_idx
     ON execution_outbox (tenant_id, state, created_at);
 """
+
+
+class UnbackedExecutionOutbox(ExecutionOutbox):
+    """The in-process outbox, selected under a durable-looking configuration.
+
+    A deployment whose only durable switch is ``REMORA_STATE_ENDPOINT`` keeps
+    its ledgers durable, but the endpoint has no outbox adapter. Until the
+    #744 probes that deployment silently got ``ExecutionOutbox``; this class
+    gives the same rows a name that cannot be mistaken for the reference
+    default, so telemetry and tests can tell the two apart. Production refuses
+    the configuration at startup (``servers/api.py``) and at construction.
+    """
+
+    durable = False
+    reason = (
+        "REMORA_STATE_ENDPOINT has no dispatch-outbox adapter; rows are held "
+        "in process memory"
+    )
 
 
 class SQLiteExecutionOutbox(ExecutionOutbox):

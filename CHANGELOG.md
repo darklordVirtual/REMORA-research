@@ -476,6 +476,85 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Fixed
 
+- Pre-Federation boundary probes (2026-10-06, `tests/test_pre_federation_*`),
+  each a fail-open path closed in the reusable primitive rather than only in
+  its strictest caller:
+  - effect verification: `verify_declared_delta` treated a missing field as
+    an explicit `null` under `exact`/`hash`, so `{"deleted_at": null}`
+    verified against `{}`; an unknown comparison rule (`excat`) fell through
+    to `exact`; a rule for an undeclared field was never evaluated. The core
+    verifier and `remora.sdk.effects.PostconditionSpec` now refuse the rule
+    map (`ValueError`) and a missing field is a mismatch;
+  - exact-call binding: `canonical_tool_call_hash` stringified non-JSON
+    values (`default=str`), merged int and string keys, merged tuples into
+    arrays and accepted NaN/Infinity. It now refuses values outside the JSON
+    domain; bytes for JSON-domain calls are unchanged, so existing leases and
+    chain entries still verify. `ExecutionLease.verify` reports
+    `tool_args_not_canonical`;
+  - effect receipts: an empty `trusted_verifiers` allowlist trusted any
+    verifier and now trusts nobody (the execution API passes the identity it
+    has bound to the principal); a terminal `EFFECT_UNSUPPORTED` no longer
+    takes the dispatch's settled slot without naming the dispatch; a reason
+    code `verify_declared_delta` emits for one status is refused with
+    another; the recorded `tool_id` and `toolspec_hash` come from the
+    assessment in the chain and a differing claim is a 409;
+  - final hop: `GovernedToolDispatcher.dispatch` executes a private copy of
+    the arguments, reads the callable after spec resolution, and re-checks
+    the argument hash and registry generation before spending the nonce
+    (`tool_args_changed_after_verify`, `tool_registry_changed`);
+  - deep immutability: `PostconditionContract`, `EffectVerification`,
+    `PostconditionSpec`, `ProducerCapabilityManifest` and `EvidenceAdmission`
+    froze one level deep, so a nested alias held by the caller could change
+    the content after its digest was computed, and an accepted manifest
+    digest could establish producer visibility in another tenant's scope.
+    `remora/frozen_json.py` now takes a private deep copy and refuses values
+    outside the JSON domain; `effect_digest` drops `default=str` and keeps its
+    historic encoding for JSON-domain values;
+  - durability topology: the production guard admitted
+    `REMORA_STATE_ENDPOINT` alone, although the tenant audit chain and the
+    dispatch outbox have no D1 adapter and stayed in process memory, and
+    `/v1/health` reported that deployment as `in_process`. Production now
+    requires `REMORA_PG_DSN` or `REMORA_CHAIN_DB` (the endpoint may sit
+    beside them); the outbox selection is wiring point ASW-005 and names the
+    endpoint-only case `UnbackedExecutionOutbox`; the backend is reported as
+    `state_endpoint_partial` and not durable. **Breaking for a deployment
+    that ran production on the endpoint alone.**;
+  - async authorization seam (`REMORA_ASYNC_DISPATCH`): the worker honoured a
+    202 under whatever ToolSpec was current when it woke up, and it built a
+    fresh observation only to hash it before minting a new ACCEPT, so a hard
+    guard that fired after the 202 was never decided. Before claiming,
+    minting or consuming anything, `dispatch_pending_intent` now compares the
+    spec in force with the hash the assessment recorded in the chain and
+    refuses with the additive reason code
+    `toolspec_changed_between_authorization_and_dispatch`, and re-decides the
+    fresh observation through the queue's own engine
+    (`ReviewQueue.regate_authorized`, the equal-or-safer rule of the 202),
+    refusing with `fresh_regate_refused`. Both settle REFUSED with the grant
+    unminted. No row schema changed: the authorized hash is read from the
+    chain, so rows written before this change get the same check, and an item
+    with no recorded hash fails closed whenever a bundle is enforced at
+    dispatch. A spec the bundle refuses at dispatch now settles under its own
+    code instead of escaping the worker loop as an HTTP 409;
+  - Federation fixture adequacy: `effect-evidence-v1` and
+    `exact-call-binding-v1` are frozen with external runs against their
+    digests, so the probes are answered by `DRAFT` successors
+    `effect-evidence-v1.1` (edge `E-EE-V1-1`) and `exact-call-binding-v1.1`
+    (`E-ECB-V1-1`) instead of rewritten bytes. The effect reference verifier
+    no longer reads a missing field as `null` and rejects an unknown rule or
+    a rule for an undeclared field (`CONTRACT_REJECTED`), and its
+    `version_increment` compares integers only on both sides. Fourteen effect
+    cases and seven call cases were added: missing against explicit `null`
+    under `exact`, `hash`, `absent` and `present`; rejected rule maps; `1`
+    against `1.0` in both directions and nested; nested `true` against `1`;
+    `"4"`, `true` and `4.0` as observed versions and `"3"` as a declared one;
+    an added `null` argument; two integers beyond 2^53. The exact-call README names
+    verify-then-mutate (TOCTOU) as outside a static corpus and points at
+    `tests/test_pre_federation_toctou_adversarial.py`. REMORA's core and the
+    v1.1 reference verifiers agree on all 48 v1.1 cases (L0 author records). The
+    v1 packages keep their bytes and are marked superseded in `index.json`
+    and `FEDERATION.yaml`; their blind spots are pinned by tests as a
+    preserved negative result. The new cases are repair, not independent
+    evidence.
 - Evidence admission, one fail-closed narrowing (2026-10-04). A
   `CoverageAttestation` could establish `observation_coverage_complete` on
   producer identity, invocation id and its own content; its digest was never

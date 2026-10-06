@@ -20,6 +20,7 @@ from remora.execution.ports import (AuditChainPort, DispatchOutboxPort,
                                     audit_ref)
 
 import dataclasses
+import hmac
 import json
 import logging
 from collections.abc import Callable
@@ -36,6 +37,7 @@ from remora.governance.review_queue import ExecutionDecision
 from remora.governance.proposal_lineage import derive_lineage, lineage_key_for
 from remora.governance.task_identity import TaskIdentity
 from remora.policy.report import DecisionAction, DecisionReason
+from remora.toolcall.toolspec import ToolSpecRefused
 
 
 logger = logging.getLogger(__name__)
@@ -851,6 +853,48 @@ def project_terminal_intent(
     }
 
 
+#: Worker refusal: the spec in force at dispatch is not the one the durable
+#: authorization was granted under (published in schemas/tool_spec_v1.yaml).
+TOOLSPEC_CHANGED_AT_DISPATCH = (
+    "toolspec_changed_between_authorization_and_dispatch")
+#: Worker refusal: the fresh observation, re-decided at dispatch, no longer
+#: supports the approval the 202 honoured.
+FRESH_REGATE_REFUSED = "fresh_regate_refused"
+
+
+def _toolspec_at_dispatch(
+    tool_call: Any,
+    *,
+    resolve_toolspec: Callable[[str, dict[str, Any], str], dict[str, Any]],
+    authorized_hash: str,
+) -> tuple[str | None, dict[str, Any] | None, dict[str, Any]]:
+    """``(refusal, identity, detail)`` for the spec in force at dispatch.
+
+    Fail closed: an empty authorized hash under an enforced bundle is a
+    refusal, not a pass. "No bundle then, no bundle now" is the only case
+    with nothing to compare, and its identity says ``enforced=False``.
+    """
+    try:
+        identity = resolve_toolspec(
+            tool_call.tool_name, tool_call.arguments,
+            tool_call.target_environment)
+    except ToolSpecRefused as exc:
+        return exc.reason_code, None, {}
+    identity.pop("argument_roles", None)
+    current = str(identity.get("hash") or "")
+    if not identity.get("enforced") and not authorized_hash:
+        return None, identity, {}
+    if (not current or not authorized_hash
+            or not hmac.compare_digest(current, authorized_hash)):
+        return TOOLSPEC_CHANGED_AT_DISPATCH, None, {
+            "authorized_toolspec_hash": authorized_hash,
+            "current_toolspec_hash": current,
+            "current_toolspec_version": identity.get("version"),
+            "current_toolspec_enforced": bool(identity.get("enforced")),
+        }
+    return None, identity, {}
+
+
 def dispatch_pending_intent(
     row: Any,
     *,
@@ -869,6 +913,7 @@ def dispatch_pending_intent(
     policy_coverage: Callable[[], dict[str, Any]] | None = None,
     policy_bundle_hash: Callable[[], str] | None = None,
     rebuild_call: Callable[[dict[str, Any]], Any] | None = None,
+    assessed_record: Callable[[str, str], tuple[str, str]] | None = None,
 ) -> dict[str, Any] | None:
     """Dispatch one DISPATCH_PENDING intent from a separate worker (issue #82).
 
@@ -889,6 +934,23 @@ def dispatch_pending_intent(
     other than the one that was authorized. A row that cannot name the
     principal it was granted for is refused as ``requester_identity_missing``;
     the worker identity passed as ``principal`` is never adopted as that actor.
+
+    Two things can change between the 202 and the worker waking up, and
+    both are decided again before anything is minted, consumed or claimed:
+
+    * the ToolSpec. With ``resolve_toolspec`` wired, the spec in force now
+      must have the hash the assessment recorded in the chain (read through
+      ``assessed_record``), or the row refuses as
+      ``toolspec_changed_between_authorization_and_dispatch``. A row whose
+      item has no recorded hash refuses the same way when a bundle is now
+      enforced: it cannot show which spec it was authorized under. Only
+      "no bundle then, no bundle now" passes unchecked, the research path
+      reported as ``enforced=False``. A spec the bundle itself refuses now
+      settles under that published reason code.
+    * the hard guards. The fresh observation is re-decided by the review
+      queue's own engine (``ReviewQueue.regate_authorized``), under the
+      same equal-or-safer rule the 202 applied. Anything else refuses as
+      ``fresh_regate_refused``.
     """
     if row.state is not OutboxState.DISPATCH_PENDING:
         return None
@@ -932,6 +994,40 @@ def dispatch_pending_intent(
         fresh_obs, fresh_semantic = build_observation(tool_call, tenant)
         if (fresh_obs.tool_call_hash or "") != row.tool_call_hash:
             refusal = "payload_hash_mismatch"
+    # The spec the authorization was granted under, compared with the spec in
+    # force now. Read from the chain BEFORE any review-state transaction
+    # opens: reading it inside one deadlocks SQLite (see assessed_record).
+    toolspec_identity: dict[str, Any] | None = None
+    refusal_detail: dict[str, Any] = {}
+    if refusal is None and resolve_toolspec is not None:
+        authorized_hash = (
+            assessed_record(tenant, row.item_id)[0]
+            if assessed_record is not None else "")
+        refusal, toolspec_identity, refusal_detail = _toolspec_at_dispatch(
+            tool_call, resolve_toolspec=resolve_toolspec,
+            authorized_hash=authorized_hash)
+    # The fresh observation used to be hashed and nothing more, so a hard
+    # guard that fired after the 202 was wrapped in a new ACCEPT. Re-decide it
+    # with the engine the 202 used, before the claim and before any grant.
+    if refusal is None:
+        assert fresh_obs is not None
+        regate: Any = None
+        try:
+            with transaction(tenant) as q:
+                regate = q.regate_authorized(row.item_id, fresh_obs)
+        except (KeyError, ValueError):
+            # No AUTHORIZED item behind the row: nothing to honour.
+            regate = None
+        if regate is None or regate.decision is not ExecutionDecision.EXECUTE:
+            refusal = FRESH_REGATE_REFUSED
+            refusal_detail = {
+                "regate_decision": (regate.decision.value
+                                    if regate is not None else None),
+                "fresh_action": (regate.fresh_action.value
+                                 if regate is not None
+                                 and regate.fresh_action is not None
+                                 else None),
+            }
     # Issue #420 (RMR-CR-005): every record carries the principal the
     # authorization was granted FOR; the worker's own identity is reported
     # separately as executed_by and never substituted for the requester's.
@@ -956,23 +1052,31 @@ def dispatch_pending_intent(
             ))
         # Issue #421 (RMR-CR-006): the review item takes the SAME terminal
         # outcome as the outbox — a refused dispatch must never leave the
-        # item AUTHORIZED forever.
-        with transaction(tenant) as q:
-            q.record_execution_outcome(
-                row.item_id, outcome=DispatchOutcome.REFUSED, reason=refusal)
+        # item AUTHORIZED forever. An item that is gone or no longer
+        # AUTHORIZED has converged already; the refusal still settles.
+        try:
+            with transaction(tenant) as q:
+                q.record_execution_outcome(
+                    row.item_id, outcome=DispatchOutcome.REFUSED,
+                    reason=refusal)
+        except (KeyError, ValueError):
+            pass
+        refusal_record: dict[str, Any] = {
+            "event": "execution_result",
+            "proposal_id": proposal_id,
+            "actor": actor,
+            "executed_by": worker_id,
+            "item_id": row.item_id,
+            "tool_call_hash": row.tool_call_hash,
+            "grant_jti": "",
+            "tool_executed": False,
+            "state_unknown": False,
+            "tool_refusal_reason": refusal,
+        }
+        if refusal_detail:
+            refusal_record["refusal_detail"] = refusal_detail
         entry = chain.append_once(
-            tenant, f"execution-result:{row.outbox_id}", {
-                "event": "execution_result",
-                "proposal_id": proposal_id,
-                "actor": actor,
-                "executed_by": worker_id,
-                "item_id": row.item_id,
-                "tool_call_hash": row.tool_call_hash,
-                "grant_jti": "",
-                "tool_executed": False,
-                "state_unknown": False,
-                "tool_refusal_reason": refusal,
-            })
+            tenant, f"execution-result:{row.outbox_id}", refusal_record)
         outbox().mark_projected(row.outbox_id)
         result: dict[str, Any] = {
             "proposal_id": proposal_id,
@@ -986,13 +1090,6 @@ def dispatch_pending_intent(
     # Past the refusal gate both are populated; the split assignment above
     # is only for the refusal path. Narrowing for the type checker.
     assert fresh_obs is not None and fresh_semantic is not None
-
-    toolspec_identity: dict[str, Any] | None = None
-    if resolve_toolspec is not None:
-        toolspec_identity = resolve_toolspec(
-            tool_call.tool_name, tool_call.arguments,
-            tool_call.target_environment)
-        toolspec_identity.pop("argument_roles", None)
 
     # Issue #417 (RMR-CR-002): the EXCLUSIVE claim comes FIRST. Minting and
     # PEP-consuming a grant, and appending execution_authorized, before the

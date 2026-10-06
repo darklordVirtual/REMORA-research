@@ -54,6 +54,7 @@ from remora.enforcement.outbox import (
     ExecutionOutbox,
     PostgresExecutionOutbox,
     SQLiteExecutionOutbox,
+    UnbackedExecutionOutbox,
 )
 from remora.governance.effect_verification import (
     EffectVerification,
@@ -334,9 +335,11 @@ _LOGGER = _logging.getLogger("remora.execution_api")
 EXECUTION_STATE_BACKEND = (
     "postgres" if _os.environ.get("REMORA_PG_DSN", "").strip()
     else "sqlite" if _os.environ.get("REMORA_CHAIN_DB", "").strip()
+    else "state_endpoint_partial"
+    if _os.environ.get("REMORA_STATE_ENDPOINT", "").strip()
     else "in_process"
 )
-EXECUTION_STATE_DURABLE = EXECUTION_STATE_BACKEND != "in_process"
+EXECUTION_STATE_DURABLE = EXECUTION_STATE_BACKEND in ("postgres", "sqlite")
 
 if not EXECUTION_STATE_DURABLE:
     _LOGGER.warning(
@@ -429,6 +432,17 @@ def _build_outbox() -> ExecutionOutbox:
         return PostgresExecutionOutbox(dsn)
     if db:
         return SQLiteExecutionOutbox(db)
+    if _os.environ.get("REMORA_STATE_ENDPOINT", "").strip():
+        # The endpoint keeps the ledgers durable, not this. Production is
+        # refused here as well as at startup, so an import-time build cannot
+        # hand a production worker a process-local outbox.
+        if _os.environ.get("REMORA_ENV", "").strip().lower() in {
+                "prod", "production"}:
+            raise RuntimeError(
+                "REMORA_STATE_ENDPOINT has no dispatch-outbox adapter; "
+                "production requires REMORA_PG_DSN or REMORA_CHAIN_DB")
+        _LOGGER.warning(UnbackedExecutionOutbox.reason)
+        return UnbackedExecutionOutbox()
     return ExecutionOutbox()
 
 
@@ -670,10 +684,14 @@ def dispatch_pending_intents(tenant: str, *, worker_id: str) -> list[dict[str, A
             dispatch_under_lease=_dispatch_under_lease,
             token_audience=PEP_AUDIENCE,
             token_ttl_seconds=EXECUTION_TOKEN_TTL_SECONDS,
-            resolve_toolspec=_resolve_toolspec,
+            # The domain resolver, not the route wrapper: a spec refused at
+            # dispatch settles the row under its reason code instead of
+            # escaping the worker loop as an HTTP 409.
+            resolve_toolspec=_resolve_toolspec_unwrapped,
             policy_coverage=_policy_coverage,
             policy_bundle_hash=_current_policy_bundle_hash,
             rebuild_call=_rebuild_tool_call,
+            assessed_record=_assessed_record,
         )
         if result is not None:
             results.append(result)
@@ -699,6 +717,15 @@ def _resolve_toolspec(
         )
     except ToolSpecRefused as exc:
         raise HTTPException(status_code=409, detail=exc.reason_code) from exc
+
+
+def _resolve_toolspec_unwrapped(
+    tool_name: str, arguments: dict[str, Any], target_environment: str
+) -> dict[str, Any]:
+    """:func:`_resolve_toolspec` for the worker: raises ``ToolSpecRefused``."""
+    return _authz_resolve_toolspec(
+        _toolspec_bundle(), tool_name, arguments, target_environment
+    )
 
 
 def _assessed_record(tenant: str, item_id: str) -> tuple[str, str]:
@@ -2472,6 +2499,16 @@ def _verifier_bindings() -> dict[str, set[str]]:
     return out
 
 
+def _assessed_tool_identity(events: list[dict[str, Any]]) -> tuple[str, str]:
+    """``(tool_name, toolspec_hash)`` of the latest assessment in the chain."""
+    for event in reversed(events):
+        if event.get("event") == "assessed":
+            payload = event.get("payload") or event
+            return (str(payload.get("tool_name") or ""),
+                    str(payload.get("toolspec_hash") or ""))
+    return "", ""
+
+
 def _authorised_verifier(principal: str, verifier_identity: str) -> bool:
     bindings = _verifier_bindings()
     if not bindings:
@@ -2657,7 +2694,11 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
             observed_sha256=req.observed_sha256,
             verified_at=verified_at,
             verifier_identity=req.verifier_identity,
-            trusted_verifiers=(),
+            # Bound to the authenticated principal just above, so it is the
+            # one identity trusted for this receipt. An empty allowlist would
+            # trust nobody.
+            trusted_verifiers=(req.verifier_identity,),
+            reason_code=req.reason_code,
             already_recorded=[
                 e.get("payload", {}) for e in events
                 if e.get("event") == "effect_verified"
@@ -2671,11 +2712,25 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
             detail=f"effect receipt refused ({exc.reason}): {exc.detail}",
         ) from exc
 
+    # The record names the governed tool and spec, so both come from the
+    # assessment in the chain. Copying them from the request let a receipt
+    # store evidence about a tool or spec the dispatch never ran under.
+    tool_id, toolspec_hash = _assessed_tool_identity(events)
+    for name, claimed, recorded in (("tool_id", req.tool_id, tool_id),
+                                    ("toolspec_hash", req.toolspec_hash,
+                                     toolspec_hash)):
+        if claimed and claimed != recorded:
+            raise HTTPException(
+                status_code=409,
+                detail=(f"effect receipt refused ({name}_mismatch): the "
+                        f"dispatch was assessed under {name}="
+                        f"{recorded or '<none>'!r}"))
+
     verification = EffectVerification(
         proposal_id=proposal_id,
         execution_id=req.execution_id,
-        tool_id=req.tool_id,
-        toolspec_hash=req.toolspec_hash,
+        tool_id=tool_id,
+        toolspec_hash=toolspec_hash,
         status=status,
         reason_code=req.reason_code,
         verifier_identity=req.verifier_identity,

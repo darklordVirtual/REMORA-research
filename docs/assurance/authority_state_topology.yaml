@@ -274,6 +274,19 @@ wiring:
     selects: "the loop safety store /assess reads before deciding and records into after"
     switches: [REMORA_PG_DSN, REMORA_CHAIN_DB, REMORA_STATE_ENDPOINT]
 
+  - id: ASW-005
+    for: AST-004
+    symbol: "servers/execution_api.py::_build_outbox"
+    selects: "the dispatch outbox"
+    switches: [REMORA_PG_DSN, REMORA_CHAIN_DB, REMORA_STATE_ENDPOINT]
+    note: >-
+      Missing until the #744 probes. The endpoint has no outbox adapter, so
+      a deployment on REMORA_STATE_ENDPOINT alone received the in-process
+      ExecutionOutbox while the guard called its state durable. The selection
+      now reads the endpoint switch to name that case
+      (UnbackedExecutionOutbox) and to refuse it in production, and the
+      production guard no longer admits the endpoint alone.
+
 # What a PASS from this gate does NOT establish.
 #
 # That a deployment has actually configured a durable backend. Every adapter
