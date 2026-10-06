@@ -35,6 +35,24 @@ from remora.oracles.mock import MockOracle
 from remora.thermodynamics import classify_phase, estimate_temperature, order_parameter
 
 
+def test_huggingface_loader_selects_installed_dataset_rows(monkeypatch):
+    datasets = pytest.importorskip("datasets")
+    from remora.benchmarks.loaders import _try_load_hf
+
+    rows = datasets.Dataset.from_dict({"id": ["first", "second", "third"]})
+    calls = []
+
+    def load_local(name, *, split, streaming):
+        calls.append((name, split, streaming))
+        return rows
+
+    monkeypatch.setattr(datasets, "load_dataset", load_local)
+    assert _try_load_hf("local-fixture", "validation", 2) == [
+        {"id": "first"}, {"id": "second"},
+    ]
+    assert calls == [("local-fixture", "validation", False)]
+
+
 # ---------------------------------------------------------------------------
 # Structural tests
 # ---------------------------------------------------------------------------
