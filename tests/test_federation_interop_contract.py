@@ -151,7 +151,7 @@ def test_manifest_covers_every_externally_consumed_file(e7: dict[str, Any]) -> N
     listed = {e["path"] for e in manifest["package_files"]}
     for key in ("claim_packet", "verifier_request", "fixtures", "reference_verifier"):
         assert e7[key] in listed, f"{key} is consumed externally and must be pinned by the manifest"
-    assert str(Path(e7["manifest"]).parent / "README.md") in listed
+    assert (Path(e7["manifest"]).parent / "README.md").as_posix() in listed
     assert e7["manifest"] not in listed, "a manifest must never hash itself"
     assert "artifacts/interop/index.json" not in listed, "the index is the record outside the package"
 

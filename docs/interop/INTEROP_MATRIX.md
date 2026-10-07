@@ -30,3 +30,17 @@ endorsement, production safety or authority (FED-INV-004).
 
 Records read: 16. Contract lifecycle comes from `index.json`;
 it moves only on freeze, pin and external run records, never on an author run.
+
+## External lifecycle records
+
+The table above counts `interop-result-v1` records only. The index also
+retains `external-run-record-v1` evidence below. Thus AUTHOR_RUN above
+does not mean that no external run exists. These records retain their
+native diversity, independence and results; no L-level is inferred.
+REPRODUCED is a package lifecycle, not independent verification.
+
+| Contract | Lifecycle | Implementation diversity | Independence | Recorded results | Evidence |
+|---|---|---|---|---|---|
+| exact-call-binding-v1 | REPRODUCED | SECOND_IMPLEMENTATION | NOT_INDEPENDENT | ESTABLISHED, NOT_ESTABLISHED | [run](https://github.com/probityai/agent-evidence-vectors/actions/runs/37232420650) |
+| fresh-authority-v1 | REPRODUCED | SECOND_IMPLEMENTATION | NOT_INDEPENDENT | ESTABLISHED, NOT_ESTABLISHED | [run](https://github.com/probityai/agent-evidence-vectors/actions/runs/37232420650) |
+| effect-evidence-v1 | REPRODUCED | SECOND_IMPLEMENTATION | NOT_INDEPENDENT | ESTABLISHED | [run](https://github.com/probityai/agent-evidence-vectors/actions/runs/37232420650) |
