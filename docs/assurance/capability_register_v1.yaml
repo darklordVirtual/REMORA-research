@@ -916,8 +916,9 @@ capabilities:
   - id: CAP-024
     name: "Capability mediation for implementation effects, with an effect domain for strict deployments (NTA-2 phases 1 to 3)"
     status: WIRED_API_PATH
-    verified_at_sha: c372d622608bec0bc5b4a9a22dd531a53528de98
+    verified_at_sha: a33c8faab67327002db0c8ba8c97008132c2e8ba
     verified_by: >-
+      re-audited 2026-10-07 at a33c8fa (CR-009), from c372d62: custody guard docstring scope. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at c372d62 (CR-011-C1), from 1f09d1d: lease signature format v2, signature vectors, crypto formats. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 1f09d1d (CR-005), from f957c08: ToolSpec v3 effect policy, effect_mediation binding, three-domain scaffold. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at f957c08 (CR-006-A2), from adc22c0: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
