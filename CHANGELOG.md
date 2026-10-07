@@ -32,6 +32,13 @@ This file lists externally relevant changes by release. Fine-grained development
   established (`proposer_unknown`). The `approved` event records both
   principals. Previously one `admin` credential could propose, approve and
   execute the same call.
+- One failure outcome for every consumed-grant ledger backend (RMR-CR-015).
+  A Postgres or SQLite outage used to escape the gate as an exception, with
+  no `grant.checked` event and no refusal record; it is now the named refusal
+  `consumed_ledger_unavailable` that D1 already used, with a
+  `grant.ledger_unavailable` event naming the backend. A grant whose write
+  never committed stays unspent. D1 also names read timeouts and malformed
+  answers.
 
 ## 0.12.0 — 2026-10-07
 
