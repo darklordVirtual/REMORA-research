@@ -39,7 +39,7 @@ ARGS = {"id": "WO-1"}
 def _bundle(*tool_ids: str) -> ToolSpecBundle:
     key = SigningKey.generate([SignatureDomain.TOOLSPEC_BUNDLE])
     specs = [dict(_demo_spec("sha256:" + "0" * 64), tool_id=t) for t in tool_ids]
-    signed, _, _ = sign_with_seed({"schema_version": 1, "tool_specs": specs},
+    signed, _, _ = sign_with_seed({"schema_version": 3, "tool_specs": specs},
                                   key.seed.hex(), signed_at="2026-10-07T00:00:00+00:00")
     return ToolSpecBundle.load(signed, verification_keys=[key.verification_key()],
                                accept_hmac=False)
@@ -129,7 +129,7 @@ def test_the_api_signs_the_surface_into_the_lease_and_binds_an_observer(monkeypa
 
     key = SigningKey.generate([SignatureDomain.TOOLSPEC_BUNDLE])
     specs = [dict(_demo_spec("sha256:" + "0" * 64), tool_id="store_artifact")]
-    signed, public, digest = sign_with_seed({"schema_version": 1, "tool_specs": specs},
+    signed, public, digest = sign_with_seed({"schema_version": 3, "tool_specs": specs},
                                             key.seed.hex(), signed_at="2026-10-07T00:00:00+00:00")
     path = tmp_path / "bundle.json"
     path.write_text(json.dumps(signed), encoding="utf-8")

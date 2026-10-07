@@ -66,6 +66,11 @@ def _clear(monkeypatch) -> None:
 
 
 def _configure_strict(monkeypatch, profile: str = "review") -> None:
+    # This suite pins the v1 prerequisites. The v2 contract (BindingPolicy,
+    # effect mediation) needs a real signed bundle and is covered end to end
+    # through the scaffold in tests/test_binding_policy.py.
+    if "/" not in profile:
+        profile = f"{profile}/v1"
     monkeypatch.setenv("REMORA_RUNTIME_PROFILE", profile)
     for key, value in STRICT_ENV.items():
         monkeypatch.setenv(key, value)

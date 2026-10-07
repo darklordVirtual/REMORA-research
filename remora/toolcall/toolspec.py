@@ -154,7 +154,39 @@ def _spec_hash(spec: Mapping[str, Any]) -> str:
 #: Bundle schema versions this loader understands. Version 2 adds the
 #: optional ``downstream_capabilities`` declaration; a version-1 bundle that
 #: carries one is refused rather than read with a field it never defined.
-SUPPORTED_SCHEMA_VERSIONS = (1, 2)
+SUPPORTED_SCHEMA_VERSIONS = (1, 2, 3)
+
+#: Schema version 3 (CR-005): how a tool reaches effects, as a signed claim.
+#: MEDIATED: every effect goes through the mediator, within the declared
+#: downstream ceiling. NONE: the tool reaches no effect. Absence is unknown,
+#: never NONE.
+EFFECT_MODES = ("MEDIATED", "NONE")
+#: Whether the tool's execution domain may hold direct effect credentials.
+DIRECT_EFFECT_CREDENTIAL_POLICIES = ("FORBIDDEN", "PERMITTED")
+
+
+def _effect_policy(raw: Mapping[str, Any]) -> tuple[str | None, str | None]:
+    """(effect_mode, direct_effect_credentials) from a v3 spec, validated."""
+    mode = raw.get("effect_mode")
+    if mode is not None and mode not in EFFECT_MODES:
+        raise ToolSpecRefused(
+            "toolspec_effect_policy_invalid",
+            f"tool spec {raw.get('tool_id')!r}: effect_mode {mode!r} is not one of "
+            f"{list(EFFECT_MODES)}")
+    policy = raw.get("credential_policy")
+    direct = None
+    if policy is not None:
+        if not isinstance(policy, Mapping):
+            raise ToolSpecRefused(
+                "toolspec_effect_policy_invalid",
+                f"tool spec {raw.get('tool_id')!r}: credential_policy must be a mapping")
+        direct = policy.get("direct_effect_credentials")
+        if direct not in DIRECT_EFFECT_CREDENTIAL_POLICIES:
+            raise ToolSpecRefused(
+                "toolspec_effect_policy_invalid",
+                f"tool spec {raw.get('tool_id')!r}: direct_effect_credentials {direct!r} "
+                f"is not one of {list(DIRECT_EFFECT_CREDENTIAL_POLICIES)}")
+    return mode, direct
 
 
 def _downstream(raw: Mapping[str, Any]) -> "DownstreamCeiling | None":
@@ -204,6 +236,10 @@ class ToolSpec:
     #: when undeclared, which is not the same as an empty ceiling: undeclared
     #: means the spec says nothing, empty means it declares no effects.
     downstream_capabilities: "DownstreamCeiling | None" = None
+    #: Schema version 3 (CR-005). None when the spec does not say, which a
+    #: strict v2 contract refuses: an unstated effect mode is unknown, not none.
+    effect_mode: str | None = None
+    direct_effect_credentials: str | None = None
 
     @classmethod
     def from_mapping(cls, raw: Mapping[str, Any]) -> "ToolSpec":
@@ -255,6 +291,8 @@ class ToolSpec:
             signing_identity=str(raw["signing_identity"]),
             toolspec_hash=_spec_hash(raw),
             downstream_capabilities=_downstream(raw),
+            effect_mode=_effect_policy(raw)[0],
+            direct_effect_credentials=_effect_policy(raw)[1],
         )
 
 
@@ -470,6 +508,12 @@ class ToolSpecBundle:
                     "toolspec_downstream_requires_v2",
                     f"tool spec {raw.get('tool_id')!r} declares downstream "
                     "capabilities in a schema_version 1 bundle",
+                )
+            if schema_version < 3 and ("effect_mode" in raw or "credential_policy" in raw):
+                raise ToolSpecRefused(
+                    "toolspec_effect_policy_requires_v3",
+                    f"tool spec {raw.get('tool_id')!r} declares an effect policy in a "
+                    f"schema_version {schema_version} bundle",
                 )
             spec = ToolSpec.from_mapping(raw)
             if spec.tool_id in specs:

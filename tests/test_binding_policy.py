@@ -209,6 +209,7 @@ def test_capability_set_required_needs_a_capability_policy(strict, monkeypatch, 
 
     path.write_text(yaml.safe_dump(_policy()), encoding="utf-8")
     monkeypatch.setenv("REMORA_BINDING_POLICY", str(path))
+    monkeypatch.delenv("REMORA_CAPABILITY_POLICY_FILE")
     with pytest.raises(RuntimeProfileError, match="REMORA_CAPABILITY_POLICY_FILE"):
         _validate()
 
@@ -281,6 +282,9 @@ def _dispatcher(policy: BindingPolicy, *, resolver=None, observer=None):
     if observer is not None:
         dispatcher.bind_surface_observer(observer)
     dispatcher.bind_binding_policy(policy)
+    # effect_mediation is core and therefore REQUIRED here; these tests are
+    # about the other bindings, so the effect policy accepts every tool.
+    dispatcher.bind_effect_policy(lambda name, mediated: None)
     return dispatcher
 
 

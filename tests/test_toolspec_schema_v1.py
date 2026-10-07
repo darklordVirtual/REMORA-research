@@ -162,6 +162,9 @@ EXPECTED_REASON_CODES = {
     # Additive 2026-10-07 (RMR-CR-001): asymmetric signing under strict profiles.
     "toolspec_signature_algorithm_refused",
     "toolspec_pinned_digest_required",
+    # Additive 2026-10-07 (CR-005): the signed effect policy of schema version 3.
+    "toolspec_effect_policy_requires_v3",
+    "toolspec_effect_policy_invalid",
 }
 
 

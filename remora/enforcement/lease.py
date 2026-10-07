@@ -796,6 +796,7 @@ class GovernedToolDispatcher:
         #: CR-006 (A2): what this deployment declared must be bound. None
         #: keeps the configuration-conditional behaviour of library use.
         self._binding_policy: Any = None
+        self._effect_policy_check: Callable[[str, bool], str | None] | None = None
         #: Q3.2 shadow metrics: how many bound leases were compared with the
         #: observed surface, and how many found it changed.
         self.surface_checks = 0
@@ -996,10 +997,27 @@ class GovernedToolDispatcher:
             self._surface_enforced = True
             self._surface_digest_required = True
 
+    def bind_effect_policy(self, check: Callable[[str, bool], str | None]) -> None:
+        """CR-005: ``check(tool_name, mediated)`` returns the effect-policy
+        refusal for a tool as registered here, or None. Applied at dispatch,
+        before the nonce is spent, when effect_mediation is REQUIRED."""
+        self._effect_policy_check = check
+
+    def is_mediated(self, tool_name: str) -> bool:
+        with self._registry_lock:
+            return tool_name in self._mediated
+
     def _policy_refusal(self, lease: "ExecutionLease") -> str | None:
         policy = self._binding_policy
-        if policy is not None and policy.required("actor") and not lease.actor_identity:
+        if policy is None:
+            return None
+        if policy.required("actor") and not lease.actor_identity:
             return "actor_unbound"
+        if policy.required("effect_mediation"):
+            check = self._effect_policy_check
+            if check is None:
+                return "effect_policy_unverifiable"
+            return check(lease.tool_name, self.is_mediated(lease.tool_name))
         return None
 
     def bind_surface_observer(self, observer: Callable[[], str], *,

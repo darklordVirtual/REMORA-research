@@ -205,6 +205,11 @@ reason_codes:
     meaning: the bundle's signature algorithm is not accepted in this configuration, e.g. HMAC under a strict profile or with no key configured
   - code: toolspec_pinned_digest_required
     meaning: the profile requires a pinned bundle digest and none is configured
+  # Additive (2026-10-07, CR-005; see tool_spec_v3.yaml).
+  - code: toolspec_effect_policy_requires_v3
+    meaning: a spec declares effect_mode or credential_policy in a bundle older than schema_version 3
+  - code: toolspec_effect_policy_invalid
+    meaning: effect_mode is not MEDIATED or NONE, or credential_policy is malformed
 
 # ── Binding chain (handoff gate §1.3/§1.5) ─────────────────────────────────
 # The same ToolSpec hash must appear at every stage. Any difference means

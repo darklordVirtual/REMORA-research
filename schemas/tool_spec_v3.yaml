@@ -1,0 +1,47 @@
+# ToolSpec schema version 3: additions to tool_spec_v2.yaml (CR-005).
+#
+# Version 3 is version 2 plus two optional, signed fields that state how a
+# tool reaches effects. Everything in tool_spec_v1.yaml and tool_spec_v2.yaml
+# applies unchanged. A spec that declares either field in a bundle with
+# schema_version below 3 is refused (toolspec_effect_policy_requires_v3).
+#
+# Design: docs/design/binding-policy-v1.md (effect_mediation).
+
+schema_version: 3
+extends: tool_spec_v2.yaml
+status: implemented
+implemented_at: "2026-10-07"
+
+optional_fields:
+  effect_mode:
+    values: [MEDIATED, NONE]
+    MEDIATED: >-
+      Every effect the implementation reaches goes through the mediator,
+      within the downstream ceiling (downstream_capabilities), on effect
+      credentials held by the effect domain.
+    NONE: >-
+      A signed claim that the implementation reaches no effect. It is a claim,
+      not proof: an empty ceiling does not show that the code has no hidden
+      effect, which is why a strict contract allows NONE only for read-only
+      tools.
+    absent: unknown. A strict v2 contract refuses it; it is never read as NONE.
+  credential_policy:
+    shape:
+      direct_effect_credentials: "FORBIDDEN or PERMITTED"
+    meaning: >-
+      Whether the tool's execution domain may hold effect credentials directly.
+      A strict v2 contract requires FORBIDDEN.
+
+strict_v2_rules:
+  - "missing effect_mode -> refuse"
+  - "MEDIATED without downstream_capabilities -> refuse"
+  - "MEDIATED registered with mediated=False -> refuse"
+  - "NONE with non-empty downstream_capabilities -> refuse"
+  - "NONE for a tool whose action_type is not read-only -> refuse"
+  - "NONE registered mediated -> refuse"
+  - "direct_effect_credentials other than FORBIDDEN -> refuse"
+  - "an executor holding effect credentials (no effect domain) -> refuse at startup"
+
+reason_codes_added:
+  - toolspec_effect_policy_requires_v3
+  - toolspec_effect_policy_invalid

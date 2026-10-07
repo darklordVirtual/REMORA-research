@@ -235,7 +235,45 @@ def load_strict_binding_policy(contract: str) -> Any:
         if bundle is not None:
             actions = {s.tool_id: s.action_type for s in bundle.tool_specs()}
             problems.extend(policy.check_read_only_exemptions(actions, _READ_ONLY_ACTION_TYPES))
+    if policy.required("effect_mediation"):
+        problems.extend(_effect_mediation_problems(policy))
     if problems:
         raise RuntimeProfileError(
             f"contract {contract} refuses to start: " + "; ".join(problems))
     return policy
+
+
+def _effect_mediation_problems(policy: Any) -> list[str]:
+    """CR-005: privileged tools are mediated, and tool code holds no credential."""
+    from remora.enforcement.custody import DOMAIN_EXECUTOR, domain_role, effect_domain_split
+    from remora.execution.authorization import load_toolspec_bundle
+    from remora.execution.effect_policy import static_effect_policy_refusal
+    from remora.toolcall.toolspec import ToolSpecRefused
+
+    problems: list[str] = []
+    try:
+        role = domain_role(strict=False)
+    except Exception:  # noqa: BLE001 - custody reports a bad role itself, later
+        role = ""
+    if role == DOMAIN_EXECUTOR and not effect_domain_split():
+        problems.append(
+            "effect_mediation is REQUIRED, so the tool execution domain may hold no "
+            "direct effect credential; set REMORA_EFFECT_ENDPOINT to the effect domain "
+            "that holds them")
+    try:
+        bundle = load_toolspec_bundle(os.environ)
+    except (ToolSpecRefused, OSError, ValueError) as exc:
+        return problems + [f"the signed bundle did not load: {exc}"]
+    if bundle is None:
+        return problems + ["effect_mediation is REQUIRED but no signed bundle is configured"]
+    mediated = False
+    for spec in bundle.tool_specs():
+        refusal = static_effect_policy_refusal(spec)
+        if refusal is not None:
+            problems.append(f"{spec.tool_id}: {refusal}")
+        mediated = mediated or spec.effect_mode == "MEDIATED"
+    if mediated and not policy.required("capability_set"):
+        problems.append(
+            "a MEDIATED tool derives its effect authority from a capability set, so "
+            "capability_set must be REQUIRED, not UNVERIFIABLE")
+    return problems

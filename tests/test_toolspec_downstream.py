@@ -67,7 +67,7 @@ def test_a_malformed_declaration_refuses_the_bundle(declaration):
     assert exc.value.reason_code == "toolspec_downstream_declaration_invalid"
 
 
-@pytest.mark.parametrize("version", [0, 3, "2", None])
+@pytest.mark.parametrize("version", [0, 4, "3", None])  # 3 is the CR-005 effect policy
 def test_an_unknown_schema_version_is_refused(version):
     with pytest.raises(ToolSpecRefused) as exc:
         _load([_spec()], version)

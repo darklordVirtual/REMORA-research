@@ -10,5 +10,11 @@ bindings:
   runtime_surface: REQUIRED
   resolved_effect: REQUIRED
   task_identity: REQUIRED
-  capability_set: UNVERIFIABLE
+  # A MEDIATED tool derives its effect authority from the capability set, so
+  # with effect_mediation REQUIRED this must be REQUIRED too.
+  capability_set: REQUIRED
+  # CR-005: every tool's signed spec states effect_mode; MEDIATED tools are
+  # registered mediated, and the executor holds no effect credential
+  # (REMORA_EFFECT_ENDPOINT names the effect domain).
+  effect_mediation: REQUIRED
 tools: {}

@@ -3159,3 +3159,24 @@ def _apply_surface_selection() -> None:
 
 
 _apply_surface_selection()
+
+
+def _build_executor_dispatcher_at_startup() -> None:
+    """CR-005: an executor under a strict contract validates its registry at
+    startup. The dispatcher is otherwise built on the first dispatch, so a
+    registry that breaks the signed effect policy would serve until then."""
+    from remora.profiles import STRICT_PROFILES, current_runtime_profile
+
+    if current_runtime_profile() not in STRICT_PROFILES:
+        return
+    from remora.enforcement.custody import DOMAIN_EXECUTOR, domain_role
+
+    if domain_role(strict=False) != DOMAIN_EXECUTOR:
+        return
+    from servers import execution_api
+
+    if execution_api._binding_policy() is not None:
+        execution_api._tool_dispatcher()
+
+
+_build_executor_dispatcher_at_startup()
