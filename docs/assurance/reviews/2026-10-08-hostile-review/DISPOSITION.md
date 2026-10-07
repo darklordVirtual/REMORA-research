@@ -61,11 +61,11 @@ s, cap 3600 s).
 
 ## H-06: canonicalization (nesting fixed; one claim incorrect)
 
-- **Fixed:** argument nesting had no bound, so a deep enough payload raised
+- Fixed: argument nesting had no bound, so a deep enough payload raised
   `RecursionError` instead of a refusal. `_require_json_domain` now refuses
   nesting deeper than `MAX_ARGUMENT_DEPTH` (64) as a value error, so dispatch
   refuses with `tool_args_not_canonical`. No canonical form changes.
-- **Incorrect:** "any object that reaches the encoder after a schema gap still
+- Incorrect: "any object that reaches the encoder after a schema gap still
   stringifies". `canonical_tool_call_hash` calls `_require_json_domain` before
   encoding, so a non-JSON value is refused and `default=str` is unreachable on
   the binding path.
@@ -82,17 +82,17 @@ s, cap 3600 s).
 
 ## H-02, H-04, H-05, H-07, H-10: stated boundaries
 
-- **H-02:** over federation-port/v0, exact-call binding projects NARROWED to
+- H-02: over federation-port/v0, exact-call binding projects NARROWED to
   `remora.port_v0.bound_action`, and the manifest lists each limit. The claim
   names carry `port_v0` and never `exact_call_binding`.
-- **H-04:** `implementation_effect_non_transitivity` is NOT_ESTABLISHED in the
+- H-04: `implementation_effect_non_transitivity` is NOT_ESTABLISHED in the
   capability register. Under the strict v2 contract, effect mediation is
   REQUIRED for declared tools (CR-005). Code that uses a credential directly is
   still not stopped.
-- **H-05:** the custody guard enforces declared credential custody only
+- H-05: the custody guard enforces declared credential custody only
   (`remora/enforcement/custody.py`, ADR-A, CR-009).
-- **H-07:** `runtime_capability_surface_completeness` is NOT_ESTABLISHED.
-- **H-10:** the capability register binds each status to the evidence and
+- H-07: `runtime_capability_surface_completeness` is NOT_ESTABLISHED.
+- H-10: the capability register binds each status to the evidence and
   revision that support it. Nothing is ENFORCED_PRODUCTION or
   EXTERNALLY_VERIFIED.
 
@@ -112,11 +112,11 @@ any-established mode. Several eligible reports with no declared selector raise
 
 ## H-11, H-12: verified against the code
 
-- **H-11:** `ExecutionOutbox.claim` takes the write lock with
+- H-11: `ExecutionOutbox.claim` takes the write lock with
   `BEGIN IMMEDIATE` (SQLite) or `SELECT ... FOR UPDATE` (Postgres) before
   checking that the row is still `DISPATCH_PENDING`. Two workers cannot both
   claim one row, and the durable nonce remains the final gate.
-- **H-12:** strict profiles accept only the bundle whose digest is pinned, so
+- H-12: strict profiles accept only the bundle whose digest is pinned, so
   an older signed bundle is refused even if correctly signed. Outside strict
   profiles the pin is optional.
 
