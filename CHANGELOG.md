@@ -4,6 +4,16 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+## 0.12.0 — 2026-10-07
+
+The research release that publishes the paper revision of 2026-10-07. It
+adds opt-in execution-context binding, capability sets, task identity and
+loop safety, and the Federation self-service and admission tooling, and it
+records the first external second-implementation runs of the frozen boundary
+contracts. Three properties stay declared NOT_ESTABLISHED: runtime capability-surface
+completeness, implementation effect non-transitivity and authoritative
+execution-context binding.
+
 ### Added
 
 - Execution-context binding (#754, opt-in). With
