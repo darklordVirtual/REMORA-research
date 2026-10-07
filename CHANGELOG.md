@@ -6,6 +6,13 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Security
 
+- The runtime-surface binding is active on the API path (CR-006, A1). Every
+  lease the API mints signs the signed execution surface (pinned bundle digest
+  and every spec's tool id and hash), and the dispatcher compares it with the
+  surface it actually offers. Under a strict profile a tool registered on the
+  executor that the signed contract does not describe refuses every dispatch
+  (`surface_changed`), and a lease naming no surface refuses
+  (`surface_unbound`). Outside strict profiles the comparison runs in shadow.
 - ToolSpec trust is asymmetric and pinned under strict profiles (RMR-CR-001).
   `review` and `controlled_pilot` require `REMORA_TOOLSPEC_VERIFY_KEYS` and
   `REMORA_TOOLSPEC_PINNED_DIGEST`, refuse HMAC-signed bundles, and refuse a
