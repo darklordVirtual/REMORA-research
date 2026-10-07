@@ -998,6 +998,13 @@ export interface components {
             capability_set?: {
                 [key: string]: unknown;
             } | null;
+            /**
+             * Execution Context
+             * @description Historical deployment context; trusted only after its digest and lineage match the signed lease.
+             */
+            execution_context?: {
+                [key: string]: unknown;
+            } | null;
             /** Lease */
             lease: {
                 [key: string]: unknown;
@@ -1043,6 +1050,12 @@ export interface components {
              * @default
              */
             detail: string;
+            /**
+             * Execution Context Hash
+             * @description Required for a context-bound dispatch; must match its historical context, never current configuration.
+             * @default
+             */
+            execution_context_hash: string;
             /** Execution Id */
             execution_id: string;
             /**

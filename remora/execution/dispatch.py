@@ -19,7 +19,7 @@ import logging
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from remora.enforcement.lease import ExecutionLease, LeaseRefused
+from remora.enforcement.lease import ExecutionLease, LeaseRefused, ToolExecutionStateUnknown
 from remora.enforcement.lease_signing import SigningUnavailable
 from remora.execution.remote_dispatch import (
     RemoteDispatchUnavailable,
@@ -29,6 +29,12 @@ from remora.execution.remote_dispatch import (
 from remora.enforcement.outbox import ExecutionOutbox, OutboxRow
 from remora.observability.events import governance_event
 from remora.enforcement.result_envelope import capture_tool_result
+from remora.governance.execution_identity import ExecutionContextV1
+
+
+def _execution_context(semantic: dict[str, Any]) -> ExecutionContextV1 | None:
+    canonical = semantic.get("execution_context_canonical")
+    return ExecutionContextV1.from_canonical(canonical) if canonical is not None else None
 
 if TYPE_CHECKING:
     from remora.capabilities.model import EffectiveCapabilitySet
@@ -157,6 +163,7 @@ def dispatch_under_lease(
             return remote_dispatch(
                 lease=lease, tenant=tenant, principal=principal,
                 tool_call=tool_call, capability_set=capability_set, plan=plan,
+                execution_context=_execution_context(semantic),
             )
         except RemoteDispatchUnavailable as exc:
             # No verdict. Reported as unknown rather than as a refusal: the
@@ -175,6 +182,9 @@ def dispatch_under_lease(
                 "error": type(exc).__name__,
                 "proposal_id": proposal_id,
                 "state_unknown": True,
+                **({"execution_context_hash": lease.execution_context_hash,
+                    "execution_id": lease.grant_jti}
+                   if lease.execution_context_hash else {}),
             }
 
     # Narrowing for the type checker, not a runtime decision: the compound
@@ -192,6 +202,9 @@ def dispatch_under_lease(
         task_kwargs["plan"] = plan
     if capability_set is not None:
         task_kwargs["capability_set"] = capability_set
+    context = _execution_context(semantic)
+    if context is not None:
+        task_kwargs["execution_context"] = context
     try:
         dres = dispatcher.dispatch(
             lease,
@@ -233,6 +246,10 @@ def dispatch_under_lease(
         tool_execution["proposal_id"] = proposal_id
         tool_execution["dispatch_began"] = True
         tool_execution["state_unknown"] = True
+        if isinstance(exc, ToolExecutionStateUnknown) and exc.execution_context_hash:
+            tool_execution["execution_context_hash"] = exc.execution_context_hash
+            tool_execution["execution_id"] = exc.execution_id
+            tool_execution["dispatch_check"] = exc.dispatch_check
         # NTA-2: what a mediated tool asked for before it raised.
         nested = getattr(exc, "nested_effects", None)
         if nested is not None:
@@ -247,6 +264,10 @@ def dispatch_under_lease(
     # Read the identity back off the dispatch result rather than the local
     # variable: what is reported is what the dispatcher actually acted under.
     tool_execution["proposal_id"] = dres.proposal_id
+    if getattr(dres, "execution_context_hash", "") or getattr(dres, "dispatch_check", None):
+        tool_execution["execution_context_hash"] = dres.execution_context_hash
+        tool_execution["execution_id"] = dres.execution_id
+        tool_execution["dispatch_check"] = dict(dres.dispatch_check or {})
     # NTA-2: the nested effects a mediated tool requested, as a bounded
     # summary for the chain and the full graph for the response and export.
     tool_execution["nested_effects"] = dict(getattr(dres, "nested_effects", None) or {})
@@ -334,6 +355,7 @@ def _issue_local_lease(
             resolved_effect=resolved_effect,
             plan=plan,
             capability_set=capability_set,
+            execution_context=_execution_context(semantic),
         )
 
 

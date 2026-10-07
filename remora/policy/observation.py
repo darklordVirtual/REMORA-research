@@ -153,6 +153,7 @@ class PolicyObservation:
     # durable review queue and threads every downstream record without
     # out-of-band reconstruction. None on paths that predate the lifecycle.
     proposal_id: str | None = None
+    execution_context_hash: str = ""
 
     # Thermodynamic state
     phase: str | None = None

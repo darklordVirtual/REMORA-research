@@ -124,6 +124,7 @@ class AuthorizationContext:
     #: stops verifying. See remora/governance/task_identity.py.
     context_id: str = ""
     task_id: str = ""
+    execution_context_hash: str = ""
 
     def hash(self) -> str:
         fields = {
@@ -141,6 +142,8 @@ class AuthorizationContext:
             fields["context_id"] = self.context_id
         if self.task_id:
             fields["task_id"] = self.task_id
+        if self.execution_context_hash:
+            fields["execution_context_hash"] = self.execution_context_hash
         canonical = json.dumps(fields, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(canonical.encode()).hexdigest()
 
@@ -173,6 +176,7 @@ class AuthorizationContext:
                 "intent_authority_hash",
                 "context_id",
                 "task_id",
+                "execution_context_hash",
             )
             if (getattr(self, name) or "") != (getattr(other, name) or "")
         ]
@@ -233,6 +237,8 @@ def _hash_observation(obs_data: Any) -> str:
         serializable = obs_data
     else:
         serializable = {"value": str(obs_data)}
+    if serializable.get("execution_context_hash") == "":
+        serializable = {k: v for k, v in serializable.items() if k != "execution_context_hash"}
     canonical = json.dumps(serializable, sort_keys=True, separators=(",", ":"), default=str)
     return hashlib.sha256(canonical.encode()).hexdigest()
 

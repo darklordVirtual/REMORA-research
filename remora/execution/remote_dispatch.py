@@ -130,6 +130,7 @@ def remote_dispatch(
     tool_call: Any,
     capability_set: Any = None,
     plan: Any = None,
+    execution_context: Any = None,
 ) -> dict[str, Any]:
     """Hand a minted lease to the execution domain and return its outcome.
 
@@ -173,6 +174,8 @@ def remote_dispatch(
     }
     if capability_set is not None:
         payload["capability_set"] = capability_set.to_dict()
+    if execution_context is not None:
+        payload["execution_context"] = execution_context.to_dict()
 
     try:
         answer = _post(url.rstrip("/") + "/v1/execution/dispatch-leased",
@@ -206,4 +209,13 @@ def remote_dispatch(
         raise RemoteDispatchUnavailable(
             "execution domain answered without a tool_execution object; "
             "refusing to infer whether the effect happened")
+    if getattr(lease, "execution_context_hash", "") and execution.get("executed"):
+        check = execution.get("dispatch_check")
+        if (execution.get("execution_context_hash") != lease.execution_context_hash
+                or execution.get("execution_id") != lease.grant_jti
+                or not isinstance(check, dict)
+                or check.get("result") != "matched"
+                or check.get("expected_runtime_identity_hash") != lease.runtime_identity_hash
+                or check.get("observed_runtime_identity_hash") != lease.runtime_identity_hash):
+            raise RemoteDispatchUnavailable("execution context evidence missing or inconsistent")
     return execution
