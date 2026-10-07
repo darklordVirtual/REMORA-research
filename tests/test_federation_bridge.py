@@ -226,7 +226,9 @@ def test_every_result_carries_its_projection_records(caps, pmap) -> None:
     assert by_claim["principal_binding-v1"]["projection"] == "NOT_ESTABLISHED"
     assert by_claim["exact_call_binding-v1.1"]["projection"] == "NARROWED"
     for record in projected.projection_records:
-        assert record["schema_version"] == "remora-federation-projection-v1"
+        assert record["schema_version"] == "remora-federation-projection-v2"
+        assert record["subject"] == {"kind": "operation", "operation_id": "op-1"}
+        assert record["native_result"] is None  # projection at issuance, no native evaluation
         assert record["projection_map_digest"] == pmap.digest
         assert record["capabilities_digest"] == caps.digest
 
@@ -283,7 +285,7 @@ def test_the_artifacts_validate_against_their_published_schemas(caps, pmap) -> N
     jsonschema.validate(yaml.safe_load((BASE / "capabilities.yaml").read_text(encoding="utf-8")),
                         schema("remora-federation-transport-capabilities-v1.json"))
     for record in projected.projection_records:
-        jsonschema.validate(record, schema("remora-federation-projection-v1.json"))
+        jsonschema.validate(record, schema("remora-federation-projection-v2.json"))
 
 
 def test_no_native_execution_primitive_imports_the_bridge() -> None:

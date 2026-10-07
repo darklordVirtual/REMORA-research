@@ -32,19 +32,35 @@ from remora.federation.projection import (
     ProjectionMap,
     load_projection_map,
 )
+from remora.federation.subjects import (
+    EvidenceSelection,
+    NativeResult,
+    Report,
+    SelectionProfile,
+    SelectionRefused,
+    SubjectRef,
+    select_report,
+)
 
 __all__ = [
     "CANONICALIZATION",
     "PROJECTION_RESULTS",
     "CanonicalArguments",
     "ClaimProjection",
+    "EvidenceSelection",
     "NativeFederationAction",
+    "NativeResult",
     "ProjectionError",
     "ProjectionMap",
+    "Report",
+    "SelectionProfile",
+    "SelectionRefused",
+    "SubjectRef",
     "TransportCapabilities",
     "canonical_arguments",
     "javascript_losses",
     "load_capabilities",
     "load_projection_map",
+    "select_report",
     "transport_outcome",
 ]

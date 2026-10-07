@@ -78,6 +78,9 @@ class SignatureDomain(str, Enum):
     #: A Native Federation Action Envelope with its transport projection
     #: (remora.federation), verified by federation adapters with a pinned key.
     FEDERATION_ACTION = "REMORA/FEDERATION-ACTION/v1"
+    #: A native result about one selected subject (an operation, report,
+    #: attempt or effect observation), with how it was selected.
+    FEDERATION_RESULT = "REMORA/FEDERATION-RESULT/v1"
     OPERATOR_STATEMENT = "REMORA/OPERATOR-STATEMENT/v1"
 
 

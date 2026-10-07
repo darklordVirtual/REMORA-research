@@ -6,6 +6,16 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Interoperability
 
+- Federation results name the subject they are about (report-specific
+  binding). A result now identifies its subject (operation, report, execution
+  attempt or effect observation), how it was selected, and the native result
+  with a bounded reason, signed together in `REMORA/FEDERATION-RESULT/v1`.
+  Several eligible reports with no declared selector produce no result, and a
+  result for one report does not verify for another. Projection records move
+  to `remora-federation-projection-v2`; v1 records stay readable and are
+  never read as carrying a report binding. Raised by Rul1an on
+  aeoess/agent-governance-vocabulary#177 (LATE and LATE-CONFLICT). No
+  federation-port core change.
 - REMORA Federation Bridge and a federation-port/v0 adapter
   (`docs/interop/FEDERATION_BRIDGE.md`). `remora/federation` projects
   REMORA's native claims onto a federation transport as PRESERVED, NARROWED,
