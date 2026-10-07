@@ -19,8 +19,8 @@ change and stay reachable (merge commits).
 | RMR-CR-010 paper TEE sentence | FIXED (paper .md now matches the .tex measurement language) | #782 | 4bff0e5 |
 | RMR-CR-011 signature domain separation | FIXED under strict v2 (lease, token, audit); envelopes, checkpoints and Workers remain v1 | #768, #778, #779, #780 | 2412d61, 0f65741, d82bdc6, e7371db |
 | RMR-CR-012 concurrency test hang | FIXED | #767 | squash |
-| RMR-CR-013 canonicalisation | CHANGED, then FIXED at the Worker edge (no v2 canonicalisation) | #783 | pending |
-| RMR-CR-014 datasets in wheel | OPEN (packaging) | none | - |
+| RMR-CR-013 canonicalisation | CHANGED, then FIXED at the Worker edge (no v2 canonicalisation) | #783 | d737f94 |
+| RMR-CR-014 datasets in wheel | FIXED (excluded from the runtime wheel) | #784 | pending |
 | RMR-CR-015 ledger failure parity | FIXED | #771 | 517a904 |
 
 ## Per finding
@@ -85,11 +85,16 @@ change and stay reachable (merge commits).
 ### RMR-CR-012: FIXED
 - New: bounded race helper; starved writers fail in ~2 s. Old shape reproduced as a hang (killed at 20 s).
 
+### RMR-CR-014: FIXED (packaging)
+- New: the three generated dataset modules are excluded from the runtime wheel (`[tool.hatch.build.targets.wheel] exclude`); they stay in the source tree and the sdist. The built wheel drops from about 6.2 MB to about 4.7 MB uncompressed.
+- Tests: `tests/test_wheel_excludes_datasets.py` (the exclusion is declared, matches real files, no shipped module imports an excluded dataset, no other shipped module exceeds 300 KB); the CI wheel job inspects the built wheel.
+- Remaining: a separate research distribution (the preferred fix) is not built; `extended.py` and `standard.py`, small datasets imported by `remora.benchmarks`, still ship.
+
 ### RMR-CR-015: FIXED
 - New: every backend refuses with `consumed_ledger_unavailable` and emits `grant.ledger_unavailable`; uncommitted grants stay unspent; D1 names timeouts and malformed answers.
 - Tests: `tests/test_ledger_failure_parity.py` (7, parametrised over SQLite, Postgres, D1); 6 of 7 fail on the old code.
 
-### RMR-CR-013: CHANGED
+### RMR-CR-013: CHANGED, then FIXED at the Worker edge
 Investigation (Stage 0): Workers re-serialise and can lose precision before binding; Python binds and executes the same value. No post-binding divergence exists, so an exact-call-binding v2 is not justified. Proportionate follow-up: refuse unsafe numerics at the Worker edge.
 - Follow-up done: `workers/{mcp-gateway,agent-control}/src/json_numbers.ts` (identical) scans the raw body and refuses integers beyond 2^53−1, float literals JavaScript would write as integers and non-finite literals, on mcp-gateway's JSON-RPC endpoint and agent-control's execute endpoint. agent-control's comment claiming a downstream comparator was corrected.
 - Tests: `workers/mcp-gateway/test/json_numbers.test.ts` (vitest); `tests/test_worker_unsafe_numbers.py` runs agent-control's module under node against what Python would bind and checks the copies are identical, in the CI job that must not skip.

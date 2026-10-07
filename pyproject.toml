@@ -128,6 +128,15 @@ remora = "remora.cli:main"
 # repo checkout, so path resolution is identical in both install modes.
 [tool.hatch.build.targets.wheel]
 packages = ["remora", "servers"]
+# RMR-CR-014: the generated benchmark datasets are research data (1.5 MB of
+# inline items), not runtime code. Nothing outside remora/benchmarks imports
+# them, so they stay in the source tree and the sdist and out of the runtime
+# wheel. tests/test_wheel_excludes_datasets.py and the CI wheel job check it.
+exclude = [
+  "remora/benchmarks/extended_v2.py",
+  "remora/benchmarks/extended_v2_n500.py",
+  "remora/benchmarks/sap_v3_n1200.py",
+]
 
 [tool.hatch.build.targets.wheel.force-include]
 "schemas" = "schemas"
@@ -370,6 +379,7 @@ pytest_add_cli_args_test_selection = [
     "tests/test_toolspec_binding_chain.py",
     "tests/test_toolspec_bound_at_dispatch.py",
     "tests/test_unsigned_issuance_family.py",
+    "tests/test_wheel_excludes_datasets.py",
     "tests/test_worker_unsafe_numbers.py",
     "tests/test_ws7_server_path.py",
 ]
