@@ -1385,11 +1385,13 @@ def _cmd_serve(args: argparse.Namespace) -> int:
         print(f"remora serve: could not import the API app: {err}", file=sys.stderr)
         return 1
     host, port = args.host, args.port
-    env_mode = os.getenv("REMORA_ENV", "development")
+    from remora.profiles import deployment_environment
+
+    env_mode = deployment_environment()  # the app import above already refused an unknown value
     ink = _make_ink()
     print(ink(f"REMORA governance API -> http://{host}:{port}  (env={env_mode})",
               "cyan", "bold"))
-    if env_mode not in {"production", "prod"} and not os.getenv("REMORA_ORACLE_BACKEND"):
+    if env_mode != "production" and not os.getenv("REMORA_ORACLE_BACKEND"):
         print(ink("  dev mode: mock oracles unless REMORA_ORACLE_BACKEND is set; "
                   "auth fail-closes only in production.", "dim"))
     uvicorn.run(app, host=host, port=port)  # no --reload: pass the app object directly

@@ -159,7 +159,13 @@ class TestSingleTokenProductionRolePinning:
             "query_string": b"", "headers": headers,
         })
 
-    def test_production_pins_role_to_operator(self, monkeypatch):
+    def test_production_refuses_single_token_mode(self, monkeypatch):
+        """Stronger than the original pinning (RMR-CR-003): outside development
+        single-token mode is refused outright, because the tenant would be
+        self-asserted too, not only the role."""
+        import pytest
+        from fastapi import HTTPException
+
         import servers.api as api_module
         for env_val in ("production", "prod"):
             monkeypatch.setenv("REMORA_ENV", env_val)
@@ -169,10 +175,9 @@ class TestSingleTokenProductionRolePinning:
                 (b"authorization", b"Bearer tok-123"),
                 (b"x-remora-role", b"senior_authority"),
             ])
-            tenant, role = api_module._authenticate(req)
-            assert role == "operator", (
-                f"REMORA_ENV={env_val!r}: self-asserted role must be pinned"
-            )
+            with pytest.raises(HTTPException) as exc:
+                api_module._authenticate(req)
+            assert exc.value.status_code == 403, env_val
 
     def test_development_still_honours_header_role(self, monkeypatch):
         import servers.api as api_module

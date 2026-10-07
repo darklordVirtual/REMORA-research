@@ -23,6 +23,8 @@ STRICT_ENV = {
     "REMORA_TOOL_REGISTRY_MODULE": "example.registry",
     "REMORA_CHAIN_DB": "/tmp/remora-execution.db",
     "REMORA_PDP_SIGNING_KEY": "test-pdp-key",
+    # RMR-CR-003: tenant and role come from a credential table.
+    "REMORA_API_TOKENS": '{"tok": {"tenant": "acme", "role": "operator"}}',
     # Property E: the strict profiles now compel the ADR-A custody split, so a
     # strict configuration must say which half of it this process is. The
     # authority role keeps the prerequisites this suite already asserted.
@@ -46,6 +48,7 @@ def _clear(monkeypatch) -> None:
         "REMORA_PG_DSN",
         "REMORA_CHAIN_DB",
         "REMORA_PDP_SIGNING_KEY",
+        "REMORA_API_TOKENS",
         "REMORA_EXECUTION_DOMAIN_ROLE",
         "REMORA_EFFECT_CREDENTIAL_ENV_NAMES",
         "ACME_SMTP_PASSWORD",

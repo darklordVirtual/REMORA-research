@@ -97,10 +97,30 @@ def test_metrics_single_tenant_viewer_still_allowed(monkeypatch):
 # ---- 4. role header outside development ---------------------------------
 
 @pytest.mark.parametrize("env", ["staging", "qa", "test", ""])
-def test_non_dev_env_ignores_role_header_in_single_token_mode(monkeypatch, env):
-    api = _reload(monkeypatch, env=env, bearer="tok")
+def test_an_unknown_env_refuses_startup_instead_of_trusting_any_header(monkeypatch, env):
+    """RMR-CR-003: these values used to start as "neither dev nor production",
+    taking the tenant from the header. They are now refused at startup, so
+    neither the role nor the tenant header is ever read under them."""
+    from remora.profiles import RuntimeProfileError
+
+    try:
+        with pytest.raises(RuntimeProfileError, match="unknown"):
+            _reload(monkeypatch, env=env, bearer="tok")
+    finally:
+        # A failed reload leaves a half-built module behind; restore it so
+        # later tests see a complete app.
+        _reload(monkeypatch, env="development")
+
+
+def test_production_refuses_single_token_mode_on_the_request_path(monkeypatch):
+    api = _reload(monkeypatch, env="development", bearer="tok")
+    monkeypatch.setenv("REMORA_ENV", "production")
     req = _FakeRequest({"Authorization": "Bearer tok", "X-Remora-Role": "admin"})
-    assert api._authenticate(req) == ("default", "operator")
+    from fastapi import HTTPException
+
+    with pytest.raises(HTTPException) as exc:
+        api._authenticate(req)
+    assert exc.value.status_code == 403
 
 
 def test_development_env_keeps_role_header(monkeypatch):
@@ -120,7 +140,13 @@ def test_development_mode_logs_startup_warning(monkeypatch, caplog):
     assert any("development mode" in r.getMessage().lower() for r in caplog.records)
 
 
-def test_staging_does_not_log_development_warning(monkeypatch, caplog):
-    with caplog.at_level(logging.WARNING, logger="remora.api"):
-        _reload(monkeypatch, env="staging", bearer="tok")
-    assert not any("development mode" in r.getMessage().lower() for r in caplog.records)
+def test_staging_is_refused_and_never_logged_as_development(monkeypatch, caplog):
+    from remora.profiles import RuntimeProfileError
+
+    try:
+        with caplog.at_level(logging.WARNING, logger="remora.api"):
+            with pytest.raises(RuntimeProfileError):
+                _reload(monkeypatch, env="staging", bearer="tok")
+        assert not any("development mode" in r.getMessage().lower() for r in caplog.records)
+    finally:
+        _reload(monkeypatch, env="development")

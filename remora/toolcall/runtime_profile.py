@@ -102,6 +102,10 @@ def validate_runtime_profile_prerequisites() -> str:
         missing.append("REMORA_TOOL_REGISTRY_MODULE")
     if not _configured("REMORA_PG_DSN", "REMORA_CHAIN_DB"):
         missing.append("REMORA_PG_DSN (or REMORA_CHAIN_DB)")
+    # RMR-CR-003: a strict profile derives tenant and role from a credential
+    # table. Single-token and no-auth modes take both from request headers.
+    if not _configured("REMORA_API_TOKENS"):
+        missing.append("REMORA_API_TOKENS")
 
     # Signing material is an authority prerequisite and an executor
     # violation. The single list this replaced assumed one process did both,
@@ -149,8 +153,9 @@ def validate_runtime_profile_prerequisites() -> str:
     assert_custody_split(strict=True)
 
     if profile == "controlled_pilot":
-        env = os.getenv("REMORA_ENV", "").strip().lower()
-        if env not in {"prod", "production"}:
+        from remora.profiles import deployment_environment
+
+        if deployment_environment() != "production":
             raise RuntimeProfileError(
                 "REMORA runtime profile 'controlled_pilot' requires "
                 "REMORA_ENV=production"
