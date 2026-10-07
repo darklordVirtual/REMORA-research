@@ -1,0 +1,60 @@
+# Binding x profile matrix (CR-006). Machine-checked by
+# tests/test_binding_policy_matrix.py: every binding in
+# remora.enforcement.binding_policy.BINDINGS appears here, every refusal
+# reason named here exists in the code, and every startup requirement is
+# enforced by remora/toolcall/runtime_profile.py.
+#
+# research / development and the strict v1 contract keep the
+# configuration-conditional behaviour described per binding. The strict v2
+# contract (review/v2, controlled_pilot/v2) applies the BindingPolicy.
+schema: remora-binding-matrix/v1
+contracts:
+  v1: configuration-conditional, as before CR-006
+  v2: BindingPolicy required; REQUIRED comparators checked at startup
+bindings:
+  exact_call:
+    states_v2: [REQUIRED]
+    comparator: ExecutionLease.verify recomputes the call hash (tool, arguments, tenant, target)
+    refusal: tool_args_hash_mismatch
+    always_compared: true
+  toolspec:
+    states_v2: [REQUIRED]
+    comparator: GovernedToolDispatcher.bind_toolspec_identity, against the pinned bundle
+    refusal: toolspec_hash_mismatch
+    startup: REMORA_TOOLSPEC_BUNDLE, REMORA_TOOLSPEC_VERIFY_KEYS, REMORA_TOOLSPEC_PINNED_DIGEST
+  tenant:
+    states_v2: [REQUIRED]
+    comparator: ExecutionLease.verify compares the lease tenant with the dispatch tenant
+    refusal: tenant_mismatch
+    always_compared: true
+  task_identity:
+    states_v2: [REQUIRED, UNVERIFIABLE]
+    comparator: GovernedToolDispatcher require_task_identity; /assess refuses a call naming no task
+    refusal: task_identity_required
+  capability_set:
+    states_v2: [REQUIRED, UNVERIFIABLE]
+    comparator: GovernedToolDispatcher require_capability_set, against REMORA_CAPABILITY_POLICY_FILE
+    refusal: capability_set_required
+    startup: REMORA_CAPABILITY_POLICY_FILE
+  resolved_effect:
+    states_v2: [REQUIRED, NOT_APPLICABLE per read-only tool]
+    comparator: the effect resolver (REMORA_EFFECT_REGISTRY_MODULE), resolved again at dispatch
+    refusal: resolved_effect_unbound
+    refusal_no_resolver: resolved_effect_unverifiable
+    startup: REMORA_EFFECT_REGISTRY_MODULE
+  runtime_surface:
+    states_v2: [REQUIRED]
+    comparator: the observed execution surface (remora/execution/execution_surface.py)
+    refusal: surface_changed
+    refusal_unbound: surface_unbound
+    refusal_no_observer: surface_unobservable
+    startup: REMORA_TOOLSPEC_BUNDLE
+  actor:
+    states_v2: [REQUIRED]
+    comparator: ExecutionLease.verify compares a named actor; the policy refuses a lease naming none
+    refusal: actor_unbound
+  audience:
+    states_v2: [REQUIRED]
+    comparator: EnforcementGate audience, fixed to pep://remora-execution on the API path
+    refusal: audience_mismatch
+    always_compared: true

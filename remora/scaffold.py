@@ -89,6 +89,47 @@ def register_tools(register) -> None:
 '''
 
 
+_EFFECTS_SOURCE = '''
+"""Closed effect registry for the demo tool (CR-006: resolved_effect REQUIRED).
+
+A consequential tool needs a real resolver under a strict profile. This one
+knows exactly one tool and one effect; anything else is an unresolved
+reference and refuses.
+"""
+from remora.enforcement.resolved_effect import ClosedWorldResolver
+
+
+def build_resolver():
+    return ClosedWorldResolver(
+        tools={"send_notification": ("remora_registry.send_notification@v1", "send")},
+        resources={},
+        resource_argument={},
+    )
+'''
+
+_BINDING_POLICY = """\
+# BindingPolicy for review/v2 (CR-006). Every binding is stated; implicit is
+# a startup failure. States: REQUIRED (compared at dispatch, its comparator
+# must exist), NOT_APPLICABLE (per tool, resolved_effect only, read-only tools
+# only), UNVERIFIABLE (a declared gap, recorded at startup, non-core only).
+schema: remora-binding-policy/v1
+bindings:
+  exact_call: REQUIRED
+  toolspec: REQUIRED
+  tenant: REQUIRED
+  actor: REQUIRED
+  audience: REQUIRED
+  runtime_surface: REQUIRED
+  resolved_effect: REQUIRED      # remora_effects.build_resolver
+  # Declared gaps for the demo: its calls name no A2A task and it ships no
+  # capability policy. Set REQUIRED once callers send context_id/task_id and
+  # REMORA_CAPABILITY_POLICY_FILE names a policy.
+  task_identity: UNVERIFIABLE
+  capability_set: UNVERIFIABLE
+tools: {}
+"""
+
+
 def _callable_digest(source: str) -> str:
     return "sha256:" + hashlib.sha256(source.encode("utf-8")).hexdigest()
 
@@ -224,6 +265,8 @@ def init_review(
 
     # -- registry, bundle, intents ------------------------------------------
     registry_path = put("remora_registry.py", _REGISTRY_SOURCE)
+    put("remora_effects.py", inspect.cleandoc(_EFFECTS_SOURCE) + "\n")
+    policy_path = put("binding-policy.yaml", _BINDING_POLICY)
     digest = _callable_digest(inspect.cleandoc(_REGISTRY_SOURCE))
     # RMR-CR-001: the bundle is signed here, at authoring time, with an Ed25519
     # seed that goes only to keys/. Neither runtime half receives it; both get
@@ -274,6 +317,8 @@ def init_review(
         ("REMORA_EFFECT_CREDENTIAL_ENV_NAMES", effect_credential_name),
         ("REMORA_TOOLSPEC_BUNDLE", str(bundle_path.resolve())),
         ("REMORA_TOOLSPEC_VERIFY_KEYS", toolspec_public),
+        ("REMORA_BINDING_POLICY", str(policy_path.resolve())),
+        ("REMORA_EFFECT_REGISTRY_MODULE", "remora_effects"),
         ("REMORA_TOOLSPEC_PINNED_DIGEST", toolspec_digest),
         ("REMORA_TOOL_REGISTRY_MODULE", "remora_registry"),
         ("REMORA_SEMANTIC_BUNDLE_MODULE", "servers.semantic_bundle_research"),

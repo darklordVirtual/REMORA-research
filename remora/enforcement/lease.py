@@ -793,6 +793,9 @@ class GovernedToolDispatcher:
         self._surface_observer: Callable[[], str] | None = None
         self._surface_enforced = False
         self._surface_digest_required = False
+        #: CR-006 (A2): what this deployment declared must be bound. None
+        #: keeps the configuration-conditional behaviour of library use.
+        self._binding_policy: Any = None
         #: Q3.2 shadow metrics: how many bound leases were compared with the
         #: observed surface, and how many found it changed.
         self.surface_checks = 0
@@ -838,6 +841,14 @@ class GovernedToolDispatcher:
         from remora.enforcement.custody import custody_is_enforced
         from remora.enforcement.resolved_effect import UnresolvedReference
 
+        policy = self._binding_policy
+        effect_state = policy.state("resolved_effect", tool_name) if policy is not None else ""
+        if effect_state == "NOT_APPLICABLE":
+            # Declared per tool, and only accepted at startup for a tool whose
+            # signed spec is read-only.
+            return None
+        if effect_state == "REQUIRED" and self._effect_resolver is None:
+            return "resolved_effect_unverifiable"
         if self._effect_resolver is None:
             if lease.resolved_effect_hash:
                 governance_event(
@@ -854,7 +865,7 @@ class GovernedToolDispatcher:
             if not hmac.compare_digest(current.digest(), lease.resolved_effect_hash):
                 return "resolved_effect_mismatch"
             return None
-        if custody_is_enforced():
+        if custody_is_enforced() or effect_state == "REQUIRED":
             return "resolved_effect_unbound"
         governance_event(
             "dispatch.resolved_effect_unbound", tenant_id=lease.tenant_id,
@@ -964,6 +975,33 @@ class GovernedToolDispatcher:
             refusal = revocation_refusal(capability_set, self._capability_epochs)
         return refusal.value if refusal is not None else None
 
+    def bind_binding_policy(self, policy: Any) -> None:
+        """Apply a BindingPolicy (CR-006, A2).
+
+        Each REQUIRED binding is compared at dispatch, before the nonce is
+        spent, and a missing comparator refuses rather than skips:
+        ``task_identity`` and ``capability_set`` switch their requirements on;
+        ``runtime_surface`` enforces the surface and refuses a lease without a
+        digest; ``resolved_effect`` refuses a consequential tool with no
+        resolver (``resolved_effect_unverifiable``) or a lease without a
+        resolved effect, except for tools the policy marks NOT_APPLICABLE;
+        ``actor`` refuses a lease that names no actor.
+        """
+        self._binding_policy = policy
+        if policy.required("task_identity"):
+            self._require_task = True
+        if policy.required("capability_set"):
+            self._require_capability = True
+        if policy.required("runtime_surface"):
+            self._surface_enforced = True
+            self._surface_digest_required = True
+
+    def _policy_refusal(self, lease: "ExecutionLease") -> str | None:
+        policy = self._binding_policy
+        if policy is not None and policy.required("actor") and not lease.actor_identity:
+            return "actor_unbound"
+        return None
+
     def bind_surface_observer(self, observer: Callable[[], str], *,
                               enforce: bool = False,
                               require_digest: bool = False) -> None:
@@ -988,6 +1026,9 @@ class GovernedToolDispatcher:
 
     def _surface_refusal(self, lease: ExecutionLease) -> str | None:
         if self._surface_observer is None:
+            policy = self._binding_policy
+            if policy is not None and policy.required("runtime_surface"):
+                return "surface_unobservable"
             return None
         from remora.enforcement.custody import custody_is_enforced
 
@@ -1405,7 +1446,8 @@ class GovernedToolDispatcher:
         # consumed, so a rejected runtime does not burn a single-use nonce and
         # turn an authorization failure into an unknown-state incident.
         runtime_refusal = (
-            self._capability_refusal(lease, tool_name, tenant_id,
+            self._policy_refusal(lease)
+            or self._capability_refusal(lease, tool_name, tenant_id,
                                      target_environment or "", capability_set, now,
                                      arguments)
             or self._runtime_refusal(lease)

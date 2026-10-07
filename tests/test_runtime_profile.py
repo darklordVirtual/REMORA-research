@@ -20,6 +20,12 @@ STRICT_ENV = {
     # HMAC signing key, in a strict runtime.
     "REMORA_TOOLSPEC_VERIFY_KEYS": "11" * 32,
     "REMORA_TOOLSPEC_PINNED_DIGEST": "ab" * 32,
+    # CR-006: a bare strict profile is contract v2, which needs a BindingPolicy
+    # and, for resolved_effect REQUIRED, a configured effect registry.
+    "REMORA_BINDING_POLICY": str(
+        __import__("pathlib").Path(__file__).resolve().parents[1]
+        / "deploy" / "reference" / "binding-policy-v2.yaml"),
+    "REMORA_EFFECT_REGISTRY_MODULE": "example.effects",
     "REMORA_TOOL_REGISTRY_MODULE": "example.registry",
     "REMORA_CHAIN_DB": "/tmp/remora-execution.db",
     "REMORA_PDP_SIGNING_KEY": "test-pdp-key",
@@ -44,6 +50,8 @@ def _clear(monkeypatch) -> None:
         "REMORA_TOOLSPEC_TRUSTED_IDENTITIES",
         "REMORA_TOOLSPEC_VERIFY_KEYS",
         "REMORA_TOOLSPEC_PINNED_DIGEST",
+        "REMORA_BINDING_POLICY",
+        "REMORA_EFFECT_REGISTRY_MODULE",
         "REMORA_TOOL_REGISTRY_MODULE",
         "REMORA_PG_DSN",
         "REMORA_CHAIN_DB",

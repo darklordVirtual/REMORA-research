@@ -1104,7 +1104,11 @@ def _capability_or_refuse(tool_call: Any, principal: str, tenant: str) -> None:
 
 
 def _require_capability_set() -> bool:
-    """``REMORA_REQUIRE_CAPABILITY_SET``: refuse any lease without a capability digest."""
+    """Refuse any lease without a capability digest: when the BindingPolicy
+    marks capability_set REQUIRED, or ``REMORA_REQUIRE_CAPABILITY_SET`` is set."""
+    policy = _binding_policy()
+    if policy is not None and policy.required("capability_set"):
+        return True
     return _os.environ.get("REMORA_REQUIRE_CAPABILITY_SET", "").strip().lower() in {
         "1", "true", "yes", "on"}
 
@@ -1127,13 +1131,38 @@ def _distinct_approver_required() -> bool:
         "1", "true", "yes", "on"}
 
 
+_BINDING_POLICY_CACHE: tuple[str, Any] | None = None
+
+
+def _binding_policy() -> Any:
+    """The BindingPolicy named by REMORA_BINDING_POLICY, or None (CR-006, A2).
+
+    Cached on the path. A policy that does not load raises: a deployment that
+    named a policy has said what must be bound, and running without it would
+    silently drop every requirement it states.
+    """
+    global _BINDING_POLICY_CACHE
+    path = _os.environ.get("REMORA_BINDING_POLICY", "").strip()
+    if not path:
+        return None
+    if _BINDING_POLICY_CACHE is None or _BINDING_POLICY_CACHE[0] != path:
+        from remora.enforcement.binding_policy import load_binding_policy
+
+        _BINDING_POLICY_CACHE = (path, load_binding_policy(path))
+    return _BINDING_POLICY_CACHE[1]
+
+
 def _require_task_identity() -> bool:
     """Whether this deployment refuses calls that name no task (Q7.2).
 
-    Off unless ``REMORA_REQUIRE_TASK_IDENTITY`` is set, because a caller that
-    does not yet send ``context_id`` and ``task_id`` would otherwise be
-    refused on every call.
+    On when the BindingPolicy marks task_identity REQUIRED, or when
+    ``REMORA_REQUIRE_TASK_IDENTITY`` is set. Otherwise off, because a caller
+    that does not yet send ``context_id`` and ``task_id`` would be refused on
+    every call.
     """
+    policy = _binding_policy()
+    if policy is not None and policy.required("task_identity"):
+        return True
     return _os.environ.get("REMORA_REQUIRE_TASK_IDENTITY", "").strip().lower() in {
         "1", "true", "yes", "on"}
 
@@ -1255,6 +1284,14 @@ def _tool_dispatcher() -> GovernedToolDispatcher | None:
                 dispatcher.bind_surface_observer(
                     lambda: _observed_surface(dispatcher),
                     require_digest=custody_is_enforced())
+                # CR-006 (A2): what the deployment declared must be bound is
+                # compared at dispatch, and a missing comparator refuses.
+                policy = _binding_policy()
+                if policy is not None:
+                    # The effect resolver, when configured, is bound by
+                    # _bind_premise_checks below; with resolved_effect
+                    # REQUIRED and none configured, startup already refused.
+                    dispatcher.bind_binding_policy(policy)
                 _bind_premise_checks(dispatcher)
                 spec = _os.environ.get("REMORA_TOOL_REGISTRY_MODULE", "").strip()
                 if spec:

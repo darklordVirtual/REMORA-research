@@ -6,6 +6,18 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Security
 
+- BindingPolicy and versioned strict contracts (CR-006, A2). `review` and
+  `controlled_pilot` are now contract v2 (`review/v1` stays selectable
+  explicitly and is recorded as legacy). v2 requires `REMORA_BINDING_POLICY`,
+  which states every binding as REQUIRED, NOT_APPLICABLE (per read-only tool,
+  for `resolved_effect` only) or UNVERIFIABLE (declared gap, non-core only).
+  A missing binding, or a REQUIRED one without its comparator, refuses
+  startup, and a strict profile now refuses at API import rather than on the
+  first request. At dispatch every REQUIRED binding is compared before the
+  nonce is spent. `remora init-review` writes a policy and a closed effect
+  registry for its demo tool. `EnforcementGate.enforce()` is deprecated.
+  **Breaking** for strict deployments: add a BindingPolicy, or select
+  `review/v1` explicitly. Design: `docs/design/binding-policy-v1.md`.
 - The runtime-surface binding is active on the API path (CR-006, A1). Every
   lease the API mints signs the signed execution surface (pinned bundle digest
   and every spec's tool id and hash), and the dispatcher compares it with the

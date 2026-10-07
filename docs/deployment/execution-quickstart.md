@@ -146,6 +146,8 @@ metadata unless these trust prerequisites are present:
 | `REMORA_TOOLSPEC_PINNED_DIGEST` | The one bundle this deployment accepts. A signature proves who signed, the pin proves which bundle is current | **required** |
 | `REMORA_TOOLSPEC_SIGNING_KEY` | v1 HMAC model, outside strict profiles only. A strict runtime that holds it is refused at startup in every role, because an HMAC verifier can author bundles | **refused** |
 | `REMORA_TOOL_REGISTRY_MODULE` | Deployment-owned callable registry; callers cannot inject tools | **required** |
+| `REMORA_BINDING_POLICY` | BindingPolicy for the v2 contract (a bare `review`/`controlled_pilot` is v2): every binding REQUIRED, NOT_APPLICABLE or UNVERIFIABLE, each REQUIRED comparator present at startup ([design](../design/binding-policy-v1.md)) | **required (v2)** |
+| `REMORA_EFFECT_REGISTRY_MODULE` | Closed effect registry (`build_resolver()`); required when `resolved_effect` is REQUIRED, and a missing one is never NOT_APPLICABLE | **required (v2)** |
 | `REMORA_PG_DSN` or `REMORA_CHAIN_DB` | Durable execution state: tenant chain, review state and one-time-grant ledger | **required** |
 | `REMORA_PDP_SIGNING_KEY` | Signs the short-lived PDP → PEP grant | **required** |
 | `REMORA_ENVELOPE_SIGNING_KEY` | Signs each envelope's audit hash; without it every audit record is written with `signature: null` and the chain is tamper-evident in name only | **required** |

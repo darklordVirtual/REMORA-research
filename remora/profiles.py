@@ -20,8 +20,10 @@ __all__ = [
     "PROFILE_ENV",
     "STRICT_PROFILES",
     "RuntimeProfileError",
+    "LATEST_STRICT_CONTRACT",
     "current_runtime_profile",
     "deployment_environment",
+    "runtime_profile_contract",
 ]
 
 #: REMORA_ENV: which deployment environment this process runs in.
@@ -50,6 +52,19 @@ _PROFILE_ALIASES = {
 }
 
 STRICT_PROFILES = frozenset({"review", "controlled_pilot"})
+
+#: The strict profiles are semantically versioned contracts (CR-006). A
+#: contract version can make a configuration that started under an earlier
+#: version refuse to start, so the version is explicit and recorded:
+#:
+#: - v1: the strict profile as of v0.12.0 and its security fixes.
+#: - v2: v1 plus a mandatory BindingPolicy (REMORA_BINDING_POLICY), where every
+#:   binding is REQUIRED, NOT_APPLICABLE (per read-only tool) or UNVERIFIABLE,
+#:   and every REQUIRED comparator must exist at startup.
+#:
+#: A bare ``review`` or ``controlled_pilot`` means the latest contract.
+STRICT_CONTRACT_VERSIONS = ("v1", "v2")
+LATEST_STRICT_CONTRACT = "v2"
 
 
 class RuntimeProfileError(RuntimeError):
@@ -83,21 +98,45 @@ def deployment_environment() -> str:
         ) from exc
 
 
+def _resolve_profile() -> tuple[str, str]:
+    """(profile name, contract version or "") from REMORA_RUNTIME_PROFILE."""
+    raw = os.getenv(PROFILE_ENV, "").strip().lower()
+    if not raw:
+        return "research", ""
+    name, sep, version = raw.partition("/")
+    try:
+        profile = _PROFILE_ALIASES[name]
+    except KeyError as exc:
+        allowed = sorted(set(_PROFILE_ALIASES.values()))
+        raise RuntimeProfileError(
+            f"{PROFILE_ENV}={raw!r} is unknown; expected one of {allowed}"
+        ) from exc
+    if profile not in STRICT_PROFILES:
+        if sep:
+            raise RuntimeProfileError(
+                f"{PROFILE_ENV}={raw!r}: only the strict profiles are versioned")
+        return profile, ""
+    if not sep:
+        return profile, LATEST_STRICT_CONTRACT
+    if version not in STRICT_CONTRACT_VERSIONS:
+        raise RuntimeProfileError(
+            f"{PROFILE_ENV}={raw!r}: contract version {version!r} is unknown; "
+            f"expected one of {list(STRICT_CONTRACT_VERSIONS)}")
+    return profile, version
+
+
 def current_runtime_profile() -> str:
-    """Return the normalized runtime profile.
+    """Return the normalized runtime profile name, without its version.
 
     Compatibility matters for an existing research repository, so an unset
     profile remains ``research`` even when ``REMORA_ENV=production``. The
     handoff and pilot quickstarts set the profile explicitly; no existing
     deployment is silently promoted into a stronger contract.
     """
-    raw = os.getenv(PROFILE_ENV, "").strip().lower()
-    if not raw:
-        return "research"
-    try:
-        return _PROFILE_ALIASES[raw]
-    except KeyError as exc:
-        allowed = sorted(set(_PROFILE_ALIASES.values()))
-        raise RuntimeProfileError(
-            f"{PROFILE_ENV}={raw!r} is unknown; expected one of {allowed}"
-        ) from exc
+    return _resolve_profile()[0]
+
+
+def runtime_profile_contract() -> str:
+    """The profile with its contract version: ``review/v2``, ``research``."""
+    profile, version = _resolve_profile()
+    return f"{profile}/{version}" if version else profile

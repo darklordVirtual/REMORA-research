@@ -102,6 +102,7 @@ Several topics have more than one document. This table says which to open.
 | [design/authority-preserving-capability-mediation-v1.md](design/authority-preserving-capability-mediation-v1.md) | Authority-Preserving Capability Mediation (NTA-2): proposed design, phase 1 implemented |
 | [design/evidence-sufficiency-v1.1.md](design/evidence-sufficiency-v1.1.md) | Evidence-sufficiency v1.1: closing the gaps found by external seeded-fault testing; decisions, requirements, rerun protocol |
 | [design/evidence-sufficiency-v1.3.md](design/evidence-sufficiency-v1.3.md) | Evidence-sufficiency v1.3: systematic mutation analysis, the rejection contract, metamorphic relations, the named-survivor gate and the blind external protocol |
+| [design/binding-policy-v1.md](design/binding-policy-v1.md) | BindingPolicy and the v2 strict contract: every binding REQUIRED, NOT_APPLICABLE or UNVERIFIABLE, checked at startup and compared at dispatch (CR-006) |
 | [AutoReview-to-Effect benchmark v1](../conformance/autoreview-to-effect-v1/README.md) | Five post-approval adversarial vectors and one control: argument mutation, identity change, alternate tool, stale policy, claimed success versus authoritative state |
 | [Safety-case evidence profile v0.1](../conformance/safety-case-evidence-profile-v0.1/README.md) | Five safeguard claims appraised as claim, producer evidence, independent verification, evidence sufficiency and verdict (synthetic) |
 | [governance/eu_ai_act_nsm_mapping.md](governance/eu_ai_act_nsm_mapping.md) | EU AI Act / NSM mapping |
