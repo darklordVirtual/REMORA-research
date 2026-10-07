@@ -2749,6 +2749,69 @@ documents:
   last_reviewed: '2026-10-05'
   audience:
   - maintainers
+- id: DOC-364
+  path: docs/assurance/reviews/2026-10-07-272b6c56/README.md
+  status: canonical
+  topic: docs_assurance_reviews_2026-10-07-272b6c56_readme_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-10-07'
+  last_reviewed: '2026-10-07'
+  audience:
+  - maintainers
+  - evaluators
+- id: DOC-365
+  path: docs/assurance/reviews/2026-10-07-272b6c56/FINDING_DISPOSITION.md
+  status: canonical
+  topic: docs_assurance_reviews_2026-10-07-272b6c56_finding_disposition_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-10-07'
+  last_reviewed: '2026-10-07'
+  audience:
+  - maintainers
+  - evaluators
+- id: DOC-366
+  path: docs/assurance/reviews/2026-10-07-272b6c56/FINDINGS.md
+  status: historical
+  topic: docs_assurance_reviews_2026-10-07-272b6c56_findings_md
+  referencing_allowed: true
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-10-07'
+  last_reviewed: '2026-10-07'
+  audience:
+  - maintainers
+  - evaluators
+- id: DOC-367
+  path: docs/assurance/reviews/2026-10-07-272b6c56/ASSURANCE_MATRIX.md
+  status: historical
+  topic: docs_assurance_reviews_2026-10-07-272b6c56_assurance_matrix_md
+  referencing_allowed: true
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-10-07'
+  last_reviewed: '2026-10-07'
+  audience:
+  - maintainers
+  - evaluators
+- id: DOC-368
+  path: docs/assurance/reviews/2026-10-07-272b6c56/CLAIM_AUDIT.md
+  status: historical
+  topic: docs_assurance_reviews_2026-10-07-272b6c56_claim_audit_md
+  referencing_allowed: true
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-10-07'
+  last_reviewed: '2026-10-07'
+  audience:
+  - maintainers
+  - evaluators
+- id: DOC-369
+  path: docs/assurance/reviews/2026-10-07-272b6c56/FIX_REBASE.md
+  status: historical
+  topic: docs_assurance_reviews_2026-10-07-272b6c56_fix_rebase_md
+  referencing_allowed: true
 - id: DOC-370
   path: docs/design/binding-policy-v1.md
   status: canonical
@@ -3056,4 +3119,10 @@ topics:
 - conformance_autoreview-to-effect-v1_readme_md
 - conformance_safety-case-evidence-profile-v0.1_readme_md
 - docs_design_plan-premise-authority-v1_md
+- docs_assurance_reviews_2026-10-07-272b6c56_readme_md
+- docs_assurance_reviews_2026-10-07-272b6c56_finding_disposition_md
+- docs_assurance_reviews_2026-10-07-272b6c56_findings_md
+- docs_assurance_reviews_2026-10-07-272b6c56_assurance_matrix_md
+- docs_assurance_reviews_2026-10-07-272b6c56_claim_audit_md
+- docs_assurance_reviews_2026-10-07-272b6c56_fix_rebase_md
 - docs_design_binding-policy-v1_md
