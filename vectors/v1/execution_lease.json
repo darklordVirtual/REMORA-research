@@ -1,0 +1,64 @@
+{
+  "artifact": "ExecutionLease",
+  "cases": [
+    {
+      "name": "lease-v1-hmac-sha256",
+      "payload": "{\"actor_identity\":\"agent-1\",\"decision\":\"accept\",\"expires_at\":\"2026-10-07T12:02:00+00:00\",\"grant_jti\":\"00000000-0000-4000-8000-000000000002\",\"intent_authority_hash\":\"\",\"issued_at\":\"2026-10-07T12:00:00+00:00\",\"kid\":\"\",\"nonce\":\"00000000-0000-4000-8000-000000000001\",\"policy_bundle_hash\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"proposal_id\":\"proposal-1\",\"runtime_identity_hash\":\"\",\"sig_alg\":\"hmac-sha256\",\"target_environment\":\"prod\",\"tenant_id\":\"tenant-a\",\"tool_args_hash\":\"3333333333333333333333333333333333333333333333333333333333333333\",\"tool_contract_bundle_hash\":\"\",\"tool_name\":\"wo_close\",\"toolspec_hash\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"toolspec_version\":1}",
+      "signature": "7e0169b308b87713c9c05ec0b4091db2d319ba6d3cf325a8e55512eea97cbdea",
+      "signed_fields": {
+        "actor_identity": "agent-1",
+        "decision": "accept",
+        "expires_at": "2026-10-07T12:02:00+00:00",
+        "grant_jti": "00000000-0000-4000-8000-000000000002",
+        "intent_authority_hash": "",
+        "issued_at": "2026-10-07T12:00:00+00:00",
+        "kid": "",
+        "nonce": "00000000-0000-4000-8000-000000000001",
+        "policy_bundle_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "proposal_id": "proposal-1",
+        "runtime_identity_hash": "",
+        "sig_alg": "hmac-sha256",
+        "target_environment": "prod",
+        "tenant_id": "tenant-a",
+        "tool_args_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+        "tool_contract_bundle_hash": "",
+        "tool_name": "wo_close",
+        "toolspec_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "toolspec_version": 1
+      }
+    },
+    {
+      "name": "lease-v1-ed25519",
+      "payload": "{\"actor_identity\":\"agent-1\",\"decision\":\"accept\",\"expires_at\":\"2026-10-07T12:02:00+00:00\",\"grant_jti\":\"00000000-0000-4000-8000-000000000002\",\"intent_authority_hash\":\"\",\"issued_at\":\"2026-10-07T12:00:00+00:00\",\"kid\":\"\",\"nonce\":\"00000000-0000-4000-8000-000000000001\",\"policy_bundle_hash\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"proposal_id\":\"proposal-1\",\"runtime_identity_hash\":\"\",\"sig_alg\":\"ed25519\",\"target_environment\":\"prod\",\"tenant_id\":\"tenant-a\",\"tool_args_hash\":\"3333333333333333333333333333333333333333333333333333333333333333\",\"tool_contract_bundle_hash\":\"\",\"tool_name\":\"wo_close\",\"toolspec_hash\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"toolspec_version\":1}",
+      "signature": "8f81ff8c575c6932062b444121dbd705bade8bea2de382d3512046a652177350488622623f6a7f8044777d68f5fc4c26fe74bb9e68a090ec997cfddda45ef20f",
+      "signed_fields": {
+        "actor_identity": "agent-1",
+        "decision": "accept",
+        "expires_at": "2026-10-07T12:02:00+00:00",
+        "grant_jti": "00000000-0000-4000-8000-000000000002",
+        "intent_authority_hash": "",
+        "issued_at": "2026-10-07T12:00:00+00:00",
+        "kid": "",
+        "nonce": "00000000-0000-4000-8000-000000000001",
+        "policy_bundle_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "proposal_id": "proposal-1",
+        "runtime_identity_hash": "",
+        "sig_alg": "ed25519",
+        "target_environment": "prod",
+        "tenant_id": "tenant-a",
+        "tool_args_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+        "tool_contract_bundle_hash": "",
+        "tool_name": "wo_close",
+        "toolspec_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "toolspec_version": 1
+      }
+    }
+  ],
+  "format": "v1",
+  "keys": {
+    "ed25519_public_hex": "bc7cbcb5636375fa1d82434d466724d92377f53b980695dd49d26d0ce12205a5",
+    "ed25519_seed_hex": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "hmac_key": "remora-vector-hmac-key-not-a-secret"
+  },
+  "preimage": "canonical JSON (sorted keys, compact), untagged"
+}

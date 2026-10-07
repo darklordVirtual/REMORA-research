@@ -235,7 +235,9 @@ def test_unbound_lease_is_refused_under_a_strict_profile(monkeypatch):
     # under a strict profile, which is the custody split working as intended.
     lease = _lease()
 
-    monkeypatch.setenv(PROFILE_ENV, "controlled_pilot")
+    # The v1 contract: this lease is HMAC (format v1), which the v2 contract
+    # refuses as lease_format_legacy before reaching the binding under test.
+    monkeypatch.setenv(PROFILE_ENV, "controlled_pilot/v1")
     monkeypatch.setenv("REMORA_EXECUTION_DOMAIN_ROLE", "executor")
     dispatcher, calls = _dispatcher()
 

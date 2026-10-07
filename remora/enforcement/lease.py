@@ -315,10 +315,21 @@ class ExecutionLease:
             fields["execution_context_hash"] = execution_context.digest()
         task_event_fields: dict[str, Any] = dict(task_fields(task_identity))
         alg = _signing.issuer_algorithm()
+        if alg is None:
+            from remora.crypto.formats import FORMAT_V2, signature_format
+
+            if signature_format() == FORMAT_V2 and not _signing.public_key_only():
+                # CR-011: v2 has no symmetric or unsigned form. An authority
+                # that cannot sign v2 refuses rather than minting a lease the
+                # executor will refuse anyway.
+                raise LeaseRefused(
+                    "lease format v2 requires the Ed25519 lease key "
+                    f"({_signing.ENV_ED25519_PRIVATE}); HMAC and unsigned leases "
+                    "are not issued under it")
         if alg:
             # sig_alg and kid are inside the payload the signature covers.
             fields["sig_alg"] = alg
-            fields["kid"] = _signing.issuer_kid()
+            fields["kid"] = _signing.issuer_kid(alg)
             signature = _signing.sign_payload(
                 cls._canonical_payload(fields), alg=alg
             )
@@ -433,6 +444,27 @@ class ExecutionLease:
             "task_id": self.task_id or None,
         })
 
+    def verify_historical(self) -> LeaseVerificationResult:
+        """The signature only, as evidence: never an authorization (CR-011).
+
+        For historical evidence, offline replay and migration diagnostics. A
+        v1 lease that a strict v2 contract refuses as live authority verifies
+        here as ``historical_v1``; expiry, decision and call binding are not
+        checked, because nothing is being authorized.
+        """
+        if not self.is_signed or not self.signature:
+            return LeaseVerificationResult(False, "lease_not_signed")
+        payload = self._canonical_payload(self._signed_fields())
+        try:
+            ok = _signing.verify_payload(payload, self.signature, alg=self.sig_alg,
+                                         kid=self.kid, live=False)
+        except _signing.SigningUnavailable:
+            return LeaseVerificationResult(False, "no_signing_key")
+        if not ok:
+            return LeaseVerificationResult(False, "signature_invalid")
+        return LeaseVerificationResult(
+            True, "historical_v1" if self.sig_alg in _signing.V1_ALGS else "ok")
+
     def verify_authenticity(self, *, now: str | None = None) -> LeaseVerificationResult:
         """Signature, decision and validity window, without the call binding.
 
@@ -445,8 +477,15 @@ class ExecutionLease:
         payload = self._canonical_payload(self._signed_fields())
         try:
             signature_ok = _signing.verify_payload(
-                payload, self.signature, alg=self.sig_alg
+                payload, self.signature, alg=self.sig_alg, kid=self.kid
             )
+        except _signing.LegacyFormatRefused as exc:
+            governance_event(
+                "lease.format_legacy_refused", level=logging.WARNING,
+                sig_alg=self.sig_alg, tenant_id=self.tenant_id,
+                tool_name=self.tool_name, detail=str(exc),
+            )
+            return LeaseVerificationResult(False, "lease_format_legacy")
         except _signing.SigningUnavailable as exc:
             # Cannot reach a verdict. Never reported as a valid signature, and
             # kept distinct from "forged" so a downgrade attempt or a missing

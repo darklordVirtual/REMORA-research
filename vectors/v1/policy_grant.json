@@ -1,0 +1,15 @@
+{
+  "artifact": "PolicyDecisionToken",
+  "cases": [
+    {
+      "name": "policy-grant-v1-hmac",
+      "payload": "{\"action\":\"accept\",\"audience\":\"pep://remora-execution\",\"context_hash\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"expires_at\":\"2026-10-07T12:05:00+00:00\",\"issued_at\":\"2026-10-07T12:00:00+00:00\",\"issuer\":\"pdp-1\",\"jti\":\"00000000-0000-4000-8000-000000000003\",\"kid\":\"pdp-2026-10\",\"observation_hash\":\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"request_id\":\"req-1\"}",
+      "signature": "390a3c610f16b082f83b17e9c96c3a028eb5502e1fb25dc7d95745860b2f5577"
+    }
+  ],
+  "format": "v1",
+  "keys": {
+    "hmac_key": "remora-vector-hmac-key-not-a-secret"
+  },
+  "preimage": "canonical JSON (sorted keys, compact), untagged; HMAC-SHA256 hex"
+}

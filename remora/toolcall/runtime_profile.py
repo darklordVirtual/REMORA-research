@@ -188,12 +188,36 @@ def _check_contract(profile: str) -> None:
             "runtime_profile.legacy_contract", level=logging.WARNING,
             profile=profile, contract=contract)
         return
+    _check_signature_format_v2(contract)
     policy = load_strict_binding_policy(contract)
     governance_event(
         "binding_policy.accepted", profile=profile, contract=contract,
         binding_policy_hash=policy.digest,
         unverifiable_bindings=",".join(policy.unverifiable()),
         not_applicable_resolved_effect=",".join(policy.not_applicable_tools("resolved_effect")))
+
+
+def _check_signature_format_v2(contract: str) -> None:
+    """CR-011: a v2 contract issues and accepts only signature format v2.
+
+    Leases v2 are Ed25519 with no symmetric form, so the authority must hold
+    the lease seed; the execution and effect domains already hold the public
+    key (custody). ``REMORA_SIGNATURE_FORMAT`` may not ask for v1 here.
+    """
+    from remora.crypto.formats import ENV_SIGNATURE_FORMAT
+    from remora.enforcement.custody import DOMAIN_AUTHORITY, domain_role
+
+    requested = os.getenv("REMORA_SIGNATURE_FORMAT", "").strip().lower()
+    if requested and requested != "v2":
+        raise RuntimeProfileError(
+            f"contract {contract} issues signature format v2 only; "
+            f"{ENV_SIGNATURE_FORMAT}={requested!r} is refused")
+    if (domain_role(strict=False) == DOMAIN_AUTHORITY
+            and not _configured("REMORA_LEASE_SIGNING_KEY_ED25519_PRIVATE")):
+        raise RuntimeProfileError(
+            f"contract {contract} signs leases in format v2 (Ed25519, "
+            "REMORA/EXECUTION-LEASE/v2) and has no symmetric form: the authority "
+            "requires REMORA_LEASE_SIGNING_KEY_ED25519_PRIVATE")
 
 
 def load_strict_binding_policy(contract: str) -> Any:

@@ -40,6 +40,16 @@ additionally refuses HMAC outright unless ``REMORA_LEASE_ACCEPT_HMAC`` is
 explicitly set, so the dual-accept window is a decision someone makes rather
 than a default that persists.
 
+Format v2 (RMR-CR-011)
+----------------------
+``ed25519``, ``hmac-sha256`` and their untagged preimage are lease format v1,
+frozen with its vectors in ``vectors/v1``. Format v2 (``ed25519-domain-v2``)
+signs ``REMORA/EXECUTION-LEASE/v2 || 0x00 || payload`` through
+:mod:`remora.crypto`, and its ``kid`` is the digest of the public key, never a
+configured label. It has no symmetric form. A strict v2 contract issues only
+v2 and refuses v1 for live authority (``LegacyFormatRefused``); v1 stays
+verifiable as historical evidence through ``live=False``.
+
 Fail closed on a missing dependency
 -----------------------------------
 ``cryptography`` is an optional extra (``pyproject.toml``). If Ed25519 material
@@ -61,6 +71,8 @@ from typing import Any
 __all__ = [
     "ALG_HMAC",
     "ALG_ED25519",
+    "ALG_ED25519_V2",
+    "LegacyFormatRefused",
     "SigningUnavailable",
     "issuer_algorithm",
     "sign_payload",
@@ -71,6 +83,10 @@ __all__ = [
 
 ALG_HMAC = "hmac-sha256"
 ALG_ED25519 = "ed25519"
+#: Lease format v2: Ed25519 in the REMORA/EXECUTION-LEASE/v2 domain.
+ALG_ED25519_V2 = "ed25519-domain-v2"
+#: The frozen v1 algorithms.
+V1_ALGS = frozenset({ALG_HMAC, ALG_ED25519})
 
 #: Existing symmetric key, unchanged. Phase 1 keeps issuing under it.
 ENV_HMAC = "REMORA_LEASE_SIGNING_KEY"
@@ -102,6 +118,16 @@ class SigningUnavailable(RemoraError, RuntimeError):
 
     code = "signing_unavailable"
     category = "enforcement"
+
+
+class LegacyFormatRefused(SigningUnavailable):
+    """A v1 lease presented as live authority under a strict v2 contract.
+
+    A policy refusal, not a signature verdict: the lease may be genuine, and
+    it stays readable as historical evidence (``verify_payload(live=False)``).
+    """
+
+    code = "lease_format_legacy"
 
 
 def _decode_key(raw: str, *, name: str) -> bytes:
@@ -195,9 +221,15 @@ def public_key_only() -> bool:
 def issuer_algorithm() -> str | None:
     """The algorithm this process can issue under, or None if it cannot.
 
-    Ed25519 wins when a private key is present: a deployment that has both
-    configured is mid-migration and should be minting the stronger object.
+    Format v2 (strict v2 contract, or ``REMORA_SIGNATURE_FORMAT=v2``) issues
+    only ``ed25519-domain-v2`` and has no symmetric fallback. In v1, Ed25519
+    wins when a private key is present: a deployment that has both configured
+    is mid-migration and should be minting the stronger object.
     """
+    from remora.crypto.formats import FORMAT_V2, signature_format
+
+    if signature_format() == FORMAT_V2:
+        return ALG_ED25519_V2 if os.environ.get(ENV_ED25519_PRIVATE, "").strip() else None
     if os.environ.get(ENV_ED25519_PRIVATE, "").strip():
         return ALG_ED25519
     if _hmac_key():
@@ -205,12 +237,50 @@ def issuer_algorithm() -> str | None:
     return None
 
 
-def issuer_kid() -> str:
+def issuer_kid(alg: str = "") -> str:
+    """The key id a lease carries. For v2 it is derived from the key itself,
+    so a configured label cannot name another signer's key."""
+    if alg == ALG_ED25519_V2:
+        return _v2_signing_key().kid
     return os.environ.get(ENV_KID, "").strip()
+
+
+def _v2_signing_key() -> Any:
+    from remora.crypto import SignatureDomain, SigningKey
+
+    seed = os.environ.get(ENV_ED25519_PRIVATE, "").strip()
+    if not seed:
+        raise SigningUnavailable(
+            f"{ENV_ED25519_PRIVATE} is not set; this process cannot mint "
+            "Ed25519 leases (which is the correct posture for a verifier)"
+        )
+    _ed25519()
+    return SigningKey(_decode_key(seed, name=ENV_ED25519_PRIVATE),
+                      frozenset({SignatureDomain.EXECUTION_LEASE}))
+
+
+def _v2_verification_key() -> Any:
+    from remora.crypto import SignatureDomain, VerificationKey
+
+    pub = os.environ.get(ENV_ED25519_PUBLIC, "").strip()
+    if pub:
+        _ed25519()
+        return VerificationKey(_decode_key(pub, name=ENV_ED25519_PUBLIC),
+                               frozenset({SignatureDomain.EXECUTION_LEASE}))
+    if os.environ.get(ENV_ED25519_PRIVATE, "").strip():
+        return _v2_signing_key().verification_key()
+    raise SigningUnavailable(
+        f"neither {ENV_ED25519_PUBLIC} nor {ENV_ED25519_PRIVATE} "
+        "is set; an Ed25519 lease cannot be verified"
+    )
 
 
 def sign_payload(payload: bytes, *, alg: str) -> str:
     """Sign with the configured issuer material for ``alg``."""
+    if alg == ALG_ED25519_V2:
+        from remora.crypto import SignatureDomain, sign
+
+        return sign(SignatureDomain.EXECUTION_LEASE, payload, _v2_signing_key()).value
     if alg == ALG_ED25519:
         seed = os.environ.get(ENV_ED25519_PRIVATE, "").strip()
         if not seed:
@@ -231,13 +301,35 @@ def sign_payload(payload: bytes, *, alg: str) -> str:
     raise SigningUnavailable(f"unknown lease signature algorithm: {alg!r}")
 
 
-def verify_payload(payload: bytes, signature: str, *, alg: str) -> bool:
+def verify_payload(payload: bytes, signature: str, *, alg: str, kid: str = "",
+                   live: bool = True) -> bool:
     """Verify ``signature`` over ``payload`` under ``alg``.
 
     Returns False for a bad signature. Raises ``SigningUnavailable`` when the
     material needed to reach a verdict is absent, so "cannot check" is never
     reported as "checked and fine".
+
+    ``live`` is whether the lease is being presented as authority. Under a
+    strict v2 contract a live v1 lease raises ``LegacyFormatRefused``; with
+    ``live=False`` (historical evidence, offline replay, migration
+    diagnostics) v1 is verified as before, including HMAC when a key is held.
     """
+    if alg == ALG_ED25519_V2:
+        from remora.crypto import ALGORITHM, Signature, SignatureDomain, verify
+
+        result = verify(
+            SignatureDomain.EXECUTION_LEASE, payload,
+            Signature(ALGORITHM, SignatureDomain.EXECUTION_LEASE.value, kid, signature),
+            [_v2_verification_key()])
+        return result.ok
+    if alg in V1_ALGS and live:
+        from remora.crypto.formats import v1_live_refused
+
+        if v1_live_refused():
+            raise LegacyFormatRefused(
+                f"lease format v1 ({alg}) is refused for live authority under a "
+                "strict v2 contract; it remains verifiable as historical evidence"
+            )
     if alg == ALG_ED25519:
         pub = os.environ.get(ENV_ED25519_PUBLIC, "").strip()
         if not pub:
@@ -266,7 +358,7 @@ def verify_payload(payload: bytes, signature: str, *, alg: str) -> bool:
             return False
         return True
     if alg == ALG_HMAC:
-        if not hmac_accepted():
+        if live and not hmac_accepted():
             # Phase 3. Refused as a policy decision, not as a signature
             # failure, so the audit trail distinguishes "downgrade attempt or
             # stale issuer" from "forged signature".

@@ -6,6 +6,17 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Security
 
+- Signature format v2 for ExecutionLease (CR-011, C1). Lease format v1
+  (`ed25519`, `hmac-sha256`, untagged) is frozen with golden vectors in
+  `vectors/v1/`. Format v2 (`ed25519-domain-v2`) signs
+  `REMORA/EXECUTION-LEASE/v2 || 0x00 || payload` and names its key by the
+  derived key id. A strict v2 contract issues only v2, requires the Ed25519
+  lease seed on the authority, and refuses a v1 lease for dispatch
+  (`lease_format_legacy`) before the nonce is spent; v1 stays readable as
+  historical evidence (`ExecutionLease.verify_historical()`). Elsewhere v1
+  stays the default; `REMORA_SIGNATURE_FORMAT=v2` opts in. **Breaking** for
+  strict v2 deployments: cut over after one lease TTL. Design:
+  `docs/design/signature-format-v2.md`.
 - Mandatory effect mediation under the strict v2 contract (CR-005). ToolSpec
   schema version 3 adds the signed fields `effect_mode` (MEDIATED | NONE) and
   `credential_policy.direct_effect_credentials`. `effect_mediation` is a core
