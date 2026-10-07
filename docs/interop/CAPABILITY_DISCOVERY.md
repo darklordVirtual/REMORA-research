@@ -141,6 +141,31 @@ records is separate. This report is not an `interop-result-v1` record: that
 schema's L1 currently means reference replay, not externally operated REMORA
 runtime. Neither schema nor external status is silently redefined here.
 
+### Process custody reproduction
+
+[`reproduce_custody.py`](../../scripts/reproduce_custody.py) runs an authority
+process and executor processes separately, with an Ed25519 lease and a durable
+SQLite nonce store:
+
+```bash
+python scripts/reproduce_custody.py --output /tmp/remora-custody.json
+```
+
+The output file must not exist; it is created exclusively and never
+overwritten. The run checks exact-call, tenant, principal and runtime binding,
+expiry, tampering, forbidden self-minting and declared custody violations.
+Two concurrent dispatches must produce exactly one local effect. After a lost
+response the outcome stays unknown, and a replay after a process restart is
+refused as an already-consumed nonce. It uses ephemeral signing keys, a synthetic
+credential and temporary state; no private key or credential value is
+exported.
+
+The processes run as the same OS user. This does not establish host
+isolation, HTTP transport authentication, an exhaustive credential inventory
+or the absence of undeclared external effect routes, and the record says so in
+its `claim_boundary`. It is producer-authored evidence and advances no package
+lifecycle or capability maturity.
+
 ## Operator statements
 
 An operator can attach an offline Ed25519 statement using

@@ -78,6 +78,15 @@ def render() -> str:
     index = json.loads(INDEX.read_text(encoding="utf-8"))
     lifecycle = {c["id"]: c["lifecycle"] for c in index["contracts"]}
     records = load_records()
+    external_rows = []
+    for contract in index["contracts"]:
+        for record in contract.get("external_runs", []):
+            results = ", ".join(sorted({row["result"] for row in record["results"]}))
+            external_rows.append("| " + " | ".join([
+                contract["id"], contract["lifecycle"], record["implementation_diversity"],
+                record["independence"], results,
+                f"[run]({record['run_ref']})",
+            ]) + " |")
     rows = []
     for edge in manifest["edges"]:
         d = derive(edge, records)
@@ -116,6 +125,18 @@ def render() -> str:
         "",
         f"Records read: {len(records)}. Contract lifecycle comes from `index.json`;",
         "it moves only on freeze, pin and external run records, never on an author run.",
+        "",
+        "## External lifecycle records",
+        "",
+        "The table above counts `interop-result-v1` records only. The index also",
+        "retains `external-run-record-v1` evidence below. Thus AUTHOR_RUN above",
+        "does not mean that no external run exists. These records retain their",
+        "native diversity, independence and results; no L-level is inferred.",
+        "REPRODUCED is a package lifecycle, not independent verification.",
+        "",
+        "| Contract | Lifecycle | Implementation diversity | Independence | Recorded results | Evidence |",
+        "|---|---|---|---|---|---|",
+        *external_rows,
         "",
     ]
     return "\n".join(lines)
