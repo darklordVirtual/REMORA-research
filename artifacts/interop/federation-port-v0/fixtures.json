@@ -1,0 +1,956 @@
+{
+  "cases": [
+    {
+      "evidence_b64": "eyJlbnZlbG9wZV9iNjQiOiJleUpoWTNScGIyNGlPbnNpWVhKbmRXMWxiblJ6WDJScFoyVnpkQ0k2SW5Ob1lUSTFOam93T0RBM016SXhaV1EzWVRsbVpERTRZMlZrT0dJME1UQTBPRGRsWmpFd1lUUXpZemhtTlRNNVpERm1NelppTWpZNU16WXhPV1pqWlRZeVlqUmxOams0SWl3aVkyRnViMjVwWTJGc1gyRnlaM1Z0Wlc1MGN5STZJbnRjSW1GdGIzVnVkRjl0YVc1dmNsd2lPalF3TURBc1hDSmpkWEp5Wlc1amVWd2lPbHdpUlZWU1hDSXNYQ0p3WVhsdFpXNTBYMmxrWENJNlhDSndZWGxmUVZ3aWZTSXNJbU5oYm05dWFXTmhiR2w2WVhScGIyNGlPaUp5WlcxdmNtRXRZMkZ1YjI1cFkyRnNMV3B6YjI0dGRqRWlMQ0owYjI5c0lqb2ljbVZtZFc1a0lpd2lkRzl2YkY5a1pXWnBibWwwYVc5dVgyUnBaMlZ6ZENJNmJuVnNiQ3dpZEhsd1pXUmZjMk5oYkdGeWN5STZXMXNpTDJGdGIzVnVkRjl0YVc1dmNpSXNJbWx1ZEdWblpYSWlYU3hiSWk5amRYSnlaVzVqZVNJc0luTjBjbWx1WnlKZExGc2lMM0JoZVcxbGJuUmZhV1FpTENKemRISnBibWNpWFYxOUxDSmhkWFJvYjNKcGRIa2lPbnNpWVhWMGFHOXlhWHBoZEdsdmJsOXBaQ0k2SW1Gd2NpMTJZV3hwWkNJc0lteGxZWE5sWDJsa0lqb2liR1ZoYzJVdGIzQXRkbUZzYVdRaUxDSndjbWx1WTJsd1lXd2lPaUpoWjJWdWRDMUJJaXdpY21WemIzVnlZMlVpT201MWJHd3NJblJoY21kbGRDSTZiblZzYkN3aWRHVnVZVzUwSWpvaWRHVnVZVzUwTFdFaUxDSjJZV3hwWkY5MWJuUnBiQ0k2SWpJd01qWXRNVEF0TURkVU1USTZNRFU2TURBdU1EQXdXaUo5TENKbGRtbGtaVzVqWlNJNmV5SmhkWFJvYjNKcGVtRjBhVzl1WDJScFoyVnpkQ0k2SW5Ob1lUSTFOam96TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16SWl3aWJtRjBhWFpsWDJOc1lXbHRjMTlrYVdkbGMzUWlPbTUxYkd4OUxDSmxlR1ZqZFhScGIyNWZZMjl1ZEdWNGRDSTZleUpqYjI1MFpYaDBYMlJwWjJWemRDSTZiblZzYkN3aWNHOXNhV041WDJScFoyVnpkQ0k2SW5Ob1lUSTFOam94TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4SWl3aWRHOXZiSE53WldOZlpHbG5aWE4wSWpvaWMyaGhNalUyT2pJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJaWZTd2liM0JsY21GMGFXOXVYMmxrSWpvaWIzQXRkbUZzYVdRaUxDSnpZMmhsYldGZmRtVnljMmx2YmlJNkluSmxiVzl5WVMxbVpXUmxjbUYwYVc5dUxXRmpkR2x2YmkxMk1TSXNJblJ5WVc1emNHOXlkRjl3Y205cVpXTjBhVzl1SWpwN0ltRmpkR2x2YmlJNmV5SmhjbWR6SWpwN0ltRnRiM1Z1ZEY5dGFXNXZjaUk2TkRBd01Dd2lZM1Z5Y21WdVkza2lPaUpGVlZJaUxDSndZWGx0Wlc1MFgybGtJam9pY0dGNVgwRWlmU3dpZEc5dmJDSTZJbkpsWm5WdVpDSjlMQ0poY0hCeWIzWmhiRjlwWkNJNkltRndjaTEyWVd4cFpDSXNJbU52YlhCdmJtVnVkQ0k2SW5KbGJXOXlZUzF5WlhObFlYSmphQzloZFhSb2IzSnBlbUYwYVc5dUxXVjJhV1JsYm1ObElpd2liM0JsY21GMGFXOXVYMmxrSWpvaWIzQXRkbUZzYVdRaUxDSjBaVzVoYm5RaU9pSjBaVzVoYm5RdFlTSXNJblJ5WVc1emNHOXlkQ0k2SW1abFpHVnlZWFJwYjI0dGNHOXlkQzkyTUNJc0luWmhiR2xrWDNWdWRHbHNJam9pTWpBeU5pMHhNQzB3TjFReE1qb3dOVG93TUM0d01EQmFJaXdpZDI5eWEyWnNiM2NpT2lKeVpXWjFibVFpZlN3aWRXNWhkbUZwYkdGaWJHVWlPbHNpWVdOMGFXOXVMblJ2YjJ4ZlpHVm1hVzVwZEdsdmJsOWthV2RsYzNRaUxDSmhkWFJvYjNKcGRIa3VjbVZ6YjNWeVkyVWlMQ0poZFhSb2IzSnBkSGt1ZEdGeVoyVjBJaXdpWlhacFpHVnVZMlV1Ym1GMGFYWmxYMk5zWVdsdGMxOWthV2RsYzNRaUxDSmxlR1ZqZFhScGIyNWZZMjl1ZEdWNGRDNWpiMjUwWlhoMFgyUnBaMlZ6ZENKZExDSjNiM0pyWm14dmQxOXBaQ0k2SW5KbFpuVnVaQ0o5IiwiZm9ybWF0IjoicmVtb3JhLWZlZGVyYXRpb24tZXZpZGVuY2UtdjEiLCJzaWduYXR1cmUiOnsiYWxnb3JpdGhtIjoiRWQyNTUxOSIsImRvbWFpbiI6IlJFTU9SQS9GRURFUkFUSU9OLUFDVElPTi92MSIsImtpZCI6ImVkMjU1MTktMjRiMDNhMGUzODE4YTQ5ZTA1NjMxZWZjODA3NjhkMDhlMzJhODFhOTQ0NzQ4NzMwZjE0ZjYxM2FmOWU5MDlhNiIsInNpZ25hdHVyZSI6ImJiUmsxdC8wZnNGYjVObzNVL3drZVdEZng1N1NCUnJJSlRqa3M4V3RvZEozS1dSbWovUUFNU2xrcWRwMDJEakEzY2Z2ZVMzSTVoY1RqT1F2RmFoT0JBPT0ifX0=",
+      "expected_claims": {
+        "remora.authorization_integrity": "established",
+        "remora.authorization_unexpired": "established",
+        "remora.port_v0.bound_action": "established"
+      },
+      "name": "valid",
+      "native_action_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
+      "native_arguments_digest": "sha256:0807321ed7a9fd18ced8b410487ef10a43c8f539d1f36b2693619fce62b4e698",
+      "note": "admitted; exact_call_binding projects NARROWED to remora.port_v0.bound_action",
+      "now": "2026-10-07T12:01:00.000Z",
+      "projection_records": [
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": "remora.authorization_integrity",
+          "limits": [
+            "establishes that the evidence verifies under the pinned REMORA key in REMORA/FEDERATION-ACTION/v1",
+            "does not establish semantic correctness of the authorization",
+            "does not establish execution, effect or complete mediation"
+          ],
+          "native_claim": "authorization_integrity-v1",
+          "native_evidence_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
+          "not_established": [],
+          "preserved": [
+            "signature"
+          ],
+          "projection": "PRESERVED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:056468ef4f9642ee7fb5b389673255864f2cde56539eb48562fc730e6000f5b9",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": "remora.port_v0.bound_action",
+          "limits": [
+            "does not establish full REMORA exact_call_binding-v1.1",
+            "does not establish principal binding",
+            "the tenant is a caller-supplied label, not an authenticated tenant",
+            "arguments are compared as JavaScript values, so 1 and 1.0 are not distinguished",
+            "does not establish effect"
+          ],
+          "native_claim": "exact_call_binding-v1.1",
+          "native_evidence_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
+          "not_established": [
+            "authenticated_principal",
+            "authenticated_tenant",
+            "independent_target",
+            "lexical_numeric_type"
+          ],
+          "preserved": [
+            "approval_id",
+            "argument_structure",
+            "argument_values",
+            "array_order",
+            "evidence_binding",
+            "tenant",
+            "tool"
+          ],
+          "projection": "NARROWED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:056468ef4f9642ee7fb5b389673255864f2cde56539eb48562fc730e6000f5b9",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": "remora.authorization_unexpired",
+          "limits": [
+            "expiry is compared at admission on the runtime's local clock",
+            "does not establish revocation state, policy or ToolSpec freshness, or signing-key status"
+          ],
+          "native_claim": "fresh_authority_at_dispatch-v1",
+          "native_evidence_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
+          "not_established": [
+            "revocation_state",
+            "signing_key_status",
+            "tool_definition_freshness",
+            "trusted_time"
+          ],
+          "preserved": [
+            "expiry_at_admission"
+          ],
+          "projection": "NARROWED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:056468ef4f9642ee7fb5b389673255864f2cde56539eb48562fc730e6000f5b9",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": null,
+          "limits": [
+            "the V0 contract carries no authenticated principal"
+          ],
+          "native_claim": "principal_binding-v1",
+          "native_evidence_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
+          "not_established": [
+            "authenticated_principal"
+          ],
+          "preserved": [],
+          "projection": "NOT_ESTABLISHED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:056468ef4f9642ee7fb5b389673255864f2cde56539eb48562fc730e6000f5b9",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": null,
+          "limits": [
+            "V0 adapters run in the runtime's own process"
+          ],
+          "native_claim": "authority_executor_custody_isolation-v1",
+          "native_evidence_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
+          "not_established": [
+            "isolated_component"
+          ],
+          "preserved": [],
+          "projection": "NOT_ESTABLISHED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:056468ef4f9642ee7fb5b389673255864f2cde56539eb48562fc730e6000f5b9",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": null,
+          "limits": [
+            "provider_confirmed is an execution report, never EFFECT_VERIFIED"
+          ],
+          "native_claim": "effect_verification-v1",
+          "native_evidence_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
+          "not_established": [
+            "system_of_record_observation"
+          ],
+          "preserved": [],
+          "projection": "UNSUPPORTED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:056468ef4f9642ee7fb5b389673255864f2cde56539eb48562fc730e6000f5b9",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        }
+      ],
+      "request": {
+        "action": {
+          "args": {
+            "amount_minor": 4000,
+            "currency": "EUR",
+            "payment_id": "pay_A"
+          },
+          "tool": "refund"
+        },
+        "approval_id": "apr-valid",
+        "operation_id": "op-valid",
+        "tenant": "tenant-a",
+        "workflow": "refund"
+      }
+    },
+    {
+      "evidence_b64": "eyJlbnZlbG9wZV9iNjQiOiJleUpoWTNScGIyNGlPbnNpWVhKbmRXMWxiblJ6WDJScFoyVnpkQ0k2SW5Ob1lUSTFOam81T0dReU16WXlNakkyTVdVek9UaGhZbVV5TkdNMU1tVXlZelpsTTJZeE9ERmtaRFF5WlRjeU16aGtNVFU1WW1JMU1UWmhObUV5TUdWbFkyTTVPR1EwSWl3aVkyRnViMjVwWTJGc1gyRnlaM1Z0Wlc1MGN5STZJbnRjSW1GdGIzVnVkRjl0YVc1dmNsd2lPalF3TURBdU1DeGNJbU4xY25KbGJtTjVYQ0k2WENKRlZWSmNJaXhjSW5CaGVXMWxiblJmYVdSY0lqcGNJbkJoZVY5QlhDSjlJaXdpWTJGdWIyNXBZMkZzYVhwaGRHbHZiaUk2SW5KbGJXOXlZUzFqWVc1dmJtbGpZV3d0YW5OdmJpMTJNU0lzSW5SdmIyd2lPaUp5WldaMWJtUWlMQ0owYjI5c1gyUmxabWx1YVhScGIyNWZaR2xuWlhOMElqcHVkV3hzTENKMGVYQmxaRjl6WTJGc1lYSnpJanBiV3lJdllXMXZkVzUwWDIxcGJtOXlJaXdpWm14dllYUWlYU3hiSWk5amRYSnlaVzVqZVNJc0luTjBjbWx1WnlKZExGc2lMM0JoZVcxbGJuUmZhV1FpTENKemRISnBibWNpWFYxOUxDSmhkWFJvYjNKcGRIa2lPbnNpWVhWMGFHOXlhWHBoZEdsdmJsOXBaQ0k2SW1Gd2NpMXNiM056ZVNJc0lteGxZWE5sWDJsa0lqb2liR1ZoYzJVdGIzQXRiRzl6YzNraUxDSndjbWx1WTJsd1lXd2lPaUpoWjJWdWRDMUJJaXdpY21WemIzVnlZMlVpT201MWJHd3NJblJoY21kbGRDSTZiblZzYkN3aWRHVnVZVzUwSWpvaWRHVnVZVzUwTFdFaUxDSjJZV3hwWkY5MWJuUnBiQ0k2SWpJd01qWXRNVEF0TURkVU1USTZNRFU2TURBdU1EQXdXaUo5TENKbGRtbGtaVzVqWlNJNmV5SmhkWFJvYjNKcGVtRjBhVzl1WDJScFoyVnpkQ0k2SW5Ob1lUSTFOam96TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16SWl3aWJtRjBhWFpsWDJOc1lXbHRjMTlrYVdkbGMzUWlPbTUxYkd4OUxDSmxlR1ZqZFhScGIyNWZZMjl1ZEdWNGRDSTZleUpqYjI1MFpYaDBYMlJwWjJWemRDSTZiblZzYkN3aWNHOXNhV041WDJScFoyVnpkQ0k2SW5Ob1lUSTFOam94TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4SWl3aWRHOXZiSE53WldOZlpHbG5aWE4wSWpvaWMyaGhNalUyT2pJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJaWZTd2liM0JsY21GMGFXOXVYMmxrSWpvaWIzQXRiRzl6YzNraUxDSnpZMmhsYldGZmRtVnljMmx2YmlJNkluSmxiVzl5WVMxbVpXUmxjbUYwYVc5dUxXRmpkR2x2YmkxMk1TSXNJblJ5WVc1emNHOXlkRjl3Y205cVpXTjBhVzl1SWpwN0ltRmpkR2x2YmlJNmV5SmhjbWR6SWpwN0ltRnRiM1Z1ZEY5dGFXNXZjaUk2TkRBd01DNHdMQ0pqZFhKeVpXNWplU0k2SWtWVlVpSXNJbkJoZVcxbGJuUmZhV1FpT2lKd1lYbGZRU0o5TENKMGIyOXNJam9pY21WbWRXNWtJbjBzSW1Gd2NISnZkbUZzWDJsa0lqb2lZWEJ5TFd4dmMzTjVJaXdpWTI5dGNHOXVaVzUwSWpvaWNtVnRiM0poTFhKbGMyVmhjbU5vTDJGMWRHaHZjbWw2WVhScGIyNHRaWFpwWkdWdVkyVWlMQ0p2Y0dWeVlYUnBiMjVmYVdRaU9pSnZjQzFzYjNOemVTSXNJblJsYm1GdWRDSTZJblJsYm1GdWRDMWhJaXdpZEhKaGJuTndiM0owSWpvaVptVmtaWEpoZEdsdmJpMXdiM0owTDNZd0lpd2lkbUZzYVdSZmRXNTBhV3dpT2lJeU1ESTJMVEV3TFRBM1ZERXlPakExT2pBd0xqQXdNRm9pTENKM2IzSnJabXh2ZHlJNkluSmxablZ1WkNKOUxDSjFibUYyWVdsc1lXSnNaU0k2V3lKaFkzUnBiMjR1ZEc5dmJGOWtaV1pwYm1sMGFXOXVYMlJwWjJWemRDSXNJbUYxZEdodmNtbDBlUzV5WlhOdmRYSmpaU0lzSW1GMWRHaHZjbWwwZVM1MFlYSm5aWFFpTENKbGRtbGtaVzVqWlM1dVlYUnBkbVZmWTJ4aGFXMXpYMlJwWjJWemRDSXNJbVY0WldOMWRHbHZibDlqYjI1MFpYaDBMbU52Ym5SbGVIUmZaR2xuWlhOMElsMHNJbmR2Y210bWJHOTNYMmxrSWpvaWNtVm1kVzVrSW4wPSIsImZvcm1hdCI6InJlbW9yYS1mZWRlcmF0aW9uLWV2aWRlbmNlLXYxIiwic2lnbmF0dXJlIjp7ImFsZ29yaXRobSI6IkVkMjU1MTkiLCJkb21haW4iOiJSRU1PUkEvRkVERVJBVElPTi1BQ1RJT04vdjEiLCJraWQiOiJlZDI1NTE5LTI0YjAzYTBlMzgxOGE0OWUwNTYzMWVmYzgwNzY4ZDA4ZTMyYTgxYTk0NDc0ODczMGYxNGY2MTNhZjllOTA5YTYiLCJzaWduYXR1cmUiOiJSVzVZUktPY3JjVmo1dXNkVFo2UXQvcUlHRzV3M0lEVmttZkhKMUVIeEEzSzh0SnJIUWpZUGxOb255K2VkWk9SL0VQeTNjTFNGbWdwaFVRSHlEVWlBQT09In19",
+      "expected_claims": {
+        "remora.authorization_integrity": "established",
+        "remora.authorization_unexpired": "established",
+        "remora.port_v0.bound_action": "established"
+      },
+      "name": "lossy_float",
+      "native_action_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
+      "native_arguments_digest": "sha256:98d23622261e398abe24c52e2c6e3f181dd42e7238d159bb516a6a20eecc98d4",
+      "note": "native 4000.0 (float) and 4000 (int) have different native digests; V0 carries both as 4000, so bound_action holds and the projection records lexical_numeric_type as lost",
+      "now": "2026-10-07T12:01:00.000Z",
+      "projection_records": [
+        {
+          "action_losses": {
+            "lexical_numeric_type": [
+              "/amount_minor"
+            ]
+          },
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": "remora.authorization_integrity",
+          "limits": [
+            "establishes that the evidence verifies under the pinned REMORA key in REMORA/FEDERATION-ACTION/v1",
+            "does not establish semantic correctness of the authorization",
+            "does not establish execution, effect or complete mediation"
+          ],
+          "native_claim": "authorization_integrity-v1",
+          "native_evidence_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
+          "not_established": [],
+          "preserved": [
+            "signature"
+          ],
+          "projection": "PRESERVED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:d7ec86581fcdf2a7bd0b0266bf52c3e2e326622fc5e7cc96a34ec2cb271207b4",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {
+            "lexical_numeric_type": [
+              "/amount_minor"
+            ]
+          },
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": "remora.port_v0.bound_action",
+          "limits": [
+            "does not establish full REMORA exact_call_binding-v1.1",
+            "does not establish principal binding",
+            "the tenant is a caller-supplied label, not an authenticated tenant",
+            "arguments are compared as JavaScript values, so 1 and 1.0 are not distinguished",
+            "does not establish effect"
+          ],
+          "native_claim": "exact_call_binding-v1.1",
+          "native_evidence_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
+          "not_established": [
+            "authenticated_principal",
+            "authenticated_tenant",
+            "independent_target",
+            "lexical_numeric_type"
+          ],
+          "preserved": [
+            "approval_id",
+            "argument_structure",
+            "argument_values",
+            "array_order",
+            "evidence_binding",
+            "tenant",
+            "tool"
+          ],
+          "projection": "NARROWED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:d7ec86581fcdf2a7bd0b0266bf52c3e2e326622fc5e7cc96a34ec2cb271207b4",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {
+            "lexical_numeric_type": [
+              "/amount_minor"
+            ]
+          },
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": "remora.authorization_unexpired",
+          "limits": [
+            "expiry is compared at admission on the runtime's local clock",
+            "does not establish revocation state, policy or ToolSpec freshness, or signing-key status"
+          ],
+          "native_claim": "fresh_authority_at_dispatch-v1",
+          "native_evidence_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
+          "not_established": [
+            "revocation_state",
+            "signing_key_status",
+            "tool_definition_freshness",
+            "trusted_time"
+          ],
+          "preserved": [
+            "expiry_at_admission"
+          ],
+          "projection": "NARROWED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:d7ec86581fcdf2a7bd0b0266bf52c3e2e326622fc5e7cc96a34ec2cb271207b4",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {
+            "lexical_numeric_type": [
+              "/amount_minor"
+            ]
+          },
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": null,
+          "limits": [
+            "the V0 contract carries no authenticated principal"
+          ],
+          "native_claim": "principal_binding-v1",
+          "native_evidence_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
+          "not_established": [
+            "authenticated_principal"
+          ],
+          "preserved": [],
+          "projection": "NOT_ESTABLISHED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:d7ec86581fcdf2a7bd0b0266bf52c3e2e326622fc5e7cc96a34ec2cb271207b4",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {
+            "lexical_numeric_type": [
+              "/amount_minor"
+            ]
+          },
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": null,
+          "limits": [
+            "V0 adapters run in the runtime's own process"
+          ],
+          "native_claim": "authority_executor_custody_isolation-v1",
+          "native_evidence_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
+          "not_established": [
+            "isolated_component"
+          ],
+          "preserved": [],
+          "projection": "NOT_ESTABLISHED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:d7ec86581fcdf2a7bd0b0266bf52c3e2e326622fc5e7cc96a34ec2cb271207b4",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {
+            "lexical_numeric_type": [
+              "/amount_minor"
+            ]
+          },
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": null,
+          "limits": [
+            "provider_confirmed is an execution report, never EFFECT_VERIFIED"
+          ],
+          "native_claim": "effect_verification-v1",
+          "native_evidence_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
+          "not_established": [
+            "system_of_record_observation"
+          ],
+          "preserved": [],
+          "projection": "UNSUPPORTED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:d7ec86581fcdf2a7bd0b0266bf52c3e2e326622fc5e7cc96a34ec2cb271207b4",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        }
+      ],
+      "request": {
+        "action": {
+          "args": {
+            "amount_minor": 4000.0,
+            "currency": "EUR",
+            "payment_id": "pay_A"
+          },
+          "tool": "refund"
+        },
+        "approval_id": "apr-lossy",
+        "operation_id": "op-lossy",
+        "tenant": "tenant-a",
+        "workflow": "refund"
+      }
+    },
+    {
+      "evidence_b64": "eyJlbnZlbG9wZV9iNjQiOiJleUpoWTNScGIyNGlPbnNpWVhKbmRXMWxiblJ6WDJScFoyVnpkQ0k2SW5Ob1lUSTFOam93T0RBM016SXhaV1EzWVRsbVpERTRZMlZrT0dJME1UQTBPRGRsWmpFd1lUUXpZemhtTlRNNVpERm1NelppTWpZNU16WXhPV1pqWlRZeVlqUmxOams0SWl3aVkyRnViMjVwWTJGc1gyRnlaM1Z0Wlc1MGN5STZJbnRjSW1GdGIzVnVkRjl0YVc1dmNsd2lPalF3TURBc1hDSmpkWEp5Wlc1amVWd2lPbHdpUlZWU1hDSXNYQ0p3WVhsdFpXNTBYMmxrWENJNlhDSndZWGxmUVZ3aWZTSXNJbU5oYm05dWFXTmhiR2w2WVhScGIyNGlPaUp5WlcxdmNtRXRZMkZ1YjI1cFkyRnNMV3B6YjI0dGRqRWlMQ0owYjI5c0lqb2ljbVZtZFc1a0lpd2lkRzl2YkY5a1pXWnBibWwwYVc5dVgyUnBaMlZ6ZENJNmJuVnNiQ3dpZEhsd1pXUmZjMk5oYkdGeWN5STZXMXNpTDJGdGIzVnVkRjl0YVc1dmNpSXNJbWx1ZEdWblpYSWlYU3hiSWk5amRYSnlaVzVqZVNJc0luTjBjbWx1WnlKZExGc2lMM0JoZVcxbGJuUmZhV1FpTENKemRISnBibWNpWFYxOUxDSmhkWFJvYjNKcGRIa2lPbnNpWVhWMGFHOXlhWHBoZEdsdmJsOXBaQ0k2SW1Gd2NpMXdjbWx1WTJsd1lXd2lMQ0pzWldGelpWOXBaQ0k2SW14bFlYTmxMVzl3TFhCeWFXNWphWEJoYkNJc0luQnlhVzVqYVhCaGJDSTZJbUZuWlc1MExVSWlMQ0p5WlhOdmRYSmpaU0k2Ym5Wc2JDd2lkR0Z5WjJWMElqcHVkV3hzTENKMFpXNWhiblFpT2lKMFpXNWhiblF0WVNJc0luWmhiR2xrWDNWdWRHbHNJam9pTWpBeU5pMHhNQzB3TjFReE1qb3dOVG93TUM0d01EQmFJbjBzSW1WMmFXUmxibU5sSWpwN0ltRjFkR2h2Y21sNllYUnBiMjVmWkdsblpYTjBJam9pYzJoaE1qVTJPak16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek1pTENKdVlYUnBkbVZmWTJ4aGFXMXpYMlJwWjJWemRDSTZiblZzYkgwc0ltVjRaV04xZEdsdmJsOWpiMjUwWlhoMElqcDdJbU52Ym5SbGVIUmZaR2xuWlhOMElqcHVkV3hzTENKd2IyeHBZM2xmWkdsblpYTjBJam9pYzJoaE1qVTJPakV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEVpTENKMGIyOXNjM0JsWTE5a2FXZGxjM1FpT2lKemFHRXlOVFk2TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWlKOUxDSnZjR1Z5WVhScGIyNWZhV1FpT2lKdmNDMXdjbWx1WTJsd1lXd2lMQ0p6WTJobGJXRmZkbVZ5YzJsdmJpSTZJbkpsYlc5eVlTMW1aV1JsY21GMGFXOXVMV0ZqZEdsdmJpMTJNU0lzSW5SeVlXNXpjRzl5ZEY5d2NtOXFaV04wYVc5dUlqcDdJbUZqZEdsdmJpSTZleUpoY21keklqcDdJbUZ0YjNWdWRGOXRhVzV2Y2lJNk5EQXdNQ3dpWTNWeWNtVnVZM2tpT2lKRlZWSWlMQ0p3WVhsdFpXNTBYMmxrSWpvaWNHRjVYMEVpZlN3aWRHOXZiQ0k2SW5KbFpuVnVaQ0o5TENKaGNIQnliM1poYkY5cFpDSTZJbUZ3Y2kxd2NtbHVZMmx3WVd3aUxDSmpiMjF3YjI1bGJuUWlPaUp5WlcxdmNtRXRjbVZ6WldGeVkyZ3ZZWFYwYUc5eWFYcGhkR2x2YmkxbGRtbGtaVzVqWlNJc0ltOXdaWEpoZEdsdmJsOXBaQ0k2SW05d0xYQnlhVzVqYVhCaGJDSXNJblJsYm1GdWRDSTZJblJsYm1GdWRDMWhJaXdpZEhKaGJuTndiM0owSWpvaVptVmtaWEpoZEdsdmJpMXdiM0owTDNZd0lpd2lkbUZzYVdSZmRXNTBhV3dpT2lJeU1ESTJMVEV3TFRBM1ZERXlPakExT2pBd0xqQXdNRm9pTENKM2IzSnJabXh2ZHlJNkluSmxablZ1WkNKOUxDSjFibUYyWVdsc1lXSnNaU0k2V3lKaFkzUnBiMjR1ZEc5dmJGOWtaV1pwYm1sMGFXOXVYMlJwWjJWemRDSXNJbUYxZEdodmNtbDBlUzV5WlhOdmRYSmpaU0lzSW1GMWRHaHZjbWwwZVM1MFlYSm5aWFFpTENKbGRtbGtaVzVqWlM1dVlYUnBkbVZmWTJ4aGFXMXpYMlJwWjJWemRDSXNJbVY0WldOMWRHbHZibDlqYjI1MFpYaDBMbU52Ym5SbGVIUmZaR2xuWlhOMElsMHNJbmR2Y210bWJHOTNYMmxrSWpvaWNtVm1kVzVrSW4wPSIsImZvcm1hdCI6InJlbW9yYS1mZWRlcmF0aW9uLWV2aWRlbmNlLXYxIiwic2lnbmF0dXJlIjp7ImFsZ29yaXRobSI6IkVkMjU1MTkiLCJkb21haW4iOiJSRU1PUkEvRkVERVJBVElPTi1BQ1RJT04vdjEiLCJraWQiOiJlZDI1NTE5LTI0YjAzYTBlMzgxOGE0OWUwNTYzMWVmYzgwNzY4ZDA4ZTMyYTgxYTk0NDc0ODczMGYxNGY2MTNhZjllOTA5YTYiLCJzaWduYXR1cmUiOiJDaTdLSDFXQldqU1htVzNSd1RDWWR3Y0ZFZUNscHM5WDBnMzhvdHpyQjFNa0tjQy80SHhnb0RLamQ1aVl5bjRkUnVoMnpEYjgyVUhLQXJka1gwTXBEUT09In19",
+      "expected_claims": {
+        "remora.authorization_integrity": "established",
+        "remora.authorization_unexpired": "established",
+        "remora.port_v0.bound_action": "established"
+      },
+      "name": "other_principal",
+      "native_action_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
+      "native_arguments_digest": "sha256:0807321ed7a9fd18ced8b410487ef10a43c8f539d1f36b2693619fce62b4e698",
+      "note": "same action under another principal: V0 cannot tell, so principal_binding stays NOT_ESTABLISHED",
+      "now": "2026-10-07T12:01:00.000Z",
+      "projection_records": [
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": "remora.authorization_integrity",
+          "limits": [
+            "establishes that the evidence verifies under the pinned REMORA key in REMORA/FEDERATION-ACTION/v1",
+            "does not establish semantic correctness of the authorization",
+            "does not establish execution, effect or complete mediation"
+          ],
+          "native_claim": "authorization_integrity-v1",
+          "native_evidence_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
+          "not_established": [],
+          "preserved": [
+            "signature"
+          ],
+          "projection": "PRESERVED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:8a7df15aef4fb82e4de15dcbe4125243ae48b0c49ac06bcbf05c0922cffe5aa6",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": "remora.port_v0.bound_action",
+          "limits": [
+            "does not establish full REMORA exact_call_binding-v1.1",
+            "does not establish principal binding",
+            "the tenant is a caller-supplied label, not an authenticated tenant",
+            "arguments are compared as JavaScript values, so 1 and 1.0 are not distinguished",
+            "does not establish effect"
+          ],
+          "native_claim": "exact_call_binding-v1.1",
+          "native_evidence_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
+          "not_established": [
+            "authenticated_principal",
+            "authenticated_tenant",
+            "independent_target",
+            "lexical_numeric_type"
+          ],
+          "preserved": [
+            "approval_id",
+            "argument_structure",
+            "argument_values",
+            "array_order",
+            "evidence_binding",
+            "tenant",
+            "tool"
+          ],
+          "projection": "NARROWED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:8a7df15aef4fb82e4de15dcbe4125243ae48b0c49ac06bcbf05c0922cffe5aa6",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": "remora.authorization_unexpired",
+          "limits": [
+            "expiry is compared at admission on the runtime's local clock",
+            "does not establish revocation state, policy or ToolSpec freshness, or signing-key status"
+          ],
+          "native_claim": "fresh_authority_at_dispatch-v1",
+          "native_evidence_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
+          "not_established": [
+            "revocation_state",
+            "signing_key_status",
+            "tool_definition_freshness",
+            "trusted_time"
+          ],
+          "preserved": [
+            "expiry_at_admission"
+          ],
+          "projection": "NARROWED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:8a7df15aef4fb82e4de15dcbe4125243ae48b0c49ac06bcbf05c0922cffe5aa6",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": null,
+          "limits": [
+            "the V0 contract carries no authenticated principal"
+          ],
+          "native_claim": "principal_binding-v1",
+          "native_evidence_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
+          "not_established": [
+            "authenticated_principal"
+          ],
+          "preserved": [],
+          "projection": "NOT_ESTABLISHED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:8a7df15aef4fb82e4de15dcbe4125243ae48b0c49ac06bcbf05c0922cffe5aa6",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": null,
+          "limits": [
+            "V0 adapters run in the runtime's own process"
+          ],
+          "native_claim": "authority_executor_custody_isolation-v1",
+          "native_evidence_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
+          "not_established": [
+            "isolated_component"
+          ],
+          "preserved": [],
+          "projection": "NOT_ESTABLISHED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:8a7df15aef4fb82e4de15dcbe4125243ae48b0c49ac06bcbf05c0922cffe5aa6",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": null,
+          "limits": [
+            "provider_confirmed is an execution report, never EFFECT_VERIFIED"
+          ],
+          "native_claim": "effect_verification-v1",
+          "native_evidence_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
+          "not_established": [
+            "system_of_record_observation"
+          ],
+          "preserved": [],
+          "projection": "UNSUPPORTED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:8a7df15aef4fb82e4de15dcbe4125243ae48b0c49ac06bcbf05c0922cffe5aa6",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        }
+      ],
+      "request": {
+        "action": {
+          "args": {
+            "amount_minor": 4000,
+            "currency": "EUR",
+            "payment_id": "pay_A"
+          },
+          "tool": "refund"
+        },
+        "approval_id": "apr-principal",
+        "operation_id": "op-principal",
+        "tenant": "tenant-a",
+        "workflow": "refund"
+      }
+    },
+    {
+      "evidence_b64": "eyJlbnZlbG9wZV9iNjQiOiJleUpoWTNScGIyNGlPbnNpWVhKbmRXMWxiblJ6WDJScFoyVnpkQ0k2SW5Ob1lUSTFOam93T0RBM016SXhaV1EzWVRsbVpERTRZMlZrT0dJME1UQTBPRGRsWmpFd1lUUXpZemhtTlRNNVpERm1NelppTWpZNU16WXhPV1pqWlRZeVlqUmxOams0SWl3aVkyRnViMjVwWTJGc1gyRnlaM1Z0Wlc1MGN5STZJbnRjSW1GdGIzVnVkRjl0YVc1dmNsd2lPalF3TURBc1hDSmpkWEp5Wlc1amVWd2lPbHdpUlZWU1hDSXNYQ0p3WVhsdFpXNTBYMmxrWENJNlhDSndZWGxmUVZ3aWZTSXNJbU5oYm05dWFXTmhiR2w2WVhScGIyNGlPaUp5WlcxdmNtRXRZMkZ1YjI1cFkyRnNMV3B6YjI0dGRqRWlMQ0owYjI5c0lqb2ljbVZtZFc1a0lpd2lkRzl2YkY5a1pXWnBibWwwYVc5dVgyUnBaMlZ6ZENJNmJuVnNiQ3dpZEhsd1pXUmZjMk5oYkdGeWN5STZXMXNpTDJGdGIzVnVkRjl0YVc1dmNpSXNJbWx1ZEdWblpYSWlYU3hiSWk5amRYSnlaVzVqZVNJc0luTjBjbWx1WnlKZExGc2lMM0JoZVcxbGJuUmZhV1FpTENKemRISnBibWNpWFYxOUxDSmhkWFJvYjNKcGRIa2lPbnNpWVhWMGFHOXlhWHBoZEdsdmJsOXBaQ0k2SW1Gd2NpMWxlSEJwY21Wa0lpd2liR1ZoYzJWZmFXUWlPaUpzWldGelpTMXZjQzFsZUhCcGNtVmtJaXdpY0hKcGJtTnBjR0ZzSWpvaVlXZGxiblF0UVNJc0luSmxjMjkxY21ObElqcHVkV3hzTENKMFlYSm5aWFFpT201MWJHd3NJblJsYm1GdWRDSTZJblJsYm1GdWRDMWhJaXdpZG1Gc2FXUmZkVzUwYVd3aU9pSXlNREkyTFRFd0xUQTNWREV5T2pBMU9qQXdMakF3TUZvaWZTd2laWFpwWkdWdVkyVWlPbnNpWVhWMGFHOXlhWHBoZEdsdmJsOWthV2RsYzNRaU9pSnphR0V5TlRZNk16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek15SXNJbTVoZEdsMlpWOWpiR0ZwYlhOZlpHbG5aWE4wSWpwdWRXeHNmU3dpWlhobFkzVjBhVzl1WDJOdmJuUmxlSFFpT25zaVkyOXVkR1Y0ZEY5a2FXZGxjM1FpT201MWJHd3NJbkJ2YkdsamVWOWthV2RsYzNRaU9pSnphR0V5TlRZNk1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1TSXNJblJ2YjJ4emNHVmpYMlJwWjJWemRDSTZJbk5vWVRJMU5qb3lNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlJbjBzSW05d1pYSmhkR2x2Ymw5cFpDSTZJbTl3TFdWNGNHbHlaV1FpTENKelkyaGxiV0ZmZG1WeWMybHZiaUk2SW5KbGJXOXlZUzFtWldSbGNtRjBhVzl1TFdGamRHbHZiaTEyTVNJc0luUnlZVzV6Y0c5eWRGOXdjbTlxWldOMGFXOXVJanA3SW1GamRHbHZiaUk2ZXlKaGNtZHpJanA3SW1GdGIzVnVkRjl0YVc1dmNpSTZOREF3TUN3aVkzVnljbVZ1WTNraU9pSkZWVklpTENKd1lYbHRaVzUwWDJsa0lqb2ljR0Y1WDBFaWZTd2lkRzl2YkNJNkluSmxablZ1WkNKOUxDSmhjSEJ5YjNaaGJGOXBaQ0k2SW1Gd2NpMWxlSEJwY21Wa0lpd2lZMjl0Y0c5dVpXNTBJam9pY21WdGIzSmhMWEpsYzJWaGNtTm9MMkYxZEdodmNtbDZZWFJwYjI0dFpYWnBaR1Z1WTJVaUxDSnZjR1Z5WVhScGIyNWZhV1FpT2lKdmNDMWxlSEJwY21Wa0lpd2lkR1Z1WVc1MElqb2lkR1Z1WVc1MExXRWlMQ0owY21GdWMzQnZjblFpT2lKbVpXUmxjbUYwYVc5dUxYQnZjblF2ZGpBaUxDSjJZV3hwWkY5MWJuUnBiQ0k2SWpJd01qWXRNVEF0TURkVU1USTZNRFU2TURBdU1EQXdXaUlzSW5kdmNtdG1iRzkzSWpvaWNtVm1kVzVrSW4wc0luVnVZWFpoYVd4aFlteGxJanBiSW1GamRHbHZiaTUwYjI5c1gyUmxabWx1YVhScGIyNWZaR2xuWlhOMElpd2lZWFYwYUc5eWFYUjVMbkpsYzI5MWNtTmxJaXdpWVhWMGFHOXlhWFI1TG5SaGNtZGxkQ0lzSW1WMmFXUmxibU5sTG01aGRHbDJaVjlqYkdGcGJYTmZaR2xuWlhOMElpd2laWGhsWTNWMGFXOXVYMk52Ym5SbGVIUXVZMjl1ZEdWNGRGOWthV2RsYzNRaVhTd2lkMjl5YTJac2IzZGZhV1FpT2lKeVpXWjFibVFpZlE9PSIsImZvcm1hdCI6InJlbW9yYS1mZWRlcmF0aW9uLWV2aWRlbmNlLXYxIiwic2lnbmF0dXJlIjp7ImFsZ29yaXRobSI6IkVkMjU1MTkiLCJkb21haW4iOiJSRU1PUkEvRkVERVJBVElPTi1BQ1RJT04vdjEiLCJraWQiOiJlZDI1NTE5LTI0YjAzYTBlMzgxOGE0OWUwNTYzMWVmYzgwNzY4ZDA4ZTMyYTgxYTk0NDc0ODczMGYxNGY2MTNhZjllOTA5YTYiLCJzaWduYXR1cmUiOiIxazdqZE5aa2tLWXh0enNUdk56QldTYmlqNHhwZlJZOVBySXNnaG9maVZOVFFCV1g2cEtRclFRUDFTYVRKV2ltbFZSV2l2M0VlQmswaVU0SnhrRTVDUT09In19",
+      "expected_claims": {
+        "remora.authorization_integrity": "established",
+        "remora.authorization_unexpired": "not_established",
+        "remora.port_v0.bound_action": "established"
+      },
+      "name": "expired",
+      "native_action_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
+      "native_arguments_digest": "sha256:0807321ed7a9fd18ced8b410487ef10a43c8f539d1f36b2693619fce62b4e698",
+      "note": "one millisecond past valid_until",
+      "now": "2026-10-07T12:05:00.001Z",
+      "projection_records": [
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": "remora.authorization_integrity",
+          "limits": [
+            "establishes that the evidence verifies under the pinned REMORA key in REMORA/FEDERATION-ACTION/v1",
+            "does not establish semantic correctness of the authorization",
+            "does not establish execution, effect or complete mediation"
+          ],
+          "native_claim": "authorization_integrity-v1",
+          "native_evidence_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
+          "not_established": [],
+          "preserved": [
+            "signature"
+          ],
+          "projection": "PRESERVED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:74d9e763fd06096058d941264488e1d119f97d4d3a17d9a373817498ad31a5e9",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": "remora.port_v0.bound_action",
+          "limits": [
+            "does not establish full REMORA exact_call_binding-v1.1",
+            "does not establish principal binding",
+            "the tenant is a caller-supplied label, not an authenticated tenant",
+            "arguments are compared as JavaScript values, so 1 and 1.0 are not distinguished",
+            "does not establish effect"
+          ],
+          "native_claim": "exact_call_binding-v1.1",
+          "native_evidence_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
+          "not_established": [
+            "authenticated_principal",
+            "authenticated_tenant",
+            "independent_target",
+            "lexical_numeric_type"
+          ],
+          "preserved": [
+            "approval_id",
+            "argument_structure",
+            "argument_values",
+            "array_order",
+            "evidence_binding",
+            "tenant",
+            "tool"
+          ],
+          "projection": "NARROWED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:74d9e763fd06096058d941264488e1d119f97d4d3a17d9a373817498ad31a5e9",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": "remora.authorization_unexpired",
+          "limits": [
+            "expiry is compared at admission on the runtime's local clock",
+            "does not establish revocation state, policy or ToolSpec freshness, or signing-key status"
+          ],
+          "native_claim": "fresh_authority_at_dispatch-v1",
+          "native_evidence_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
+          "not_established": [
+            "revocation_state",
+            "signing_key_status",
+            "tool_definition_freshness",
+            "trusted_time"
+          ],
+          "preserved": [
+            "expiry_at_admission"
+          ],
+          "projection": "NARROWED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:74d9e763fd06096058d941264488e1d119f97d4d3a17d9a373817498ad31a5e9",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": null,
+          "limits": [
+            "the V0 contract carries no authenticated principal"
+          ],
+          "native_claim": "principal_binding-v1",
+          "native_evidence_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
+          "not_established": [
+            "authenticated_principal"
+          ],
+          "preserved": [],
+          "projection": "NOT_ESTABLISHED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:74d9e763fd06096058d941264488e1d119f97d4d3a17d9a373817498ad31a5e9",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": null,
+          "limits": [
+            "V0 adapters run in the runtime's own process"
+          ],
+          "native_claim": "authority_executor_custody_isolation-v1",
+          "native_evidence_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
+          "not_established": [
+            "isolated_component"
+          ],
+          "preserved": [],
+          "projection": "NOT_ESTABLISHED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:74d9e763fd06096058d941264488e1d119f97d4d3a17d9a373817498ad31a5e9",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": null,
+          "limits": [
+            "provider_confirmed is an execution report, never EFFECT_VERIFIED"
+          ],
+          "native_claim": "effect_verification-v1",
+          "native_evidence_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
+          "not_established": [
+            "system_of_record_observation"
+          ],
+          "preserved": [],
+          "projection": "UNSUPPORTED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:74d9e763fd06096058d941264488e1d119f97d4d3a17d9a373817498ad31a5e9",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        }
+      ],
+      "request": {
+        "action": {
+          "args": {
+            "amount_minor": 4000,
+            "currency": "EUR",
+            "payment_id": "pay_A"
+          },
+          "tool": "refund"
+        },
+        "approval_id": "apr-expired",
+        "operation_id": "op-expired",
+        "tenant": "tenant-a",
+        "workflow": "refund"
+      }
+    },
+    {
+      "evidence_b64": "eyJlbnZlbG9wZV9iNjQiOiJleUpoWTNScGIyNGlPbnNpWVhKbmRXMWxiblJ6WDJScFoyVnpkQ0k2SW5Ob1lUSTFOam93T0RBM016SXhaV1EzWVRsbVpERTRZMlZrT0dJME1UQTBPRGRsWmpFd1lUUXpZemhtTlRNNVpERm1NelppTWpZNU16WXhPV1pqWlRZeVlqUmxOams0SWl3aVkyRnViMjVwWTJGc1gyRnlaM1Z0Wlc1MGN5STZJbnRjSW1GdGIzVnVkRjl0YVc1dmNsd2lPalF3TURBc1hDSmpkWEp5Wlc1amVWd2lPbHdpUlZWU1hDSXNYQ0p3WVhsdFpXNTBYMmxrWENJNlhDSndZWGxmUVZ3aWZTSXNJbU5oYm05dWFXTmhiR2w2WVhScGIyNGlPaUp5WlcxdmNtRXRZMkZ1YjI1cFkyRnNMV3B6YjI0dGRqRWlMQ0owYjI5c0lqb2ljbVZtZFc1a0lpd2lkRzl2YkY5a1pXWnBibWwwYVc5dVgyUnBaMlZ6ZENJNmJuVnNiQ3dpZEhsd1pXUmZjMk5oYkdGeWN5STZXMXNpTDJGdGIzVnVkRjl0YVc1dmNpSXNJbWx1ZEdWblpYSWlYU3hiSWk5amRYSnlaVzVqZVNJc0luTjBjbWx1WnlKZExGc2lMM0JoZVcxbGJuUmZhV1FpTENKemRISnBibWNpWFYxOUxDSmhkWFJvYjNKcGRIa2lPbnNpWVhWMGFHOXlhWHBoZEdsdmJsOXBaQ0k2SW1Gd2NpMTFiblJ5ZFhOMFpXUWlMQ0pzWldGelpWOXBaQ0k2SW14bFlYTmxMVzl3TFhWdWRISjFjM1JsWkNJc0luQnlhVzVqYVhCaGJDSTZJbUZuWlc1MExVRWlMQ0p5WlhOdmRYSmpaU0k2Ym5Wc2JDd2lkR0Z5WjJWMElqcHVkV3hzTENKMFpXNWhiblFpT2lKMFpXNWhiblF0WVNJc0luWmhiR2xrWDNWdWRHbHNJam9pTWpBeU5pMHhNQzB3TjFReE1qb3dOVG93TUM0d01EQmFJbjBzSW1WMmFXUmxibU5sSWpwN0ltRjFkR2h2Y21sNllYUnBiMjVmWkdsblpYTjBJam9pYzJoaE1qVTJPak16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek1pTENKdVlYUnBkbVZmWTJ4aGFXMXpYMlJwWjJWemRDSTZiblZzYkgwc0ltVjRaV04xZEdsdmJsOWpiMjUwWlhoMElqcDdJbU52Ym5SbGVIUmZaR2xuWlhOMElqcHVkV3hzTENKd2IyeHBZM2xmWkdsblpYTjBJam9pYzJoaE1qVTJPakV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEV4TVRFeE1URXhNVEVpTENKMGIyOXNjM0JsWTE5a2FXZGxjM1FpT2lKemFHRXlOVFk2TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWpJeU1qSXlNakl5TWlKOUxDSnZjR1Z5WVhScGIyNWZhV1FpT2lKdmNDMTFiblJ5ZFhOMFpXUWlMQ0p6WTJobGJXRmZkbVZ5YzJsdmJpSTZJbkpsYlc5eVlTMW1aV1JsY21GMGFXOXVMV0ZqZEdsdmJpMTJNU0lzSW5SeVlXNXpjRzl5ZEY5d2NtOXFaV04wYVc5dUlqcDdJbUZqZEdsdmJpSTZleUpoY21keklqcDdJbUZ0YjNWdWRGOXRhVzV2Y2lJNk5EQXdNQ3dpWTNWeWNtVnVZM2tpT2lKRlZWSWlMQ0p3WVhsdFpXNTBYMmxrSWpvaWNHRjVYMEVpZlN3aWRHOXZiQ0k2SW5KbFpuVnVaQ0o5TENKaGNIQnliM1poYkY5cFpDSTZJbUZ3Y2kxMWJuUnlkWE4wWldRaUxDSmpiMjF3YjI1bGJuUWlPaUp5WlcxdmNtRXRjbVZ6WldGeVkyZ3ZZWFYwYUc5eWFYcGhkR2x2YmkxbGRtbGtaVzVqWlNJc0ltOXdaWEpoZEdsdmJsOXBaQ0k2SW05d0xYVnVkSEoxYzNSbFpDSXNJblJsYm1GdWRDSTZJblJsYm1GdWRDMWhJaXdpZEhKaGJuTndiM0owSWpvaVptVmtaWEpoZEdsdmJpMXdiM0owTDNZd0lpd2lkbUZzYVdSZmRXNTBhV3dpT2lJeU1ESTJMVEV3TFRBM1ZERXlPakExT2pBd0xqQXdNRm9pTENKM2IzSnJabXh2ZHlJNkluSmxablZ1WkNKOUxDSjFibUYyWVdsc1lXSnNaU0k2V3lKaFkzUnBiMjR1ZEc5dmJGOWtaV1pwYm1sMGFXOXVYMlJwWjJWemRDSXNJbUYxZEdodmNtbDBlUzV5WlhOdmRYSmpaU0lzSW1GMWRHaHZjbWwwZVM1MFlYSm5aWFFpTENKbGRtbGtaVzVqWlM1dVlYUnBkbVZmWTJ4aGFXMXpYMlJwWjJWemRDSXNJbVY0WldOMWRHbHZibDlqYjI1MFpYaDBMbU52Ym5SbGVIUmZaR2xuWlhOMElsMHNJbmR2Y210bWJHOTNYMmxrSWpvaWNtVm1kVzVrSW4wPSIsImZvcm1hdCI6InJlbW9yYS1mZWRlcmF0aW9uLWV2aWRlbmNlLXYxIiwic2lnbmF0dXJlIjp7ImFsZ29yaXRobSI6IkVkMjU1MTkiLCJkb21haW4iOiJSRU1PUkEvRkVERVJBVElPTi1BQ1RJT04vdjEiLCJraWQiOiJlZDI1NTE5LTUyOTI1NTBkOGMwZjY1MTIzN2I2ODg1ZmQ3MjU4MGMzYWY2MzYyMGEyMTFlMmE4ODZkYmM0ZWY3YzNlZjI3Y2YiLCJzaWduYXR1cmUiOiJ2ZnhwTktxMEViblNLVmNQQ2RoSSsyQWpzeUlpRjZpNnVYRytnZ3IrT0lIWVVsTzJtNVE4WWptY2xHN2s0K05NcG9mWll3RjB4RElLRHgwRUxuMnhDdz09In19",
+      "expected_claims": {
+        "remora.authorization_integrity": "not_established",
+        "remora.authorization_unexpired": "not_established",
+        "remora.port_v0.bound_action": "not_established"
+      },
+      "name": "untrusted_key",
+      "native_action_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
+      "native_arguments_digest": "sha256:0807321ed7a9fd18ced8b410487ef10a43c8f539d1f36b2693619fce62b4e698",
+      "note": "signed with a key the customer did not pin",
+      "now": "2026-10-07T12:01:00.000Z",
+      "projection_records": [
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": "remora.authorization_integrity",
+          "limits": [
+            "establishes that the evidence verifies under the pinned REMORA key in REMORA/FEDERATION-ACTION/v1",
+            "does not establish semantic correctness of the authorization",
+            "does not establish execution, effect or complete mediation"
+          ],
+          "native_claim": "authorization_integrity-v1",
+          "native_evidence_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
+          "not_established": [],
+          "preserved": [
+            "signature"
+          ],
+          "projection": "PRESERVED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:2a14a284da15e1ae1fbdc58d0890f63ba5164a367ecc696cbc1445ffe0c4649d",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": "remora.port_v0.bound_action",
+          "limits": [
+            "does not establish full REMORA exact_call_binding-v1.1",
+            "does not establish principal binding",
+            "the tenant is a caller-supplied label, not an authenticated tenant",
+            "arguments are compared as JavaScript values, so 1 and 1.0 are not distinguished",
+            "does not establish effect"
+          ],
+          "native_claim": "exact_call_binding-v1.1",
+          "native_evidence_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
+          "not_established": [
+            "authenticated_principal",
+            "authenticated_tenant",
+            "independent_target",
+            "lexical_numeric_type"
+          ],
+          "preserved": [
+            "approval_id",
+            "argument_structure",
+            "argument_values",
+            "array_order",
+            "evidence_binding",
+            "tenant",
+            "tool"
+          ],
+          "projection": "NARROWED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:2a14a284da15e1ae1fbdc58d0890f63ba5164a367ecc696cbc1445ffe0c4649d",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": "remora.authorization_unexpired",
+          "limits": [
+            "expiry is compared at admission on the runtime's local clock",
+            "does not establish revocation state, policy or ToolSpec freshness, or signing-key status"
+          ],
+          "native_claim": "fresh_authority_at_dispatch-v1",
+          "native_evidence_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
+          "not_established": [
+            "revocation_state",
+            "signing_key_status",
+            "tool_definition_freshness",
+            "trusted_time"
+          ],
+          "preserved": [
+            "expiry_at_admission"
+          ],
+          "projection": "NARROWED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:2a14a284da15e1ae1fbdc58d0890f63ba5164a367ecc696cbc1445ffe0c4649d",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": null,
+          "limits": [
+            "the V0 contract carries no authenticated principal"
+          ],
+          "native_claim": "principal_binding-v1",
+          "native_evidence_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
+          "not_established": [
+            "authenticated_principal"
+          ],
+          "preserved": [],
+          "projection": "NOT_ESTABLISHED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:2a14a284da15e1ae1fbdc58d0890f63ba5164a367ecc696cbc1445ffe0c4649d",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": null,
+          "limits": [
+            "V0 adapters run in the runtime's own process"
+          ],
+          "native_claim": "authority_executor_custody_isolation-v1",
+          "native_evidence_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
+          "not_established": [
+            "isolated_component"
+          ],
+          "preserved": [],
+          "projection": "NOT_ESTABLISHED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:2a14a284da15e1ae1fbdc58d0890f63ba5164a367ecc696cbc1445ffe0c4649d",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        },
+        {
+          "action_losses": {},
+          "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
+          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "exported_claim": null,
+          "limits": [
+            "provider_confirmed is an execution report, never EFFECT_VERIFIED"
+          ],
+          "native_claim": "effect_verification-v1",
+          "native_evidence_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
+          "not_established": [
+            "system_of_record_observation"
+          ],
+          "preserved": [],
+          "projection": "UNSUPPORTED",
+          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "remora_revision": "fixture",
+          "schema_version": "remora-federation-projection-v1",
+          "transport": "federation-port/v0",
+          "transport_evidence_digest": "sha256:2a14a284da15e1ae1fbdc58d0890f63ba5164a367ecc696cbc1445ffe0c4649d",
+          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+        }
+      ],
+      "request": {
+        "action": {
+          "args": {
+            "amount_minor": 4000,
+            "currency": "EUR",
+            "payment_id": "pay_A"
+          },
+          "tool": "refund"
+        },
+        "approval_id": "apr-untrusted",
+        "operation_id": "op-untrusted",
+        "tenant": "tenant-a",
+        "workflow": "refund"
+      }
+    }
+  ],
+  "component": "remora-research/authorization-evidence",
+  "schema_version": "remora-federation-port-v0-fixtures-v1",
+  "test_keys": {
+    "note": "test keys only, published so the fixtures are checkable",
+    "public_key_hex": "d404bc44565aedbb899150e5b0b3b32b9441bf0cb7884c33130da8dbc27dd2cf",
+    "signing_seed_hex": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
+  },
+  "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+}

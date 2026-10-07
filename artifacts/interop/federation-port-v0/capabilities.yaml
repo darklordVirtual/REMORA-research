@@ -1,0 +1,28 @@
+# What federation-port/v0 can carry, as REMORA reads its contract
+# (aeoess/federation-port spec/CONTRACT.md at the pinned revision). The
+# projection engine derives every exported claim from this file; an adapter
+# cannot raise it. true supplies a capability; false and partial do not.
+schema_version: remora-federation-transport-capabilities-v1
+transport: federation-port/v0
+revision: aeoess/federation-port@92d5078
+capabilities:
+  frozen_action: true               # CheckInput.action is a frozen copy of what will be dispatched
+  raw_action_bytes: false           # the action travels as JavaScript values, not bytes
+  typed_scalar_preservation: false  # 1 and 1.0 are the same JavaScript number
+  tenant_field: true                # CheckInput.tenant, bound to the operation id
+  authenticated_tenant: false       # "the tenant is a caller-supplied label" (section 10)
+  principal_field: false            # no principal in CheckInput
+  authenticated_principal: false
+  independent_target: false         # the target exists only inside the action arguments
+  approval_binding: true            # approval id consumed once, bound to retries
+  evidence_binding: true            # per-component evidence bytes, digest recorded
+  admission_deadline: true          # valid_until, checked inside the admission write
+  trusted_time: false               # "no trusted time source" (section 10)
+  revocation_hook: false            # "no revocation" (section 10)
+  tool_definition_binding: partial  # only through a separate tool_admission component
+  in_process_adapter: true
+  isolated_component: false         # "adapters run in the runtime's own process"
+  retry_context_binding: true       # section 7
+  dispatch_outcome: true            # provider_confirmed | failed | unknown
+  reconciliation: false             # "no reconciliation endpoint"
+  effect_verification: false        # no system-of-record observation

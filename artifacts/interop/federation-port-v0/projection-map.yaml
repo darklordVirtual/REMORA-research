@@ -1,0 +1,83 @@
+# How REMORA's native claims project onto federation-port/v0. This file is
+# the contract: the adapter's claims must be a subset of the exported claims
+# here, and remora/federation/projection.py derives each result from it and
+# capabilities.yaml. A projection only weakens a claim.
+schema_version: remora-federation-projection-map-v1
+projection_map_id: remora-federation-port-v0
+transport: federation-port/v0
+
+native_claims:
+  authorization_integrity:
+    version: "1"
+    dimensions:
+      signature: [evidence_binding]
+    preserved_claim: remora.authorization_integrity
+    limits:
+      - establishes that the evidence verifies under the pinned REMORA key in REMORA/FEDERATION-ACTION/v1
+      - does not establish semantic correctness of the authorization
+      - does not establish execution, effect or complete mediation
+
+  exact_call_binding:
+    version: "1.1"
+    dimensions:
+      tool: [frozen_action]
+      argument_values: [frozen_action]
+      argument_structure: [frozen_action]
+      array_order: [frozen_action]
+      lexical_numeric_type: [typed_scalar_preservation]
+      tenant: [tenant_field]
+      authenticated_tenant: [authenticated_tenant]
+      authenticated_principal: [authenticated_principal]
+      independent_target: [independent_target]
+      approval_id: [approval_binding]
+      evidence_binding: [evidence_binding]
+    narrowed:
+      exported_claim: remora.port_v0.bound_action
+      requires: [tool, argument_values, argument_structure, array_order, tenant, approval_id,
+                 evidence_binding]
+    limits:
+      - does not establish full REMORA exact_call_binding-v1.1
+      - does not establish principal binding
+      - the tenant is a caller-supplied label, not an authenticated tenant
+      - arguments are compared as JavaScript values, so 1 and 1.0 are not distinguished
+      - does not establish effect
+
+  fresh_authority_at_dispatch:
+    version: "1"
+    dimensions:
+      expiry_at_admission: [admission_deadline]
+      revocation_state: [revocation_hook]
+      trusted_time: [trusted_time]
+      tool_definition_freshness: [tool_definition_binding]
+      signing_key_status: [revocation_hook]
+    narrowed:
+      exported_claim: remora.authorization_unexpired
+      requires: [expiry_at_admission]
+    limits:
+      - expiry is compared at admission on the runtime's local clock
+      - does not establish revocation state, policy or ToolSpec freshness, or signing-key status
+
+  principal_binding:
+    version: "1"
+    dimensions:
+      authenticated_principal: [authenticated_principal]
+    preserved_claim: remora.principal_binding
+    limits:
+      - the V0 contract carries no authenticated principal
+
+  authority_executor_custody_isolation:
+    version: "1"
+    dimensions:
+      isolated_component: [isolated_component]
+    preserved_claim: remora.custody_isolation
+    limits:
+      - V0 adapters run in the runtime's own process
+
+  effect_verification:
+    version: "1"
+    lifecycle: effect_verification
+    dimensions:
+      system_of_record_observation: [effect_verification]
+    preserved_claim: remora.effect_verified
+    limits:
+      - provider_confirmed is an execution report, never EFFECT_VERIFIED

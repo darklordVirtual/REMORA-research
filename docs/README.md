@@ -266,6 +266,7 @@ Design documents describe a proposal at the time it was written; whether it ship
 | [interop/FEDERATION.md](interop/FEDERATION.md) | Federation interoperability: producer contract, foreign evidence as opaque reference, action lineage and attribution without transitive credit; entry point `artifacts/interop/index.json` |
 | [interop/INTEROP_MATRIX.md](interop/INTEROP_MATRIX.md) | Generated interop matrix: one row per Federation edge with status derived from run records (`scripts/build_interop_matrix.py`) |
 | [interop/CAPABILITY_DISCOVERY.md](interop/CAPABILITY_DISCOVERY.md) | Machine-readable workflow capabilities, fixture self-service procedures and runtime reproduction gaps |
+| [interop/FEDERATION_BRIDGE.md](interop/FEDERATION_BRIDGE.md) | Federation Bridge: loss-aware projection of REMORA's claims onto federation transports, and the federation-port/v0 adapter |
 | [interop/remora-boundaries-v1.yaml](interop/remora-boundaries-v1.yaml) | Canonical boundary types, role mappings, evidence freshness and claim ceilings |
 | [interop/remora-boundaries-v1.schema.json](interop/remora-boundaries-v1.schema.json) | JSON Schema for the boundary declaration |
 | [../artifacts/interop/remora-boundary-summary-v1.json](../artifacts/interop/remora-boundary-summary-v1.json) | Generated bounded Federation-facing boundary summary |

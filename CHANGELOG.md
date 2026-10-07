@@ -4,6 +4,21 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Interoperability
+
+- REMORA Federation Bridge and a federation-port/v0 adapter
+  (`docs/interop/FEDERATION_BRIDGE.md`). `remora/federation` projects
+  REMORA's native claims onto a federation transport as PRESERVED, NARROWED,
+  NOT_ESTABLISHED or UNSUPPORTED, from a versioned projection map and the
+  transport's capability declaration, and a projection only weakens a claim.
+  Over federation-port/v0, exact-call binding exports only the narrower
+  `remora.port_v0.bound_action` and expiry only `remora.authorization_unexpired`;
+  principal binding, custody isolation and effect verification are not
+  exported, and `provider_confirmed` never becomes `EFFECT_VERIFIED`. The
+  adapter (`integrations/federation-port/remora-adapter`) verifies REMORA
+  evidence signed in `REMORA/FEDERATION-ACTION/v1` and runs in CI inside an
+  unmodified federation-port runtime at a pinned revision.
+
 ### Security
 
 - Effect verdicts state their vantage and scope (CR-008). Every effect

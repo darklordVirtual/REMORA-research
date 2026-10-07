@@ -1,0 +1,80 @@
+{
+  "contract": "federation-port/v0",
+  "id": "remora-research/authorization-evidence",
+  "publisher": {
+    "name": "REMORA-research (Stian Skogbrott)",
+    "contact": "https://github.com/darklordVirtual/REMORA-research"
+  },
+  "maintainer": {
+    "name": "REMORA-research",
+    "contact": "https://github.com/darklordVirtual/REMORA-research/issues"
+  },
+  "artifact": {
+    "version": "0.1.0",
+    "entry": "adapter.ts",
+    "files": [
+      "adapter.ts"
+    ],
+    "digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79"
+  },
+  "role": "authority_evidence",
+  "schemas": {
+    "check_evidence": {
+      "media_type": "application/json",
+      "description": "remora-federation-evidence-v1: base64 canonical REMORA federation action envelope (remora-federation-action-v1) with an Ed25519 signature in REMORA/FEDERATION-ACTION/v1"
+    },
+    "output_evidence": {
+      "media_type": "application/json",
+      "description": "The submitted remora-federation-evidence-v1 bytes, unmodified"
+    }
+  },
+  "claims": [
+    {
+      "id": "remora.authorization_integrity",
+      "establishes": "The submitted REMORA evidence carries a valid Ed25519 signature in REMORA/FEDERATION-ACTION/v1 under a public key the customer pinned.",
+      "limits": [
+        "Says nothing about whether the authorization was semantically correct",
+        "Does not establish execution, an effect or complete mediation",
+        "Trusts the pinned key; revocation of that key is not checked"
+      ]
+    },
+    {
+      "id": "remora.port_v0.bound_action",
+      "establishes": "The signed REMORA authorization names this workflow, operation id, tenant label, approval id and action, compared as the values federation-port/v0 carries.",
+      "limits": [
+        "Narrower than REMORA exact_call_binding-v1.1: arguments are compared as JavaScript values, so 1 and 1.0 are not distinguished",
+        "Does not establish principal binding; V0 carries no principal",
+        "The tenant is a caller-supplied label, not an authenticated tenant",
+        "A target inside the arguments is derived from the action, not independently authenticated"
+      ]
+    },
+    {
+      "id": "remora.authorization_unexpired",
+      "establishes": "The evaluation instant is at or before the valid_until REMORA signed, and that instant is reported as this component's admission deadline.",
+      "limits": [
+        "Not fresh_authority_at_dispatch: revocation, policy and ToolSpec freshness and signing-key status are not evaluated",
+        "Uses the runtime's local clock; no trusted time"
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "id": "remora-federation-evidence-v1",
+      "description": "REMORA Federation Bridge evidence for federation-port/v0 (projection map remora-federation-port-v0)"
+    }
+  ],
+  "privileges_requested": [],
+  "data_destinations": [],
+  "keys": [
+    {
+      "id": "remora-federation-action-signer",
+      "purpose": "Verify REMORA/FEDERATION-ACTION/v1 signatures; the public key is pinned in the customer policy config as trusted_keys",
+      "held_by": "customer",
+      "lifecycle": "The private key stays with the REMORA deployment; rotate by pinning the new public key"
+    }
+  ],
+  "license": {
+    "spdx": "BUSL-1.1",
+    "attribution": "REMORA-research, Stian Skogbrott"
+  }
+}
