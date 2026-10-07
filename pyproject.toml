@@ -370,5 +370,6 @@ pytest_add_cli_args_test_selection = [
     "tests/test_toolspec_binding_chain.py",
     "tests/test_toolspec_bound_at_dispatch.py",
     "tests/test_unsigned_issuance_family.py",
+    "tests/test_worker_unsafe_numbers.py",
     "tests/test_ws7_server_path.py",
 ]

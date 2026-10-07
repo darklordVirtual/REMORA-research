@@ -15,11 +15,11 @@ change and stay reachable (merge commits).
 | RMR-CR-006 conditional bindings | FIXED under strict v2 (BindingPolicy, active surface binding) | #775, #776 | 6959fc2, 8dc3227 |
 | RMR-CR-007 audit verify w/o key | FIXED (reporting); consolidation open | #772 | 88001b5 |
 | RMR-CR-008 effect evidence scope | FIXED (vantage and scope on every record and report) | #781 | 7c24e0d |
-| RMR-CR-009 custody guard naming | FIXED (docs: declared credential custody) | #782 | pending |
-| RMR-CR-010 paper TEE sentence | FIXED (paper .md now matches the .tex measurement language) | #782 | pending |
+| RMR-CR-009 custody guard naming | FIXED (docs: declared credential custody) | #782 | 4bff0e5 |
+| RMR-CR-010 paper TEE sentence | FIXED (paper .md now matches the .tex measurement language) | #782 | 4bff0e5 |
 | RMR-CR-011 signature domain separation | FIXED under strict v2 (lease, token, audit); envelopes, checkpoints and Workers remain v1 | #768, #778, #779, #780 | 2412d61, 0f65741, d82bdc6, e7371db |
 | RMR-CR-012 concurrency test hang | FIXED | #767 | squash |
-| RMR-CR-013 canonicalisation | CHANGED (investigated; v2 not justified) | none | - |
+| RMR-CR-013 canonicalisation | CHANGED, then FIXED at the Worker edge (no v2 canonicalisation) | #783 | pending |
 | RMR-CR-014 datasets in wheel | OPEN (packaging) | none | - |
 | RMR-CR-015 ledger failure parity | FIXED | #771 | 517a904 |
 
@@ -91,3 +91,6 @@ change and stay reachable (merge commits).
 
 ### RMR-CR-013: CHANGED
 Investigation (Stage 0): Workers re-serialise and can lose precision before binding; Python binds and executes the same value. No post-binding divergence exists, so an exact-call-binding v2 is not justified. Proportionate follow-up: refuse unsafe numerics at the Worker edge.
+- Follow-up done: `workers/{mcp-gateway,agent-control}/src/json_numbers.ts` (identical) scans the raw body and refuses integers beyond 2^53−1, float literals JavaScript would write as integers and non-finite literals, on mcp-gateway's JSON-RPC endpoint and agent-control's execute endpoint. agent-control's comment claiming a downstream comparator was corrected.
+- Tests: `workers/mcp-gateway/test/json_numbers.test.ts` (vitest); `tests/test_worker_unsafe_numbers.py` runs agent-control's module under node against what Python would bind and checks the copies are identical, in the CI job that must not skip.
+- Remaining: other Worker endpoints and downstream Python adapters that re-serialise after the rehash are not covered.
