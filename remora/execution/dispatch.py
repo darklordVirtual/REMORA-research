@@ -61,6 +61,7 @@ def dispatch_under_lease(
     resolved_effect: ResolvedEffect | None = None,
     plan: PlanBinding | None = None,
     capability_set: EffectiveCapabilitySet | None = None,
+    surface_digest: str = "",
 ) -> dict[str, Any]:
     """Dispatch one authorized call through the governed dispatcher.
 
@@ -129,6 +130,7 @@ def dispatch_under_lease(
                 resolved_effect=resolved_effect,
                 plan=plan,
                 capability_set=capability_set,
+                surface_digest=surface_digest,
             )
         except (LeaseRefused, ValueError, SigningUnavailable) as exc:
             # SigningUnavailable belongs here, and its absence was a live 500.
@@ -335,6 +337,7 @@ def _issue_local_lease(
     resolved_effect: ResolvedEffect | None = None,
     plan: PlanBinding | None = None,
     capability_set: EffectiveCapabilitySet | None = None,
+    surface_digest: str = "",
 ) -> ExecutionLease:
     return ExecutionLease.issue(
             decision="accept",
@@ -356,6 +359,7 @@ def _issue_local_lease(
             plan=plan,
             capability_set=capability_set,
             execution_context=_execution_context(semantic),
+            surface_digest=surface_digest,
         )
 
 

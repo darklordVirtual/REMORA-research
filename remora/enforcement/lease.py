@@ -792,6 +792,7 @@ class GovernedToolDispatcher:
         self._recorder: "RecorderClient | None" = None
         self._surface_observer: Callable[[], str] | None = None
         self._surface_enforced = False
+        self._surface_digest_required = False
         #: Q3.2 shadow metrics: how many bound leases were compared with the
         #: observed surface, and how many found it changed.
         self.surface_checks = 0
@@ -964,7 +965,8 @@ class GovernedToolDispatcher:
         return refusal.value if refusal is not None else None
 
     def bind_surface_observer(self, observer: Callable[[], str], *,
-                              enforce: bool = False) -> None:
+                              enforce: bool = False,
+                              require_digest: bool = False) -> None:
         """Compare the tool surface a lease was granted under with the one
         observed now (Q3.2).
 
@@ -974,16 +976,29 @@ class GovernedToolDispatcher:
         design asks for before enforcement. Enforced, or under a strict
         runtime profile, a changed surface refuses as ``surface_changed`` and
         an observer that fails refuses as ``surface_unobservable``.
+
+        ``require_digest`` (CR-006) refuses a lease that names no surface, as
+        ``surface_unbound``, when enforcing. Off by default: the reference
+        runtime checks its surface itself and issues leases without a digest,
+        and its committed interop artifacts must not change.
         """
         self._surface_observer = observer
         self._surface_enforced = enforce
+        self._surface_digest_required = require_digest
 
     def _surface_refusal(self, lease: ExecutionLease) -> str | None:
-        if self._surface_observer is None or not lease.surface_digest:
+        if self._surface_observer is None:
             return None
         from remora.enforcement.custody import custody_is_enforced
 
         enforcing = self._surface_enforced or custody_is_enforced()
+        if not lease.surface_digest:
+            # CR-006: an observer is bound, so this dispatcher can compare,
+            # and the lease names no surface to compare against. Where the
+            # binding is required, an unbound surface is not an unchanged one.
+            if enforcing and self._surface_digest_required:
+                return "surface_unbound"
+            return None
         try:
             current = self._surface_observer()
         except Exception:  # noqa: BLE001 - an unobservable surface is not an unchanged one

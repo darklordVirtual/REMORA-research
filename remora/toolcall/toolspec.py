@@ -484,6 +484,10 @@ class ToolSpecBundle:
 
     # -- lookups and checks ------------------------------------------------
 
+    def tool_specs(self) -> tuple[ToolSpec, ...]:
+        """Every spec in the verified bundle, ordered by tool id."""
+        return tuple(self._specs[k] for k in sorted(self._specs))
+
     def get(self, tool_id: str) -> ToolSpec:
         spec = self._specs.get(tool_id)
         if spec is None:
