@@ -67,8 +67,8 @@ logger = logging.getLogger("remora.api")
 def _get_env_mode() -> str:
     """``development`` or ``production`` (remora.profiles.deployment_environment).
 
-    Unset or blank is development; ``dev`` and ``prod`` are aliases; any
-    other value raises, at startup and on every request (RMR-CR-003).
+    Unset is development; ``dev`` and ``prod`` are aliases; any other value,
+    blank included, raises at startup and on every request (RMR-CR-003).
     """
     from remora.profiles import deployment_environment
 
@@ -2013,8 +2013,8 @@ def _authenticate(request: Request) -> tuple[str, str]:
          Production with no credentials configured is a startup error.
 
     REMORA_ENV is read through remora.profiles.deployment_environment: unset
-    or blank is development, and a value that is neither development nor
-    production is refused.
+    is development, and any value that is neither development nor production,
+    blank included, is refused.
     """
     # ── Determine which auth mode is active ──────────────────────────────
     has_token_table  = bool(_TOKEN_TABLE)
