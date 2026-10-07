@@ -6,6 +6,20 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Security
 
+- Mandatory effect mediation under the strict v2 contract (CR-005). ToolSpec
+  schema version 3 adds the signed fields `effect_mode` (MEDIATED | NONE) and
+  `credential_policy.direct_effect_credentials`. `effect_mediation` is a core
+  binding: a spec with no stated mode, a MEDIATED tool registered unmediated,
+  a NONE tool that declares capabilities or is not read-only, and an executor
+  that holds effect credentials (no `REMORA_EFFECT_ENDPOINT`) all refuse, at
+  startup, at registration and at dispatch before the nonce is spent.
+  `remora init-review` now writes three domains (authority, executor, effect)
+  with a mediated demo tool and a capability policy. **Breaking** for strict
+  v2 deployments: re-sign bundles as schema version 3 with an effect mode,
+  register write tools mediated, and move effect credentials to an effect
+  domain, or select `review/v1` explicitly. Whether a deployment's effect
+  credentials are unreachable outside the mediator stays NOT_ESTABLISHED.
+  Design: `docs/design/binding-policy-v1.md`.
 - BindingPolicy and versioned strict contracts (CR-006, A2). `review` and
   `controlled_pilot` are now contract v2 (`review/v1` stays selectable
   explicitly and is recorded as legacy). v2 requires `REMORA_BINDING_POLICY`,

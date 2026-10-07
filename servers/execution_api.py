@@ -1292,6 +1292,7 @@ def _tool_dispatcher() -> GovernedToolDispatcher | None:
                     # _bind_premise_checks below; with resolved_effect
                     # REQUIRED and none configured, startup already refused.
                     dispatcher.bind_binding_policy(policy)
+                    dispatcher.bind_effect_policy(_effect_policy_check)
                 _bind_premise_checks(dispatcher)
                 spec = _os.environ.get("REMORA_TOOL_REGISTRY_MODULE", "").strip()
                 if spec:
@@ -1299,6 +1300,20 @@ def _tool_dispatcher() -> GovernedToolDispatcher | None:
 
                     registry = importlib.import_module(spec)
                     registry.register_tools(dispatcher.register)
+                    if policy is not None and policy.required("effect_mediation"):
+                        # CR-005: a registration that breaks the signed effect
+                        # policy refuses the dispatcher, not the first call.
+                        broken = [
+                            f"{name}: {refusal}"
+                            for name in dispatcher.registered_tool_names()
+                            if (refusal := _effect_policy_check(
+                                name, dispatcher.is_mediated(name))) is not None]
+                        if broken:
+                            from remora.profiles import RuntimeProfileError
+
+                            raise RuntimeProfileError(
+                                "effect_mediation is REQUIRED and the registry breaks "
+                                "the signed effect policy: " + "; ".join(broken))
                     if _os.environ.get("REMORA_EFFECT_ENDPOINT", "").strip():
                         # Three domains (NTA-2 phase 3): mediated effects go to
                         # the effect domain; this process holds no executor.
@@ -1317,6 +1332,20 @@ def _tool_dispatcher() -> GovernedToolDispatcher | None:
                             dispatcher.bind_effect_executors)
                 _DISPATCHER = dispatcher
     return _DISPATCHER
+
+
+def _effect_policy_check(tool_name: str, mediated: bool) -> str | None:
+    """The CR-005 effect-policy refusal for one registered tool, or None."""
+    from remora.execution.effect_policy import effect_policy_refusal
+
+    bundle = _authz_load_bundle(_os.environ)
+    if bundle is None:
+        return "effect_policy_unverifiable"
+    try:
+        spec = bundle.get(tool_name)
+    except ToolSpecRefused:
+        return "effect_mode_missing"
+    return effect_policy_refusal(spec, mediated=mediated)
 
 
 def _observed_surface(dispatcher: GovernedToolDispatcher) -> str:

@@ -315,6 +315,7 @@ pytest_add_cli_args_test_selection = [
     "tests/test_dispatch_clock_consistency.py",
     "tests/test_dispatch_leased_endpoint.py",
     "tests/test_dispatcher_contract.py",
+    "tests/test_effect_mediation_policy.py",
     "tests/test_enforcement_gate_contract.py",
     "tests/test_enforcement_gate_timestamps.py",
     "tests/test_enforcement_ledger_sqlite.py",

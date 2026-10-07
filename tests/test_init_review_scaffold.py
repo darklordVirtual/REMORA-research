@@ -77,15 +77,35 @@ def test_executor_env_satisfies_the_strict_prerequisites(scaffold, monkeypatch) 
     assert assert_custody_split() == "executor"
 
 
-def test_the_two_halves_never_share_a_secret(scaffold) -> None:
-    """The split is the point: no file may hold both kinds of material."""
+def test_effect_env_satisfies_the_strict_prerequisites(scaffold, monkeypatch) -> None:
+    pytest.importorskip("cryptography", reason="effect env needs the Ed25519 public key")
+    from remora.enforcement.custody import assert_custody_split
+    from remora.toolcall.runtime_profile import validate_runtime_profile_prerequisites
+
+    root, _ = scaffold
+    env = _load_env(root / "effect.env")
+    _apply(monkeypatch, env)
+    assert validate_runtime_profile_prerequisites() == "review"
+    assert assert_custody_split() == "effect"
+
+
+def test_the_three_domains_never_share_a_secret(scaffold) -> None:
+    """The split is the point: no file may hold two kinds of material."""
     root, _ = scaffold
     authority = _load_env(root / "authority.env")
     executor = _load_env(root / "executor.env")
+    effect_domain = _load_env(root / "effect.env")
     effect = authority["REMORA_EFFECT_CREDENTIAL_ENV_NAMES"]
 
+    # CR-005: only the effect domain holds the effect credential. Tool code
+    # runs in the executor, which reaches effects only through the mediator.
     assert effect not in authority
-    assert effect in executor
+    assert effect not in executor
+    assert effect in effect_domain
+    credential = effect_domain[effect]
+    assert credential not in "".join(authority.values())
+    assert credential not in "".join(executor.values())
+    assert executor["REMORA_EFFECT_ENDPOINT"]
     signing_material = (
         "REMORA_PDP_SIGNING_KEY",
         "REMORA_LEASE_SIGNING_KEY_ED25519_PRIVATE",
@@ -94,12 +114,29 @@ def test_the_two_halves_never_share_a_secret(scaffold) -> None:
     for signing in signing_material:
         assert signing in authority
         assert signing not in executor
+        assert signing not in effect_domain
+
+
+def test_the_demo_tool_is_signed_mediated(scaffold) -> None:
+    """CR-005: the signed spec says MEDIATED, never leaves it to inference."""
+    from remora.execution.effect_policy import effect_policy_refusal
+    from remora.toolcall.toolspec import ToolSpecBundle
+
+    root, _ = scaffold
+    env = _load_env(root / "authority.env")
+    bundle = json.loads((root / "toolspec-bundle.json").read_text(encoding="utf-8"))
+    spec = ToolSpecBundle.load(bundle, verification_keys=_verify_keys(env),
+                               accept_hmac=False).get("send_notification")
+    assert spec.effect_mode == "MEDIATED"
+    assert spec.direct_effect_credentials == "FORBIDDEN"
+    assert effect_policy_refusal(spec, mediated=True) is None
+    assert effect_policy_refusal(spec, mediated=False) == "effect_mediation_not_registered"
 
 
 def test_no_runtime_half_can_author_a_toolspec_bundle(scaffold) -> None:
-    """RMR-CR-001: both halves verify bundles; neither holds signing material."""
+    """RMR-CR-001: every domain verifies bundles; none holds signing material."""
     root, summary = scaffold
-    for half in ("authority.env", "executor.env"):
+    for half in ("authority.env", "executor.env", "effect.env"):
         env = _load_env(root / half)
         assert "REMORA_TOOLSPEC_SIGNING_KEY" not in env, half
         assert env["REMORA_TOOLSPEC_PINNED_DIGEST"] == summary["toolspec_bundle_digest"]
@@ -149,22 +186,52 @@ def test_registry_module_registers_the_demo_tool(scaffold, monkeypatch) -> None:
     import importlib
 
     module = importlib.import_module("remora_registry")
-    registered: dict[str, object] = {}
-    module.register_tools(lambda name, fn: registered.__setitem__(name, fn))
-    assert list(registered) == ["send_notification"]
+    registered: dict[str, bool] = {}
+    module.register_tools(
+        lambda name, fn, mediated=False: registered.__setitem__(name, mediated))
+    assert registered == {"send_notification": True}
+    executors: dict[str, object] = {}
+    module.register_effect_executors(executors.update)
+    assert list(executors) == ["notification.send"]
 
 
-def test_demo_tool_refuses_without_the_effect_credential(scaffold, monkeypatch) -> None:
-    """The demo behaves like a real tool: no credential, no effect."""
+def test_demo_effect_refuses_without_the_effect_credential(scaffold, monkeypatch) -> None:
+    """The demo primitive behaves like a real one: no credential, no effect."""
     root, _ = scaffold
     monkeypatch.syspath_prepend(str(root))
-    monkeypatch.delenv("EFFECT_CREDENTIAL_NAME", raising=False)
+    credential_name = "ACME_NOTIFY_API_KEY"  # a variable name, not a secret
+    monkeypatch.setenv("REMORA_EFFECT_CREDENTIAL_ENV_NAMES", credential_name)
+    monkeypatch.delenv(credential_name, raising=False)
     sys.modules.pop("remora_registry", None)
     import importlib
 
     module = importlib.import_module("remora_registry")
     with pytest.raises(RuntimeError):
-        module.send_notification({"to": "ops@example.com"})
+        module.deliver_notification("notification://outbox", {"to": "ops@example.com"})
+
+
+def test_demo_tool_reaches_its_effect_only_through_the_mediator(scaffold, monkeypatch) -> None:
+    """The tool asks for notification.send on the outbox and nothing else."""
+    root, _ = scaffold
+    monkeypatch.syspath_prepend(str(root))
+    sys.modules.pop("remora_registry", None)
+    import importlib
+
+    module = importlib.import_module("remora_registry")
+    asked: list[tuple[str, str, dict]] = []
+
+    class _State:
+        value = "EXECUTED"
+
+    class _Mediator:
+        def invoke(self, capability, resource, arguments):
+            asked.append((capability, resource, dict(arguments)))
+            return type("Effect", (), {"state": _State, "refusal": None})()
+
+    result = module.send_notification({"to": "ops@example.com"}, _Mediator())
+    assert asked == [("notification.send", "notification://outbox",
+                      {"to": "ops@example.com", "subject": ""})]
+    assert result["status"] == "EXECUTED"
 
 
 def test_intent_source_resolves_through_the_research_bundle(scaffold, monkeypatch) -> None:
@@ -209,5 +276,6 @@ def test_secrets_are_written_owner_only(scaffold) -> None:
 
     root, _ = scaffold
     assert stat.S_IMODE((root / "keys").stat().st_mode) == 0o700
-    for path in [*(root / "keys").iterdir(), root / "authority.env", root / "executor.env"]:
+    for path in [*(root / "keys").iterdir(), root / "authority.env", root / "executor.env",
+                 root / "effect.env"]:
         assert stat.S_IMODE(path.stat().st_mode) == 0o600, path

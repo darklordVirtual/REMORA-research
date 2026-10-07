@@ -38,7 +38,7 @@ STAMP = "2026-10-07T00:00:00+00:00"
 
 
 def _unsigned() -> dict:
-    return {"schema_version": 1, "tool_specs": [_demo_spec("sha256:" + "0" * 64)]}
+    return {"schema_version": 3, "tool_specs": [_demo_spec("sha256:" + "0" * 64)]}
 
 
 def _signed(seed: str | None = None) -> tuple[dict, str, str, SigningKey]:

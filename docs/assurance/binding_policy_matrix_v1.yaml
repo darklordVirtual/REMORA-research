@@ -58,3 +58,18 @@ bindings:
     comparator: EnforcementGate audience, fixed to pep://remora-execution on the API path
     refusal: audience_mismatch
     always_compared: true
+  effect_mediation:
+    states_v2: [REQUIRED]
+    comparator: >-
+      the signed ToolSpec v3 effect_mode and credential_policy against how the tool is
+      registered (remora/execution/effect_policy.py), checked at startup, at registration
+      and at every dispatch
+    refusal: effect_mode_missing
+    refusal_capabilities: effect_capabilities_missing
+    refusal_registration: effect_mediation_not_registered
+    refusal_none_capabilities: effect_none_declares_capabilities
+    refusal_none_consequential: effect_none_for_consequential_tool
+    refusal_none_mediated: effect_none_registered_mediated
+    refusal_credentials: direct_effect_credentials_not_forbidden
+    refusal_unverifiable: effect_policy_unverifiable
+    startup: REMORA_EFFECT_ENDPOINT

@@ -49,6 +49,7 @@ SCHEMA = "remora-binding-policy/v1"
 BINDINGS: tuple[str, ...] = (
     "exact_call", "toolspec", "tenant", "task_identity", "capability_set",
     "resolved_effect", "runtime_surface", "actor", "audience",
+    "effect_mediation",
 )
 STATES = frozenset({"REQUIRED", "NOT_APPLICABLE", "UNVERIFIABLE"})
 
@@ -59,7 +60,7 @@ STATES = frozenset({"REQUIRED", "NOT_APPLICABLE", "UNVERIFIABLE"})
 #: read-only tool.
 CORE_BINDINGS = frozenset({
     "exact_call", "toolspec", "tenant", "resolved_effect", "runtime_surface",
-    "actor", "audience",
+    "actor", "audience", "effect_mediation",
 })
 
 #: Per-tool overrides the policy may express, and the value each may take.
