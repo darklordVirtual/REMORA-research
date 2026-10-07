@@ -339,6 +339,18 @@ def _issue_local_lease(
     capability_set: EffectiveCapabilitySet | None = None,
     surface_digest: str = "",
 ) -> ExecutionLease:
+    execution_context = _execution_context(semantic)
+    # ADR-D: the runtime this lease is granted for. An execution context names
+    # it (and ExecutionLease.issue takes it from there). Without one, the
+    # authority signs its own declared runtime (REMORA_RUNTIME_*), which the
+    # executor compares with its own: a strict executor refuses a lease naming
+    # no runtime, so without this a deployment with no context provider could
+    # execute nothing. An undeclared runtime hashes to "", as before.
+    runtime_identity_hash = ""
+    if execution_context is None:
+        from remora.enforcement.runtime_identity import current_runtime_identity_hash
+
+        runtime_identity_hash = current_runtime_identity_hash()
     return ExecutionLease.issue(
             decision="accept",
             tenant_id=tenant,
@@ -358,7 +370,8 @@ def _issue_local_lease(
             resolved_effect=resolved_effect,
             plan=plan,
             capability_set=capability_set,
-            execution_context=_execution_context(semantic),
+            execution_context=execution_context,
+            runtime_identity_hash=runtime_identity_hash,
             surface_digest=surface_digest,
         )
 

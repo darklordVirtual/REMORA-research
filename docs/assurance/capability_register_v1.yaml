@@ -170,8 +170,9 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    verified_at_sha: 5e0ce36f031ba2e134b02130c1a985b46810ce82
+    verified_at_sha: 8c1314b05c1ec80a59cc26c94840d43ee13013b4
     verified_by: >-
+      re-audited 2026-10-07 at 8c1314b (FORWARDING-AUTHORITY), from 5e0ce36: forwarding authority builds no tool dispatcher. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 5e0ce36 (CR-008), from cbc6f70: effect verification vantage and scope. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at cbc6f70 (CR-011-C2), from 1f09d1d: policy decision token signature format v2. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 1f09d1d (CR-005), from f957c08: ToolSpec v3 effect policy, effect_mediation binding, three-domain scaffold. The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -263,8 +264,9 @@ capabilities:
   - id: CAP-004
     name: "Tool-call payload binding (canonical hash, recomputed before execution)"
     status: WIRED_API_PATH
-    verified_at_sha: 5e0ce36f031ba2e134b02130c1a985b46810ce82
+    verified_at_sha: 8c1314b05c1ec80a59cc26c94840d43ee13013b4
     verified_by: >-
+      re-audited 2026-10-07 at 8c1314b (FORWARDING-AUTHORITY), from 5e0ce36: forwarding authority builds no tool dispatcher. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 5e0ce36 (CR-008), from 1f09d1d: effect verification vantage and scope. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 1f09d1d (CR-005), from f957c08: ToolSpec v3 effect policy, effect_mediation binding, three-domain scaffold. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at f957c08 (CR-006-A2), from adc22c0: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -305,8 +307,9 @@ capabilities:
   - id: CAP-005
     name: "Audit chain (hash-chained decision history)"
     status: PERSISTED_ATOMIC
-    verified_at_sha: 5e0ce36f031ba2e134b02130c1a985b46810ce82
+    verified_at_sha: 8c1314b05c1ec80a59cc26c94840d43ee13013b4
     verified_by: >-
+      re-audited 2026-10-07 at 8c1314b (FORWARDING-AUTHORITY), from 5e0ce36: forwarding authority builds no tool dispatcher. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 5e0ce36 (CR-008), from 8f9a98b: effect verification vantage and scope. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 8f9a98b (CR-011-C3), from 1f09d1d: tenant audit chain signature format v2. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 1f09d1d (CR-005), from f957c08: ToolSpec v3 effect policy, effect_mediation binding, three-domain scaffold. The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -364,8 +367,9 @@ capabilities:
   - id: CAP-007
     name: "Review queue with TTL-to-ABSTAIN and approval freshness re-gate"
     status: WIRED_API_PATH
-    verified_at_sha: 5e0ce36f031ba2e134b02130c1a985b46810ce82
+    verified_at_sha: 8c1314b05c1ec80a59cc26c94840d43ee13013b4
     verified_by: >-
+      re-audited 2026-10-07 at 8c1314b (FORWARDING-AUTHORITY), from 5e0ce36: forwarding authority builds no tool dispatcher. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 5e0ce36 (CR-008), from 1f09d1d: effect verification vantage and scope. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 1f09d1d (CR-005), from f957c08: ToolSpec v3 effect policy, effect_mediation binding, three-domain scaffold. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at f957c08 (CR-006-A2), from adc22c0: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -506,8 +510,9 @@ capabilities:
       - tests/test_effect_receipt_atomicity.py
       - tests/test_effect_record_endpoint.py
       - docs/deployment/authority-custody-evidence.md
-    verified_at_sha: 5e0ce36f031ba2e134b02130c1a985b46810ce82
+    verified_at_sha: 8c1314b05c1ec80a59cc26c94840d43ee13013b4
     verified_by: >-
+      re-audited 2026-10-07 at 8c1314b (FORWARDING-AUTHORITY), from 5e0ce36: forwarding authority builds no tool dispatcher. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 5e0ce36 (CR-008), from 8f9a98b: effect verification vantage and scope. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 8f9a98b (CR-011-C3), from c372d62: tenant audit chain signature format v2. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at c372d62 (CR-011-C1), from 1f09d1d: lease signature format v2, signature vectors, crypto formats. The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -702,8 +707,9 @@ capabilities:
   - id: CAP-018
     name: "Task-bound authority and non-decaying loop safety on the execution API"
     status: WIRED_API_PATH
-    verified_at_sha: 5e0ce36f031ba2e134b02130c1a985b46810ce82
+    verified_at_sha: 8c1314b05c1ec80a59cc26c94840d43ee13013b4
     verified_by: >-
+      re-audited 2026-10-07 at 8c1314b (FORWARDING-AUTHORITY), from 5e0ce36: forwarding authority builds no tool dispatcher. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 5e0ce36 (CR-008), from 1f09d1d: effect verification vantage and scope. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 1f09d1d (CR-005), from f957c08: ToolSpec v3 effect policy, effect_mediation binding, three-domain scaffold. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at f957c08 (CR-006-A2), from adc22c0: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -743,8 +749,9 @@ capabilities:
   - id: CAP-019
     name: "Evidence coverage verdicts on the evidence export"
     status: WIRED_API_PATH
-    verified_at_sha: 5e0ce36f031ba2e134b02130c1a985b46810ce82
+    verified_at_sha: 8c1314b05c1ec80a59cc26c94840d43ee13013b4
     verified_by: >-
+      re-audited 2026-10-07 at 8c1314b (FORWARDING-AUTHORITY), from 5e0ce36: forwarding authority builds no tool dispatcher. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 5e0ce36 (CR-008), from 1f09d1d: effect verification vantage and scope. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 1f09d1d (CR-005), from f957c08: ToolSpec v3 effect policy, effect_mediation binding, three-domain scaffold. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at f957c08 (CR-006-A2), from adc22c0: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -779,8 +786,9 @@ capabilities:
   - id: CAP-020
     name: "Pre-dispatch premise checks: resolved effect, plan premises, procedure obligations"
     status: WIRED_API_PATH
-    verified_at_sha: 5e0ce36f031ba2e134b02130c1a985b46810ce82
+    verified_at_sha: 8c1314b05c1ec80a59cc26c94840d43ee13013b4
     verified_by: >-
+      re-audited 2026-10-07 at 8c1314b (FORWARDING-AUTHORITY), from 5e0ce36: forwarding authority builds no tool dispatcher. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 5e0ce36 (CR-008), from c372d62: effect verification vantage and scope. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at c372d62 (CR-011-C1), from 1f09d1d: lease signature format v2, signature vectors, crypto formats. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 1f09d1d (CR-005), from f957c08: ToolSpec v3 effect policy, effect_mediation binding, three-domain scaffold. The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -827,8 +835,9 @@ capabilities:
   - id: CAP-021
     name: "Independent recorder: evidence captured outside the executing process"
     status: WIRED_API_PATH
-    verified_at_sha: 5e0ce36f031ba2e134b02130c1a985b46810ce82
+    verified_at_sha: 8c1314b05c1ec80a59cc26c94840d43ee13013b4
     verified_by: >-
+      re-audited 2026-10-07 at 8c1314b (FORWARDING-AUTHORITY), from 5e0ce36: forwarding authority builds no tool dispatcher. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 5e0ce36 (CR-008), from c372d62: effect verification vantage and scope. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at c372d62 (CR-011-C1), from 1f09d1d: lease signature format v2, signature vectors, crypto formats. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 1f09d1d (CR-005), from f957c08: ToolSpec v3 effect policy, effect_mediation binding, three-domain scaffold. The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -904,8 +913,9 @@ capabilities:
   - id: CAP-023
     name: "Capability minimization: task-scoped capability sets enforced at assess, execution and dispatch"
     status: WIRED_API_PATH
-    verified_at_sha: 5e0ce36f031ba2e134b02130c1a985b46810ce82
+    verified_at_sha: 8c1314b05c1ec80a59cc26c94840d43ee13013b4
     verified_by: >-
+      re-audited 2026-10-07 at 8c1314b (FORWARDING-AUTHORITY), from 5e0ce36: forwarding authority builds no tool dispatcher. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 5e0ce36 (CR-008), from c372d62: effect verification vantage and scope. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at c372d62 (CR-011-C1), from 1f09d1d: lease signature format v2, signature vectors, crypto formats. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 1f09d1d (CR-005), from f957c08: ToolSpec v3 effect policy, effect_mediation binding, three-domain scaffold. The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -961,8 +971,9 @@ capabilities:
   - id: CAP-024
     name: "Capability mediation for implementation effects, with an effect domain for strict deployments (NTA-2 phases 1 to 3)"
     status: WIRED_API_PATH
-    verified_at_sha: 9a8b8f7040a827437b7dce50e70c4a037d613f2b
+    verified_at_sha: 8c1314b05c1ec80a59cc26c94840d43ee13013b4
     verified_by: >-
+      re-audited 2026-10-07 at 8c1314b (FORWARDING-AUTHORITY), from 9a8b8f7: forwarding authority builds no tool dispatcher. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 9a8b8f7 (CR-009), from 5e0ce36: custody guard docstring scope. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 5e0ce36 (CR-008), from c372d62: effect verification vantage and scope. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at c372d62 (CR-011-C1), from 1f09d1d: lease signature format v2, signature vectors, crypto formats. The capability's mechanism is unchanged; status, scope and caveats unchanged.
