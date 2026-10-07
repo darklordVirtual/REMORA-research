@@ -485,6 +485,22 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip wheel . --no-deps -w dist/
 
+      - name: The runtime wheel carries no benchmark datasets (RMR-CR-014)
+        run: |
+          python - <<'CHECK'
+          import glob, zipfile
+          wheel = zipfile.ZipFile(glob.glob("dist/*.whl")[0])
+          datasets = {"remora/benchmarks/extended_v2.py",
+                      "remora/benchmarks/extended_v2_n500.py",
+                      "remora/benchmarks/sap_v3_n1200.py"}
+          shipped = datasets & set(wheel.namelist())
+          assert not shipped, f"datasets shipped in the runtime wheel: {sorted(shipped)}"
+          large = [i.filename for i in wheel.infolist()
+                   if i.filename.endswith(".py") and i.file_size > 300_000]
+          assert not large, f"dataset-sized modules in the runtime wheel: {large}"
+          print("runtime wheel: no benchmark datasets")
+          CHECK
+
       - name: Install wheel with [api,sdk] into a clean venv
         run: |
           python -m venv "$RUNNER_TEMP/wheelenv"

@@ -6,6 +6,12 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Security
 
+- The runtime wheel no longer ships the generated benchmark datasets
+  (CR-014). `remora/benchmarks/extended_v2.py`, `extended_v2_n500.py` and
+  `sap_v3_n1200.py` (1.5 MB of inline items, imported by nothing at runtime)
+  stay in the source tree and the sdist for research use. A test and the CI
+  wheel job refuse a shipped dataset or any dataset-sized module. Import them
+  from a source checkout.
 - Signature format v2 for the tenant audit chain (CR-011, C3). v1 entries
   are never re-signed. The first v2 append writes an
   `AUDIT_VERSION_TRANSITION` record naming the final v1 head and

@@ -20,7 +20,7 @@ change and stay reachable (merge commits).
 | RMR-CR-011 signature domain separation | IN REVIEW: v1 frozen, v2 for lease, token and audit under strict v2 | #768, #778, #779, #780 | 2412d61, pending |
 | RMR-CR-012 concurrency test hang | FIXED | #767 | squash |
 | RMR-CR-013 canonicalisation | CHANGED (investigated; v2 not justified) | none | - |
-| RMR-CR-014 datasets in wheel | OPEN (packaging) | none | - |
+| RMR-CR-014 datasets in wheel | FIXED (excluded from the runtime wheel) | #784 | pending |
 | RMR-CR-015 ledger failure parity | FIXED | #771 | 517a904 |
 
 ## Per finding
@@ -71,6 +71,11 @@ change and stay reachable (merge commits).
 
 ### RMR-CR-012: FIXED
 - New: bounded race helper; starved writers fail in ~2 s. Old shape reproduced as a hang (killed at 20 s).
+
+### RMR-CR-014: FIXED (packaging)
+- New: the three generated dataset modules are excluded from the runtime wheel (`[tool.hatch.build.targets.wheel] exclude`); they stay in the source tree and the sdist. The built wheel drops from about 6.2 MB to about 4.7 MB uncompressed.
+- Tests: `tests/test_wheel_excludes_datasets.py` (the exclusion is declared, matches real files, no shipped module imports an excluded dataset, no other shipped module exceeds 300 KB); the CI wheel job inspects the built wheel.
+- Remaining: a separate research distribution (the preferred fix) is not built; `extended.py` and `standard.py`, small datasets imported by `remora.benchmarks`, still ship.
 
 ### RMR-CR-015: FIXED
 - New: every backend refuses with `consumed_ledger_unavailable` and emits `grant.ledger_unavailable`; uncommitted grants stay unspent; D1 names timeouts and malformed answers.
