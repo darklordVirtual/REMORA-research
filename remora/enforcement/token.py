@@ -21,6 +21,15 @@ that can reach the gate can also mint a token. Separation of decision
 authority from enforcement would need the issuer and verifier in different
 custody domains with asymmetric keys, as the ExecutionLease already supports.
 
+Signature formats (RMR-CR-011): v1 is HMAC-SHA256 over the untagged
+canonical payload, frozen with its vector in ``vectors/v1``. v2 is
+HMAC-SHA256 over ``REMORA/POLICY-GRANT/v2 || 0x00 || payload``, and the
+payload carries ``format: v2``, so a v2 token cannot be relabelled as v1. A
+strict v2 contract issues only v2 and refuses a v1 token as live authority
+(``token_format_legacy``); ``verify_historical()`` still reads v1. v2 adds
+domain separation, not a trust boundary: the key stays symmetric and shared
+by PDP and PEP (RMR-CR-002).
+
 Key management: set REMORA_PDP_SIGNING_KEY in the environment.
   - If absent: token is issued as UNSIGNED (enforcement gate rejects in strict mode)
   - If set: HMAC-SHA256 signature is computed over canonical payload
@@ -203,6 +212,7 @@ def _canonical_payload(
     kid: str = "",
     issuer: str = "",
     context_hash: str = "",
+    format: str = "",
 ) -> bytes:
     """Stable canonical serialization for signing (sorted keys, no whitespace).
 
@@ -231,10 +241,22 @@ def _canonical_payload(
         payload["issuer"] = issuer
     if context_hash:
         payload["context_hash"] = context_hash
+    if format:
+        payload["format"] = format
     return json.dumps(payload, sort_keys=True, separators=(",", ":")).encode()
 
 
-def _compute_signature(payload_bytes: bytes, key: bytes) -> str:
+#: The token formats. "" is v1, frozen: no format field, untagged preimage.
+FORMAT_V1 = ""
+FORMAT_V2 = "v2"
+_FORMATS = (FORMAT_V1, FORMAT_V2)
+
+
+def _compute_signature(payload_bytes: bytes, key: bytes, format: str = FORMAT_V1) -> str:
+    if format == FORMAT_V2:
+        from remora.crypto import SignatureDomain, preimage
+
+        payload_bytes = preimage(SignatureDomain.POLICY_GRANT, payload_bytes)
     return hmac.new(key, payload_bytes, hashlib.sha256).hexdigest()
 
 
@@ -290,6 +312,9 @@ class PolicyDecisionToken:
     #: the current request (RMR-001). Empty on tokens minted before the binding
     #: existed, which verify unchanged.
     context_hash: str = ""
+    #: Signature format (RMR-CR-011): "" is v1 (frozen), "v2" is the
+    #: REMORA/POLICY-GRANT/v2 domain. Signed when set, so it cannot be stripped.
+    format: str = ""
 
     @classmethod
     def issue(
@@ -331,15 +356,18 @@ class PolicyDecisionToken:
                 )
         jti = str(_uuid.uuid4())
         context_hash = context.hash() if context is not None else ""
+        from remora.crypto.formats import signature_format
+
+        token_format = FORMAT_V2 if signature_format() == "v2" else FORMAT_V1
         key = _get_signing_key()
         kid = _current_kid()
         issuer = os.environ.get(_ENV_ISSUER, "").strip()
         if key:
             payload = _canonical_payload(
                 action, observation_hash, request_id, issued_at, expires_at,
-                jti, audience, kid, issuer, context_hash,
+                jti, audience, kid, issuer, context_hash, token_format,
             )
-            sig = _compute_signature(payload, key)
+            sig = _compute_signature(payload, key, token_format)
             return cls(
                 action=action,
                 observation_hash=observation_hash,
@@ -353,6 +381,7 @@ class PolicyDecisionToken:
                 kid=kid,
                 issuer=issuer,
                 context_hash=context_hash,
+                format=token_format,
             )
         return cls(
             action=action,
@@ -367,7 +396,23 @@ class PolicyDecisionToken:
             kid=kid,
             issuer=issuer,
             context_hash=context_hash,
+            format=token_format,
         )
+
+    def verify_historical(self) -> TokenVerificationResult:
+        """The signature only, as evidence: never an authorization (CR-011).
+
+        For historical evidence, offline replay and migration diagnostics. A
+        v1 token that a strict v2 contract refuses as live authority verifies
+        here as ``historical_v1``; expiry, issuer and bindings are not
+        checked, because nothing is being authorized.
+        """
+        refused = self._signature_refusal(live=False)
+        if refused is not None:
+            return refused
+        return TokenVerificationResult(
+            verified=True, is_signed=True,
+            reason="historical_v1" if self.format == FORMAT_V1 else "ok")
 
     def verify(
         self,
@@ -393,6 +438,30 @@ class PolicyDecisionToken:
             TokenVerificationResult with verified=True if signature is valid
             and the token has not expired.
         """
+        refused = self._signature_refusal(live=True)
+        if refused is not None:
+            return refused
+
+        # RMR-CR-002: the issuer was signed but never compared. When this
+        # process names an expected issuer, a token from any other issuer is
+        # refused, even with a valid signature under a shared key.
+        expected_issuer = os.environ.get(_ENV_ISSUER, "").strip()
+        if expected_issuer and self.issuer != expected_issuer:
+            return TokenVerificationResult(
+                verified=False,
+                reason="issuer_mismatch",
+                is_signed=True,
+            )
+
+        return self.check_bindings(observation_hash, now=now, context=context)
+
+    def _signature_refusal(self, *, live: bool) -> TokenVerificationResult | None:
+        """Why the signature does not hold, or None when it does.
+
+        ``live`` is whether the token is presented as authority: under a
+        strict v2 contract a live v1 token is refused (``token_format_legacy``)
+        without being read further.
+        """
         key = _get_signing_key()
         if not key:
             return TokenVerificationResult(
@@ -406,6 +475,15 @@ class PolicyDecisionToken:
                 reason="token_not_signed",
                 is_signed=False,
             )
+        if self.format not in _FORMATS:
+            return TokenVerificationResult(
+                verified=False, reason="token_format_unknown", is_signed=True)
+        if live and self.format == FORMAT_V1:
+            from remora.crypto.formats import v1_live_refused
+
+            if v1_live_refused():
+                return TokenVerificationResult(
+                    verified=False, reason="token_format_legacy", is_signed=True)
 
         # Key lifecycle: a revoked kid refuses even if its key is still
         # deployed; a token naming a kid must verify with EXACTLY that key
@@ -423,7 +501,7 @@ class PolicyDecisionToken:
         payload = _canonical_payload(
             self.action, self.observation_hash, self.request_id, self.issued_at,
             self.expires_at, self.jti, self.audience, self.kid, self.issuer,
-            self.context_hash,
+            self.context_hash, self.format,
         )
 
         if self.kid:
@@ -457,7 +535,7 @@ class PolicyDecisionToken:
                 )
 
         sig_ok = any(
-            hmac.compare_digest(_compute_signature(payload, k), self.signature)
+            hmac.compare_digest(_compute_signature(payload, k, self.format), self.signature)
             for k in candidate_keys
         )
         if not sig_ok:
@@ -466,19 +544,7 @@ class PolicyDecisionToken:
                 reason="signature_invalid",
                 is_signed=True,
             )
-
-        # RMR-CR-002: the issuer was signed but never compared. When this
-        # process names an expected issuer, a token from any other issuer is
-        # refused, even with a valid signature under a shared key.
-        expected_issuer = os.environ.get(_ENV_ISSUER, "").strip()
-        if expected_issuer and self.issuer != expected_issuer:
-            return TokenVerificationResult(
-                verified=False,
-                reason="issuer_mismatch",
-                is_signed=True,
-            )
-
-        return self.check_bindings(observation_hash, now=now, context=context)
+        return None
 
     def check_bindings(
         self,
@@ -582,8 +648,12 @@ class PolicyDecisionToken:
         )
 
     def to_dict(self) -> dict[str, Any]:
-        """Complete serialisation — every signed field round-trips."""
-        return {
+        """Complete serialisation — every signed field round-trips.
+
+        ``format`` appears only on v2 tokens, so a v1 token serialises
+        exactly as it did before v2 existed.
+        """
+        out = {
             "action": self.action,
             "observation_hash": self.observation_hash,
             "request_id": self.request_id,
@@ -597,11 +667,14 @@ class PolicyDecisionToken:
             "signature": self.signature,
             "is_signed": self.is_signed,
         }
+        if self.format:
+            out["format"] = self.format
+        return out
 
     _FIELDS = frozenset({
         "action", "observation_hash", "request_id", "issued_at",
         "expires_at", "jti", "audience", "kid", "issuer",
-        "context_hash", "signature", "is_signed",
+        "context_hash", "signature", "is_signed", "format",
     })
 
     @classmethod

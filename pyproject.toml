@@ -310,6 +310,7 @@ pytest_add_cli_args_test_selection = [
     "tests/test_callable_closure_digest.py",
     "tests/test_credential_issuer_scope.py",
     "tests/test_crypto_v2_lease.py",
+    "tests/test_crypto_v2_token.py",
     "tests/test_custody_split_dispatch.py",
     "tests/test_decision_execution_correlation.py",
     "tests/test_direct_accept_authority_binding.py",

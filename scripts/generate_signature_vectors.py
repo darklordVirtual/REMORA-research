@@ -168,9 +168,37 @@ def lease_v2() -> dict[str, Any]:
                        "signature": base64.b64encode(_ed25519_sign(signed)).decode()}]}
 
 
+def policy_grant_v2() -> dict[str, Any]:
+    from remora.crypto import SignatureDomain, preimage
+
+    payload = _canonical({
+        "action": "accept",
+        "audience": "pep://remora-execution",
+        "context_hash": "d" * 64,
+        "expires_at": "2026-10-07T12:05:00+00:00",
+        "format": "v2",
+        "issued_at": "2026-10-07T12:00:00+00:00",
+        "issuer": "pdp-1",
+        "jti": "00000000-0000-4000-8000-000000000003",
+        "kid": "pdp-2026-10",
+        "observation_hash": "e" * 64,
+        "request_id": "req-1",
+    })
+    signed = preimage(SignatureDomain.POLICY_GRANT, payload)
+    return {"artifact": "PolicyDecisionToken", "format": "v2",
+            "domain": SignatureDomain.POLICY_GRANT.value,
+            "preimage": "domain tag || 0x00 || canonical JSON (sorted keys, compact, with "
+                        "format=v2); HMAC-SHA256 hex",
+            "keys": {"hmac_key": HMAC_KEY},
+            "cases": [{"name": "policy-grant-v2-hmac", "payload": payload.decode(),
+                       "preimage_b64": base64.b64encode(signed).decode(),
+                       "signature": hmac.new(HMAC_KEY.encode(), signed,
+                                             hashlib.sha256).hexdigest()}]}
+
+
 V1 = {"execution_lease.json": lease_v1, "policy_grant.json": policy_grant_v1,
       "audit_chain.json": audit_v1}
-V2 = {"execution_lease.json": lease_v2}
+V2 = {"execution_lease.json": lease_v2, "policy_grant.json": policy_grant_v2}
 
 
 def _render(builder: Any) -> str:

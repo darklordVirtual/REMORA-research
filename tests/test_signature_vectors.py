@@ -156,3 +156,20 @@ def test_audit_v1_vector_verifies_with_the_frozen_code(keys) -> None:
                                   case["sequence_no"], case["timestamp"]) == case["entry_hash"]
         assert hmac.new(key, case["entry_hash"].encode(), hashlib.sha256).hexdigest() == (
             case["signature"])
+
+
+def test_policy_grant_v2_vector_verifies(keys) -> None:
+    from remora.enforcement.token import PolicyDecisionToken
+
+    vector = _load(V2, "policy_grant.json")
+    (case,) = vector["cases"]
+    fields = json.loads(case["payload"])
+    keys.setenv("REMORA_PDP_SIGNING_KEY", vector["keys"]["hmac_key"])
+    keys.setenv("REMORA_PDP_SIGNING_KID", fields["kid"])
+    token = PolicyDecisionToken(**fields, signature=case["signature"], is_signed=True)
+    assert token.verify(now="2026-10-07T12:01:00+00:00").verified
+    assert token.verify_historical().reason == "ok"
+    v1 = PolicyDecisionToken(**{**fields, "format": ""}, signature=case["signature"],
+                             is_signed=True)
+    assert v1.verify_historical().reason == "signature_invalid"
+
