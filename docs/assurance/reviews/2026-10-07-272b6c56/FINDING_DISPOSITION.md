@@ -15,8 +15,8 @@ change and stay reachable (merge commits).
 | RMR-CR-006 conditional bindings | FIXED under strict v2 (BindingPolicy, active surface binding) | #775, #776 | 6959fc2, 8dc3227 |
 | RMR-CR-007 audit verify w/o key | FIXED (reporting); consolidation open | #772 | 88001b5 |
 | RMR-CR-008 effect evidence scope | OPEN | none | - |
-| RMR-CR-009 custody guard naming | OPEN (docs) | none | - |
-| RMR-CR-010 paper TEE sentence | OPEN (docs) | none | - |
+| RMR-CR-009 custody guard naming | FIXED (docs: declared credential custody) | #782 | pending |
+| RMR-CR-010 paper TEE sentence | FIXED (paper .md now matches the .tex measurement language) | #782 | pending |
 | RMR-CR-011 signature domain separation | IN REVIEW: v1 frozen, v2 for lease, token and audit under strict v2 | #768, #778, #779, #780 | 2412d61, pending |
 | RMR-CR-012 concurrency test hang | FIXED | #767 | squash |
 | RMR-CR-013 canonicalisation | CHANGED (investigated; v2 not justified) | none | - |
@@ -68,6 +68,14 @@ change and stay reachable (merge commits).
 - New: the API path signs and compares the execution surface (#775); strict profiles are versioned contracts, and v2 requires a BindingPolicy stating every binding REQUIRED, NOT_APPLICABLE or UNVERIFIABLE, refused at startup without its comparator and compared at dispatch before the nonce (#776).
 - Tests: `tests/test_api_execution_surface_binding.py`, `tests/test_binding_policy.py`, `tests/test_binding_policy_matrix.py`.
 - Remaining: `runtime_capability_surface_completeness` stays NOT_ESTABLISHED; the v1 contract keeps configuration-conditional bindings.
+
+### RMR-CR-009: FIXED (documentation)
+- New: `remora/enforcement/custody.py` and ADR-A state the guard's scope as declared credential custody: declared variable names, the lease signing variables and role-based refusals for a self-declared role. Instance metadata or IAM roles, workload identity, mounted secrets, undeclared variables and network-reachable credentials are outside it.
+- Remaining: deployment attestation of egress and identity (the preferred fix) is not built; credential non-bypassability stays NOT_ESTABLISHED.
+
+### RMR-CR-010: FIXED (documentation)
+- New: `paper/remora_paper.md` Appendix E says attestation shows a workload whose measurement matches the approved build and policy digest, not that the model or policy decided correctly; the `.tex` already said so. The PDF is rebuilt on master.
+- Kept as written: `scripts/legacy/patch_tee_paper.py`, a historical script that is not run, preserves the superseded wording.
 
 ### RMR-CR-012: FIXED
 - New: bounded race helper; starved writers fail in ~2 s. Old shape reproduced as a hang (killed at 20 s).
