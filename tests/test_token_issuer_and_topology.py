@@ -62,7 +62,7 @@ def test_without_an_expected_issuer_verification_is_unchanged(monkeypatch) -> No
 
 
 def test_the_token_does_not_claim_a_decision_enforcement_boundary() -> None:
-    import remora.enforcement.token as module
+    import importlib
 
-    doc = module.__doc__ or ""
+    doc = importlib.import_module("remora.enforcement.token").__doc__ or ""
     assert "does NOT establish" in doc and "one-time grant record" in doc

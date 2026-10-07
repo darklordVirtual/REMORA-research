@@ -50,8 +50,8 @@ protections applies here, and none is claimed.
 - **Binding.** The exact call is bound by `canonical_tool_call_hash` (name,
   arguments, tenant, target), and the lease is re-hashed before the tool runs.
   The agent never re-supplies arguments: execution uses the stored call.
-  Numbers the Worker would change are refused before binding once #783
-  (RMR-CR-013) is merged.
+  Numbers the Worker would change are refused before binding
+  (RMR-CR-013, #783).
 - **Effects.** Not mediated. The GitHub and knowledge-graph tools register
   with `register(name, fn)` (`deploy/gateway/gh_registry.py`,
   `deploy/gateway/kg_registry.py`), and no effect domain is configured. The

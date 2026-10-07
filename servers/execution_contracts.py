@@ -197,6 +197,10 @@ class ExecutionAuditVerifyResponse(BaseModel):
                     "NOT_CHECKED_NO_KEY (records are signed, this process "
                     "holds no key) or UNSIGNED (no record carries a "
                     "signature). `valid` covers only the checks that ran.")
+    signature_format: str = Field(
+        description="none, v1, v2 or v1+v2: the signature formats the records "
+                    "carry. A chain that crossed its AUDIT_VERSION_TRANSITION "
+                    "record shows v1+v2; v1 history is never re-signed (CR-011).")
 
 
 _AUTH_RESPONSES: dict[int | str, dict[str, Any]] = {
