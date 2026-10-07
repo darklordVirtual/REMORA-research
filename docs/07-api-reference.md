@@ -255,7 +255,7 @@ Selected fields by group:
 | Verification | `counterfactual_passed`, `distribution_shift_detected`, `classification_confidence`, `classification_alternatives`, `model_misspecification_risk` |
 | Session & fleet | `session_action_count`, `session_cumulative_risk`, `similar_action_seen_count`, `policy_generalization_risk`, `fleet_level_effect` |
 | Binding | `tool_call_hash`, SHA-256 of the full canonical tool call (name, exact args, tenant, target); recompute before execution and refuse on mismatch |
-| Execution identity | `execution_context_hash`, optional digest of deployment-owned context captured before assessment and bound through authorization, dispatch and effect evidence; see [execution quickstart](deployment/execution-quickstart.md#authoritative-execution-context-optional) |
+| Execution identity | `execution_context_hash`, optional digest of deployment-owned context captured before assessment and bound through authorization, dispatch and effect evidence; see [execution quickstart](deployment/execution-quickstart.md#optional-authoritative-execution-context) |
 
 Construct from a dict with `PolicyObservation.from_json_record(record)`
 (unknown keys are ignored, misspelled safety flags therefore silently default
@@ -427,6 +427,31 @@ one-time grant, then dispatches the tool through the app-lifecycle
 chain and reports `records_checked`; an `empty` chain is flagged because it is
 trivially valid). RBAC: `assess`/`execute` capabilities gate assess/execute;
 `review` gates approve; `read` gates audit. `review` also gates `POST /revoke-principal`, which withdraws a principal's authority after the fact. An approval that principal granted is invalidated at the execution re-gate, not rewritten. The chain therefore shows both the approval and the revocation.
+
+**Rejection, effects and the proposal trail.** `POST /reject` (`review`)
+refuses a pending review item terminally and requires a `reason`. The
+recorded reviewer is the authenticated principal, and a rejected item can
+never be approved or executed afterwards. `POST /proposals/{proposal_id}/effect`
+(`execute`) appends one effect verification exactly as reported, mismatches
+included. It requires `execution_id`, `tool_id`, `status` (one of the five
+published statuses), `reason_code` and `verifier_identity`, and carries
+`execution_context_hash` for a context-bound dispatch. Another tenant's
+proposal is a 404. `GET /proposals/{proposal_id}/lifecycle` (`read`) returns
+the ordered chain trail plus the dispatch verdict, and
+`GET /proposals/{proposal_id}/envelope` (`read`) derives the proposal-to-effect
+envelope from that trail on read; it is never stored. `POST /effects` and
+`POST /effects/close` (`execute`) are the effect domain of the three-domain
+mediation split (NTA-2 phase 3). The domain verifies the lease and that it was
+dispatched, derives authority from its own ToolSpec ceiling, and answers
+`REFUSED` or `EXECUTED` without raising. A lease for another tenant is a 409.
+
+**Execution context (opt-in).** `REMORA_REQUIRE_EXECUTION_CONTEXT=1` with
+`REMORA_EXECUTION_CONTEXT_MODULE` naming a deployment provider binds a
+deployment-owned execution context through assessment, review, grant, lease,
+dispatch and effect recording; `/dispatch-leased` then takes the historical
+context as `execution_context`. The authority of the deployment sources stays
+`NOT_ESTABLISHED` (`execution_context_authoritative_binding`). Setup is in the
+[execution quickstart](deployment/execution-quickstart.md#optional-authoritative-execution-context).
 
 **Task identity and loop safety (Q7.2):** a tool call may carry `context_id`
 and `task_id`, in A2A's vocabulary, both or neither (one alone is a 422).
