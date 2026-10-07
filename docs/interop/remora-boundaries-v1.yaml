@@ -1,7 +1,7 @@
 schema_version: remora-boundaries/v1
 
 provenance:
-  audited_revision: 17936a72782960bd0fc0ba0b8b514a0818f7f9e2
+  audited_revision: 20ae2ad8de2698f64a94142fe026df562bfcf126
   implementation_sources:
     - remora/policy/decision_engine.py
     - remora/enforcement/lease.py
