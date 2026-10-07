@@ -23,6 +23,12 @@ MATRIX: dict[str, tuple[Path, str]] = {
         _TESTS / "test_agent_control_approvals.py",
         "test_same_principal_cannot_self_approve",
     ),
+    # The row above covers the TypeScript agent-control Worker only. The
+    # Python execution API is a separate path with its own rule (RMR-CR-004).
+    "agent cannot self-approve (Python execution API)": (
+        _TESTS / "test_separation_of_duties.py",
+        "test_the_proposer_cannot_approve_its_own_call_even_as_admin",
+    ),
     "agent cannot spoof reviewer": (
         _TESTS / "test_agent_control_approvals.py",
         "test_bearer_with_spoofed_human_headers_stays_workload",

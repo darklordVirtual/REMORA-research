@@ -25,6 +25,13 @@ This file lists externally relevant changes by release. Fine-grained development
   separate operator and reviewer credentials. **Breaking** for deployments
   that ran single-token mode outside development or set another
   `REMORA_ENV` value.
+- Separation of duties on the execution API (RMR-CR-004). Under a strict
+  profile, or with `REMORA_REQUIRE_DISTINCT_APPROVER`, `/v1/execution/approve`
+  refuses with 403 when the approver is the principal that proposed the call,
+  whatever its role (`approver_is_proposer`), or when the proposer cannot be
+  established (`proposer_unknown`). The `approved` event records both
+  principals. Previously one `admin` credential could propose, approve and
+  execute the same call.
 
 ## 0.12.0 — 2026-10-07
 
