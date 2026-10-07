@@ -2812,6 +2812,10 @@ documents:
   status: historical
   topic: docs_assurance_reviews_2026-10-07-272b6c56_fix_rebase_md
   referencing_allowed: true
+- id: DOC-370
+  path: docs/design/binding-policy-v1.md
+  status: canonical
+  topic: docs_design_binding-policy-v1_md
   code_synced: verified
   verdict: current
   last_audited: '2026-10-07'
@@ -2819,6 +2823,7 @@ documents:
   audience:
   - maintainers
   - evaluators
+  - integrators
 topics:
 - provenance_README_md
 - provenance_prior-art-review-2026-10-04_md
@@ -3120,3 +3125,4 @@ topics:
 - docs_assurance_reviews_2026-10-07-272b6c56_assurance_matrix_md
 - docs_assurance_reviews_2026-10-07-272b6c56_claim_audit_md
 - docs_assurance_reviews_2026-10-07-272b6c56_fix_rebase_md
+- docs_design_binding-policy-v1_md

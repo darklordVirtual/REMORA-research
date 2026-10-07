@@ -14,7 +14,9 @@ from masquerading as the review/pilot path.
 """
 from __future__ import annotations
 
+import logging
 import os
+from typing import Any
 
 from remora.profiles import (
     PROFILE_ENV,
@@ -161,4 +163,79 @@ def validate_runtime_profile_prerequisites() -> str:
                 "REMORA_ENV=production"
             )
 
+    _check_contract(profile)
     return profile
+
+
+#: Where the BindingPolicy is read from (CR-006, A2).
+ENV_BINDING_POLICY = "REMORA_BINDING_POLICY"
+
+
+def _check_contract(profile: str) -> None:
+    """Contract-version prerequisites, after the v1 ones above passed.
+
+    v2 requires a BindingPolicy in which every binding is explicit, and refuses
+    to start while any REQUIRED binding lacks its comparator. The accepted
+    contract, policy digest and declared UNVERIFIABLE bindings are recorded
+    as startup evidence.
+    """
+    from remora.observability.events import governance_event
+    from remora.profiles import runtime_profile_contract
+
+    contract = runtime_profile_contract()
+    if not contract.endswith("/v2"):
+        governance_event(
+            "runtime_profile.legacy_contract", level=logging.WARNING,
+            profile=profile, contract=contract)
+        return
+    policy = load_strict_binding_policy(contract)
+    governance_event(
+        "binding_policy.accepted", profile=profile, contract=contract,
+        binding_policy_hash=policy.digest,
+        unverifiable_bindings=",".join(policy.unverifiable()),
+        not_applicable_resolved_effect=",".join(policy.not_applicable_tools("resolved_effect")))
+
+
+def load_strict_binding_policy(contract: str) -> Any:
+    """Load REMORA_BINDING_POLICY and check every REQUIRED comparator exists."""
+    from remora.enforcement.binding_policy import BindingPolicyError, load_binding_policy
+
+    path = os.getenv(ENV_BINDING_POLICY, "").strip()
+    if not path:
+        raise RuntimeProfileError(
+            f"contract {contract} requires {ENV_BINDING_POLICY}: a BindingPolicy "
+            "stating every binding as REQUIRED, NOT_APPLICABLE or UNVERIFIABLE")
+    try:
+        policy = load_binding_policy(path)
+    except (BindingPolicyError, OSError) as exc:
+        raise RuntimeProfileError(f"contract {contract}: {exc}") from exc
+
+    problems: list[str] = []
+    if policy.required("capability_set") and not _configured("REMORA_CAPABILITY_POLICY_FILE"):
+        problems.append("capability_set is REQUIRED but REMORA_CAPABILITY_POLICY_FILE is not set")
+    if policy.required("resolved_effect") and not _configured("REMORA_EFFECT_REGISTRY_MODULE"):
+        problems.append(
+            "resolved_effect is REQUIRED but REMORA_EFFECT_REGISTRY_MODULE is not set; a "
+            "missing resolver is not NOT_APPLICABLE")
+    if policy.required("runtime_surface") and not _configured("REMORA_TOOLSPEC_BUNDLE"):
+        problems.append("runtime_surface is REQUIRED but no signed ToolSpec bundle is configured")
+
+    # NOT_APPLICABLE exemptions must point at tools the signed bundle declares
+    # read-only. Unknown or unrecognised action types never qualify.
+    if policy.not_applicable_tools("resolved_effect"):
+        from remora.execution.authorization import load_toolspec_bundle
+        from remora.policy.decision_engine import _READ_ONLY_ACTION_TYPES
+        from remora.toolcall.toolspec import ToolSpecRefused
+
+        try:
+            bundle = load_toolspec_bundle(os.environ)
+        except (ToolSpecRefused, OSError, ValueError) as exc:
+            problems.append(f"the signed bundle needed to check exemptions did not load: {exc}")
+            bundle = None
+        if bundle is not None:
+            actions = {s.tool_id: s.action_type for s in bundle.tool_specs()}
+            problems.extend(policy.check_read_only_exemptions(actions, _READ_ONLY_ACTION_TYPES))
+    if problems:
+        raise RuntimeProfileError(
+            f"contract {contract} refuses to start: " + "; ".join(problems))
+    return policy

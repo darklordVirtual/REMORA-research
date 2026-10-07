@@ -81,8 +81,9 @@ capabilities:
   - id: CAP-001
     name: "Decision engine (hard guards -> conditional gates -> trust routing)"
     status: WIRED_API_PATH
-    verified_at_sha: d2f830647a1c2d01393d0b1440e0b197d4c3424d
+    verified_at_sha: f957c0859defd3d18524975496dd9a16f5c1e608
     verified_by: >-
+      re-audited 2026-10-07 at f957c08 (CR-006-A2), from d2f8306: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at d2f8306 (RMR-CR-003+CR-007), from 4490be4: this merge combines the RMR-CR-003 follow-up (set-but-blank REMORA_ENV refused; servers/api.py docstrings) with RMR-CR-007 (additive audit-verify response fields); the cited files differ from each earlier binding only by those changes. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 4490be4 (RMR-CR-007), from 01f392f: servers/execution_api.py and servers/api.py changed only in the two audit-verify responses (additive hash_chain_status, signature_status, verification_scope fields); remora/governance/tenant_chain.py gained verification_statuses. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 01f392f (RMR-CR-003), from cdddc04: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -133,8 +134,9 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    verified_at_sha: adc22c0e94509a5c7228936d87183246ce9208fa
+    verified_at_sha: f957c0859defd3d18524975496dd9a16f5c1e608
     verified_by: >-
+      re-audited 2026-10-07 at f957c08 (CR-006-A2), from adc22c0: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at adc22c0 (CR-006), from d1c7190: the API path now signs the execution surface into each lease and binds a surface observer (servers/execution_api.py, remora/execution/dispatch.py); remora/enforcement/lease.py refuses a digest-less lease only where require_digest is set; remora/toolcall/toolspec.py gained a read-only tool_specs(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at d1c7190 (RMR-CR-002), from 4490be4: remora/enforcement/token.py gained an issuer comparison when REMORA_PDP_ISSUER is set and a docstring stating its scope. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 4490be4 (RMR-CR-007), from 5af4cf2: servers/execution_api.py and servers/api.py changed only in the two audit-verify responses (additive hash_chain_status, signature_status, verification_scope fields); remora/governance/tenant_chain.py gained verification_statuses. The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -222,8 +224,9 @@ capabilities:
   - id: CAP-004
     name: "Tool-call payload binding (canonical hash, recomputed before execution)"
     status: WIRED_API_PATH
-    verified_at_sha: adc22c0e94509a5c7228936d87183246ce9208fa
+    verified_at_sha: f957c0859defd3d18524975496dd9a16f5c1e608
     verified_by: >-
+      re-audited 2026-10-07 at f957c08 (CR-006-A2), from adc22c0: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at adc22c0 (CR-006), from 4490be4: the API path now signs the execution surface into each lease and binds a surface observer (servers/execution_api.py, remora/execution/dispatch.py); remora/enforcement/lease.py refuses a digest-less lease only where require_digest is set; remora/toolcall/toolspec.py gained a read-only tool_specs(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 4490be4 (RMR-CR-007), from ee7ac44: servers/execution_api.py and servers/api.py changed only in the two audit-verify responses (additive hash_chain_status, signature_status, verification_scope fields); remora/governance/tenant_chain.py gained verification_statuses. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at ee7ac44 (RMR-CR-004), from 01f392f: servers/execution_api.py changed only on the approve route: a distinct-approver flag (always on under strict profiles) and a 403 mapping for SeparationOfDutiesRefused; remora/execution/review_service.py gained the proposer check before any write. The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -261,8 +264,9 @@ capabilities:
   - id: CAP-005
     name: "Audit chain (hash-chained decision history)"
     status: PERSISTED_ATOMIC
-    verified_at_sha: adc22c0e94509a5c7228936d87183246ce9208fa
+    verified_at_sha: f957c0859defd3d18524975496dd9a16f5c1e608
     verified_by: >-
+      re-audited 2026-10-07 at f957c08 (CR-006-A2), from adc22c0: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at adc22c0 (CR-006), from 4490be4: the API path now signs the execution surface into each lease and binds a surface observer (servers/execution_api.py, remora/execution/dispatch.py); remora/enforcement/lease.py refuses a digest-less lease only where require_digest is set; remora/toolcall/toolspec.py gained a read-only tool_specs(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 4490be4 (RMR-CR-007), from ee7ac44: servers/execution_api.py and servers/api.py changed only in the two audit-verify responses (additive hash_chain_status, signature_status, verification_scope fields); remora/governance/tenant_chain.py gained verification_statuses. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at ee7ac44 (RMR-CR-004), from 01f392f: servers/execution_api.py changed only on the approve route: a distinct-approver flag (always on under strict profiles) and a 403 mapping for SeparationOfDutiesRefused; remora/execution/review_service.py gained the proposer check before any write. The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -316,8 +320,9 @@ capabilities:
   - id: CAP-007
     name: "Review queue with TTL-to-ABSTAIN and approval freshness re-gate"
     status: WIRED_API_PATH
-    verified_at_sha: adc22c0e94509a5c7228936d87183246ce9208fa
+    verified_at_sha: f957c0859defd3d18524975496dd9a16f5c1e608
     verified_by: >-
+      re-audited 2026-10-07 at f957c08 (CR-006-A2), from adc22c0: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at adc22c0 (CR-006), from 4490be4: the API path now signs the execution surface into each lease and binds a surface observer (servers/execution_api.py, remora/execution/dispatch.py); remora/enforcement/lease.py refuses a digest-less lease only where require_digest is set; remora/toolcall/toolspec.py gained a read-only tool_specs(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 4490be4 (RMR-CR-007), from ee7ac44: servers/execution_api.py and servers/api.py changed only in the two audit-verify responses (additive hash_chain_status, signature_status, verification_scope fields); remora/governance/tenant_chain.py gained verification_statuses. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at ee7ac44 (RMR-CR-004), from 01f392f: servers/execution_api.py changed only on the approve route: a distinct-approver flag (always on under strict profiles) and a 403 mapping for SeparationOfDutiesRefused; remora/execution/review_service.py gained the proposer check before any write. The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -373,8 +378,9 @@ capabilities:
   - id: CAP-009
     name: "RBAC (eight-role capability matrix, credential-bound audit identity)"
     status: WIRED_API_PATH
-    verified_at_sha: d2f830647a1c2d01393d0b1440e0b197d4c3424d
+    verified_at_sha: f957c0859defd3d18524975496dd9a16f5c1e608
     verified_by: >-
+      re-audited 2026-10-07 at f957c08 (CR-006-A2), from d2f8306: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at d2f8306 (RMR-CR-003+CR-007), from 4490be4: this merge combines the RMR-CR-003 follow-up (set-but-blank REMORA_ENV refused; servers/api.py docstrings) with RMR-CR-007 (additive audit-verify response fields); the cited files differ from each earlier binding only by those changes. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 4490be4 (RMR-CR-007), from 01f392f: servers/execution_api.py and servers/api.py changed only in the two audit-verify responses (additive hash_chain_status, signature_status, verification_scope fields); remora/governance/tenant_chain.py gained verification_statuses. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 01f392f (RMR-CR-003), from cdddc04: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -453,8 +459,9 @@ capabilities:
       - tests/test_effect_receipt_atomicity.py
       - tests/test_effect_record_endpoint.py
       - docs/deployment/authority-custody-evidence.md
-    verified_at_sha: adc22c0e94509a5c7228936d87183246ce9208fa
+    verified_at_sha: f957c0859defd3d18524975496dd9a16f5c1e608
     verified_by: >-
+      re-audited 2026-10-07 at f957c08 (CR-006-A2), from adc22c0: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at adc22c0 (CR-006), from 4490be4: the API path now signs the execution surface into each lease and binds a surface observer (servers/execution_api.py, remora/execution/dispatch.py); remora/enforcement/lease.py refuses a digest-less lease only where require_digest is set; remora/toolcall/toolspec.py gained a read-only tool_specs(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 4490be4 (RMR-CR-007), from ee7ac44: servers/execution_api.py and servers/api.py changed only in the two audit-verify responses (additive hash_chain_status, signature_status, verification_scope fields); remora/governance/tenant_chain.py gained verification_statuses. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at ee7ac44 (RMR-CR-004), from 01f392f: servers/execution_api.py changed only on the approve route: a distinct-approver flag (always on under strict profiles) and a 403 mapping for SeparationOfDutiesRefused; remora/execution/review_service.py gained the proposer check before any write. The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -593,8 +600,9 @@ capabilities:
   - id: CAP-016
     name: "Structured governance events (operational logging in the safety core)"
     status: IMPLEMENTED_LIBRARY
-    verified_at_sha: 5af4cf27103cb49e88388d4cd624354989086892
+    verified_at_sha: f957c0859defd3d18524975496dd9a16f5c1e608
     verified_by: >-
+      re-audited 2026-10-07 at f957c08 (CR-006-A2), from 5af4cf2: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 5af4cf2 (RMR-CR-015), from ce25ac1: remora/enforcement/gate.py changed only in its consumed-grant ledger error handling (outages on every backend become the named refusal consumed_ledger_unavailable); remora/persistence/d1_connection.py names timeouts and malformed answers. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audit 2026-10-02 for WP-1 (ADR-tainted-argument-floor-order, accepted): hard_guard_floor() applies the rollback-unavailable and uncertain-state-transition severity signals at HIGH risk before its tainted-argument VERIFY return, so a tainted HIGH-risk write with either condition escalates with TAINTED_ARGUMENT_ESCALATE instead of verifying. Strictly narrowing: the CRITICAL rung and the below-critical VERIFY residual (issue #40 option a) are unchanged, nothing new reaches ACCEPT, and no refusal is removed. Pinned by tests/test_tainted_argument_approval_contract.py::test_tainted_high_risk_no_rollback_escalates and ::test_tainted_high_risk_uncertain_state_escalates; decide/explain parity and the REM-017 mutation suite pass at this revision. Rebound to the squash-merge commit of #717 (ce25ac1).
       rebound 2026-10-02 to the squash-merge commit of #711 (8ad2192); the branch commit 780506a left the repository at squash. Verified content-identical on every cited implementation source with `git diff 780506a 8ad2192` on those paths (empty). No status, scope or caveat change.
@@ -614,8 +622,9 @@ capabilities:
   - id: CAP-017
     name: "Production fail-closed on signing keys"
     status: WIRED_API_PATH
-    verified_at_sha: d2f830647a1c2d01393d0b1440e0b197d4c3424d
+    verified_at_sha: f957c0859defd3d18524975496dd9a16f5c1e608
     verified_by: >-
+      re-audited 2026-10-07 at f957c08 (CR-006-A2), from d2f8306: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at d2f8306 (RMR-CR-003+CR-007), from 4490be4: this merge combines the RMR-CR-003 follow-up (set-but-blank REMORA_ENV refused; servers/api.py docstrings) with RMR-CR-007 (additive audit-verify response fields); the cited files differ from each earlier binding only by those changes. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 4490be4 (RMR-CR-007), from 01f392f: servers/execution_api.py and servers/api.py changed only in the two audit-verify responses (additive hash_chain_status, signature_status, verification_scope fields); remora/governance/tenant_chain.py gained verification_statuses. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 01f392f (RMR-CR-003), from cdddc04: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -641,8 +650,9 @@ capabilities:
   - id: CAP-018
     name: "Task-bound authority and non-decaying loop safety on the execution API"
     status: WIRED_API_PATH
-    verified_at_sha: adc22c0e94509a5c7228936d87183246ce9208fa
+    verified_at_sha: f957c0859defd3d18524975496dd9a16f5c1e608
     verified_by: >-
+      re-audited 2026-10-07 at f957c08 (CR-006-A2), from adc22c0: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at adc22c0 (CR-006), from 4490be4: the API path now signs the execution surface into each lease and binds a surface observer (servers/execution_api.py, remora/execution/dispatch.py); remora/enforcement/lease.py refuses a digest-less lease only where require_digest is set; remora/toolcall/toolspec.py gained a read-only tool_specs(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 4490be4 (RMR-CR-007), from ee7ac44: servers/execution_api.py and servers/api.py changed only in the two audit-verify responses (additive hash_chain_status, signature_status, verification_scope fields); remora/governance/tenant_chain.py gained verification_statuses. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at ee7ac44 (RMR-CR-004), from 01f392f: servers/execution_api.py changed only on the approve route: a distinct-approver flag (always on under strict profiles) and a 403 mapping for SeparationOfDutiesRefused; remora/execution/review_service.py gained the proposer check before any write. The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -679,8 +689,9 @@ capabilities:
   - id: CAP-019
     name: "Evidence coverage verdicts on the evidence export"
     status: WIRED_API_PATH
-    verified_at_sha: adc22c0e94509a5c7228936d87183246ce9208fa
+    verified_at_sha: f957c0859defd3d18524975496dd9a16f5c1e608
     verified_by: >-
+      re-audited 2026-10-07 at f957c08 (CR-006-A2), from adc22c0: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at adc22c0 (CR-006), from 4490be4: the API path now signs the execution surface into each lease and binds a surface observer (servers/execution_api.py, remora/execution/dispatch.py); remora/enforcement/lease.py refuses a digest-less lease only where require_digest is set; remora/toolcall/toolspec.py gained a read-only tool_specs(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 4490be4 (RMR-CR-007), from ee7ac44: servers/execution_api.py and servers/api.py changed only in the two audit-verify responses (additive hash_chain_status, signature_status, verification_scope fields); remora/governance/tenant_chain.py gained verification_statuses. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at ee7ac44 (RMR-CR-004), from 01f392f: servers/execution_api.py changed only on the approve route: a distinct-approver flag (always on under strict profiles) and a 403 mapping for SeparationOfDutiesRefused; remora/execution/review_service.py gained the proposer check before any write. The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -712,8 +723,9 @@ capabilities:
   - id: CAP-020
     name: "Pre-dispatch premise checks: resolved effect, plan premises, procedure obligations"
     status: WIRED_API_PATH
-    verified_at_sha: adc22c0e94509a5c7228936d87183246ce9208fa
+    verified_at_sha: f957c0859defd3d18524975496dd9a16f5c1e608
     verified_by: >-
+      re-audited 2026-10-07 at f957c08 (CR-006-A2), from adc22c0: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at adc22c0 (CR-006), from 4490be4: the API path now signs the execution surface into each lease and binds a surface observer (servers/execution_api.py, remora/execution/dispatch.py); remora/enforcement/lease.py refuses a digest-less lease only where require_digest is set; remora/toolcall/toolspec.py gained a read-only tool_specs(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 4490be4 (RMR-CR-007), from ee7ac44: servers/execution_api.py and servers/api.py changed only in the two audit-verify responses (additive hash_chain_status, signature_status, verification_scope fields); remora/governance/tenant_chain.py gained verification_statuses. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at ee7ac44 (RMR-CR-004), from 01f392f: servers/execution_api.py changed only on the approve route: a distinct-approver flag (always on under strict profiles) and a 403 mapping for SeparationOfDutiesRefused; remora/execution/review_service.py gained the proposer check before any write. The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -756,8 +768,9 @@ capabilities:
   - id: CAP-021
     name: "Independent recorder: evidence captured outside the executing process"
     status: WIRED_API_PATH
-    verified_at_sha: adc22c0e94509a5c7228936d87183246ce9208fa
+    verified_at_sha: f957c0859defd3d18524975496dd9a16f5c1e608
     verified_by: >-
+      re-audited 2026-10-07 at f957c08 (CR-006-A2), from adc22c0: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at adc22c0 (CR-006), from 4490be4: the API path now signs the execution surface into each lease and binds a surface observer (servers/execution_api.py, remora/execution/dispatch.py); remora/enforcement/lease.py refuses a digest-less lease only where require_digest is set; remora/toolcall/toolspec.py gained a read-only tool_specs(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 4490be4 (RMR-CR-007), from ee7ac44: servers/execution_api.py and servers/api.py changed only in the two audit-verify responses (additive hash_chain_status, signature_status, verification_scope fields); remora/governance/tenant_chain.py gained verification_statuses. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at ee7ac44 (RMR-CR-004), from 01f392f: servers/execution_api.py changed only on the approve route: a distinct-approver flag (always on under strict profiles) and a 403 mapping for SeparationOfDutiesRefused; remora/execution/review_service.py gained the proposer check before any write. The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -794,8 +807,9 @@ capabilities:
   - id: CAP-022
     name: "Runtime surface reference path: surface binding, closure identity, issuer scope, durable evidence"
     status: WIRED_REFERENCE_PATH
-    verified_at_sha: adc22c0e94509a5c7228936d87183246ce9208fa
+    verified_at_sha: f957c0859defd3d18524975496dd9a16f5c1e608
     verified_by: >-
+      re-audited 2026-10-07 at f957c08 (CR-006-A2), from adc22c0: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at adc22c0 (CR-006), from eef64a3: the API path now signs the execution surface into each lease and binds a surface observer (servers/execution_api.py, remora/execution/dispatch.py); remora/enforcement/lease.py refuses a digest-less lease only where require_digest is set; remora/toolcall/toolspec.py gained a read-only tool_specs(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       rebound 2026-10-07 to the squash-merge commit of #754 (eef64a3); the branch commit 918e088 left the repository at squash. Verified content-identical: none of the evidence paths cited by the twelve rebound capabilities changed between 918e088 and the reviewed branch tip ff0c097, and the squash tree differs from ff0c097 only in paper/remora_paper.md and paper/remora_paper.tex (#746), which no capability cites. No status, scope or caveat change.
       Re-audit 2026-10-06 for execution-context binding at 918e088c: Plan premise checks remain unchanged; optional execution-context validation precedes them and grants no additional authority. Status and caveats unchanged. Validation: tests/test_execution_context_binding.py and the existing execution, token, review, effect, custody and capability suites. Deployment source authority remains NOT_ESTABLISHED.
@@ -826,8 +840,9 @@ capabilities:
   - id: CAP-023
     name: "Capability minimization: task-scoped capability sets enforced at assess, execution and dispatch"
     status: WIRED_API_PATH
-    verified_at_sha: adc22c0e94509a5c7228936d87183246ce9208fa
+    verified_at_sha: f957c0859defd3d18524975496dd9a16f5c1e608
     verified_by: >-
+      re-audited 2026-10-07 at f957c08 (CR-006-A2), from adc22c0: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at adc22c0 (CR-006), from 4490be4: the API path now signs the execution surface into each lease and binds a surface observer (servers/execution_api.py, remora/execution/dispatch.py); remora/enforcement/lease.py refuses a digest-less lease only where require_digest is set; remora/toolcall/toolspec.py gained a read-only tool_specs(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 4490be4 (RMR-CR-007), from ee7ac44: servers/execution_api.py and servers/api.py changed only in the two audit-verify responses (additive hash_chain_status, signature_status, verification_scope fields); remora/governance/tenant_chain.py gained verification_statuses. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at ee7ac44 (RMR-CR-004), from 01f392f: servers/execution_api.py changed only on the approve route: a distinct-approver flag (always on under strict profiles) and a 403 mapping for SeparationOfDutiesRefused; remora/execution/review_service.py gained the proposer check before any write. The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -879,8 +894,9 @@ capabilities:
   - id: CAP-024
     name: "Capability mediation for implementation effects, with an effect domain for strict deployments (NTA-2 phases 1 to 3)"
     status: WIRED_API_PATH
-    verified_at_sha: adc22c0e94509a5c7228936d87183246ce9208fa
+    verified_at_sha: f957c0859defd3d18524975496dd9a16f5c1e608
     verified_by: >-
+      re-audited 2026-10-07 at f957c08 (CR-006-A2), from adc22c0: the dispatcher gained bind_binding_policy and policy-aware refusals in the pre-consumption chain (remora/enforcement/lease.py); servers/api.py validates strict profiles at import; servers/execution_api.py applies the policy; remora/enforcement/gate.py deprecates enforce(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at adc22c0 (CR-006), from 4490be4: the API path now signs the execution surface into each lease and binds a surface observer (servers/execution_api.py, remora/execution/dispatch.py); remora/enforcement/lease.py refuses a digest-less lease only where require_digest is set; remora/toolcall/toolspec.py gained a read-only tool_specs(). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 4490be4 (RMR-CR-007), from ee7ac44: servers/execution_api.py and servers/api.py changed only in the two audit-verify responses (additive hash_chain_status, signature_status, verification_scope fields); remora/governance/tenant_chain.py gained verification_statuses. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at ee7ac44 (RMR-CR-004), from 01f392f: servers/execution_api.py changed only on the approve route: a distinct-approver flag (always on under strict profiles) and a 403 mapping for SeparationOfDutiesRefused; remora/execution/review_service.py gained the proposer check before any write. The capability's mechanism is unchanged; status, scope and caveats unchanged.

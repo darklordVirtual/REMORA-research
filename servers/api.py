@@ -987,6 +987,25 @@ def _validate_deployment_tool_metadata() -> None:
 
 
 _validate_deployment_tool_metadata()
+
+
+def _validate_strict_profile_at_startup() -> None:
+    """A strict profile refuses to START, not to serve its first request.
+
+    The prerequisite check used to run lazily, from the first metadata or
+    policy-bundle lookup. Under a strict profile it now runs at import, so a
+    contract the configuration does not meet (a missing BindingPolicy, a
+    REQUIRED binding without its comparator) stops the process here.
+    """
+    from remora.profiles import STRICT_PROFILES, current_runtime_profile
+
+    if current_runtime_profile() in STRICT_PROFILES:
+        from remora.toolcall.runtime_profile import validate_runtime_profile_prerequisites
+
+        validate_runtime_profile_prerequisites()
+
+
+_validate_strict_profile_at_startup()
 _CONTROL_PLANE_STORE, _CONTROL_PLANE_BACKEND = _make_control_plane_store()
 _CONTROL_PLANE_DURABLE = bool(getattr(_CONTROL_PLANE_STORE, "durable", False))
 if not _CONTROL_PLANE_DURABLE:

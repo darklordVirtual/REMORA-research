@@ -305,6 +305,8 @@ pytest_add_cli_args_test_selection = [
     "tests/test_agentavow_edge.py",
     "tests/test_api_execution_surface_binding.py",
     "tests/test_authorization_context_golden_vectors.py",
+    "tests/test_binding_policy.py",
+    "tests/test_binding_policy_matrix.py",
     "tests/test_callable_closure_digest.py",
     "tests/test_credential_issuer_scope.py",
     "tests/test_custody_split_dispatch.py",

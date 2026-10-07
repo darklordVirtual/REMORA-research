@@ -118,6 +118,7 @@ FILE_THRESHOLDS: dict[str, float] = {
     # NTA-2 phase 3: every refusal of the effect domain is a named test.
     "remora/enforcement/effect_domain.py": 98.0,  # 100.00 measured 2026-09-29
     "remora/enforcement/effect_client.py": 98.0,  # 100.00 measured 2026-09-29
+    "remora/enforcement/binding_policy.py": 98.0,  # 100.00 measured 2026-10-07 (CR-006)
     # RES-013 runtime surface (quality program Q5.3). Measured 2026-09-28 on
     # the full local suite; floors sit half a point under the measurement.
     "remora/toolcall/runtime_surface.py": 92.5,  # 92.98

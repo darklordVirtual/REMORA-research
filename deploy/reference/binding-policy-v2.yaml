@@ -1,0 +1,14 @@
+# Reference BindingPolicy for the strict profiles' v2 contract (CR-006).
+# docs/design/binding-policy-v1.md explains each binding and state.
+schema: remora-binding-policy/v1
+bindings:
+  exact_call: REQUIRED
+  toolspec: REQUIRED
+  tenant: REQUIRED
+  actor: REQUIRED
+  audience: REQUIRED
+  runtime_surface: REQUIRED
+  resolved_effect: REQUIRED
+  task_identity: REQUIRED
+  capability_set: UNVERIFIABLE
+tools: {}

@@ -598,9 +598,22 @@ class EnforcementGate:
     ) -> Any:
         """Execute action_fn only if the token authorizes it.
 
+        Deprecated (CR-006). It checks the token with no authorization
+        context, so none of the context, task, capability or effect bindings
+        the production path compares are compared here, and no production
+        path calls it. Use the execution API or ``check(..., context=...)``
+        followed by ``GovernedToolDispatcher.dispatch``. Kept for existing
+        library callers; removal waits for a compatibility release, and
+        tests/test_binding_policy_matrix.py refuses new production callers.
+
         Raises:
             PermissionError: if the token is invalid or the decision is not ACCEPT.
         """
+        warnings.warn(
+            "EnforcementGate.enforce() checks a token without its authorization "
+            "context and is deprecated; use check(..., context=...) and "
+            "GovernedToolDispatcher.dispatch",
+            DeprecationWarning, stacklevel=2)
         # The execution path always consumes: one grant, one execution.
         result = self.check(token, expected_observation_hash, consume=True)
         if not result.allowed:
