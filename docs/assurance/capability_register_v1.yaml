@@ -826,8 +826,9 @@ capabilities:
   - id: CAP-024
     name: "Capability mediation for implementation effects, with an effect domain for strict deployments (NTA-2 phases 1 to 3)"
     status: WIRED_API_PATH
-    verified_at_sha: eef64a359b5e3655501f64b614753cf5a81826a8
+    verified_at_sha: 3bab659f04e0f957160fb15de7a7047838a11c4d
     verified_by: >-
+      re-audited 2026-10-07 at 3bab659 (RMR-CR-001): remora/toolcall/toolspec.py gained Ed25519 bundle verification; no line of the downstream-ceiling or schema-version handling changed, and tests/test_toolspec_downstream.py and tests/capabilities pass (333). Status, scope and caveats unchanged.
       rebound 2026-10-07 to the squash-merge commit of #754 (eef64a3); the branch commit 918e088 left the repository at squash. Verified content-identical: none of the evidence paths cited by the twelve rebound capabilities changed between 918e088 and the reviewed branch tip ff0c097, and the squash tree differs from ff0c097 only in paper/remora_paper.md and paper/remora_paper.tex (#746), which no capability cites. No status, scope or caveat change.
       Re-audit 2026-10-06 for execution-context binding at 918e088c: Mediation, downstream ceilings and effect-domain custody remain unchanged; context binding does not establish downstream non-transitivity. Status and caveats unchanged. Validation: tests/test_execution_context_binding.py and the existing execution, token, review, effect, custody and capability suites. Deployment source authority remains NOT_ESTABLISHED.
       Prior verification follows.
