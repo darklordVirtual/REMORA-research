@@ -22,12 +22,13 @@ This module is the fix, as a storage-agnostic core:
 - ``verify()`` recomputes the whole chain per tenant and reports every
   break (used at export and startup).
 - Optional HMAC signature per entry (``REMORA_AUDIT_SIGNING_KEY``) over the
-  entry hash.
+  entry hash: v1 untagged and frozen, v2 domain-separated from an
+  ``AUDIT_VERSION_TRANSITION`` record on (:mod:`remora.governance.audit_signing`,
+  RMR-CR-011). History is never re-signed.
 """
 from __future__ import annotations
 
 import hashlib
-import hmac
 import json
 import os
 import threading
@@ -37,8 +38,39 @@ from datetime import UTC, datetime
 import sqlite3
 from typing import Any
 
+from remora.governance.audit_signing import (
+    chain_signature_format,
+    entry_signature,
+    signature_problems,
+    transition_payload,
+)
+
 _GENESIS = "0" * 64
 _ENV_KEY = "REMORA_AUDIT_SIGNING_KEY"
+
+#: (previous_hash, sequence_no) -> the payload to append at that position.
+_PayloadAt = Callable[[str, int], dict[str, Any]]
+
+
+def _signing_key() -> bytes:
+    return os.environ.get(_ENV_KEY, "").strip().encode()
+
+
+def _needs_transition(key: bytes, in_v2: bool) -> bool:
+    """Whether this append must first write the AUDIT_VERSION_TRANSITION record.
+
+    Only a signed chain has a format to change, and only once: a chain already
+    in v2 stays there whatever this process would issue.
+    """
+    if not key or in_v2:
+        return False
+    from remora.crypto.formats import FORMAT_V2, signature_format
+
+    return signature_format() == FORMAT_V2
+
+
+def _transition_at(previous_hash: str, sequence_no: int) -> dict[str, Any]:
+    return transition_payload(previous_hash, first=sequence_no == 0)
 
 POSTGRES_DDL = """
 -- REM-034: atomic per-tenant audit chain (deployment adapter).
@@ -139,6 +171,8 @@ class TenantAuditChain:
     def __init__(self, now_fn: Callable[[], datetime] | None = None) -> None:
         self._entries: dict[str, list[ChainEntry]] = {}
         self._idempotency: set[tuple[str, str]] = set()
+        #: Tenants whose chain has entered signature format v2.
+        self._v2: set[str] = set()
         self._lock = threading.Lock()
         self._now_fn = now_fn or (lambda: datetime.now(UTC))
 
@@ -168,18 +202,25 @@ class TenantAuditChain:
             return entry
 
     def _append_locked(self, tenant_id: str, payload: dict[str, Any]) -> ChainEntry:
+        key = _signing_key()
+        in_v2 = tenant_id in self._v2
+        if _needs_transition(key, in_v2):
+            self._insert(tenant_id, _transition_at, key, v2=True)
+            self._v2.add(tenant_id)
+            in_v2 = True
+        return self._insert(tenant_id, lambda _prev, _seq: payload, key, v2=in_v2)
+
+    def _insert(self, tenant_id: str, payload_at: _PayloadAt, key: bytes, *,
+                v2: bool) -> ChainEntry:
         chain = self._entries.setdefault(tenant_id, [])
         previous_hash = chain[-1].entry_hash if chain else _GENESIS
         sequence_no = len(chain)
+        payload = payload_at(previous_hash, sequence_no)
         timestamp = self._now_fn().isoformat()
         entry_hash = compute_entry_hash(
             previous_hash, payload, tenant_id, sequence_no, timestamp
         )
-        signing_key = os.environ.get(_ENV_KEY, "").strip().encode()
-        signature = (
-            hmac.new(signing_key, entry_hash.encode(), hashlib.sha256).hexdigest()
-            if signing_key else ""
-        )
+        signature = entry_signature(entry_hash, key, v2=v2) if key else ""
         entry = ChainEntry(
             tenant_id=tenant_id,
             sequence_no=sequence_no,
@@ -204,30 +245,7 @@ class TenantAuditChain:
         ``expected_head`` is an optional ``(sequence_no, entry_hash)`` anchor
         held outside the store; a mismatch (e.g. tail truncation) is reported.
         """
-        problems: list[str] = []
-        previous_hash = _GENESIS
-        key = os.environ.get(_ENV_KEY, "").strip().encode()
-        all_entries = self.entries(tenant_id)
-        problems.extend(_head_problems(all_entries, expected_head))
-        for i, entry in enumerate(all_entries):
-            if entry.sequence_no != i:
-                problems.append(f"sequence_gap_at:{i}")
-            if entry.previous_hash != previous_hash:
-                problems.append(f"chain_break_at:{i}")
-            expected = compute_entry_hash(
-                entry.previous_hash, entry.payload, entry.tenant_id,
-                entry.sequence_no, entry.timestamp,
-            )
-            if expected != entry.entry_hash:
-                problems.append(f"hash_mismatch_at:{i}")
-            if key and entry.signature:
-                want = hmac.new(key, entry.entry_hash.encode(), hashlib.sha256).hexdigest()
-                if not hmac.compare_digest(want, entry.signature):
-                    problems.append(f"signature_mismatch_at:{i}")
-            elif key and not entry.signature:
-                problems.append(f"signature_missing_at:{i}")
-            previous_hash = entry.entry_hash
-        return (not problems, problems)
+        return _verify_generic(self, tenant_id, expected_head)
 
     def verify_all(self) -> tuple[bool, dict[str, list[str]]]:
         report = {t: self.verify(t)[1] for t in list(self._entries)}
@@ -291,7 +309,9 @@ SIGNATURE_CHECKED = "CHECKED"
 SIGNATURE_NOT_CHECKED_NO_KEY = "NOT_CHECKED_NO_KEY"
 SIGNATURE_UNSIGNED = "UNSIGNED"
 
-_SIGNATURE_PROBLEMS = ("signature_mismatch_at:", "signature_missing_at:")
+_SIGNATURE_PROBLEMS = ("signature_mismatch_at:", "signature_missing_at:",
+                       "audit_v1_after_transition_at:", "audit_v2_before_transition_at:",
+                       "audit_transition_repeated_at:", "audit_transition_malformed_at:")
 
 
 def verification_statuses(
@@ -306,6 +326,9 @@ def verification_statuses(
       that the records link, not who wrote them.
     - ``UNSIGNED``: no entry carries a signature; the chain is hash-linked
       only, which anyone with write access can reproduce.
+
+    ``signature_format`` (RMR-CR-011) is ``none``, ``v1``, ``v2`` or
+    ``v1+v2``: a chain that crossed its AUDIT_VERSION_TRANSITION shows both.
     """
     if os.environ.get(_ENV_KEY, "").strip():
         signature = SIGNATURE_CHECKED
@@ -317,6 +340,7 @@ def verification_statuses(
     return {
         "hash_chain_status": "INTACT" if not hash_problems else "BROKEN",
         "signature_status": signature,
+        "signature_format": chain_signature_format(entries),
     }
 
 
@@ -365,9 +389,9 @@ def verify_exported_chain(
         ) != entry_hash:
             problems.append(f"hash_mismatch_at:{i}")
 
+        # The Worker's envelope chain signs format v1 only (CR-011 scope).
         if key and signature:
-            want = hmac.new(key, entry_hash.encode(), hashlib.sha256).hexdigest()
-            if not hmac.compare_digest(want, signature):
+            if not _hmac_equal(entry_signature(entry_hash, key, v2=False), signature):
                 problems.append(f"signature_mismatch_at:{i}")
         elif key and not signature:
             problems.append(f"signature_missing_at:{i}")
@@ -377,12 +401,18 @@ def verify_exported_chain(
     return (not problems), problems
 
 
+def _hmac_equal(a: str, b: str) -> bool:
+    import hmac
+
+    return hmac.compare_digest(a, b)
+
+
 def _verify_generic(
     chain: Any, tenant_id: str, expected_head: tuple[int, str] | None = None
 ) -> tuple[bool, list[str]]:
     problems: list[str] = []
     previous_hash = _GENESIS
-    key = os.environ.get(_ENV_KEY, "").strip().encode()
+    key = _signing_key()
     all_entries = chain.entries(tenant_id)
     stored_head_fn = getattr(chain, "stored_head", None)
     stored = stored_head_fn(tenant_id) if callable(stored_head_fn) else None
@@ -395,17 +425,12 @@ def _verify_generic(
         if compute_entry_hash(e.previous_hash, e.payload, e.tenant_id,
                               e.sequence_no, e.timestamp) != e.entry_hash:
             problems.append(f"hash_mismatch_at:{i}")
-        # Durable-path signature check: a tamper-with-rehash (recomputing
-        # entry_hash after editing payload) is only caught by the HMAC, which
-        # requires the key the attacker does not hold.
-        if key and e.signature:
-            want = hmac.new(key, e.entry_hash.encode(), hashlib.sha256).hexdigest()
-            if not hmac.compare_digest(want, e.signature):
-                problems.append(f"signature_mismatch_at:{i}")
-        elif key and not e.signature:
-            # Key configured but an entry carries no signature -> stripped.
-            problems.append(f"signature_missing_at:{i}")
         previous_hash = e.entry_hash
+    # Signatures in their era (v1 before the AUDIT_VERSION_TRANSITION, v2 from
+    # it on). A tamper-with-rehash (recomputing entry_hash after editing the
+    # payload) is only caught here, by the key the attacker does not hold; a
+    # missing signature under a configured key means it was stripped.
+    problems.extend(signature_problems(all_entries, key))
     return (not problems, problems)
 
 
@@ -470,21 +495,32 @@ class SQLiteTenantChain:
     def _append_in_transaction(
         self, conn: sqlite3.Connection, tenant_id: str, payload: dict[str, Any]
     ) -> ChainEntry:
+        key = _signing_key()
+        # The transition record is the first v2 entry and v2-signed, so a
+        # chain is in v2 exactly when some entry carries a v2 signature.
+        in_v2 = bool(key) and conn.execute(
+            "SELECT 1 FROM tenant_chain_entry WHERE tenant_id = ? "
+            "AND signature LIKE 'v2:%' LIMIT 1", (tenant_id,),
+        ).fetchone() is not None
+        if _needs_transition(key, in_v2):
+            self._insert(conn, tenant_id, _transition_at, key, v2=True)
+            in_v2 = True
+        return self._insert(conn, tenant_id, lambda _prev, _seq: payload, key, v2=in_v2)
+
+    def _insert(self, conn: sqlite3.Connection, tenant_id: str, payload_at: _PayloadAt,
+                key: bytes, *, v2: bool) -> ChainEntry:
         row = conn.execute(
             "SELECT entry_hash, sequence_no FROM tenant_chain_entry "
             "WHERE tenant_id = ? ORDER BY sequence_no DESC LIMIT 1",
             (tenant_id,),
         ).fetchone()
         previous_hash, sequence_no = (row[0], row[1] + 1) if row else (_GENESIS, 0)
+        payload = payload_at(previous_hash, sequence_no)
         timestamp = self._now_fn().isoformat()
         entry_hash = compute_entry_hash(
             previous_hash, payload, tenant_id, sequence_no, timestamp
         )
-        signing_key = os.environ.get(_ENV_KEY, "").strip().encode()
-        signature = (
-            hmac.new(signing_key, entry_hash.encode(), hashlib.sha256).hexdigest()
-            if signing_key else ""
-        )
+        signature = entry_signature(entry_hash, key, v2=v2) if key else ""
         conn.execute(
             "INSERT INTO tenant_chain_entry VALUES (?,?,?,?,?,?,?)",
             (tenant_id, sequence_no, timestamp, _canonical(payload),
@@ -555,6 +591,18 @@ class PostgresTenantChain:
     def _append_in_transaction(
         self, conn: Any, tenant_id: str, payload: dict[str, Any]
     ) -> ChainEntry:
+        key = _signing_key()
+        in_v2 = bool(key) and conn.execute(
+            "SELECT 1 FROM tenant_chain_entry WHERE tenant_id = %s "
+            "AND signature LIKE 'v2:%%' LIMIT 1", (tenant_id,),
+        ).fetchone() is not None
+        if _needs_transition(key, in_v2):
+            self._insert(conn, tenant_id, _transition_at, key, v2=True)
+            in_v2 = True
+        return self._insert(conn, tenant_id, lambda _prev, _seq: payload, key, v2=in_v2)
+
+    def _insert(self, conn: Any, tenant_id: str, payload_at: _PayloadAt, key: bytes, *,
+                v2: bool) -> ChainEntry:
         conn.execute(
             "INSERT INTO tenant_chain_head VALUES (%s, %s, -1) "
             "ON CONFLICT (tenant_id) DO NOTHING", (tenant_id, _GENESIS),
@@ -573,15 +621,12 @@ class PostgresTenantChain:
                 "to append an entry with no predecessor"
             )
         previous_hash, sequence_no = row[0], row[1] + 1
+        payload = payload_at(previous_hash, sequence_no)
         timestamp = self._now_fn().isoformat()
         entry_hash = compute_entry_hash(
             previous_hash, payload, tenant_id, sequence_no, timestamp
         )
-        signing_key = os.environ.get(_ENV_KEY, "").strip().encode()
-        signature = (
-            hmac.new(signing_key, entry_hash.encode(), hashlib.sha256).hexdigest()
-            if signing_key else ""
-        )
+        signature = entry_signature(entry_hash, key, v2=v2) if key else ""
         conn.execute(
             "INSERT INTO tenant_chain_entry "
             "(tenant_id, sequence_no, timestamp, payload, previous_hash, "

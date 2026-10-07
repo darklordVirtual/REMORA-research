@@ -1,7 +1,7 @@
 # Signature format v2 (CR-011)
 
-Status: in progress 2026-10-07. ExecutionLease v2 and PolicyDecisionToken v2
-implemented; the audit chain v2 follows. Finding: RMR-CR-011
+Status: implemented 2026-10-07 for ExecutionLease, PolicyDecisionToken and the
+tenant audit chain. Finding: RMR-CR-011
 ([security review](../assurance/reviews/2026-10-07-272b6c56/README.md)).
 
 ## Problem
@@ -20,7 +20,7 @@ them. Never change a preimage under an existing name.
 |---|---|---|
 | ExecutionLease | `ed25519` or `hmac-sha256` over canonical JSON | `ed25519-domain-v2`: Ed25519 over `REMORA/EXECUTION-LEASE/v2 \|\| 0x00 \|\| payload`, `kid` derived from the public key |
 | PolicyDecisionToken | HMAC-SHA256 over canonical JSON | HMAC-SHA256 over `REMORA/POLICY-GRANT/v2 \|\| 0x00 \|\| payload`, with `format: v2` inside the payload |
-| Tenant audit entry | HMAC-SHA256 over the entry hash | `REMORA/AUDIT/v2` after an `AUDIT_VERSION_TRANSITION` record (next) |
+| Tenant audit entry | HMAC-SHA256 over the entry hash | `v2:` + HMAC-SHA256 over `REMORA/AUDIT/v2 \|\| 0x00 \|\| entry_hash`, from the `AUDIT_VERSION_TRANSITION` record on |
 
 ### Which format, where
 
@@ -46,6 +46,30 @@ Lease v2 has no symmetric form. A strict v2 authority therefore requires
 `REMORA_LEASE_SIGNING_KEY_ED25519_PRIVATE`, and the HMAC fallback to the PDP
 key is unreachable under it.
 
+### The audit chain crosses once, and is never re-signed
+
+Audit history is evidence of what was signed when; re-signing it would replace
+that evidence with a later claim about it. So a chain is never re-signed. The
+first append under v2 (in the same transaction) writes:
+
+```text
+v1 entries ... -> AUDIT_VERSION_TRANSITION -> v2 entries ...
+                  {from: v1 | none, to: v2,
+                   previous_chain_head: <final v1 entry hash>,
+                   new_domain: REMORA/AUDIT/v2}
+```
+
+The transition record is the first v2 entry, and a chain never goes back: a
+v1 process appending to a v2 chain signs v2. The verifier
+(`remora/governance/audit_signing.py`) reads each entry's era from the chain's
+structure, not from what its signature claims. A v1 signature after the
+transition (`audit_v1_after_transition_at`), a `v2:` signature before any
+transition (`audit_v2_before_transition_at`), a second transition and a
+malformed one are findings, and these structural checks need no key. With the
+key, every signature is checked in its own era. `verification_statuses`
+reports `signature_format` (`none`, `v1`, `v2`, `v1+v2`). An unsigned chain
+has no signature format and gets no transition record.
+
 ### Cutover
 
 Leases (at most `MAX_LEASE_TTL_SECONDS`) and tokens (at most
@@ -67,4 +91,7 @@ can check itself.
 
 - the v1 preimages and their verification;
 - `REMORA/TOOLSPEC-BUNDLE/v1`, which was domain-separated from the start;
-- envelope and checkpoint signatures, and the Workers (outside this change).
+- envelope and checkpoint signatures, and the Workers' chains, including
+  `verify_exported_chain` for the Worker envelope trail (outside this change);
+- the lease HMAC fallback to `REMORA_PDP_SIGNING_KEY` outside strict v2, which
+  is part of frozen v1.
