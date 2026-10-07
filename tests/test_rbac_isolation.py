@@ -95,7 +95,9 @@ def test_header_tenant_cannot_override_token_tenant(monkeypatch) -> None:
         f"/v1/envelope/{req_id}",
         headers={"Authorization": "Bearer globex-op", "X-Remora-Tenant": "acme"},
     )
-    assert resp.status_code == 404  # token tenant (globex) is authoritative
+    # The token's tenant (globex) is authoritative, and a header naming another
+    # tenant is refused outright (RMR-CR-003), not ignored into a 404.
+    assert resp.status_code == 403
 
 
 # ── Step 9: admin least-privilege (no wildcard) ─────────────────────────────

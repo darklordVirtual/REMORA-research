@@ -81,8 +81,9 @@ capabilities:
   - id: CAP-001
     name: "Decision engine (hard guards -> conditional gates -> trust routing)"
     status: WIRED_API_PATH
-    verified_at_sha: 4490be4b6db7e86adfded8c9d4c906a0f892f36e
+    verified_at_sha: d2f830647a1c2d01393d0b1440e0b197d4c3424d
     verified_by: >-
+      re-audited 2026-10-07 at d2f8306 (RMR-CR-003+CR-007), from 4490be4: this merge combines the RMR-CR-003 follow-up (set-but-blank REMORA_ENV refused; servers/api.py docstrings) with RMR-CR-007 (additive audit-verify response fields); the cited files differ from each earlier binding only by those changes. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 4490be4 (RMR-CR-007), from 01f392f: servers/execution_api.py and servers/api.py changed only in the two audit-verify responses (additive hash_chain_status, signature_status, verification_scope fields); remora/governance/tenant_chain.py gained verification_statuses. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 01f392f (RMR-CR-003), from cdddc04: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       rebound 2026-10-07 to the v0.12.0 release commit (cdddc04); servers/api.py changed only in its _PACKAGE_VERSION fallback (0.11.0 -> 0.12.0). The cited behaviour is unchanged, and so are status, scope and caveats.
@@ -368,8 +369,9 @@ capabilities:
   - id: CAP-009
     name: "RBAC (eight-role capability matrix, credential-bound audit identity)"
     status: WIRED_API_PATH
-    verified_at_sha: 4490be4b6db7e86adfded8c9d4c906a0f892f36e
+    verified_at_sha: d2f830647a1c2d01393d0b1440e0b197d4c3424d
     verified_by: >-
+      re-audited 2026-10-07 at d2f8306 (RMR-CR-003+CR-007), from 4490be4: this merge combines the RMR-CR-003 follow-up (set-but-blank REMORA_ENV refused; servers/api.py docstrings) with RMR-CR-007 (additive audit-verify response fields); the cited files differ from each earlier binding only by those changes. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 4490be4 (RMR-CR-007), from 01f392f: servers/execution_api.py and servers/api.py changed only in the two audit-verify responses (additive hash_chain_status, signature_status, verification_scope fields); remora/governance/tenant_chain.py gained verification_statuses. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 01f392f (RMR-CR-003), from cdddc04: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       rebound 2026-10-07 to the v0.12.0 release commit (cdddc04); servers/api.py changed only in its _PACKAGE_VERSION fallback (0.11.0 -> 0.12.0). The cited behaviour is unchanged, and so are status, scope and caveats.
@@ -607,8 +609,9 @@ capabilities:
   - id: CAP-017
     name: "Production fail-closed on signing keys"
     status: WIRED_API_PATH
-    verified_at_sha: 4490be4b6db7e86adfded8c9d4c906a0f892f36e
+    verified_at_sha: d2f830647a1c2d01393d0b1440e0b197d4c3424d
     verified_by: >-
+      re-audited 2026-10-07 at d2f8306 (RMR-CR-003+CR-007), from 4490be4: this merge combines the RMR-CR-003 follow-up (set-but-blank REMORA_ENV refused; servers/api.py docstrings) with RMR-CR-007 (additive audit-verify response fields); the cited files differ from each earlier binding only by those changes. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 4490be4 (RMR-CR-007), from 01f392f: servers/execution_api.py and servers/api.py changed only in the two audit-verify responses (additive hash_chain_status, signature_status, verification_scope fields); remora/governance/tenant_chain.py gained verification_statuses. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 01f392f (RMR-CR-003), from cdddc04: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       rebound 2026-10-07 to the v0.12.0 release commit (cdddc04); servers/api.py changed only in its _PACKAGE_VERSION fallback (0.11.0 -> 0.12.0). The cited behaviour is unchanged, and so are status, scope and caveats.
