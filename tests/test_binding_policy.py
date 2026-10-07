@@ -345,3 +345,90 @@ def test_every_policy_refusal_leaves_the_nonce_unspent(lease_key) -> None:
     lease = _lease(surface="")
     assert _run(dispatcher, lease).refusal_reason == "surface_unbound"
     assert lease.nonce not in dispatcher._ledger._consumed
+
+
+def test_a_required_capability_set_refuses_a_lease_without_one(lease_key) -> None:
+    policy = BindingPolicy.from_mapping(_policy(
+        bindings={"task_identity": "UNVERIFIABLE"},
+        tools={"wo_close": {"resolved_effect": "NOT_APPLICABLE"}}))
+    result = _run(_dispatcher(policy, observer=lambda: "s"), _lease(surface="s"))
+    assert result.refusal_reason == "capability_set_required"
+
+
+# -- the API path reads the same policy ----------------------------------------------
+
+@pytest.fixture
+def api_policy(monkeypatch, tmp_path):
+    import yaml
+
+    import servers.execution_api as exec_mod
+
+    path = tmp_path / "policy.yaml"
+    path.write_text(yaml.safe_dump(_policy()), encoding="utf-8")
+    monkeypatch.setenv("REMORA_BINDING_POLICY", str(path))
+    for name in ("REMORA_REQUIRE_TASK_IDENTITY", "REMORA_REQUIRE_CAPABILITY_SET"):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setattr(exec_mod, "_BINDING_POLICY_CACHE", None)
+    return exec_mod, path
+
+
+def test_the_api_switches_its_requirements_on_from_the_policy(api_policy) -> None:
+    exec_mod, _ = api_policy
+    assert exec_mod._require_task_identity() is True
+    assert exec_mod._require_capability_set() is True
+
+
+def test_the_api_caches_the_policy_on_its_path(api_policy, monkeypatch, tmp_path) -> None:
+    import yaml
+
+    exec_mod, _ = api_policy
+    first = exec_mod._binding_policy()
+    assert exec_mod._binding_policy() is first
+    other = tmp_path / "other.yaml"
+    other.write_text(yaml.safe_dump(_policy(bindings={"task_identity": "UNVERIFIABLE"})),
+                     encoding="utf-8")
+    monkeypatch.setenv("REMORA_BINDING_POLICY", str(other))
+    assert exec_mod._binding_policy() is not first
+    assert exec_mod._require_task_identity() is False
+
+
+def test_an_unobservable_surface_raises_rather_than_reporting_unchanged(monkeypatch) -> None:
+    import servers.execution_api as exec_mod
+
+    monkeypatch.setattr(exec_mod, "_authz_load_bundle", lambda env: None)
+    with pytest.raises(LookupError, match="unobservable"):
+        exec_mod._observed_surface(GovernedToolDispatcher("b1"))
+
+
+def test_the_api_dispatcher_carries_the_policy(strict, monkeypatch) -> None:
+    """The scaffold's executor builds a dispatcher that compares the policy."""
+    pytest.importorskip("cryptography")
+    import servers.execution_api as exec_mod
+    from remora.execution.authorization import reset_toolspec_bundle_cache
+
+    env, tmp = strict
+    for line in (tmp / ".remora" / "executor.env").read_text(encoding="utf-8").splitlines():
+        if line.startswith("export "):
+            key, _, raw = line[len("export "):].partition("=")
+            monkeypatch.setenv(key, shlex.split(raw)[0])
+    # One name per line: a generic secret scanner reads `"X", "Y_KEY"` on one
+    # line as an assignment of a secret. These are variable names.
+    for name in (
+        "REMORA_PDP_SIGNING_KEY",
+        "REMORA_ENVELOPE_SIGNING_KEY",
+        "REMORA_AUDIT_SIGNING_KEY",
+        "REMORA_LEASE_SIGNING_KEY_ED25519_PRIVATE",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setattr(exec_mod, "_BINDING_POLICY_CACHE", None)
+    monkeypatch.setattr(exec_mod, "_current_policy_bundle_hash", lambda: "b1")
+    reset_toolspec_bundle_cache()
+    exec_mod._reset_tool_dispatcher()
+    try:
+        dispatcher = exec_mod._tool_dispatcher()
+        assert dispatcher is not None
+        assert dispatcher._binding_policy is exec_mod._binding_policy()
+        assert dispatcher.registered_tool_names()
+    finally:
+        exec_mod._reset_tool_dispatcher()
+        reset_toolspec_bundle_cache()
