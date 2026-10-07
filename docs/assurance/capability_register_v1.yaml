@@ -81,8 +81,9 @@ capabilities:
   - id: CAP-001
     name: "Decision engine (hard guards -> conditional gates -> trust routing)"
     status: WIRED_API_PATH
-    verified_at_sha: 01f392f9f3a0d4f69661aa4db3c4da7d45458f8f
+    verified_at_sha: 73f363ccf5fa4d0d826537a009f7cfeac3e085de
     verified_by: >-
+      re-audited 2026-10-07 at 73f363c (RMR-CR-003), from 01f392f: remora/profiles.py refuses a set-but-blank REMORA_ENV; servers/api.py changed only in two docstrings. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 01f392f (RMR-CR-003), from cdddc04: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       rebound 2026-10-07 to the v0.12.0 release commit (cdddc04); servers/api.py changed only in its _PACKAGE_VERSION fallback (0.11.0 -> 0.12.0). The cited behaviour is unchanged, and so are status, scope and caveats.
       rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b); the branch commit d6c630e left the repository at squash. Verified content-identical: the squash tree equals the reviewed branch tip d701c37 (`git diff d701c37 58ebc0b` is empty), and the cited evidence did not change between d6c630e and d701c37. No status, scope or caveat change.
@@ -362,8 +363,9 @@ capabilities:
   - id: CAP-009
     name: "RBAC (eight-role capability matrix, credential-bound audit identity)"
     status: WIRED_API_PATH
-    verified_at_sha: 01f392f9f3a0d4f69661aa4db3c4da7d45458f8f
+    verified_at_sha: 73f363ccf5fa4d0d826537a009f7cfeac3e085de
     verified_by: >-
+      re-audited 2026-10-07 at 73f363c (RMR-CR-003), from 01f392f: remora/profiles.py refuses a set-but-blank REMORA_ENV; servers/api.py changed only in two docstrings. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 01f392f (RMR-CR-003), from cdddc04: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       rebound 2026-10-07 to the v0.12.0 release commit (cdddc04); servers/api.py changed only in its _PACKAGE_VERSION fallback (0.11.0 -> 0.12.0). The cited behaviour is unchanged, and so are status, scope and caveats.
       rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b); the branch commit d6c630e left the repository at squash. Verified content-identical: the squash tree equals the reviewed branch tip d701c37 (`git diff d701c37 58ebc0b` is empty), and the cited evidence did not change between d6c630e and d701c37. No status, scope or caveat change.
@@ -599,8 +601,9 @@ capabilities:
   - id: CAP-017
     name: "Production fail-closed on signing keys"
     status: WIRED_API_PATH
-    verified_at_sha: 01f392f9f3a0d4f69661aa4db3c4da7d45458f8f
+    verified_at_sha: 73f363ccf5fa4d0d826537a009f7cfeac3e085de
     verified_by: >-
+      re-audited 2026-10-07 at 73f363c (RMR-CR-003), from 01f392f: remora/profiles.py refuses a set-but-blank REMORA_ENV; servers/api.py changed only in two docstrings. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 01f392f (RMR-CR-003), from cdddc04: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       rebound 2026-10-07 to the v0.12.0 release commit (cdddc04); servers/api.py changed only in its _PACKAGE_VERSION fallback (0.11.0 -> 0.12.0). The cited behaviour is unchanged, and so are status, scope and caveats.
       rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b); the branch commit d6c630e left the repository at squash. Verified content-identical: the squash tree equals the reviewed branch tip d701c37 (`git diff d701c37 58ebc0b` is empty), and the cited evidence did not change between d6c630e and d701c37. No status, scope or caveat change.
