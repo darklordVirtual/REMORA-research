@@ -19,7 +19,7 @@ change and stay reachable (merge commits).
 | RMR-CR-010 paper TEE sentence | OPEN (docs) | none | - |
 | RMR-CR-011 signature domain separation | IN REVIEW: v1 frozen, v2 for lease, token and audit under strict v2 | #768, #778, #779, #780 | 2412d61, pending |
 | RMR-CR-012 concurrency test hang | FIXED | #767 | squash |
-| RMR-CR-013 canonicalisation | CHANGED (investigated; v2 not justified) | none | - |
+| RMR-CR-013 canonicalisation | CHANGED, then FIXED at the Worker edge (no v2 canonicalisation) | #783 | pending |
 | RMR-CR-014 datasets in wheel | OPEN (packaging) | none | - |
 | RMR-CR-015 ledger failure parity | FIXED | #771 | 517a904 |
 
@@ -78,3 +78,6 @@ change and stay reachable (merge commits).
 
 ### RMR-CR-013: CHANGED
 Investigation (Stage 0): Workers re-serialise and can lose precision before binding; Python binds and executes the same value. No post-binding divergence exists, so an exact-call-binding v2 is not justified. Proportionate follow-up: refuse unsafe numerics at the Worker edge.
+- Follow-up done: `workers/{mcp-gateway,agent-control}/src/json_numbers.ts` (identical) scans the raw body and refuses integers beyond 2^53−1, float literals JavaScript would write as integers and non-finite literals, on mcp-gateway's JSON-RPC endpoint and agent-control's execute endpoint. agent-control's comment claiming a downstream comparator was corrected.
+- Tests: `workers/mcp-gateway/test/json_numbers.test.ts` (vitest); `tests/test_worker_unsafe_numbers.py` runs agent-control's module under node against what Python would bind and checks the copies are identical, in the CI job that must not skip.
+- Remaining: other Worker endpoints and downstream Python adapters that re-serialise after the rehash are not covered.

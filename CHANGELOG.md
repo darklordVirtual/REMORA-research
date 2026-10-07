@@ -6,6 +6,12 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Security
 
+- The Workers refuse numbers they would change (CR-013). mcp-gateway's
+  JSON-RPC endpoint and agent-control's execute endpoint read the raw body
+  and refuse an integer beyond 2^53−1, a float literal JavaScript would write
+  as an integer (`1.0`, `1e2`) and a literal too large for a double, instead
+  of forwarding the converted value for REMORA to bind. **Breaking** for
+  callers that send such values: send them as strings.
 - Signature format v2 for the tenant audit chain (CR-011, C3). v1 entries
   are never re-signed. The first v2 append writes an
   `AUDIT_VERSION_TRANSITION` record naming the final v1 head and
