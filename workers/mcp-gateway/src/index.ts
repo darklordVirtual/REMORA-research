@@ -108,6 +108,12 @@ export interface Env {
    *  with production prerequisites, and says so. */
   REMORA_RUNTIME_PROFILE?: string;
   REMORA_TOOLSPEC_BUNDLE?: string;
+  /** Ed25519 public keys and the pinned bundle digest: what a strict
+   *  container needs to verify the bundle. It can author none with them. */
+  REMORA_TOOLSPEC_VERIFY_KEYS?: string;
+  REMORA_TOOLSPEC_PINNED_DIGEST?: string;
+  /** Legacy v1 HMAC model only. A strict profile refuses a container that
+   *  holds this key, because a verifier holding it can author bundles. */
   REMORA_TOOLSPEC_SIGNING_KEY?: string;
   REMORA_TOOLSPEC_TRUSTED_IDENTITIES?: string;
   /**
@@ -250,6 +256,8 @@ export class RemoraContainer extends Container<Env> {
       ...(env.REMORA_TOOLSPEC_BUNDLE
         ? {
             REMORA_TOOLSPEC_BUNDLE: env.REMORA_TOOLSPEC_BUNDLE,
+            REMORA_TOOLSPEC_VERIFY_KEYS: env.REMORA_TOOLSPEC_VERIFY_KEYS ?? "",
+            REMORA_TOOLSPEC_PINNED_DIGEST: env.REMORA_TOOLSPEC_PINNED_DIGEST ?? "",
             REMORA_TOOLSPEC_SIGNING_KEY: env.REMORA_TOOLSPEC_SIGNING_KEY ?? "",
             REMORA_TOOLSPEC_TRUSTED_IDENTITIES:
               env.REMORA_TOOLSPEC_TRUSTED_IDENTITIES ?? "",

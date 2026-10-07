@@ -87,7 +87,7 @@ authority.
 | `REMORA_PDP_SIGNING_KEY` | yes | not required by the dispatcher; removal tracked separately |
 | `REMORA_AUDIT_SIGNING_KEY` | yes | see §4 |
 | `REMORA_ENVELOPE_SIGNING_KEY` | yes | see §4 |
-| `REMORA_TOOLSPEC_SIGNING_KEY` | **neither** — signing is a build-time act; the runtime needs only trusted identities | |
+| `REMORA_TOOLSPEC_SIGNING_KEY` | **neither**. Signing is a build-time act; strict profiles refuse a runtime that holds it (RMR-CR-001). Runtimes hold `REMORA_TOOLSPEC_VERIFY_KEYS` and `REMORA_TOOLSPEC_PINNED_DIGEST` | |
 | `REMORA_GITHUB_TOKEN` and downstream credentials | **no** | yes — only the dispatcher needs them |
 | `REMORA_TOOL_REGISTRY_MODULE` | yes — a *declaration*, not callables | yes |
 
@@ -174,8 +174,10 @@ visible rather than implied:
 - The audit and envelope signing keys stay symmetric. Their threat model is
   tamper-evidence against an operator, which asymmetric signing alone does not
   solve; that is external anchoring (ADR-E), not a key swap.
-- `REMORA_TOOLSPEC_SIGNING_KEY` should not be in either runtime component;
-  signing a ToolSpec is a build-time act. Tracked with the signed-ToolSpec
-  cloud path.
+- `REMORA_TOOLSPEC_SIGNING_KEY` is refused in either runtime component under a
+  strict profile (2026-10-07, RMR-CR-001). Bundles are signed offline with
+  Ed25519 (`python -m remora.toolcall.toolspec_sign`) and verified with public
+  keys; the contract is `schemas/toolspec_signing_ed25519_v1.yaml`. Where the
+  authoring side keeps the seed is outside what REMORA can show.
 
 Each is a real remaining exposure. None is claimed fixed by this work.

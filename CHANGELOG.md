@@ -4,6 +4,19 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Security
+
+- ToolSpec trust is asymmetric and pinned under strict profiles (RMR-CR-001).
+  `review` and `controlled_pilot` require `REMORA_TOOLSPEC_VERIFY_KEYS` and
+  `REMORA_TOOLSPEC_PINNED_DIGEST`, refuse HMAC-signed bundles, and refuse a
+  runtime that holds `REMORA_TOOLSPEC_SIGNING_KEY`. Bundles are signed offline
+  with Ed25519 (`python -m remora.toolcall.toolspec_sign`); the signer is
+  named by its derived key id, so a label cannot impersonate another key.
+  **Breaking for strict deployments:** re-sign and pin before upgrading.
+  Contract: `schemas/toolspec_signing_ed25519_v1.yaml`.
+- `remora.crypto`: domain-separated Ed25519 signing, the foundation for
+  RMR-CR-011. No other artifact uses it yet.
+
 ## 0.12.0 — 2026-10-07
 
 The research release that publishes the paper revision of 2026-10-07. It

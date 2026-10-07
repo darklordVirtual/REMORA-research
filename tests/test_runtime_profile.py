@@ -16,8 +16,10 @@ from remora.toolcall.runtime_profile import (
 
 STRICT_ENV = {
     "REMORA_TOOLSPEC_BUNDLE": "/tmp/toolspec.json",
-    "REMORA_TOOLSPEC_SIGNING_KEY": "test-toolspec-key",
-    "REMORA_TOOLSPEC_TRUSTED_IDENTITIES": "release-signer-v1",
+    # RMR-CR-001: Ed25519 verification keys and a pinned digest, never the
+    # HMAC signing key, in a strict runtime.
+    "REMORA_TOOLSPEC_VERIFY_KEYS": "11" * 32,
+    "REMORA_TOOLSPEC_PINNED_DIGEST": "ab" * 32,
     "REMORA_TOOL_REGISTRY_MODULE": "example.registry",
     "REMORA_CHAIN_DB": "/tmp/remora-execution.db",
     "REMORA_PDP_SIGNING_KEY": "test-pdp-key",
@@ -38,6 +40,8 @@ def _clear(monkeypatch) -> None:
         "REMORA_TOOLSPEC_BUNDLE",
         "REMORA_TOOLSPEC_SIGNING_KEY",
         "REMORA_TOOLSPEC_TRUSTED_IDENTITIES",
+        "REMORA_TOOLSPEC_VERIFY_KEYS",
+        "REMORA_TOOLSPEC_PINNED_DIGEST",
         "REMORA_TOOL_REGISTRY_MODULE",
         "REMORA_PG_DSN",
         "REMORA_CHAIN_DB",
@@ -85,10 +89,41 @@ def test_review_refuses_unsigned_volatile_legacy_path(monkeypatch) -> None:
         validate_runtime_profile_prerequisites()
     text = str(exc.value)
     assert "REMORA_TOOLSPEC_BUNDLE" in text
-    assert "REMORA_TOOLSPEC_SIGNING_KEY" in text
-    assert "REMORA_TOOLSPEC_TRUSTED_IDENTITIES" in text
+    assert "REMORA_TOOLSPEC_VERIFY_KEYS" in text
+    assert "REMORA_TOOLSPEC_PINNED_DIGEST" in text
+    # The HMAC key is no longer a prerequisite: requiring it would put the
+    # material that authors bundles into the process that verifies them.
+    assert "REMORA_TOOLSPEC_SIGNING_KEY" not in text
     assert "REMORA_PG_DSN (or REMORA_CHAIN_DB)" in text
     assert "REMORA_PDP_SIGNING_KEY" in text
+
+
+@pytest.mark.parametrize("profile", ["review", "controlled_pilot"])
+@pytest.mark.parametrize("role", ["authority", "executor"])
+def test_strict_profile_refuses_a_runtime_holding_the_toolspec_signing_key(
+    monkeypatch, profile: str, role: str
+) -> None:
+    """RMR-CR-001: an HMAC verifier can author every bundle it accepts."""
+    _clear(monkeypatch)
+    _configure_strict(monkeypatch, profile)
+    monkeypatch.setenv("REMORA_ENV", "production")
+    monkeypatch.setenv("REMORA_EXECUTION_DOMAIN_ROLE", role)
+    monkeypatch.setenv("REMORA_TOOLSPEC_SIGNING_KEY", "authoring-material")
+    with pytest.raises(RuntimeProfileError, match="REMORA_TOOLSPEC_SIGNING_KEY"):
+        validate_runtime_profile_prerequisites()
+
+
+@pytest.mark.parametrize("missing", [
+    "REMORA_TOOLSPEC_VERIFY_KEYS", "REMORA_TOOLSPEC_PINNED_DIGEST",
+])
+def test_strict_profile_requires_verify_keys_and_a_pinned_digest(
+    monkeypatch, missing: str
+) -> None:
+    _clear(monkeypatch)
+    _configure_strict(monkeypatch, "review")
+    monkeypatch.delenv(missing)
+    with pytest.raises(RuntimeProfileError, match=missing):
+        validate_runtime_profile_prerequisites()
 
 
 def test_review_accepts_signed_and_durable_configuration(monkeypatch) -> None:

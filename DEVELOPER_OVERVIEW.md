@@ -114,7 +114,7 @@ See `docs/deployment/execution-quickstart.md` for configuration.
 
 A reviewer should be able to answer these from code and tests:
 
-1. Who defines tool meaning and authority? The deployment, not the agent.
+1. Who defines tool meaning and authority? The deployment, not the agent. Under a strict profile the runtime verifies an Ed25519-signed, pinned ToolSpec bundle with public keys only, so it cannot author tool meaning either. Outside strict profiles the v1 HMAC model still lets the holder of the verification key author bundles.
 2. Can model confidence override a hard guard? No.
 3. Is authorization bound to the exact action? Yes; proposal/call identity is rechecked before dispatch.
 4. What happens around a crash? The outbox records dispatch state; unknown outcomes are not silently treated as success or retried as if nothing happened.

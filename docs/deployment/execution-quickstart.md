@@ -142,8 +142,9 @@ metadata unless these trust prerequisites are present:
 | Variable | Purpose | Strict profile |
 |---|---|---:|
 | `REMORA_TOOLSPEC_BUNDLE` | Signed authority for callable identity, schema, risk/action metadata, target policy, credential scope and idempotency contract | **required** |
-| `REMORA_TOOLSPEC_SIGNING_KEY` | Verifies the ToolSpec bundle signature | **required** |
-| `REMORA_TOOLSPEC_TRUSTED_IDENTITIES` | Explicit signer allowlist | **required** |
+| `REMORA_TOOLSPEC_VERIFY_KEYS` | Ed25519 public keys trusted to sign the bundle. The runtime can verify with them and author nothing; each signer is named by its derived key id | **required** |
+| `REMORA_TOOLSPEC_PINNED_DIGEST` | The one bundle this deployment accepts. A signature proves who signed, the pin proves which bundle is current | **required** |
+| `REMORA_TOOLSPEC_SIGNING_KEY` | v1 HMAC model, outside strict profiles only. A strict runtime that holds it is refused at startup in every role, because an HMAC verifier can author bundles | **refused** |
 | `REMORA_TOOL_REGISTRY_MODULE` | Deployment-owned callable registry; callers cannot inject tools | **required** |
 | `REMORA_PG_DSN` or `REMORA_CHAIN_DB` | Durable execution state: tenant chain, review state and one-time-grant ledger | **required** |
 | `REMORA_PDP_SIGNING_KEY` | Signs the short-lived PDP → PEP grant | **required** |
@@ -167,8 +168,11 @@ export REMORA_RUNTIME_PROFILE=review
 export REMORA_ENABLED_SURFACES=execution
 
 export REMORA_TOOLSPEC_BUNDLE=/run/remora/toolspec-bundle.json
-export REMORA_TOOLSPEC_SIGNING_KEY='replace-me'
-export REMORA_TOOLSPEC_TRUSTED_IDENTITIES='release-signer-v1'
+# Both printed by the offline signer, which keeps the seed:
+#   python -m remora.toolcall.toolspec_sign --seed-file signer.seed \
+#       --bundle unsigned.json --out /run/remora/toolspec-bundle.json
+export REMORA_TOOLSPEC_VERIFY_KEYS='<ed25519 public key, hex>'
+export REMORA_TOOLSPEC_PINNED_DIGEST='<bundle digest>'
 export REMORA_TOOL_REGISTRY_MODULE=my_app.remora_registry
 export REMORA_PDP_SIGNING_KEY='replace-me-too'
 export REMORA_ENVELOPE_SIGNING_KEY='replace-me-as-well'

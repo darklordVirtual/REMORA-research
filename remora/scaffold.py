@@ -203,7 +203,6 @@ def init_review(
     pdp_key = secrets.token_hex(32)
     envelope_key = secrets.token_hex(32)
     audit_key = secrets.token_hex(32)
-    toolspec_key = secrets.token_hex(32)
     execution_token = secrets.token_hex(24)
     effect_credential = "demo-" + secrets.token_hex(16)
     lease_seed, lease_public = _ed25519_keypair()
@@ -212,12 +211,22 @@ def init_review(
     # -- registry, bundle, intents ------------------------------------------
     registry_path = put("remora_registry.py", _REGISTRY_SOURCE)
     digest = _callable_digest(inspect.cleandoc(_REGISTRY_SOURCE))
-    from remora.toolcall.toolspec import sign_bundle
-
-    bundle = sign_bundle(
+    # RMR-CR-001: the bundle is signed here, at authoring time, with an Ed25519
+    # seed that goes only to keys/. Neither runtime half receives it; both get
+    # the public key and the pinned digest, so neither can author a bundle.
+    try:
+        from remora.toolcall.toolspec_sign import sign_with_seed
+    except ImportError as exc:  # pragma: no cover - cryptography is a dev dependency
+        raise RuntimeError(
+            "init-review signs the ToolSpec bundle with Ed25519 and needs the "
+            "'cryptography' package: pip install 'remora[security]'"
+        ) from exc
+    toolspec_seed = secrets.token_hex(32)
+    bundle, toolspec_public, toolspec_digest = sign_with_seed(
         {"schema_version": 1, "tool_specs": [_demo_spec(digest)]},
-        key=toolspec_key, signing_identity=SIGNING_IDENTITY, signed_at=stamp,
+        toolspec_seed, signed_at=stamp,
     )
+    signing_identity = bundle["registry_signature"]["signing_identity"]
     bundle_path = put("toolspec-bundle.json", json.dumps(bundle, indent=2, sort_keys=True) + "\n")
     intents_path = put("workflow_intents.json", json.dumps({
         "wo-demo-1": {
@@ -235,7 +244,9 @@ def init_review(
     # -- keys on disk (executor never reads these files) -----------------------
     for name, value in (
         ("pdp_signing_key", pdp_key), ("envelope_signing_key", envelope_key),
-        ("audit_signing_key", audit_key), ("toolspec_signing_key", toolspec_key),
+        ("audit_signing_key", audit_key),
+        # Offline signer material: re-sign the bundle with it, never load it.
+        ("toolspec_ed25519_seed", toolspec_seed),
         ("lease_ed25519_seed", lease_seed),
     ):
         put(f"keys/{name}", value + "\n", secret=True)
@@ -247,7 +258,8 @@ def init_review(
         ("REMORA_ENABLED_SURFACES", "execution"),
         ("REMORA_EFFECT_CREDENTIAL_ENV_NAMES", effect_credential_name),
         ("REMORA_TOOLSPEC_BUNDLE", str(bundle_path.resolve())),
-        ("REMORA_TOOLSPEC_TRUSTED_IDENTITIES", SIGNING_IDENTITY),
+        ("REMORA_TOOLSPEC_VERIFY_KEYS", toolspec_public),
+        ("REMORA_TOOLSPEC_PINNED_DIGEST", toolspec_digest),
         ("REMORA_TOOL_REGISTRY_MODULE", "remora_registry"),
         ("REMORA_SEMANTIC_BUNDLE_MODULE", "servers.semantic_bundle_research"),
         ("REMORA_INTENT_SOURCE_FILE", str(intents_path.resolve())),
@@ -259,7 +271,6 @@ def init_review(
     # -- authority: signs, never holds the effect credential --------------------
     authority = shared + [
         ("REMORA_EXECUTION_DOMAIN_ROLE", "authority"),
-        ("REMORA_TOOLSPEC_SIGNING_KEY", toolspec_key),
         ("REMORA_PDP_SIGNING_KEY", pdp_key),
         ("REMORA_ENVELOPE_SIGNING_KEY", envelope_key),
         ("REMORA_AUDIT_SIGNING_KEY", audit_key),
@@ -303,14 +314,21 @@ def init_review(
         "REMORA_EXECUTION_DOMAIN_ROLE=executor remora serve --port 8011\n"
         "```\n\n"
         f"The demo tool `{DEMO_TOOL}` appends to `state/outbox.jsonl` instead of\n"
-        "sending anything. Replace `remora_registry.py` with your own tools, re-sign\n"
-        "the bundle with `keys/toolspec_signing_key`, and keep the two env files\n"
-        "on two different hosts.\n")
+        "sending anything. Replace `remora_registry.py` with your own tools and\n"
+        "re-sign the bundle offline:\n\n"
+        "```bash\n"
+        "python -m remora.toolcall.toolspec_sign --seed-file .remora/keys/toolspec_ed25519_seed \\\n"
+        "    --bundle unsigned.json --out .remora/toolspec-bundle.json\n"
+        "```\n\n"
+        "It prints the new REMORA_TOOLSPEC_VERIFY_KEYS and REMORA_TOOLSPEC_PINNED_DIGEST\n"
+        "for both env files. Keep the seed off both runtime hosts, and keep the two\n"
+        "env files on two different hosts.\n")
 
     return {
         "root": str(base.resolve()),
         "written": [str(p) for p in written],
-        "signing_identity": SIGNING_IDENTITY,
+        "signing_identity": signing_identity,
+        "toolspec_bundle_digest": toolspec_digest,
         "ed25519_public_derived": lease_public is not None,
         "registry_module": "remora_registry",
         "registry_path": str(registry_path),
