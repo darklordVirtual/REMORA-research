@@ -115,6 +115,16 @@ by an adversarial test at library level.* What may **not** be claimed: that the
 deployed Cloudflare container no longer holds minting material. That is a
 deployment change, and until it ships the claim is about the mechanism only.
 
+**Scope of the custody guard (RMR-CR-009).** `remora/enforcement/custody.py`
+enforces *declared* credential custody: it checks the variable names listed
+in `REMORA_EFFECT_CREDENTIAL_ENV_NAMES`, the lease signing variables, and
+role-based refusals for a self-declared role. It cannot see an instance
+metadata or IAM role, workload identity, mounted secret files, undeclared
+variables or network-reachable credentials. A deployment that relies on the
+split must keep effect credentials in declared variables, or add controls the
+guard does not provide (network policy, IAM deny), and record them as
+deployment evidence.
+
 ---
 
 ## ADR-B — Durable `ExecutionLease` nonce consumption

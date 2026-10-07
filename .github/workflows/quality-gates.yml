@@ -304,7 +304,7 @@ jobs:
         # -rs prints skip reasons; the grep turns a silent skip into a red leg,
         # because a skipped parity test looks identical to a passing one.
         run: |
-          python -m pytest tests/test_worker_envelope_chain.py -q -rs | tee /tmp/parity.txt
+          python -m pytest tests/test_worker_envelope_chain.py tests/test_worker_unsafe_numbers.py -q -rs | tee /tmp/parity.txt
           if grep -qi "skipped" /tmp/parity.txt; then
             echo "FAIL: envelope parity test skipped — the JS toolchain is missing in a job that must have it"
             exit 1

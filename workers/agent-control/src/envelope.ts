@@ -70,10 +70,12 @@ function escapeNonAscii(s: string): string {
  *
  * Known limitation: JavaScript cannot distinguish the float 1.0 from the
  * integer 1, so a payload containing an integral float serialises as `1`
- * here and `1.0` in Python. That affects only cross-language recomputation
- * of `tool_args_hash` from re-parsed input, and it fails closed (a mismatch
- * refuses the call). Chain verification is unaffected because verifiers hash
- * the stored canonical string, not a re-serialisation.
+ * here and `1.0` in Python, and integers beyond 2^53 - 1 lose digits. No
+ * comparator downstream catches that: the value this Worker forwards is the
+ * value Python binds. The execute path therefore refuses such numbers before
+ * parsing them into JavaScript (json_numbers.ts, RMR-CR-013). Chain
+ * verification is unaffected because verifiers hash the stored canonical
+ * string, not a re-serialisation.
  */
 export function canonicalJson(value: unknown): string {
   if (value === null || value === undefined) return "null";
