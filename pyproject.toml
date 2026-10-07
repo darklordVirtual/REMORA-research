@@ -334,6 +334,7 @@ pytest_add_cli_args_test_selection = [
     "tests/test_lease_signing_contracts.py",
     "tests/test_lease_verification_completeness.py",
     "tests/test_lease_verification_contracts.py",
+    "tests/test_ledger_failure_parity.py",
     "tests/test_nonce_store_consumed.py",
     "tests/test_plan_binding.py",
     "tests/test_policy_engine_audit_v1.py",
