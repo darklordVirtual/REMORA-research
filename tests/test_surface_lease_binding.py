@@ -124,6 +124,9 @@ class TestEnforced:
         monkeypatch.setattr(custody, "custody_is_enforced", lambda: True)
         monkeypatch.setattr(lease_module.GovernedToolDispatcher, "_runtime_refusal",
                             staticmethod(lambda lease: None))
+        # Durable single-use is H-01's subject (tests/test_hostile_review_2026_10_08.py), not this one.
+        monkeypatch.setattr(lease_module.GovernedToolDispatcher, "_durability_refusal",
+                            lambda self: None)
         assert _run(dispatcher, lease).refusal_reason == "surface_changed" and calls == []
 
     def test_a_lease_without_a_surface_digest_is_not_checked(self):

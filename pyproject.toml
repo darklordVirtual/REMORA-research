@@ -346,6 +346,7 @@ pytest_add_cli_args_test_selection = [
     "tests/test_gate_replay_properties.py",
     "tests/test_governance_event_contract.py",
     "tests/test_grant_ledger_tamper_evidence.py",
+    "tests/test_hostile_review_2026_10_08.py",
     "tests/test_independent_recorder.py",
     "tests/test_interop_boundary_fixtures.py",
     "tests/test_lease_authority_custody.py",

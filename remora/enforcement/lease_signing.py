@@ -72,6 +72,7 @@ __all__ = [
     "ALG_HMAC",
     "ALG_ED25519",
     "ALG_ED25519_V2",
+    "LeaseKeyRevoked",
     "LegacyFormatRefused",
     "SigningUnavailable",
     "issuer_algorithm",
@@ -107,6 +108,16 @@ ENV_KID = "REMORA_LEASE_SIGNING_KID"
 #: Migration phase 3: unset means HMAC leases are refused.
 ENV_ACCEPT_HMAC = "REMORA_LEASE_ACCEPT_HMAC"
 
+#: Comma-separated derived key ids (``ed25519-<sha256 of the public key>``)
+#: whose v2 leases no longer authorize, whatever their expiry (hostile review
+#: 2026-10-08, H-03).
+ENV_REVOKED_KIDS = "REMORA_LEASE_REVOKED_KIDS"
+
+
+def revoked_kids() -> frozenset[str]:
+    return frozenset(k.strip() for k in os.environ.get(ENV_REVOKED_KIDS, "").split(",")
+                     if k.strip())
+
 
 class SigningUnavailable(RemoraError, RuntimeError):
     """Configured signing or verification material cannot be used.
@@ -118,6 +129,16 @@ class SigningUnavailable(RemoraError, RuntimeError):
 
     code = "signing_unavailable"
     category = "enforcement"
+
+
+class LeaseKeyRevoked(SigningUnavailable):
+    """A v2 lease signed by a key named in ``REMORA_LEASE_REVOKED_KIDS``.
+
+    The signature may be genuine; the key no longer authorizes. Historical
+    verification (``live=False``) still reads such a lease.
+    """
+
+    code = "lease_key_revoked"
 
 
 class LegacyFormatRefused(SigningUnavailable):
@@ -320,7 +341,9 @@ def verify_payload(payload: bytes, signature: str, *, alg: str, kid: str = "",
         result = verify(
             SignatureDomain.EXECUTION_LEASE, payload,
             Signature(ALGORITHM, SignatureDomain.EXECUTION_LEASE.value, kid, signature),
-            [_v2_verification_key()])
+            [_v2_verification_key()], revoked=revoked_kids() if live else ())
+        if result.reason == "key_revoked":
+            raise LeaseKeyRevoked(f"lease key {kid} is revoked ({ENV_REVOKED_KIDS})")
         return result.ok
     if alg in V1_ALGS and live:
         from remora.crypto.formats import v1_live_refused

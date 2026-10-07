@@ -154,6 +154,8 @@ class TestTheDispatcherResolvesAgain:
         monkeypatch.setattr(custody, "custody_is_enforced", lambda: True)
         monkeypatch.setattr(GovernedToolDispatcher, "_runtime_refusal",
                             staticmethod(lambda lease: None))
+        # Durable single-use is H-01's subject (tests/test_hostile_review_2026_10_08.py), not this one.
+        monkeypatch.setattr(GovernedToolDispatcher, "_durability_refusal", lambda self: None)
         result = dispatcher.dispatch(lease, "close_wo", ARGS, tenant_id="acme",
                                      target_environment="prod", actor_identity="agent-1")
         assert result.refusal_reason == "resolved_effect_unbound" and calls == []

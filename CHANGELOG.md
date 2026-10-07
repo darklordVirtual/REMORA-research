@@ -4,6 +4,20 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Security (hostile review 2026-10-08)
+
+- A strict profile no longer dispatches on the in-process nonce ledger: a
+  `GovernedToolDispatcher` without a durable nonce store refuses with
+  `nonce_store_not_durable` before anything is recorded or consumed (H-01).
+  The API path already used a durable store under strict profiles.
+- `REMORA_LEASE_REVOKED_KIDS` revokes v2 lease signing keys by derived key
+  id; their leases refuse as `lease_key_revoked` and stay readable as
+  history (H-03).
+- Tool-call arguments nested deeper than 64 levels are refused as a value
+  error instead of exhausting recursion (H-06). No canonical form changes.
+- Disposition of every finding:
+  `docs/assurance/reviews/2026-10-08-hostile-review/DISPOSITION.md`.
+
 ### Interoperability
 
 - `integrations/federation-port/remora-adapter/reproduce.sh` reproduces the

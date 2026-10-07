@@ -43,7 +43,13 @@ def _canonical_json(data: Any) -> str:
     return _json.dumps(data, sort_keys=True, separators=(",", ":"), default=str)
 
 
-def _require_json_domain(value: Any, path: str = "arguments") -> None:
+#: Deepest argument nesting a tool call may carry. Deeper payloads are refused
+#: as a value error instead of exhausting the interpreter's recursion limit
+#: (hostile review 2026-10-08, H-06). No canonical form changes.
+MAX_ARGUMENT_DEPTH = 64
+
+
+def _require_json_domain(value: Any, path: str = "arguments", _depth: int = 0) -> None:
     """Refuse argument values that ``_canonical_json`` would encode lossily.
 
     ``default=str`` stringifies unknown objects, ``json.dumps`` turns an int key
@@ -53,6 +59,8 @@ def _require_json_domain(value: Any, path: str = "arguments") -> None:
     instead of changing the encoder leaves the bytes for every JSON-domain call
     as they were, so historical leases and audit entries still verify.
     """
+    if _depth > MAX_ARGUMENT_DEPTH:
+        raise ValueError(f"{path}: nesting deeper than {MAX_ARGUMENT_DEPTH} levels")
     if value is None or isinstance(value, (str, bool, int)):
         return
     if isinstance(value, float):
@@ -61,7 +69,7 @@ def _require_json_domain(value: Any, path: str = "arguments") -> None:
         return
     if isinstance(value, list):
         for i, item in enumerate(value):
-            _require_json_domain(item, f"{path}[{i}]")
+            _require_json_domain(item, f"{path}[{i}]", _depth + 1)
         return
     if isinstance(value, dict):
         for key, item in value.items():
@@ -69,7 +77,7 @@ def _require_json_domain(value: Any, path: str = "arguments") -> None:
                 raise TypeError(
                     f"{path}: object key {key!r} is not a string and would "
                     "collide with its string form")
-            _require_json_domain(item, f"{path}.{key}")
+            _require_json_domain(item, f"{path}.{key}", _depth + 1)
         return
     raise TypeError(
         f"{path}: {type(value).__name__} is outside the JSON tool-call domain "
