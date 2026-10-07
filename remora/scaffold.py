@@ -43,6 +43,8 @@ __all__ = ["ScaffoldExists", "init_review"]
 
 SIGNING_IDENTITY = "local-review-signer/v1"
 DEMO_TOOL = "send_notification"
+#: Where the authority forwards leases (``remora serve --port 8011``).
+EXECUTION_ENDPOINT = "http://127.0.0.1:8011"
 #: Where the executor reaches the effect domain (``remora serve --port 8012``).
 EFFECT_ENDPOINT = "http://127.0.0.1:8012"
 
@@ -308,7 +310,10 @@ def init_review(
     reviewer_token = secrets.token_hex(24)
     authority_api_tokens = json.dumps({
         operator_token: {"tenant": "default", "role": "operator", "actor_id": "local-agent"},
-        reviewer_token: {"tenant": "default", "role": "reviewer", "actor_id": "local-reviewer"},
+        # The demo tool's risk tier (medium) requires a senior_authority
+        # approver (schemas/risk-profiles.yaml); "reviewer" could not approve it.
+        reviewer_token: {"tenant": "default", "role": "senior_authority",
+                         "actor_id": "local-reviewer"},
     }, sort_keys=True)
     executor_api_tokens = json.dumps({
         execution_token: {"tenant": "default", "role": "operator",
@@ -388,11 +393,21 @@ def init_review(
         ("REMORA_CHAIN_DB", str(chain_db.resolve())),
         ("REMORA_DEMO_OUTBOX", str((base / "state" / "outbox.jsonl").resolve())),
         ("PYTHONPATH", str(base.resolve())),
+        # ADR-D: the runtime this authorization is granted for. The authority
+        # signs it into every lease and the executor compares it with its own,
+        # so all three domains declare the same one. A strict executor refuses
+        # a lease for an undeclared runtime (runtime_identity_undeclared).
+        ("REMORA_RUNTIME_KIND", "local-review"),
+        ("REMORA_DEPLOYMENT_ID", "init-review-" + stamp[:10]),
+        ("REMORA_DEPLOYMENT_GENERATION", "1"),
+        ("REMORA_TOOL_RUNTIME_IDENTITY", "remora_registry@" + digest),
     ]
 
     # -- authority: signs, never holds the effect credential --------------------
     authority = shared + [
         ("REMORA_EXECUTION_DOMAIN_ROLE", "authority"),
+        # The authority mints leases and forwards them; it never executes.
+        ("REMORA_EXECUTION_ENDPOINT", EXECUTION_ENDPOINT),
         ("REMORA_PDP_SIGNING_KEY", pdp_key),
         ("REMORA_ENVELOPE_SIGNING_KEY", envelope_key),
         ("REMORA_AUDIT_SIGNING_KEY", audit_key),
