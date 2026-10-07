@@ -45,7 +45,7 @@ def token_table(monkeypatch):
 
 # -- one reading of REMORA_ENV -------------------------------------------------
 
-@pytest.mark.parametrize("value", ["staging", "stagin", "prd", "productions", "test", "local"])
+@pytest.mark.parametrize("value", ["staging", "stagin", "prd", "productions", "test", "local", "", "  "])
 def test_an_unknown_environment_is_refused_not_read_as_either(monkeypatch, value) -> None:
     monkeypatch.setenv("REMORA_ENV", value)
     with pytest.raises(RuntimeProfileError, match="unknown"):
@@ -55,7 +55,7 @@ def test_an_unknown_environment_is_refused_not_read_as_either(monkeypatch, value
 
 
 @pytest.mark.parametrize(("value", "expected"), [
-    (None, "development"), ("", "development"), ("  ", "development"),
+    (None, "development"),
     ("dev", "development"), ("Development", "development"),
     ("prod", "production"), ("PRODUCTION", "production"),
 ])
