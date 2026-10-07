@@ -1,0 +1,17 @@
+{
+  "artifact": "PolicyDecisionToken",
+  "cases": [
+    {
+      "name": "policy-grant-v2-hmac",
+      "payload": "{\"action\":\"accept\",\"audience\":\"pep://remora-execution\",\"context_hash\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\",\"expires_at\":\"2026-10-07T12:05:00+00:00\",\"format\":\"v2\",\"issued_at\":\"2026-10-07T12:00:00+00:00\",\"issuer\":\"pdp-1\",\"jti\":\"00000000-0000-4000-8000-000000000003\",\"kid\":\"pdp-2026-10\",\"observation_hash\":\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"request_id\":\"req-1\"}",
+      "preimage_b64": "UkVNT1JBL1BPTElDWS1HUkFOVC92MgB7ImFjdGlvbiI6ImFjY2VwdCIsImF1ZGllbmNlIjoicGVwOi8vcmVtb3JhLWV4ZWN1dGlvbiIsImNvbnRleHRfaGFzaCI6ImRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGQiLCJleHBpcmVzX2F0IjoiMjAyNi0xMC0wN1QxMjowNTowMCswMDowMCIsImZvcm1hdCI6InYyIiwiaXNzdWVkX2F0IjoiMjAyNi0xMC0wN1QxMjowMDowMCswMDowMCIsImlzc3VlciI6InBkcC0xIiwianRpIjoiMDAwMDAwMDAtMDAwMC00MDAwLTgwMDAtMDAwMDAwMDAwMDAzIiwia2lkIjoicGRwLTIwMjYtMTAiLCJvYnNlcnZhdGlvbl9oYXNoIjoiZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZSIsInJlcXVlc3RfaWQiOiJyZXEtMSJ9",
+      "signature": "9a72194231938bdb46973fa5aa60778248b91cbb67a6ed8c211095a187c03f2d"
+    }
+  ],
+  "domain": "REMORA/POLICY-GRANT/v2",
+  "format": "v2",
+  "keys": {
+    "hmac_key": "remora-vector-hmac-key-not-a-secret"
+  },
+  "preimage": "domain tag || 0x00 || canonical JSON (sorted keys, compact, with format=v2); HMAC-SHA256 hex"
+}

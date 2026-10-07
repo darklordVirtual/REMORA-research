@@ -6,6 +6,14 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Security
 
+- Signature format v2 for PolicyDecisionToken (CR-011, C2). Token v1 (HMAC
+  over untagged canonical JSON) is frozen. v2 signs
+  `REMORA/POLICY-GRANT/v2 || 0x00 || payload` with `format: v2` inside the
+  signed payload, so it cannot be relabelled as v1. A strict v2 contract
+  issues only v2 and refuses a v1 token as live authority
+  (`token_format_legacy`); `PolicyDecisionToken.verify_historical()` reads
+  v1. The key stays symmetric: v2 is domain separation, not the
+  decision/enforcement boundary of RMR-CR-002.
 - Signature format v2 for ExecutionLease (CR-011, C1). Lease format v1
   (`ed25519`, `hmac-sha256`, untagged) is frozen with golden vectors in
   `vectors/v1/`. Format v2 (`ed25519-domain-v2`) signs

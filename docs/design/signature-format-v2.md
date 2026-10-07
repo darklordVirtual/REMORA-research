@@ -1,7 +1,7 @@
 # Signature format v2 (CR-011)
 
-Status: in progress 2026-10-07. ExecutionLease v2 implemented; PolicyDecisionToken
-v2 and the audit chain v2 follow. Finding: RMR-CR-011
+Status: in progress 2026-10-07. ExecutionLease v2 and PolicyDecisionToken v2
+implemented; the audit chain v2 follows. Finding: RMR-CR-011
 ([security review](../assurance/reviews/2026-10-07-272b6c56/README.md)).
 
 ## Problem
@@ -19,7 +19,7 @@ them. Never change a preimage under an existing name.
 | Artifact | v1 (frozen) | v2 |
 |---|---|---|
 | ExecutionLease | `ed25519` or `hmac-sha256` over canonical JSON | `ed25519-domain-v2`: Ed25519 over `REMORA/EXECUTION-LEASE/v2 \|\| 0x00 \|\| payload`, `kid` derived from the public key |
-| PolicyDecisionToken | HMAC-SHA256 over canonical JSON | `REMORA/POLICY-GRANT/v2` (next) |
+| PolicyDecisionToken | HMAC-SHA256 over canonical JSON | HMAC-SHA256 over `REMORA/POLICY-GRANT/v2 \|\| 0x00 \|\| payload`, with `format: v2` inside the payload |
 | Tenant audit entry | HMAC-SHA256 over the entry hash | `REMORA/AUDIT/v2` after an `AUDIT_VERSION_TRANSITION` record (next) |
 
 ### Which format, where
@@ -36,15 +36,22 @@ them. Never change a preimage under an existing name.
   fixtures do not change. `REMORA_SIGNATURE_FORMAT=v2` opts in; a strict v2
   contract refuses `REMORA_SIGNATURE_FORMAT=v1`.
 
+A v1 token presented as live authority is refused as `token_format_legacy`;
+`PolicyDecisionToken.verify_historical()` reads it. Token v2 stays symmetric
+(`REMORA_PDP_SIGNING_KEY`): it adds domain separation, and does not add the
+decision/enforcement trust boundary RMR-CR-002 describes, which would need an
+asymmetric issuer in a separate custody domain.
+
 Lease v2 has no symmetric form. A strict v2 authority therefore requires
 `REMORA_LEASE_SIGNING_KEY_ED25519_PRIVATE`, and the HMAC fallback to the PDP
 key is unreachable under it.
 
 ### Cutover
 
-Leases are short-lived (at most `MAX_LEASE_TTL_SECONDS`). Moving a deployment
-from `review/v1` to `review/v2` is a cutover: leases minted before it are
-refused for dispatch after it, so wait out the lease TTL first.
+Leases (at most `MAX_LEASE_TTL_SECONDS`) and tokens (at most
+`MAX_TOKEN_TTL_SECONDS`) are short-lived. Moving a deployment from `review/v1`
+to `review/v2` is a cutover: leases and tokens minted before it are refused as
+live authority after it, so wait out the longest TTL in flight first.
 
 ### Golden vectors
 
