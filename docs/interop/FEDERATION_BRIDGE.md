@@ -94,10 +94,12 @@ projection with the action the runtime will dispatch, and reports the three
 exported claims. It holds no secret, reaches no network and does not run
 REMORA.
 
-Its tests run it inside an unmodified federation-port runtime, checked out at
-the revision pinned in [`fixtures.json`](../../artifacts/interop/federation-port-v0/fixtures.json)
-with a check that nothing under its `src/` changed. CI runs them on every
-change.
+[`reproduce.sh`](../../integrations/federation-port/remora-adapter/reproduce.sh)
+installs it into federation-port's own tree at the pinned revision, seals it
+with federation-port's `scripts/seal.ts`, checks that `src/` is unmodified and
+runs federation-port's suite with it. It reports 61 of 61 at `92d5078`: 44
+upstream and 17 for the component. REMORA's acceptance suites run separately,
+and the result is written as JSON. CI runs the same script on every change.
 
 ## Projection records
 

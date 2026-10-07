@@ -5,6 +5,8 @@
 //
 //   FEDERATION_PORT_DIR=/path/to/federation-port node --test tests/remora-adapter.test.ts
 //
+// or, as reproduce.sh does, copied into federation-port's own test/ and run with its suite, with
+// REMORA_ADAPTER_DIR (the installed component) and REMORA_INTEROP_DIR (fixtures and map) set.
 // federation-port is checked out at the revision pinned in fixtures.json; nothing under its src/
 // is changed. The fixtures are produced by REMORA (scripts/build_federation_port_v0_fixtures.py).
 import { test } from 'node:test'
@@ -16,12 +18,13 @@ import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { randomBytes } from 'node:crypto'
 
-const FP = process.env.FEDERATION_PORT_DIR
+const FP: string = process.env.FEDERATION_PORT_DIR ?? ''
 if (!FP) throw new Error('set FEDERATION_PORT_DIR to a federation-port checkout')
-const ADAPTER = resolve(import.meta.dirname, '..')
-const REPO = resolve(ADAPTER, '../../..')
-const FIXTURES = JSON.parse(readFileSync(join(REPO, 'artifacts/interop/federation-port-v0/fixtures.json'), 'utf8'))
-const MAP = readFileSync(join(REPO, 'artifacts/interop/federation-port-v0/projection-map.yaml'), 'utf8')
+const ADAPTER = resolve(process.env.REMORA_ADAPTER_DIR ?? resolve(import.meta.dirname, '..'))
+const INTEROP = resolve(process.env.REMORA_INTEROP_DIR
+  ?? resolve(import.meta.dirname, '../../../../artifacts/interop/federation-port-v0'))
+const FIXTURES = JSON.parse(readFileSync(join(INTEROP, 'fixtures.json'), 'utf8'))
+const MAP = readFileSync(join(INTEROP, 'projection-map.yaml'), 'utf8')
 
 const runtimeMod = await import(pathToFileURL(join(FP, 'src/runtime/index.ts')).href)
 const providerMod = await import(pathToFileURL(join(FP, 'sim/provider.ts')).href)

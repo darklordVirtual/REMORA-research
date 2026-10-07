@@ -40,15 +40,42 @@ It requests no privilege, no secret and no data destination.
 Require all three claims on a workflow to admit only actions REMORA signed for
 that exact operation.
 
-## Run the tests
+## Reproduce
 
 ```console
-$ git clone https://github.com/aeoess/federation-port && cd federation-port
-$ git checkout 92d5078af3bbd3610ce4901378e913d5f370a68b && npm ci
-$ cd <REMORA-research>/integrations/federation-port/remora-adapter
+$ integrations/federation-port/remora-adapter/reproduce.sh
+```
+
+It needs git, Node 24 and a Python with REMORA's dev dependencies (`PYTHON` selects it;
+`--skip-python` leaves the REMORA-side suites out and records them as `not_evaluated`). It runs
+the same procedure as the other outside adapters on #177:
+
+1. clone `aeoess/federation-port` and check out `92d5078af3bbd3610ce4901378e913d5f370a68b`;
+2. install this component under `adapters/` and its tests under `test/`, changing nothing under
+   `src/`;
+3. seal it with federation-port's `scripts/seal.ts`, which must reproduce the digest pinned in
+   `manifest.json`;
+4. check that `src/` is unmodified;
+5. run federation-port's suite with this component: `node --test test/*.test.ts`, then the
+   upstream and REMORA files alone for the split;
+6. run `tsc` with federation-port's `tsconfig.json` over the component and its tests;
+7. separately, check REMORA's fixtures against the code and run REMORA's acceptance suites
+   (`tests/test_federation_report_selection.py`, `tests/test_federation_bridge.py`).
+
+It writes `remora-federation-port-reproduction.json` (`remora-federation-port-reproduction-v1`)
+and exits non-zero on any failure. CI runs the same script on every change.
+
+At `92d5078` the result is 61 of 61 federation-port tests, 44 upstream plus 17 for this
+component, with `src/` unmodified, the seal matching and `tsc` passing. The REMORA acceptance
+suites are reported beside it, not inside that count. These are the producer's own tests, so
+a reproduction is not an independent check.
+
+To run only this component's tests against a federation-port checkout:
+
+```console
 $ FEDERATION_PORT_DIR=<federation-port> node --test --test-concurrency=1 tests/remora-adapter.test.ts
 ```
 
-The fixtures come from `scripts/build_federation_port_v0_fixtures.py` in
-REMORA-research and are signed with published test keys. After editing
-`adapter.ts`, reseal the manifest with `--seal --write`.
+The fixtures come from `scripts/build_federation_port_v0_fixtures.py` in REMORA-research and are
+signed with published test keys. After editing `adapter.ts`, reseal the manifest with
+`--seal --write`.
