@@ -2771,6 +2771,17 @@ documents:
   audience:
   - maintainers
   - evaluators
+- id: DOC-372
+  path: docs/assurance/reviews/2026-10-07-272b6c56/MCP_EXECUTION_SURFACE.md
+  status: canonical
+  topic: docs_assurance_reviews_2026-10-07-272b6c56_mcp_execution_surface_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-10-07'
+  last_reviewed: '2026-10-07'
+  audience:
+  - maintainers
+  - evaluators
 - id: DOC-366
   path: docs/assurance/reviews/2026-10-07-272b6c56/FINDINGS.md
   status: historical
@@ -3133,6 +3144,7 @@ topics:
 - docs_design_plan-premise-authority-v1_md
 - docs_assurance_reviews_2026-10-07-272b6c56_readme_md
 - docs_assurance_reviews_2026-10-07-272b6c56_finding_disposition_md
+- docs_assurance_reviews_2026-10-07-272b6c56_mcp_execution_surface_md
 - docs_assurance_reviews_2026-10-07-272b6c56_findings_md
 - docs_assurance_reviews_2026-10-07-272b6c56_assurance_matrix_md
 - docs_assurance_reviews_2026-10-07-272b6c56_claim_audit_md

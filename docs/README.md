@@ -223,6 +223,7 @@ Several topics have more than one document. This table says which to open.
 | [external_adequacy_evidence_sufficiency_v1.md](assurance/external_adequacy_evidence_sufficiency_v1.md) | External seeded-fault adequacy run over evidence-sufficiency-v1 (issue #629): counts, crash kills, survivor labels |
 | [Security review 2026-10-07](assurance/reviews/2026-10-07-272b6c56/README.md) | Producer-owned, AI-assisted adversarial review of revision 272b6c56 (RMR-CR-001 to 015), revalidated at v0.12.0; independence not established |
 | [Finding disposition](assurance/reviews/2026-10-07-272b6c56/FINDING_DISPOSITION.md) | Current status per RMR-CR finding: fix, regression tests, pull request, remaining boundary |
+| [MCP execution surfaces](assurance/reviews/2026-10-07-272b6c56/MCP_EXECUTION_SURFACE.md) | Every MCP surface that can run a tool, how authority reaches its effects, and the open gaps |
 | [domain_pack_governance_v1.md](assurance/domain_pack_governance_v1.md) | Domain-pack governance |
 | [aromer_memory_governance_v1.md](assurance/aromer_memory_governance_v1.md) | AROMER memory governance |
 | [validation/EXTERNAL_VALIDATION_PLAN.md](validation/EXTERNAL_VALIDATION_PLAN.md) | External validation plan |
