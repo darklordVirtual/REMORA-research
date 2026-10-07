@@ -196,9 +196,40 @@ def policy_grant_v2() -> dict[str, Any]:
                                              hashlib.sha256).hexdigest()}]}
 
 
+def audit_v2() -> dict[str, Any]:
+    """A v1 entry, the AUDIT_VERSION_TRANSITION record, and a v2 entry."""
+    from remora.crypto import SignatureDomain
+    from remora.governance.audit_signing import entry_signature, transition_payload
+    from remora.governance.tenant_chain import compute_entry_hash
+
+    key = HMAC_KEY.encode()
+    previous = "0" * 64
+    cases = []
+    steps = [({"event": "assessed", "proposal_id": "p-1"}, False), (None, True),
+             ({"event": "executed", "proposal_id": "p-1"}, True)]
+    for sequence_no, (payload, v2) in enumerate(steps):
+        if payload is None:
+            payload = transition_payload(previous, first=False)
+        timestamp = f"2026-10-07T12:00:0{sequence_no}+00:00"
+        entry_hash = compute_entry_hash(previous, payload, "tenant-a", sequence_no, timestamp)
+        cases.append({
+            "name": f"audit-entry-{sequence_no}-{'v2' if v2 else 'v1'}",
+            "tenant_id": "tenant-a", "sequence_no": sequence_no, "timestamp": timestamp,
+            "payload": payload, "previous_hash": previous, "entry_hash": entry_hash,
+            "signature": entry_signature(entry_hash, key, v2=v2)})
+        previous = entry_hash
+    return {"artifact": "TenantAuditChain entry", "format": "v2",
+            "domain": SignatureDomain.AUDIT.value,
+            "preimage": "entry_hash as in v1; from the AUDIT_VERSION_TRANSITION record on, "
+                        "signature = 'v2:' + HMAC-SHA256(key, domain tag || 0x00 || "
+                        "entry_hash) hex; v1 entries before it are never re-signed",
+            "keys": {"hmac_key": HMAC_KEY}, "cases": cases}
+
+
 V1 = {"execution_lease.json": lease_v1, "policy_grant.json": policy_grant_v1,
       "audit_chain.json": audit_v1}
-V2 = {"execution_lease.json": lease_v2, "policy_grant.json": policy_grant_v2}
+V2 = {"execution_lease.json": lease_v2, "policy_grant.json": policy_grant_v2,
+      "audit_chain.json": audit_v2}
 
 
 def _render(builder: Any) -> str:

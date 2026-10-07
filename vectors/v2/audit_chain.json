@@ -1,0 +1,53 @@
+{
+  "artifact": "TenantAuditChain entry",
+  "cases": [
+    {
+      "entry_hash": "425b0fc8aa0492eea47ac16c5ee5cbba5e57d4c3a29880655501df7209d5e6c4",
+      "name": "audit-entry-0-v1",
+      "payload": {
+        "event": "assessed",
+        "proposal_id": "p-1"
+      },
+      "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "sequence_no": 0,
+      "signature": "38de59ced2c1b90451cb086d553833e9d171b3300266cf400462d93764bf6bc2",
+      "tenant_id": "tenant-a",
+      "timestamp": "2026-10-07T12:00:00+00:00"
+    },
+    {
+      "entry_hash": "93dad15b9f9f79646ba121d8c6728e657cb3d319149d6c58bb88e093a1b56a1a",
+      "name": "audit-entry-1-v2",
+      "payload": {
+        "event": "AUDIT_VERSION_TRANSITION",
+        "from": "v1",
+        "new_domain": "REMORA/AUDIT/v2",
+        "previous_chain_head": "425b0fc8aa0492eea47ac16c5ee5cbba5e57d4c3a29880655501df7209d5e6c4",
+        "to": "v2"
+      },
+      "previous_hash": "425b0fc8aa0492eea47ac16c5ee5cbba5e57d4c3a29880655501df7209d5e6c4",
+      "sequence_no": 1,
+      "signature": "v2:0fbfc7ec6ee00fae3889a855484201f806b76afada0ae850851d660c64a38b6c",
+      "tenant_id": "tenant-a",
+      "timestamp": "2026-10-07T12:00:01+00:00"
+    },
+    {
+      "entry_hash": "d23f61dc0b83429d22d3b84d1a91c742ec067deb87b597d2d9f1373ffb6241c5",
+      "name": "audit-entry-2-v2",
+      "payload": {
+        "event": "executed",
+        "proposal_id": "p-1"
+      },
+      "previous_hash": "93dad15b9f9f79646ba121d8c6728e657cb3d319149d6c58bb88e093a1b56a1a",
+      "sequence_no": 2,
+      "signature": "v2:a77ed39538c0dbed7284e5dc54f5b7b83eea98f9af438560c0bf859899f34e7e",
+      "tenant_id": "tenant-a",
+      "timestamp": "2026-10-07T12:00:02+00:00"
+    }
+  ],
+  "domain": "REMORA/AUDIT/v2",
+  "format": "v2",
+  "keys": {
+    "hmac_key": "remora-vector-hmac-key-not-a-secret"
+  },
+  "preimage": "entry_hash as in v1; from the AUDIT_VERSION_TRANSITION record on, signature = 'v2:' + HMAC-SHA256(key, domain tag || 0x00 || entry_hash) hex; v1 entries before it are never re-signed"
+}

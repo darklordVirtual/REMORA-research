@@ -6,6 +6,15 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Security
 
+- Signature format v2 for the tenant audit chain (CR-011, C3). v1 entries
+  are never re-signed. The first v2 append writes an
+  `AUDIT_VERSION_TRANSITION` record naming the final v1 head and
+  `REMORA/AUDIT/v2`; from it on every entry is signed `v2:` + HMAC over the
+  tagged entry hash, and a chain never goes back. The verifier reads each
+  entry's era from the chain's structure; misplaced v1 or v2 signatures and
+  repeated or malformed transitions are findings, checkable without the key.
+  `verification_statuses` adds `signature_format`. Memory, SQLite and
+  Postgres chains.
 - Signature format v2 for PolicyDecisionToken (CR-011, C2). Token v1 (HMAC
   over untagged canonical JSON) is frozen. v2 signs
   `REMORA/POLICY-GRANT/v2 || 0x00 || payload` with `format: v2` inside the

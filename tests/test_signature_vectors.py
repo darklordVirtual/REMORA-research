@@ -173,3 +173,20 @@ def test_policy_grant_v2_vector_verifies(keys) -> None:
                              is_signed=True)
     assert v1.verify_historical().reason == "signature_invalid"
 
+
+def test_audit_v2_vector_crosses_its_transition_without_re_signing() -> None:
+    from remora.governance.audit_signing import signature_problems
+    from remora.governance.tenant_chain import ChainEntry, compute_entry_hash
+
+    vector = _load(V2, "audit_chain.json")
+    entries = [ChainEntry(c["tenant_id"], c["sequence_no"], c["timestamp"], c["payload"],
+                          c["previous_hash"], c["entry_hash"], c["signature"])
+               for c in vector["cases"]]
+    for e in entries:
+        assert compute_entry_hash(e.previous_hash, e.payload, e.tenant_id, e.sequence_no,
+                                  e.timestamp) == e.entry_hash
+    assert signature_problems(entries, vector["keys"]["hmac_key"].encode()) == []
+    # The v1 entry before the transition is byte-identical to the frozen v1 vector.
+    v1 = _load(V1, "audit_chain.json")["cases"][0]
+    assert vector["cases"][0]["signature"] == v1["signature"]
+

@@ -58,7 +58,8 @@ def test_without_a_key_a_rechained_history_is_not_reported_as_signed_and_checked
     ok, problems = chain.verify("t")
     status = verification_statuses(chain.entries("t"), problems)
     assert ok is True  # the hash links are intact; that is all this verifier can see
-    assert status == {"hash_chain_status": "INTACT", "signature_status": SIGNATURE_UNSIGNED}
+    assert status == {"hash_chain_status": "INTACT", "signature_status": SIGNATURE_UNSIGNED,
+                      "signature_format": "none"}
 
 
 def test_with_the_key_the_same_history_is_refused(monkeypatch) -> None:
@@ -68,7 +69,8 @@ def test_with_the_key_the_same_history_is_refused(monkeypatch) -> None:
     ok, problems = chain.verify("t")
     status = verification_statuses(chain.entries("t"), problems)
     assert ok is False and any(p.startswith("signature_missing_at") for p in problems)
-    assert status == {"hash_chain_status": "INTACT", "signature_status": SIGNATURE_CHECKED}
+    assert status == {"hash_chain_status": "INTACT", "signature_status": SIGNATURE_CHECKED,
+                      "signature_format": "none"}
 
 
 def test_signed_entries_verified_without_the_key_are_not_checked(monkeypatch) -> None:
