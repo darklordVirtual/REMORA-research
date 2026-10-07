@@ -64,6 +64,41 @@ unestablished_properties:
       until the strict profile separates effect credentials from tool workers
       and a deployment provides evidence for it (design phase 3).
 
+  - id: exact_call_binding_over_federation_port_v0
+    phase: RESEARCH
+    status: NOT_ESTABLISHED
+    evidence: artifacts/interop/federation-port-v0/projection-map.yaml
+    caveat: >-
+      federation-port/v0 carries arguments as JavaScript values, a tenant
+      label and no principal, so REMORA's exact_call_binding-v1.1 projects
+      NARROWED to remora.port_v0.bound_action (CAP-027). Full exact-call
+      binding over V0 would need typed scalars, an authenticated tenant and
+      principal, and an independent target.
+  - id: fresh_authority_over_federation_port_v0
+    phase: RESEARCH
+    status: NOT_ESTABLISHED
+    evidence: artifacts/interop/federation-port-v0/projection-map.yaml
+    caveat: >-
+      V0 exposes expiry at admission (remora.authorization_unexpired) on the
+      runtime's local clock. Revocation, trusted time, ToolSpec freshness and
+      signing-key status are not evaluated over V0.
+  - id: effect_verification_over_federation_port_v0
+    phase: RESEARCH
+    status: NOT_ESTABLISHED
+    evidence: remora/federation/lifecycle.py
+    caveat: >-
+      V0 has no system-of-record observation; provider_confirmed is an
+      execution report. Only REMORA's effect verifier establishes an effect,
+      as a separate edge.
+  - id: custody_isolation_over_federation_port_v0
+    phase: RESEARCH
+    status: NOT_ESTABLISHED
+    evidence: artifacts/interop/federation-port-v0/capabilities.yaml
+    caveat: >-
+      federation-port/v0 runs adapters in the runtime's own process (its
+      contract section 10), so no authority/executor custody isolation
+      survives the transport.
+
 # Verification binding (issue #281). A capability's status and caveat are
 # claims about code, so they are bound to the revision that was audited.
 # `verified_at_sha` is checked by scripts/check_capability_freshness.py: if an
@@ -1047,3 +1082,69 @@ capabilities:
       completeness, no non-bypassability, no independence from a declaration,
       no accepted event content or property refutation, no absence outside the
       established denominator, no causation, no authorization from evidence.
+  - id: CAP-026
+    name: "Federation Bridge: native federation envelope, transport capability declarations, loss-aware claim projection and projection records"
+    status: IMPLEMENTED_LIBRARY
+    verified_at_sha: 86f2b8b9def819268f4c22104c48d1e3f17cfdd3
+    verified_by: >-
+      audit 2026-10-07 at registration: remora/federation builds the native
+      envelope (REMORA canonical bytes, digest and typed scalars; unavailable
+      fields null and listed), reads a transport capability declaration and a
+      versioned projection map, and projects each native claim to PRESERVED,
+      NARROWED, NOT_ESTABLISHED or UNSUPPORTED, weakening further for an
+      action's own losses; assert_export refuses a stronger adapter claim;
+      evidence is signed in REMORA/FEDERATION-ACTION/v1; projection records
+      carry evidence, adapter, map and capability digests; provider_confirmed
+      never maps to EFFECT_VERIFIED. Evidence green at this revision:
+      tests/test_federation_bridge.py (31), including schema validation and an
+      AST check that no native module imports the bridge. Method: test
+      execution plus review; not an external audit.
+    evidence:
+      - remora/federation/canonical.py
+      - remora/federation/models.py
+      - remora/federation/capabilities.py
+      - remora/federation/projection.py
+      - remora/federation/evidence.py
+      - remora/federation/lifecycle.py
+      - tests/test_federation_bridge.py
+      - docs/interop/FEDERATION_BRIDGE.md
+    caveat: >-
+      Library only: no REMORA API path produces federation evidence yet, so a
+      caller builds the envelope and signs it with a key it manages. The
+      projection is only as faithful as the capability declaration, which is
+      REMORA's reading of the transport's contract. Projection strength is not
+      a check result.
+  - id: CAP-027
+    name: "federation-port/v0 adapter: REMORA authorization evidence verified inside an unmodified federation-port runtime"
+    status: WIRED_REFERENCE_PATH
+    verified_at_sha: 86f2b8b9def819268f4c22104c48d1e3f17cfdd3
+    verified_by: >-
+      audit 2026-10-07 at registration: remora/federation/transports/federation_port_v0.py
+      produces the V0 request and signed evidence; the TypeScript component in
+      integrations/federation-port/remora-adapter verifies it with a pinned key
+      and reports remora.authorization_integrity, remora.port_v0.bound_action
+      and remora.authorization_unexpired. Its 17 tests ran inside an unmodified
+      federation-port runtime at aeoess/federation-port@92d5078 (revision and
+      clean src/ asserted): valid action admitted; eight mutations refused
+      before dispatch; 1 versus 1.0 admitted with the loss recorded; another
+      principal admitted with principal binding NOT_ESTABLISHED; expiry and an
+      untrusted key refused. tsc strict passes against the contract types. CI
+      job federation-port-adapter runs both.
+    evidence:
+      - remora/federation/transports/federation_port_v0.py
+      - integrations/federation-port/remora-adapter/adapter.ts
+      - integrations/federation-port/remora-adapter/manifest.json
+      - integrations/federation-port/remora-adapter/tests/remora-adapter.test.ts
+      - tests/test_federation_bridge.py
+      - artifacts/interop/federation-port-v0/projection-map.yaml
+      - artifacts/interop/federation-port-v0/capabilities.yaml
+      - artifacts/interop/federation-port-v0/fixtures.json
+      - scripts/build_federation_port_v0_fixtures.py
+    caveat: >-
+      Exercised on fixtures signed with published test keys, in a local
+      federation-port runtime with its simulated refund provider. The narrowed
+      claim only: not full exact-call binding, principal binding, fresh
+      authority, custody isolation or an effect (see the four
+      *_over_federation_port_v0 properties). Producer-written adapter and
+      tests; independence NOT_ESTABLISHED until another party reproduces the
+      run. V0 runs adapters in its own process.
