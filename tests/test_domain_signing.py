@@ -60,7 +60,7 @@ def test_the_domain_tag_is_part_of_the_preimage() -> None:
     a = preimage(SignatureDomain.POLICY_GRANT, PAYLOAD)
     b = preimage(SignatureDomain.EXECUTION_LEASE, PAYLOAD)
     assert a != b
-    assert a == b"REMORA/POLICY-GRANT/v1\x00" + PAYLOAD
+    assert a == b"REMORA/POLICY-GRANT/v2\x00" + PAYLOAD
 
 
 def test_a_key_cannot_sign_outside_its_domains() -> None:

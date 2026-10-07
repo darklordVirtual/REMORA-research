@@ -1,0 +1,36 @@
+{
+  "artifact": "TenantAuditChain entry",
+  "cases": [
+    {
+      "entry_hash": "425b0fc8aa0492eea47ac16c5ee5cbba5e57d4c3a29880655501df7209d5e6c4",
+      "name": "audit-v1-entry-0",
+      "payload": {
+        "event": "assessed",
+        "proposal_id": "p-1"
+      },
+      "previous_hash": "0000000000000000000000000000000000000000000000000000000000000000",
+      "sequence_no": 0,
+      "signature": "38de59ced2c1b90451cb086d553833e9d171b3300266cf400462d93764bf6bc2",
+      "tenant_id": "tenant-a",
+      "timestamp": "2026-10-07T12:00:00+00:00"
+    },
+    {
+      "entry_hash": "030dbc1bdade23c942c327d6ca472995d0f19565c460fc465c498eaf8f5069a5",
+      "name": "audit-v1-entry-1",
+      "payload": {
+        "event": "executed",
+        "proposal_id": "p-1"
+      },
+      "previous_hash": "425b0fc8aa0492eea47ac16c5ee5cbba5e57d4c3a29880655501df7209d5e6c4",
+      "sequence_no": 1,
+      "signature": "3eedf51e3fd5bf46f3850e9128178e35d37897c718c6b5974580ff7f6a3061d5",
+      "tenant_id": "tenant-a",
+      "timestamp": "2026-10-07T12:00:01+00:00"
+    }
+  ],
+  "format": "v1",
+  "keys": {
+    "hmac_key": "remora-vector-hmac-key-not-a-secret"
+  },
+  "preimage": "entry_hash = SHA256(previous || 0x1f || canonical(payload) || 0x1f || tenant || 0x1f || sequence || 0x1f || timestamp); signature = HMAC-SHA256(key, entry_hash) hex, untagged"
+}

@@ -2824,6 +2824,18 @@ documents:
   - maintainers
   - evaluators
   - integrators
+- id: DOC-371
+  path: docs/design/signature-format-v2.md
+  status: canonical
+  topic: docs_design_signature-format-v2_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-10-07'
+  last_reviewed: '2026-10-07'
+  audience:
+  - maintainers
+  - evaluators
+  - integrators
 topics:
 - provenance_README_md
 - provenance_prior-art-review-2026-10-04_md
@@ -3126,3 +3138,4 @@ topics:
 - docs_assurance_reviews_2026-10-07-272b6c56_claim_audit_md
 - docs_assurance_reviews_2026-10-07-272b6c56_fix_rebase_md
 - docs_design_binding-policy-v1_md
+- docs_design_signature-format-v2_md

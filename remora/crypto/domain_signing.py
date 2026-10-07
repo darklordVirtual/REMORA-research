@@ -27,9 +27,10 @@ Three further rules, each closing a way the topology could silently weaken:
 Verification never needs signing material: a process configured with
 ``VerificationKey`` values can check every signature and produce none.
 
-This module migrates no existing artifact. Leases, PDP tokens and audit
-chains keep their current formats; adopting a domain for them is a separate,
-versioned change.
+The signed artifacts adopt it as a versioned change (CR-011): their v1
+formats are frozen and untagged, and their v2 formats sign in the domains
+below. The ``/v2`` in a tag names the artifact format it belongs to, so a
+domain tag can never be read as describing a frozen v1 artifact.
 """
 from __future__ import annotations
 
@@ -66,8 +67,13 @@ class SignatureDomain(str, Enum):
     """What a signature is about. The value is the exact tag in the preimage."""
 
     TOOLSPEC_BUNDLE = "REMORA/TOOLSPEC-BUNDLE/v1"
-    POLICY_GRANT = "REMORA/POLICY-GRANT/v1"
-    EXECUTION_LEASE = "REMORA/EXECUTION-LEASE/v1"
+    #: PolicyDecisionToken v2. Never used to sign anything under a /v1 tag:
+    #: the reserved /v1 values were unused, and v1 tokens are untagged.
+    POLICY_GRANT = "REMORA/POLICY-GRANT/v2"
+    #: ExecutionLease v2 (v1 leases are untagged and frozen).
+    EXECUTION_LEASE = "REMORA/EXECUTION-LEASE/v2"
+    #: Tenant audit chain entries from the AUDIT_VERSION_TRANSITION record on.
+    AUDIT = "REMORA/AUDIT/v2"
     EVIDENCE = "REMORA/EVIDENCE/v1"
     OPERATOR_STATEMENT = "REMORA/OPERATOR-STATEMENT/v1"
 

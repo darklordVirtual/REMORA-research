@@ -1,0 +1,40 @@
+{
+  "artifact": "ExecutionLease",
+  "cases": [
+    {
+      "name": "lease-v2-ed25519",
+      "payload": "{\"actor_identity\":\"agent-1\",\"decision\":\"accept\",\"expires_at\":\"2026-10-07T12:02:00+00:00\",\"grant_jti\":\"00000000-0000-4000-8000-000000000002\",\"intent_authority_hash\":\"\",\"issued_at\":\"2026-10-07T12:00:00+00:00\",\"kid\":\"ed25519-730a5edc28c2f8daf2d9dce3a01d5f205e35e55582eed2ba26219fabdd4cc9a8\",\"nonce\":\"00000000-0000-4000-8000-000000000001\",\"policy_bundle_hash\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\",\"proposal_id\":\"proposal-1\",\"runtime_identity_hash\":\"\",\"sig_alg\":\"ed25519-domain-v2\",\"target_environment\":\"prod\",\"tenant_id\":\"tenant-a\",\"tool_args_hash\":\"3333333333333333333333333333333333333333333333333333333333333333\",\"tool_contract_bundle_hash\":\"\",\"tool_name\":\"wo_close\",\"toolspec_hash\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"toolspec_version\":1}",
+      "preimage_b64": "UkVNT1JBL0VYRUNVVElPTi1MRUFTRS92MgB7ImFjdG9yX2lkZW50aXR5IjoiYWdlbnQtMSIsImRlY2lzaW9uIjoiYWNjZXB0IiwiZXhwaXJlc19hdCI6IjIwMjYtMTAtMDdUMTI6MDI6MDArMDA6MDAiLCJncmFudF9qdGkiOiIwMDAwMDAwMC0wMDAwLTQwMDAtODAwMC0wMDAwMDAwMDAwMDIiLCJpbnRlbnRfYXV0aG9yaXR5X2hhc2giOiIiLCJpc3N1ZWRfYXQiOiIyMDI2LTEwLTA3VDEyOjAwOjAwKzAwOjAwIiwia2lkIjoiZWQyNTUxOS03MzBhNWVkYzI4YzJmOGRhZjJkOWRjZTNhMDFkNWYyMDVlMzVlNTU1ODJlZWQyYmEyNjIxOWZhYmRkNGNjOWE4Iiwibm9uY2UiOiIwMDAwMDAwMC0wMDAwLTQwMDAtODAwMC0wMDAwMDAwMDAwMDEiLCJwb2xpY3lfYnVuZGxlX2hhc2giOiJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiYmJiIiwicHJvcG9zYWxfaWQiOiJwcm9wb3NhbC0xIiwicnVudGltZV9pZGVudGl0eV9oYXNoIjoiIiwic2lnX2FsZyI6ImVkMjU1MTktZG9tYWluLXYyIiwidGFyZ2V0X2Vudmlyb25tZW50IjoicHJvZCIsInRlbmFudF9pZCI6InRlbmFudC1hIiwidG9vbF9hcmdzX2hhc2giOiIzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzIiwidG9vbF9jb250cmFjdF9idW5kbGVfaGFzaCI6IiIsInRvb2xfbmFtZSI6IndvX2Nsb3NlIiwidG9vbHNwZWNfaGFzaCI6ImNjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2MiLCJ0b29sc3BlY192ZXJzaW9uIjoxfQ==",
+      "signature": "E3IcbBy/t6KQrwoKTkq8v4G6fh1S5nrTEtZvZyC2ypKFLYPn7gpFubjXP6oFmw5Gc7IN4peuaz0M0M5wNfhyDw==",
+      "signed_fields": {
+        "actor_identity": "agent-1",
+        "decision": "accept",
+        "expires_at": "2026-10-07T12:02:00+00:00",
+        "grant_jti": "00000000-0000-4000-8000-000000000002",
+        "intent_authority_hash": "",
+        "issued_at": "2026-10-07T12:00:00+00:00",
+        "kid": "ed25519-730a5edc28c2f8daf2d9dce3a01d5f205e35e55582eed2ba26219fabdd4cc9a8",
+        "nonce": "00000000-0000-4000-8000-000000000001",
+        "policy_bundle_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "proposal_id": "proposal-1",
+        "runtime_identity_hash": "",
+        "sig_alg": "ed25519-domain-v2",
+        "target_environment": "prod",
+        "tenant_id": "tenant-a",
+        "tool_args_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+        "tool_contract_bundle_hash": "",
+        "tool_name": "wo_close",
+        "toolspec_hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "toolspec_version": 1
+      }
+    }
+  ],
+  "domain": "REMORA/EXECUTION-LEASE/v2",
+  "format": "v2",
+  "keys": {
+    "ed25519_public_hex": "bc7cbcb5636375fa1d82434d466724d92377f53b980695dd49d26d0ce12205a5",
+    "ed25519_seed_hex": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "hmac_key": "remora-vector-hmac-key-not-a-secret"
+  },
+  "preimage": "domain tag || 0x00 || canonical JSON (sorted keys, compact); Ed25519, signature base64; kid = 'ed25519-' + sha256(public key)"
+}
