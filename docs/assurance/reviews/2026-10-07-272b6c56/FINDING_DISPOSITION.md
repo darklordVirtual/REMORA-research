@@ -20,7 +20,7 @@ change and stay reachable (merge commits).
 | RMR-CR-011 signature domain separation | FIXED under strict v2 (lease, token, audit); envelopes, checkpoints and Workers remain v1 | #768, #778, #779, #780 | 2412d61, 0f65741, d82bdc6, e7371db |
 | RMR-CR-012 concurrency test hang | FIXED | #767 | squash |
 | RMR-CR-013 canonicalisation | CHANGED, then FIXED at the Worker edge (no v2 canonicalisation) | #783 | d737f94 |
-| RMR-CR-014 datasets in wheel | FIXED (excluded from the runtime wheel) | #784 | pending |
+| RMR-CR-014 datasets in wheel | FIXED (excluded from the runtime wheel) | #784 | a28cf3c |
 | RMR-CR-015 ledger failure parity | FIXED | #771 | 517a904 |
 
 ## Per finding

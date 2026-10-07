@@ -68,6 +68,7 @@ class Deployment:
         init_review(self.cfg)
         self.ports = {name: _free_port() for name in ("authority", "executor", "effect")}
         self.procs: dict[str, subprocess.Popen] = {}
+        self.logs: list = []
         self.base = base
         self.executor_env = _env_file(self.cfg / "executor.env")
 
@@ -85,6 +86,7 @@ class Deployment:
     def start(self) -> None:
         for name in ("effect", "executor", "authority"):
             log = open(self.base / f"{name}.log", "w", encoding="utf-8")  # noqa: SIM115
+            self.logs.append(log)  # closed in stop(), after the process exits
             self.procs[name] = subprocess.Popen(
                 [sys.executable, "-m", "uvicorn", "servers.api:app",
                  "--port", str(self.ports[name])],
@@ -114,6 +116,8 @@ class Deployment:
                 proc.wait(timeout=15)
             except subprocess.TimeoutExpired:
                 proc.kill()
+        for log in self.logs:
+            log.close()
 
     def token(self, name: str) -> str:
         return (self.cfg / "keys" / name).read_text(encoding="utf-8").strip()
