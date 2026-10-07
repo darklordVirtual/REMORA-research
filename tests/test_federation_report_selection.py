@@ -355,3 +355,40 @@ def test_attempt_and_effect_observations_of_one_operation_are_separate_subjects(
                              subject=report.subject(), report=report).bound
     assert len(subjects) == 3
     assert statuses == ["provider_confirmed", "EFFECT_UNOBSERVABLE", "EFFECT_VERIFIED"]
+
+
+# -- the federation-port component's fixtures (remora-research/report-result) ---------------
+
+def test_the_report_result_fixtures_carry_this_model_and_verify_per_report() -> None:
+    """report-results.json is what the TypeScript component is tested on; check it here too.
+
+    Each signed result must verify as REMORA's result about exactly its own report, carry the
+    native status this module's model gives that report, and the result signed under the
+    other key must not verify under the published one.
+    """
+    from remora.crypto import VerificationKey
+
+    data = json.loads((ROOT / "artifacts" / "interop" / "federation-port-v0"
+                       / "report-results.json").read_text(encoding="utf-8"))
+    key = VerificationKey.from_text(data["test_keys"]["result_public_key_hex"],
+                                    [SignatureDomain.FEDERATION_RESULT])
+    assert {c["name"] for c in data["cases"]} == set(CASES)
+    for case in data["cases"]:
+        name = case["name"]
+        assert case["expected"] == CASES[name]["expected"]
+        reports = [Report(operation_id=case["operation_id"], report_id=r.report_id,
+                          sequence=r.sequence, body=r.body) for r in _reports(name)]
+        for result, report in zip(case["results"], reports, strict=True):
+            evidence = base64.b64decode(result["evidence_b64"])
+            checked = verify_result(evidence, [key], native_claim=data["native_claim"],
+                                    subject=report.subject(), report=report)
+            assert checked.bound, (name, report.report_id, checked.reason)
+            assert checked.native_result["status"] == CASES[name]["expected"][report.report_id]
+            assert checked.native_result["status"] == _native(name)(report).status
+            assert result["report_digest"] == report.digest
+            other = next(r for r in reports if r is not report)
+            assert not verify_result(evidence, [key], native_claim=data["native_claim"],
+                                     subject=other.subject()).bound
+        foreign = base64.b64decode(case["untrusted_result_b64"])
+        assert not verify_result(foreign, [key], native_claim=data["native_claim"],
+                                 subject=reports[0].subject()).bound

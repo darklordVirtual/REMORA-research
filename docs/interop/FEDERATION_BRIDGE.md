@@ -61,6 +61,7 @@ refuses an adapter claim the projection does not permit.
 | `fresh_authority_at_dispatch` | NARROWED | `remora.authorization_unexpired` |
 | principal binding | NOT_ESTABLISHED | none |
 | authority/executor custody isolation | NOT_ESTABLISHED | none |
+| a native result for one report | NARROWED | `remora.report_result` |
 | effect verification | UNSUPPORTED | none |
 
 `remora.port_v0.bound_action` covers the tool, the argument values,
@@ -97,9 +98,11 @@ REMORA.
 [`reproduce.sh`](../../integrations/federation-port/remora-adapter/reproduce.sh)
 installs it into federation-port's own tree at the pinned revision, seals it
 with federation-port's `scripts/seal.ts`, checks that `src/` is unmodified and
-runs federation-port's suite with it. It reports 61 of 61 at `92d5078`: 44
-upstream and 17 for the component. REMORA's acceptance suites run separately,
-and the result is written as JSON. CI runs the same script on every change.
+runs federation-port's suite with it and with the report-result component
+below. It reports 80 of 80 at `92d5078`: 44 upstream, 17 for this component
+and 19 for the report-result component. REMORA's acceptance suites run
+separately, and the result is written as JSON. CI runs the same script on
+every change.
 
 ## Projection records
 
@@ -160,10 +163,34 @@ no subject, so its `report_specific_binding` is `NOT_ESTABLISHED`, and the
 reader never infers one from surrounding metadata. A v2 record alone does not
 establish its binding either; the signed result does.
 
-Over federation-port/v0 nothing changes for the runtime. The adapter already
-binds each authorization to its operation id. Report-specific results travel
-as REMORA's own signed evidence, and federation-port receives only the claims
-the projection map permits. No federation-port core change is needed.
+Over federation-port/v0 nothing changes for the runtime, and no core change
+is needed. The adapter already binds each authorization to its operation id.
+A report-specific result reaches V0 through the component below.
+
+## The report-result component
+
+aeoess placed the binding in the adapter, with the requested report explicit
+in its input. V0 checks run before dispatch, so such a check gates a new
+action on an earlier report's result.
+[`integrations/federation-port/remora-report-result`](../../integrations/federation-port/remora-report-result/README.md)
+is that `action_evaluation` component.
+
+- Its input names the requested report and carries REMORA's signed results,
+  one per report.
+- It verifies each result against a pinned key and selects exactly the
+  requested report. With several eligible reports and no request it refuses
+  (`report_selection_ambiguous`).
+- It reports `remora.report_result`, established only when REMORA's native
+  status for that report is ESTABLISHED. A CONTRADICTED report is refused
+  with its native reason.
+- Its output evidence keeps the selected report's identity and digest, the
+  selection rule, and the native result and reason next to the claim status.
+
+The projection map exports this claim as NARROWED: the signature and the
+report identity survive, but V0 has no check after dispatch
+(`post_dispatch_check: false`). Its tests evaluate each LATE and
+LATE-CONFLICT report on its own submission, so all four expectations are
+checked inside an unmodified runtime.
 
 The same subjects carry post-dispatch observations. An execution attempt
 reported `provider_confirmed`, an effect observation `EFFECT_UNOBSERVABLE` and
@@ -196,6 +223,7 @@ compose with.
 | AC-11 | a stronger transport preserves without changing the native claim | a capability declaration alone moves exact-call to PRESERVED |
 | AC-12 | native, projected, runtime and effect layers stay distinct | projection records, lifecycle reading |
 | AC-RS-01 to 14 | report-specific binding (above) | `tests/test_federation_report_selection.py` |
+| AC-RS-V0 | each LATE and LATE-CONFLICT report evaluated separately in an unmodified V0 runtime | `integrations/federation-port/remora-report-result/tests` |
 
 ## What this does not establish
 

@@ -24,5 +24,6 @@ capabilities:
   isolated_component: false         # "adapters run in the runtime's own process"
   retry_context_binding: true       # section 7
   dispatch_outcome: true            # provider_confirmed | failed | unknown
+  post_dispatch_check: false        # checks run before dispatch; none sees the dispatched result
   reconciliation: false             # "no reconciliation endpoint"
   effect_verification: false        # no system-of-record observation

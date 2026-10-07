@@ -16,7 +16,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
@@ -37,7 +37,7 @@
             "signature"
           ],
           "projection": "PRESERVED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -51,7 +51,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
@@ -85,7 +85,7 @@
             "tool"
           ],
           "projection": "NARROWED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -99,7 +99,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
@@ -124,7 +124,7 @@
             "expiry_at_admission"
           ],
           "projection": "NARROWED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -138,7 +138,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
@@ -157,7 +157,7 @@
           ],
           "preserved": [],
           "projection": "NOT_ESTABLISHED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -171,7 +171,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
@@ -190,7 +190,7 @@
           ],
           "preserved": [],
           "projection": "NOT_ESTABLISHED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -204,7 +204,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
@@ -223,7 +223,7 @@
           ],
           "preserved": [],
           "projection": "UNSUPPORTED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -270,7 +270,7 @@
             ]
           },
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
@@ -291,7 +291,7 @@
             "signature"
           ],
           "projection": "PRESERVED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -309,7 +309,7 @@
             ]
           },
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
@@ -343,7 +343,7 @@
             "tool"
           ],
           "projection": "NARROWED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -361,7 +361,7 @@
             ]
           },
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
@@ -386,7 +386,7 @@
             "expiry_at_admission"
           ],
           "projection": "NARROWED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -404,7 +404,7 @@
             ]
           },
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
@@ -423,7 +423,7 @@
           ],
           "preserved": [],
           "projection": "NOT_ESTABLISHED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -441,7 +441,7 @@
             ]
           },
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
@@ -460,7 +460,7 @@
           ],
           "preserved": [],
           "projection": "NOT_ESTABLISHED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -478,7 +478,7 @@
             ]
           },
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
@@ -497,7 +497,7 @@
           ],
           "preserved": [],
           "projection": "UNSUPPORTED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -540,7 +540,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
@@ -561,7 +561,7 @@
             "signature"
           ],
           "projection": "PRESERVED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -575,7 +575,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
@@ -609,7 +609,7 @@
             "tool"
           ],
           "projection": "NARROWED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -623,7 +623,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
@@ -648,7 +648,7 @@
             "expiry_at_admission"
           ],
           "projection": "NARROWED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -662,7 +662,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
@@ -681,7 +681,7 @@
           ],
           "preserved": [],
           "projection": "NOT_ESTABLISHED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -695,7 +695,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
@@ -714,7 +714,7 @@
           ],
           "preserved": [],
           "projection": "NOT_ESTABLISHED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -728,7 +728,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
@@ -747,7 +747,7 @@
           ],
           "preserved": [],
           "projection": "UNSUPPORTED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -790,7 +790,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
@@ -811,7 +811,7 @@
             "signature"
           ],
           "projection": "PRESERVED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -825,7 +825,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
@@ -859,7 +859,7 @@
             "tool"
           ],
           "projection": "NARROWED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -873,7 +873,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
@@ -898,7 +898,7 @@
             "expiry_at_admission"
           ],
           "projection": "NARROWED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -912,7 +912,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
@@ -931,7 +931,7 @@
           ],
           "preserved": [],
           "projection": "NOT_ESTABLISHED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -945,7 +945,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
@@ -964,7 +964,7 @@
           ],
           "preserved": [],
           "projection": "NOT_ESTABLISHED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -978,7 +978,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
@@ -997,7 +997,7 @@
           ],
           "preserved": [],
           "projection": "UNSUPPORTED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -1040,7 +1040,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
@@ -1061,7 +1061,7 @@
             "signature"
           ],
           "projection": "PRESERVED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -1075,7 +1075,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
@@ -1109,7 +1109,7 @@
             "tool"
           ],
           "projection": "NARROWED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -1123,7 +1123,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
@@ -1148,7 +1148,7 @@
             "expiry_at_admission"
           ],
           "projection": "NARROWED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -1162,7 +1162,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
@@ -1181,7 +1181,7 @@
           ],
           "preserved": [],
           "projection": "NOT_ESTABLISHED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -1195,7 +1195,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
@@ -1214,7 +1214,7 @@
           ],
           "preserved": [],
           "projection": "NOT_ESTABLISHED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {
@@ -1228,7 +1228,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
@@ -1247,7 +1247,7 @@
           ],
           "preserved": [],
           "projection": "UNSUPPORTED",
-          "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
+          "projection_map_digest": "sha256:381f7761ecc20ba9d037448a230ba1b8bcca655267684ba39375edc2299077a1",
           "remora_revision": "fixture",
           "schema_version": "remora-federation-projection-v2",
           "subject": {

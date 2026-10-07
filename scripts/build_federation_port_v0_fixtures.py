@@ -40,9 +40,15 @@ from remora.federation.transports.federation_port_v0 import (  # noqa: E402
 
 BASE = ROOT / "artifacts" / "interop" / "federation-port-v0"
 ADAPTER = ROOT / "integrations" / "federation-port" / "remora-adapter"
+REPORT_COMPONENT = ROOT / "integrations" / "federation-port" / "remora-report-result"
 FIXTURES = BASE / "fixtures.json"
+REPORT_FIXTURES = BASE / "report-results.json"
 TEST_SEED = "c3" * 32
 OTHER_SEED = "d4" * 32
+#: Test key for REMORA/FEDERATION-RESULT/v1 results; published, used nowhere else.
+RESULT_SEED = "b8" * 32
+RESULT_OTHER_SEED = "a9" * 32
+COMPONENTS = (ADAPTER, REPORT_COMPONENT)
 TRANSPORT_REVISION = "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
 VALID_UNTIL = "2026-10-07T12:05:00.000Z"
 NOW = "2026-10-07T12:01:00.000Z"
@@ -130,12 +136,88 @@ def _render() -> str:
     return json.dumps(build(), indent=2, sort_keys=True) + "\n"
 
 
+# -- report-specific acceptance (LATE / LATE-CONFLICT) --------------------------------------
+# Local synthetic reproductions of the semantics of Rul1an's public LATE and LATE-CONFLICT
+# fixtures (aeoess/agent-governance-vocabulary#177, issuecomment-6047105582); no material
+# copied. Each operation has provider deliveries and two client reports; the native verifier
+# answers definite_support per report.
+REPORT_CASES: dict[str, dict[str, Any]] = {
+    "LATE": {"deliveries": [{"at": 2, "result": "succeeded"}],
+             "reports": [{"report_id": "report-1", "at": 1}, {"report_id": "report-2", "at": 3}],
+             "expected": {"report-1": "CONTRADICTED", "report-2": "ESTABLISHED"}},
+    "LATE-CONFLICT": {"deliveries": [{"at": 1, "result": "succeeded"},
+                                     {"at": 3, "result": "failed"}],
+                      "reports": [{"report_id": "report-1", "at": 2},
+                                  {"report_id": "report-2", "at": 4}],
+                      "expected": {"report-1": "ESTABLISHED", "report-2": "CONTRADICTED"}},
+}
+
+
+def _definite_support(deliveries: list[dict[str, Any]], report: Any) -> Any:
+    from remora.federation import NativeResult
+
+    seen = [d for d in deliveries if d["at"] <= report.body["reported_at"]]
+    if not seen:
+        return NativeResult("CONTRADICTED", "result_not_delivered_at_report_time")
+    if max(seen, key=lambda d: d["at"])["result"] != report.body["relies_on"]:
+        return NativeResult("CONTRADICTED", "conflicting_result_delivered")
+    return NativeResult("ESTABLISHED", "required_result_delivered")
+
+
+def build_reports() -> dict[str, Any]:
+    from remora.federation import Report, select_report
+    from remora.federation.results import result_document, result_evidence
+
+    key = SigningKey.from_text(RESULT_SEED, [SignatureDomain.FEDERATION_RESULT])
+    other = SigningKey.from_text(RESULT_OTHER_SEED, [SignatureDomain.FEDERATION_RESULT])
+    cases = []
+    for name, case in REPORT_CASES.items():
+        reports = [Report(operation_id=f"op-{name.lower()}", report_id=r["report_id"],
+                          sequence=i + 1, body={"reported_at": r["at"], "relies_on": "succeeded"})
+                   for i, r in enumerate(case["reports"])]
+        results = []
+        for report in reports:
+            selected, selection = select_report(reports, report_id=report.report_id)
+            document = result_document(
+                native_claim="definite_support", subject=selected.subject(),
+                selection=selection, native_result=_definite_support(case["deliveries"], selected))
+            results.append({"report_id": report.report_id, "report_digest": report.digest,
+                            "native_status": document["native_result"]["status"],
+                            "native_reason": document["native_result"]["reason_code"],
+                            "evidence_b64": base64.b64encode(
+                                result_evidence(document, key)).decode("ascii")})
+        foreign = result_evidence(result_document(
+            native_claim="definite_support", subject=reports[0].subject(),
+            selection=select_report(reports, report_id=reports[0].report_id)[1],
+            native_result=_definite_support(case["deliveries"], reports[0])), other)
+        cases.append({"name": name, "operation_id": reports[0].operation_id,
+                      "expected": case["expected"], "results": results,
+                      "untrusted_result_b64": base64.b64encode(foreign).decode("ascii")})
+    return {
+        "schema_version": "remora-federation-port-v0-report-fixtures-v1",
+        "component": "remora-research/report-result",
+        "native_claim": "definite_support",
+        "attribution": "Semantics after Rul1an's public synthetic LATE and LATE-CONFLICT fixtures "
+                       "(aeoess/agent-governance-vocabulary#177, issuecomment-6047105582); "
+                       "local reproduction, no material copied",
+        "test_keys": {"result_signing_seed_hex": RESULT_SEED,
+                      "result_public_key_hex": key.verification_key().public_bytes.hex(),
+                      "note": "test keys only, published so the fixtures are checkable"},
+        "cases": cases,
+    }
+
+
+def _render_reports() -> str:
+    return json.dumps(build_reports(), indent=2, sort_keys=True) + "\n"
+
+
 def seal() -> None:
-    path = ADAPTER / "manifest.json"
-    manifest = json.loads(path.read_text(encoding="utf-8"))
-    manifest["artifact"]["digest"] = artifact_digest(ADAPTER, manifest["artifact"]["files"])
-    path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8",
-                    newline="\n")
+    for component in COMPONENTS:
+        path = component / "manifest.json"
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        manifest["artifact"]["digest"] = artifact_digest(component, manifest["artifact"]["files"])
+        path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
+                        encoding="utf-8", newline="\n")
 
 
 def main() -> int:
@@ -148,13 +230,19 @@ def main() -> int:
         seal()
     if args.write:
         FIXTURES.write_text(_render(), encoding="utf-8", newline="\n")
+        REPORT_FIXTURES.write_text(_render_reports(), encoding="utf-8", newline="\n")
     if args.check:
-        manifest = json.loads((ADAPTER / "manifest.json").read_text(encoding="utf-8"))
         problems = []
-        if manifest["artifact"]["digest"] != artifact_digest(ADAPTER, manifest["artifact"]["files"]):
-            problems.append("adapter manifest digest is stale (run --seal)")
+        for component in COMPONENTS:
+            manifest = json.loads((component / "manifest.json").read_text(encoding="utf-8"))
+            if manifest["artifact"]["digest"] != artifact_digest(component,
+                                                                  manifest["artifact"]["files"]):
+                problems.append(f"{component.name} manifest digest is stale (run --seal)")
         if not FIXTURES.exists() or FIXTURES.read_text(encoding="utf-8") != _render():
             problems.append("fixtures.json does not match the code (run --write)")
+        if (not REPORT_FIXTURES.exists()
+                or REPORT_FIXTURES.read_text(encoding="utf-8") != _render_reports()):
+            problems.append("report-results.json does not match the code (run --write)")
         for problem in problems:
             print(f"[FAIL] {problem}")
         if not problems:

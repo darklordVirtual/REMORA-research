@@ -1,0 +1,64 @@
+{
+  "contract": "federation-port/v0",
+  "id": "remora-research/report-result",
+  "publisher": {
+    "name": "REMORA-research (Stian Skogbrott)",
+    "contact": "https://github.com/darklordVirtual/REMORA-research"
+  },
+  "maintainer": {
+    "name": "REMORA-research",
+    "contact": "https://github.com/darklordVirtual/REMORA-research/issues"
+  },
+  "artifact": {
+    "version": "0.1.0",
+    "entry": "adapter.ts",
+    "files": [
+      "adapter.ts"
+    ],
+    "digest": "sha256:1635b47d41861eab865d4abefa1b7f67f32c3f2e5cc374eef53a37fa9ad72c3b"
+  },
+  "role": "action_evaluation",
+  "schemas": {
+    "check_evidence": {
+      "media_type": "application/json",
+      "description": "remora-report-check-v1: the requested report (operation_id, report_id, optional report_digest) and REMORA's signed results (remora-federation-result-evidence-v1, base64), one per report"
+    },
+    "output_evidence": {
+      "media_type": "application/json",
+      "description": "remora-report-check-result-v1: the requested report, the selected report's identity and digest, the adapter's selection rule and REMORA's, REMORA's native result and reason, and the claim status reported"
+    }
+  },
+  "claims": [
+    {
+      "id": "remora.report_result",
+      "establishes": "REMORA's signed native result for the configured native claim, about exactly the report the request names, is ESTABLISHED.",
+      "limits": [
+        "About one earlier report: V0 checks run before dispatch, so it cannot describe the action being dispatched",
+        "The caller chooses which report to request; the claim says what REMORA concluded about that report, not about the operation as a whole",
+        "Several eligible reports without a request are refused, never collapsed to the first, the last or an established one",
+        "Carries REMORA's native verdict; it does not establish that the native verifier is correct",
+        "Trusts the pinned key; revocation of that key is not checked"
+      ]
+    }
+  ],
+  "profiles": [
+    {
+      "id": "remora-report-check-v1",
+      "description": "Explicit report selection over REMORA Federation results (remora-federation-result-v1, projection map remora-federation-port-v0)"
+    }
+  ],
+  "privileges_requested": [],
+  "data_destinations": [],
+  "keys": [
+    {
+      "id": "remora-federation-result-signer",
+      "purpose": "Verify REMORA/FEDERATION-RESULT/v1 signatures; the public key is pinned in the customer policy config as trusted_keys",
+      "held_by": "customer",
+      "lifecycle": "The private key stays with the REMORA deployment; rotate by pinning the new public key"
+    }
+  ],
+  "license": {
+    "spdx": "BUSL-1.1",
+    "attribution": "REMORA-research, Stian Skogbrott"
+  }
+}
