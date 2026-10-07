@@ -51,13 +51,14 @@ It needs git, Node 24 and a Python with REMORA's dev dependencies (`PYTHON` sele
 the same procedure as the other outside adapters on #177:
 
 1. clone `aeoess/federation-port` and check out `92d5078af3bbd3610ce4901378e913d5f370a68b`;
-2. install this component under `adapters/` and its tests under `test/`, changing nothing under
-   `src/`;
-3. seal it with federation-port's `scripts/seal.ts`, which must reproduce the digest pinned in
-   `manifest.json`;
+2. install this component and the
+   [report-result component](../remora-report-result/README.md) under `adapters/` and their
+   tests under `test/`, changing nothing under `src/`;
+3. seal both with federation-port's `scripts/seal.ts`, which must reproduce the digests pinned
+   in their `manifest.json`;
 4. check that `src/` is unmodified;
-5. run federation-port's suite with this component: `node --test test/*.test.ts`, then the
-   upstream and REMORA files alone for the split;
+5. run federation-port's suite with both components: `node --test test/*.test.ts`, then the
+   upstream and each REMORA file alone for the split;
 6. run `tsc` with federation-port's `tsconfig.json` over the component and its tests;
 7. separately, check REMORA's fixtures against the code and run REMORA's acceptance suites
    (`tests/test_federation_report_selection.py`, `tests/test_federation_bridge.py`).
@@ -65,8 +66,9 @@ the same procedure as the other outside adapters on #177:
 It writes `remora-federation-port-reproduction.json` (`remora-federation-port-reproduction-v1`)
 and exits non-zero on any failure. CI runs the same script on every change.
 
-At `92d5078` the result is 61 of 61 federation-port tests, 44 upstream plus 17 for this
-component, with `src/` unmodified, the seal matching and `tsc` passing. The REMORA acceptance
+At `92d5078` the result is 80 of 80 federation-port tests: 44 upstream, 17 for this component
+and 19 for the report-result component. `src/` is unmodified, both seals match and `tsc`
+passes. The REMORA acceptance
 suites are reported beside it, not inside that count. These are the producer's own tests, so
 a reproduction is not an independent check.
 

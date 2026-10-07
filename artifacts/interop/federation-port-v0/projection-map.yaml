@@ -73,6 +73,20 @@ native_claims:
     limits:
       - V0 adapters run in the runtime's own process
 
+  report_result:
+    version: "1"
+    dimensions:
+      signature: [evidence_binding]
+      report_identity: [evidence_binding]
+      dispatched_action_result: [post_dispatch_check]
+    narrowed:
+      exported_claim: remora.report_result
+      requires: [signature, report_identity]
+    limits:
+      - about one earlier report the caller names, never the action being dispatched
+      - carries REMORA's native verdict for that report; does not establish the native verifier is correct
+      - several reports without a request are refused, never collapsed into one operation verdict
+
   effect_verification:
     version: "1"
     lifecycle: effect_verification

@@ -391,11 +391,11 @@ jobs:
             tests/test_toolcall_live_cache_replay.py
 
   federation-port-adapter:
-    # REMORA's federation-port/v0 adapter (docs/interop/FEDERATION_BRIDGE.md),
+    # REMORA's federation-port/v0 components (docs/interop/FEDERATION_BRIDGE.md),
     # reproduced exactly as integrations/federation-port/remora-adapter/
     # reproduce.sh documents it: installed into federation-port's own tree at
     # the pinned revision and sealed with its scripts/seal.ts, the upstream
-    # suite and the REMORA adapter tests run together, src/ must stay
+    # suite and the REMORA component tests run together, src/ must stay
     # unmodified, tsc must pass, and REMORA's acceptance suites run separately.
     # CI runs the published procedure, so the two cannot drift.
     runs-on: ubuntu-latest

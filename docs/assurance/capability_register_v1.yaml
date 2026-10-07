@@ -1205,3 +1205,43 @@ capabilities:
       the binding holds only for a verified signed result. Over
       federation-port/v0 the runtime does not see report identity; it stays in
       REMORA's signed evidence.
+  - id: CAP-029
+    name: "federation-port/v0 report-result component: a new action gated on REMORA's native result for one explicitly requested report"
+    status: WIRED_REFERENCE_PATH
+    verified_at_sha: 84081a02540cd544c2603b1e159c0fe61e57dfe6
+    verified_by: >-
+      audit 2026-10-08 at registration: the TypeScript component in
+      integrations/federation-port/remora-report-result takes the requested
+      report and REMORA's signed results (REMORA/FEDERATION-RESULT/v1), verifies
+      each against a pinned key, selects exactly the requested report and
+      refuses several eligible reports without a request. It reports
+      remora.report_result, established only for a native ESTABLISHED, and its
+      evidence keeps the selected report's identity and digest, the selection
+      rule and the native result and reason. Its 19 tests ran inside an
+      unmodified federation-port runtime at aeoess/federation-port@92d5078:
+      each LATE and LATE-CONFLICT report evaluated on its own submission (all
+      four expectations), eight refusals before dispatch, and a workflow that
+      also requires the authorization component. reproduce.sh: 80/80 (44
+      upstream + 17 + 19 REMORA), both seals reproduced by federation-port's
+      scripts/seal.ts, tsc passes. tests/test_federation_report_selection.py
+      checks the fixtures against REMORA's verifier.
+    evidence:
+      - integrations/federation-port/remora-report-result/adapter.ts
+      - integrations/federation-port/remora-report-result/manifest.json
+      - integrations/federation-port/remora-report-result/tests/remora-report-result.test.ts
+      - integrations/federation-port/remora-adapter/reproduce.sh
+      - artifacts/interop/federation-port-v0/report-results.json
+      - artifacts/interop/federation-port-v0/projection-map.yaml
+      - scripts/build_federation_port_v0_fixtures.py
+      - tests/test_federation_report_selection.py
+      - tests/test_federation_bridge.py
+      - docs/interop/FEDERATION_BRIDGE.md
+    caveat: >-
+      Exercised on fixtures signed with published test keys, in a local
+      federation-port runtime with its simulated provider; no REMORA API path
+      emits report results yet. V0 checks run before dispatch, so the claim
+      is about an earlier report, never the action being dispatched. The
+      caller chooses which report to request. It carries REMORA's native
+      verdict and does not establish that the native verifier is correct; key
+      revocation is not checked. LATE cases are local synthetic reproductions.
+      Producer-written component and tests; independence NOT_ESTABLISHED.

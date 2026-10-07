@@ -20,6 +20,15 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Interoperability
 
+- New federation-port/v0 component `remora-research/report-result`
+  (`integrations/federation-port/remora-report-result`). It gates a new action
+  on REMORA's signed native result for one explicitly requested earlier report.
+  Several reports without a request are refused. Its evidence keeps the
+  selected report's identity and digest, the selection rule and the native
+  result beside the claim status. The projection map exports
+  `remora.report_result` as NARROWED, since V0 checks run before dispatch.
+  LATE and LATE-CONFLICT are evaluated per report in an unmodified runtime, and
+  `reproduce.sh` now reports 80 of 80 (44 upstream, 17 and 19 REMORA).
 - `integrations/federation-port/remora-adapter/reproduce.sh` reproduces the
   adapter the way the other outside adapters on #177 do: installed into
   federation-port's tree at `92d5078`, sealed with its `scripts/seal.ts`, with

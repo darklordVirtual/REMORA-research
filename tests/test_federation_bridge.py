@@ -119,6 +119,7 @@ def test_a_capability_value_outside_true_false_partial_is_refused() -> None:
     ("fresh_authority_at_dispatch", "NARROWED", "remora.authorization_unexpired"),
     ("principal_binding", "NOT_ESTABLISHED", None),
     ("authority_executor_custody_isolation", "NOT_ESTABLISHED", None),
+    ("report_result", "NARROWED", "remora.report_result"),
     ("effect_verification", "UNSUPPORTED", None),
 ])
 def test_v0_projections(caps, pmap, claim, result, exported) -> None:
