@@ -151,8 +151,21 @@ def effect_projection(events: list[dict[str, Any]]) -> dict[str, Any]:
     history = [e["payload"] for e in events
                if e.get("event") == "effect_verified"]
     latest = history[-1] if history else None
+    # RMR-CR-008: a verdict is reported with where it was observed from and
+    # what it covers. Records from before the fields existed were all
+    # same-deployment attestations of the declared delta (the recorder
+    # admitted nothing else), so that is what they are reported as, and
+    # vantage_recorded says it was derived rather than stored.
+    from remora.governance.effect_verification import (
+        SCOPE_DECLARED_DELTA_ONLY,
+        VANTAGE_SAME_DEPLOYMENT,
+    )
+
     return {
         "status": latest["status"] if latest else None,
+        "vantage": (latest.get("vantage") or VANTAGE_SAME_DEPLOYMENT) if latest else None,
+        "scope": (latest.get("scope") or SCOPE_DECLARED_DELTA_ONLY) if latest else None,
+        "vantage_recorded": bool(latest and latest.get("vantage")),
         "reason_code": latest["reason_code"] if latest else None,
         "verified_at": latest["verified_at"] if latest else None,
         "verifier_identity": latest["verifier_identity"] if latest else None,
@@ -262,6 +275,8 @@ def envelope_projection(
         # unverified dispatch without re-deriving the mapping.
         ledger["effect_status"] = effect["status"]
         ledger["effect_verifier_identity"] = effect["verifier_identity"]
+        ledger["effect_vantage"] = effect["vantage"]
+        ledger["effect_scope"] = effect["scope"]
 
     return DecisionEnvelope(
         request=RequestBlock(

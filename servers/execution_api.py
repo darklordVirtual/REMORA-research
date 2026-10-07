@@ -2937,6 +2937,10 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
         "dispatch_id": lineage.dispatch_id,
         "reason_code": req.reason_code,
         "verifier_identity": req.verifier_identity,
+        # RMR-CR-008: an attestation by a verifier of this deployment, about
+        # the declared delta only.
+        "vantage": verification.vantage,
+        "scope": verification.scope,
         "audit": audit,
     }
 

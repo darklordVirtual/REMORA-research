@@ -14,13 +14,13 @@ change and stay reachable (merge commits).
 | RMR-CR-005 mediation opt-in | FIXED under strict v2 (declared mediation); deployment non-bypassability NOT_ESTABLISHED | #777 | c8cc91d |
 | RMR-CR-006 conditional bindings | FIXED under strict v2 (BindingPolicy, active surface binding) | #775, #776 | 6959fc2, 8dc3227 |
 | RMR-CR-007 audit verify w/o key | FIXED (reporting); consolidation open | #772 | 88001b5 |
-| RMR-CR-008 effect evidence scope | OPEN | none | - |
-| RMR-CR-009 custody guard naming | OPEN (docs) | none | - |
-| RMR-CR-010 paper TEE sentence | OPEN (docs) | none | - |
-| RMR-CR-011 signature domain separation | IN REVIEW: v1 frozen, v2 for lease, token and audit under strict v2 | #768, #778, #779, #780 | 2412d61, pending |
+| RMR-CR-008 effect evidence scope | FIXED (vantage and scope on every record and report) | #781 | 7c24e0d |
+| RMR-CR-009 custody guard naming | FIXED (docs: declared credential custody) | #782 | 4bff0e5 |
+| RMR-CR-010 paper TEE sentence | FIXED (paper .md now matches the .tex measurement language) | #782 | 4bff0e5 |
+| RMR-CR-011 signature domain separation | FIXED under strict v2 (lease, token, audit); envelopes, checkpoints and Workers remain v1 | #768, #778, #779, #780 | 2412d61, 0f65741, d82bdc6, e7371db |
 | RMR-CR-012 concurrency test hang | FIXED | #767 | squash |
-| RMR-CR-013 canonicalisation | CHANGED (investigated; v2 not justified) | none | - |
-| RMR-CR-014 datasets in wheel | OPEN (packaging) | none | - |
+| RMR-CR-013 canonicalisation | CHANGED, then FIXED at the Worker edge (no v2 canonicalisation) | #783 | d737f94 |
+| RMR-CR-014 datasets in wheel | FIXED (excluded from the runtime wheel) | #784 | pending |
 | RMR-CR-015 ledger failure parity | FIXED | #771 | 517a904 |
 
 ## Per finding
@@ -51,7 +51,7 @@ change and stay reachable (merge commits).
 - Tests: `tests/test_audit_verify_signature_status.py` (6).
 - Remaining: at least nine chain implementations; HMAC-only signatures; no external anchoring by default.
 
-### RMR-CR-011: IN REVIEW (v1 frozen, v2 migration)
+### RMR-CR-011: FIXED under strict v2 (v1 frozen, v2 migration)
 - Decision (2026-10-07): freeze v1, add v2 domains, never change a preimage under an existing name, never re-sign audit history.
 - New: `remora.crypto` domain-separated Ed25519 for ToolSpec (#768). `vectors/v1/` freezes the lease, token and audit v1 formats byte for byte; `vectors/v2/` holds v2.
 - New: lease v2 `ed25519-domain-v2` in `REMORA/EXECUTION-LEASE/v2` with a derived kid and no symmetric form (#778); token v2 in `REMORA/POLICY-GRANT/v2` with `format` signed (#779); audit v2 in `REMORA/AUDIT/v2` from an `AUDIT_VERSION_TRANSITION` record naming the final v1 head (#780).
@@ -69,12 +69,33 @@ change and stay reachable (merge commits).
 - Tests: `tests/test_api_execution_surface_binding.py`, `tests/test_binding_policy.py`, `tests/test_binding_policy_matrix.py`.
 - Remaining: `runtime_capability_surface_completeness` stays NOT_ESTABLISHED; the v1 contract keeps configuration-conditional bindings.
 
+### RMR-CR-008: FIXED (statement of claim)
+- New: `EffectVerification` carries `vantage` (`same_deployment`, or `independent` only when derived from an `ObservationVantage`) and `scope` (`declared_delta_only`); validated, never asserted. The chain record, the `/proposals/{id}/effect` response, the lifecycle effect report, the envelope ledger and the SDK view all carry both; pre-existing records are reported with the vantage the recorder admitted and `vantage_recorded: false`.
+- Tests: `tests/test_effect_vantage_scope.py`, `tests/test_effect_verification_wiring.py` (a report cannot say verified without vantage and scope).
+- Remaining: no deployment path produces an independent observation; the verifier and `verified_at` are still supplied by the same deployment.
+
+### RMR-CR-009: FIXED (documentation)
+- New: `remora/enforcement/custody.py` and ADR-A state the guard's scope as declared credential custody: declared variable names, the lease signing variables and role-based refusals for a self-declared role. Instance metadata or IAM roles, workload identity, mounted secrets, undeclared variables and network-reachable credentials are outside it.
+- Remaining: deployment attestation of egress and identity (the preferred fix) is not built; credential non-bypassability stays NOT_ESTABLISHED.
+
+### RMR-CR-010: FIXED (documentation)
+- New: `paper/remora_paper.md` Appendix E says attestation shows a workload whose measurement matches the approved build and policy digest, not that the model or policy decided correctly; the `.tex` already said so. The PDF is rebuilt on master.
+- Kept as written: `scripts/legacy/patch_tee_paper.py`, a historical script that is not run, preserves the superseded wording.
+
 ### RMR-CR-012: FIXED
 - New: bounded race helper; starved writers fail in ~2 s. Old shape reproduced as a hang (killed at 20 s).
+
+### RMR-CR-014: FIXED (packaging)
+- New: the three generated dataset modules are excluded from the runtime wheel (`[tool.hatch.build.targets.wheel] exclude`); they stay in the source tree and the sdist. The built wheel drops from about 6.2 MB to about 4.7 MB uncompressed.
+- Tests: `tests/test_wheel_excludes_datasets.py` (the exclusion is declared, matches real files, no shipped module imports an excluded dataset, no other shipped module exceeds 300 KB); the CI wheel job inspects the built wheel.
+- Remaining: a separate research distribution (the preferred fix) is not built; `extended.py` and `standard.py`, small datasets imported by `remora.benchmarks`, still ship.
 
 ### RMR-CR-015: FIXED
 - New: every backend refuses with `consumed_ledger_unavailable` and emits `grant.ledger_unavailable`; uncommitted grants stay unspent; D1 names timeouts and malformed answers.
 - Tests: `tests/test_ledger_failure_parity.py` (7, parametrised over SQLite, Postgres, D1); 6 of 7 fail on the old code.
 
-### RMR-CR-013: CHANGED
+### RMR-CR-013: CHANGED, then FIXED at the Worker edge
 Investigation (Stage 0): Workers re-serialise and can lose precision before binding; Python binds and executes the same value. No post-binding divergence exists, so an exact-call-binding v2 is not justified. Proportionate follow-up: refuse unsafe numerics at the Worker edge.
+- Follow-up done: `workers/{mcp-gateway,agent-control}/src/json_numbers.ts` (identical) scans the raw body and refuses integers beyond 2^53−1, float literals JavaScript would write as integers and non-finite literals, on mcp-gateway's JSON-RPC endpoint and agent-control's execute endpoint. agent-control's comment claiming a downstream comparator was corrected.
+- Tests: `workers/mcp-gateway/test/json_numbers.test.ts` (vitest); `tests/test_worker_unsafe_numbers.py` runs agent-control's module under node against what Python would bind and checks the copies are identical, in the CI job that must not skip.
+- Remaining: other Worker endpoints and downstream Python adapters that re-serialise after the rehash are not covered.

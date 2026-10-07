@@ -162,6 +162,12 @@ in `tests/golden/canonical_json_vectors_v1.json`
 them); changing a vector is a hash-contract change requiring an explicit
 migration.
 
+The execute path enforces the domain at the edge (RMR-CR-013).
+`src/json_numbers.ts` reads the raw body before JavaScript parses it. It
+refuses an integer beyond 2^53−1, a float literal that JavaScript would write
+as an integer (`1.0`, `-0.0`, `1e20`) and a literal too large for a double.
+Such a body is refused with `unsafe_number:<reason>`, not converted.
+
 ```
 GET /envelopes?session_id=<id>&limit=50   List stored envelopes (admin)
 GET /envelopes/<request_id>               Fetch one envelope (admin)

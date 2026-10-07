@@ -209,3 +209,50 @@ def test_evidence_without_a_verification_says_so_rather_than_omitting(
     ).json()
     assert bundle["effect_verification"]["status"] is None
     assert bundle["effect_verification"]["history"] == []
+
+
+# ── RMR-CR-008: a verdict always says from where, and about what ──────────
+#
+# Before: EFFECT_VERIFIED read as "independently confirmed that nothing else
+# happened". It means "a verifier of this deployment attested that the
+# declared delta is present". Every record and report now carries both
+# halves of that sentence.
+
+def test_the_chain_record_names_vantage_and_scope(client) -> None:
+    proposal_id = _executed(client)
+    _mod().record_effect_verification(
+        "acme", _verification(proposal_id, EffectStatus.VERIFIED, "postcondition_verified"))
+    payload = _mod()._CHAIN.entries("acme")[-1].payload
+    assert payload["vantage"] == "same_deployment"
+    assert payload["scope"] == "declared_delta_only"
+
+
+def test_reports_never_say_verified_without_vantage_and_scope(client) -> None:
+    proposal_id = _executed(client)
+    _mod().record_effect_verification(
+        "acme", _verification(proposal_id, EffectStatus.VERIFIED, "postcondition_verified"))
+    body = client.get(f"/v1/execution/proposals/{proposal_id}").json()
+    assert body["current_state"] == "EFFECT_VERIFIED"
+    assert body["effect"]["vantage"] == "same_deployment"
+    assert body["effect"]["scope"] == "declared_delta_only"
+
+
+def test_a_record_from_before_the_fields_is_reported_with_the_vantage_it_had(client) -> None:
+    """Pre-CR-008 records were all same-deployment attestations of the
+    declared delta: the recorder admitted nothing else. The report says so
+    instead of leaving the reader to assume independence."""
+    from remora.execution.projections import effect_projection
+
+    legacy = {"status": "EFFECT_VERIFIED", "reason_code": "postcondition_verified",
+              "verified_at": "2026-10-01T00:00:00+00:00", "verifier_identity": "r",
+              "expected_sha256": "a" * 64, "observed_sha256": "a" * 64}
+    report = effect_projection([{"event": "effect_verified", "payload": legacy}])
+    assert (report["vantage"], report["scope"]) == ("same_deployment", "declared_delta_only")
+    assert report["vantage_recorded"] is False
+
+
+def test_no_verdict_reports_no_vantage(client) -> None:
+    from remora.execution.projections import effect_projection
+
+    report = effect_projection([])
+    assert report["status"] is None and report["vantage"] is None and report["scope"] is None
