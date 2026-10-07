@@ -207,7 +207,7 @@ def _check_signature_format_v2(contract: str) -> None:
     from remora.crypto.formats import ENV_SIGNATURE_FORMAT
     from remora.enforcement.custody import DOMAIN_AUTHORITY, domain_role
 
-    requested = os.getenv(ENV_SIGNATURE_FORMAT, "").strip().lower()
+    requested = os.getenv("REMORA_SIGNATURE_FORMAT", "").strip().lower()
     if requested and requested != "v2":
         raise RuntimeProfileError(
             f"contract {contract} issues signature format v2 only; "
