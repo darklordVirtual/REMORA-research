@@ -20,6 +20,7 @@ can follow it without trusting the summary.
 | [CLAIM_AUDIT.md](CLAIM_AUDIT.md) | Claim ceiling and documentation audit at review time | frozen |
 | [FIX_REBASE.md](FIX_REBASE.md) | Stage 0: every finding re-verified at the revalidation revision, with corrections to the review | frozen |
 | [FINDING_DISPOSITION.md](FINDING_DISPOSITION.md) | Current status per finding: fix, tests, PR, remaining boundary | living |
+| [MCP_EXECUTION_SURFACE.md](MCP_EXECUTION_SURFACE.md) | Stage H: every MCP execution surface, how authority reaches its effects, and the open gaps | living |
 | [findings.json](findings.json) | The findings in machine-readable form, with provenance | frozen |
 
 What this is not: an independent audit, a penetration test or a
