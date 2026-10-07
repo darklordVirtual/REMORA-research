@@ -303,6 +303,7 @@ pytest_add_cli_args = [
 # selection runs in 4.2 s against 2.8 s for the frozen 17.
 pytest_add_cli_args_test_selection = [
     "tests/test_agentavow_edge.py",
+    "tests/test_api_execution_surface_binding.py",
     "tests/test_authorization_context_golden_vectors.py",
     "tests/test_callable_closure_digest.py",
     "tests/test_credential_issuer_scope.py",

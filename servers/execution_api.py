@@ -1247,6 +1247,14 @@ def _tool_dispatcher() -> GovernedToolDispatcher | None:
                 # NTA-2: a mediated tool's downstream ceiling is the one its
                 # signed ToolSpec declares, resolved in this process.
                 dispatcher.bind_downstream_ceilings(_downstream_ceiling)
+                # CR-006: the surface binding was inert on this path. The
+                # observer reports the surface this dispatcher actually
+                # offers; strict profiles enforce it (custody_is_enforced).
+                from remora.enforcement.custody import custody_is_enforced
+
+                dispatcher.bind_surface_observer(
+                    lambda: _observed_surface(dispatcher),
+                    require_digest=custody_is_enforced())
                 _bind_premise_checks(dispatcher)
                 spec = _os.environ.get("REMORA_TOOL_REGISTRY_MODULE", "").strip()
                 if spec:
@@ -1272,6 +1280,21 @@ def _tool_dispatcher() -> GovernedToolDispatcher | None:
                             dispatcher.bind_effect_executors)
                 _DISPATCHER = dispatcher
     return _DISPATCHER
+
+
+def _observed_surface(dispatcher: GovernedToolDispatcher) -> str:
+    """The execution surface this dispatcher offers (CR-006).
+
+    Raises when no bundle is configured: an observer that cannot see the
+    signed surface has not observed an unchanged one, and the dispatcher
+    turns the raise into ``surface_unobservable`` when enforcing.
+    """
+    from remora.execution.execution_surface import observed_surface_digest
+
+    bundle = _authz_load_bundle(_os.environ)
+    if bundle is None:
+        raise LookupError("no signed ToolSpec bundle: the surface is unobservable")
+    return observed_surface_digest(bundle, dispatcher.registered_tool_names())
 
 
 def _toolspec_identity(tool_name: str) -> tuple[str, int] | None:
@@ -2176,6 +2199,15 @@ def _dispatch_under_lease(
             # authorised by guessing what it probably meant.
             return {"executed": False, "refusal_reason": "unresolved_reference",
                     "proposal_id": proposal_id}
+    # CR-006: the signed surface this lease is granted under. Empty without a
+    # bundle, which leaves the unenforced research path as it was.
+    surface = ""
+    if presented_lease is None:
+        bundle = _authz_load_bundle(_os.environ)
+        if bundle is not None:
+            from remora.execution.execution_surface import signed_surface_digest
+
+            surface = signed_surface_digest(bundle)
     with _EXEC_TRACER.tool_governance_span(
         tool_call.tool_name,
         invocation_id=proposal_id or None,
@@ -2198,6 +2230,7 @@ def _dispatch_under_lease(
             task_identity=task_identity,
             resolved_effect=resolved_effect,
             plan=plan,
+            surface_digest=surface,
             capability_set=capability_set,
         )
         _span.set_attribute("remora.executed", bool(result.get("executed")))
