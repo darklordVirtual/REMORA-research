@@ -1148,6 +1148,7 @@ capabilities:
       - integrations/federation-port/remora-adapter/adapter.ts
       - integrations/federation-port/remora-adapter/manifest.json
       - integrations/federation-port/remora-adapter/tests/remora-adapter.test.ts
+      - integrations/federation-port/remora-adapter/reproduce.sh
       - tests/test_federation_bridge.py
       - artifacts/interop/federation-port-v0/projection-map.yaml
       - artifacts/interop/federation-port-v0/capabilities.yaml
