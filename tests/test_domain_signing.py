@@ -25,7 +25,8 @@ from remora.crypto import (  # noqa: E402
     verify,
 )
 
-ALL = frozenset(SignatureDomain)
+DOMAINS = tuple(SignatureDomain.__members__.values())
+ALL = frozenset(DOMAINS)
 PAYLOAD = b'{"a":1}'
 
 
@@ -40,12 +41,12 @@ def test_a_signature_verifies_in_its_own_domain() -> None:
     assert result.ok and result.reason == "ok" and result.kid == key.kid
 
 
-@pytest.mark.parametrize("signed_in", list(SignatureDomain))
+@pytest.mark.parametrize("signed_in", DOMAINS)
 def test_a_signature_never_verifies_in_another_domain(signed_in: SignatureDomain) -> None:
     # Same key, bound to every domain, same payload bytes: only the domain differs.
     key = _key()
     sig = sign(signed_in, PAYLOAD, key)
-    for other in SignatureDomain:
+    for other in DOMAINS:
         if other is signed_in:
             continue
         relabelled = dataclasses.replace(sig, domain=other.value)
