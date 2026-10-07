@@ -560,14 +560,16 @@ required and the route is tenant-scoped: another tenant's proposal is a 404.
 | `profile`, `language`, `caveats` | the deployment profile, its language, and the caveats that apply to it |
 
 **Authentication modes:** token-table mode (`REMORA_API_TOKENS`) maps each
-bearer token to a fixed tenant and role; callers cannot forge either.
-Single-token mode (`REMORA_API_BEARER_TOKEN`) reads tenant/role from
-caller-asserted headers and therefore has **no role separation**; in
-`REMORA_ENV` values other than `development`/`dev` (including `production`
-and `staging`) the role header is ignored and pinned to
-`operator`, so approval-role gating cannot be satisfied in this mode (see
-SECURITY.md). Dev mode (no credentials + `REMORA_ENV=development`) runs
-without auth; production without credentials is a startup error.
+bearer token to a fixed tenant and role; callers cannot forge either. An
+`X-Remora-Tenant` header may be omitted or repeat the credential's tenant;
+one naming another tenant is refused with 403. Single-token mode
+(`REMORA_API_BEARER_TOKEN`) takes tenant and role from caller-asserted
+headers, so it is **development only**: outside development every request in
+that mode is refused with 403. Dev mode (no credentials) runs without auth.
+`REMORA_ENV` has two values, `development` (also unset, blank or `dev`) and
+`production` (also `prod`); any other value, such as `staging`, refuses
+startup instead of being read as either. The strict runtime profiles
+(`review`, `controlled_pilot`) require `REMORA_API_TOKENS` (RMR-CR-003).
 
 **Idempotency:** `idempotency_key` deduplicates `POST /assess` per tenant.
 The cache is a bounded in-process LRU (10 000 entries); an evicted key

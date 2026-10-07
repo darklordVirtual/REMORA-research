@@ -68,11 +68,13 @@ not against a production baseline the project has never claimed.
 Known-by-design authentication limitation (external review 2026-07-28, N4):
 **single-token API mode (`REMORA_API_BEARER_TOKEN`) has no role
 separation**: tenant and role are caller-asserted headers, so anyone
-holding the one token can claim any role. In `REMORA_ENV=production` the
-server therefore ignores the role header and pins the role to `operator`,
-which means approval-role gating cannot be satisfied in this mode at all.
-Deployments that need role separation must use the token-table mode
-(`REMORA_API_TOKENS`), where each token maps to a fixed tenant and role.
+holding the one token can claim any role and any tenant. The mode is
+therefore development only, and outside development every request in it is
+refused (RMR-CR-003, 2026-10-07; the earlier production pinning of the role
+was N4). The strict runtime profiles require the token-table mode
+(`REMORA_API_TOKENS`). There each token maps to a fixed tenant and role, and a
+tenant header naming another tenant is refused. `REMORA_ENV` values other
+than development and production refuse startup.
 
 A report demonstrating that either gap is worse than documented is in scope
 and welcome. A report that only re-derives the gap as documented will be

@@ -16,6 +16,15 @@ This file lists externally relevant changes by release. Fine-grained development
   Contract: `schemas/toolspec_signing_ed25519_v1.yaml`.
 - `remora.crypto`: domain-separated Ed25519 signing, the foundation for
   RMR-CR-011. No other artifact uses it yet.
+- The tenant derives from the credential (RMR-CR-003). `REMORA_ENV` has one
+  reading (`remora.profiles.deployment_environment`): development or
+  production, and any other value, such as `staging`, refuses startup.
+  Single-token mode is development only. A token-table credential's tenant
+  cannot be widened by `X-Remora-Tenant` (403). Strict profiles require
+  `REMORA_API_TOKENS`; `remora init-review` now writes a token table with
+  separate operator and reviewer credentials. **Breaking** for deployments
+  that ran single-token mode outside development or set another
+  `REMORA_ENV` value.
 
 ## 0.12.0 — 2026-10-07
 
