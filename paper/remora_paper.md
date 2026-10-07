@@ -1488,7 +1488,7 @@ implemented.
 
 ## Appendix E: Optional TEE-Based Audit Hardening
 
-REMORA's software-only audit trail can be strengthened with hardware attestation from Trusted Execution Environments (TEEs), so that the recorded decision is shown to have been produced by the correct model under the correct policy inside an isolated enclave (Dong & Wang, 2025). Note: this provides tamper-*resistant* audit hardening; tamper-proof guarantees require external WORM storage in addition to TEE attestation.
+REMORA's software-only audit trail can be strengthened with hardware attestation from Trusted Execution Environments (TEEs), so that the recorded decision is shown to have been produced inside an isolated enclave by a workload whose measurement matches the approved build and policy digest (Dong & Wang, 2025). Attestation establishes which code and configuration were measured; it does not establish that the model or the policy decided correctly. Note: this provides tamper-*resistant* audit hardening; tamper-proof guarantees require external WORM storage in addition to TEE attestation.
 
 **Supported platforms:**
 - AMD SEV-SNP: Hardware memory encryption + VM-level isolation. Attestation report (SHA-384 measurement) signed by AMD VCEK.
