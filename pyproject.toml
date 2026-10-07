@@ -339,6 +339,7 @@ pytest_add_cli_args_test_selection = [
     "tests/test_execution_context_binding.py",
     "tests/test_execution_lease.py",
     "tests/test_fail_closed_hardening.py",
+    "tests/test_forwarding_authority_dispatcher.py",
     "tests/test_gate_d1_endpoint_arg.py",
     "tests/test_gate_d1_ledger.py",
     "tests/test_gate_replay_properties.py",
