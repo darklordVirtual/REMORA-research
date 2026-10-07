@@ -22,6 +22,7 @@ import { RemoraClient } from "./remora";
 import { isReadOnlySql } from "./sql";
 import { verifyGraphWrite } from "./effect";
 import { admitMcp, productionReadiness } from "./admission";
+import { parseJsonStrict, UnsafeNumberError } from "./json_numbers";
 
 export interface Env {
   /** Absent in the development config, which uses REMORA_API_URL instead. */
@@ -785,8 +786,18 @@ export default {
 
     let body: JsonRpcRequest | JsonRpcRequest[];
     try {
-      body = await request.json();
-    } catch {
+      // RMR-CR-013: refuse a number this Worker would change before REMORA
+      // binds the call, rather than binding the changed value.
+      body = parseJsonStrict(await request.text()) as JsonRpcRequest | JsonRpcRequest[];
+    } catch (e) {
+      if (e instanceof UnsafeNumberError) {
+        return Response.json(
+          { jsonrpc: "2.0", id: null,
+            error: { code: -32602, message: e.message,
+                     data: { reason: e.reason, offset: e.offset } } },
+          { status: 400 },
+        );
+      }
       return Response.json(
         { jsonrpc: "2.0", id: null, error: { code: -32700, message: "parse error" } },
         { status: 400 },

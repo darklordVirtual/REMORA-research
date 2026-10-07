@@ -102,6 +102,15 @@ and with this design it cannot even attempt it.
 A redeemed proposal is deleted. Polling it again reports `unknown_proposal`,
 and the attempt never reaches REMORA.
 
+### Numbers the Worker would change are refused
+
+The gateway parses the JSON-RPC body in JavaScript before REMORA binds the
+call. Three kinds of number change on that trip. An integer beyond 2^53−1
+loses digits, a float such as `1.0` or `1e2` becomes an integer, and `1e400`
+becomes `null`. The gateway refuses such a body with JSON-RPC error
+`-32602` (`unsafe_number:<reason>`) instead of forwarding the changed value
+(RMR-CR-013). Send such values as strings.
+
 ## Roles
 
 The gateway holds an **operator** token. It can propose and it can execute an

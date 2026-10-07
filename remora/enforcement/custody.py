@@ -31,6 +31,16 @@ The deployment declares which environment variables are effect credentials
 via ``REMORA_EFFECT_CREDENTIAL_ENV_NAMES``. Under a strict profile the
 declaration may not be empty: a guard with nothing to check would pass
 every deployment, which is the failure mode this module exists to end.
+
+Scope: declared credential custody (RMR-CR-009). The guard checks the
+environment variable names the deployment declares, the lease signing
+variables, and the role-based refusals above; the role itself is
+self-declared. It does not see credentials the deployment did not declare:
+an instance metadata or IAM role, workload identity, a mounted secret file,
+an undeclared variable, or a credential reachable over the network. Those
+give a process effect capability without tripping it, so "custody split"
+here means declared credential custody, and whether a deployment's effect
+credentials are unreachable outside the mediator stays NOT_ESTABLISHED.
 """
 from __future__ import annotations
 

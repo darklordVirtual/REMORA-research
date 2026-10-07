@@ -199,6 +199,21 @@ not as an independent proof of its own, which is why
 `verifier_identity` is mandatory. Verdicts are recorded exactly as
 reported, mismatches included.
 
+Every record and every report carries what a verdict claims (RMR-CR-008),
+so the status name is never read as more than it is:
+
+- `vantage`: `same_deployment`. The verifier is a principal this deployment
+  allowlists, so its verdict is not independent confirmation. `independent`
+  exists only when it is derived from an `ObservationVantage` in a different
+  control domain that the observed party can neither forge nor suppress
+  (`EffectVerification.observed_from`); a verifier cannot declare it.
+- `scope`: `declared_delta_only`. Fields the postcondition does not declare
+  are not compared, so `EFFECT_VERIFIED` says nothing about them.
+
+Records written before these fields existed are reported with the same
+values, which is what the recorder admitted then, and
+`vantage_recorded: false` says the vantage was derived rather than stored.
+
 Runnable, offline, zero configuration:
 
 ```bash
