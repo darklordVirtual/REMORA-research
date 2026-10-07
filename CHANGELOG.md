@@ -6,6 +6,57 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Added
 
+- Execution-context binding (#754, opt-in). With
+  `REMORA_REQUIRE_EXECUTION_CONTEXT=1` and a deployment provider in
+  `REMORA_EXECUTION_CONTEXT_MODULE`, a deployment-owned context (subject,
+  proposal-initiating model, scoped data classification, build and runtime
+  provenance) is captured before assessment. Its digest is bound through
+  review, grant, lease, dispatch and effect verification as
+  `execution_context_hash`. Without a context, legacy authorization hashes and
+  signed lease bytes are unchanged. The authority of the deployment sources is
+  declared `NOT_ESTABLISHED` (`execution_context_authoritative_binding`).
+- Capability sets, WS8 (#612 to #618). `REMORA_CAPABILITY_POLICY_FILE`
+  resolves an `EffectiveCapabilitySet` per call from the authenticated
+  principal, tenant, environment and declared task type. The set is enforced at
+  assess, execute and dispatch and signed into the lease.
+  `GET /v1/execution/capabilities` projects it into the agent's tool list.
+  Argument and trusted-state constraints, delegation that cannot widen
+  authority, revocation epochs re-read at dispatch, and success established by
+  evidence rather than by the executor complete the series. The capability
+  minimisation study (#619) is in `experiments/`.
+- Task identity and loop safety, Q7.2 (#504, #605 to #607). A call may carry
+  A2A `context_id` and `task_id`; the task is bound into the ACCEPT token and
+  the lease, and redeeming under another task is refused. Loop safety state is
+  kept per context and turns ACCEPT into ESCALATE at a limit.
+  `GET /v1/execution/loop-safety/{context_id}` and `POST .../loop-safety/reset`
+  read and reset it. `REMORA_REQUIRE_TASK_IDENTITY=1` refuses calls without a
+  task. The default limits are uncalibrated.
+- Federation self-service and review-only external admission (#756).
+  `scripts/interop_self_service.py` runs the frozen v1 boundary cases against
+  REMORA's own primitives from a pinned snapshot. External operators submit
+  signed observations that `scripts/interop_external_admission.py` validates
+  for review against an operator registry of public keys; admission confers no
+  authority.
+- Fail-closed boundary discovery (#741): `docs/interop/remora-boundaries-v1.yaml`
+  and the generated `artifacts/interop/remora-boundary-summary-v1.json`. Each
+  maturity claim is bound to committed capability, artifact and run evidence,
+  and the gates fail on drift.
+- External reproductions of the three frozen boundary contracts (#739). Probity
+  ran them with a second implementation; the records are `NOT_INDEPENDENT`, and
+  the contracts' lifecycle is `REPRODUCED`.
+- `scripts/reproduce_custody.py` (#763): an authority and executor in separate
+  processes with an Ed25519 lease and a SQLite nonce store, covering replay
+  after restart, concurrent dispatch and declared custody violations. The
+  interop matrix gains a table of external lifecycle records.
+- Gate-correctness study v1 (#601, `experiments/gate_correctness/`,
+  preregistered): the same episodes under deliberately broken validators.
+  It measures how far enforcement depends on the correctness of the gate's own
+  state.
+- Paper revision 2026-10-06 (#746): custody and execution claims scoped to the
+  strict profile and declared credential topology; effect non-transitivity
+  stated as an open boundary problem; the DecisionEnvelope finalisation path
+  corrected.
+
 - First prior-art review round for the provenance ledger: PA-REV-001 to
   PA-REV-017 in `provenance/PRIOR_ART.yaml` classify PROV-01 to PROV-17
   against canonical pre-2026 literature (seven KNOWN_PRIOR_ART, six
@@ -475,6 +526,20 @@ This file lists externally relevant changes by release. Fine-grained development
   and transaction faults, not OS process kills or network partitions.
 
 ### Fixed
+
+- Dependency advisories (#734, #755, #761): datasets 5.0.1, fsspec and s3fs
+  2026.6.0, langgraph-sdk 0.4.4, Mako 1.4.2, multidict 6.9.1, scapy 2.7.0,
+  source-map-js 1.2.2, shell-quote 1.12.0 and sharp 0.35.5 in every npm
+  project. `tests/test_ci_dependency_pinning.py` pins the patched floors.
+- Tainted HIGH-risk calls with no rollback or an uncertain state now escalate
+  (#717, WP-1).
+- The worker refuses an unbound worker identity and stale reconcile races
+  (1cbeca6).
+- `decode_json` in `remora/interop/evidence_io.py` bounds nesting explicitly
+  (`MAX_JSON_DEPTH = 512`). Python 3.14's decoder no longer raised
+  `RecursionError` at 10,000 levels, so deeply nested input was accepted there.
+- `AnthropicAdapter` works on current Claude models, and dated model pins in
+  prompts are retired (#578, #582).
 
 - Pre-Federation boundary probes (2026-10-06, `tests/test_pre_federation_*`),
   each a fail-open path closed in the reusable primitive rather than only in

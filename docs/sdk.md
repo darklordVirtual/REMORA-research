@@ -165,6 +165,11 @@ result = verify_effect(
 client.record_effect(proposal_id, result)
 ```
 
+A dispatch bound to an execution context (opt-in, see the
+[API reference](07-api-reference.md)) also passes
+`execution_context_hash=...`. That is the hash of the historical context the
+lease carried, so the effect record stays on the same lineage.
+
 Only the fields you declared are compared. Everything else is out of
 scope **by construction, not by tolerance**: a system of record has other
 legitimate writers, and reporting their changes as drift would make

@@ -102,9 +102,11 @@ primitives; `scripts/interop_author_run.py` writes the result of that run,
 and of the reference verifier, as `L0_SELF_TEST` records under
 `artifacts/interop/runs/`. The two evaluators are kept as two records per
 claim so their agreement is visible rather than asserted. The author records
-advance nothing. The three boundary packages are `FROZEN` at master
-revision `fe324dd7`, so their pins can be handed to verifiers; the E8 package
-stays `DRAFT` until AgentAvow confirms the profile.
+advance nothing. The three boundary packages were frozen at master
+revision `fe324dd7`. Probity confirmed those pins and ran them with a second
+implementation, so their lifecycle is now `REPRODUCED`, with each external
+record classed `NOT_INDEPENDENT` (`artifacts/interop/index.json`). The E8
+package stays `DRAFT` until AgentAvow confirms the profile.
 
 The v1.1 packages are `DRAFT` successors on their own edges (`E-ECB-V1-1`,
 `E-EE-V1-1`). The pre-Federation probes of 2026-10-06 found two gaps. A

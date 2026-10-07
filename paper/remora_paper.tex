@@ -193,8 +193,8 @@ vouchable state table. It therefore confirms the complete routing pipeline,
 not the isolated causal effect of semantic intent matching. REMORA is a
 governed autonomy layer, not a replacement for domain authority. The system
 is \texttt{SHADOW\_ONLY}: bounded external reproductions now exist for
-several frozen interoperability contracts, recorded as author-attributed
-runs rather than independent verification; independent runtime
+several frozen interoperability contracts, recorded as external
+second-implementation runs, not independent verification; independent runtime
 verification, production enforcement evidence and Federation adoption
 remain unestablished.
 \end{abstract}
@@ -758,8 +758,9 @@ The federation interop package pins source revisions and file digests,
 preserves native claim vocabulary and distinguishes reproduction from an
 independent second implementation. Bounded external run records now
 exist for the exact-call-binding, fresh-authority and effect-evidence
-contracts (E-ECB, E-FA, E-EE). They are author-attributed reproductions
-of frozen fixture packages, explicitly not independent verification, and
+contracts (E-ECB, E-FA, E-EE). They were run by an external second
+implementation (Probity) against frozen fixture packages and are recorded
+as \texttt{NOT\_INDEPENDENT}, explicitly not independent verification, and
 each boundary-level claim result is recorded as \texttt{NOT\_ESTABLISHED}.
 The E7 runtime-surface package remains pinned with no external run
 recorded as of 2026-10-06 (\path{artifacts/interop/index.json},
@@ -798,9 +799,12 @@ source revisions or the recorded evidence digests:
 \path{scripts/check_remora_capabilities.py},
 \path{scripts/check_remora_boundaries.py} and
 \path{tests/test_remora_boundary_declaration.py}. A boundary cannot
-claim higher maturity than the capabilities that support it. Two boundary
+claim higher maturity than the capabilities that support it. Three
 properties are declared precisely because they are \emph{not}
-established:
+established. All three are listed under
+\texttt{unestablished\_properties} in
+\path{docs/assurance/capability_register_v1.yaml}; the boundary
+declaration carries the first as its global property:
 
 \begin{itemize}
 \item \textbf{Runtime capability-surface completeness}
@@ -818,9 +822,17 @@ established:
   effect space. The three-domain mediation split whose effect domain
   alone holds the declared effect credentials is implemented (CAP-024),
   but no deployment runs it, so the property remains open.
+\item \textbf{Authoritative execution-context binding}
+  (\texttt{execution\_context\_authoritative\_binding},
+  \texttt{NOT\_ESTABLISHED}): an opt-in path binds the
+  deployment-supplied subject, the proposal-initiating model, the scoped
+  data classification and build/runtime provenance through assessment,
+  review, grant, lease, dispatch and effect recording. Its tests do not
+  establish that the deployment sources of that context are
+  authoritative, nor a deployed end-to-end property.
 \end{itemize}
 
-These two declarations define the reader-facing scope of every custody
+These three declarations define the reader-facing scope of every custody
 and dispatch claim in this paper. REMORA establishes properties
 \emph{at} a declared boundary, and the declarations say where that
 boundary ends.
@@ -1721,7 +1733,7 @@ evidence routing (not trust scoring) is the required mechanism for
 critical-phase decisions.
 
 \paragraph{Boundary claims are declared, not closed.}
-Two properties that bound every custody and dispatch claim in this
+Three properties that bound every custody and dispatch claim in this
 paper are explicitly unestablished
 (\S\ref{sec:boundary-declarations}). Runtime capability-surface
 completeness is \texttt{NOT\_ESTABLISHED}: the strict-profile custody
@@ -1730,9 +1742,12 @@ not establish that an external agent process lacks alternate
 credential, network or execution paths. Implementation effect
 non-transitivity is \texttt{NOT\_ESTABLISHED}: authorizing a tool does
 not authorize every privileged effect its implementation can reach, so
-the lease binds the exact call, not the effect space. The bounded
-external run records for the E-ECB, E-FA and E-EE contracts are
-author-attributed reproductions of frozen fixtures; they are not
+the lease binds the exact call, not the effect space. Authoritative
+execution-context binding is \texttt{NOT\_ESTABLISHED}: the opt-in
+path is tested inside REMORA, the authority of its deployment sources
+is not. The bounded external
+run records for the E-ECB, E-FA and E-EE contracts come from an external
+second implementation and are recorded as not independent; they are not
 independent verification, and no boundary-level claim result is
 established by them. The paper's custody claims
 (\S\ref{sec:execution-chain}), and its title, should be read within
@@ -1901,8 +1916,9 @@ inspectable; federation publishes digest-pinned packages that an outside
 verifier can run without turning foreign results into execution authority.
 The former is not yet wired into effect verification. Bounded external
 run records now exist for the exact-call-binding, fresh-authority and
-effect-evidence contracts (E-ECB, E-FA, E-EE). They are author-attributed
-reproductions of frozen fixture contracts, not independent verification,
+effect-evidence contracts (E-ECB, E-FA, E-EE). They are runs by an
+external second implementation against frozen fixture contracts, recorded
+as not independent,
 and each boundary-level claim result is recorded as
 \texttt{NOT\_ESTABLISHED}. The E7 runtime-surface contract has pinned
 fixtures but no external run. Experiment-specific constraints appear
