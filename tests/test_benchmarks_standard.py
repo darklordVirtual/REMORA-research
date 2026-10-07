@@ -38,9 +38,10 @@ from remora.thermodynamics import classify_phase, estimate_temperature, order_pa
 def test_huggingface_loader_selects_installed_dataset_rows(monkeypatch):
     datasets = pytest.importorskip("datasets")
     if not hasattr(datasets, "Dataset"):
-        # From the repository root, the data directory datasets/ imports as a
-        # namespace package and shadows the Hugging Face library.
-        pytest.skip("datasets/ in the repository root shadows the Hugging Face package")
+        # Hugging Face datasets is not installed, so the data directory
+        # datasets/ imports as an empty namespace package (PEP 420). When the
+        # library is installed, its regular package wins over the directory.
+        pytest.skip("Hugging Face datasets is not installed")
     from remora.benchmarks.loaders import _try_load_hf
 
     rows = datasets.Dataset.from_dict({"id": ["first", "second", "third"]})
