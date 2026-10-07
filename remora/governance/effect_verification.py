@@ -47,10 +47,7 @@ from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from enum import Enum
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Mapping
-
-if TYPE_CHECKING:
-    from remora.evidence.admission import ObservationVantage
+from typing import Any, Mapping
 
 from remora import frozen_json
 
@@ -212,17 +209,19 @@ class EffectVerification:
             raise ValueError(
                 f"scope {self.scope!r}: a verdict covers the declared delta only")
 
-    def observed_from(self, vantage: "ObservationVantage") -> "EffectVerification":
+    def observed_from(self, vantage: Any) -> "EffectVerification":
         """This record with its vantage derived from who observed.
 
         ``independent`` only when the observation vantage derives as
         INDEPENDENT (a different control domain that the observed party can
         neither forge nor suppress); the observer's own declaration of
         independence is never read.
-        """
-        from remora.evidence.admission.models import VantageIndependence
 
-        independent = vantage.independence is VantageIndependence.INDEPENDENT
+        ``vantage`` is an ``remora.evidence.admission.ObservationVantage``.
+        This CORE module does not import that experimental package; it reads
+        the derived ``independence`` by its value.
+        """
+        independent = str(getattr(vantage, "independence", "")) == VANTAGE_INDEPENDENT
         return replace(self, vantage=(VANTAGE_INDEPENDENT if independent
                                       else VANTAGE_SAME_DEPLOYMENT),
                        _independence_derived=independent)
