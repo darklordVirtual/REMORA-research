@@ -13,13 +13,13 @@ provenance:
     - servers/execution_api.py
   source_pins:
     - path: docs/interop/remora-capabilities-v1.yaml
-      sha256: 9bc6ac29ab4bf4b59b83509d1354580b9933fe4ced06e5e3bb9aeedee257032b
+      sha256: 1a2b5cdbe7bc9f61143786dae89102389039c77451e8cb4f99d60d4015572c4b
       role: workflow capability declarations
     - path: docs/assurance/capability_register_v1.yaml
       sha256: 64b231bb2e51486a788883efd8feb3c95173c1e69dc75f797d897df43ded43fb
       role: implementation maturity and freshness source
     - path: artifacts/interop/index.json
-      sha256: f6297856f3c6ccf0ad5360803d1493d739cd901bb342c4411ff10886ae887841
+      sha256: cdc2be1c7962654a4ceba0ee8ff802113f81146f86396fbb52cd322fe31c471c
       role: Federation contract and run-record index
     - path: artifacts/interop/FEDERATION.yaml
       sha256: 498257148e9051632c127064364ee7cd5c2df132f6f588badc2964d41ce7ee27

@@ -1,0 +1,42 @@
+{
+  "schema_version": "remora-optional-contract-v1",
+  "contract_id": "attested-execution-v1",
+  "lifecycle": "DRAFT",
+  "implementation_status": "NOT_IMPLEMENTED",
+  "source_revision": "ed1bb27c18d3ce875d3f5d9c983eebf2e3989ff7",
+  "scope": "Provider-neutral candidate hardware-attestation evidence for an execution observation; optional, never a base-contract prerequisite.",
+  "record_schema": "schemas/attested-execution-v1.schema.json",
+  "required_checks": [
+    "Verify the native attestation document against deployment-selected attestation trust roots, preserving the native format and verifier version.",
+    "Match the workload measurement to an explicit deployment-approved workload/build identity; a measurement string alone is insufficient.",
+    "Validate an unpredictable one-use verifier challenge and its bounded appraisal time window; an operator-selected nonce alone is insufficient.",
+    "Require an affirming appraisal from an explicitly selected verifier.",
+    "Bind the document and appraisal to the same observation, workload and pre-dispatch execution-context digest; signing an observation afterwards is insufficient."
+  ],
+  "claims": [
+    {
+      "claim_id": "tee_execution",
+      "remora_status": "NOT_ESTABLISHED",
+      "claim_ceiling": "A validated native quote and execution binding may support execution of the measured workload inside the declared hardware boundary; neither an operator signature nor schema validation establishes this."
+    },
+    {
+      "claim_id": "workload_measurement",
+      "remora_status": "NOT_ESTABLISHED",
+      "claim_ceiling": "The attested measurement identifies a deployment-approved workload, not application correctness or initiating-model authenticity beyond the measured and bound context."
+    },
+    {
+      "claim_id": "attestation_freshness",
+      "remora_status": "NOT_ESTABLISHED",
+      "claim_ceiling": "A selected verifier validates a one-use challenge and bounded appraisal window; wall-clock fields and a matching nonce string do not establish freshness by themselves."
+    }
+  ],
+  "explicit_non_claims": [
+    "application correctness",
+    "complete mediation or runtime capability-surface completeness",
+    "implementation effect non-transitivity",
+    "downstream effect correctness or provider idempotency",
+    "Federation admission, production safety or execution authority"
+  ],
+  "provider_policy": "Providers and verifier profiles are deployment-selected data, not hardcoded vendor conditions. No Nitro, SEV-SNP or TDX verifier is integrated here.",
+  "verification_boundary": "The schema represents provider-reported candidate claims. Native cryptographic attestation verification and hardware runs are not implemented; local_verification remains NOT_EVALUATED."
+}

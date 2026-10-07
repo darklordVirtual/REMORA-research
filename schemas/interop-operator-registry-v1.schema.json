@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "trust_rule", "operators"],
+  "properties": {
+    "schema_version": {"const": "remora-interop-operator-registry-v1"},
+    "trust_rule": {"type": "string", "minLength": 1},
+    "operators": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["operator_identity", "key_id", "public_key_pem", "relationship_to_producer", "revoked", "allowed_scope"],
+        "properties": {
+          "operator_identity": {"type": "string", "minLength": 1, "maxLength": 512},
+          "key_id": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+          "public_key_pem": {"type": "string", "minLength": 1, "maxLength": 1024},
+          "relationship_to_producer": {"enum": ["PRODUCER", "EXTERNAL"]},
+          "revoked": {"type": "boolean"},
+          "allowed_scope": {"const": "pinned_runtime_primitive_fixtures"}
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": "remora-contract-dependencies-v1",
+  "confers_authority": false,
+  "status_inheritance": false,
+  "properties": ["execution_provenance", "application_correctness", "complete_mediation", "effect_correctness"],
+  "contracts": [
+    {"contract_id": "runtime-surface-e7-v0.1", "depends_on": [], "strengthens": [], "does_not_establish": []},
+    {"contract_id": "exact-call-binding-v1", "depends_on": [], "strengthens": [], "does_not_establish": []},
+    {"contract_id": "exact-call-binding-v1.1", "depends_on": [], "strengthens": [], "does_not_establish": []},
+    {"contract_id": "fresh-authority-v1", "depends_on": [], "strengthens": [], "does_not_establish": []},
+    {"contract_id": "effect-evidence-v1", "depends_on": [], "strengthens": [], "does_not_establish": []},
+    {"contract_id": "effect-evidence-v1.1", "depends_on": [], "strengthens": [], "does_not_establish": []},
+    {"contract_id": "agentavow-tool-manifest-e8-v0.1", "depends_on": [], "strengthens": [], "does_not_establish": []},
+    {
+      "contract_id": "attested-execution-v1",
+      "depends_on": ["exact-call-binding-v1", "fresh-authority-v1"],
+      "strengthens": ["execution_provenance"],
+      "does_not_establish": ["application_correctness", "complete_mediation", "effect_correctness"],
+      "relationship_scope": "Proposed prerequisites and scope for the optional DRAFT; no implementation or inherited claim status."
+    }
+  ]
+}

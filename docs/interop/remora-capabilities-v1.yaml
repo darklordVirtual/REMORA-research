@@ -794,6 +794,41 @@ capability_audit:
       evidence: [docs/assurance/release_profiles_v1.yaml, docs/assurance/capability_register_v1.yaml]
       reason: Current release profile is SHADOW_PILOT and deployment status is SHADOW_ONLY.
 
+runtime_self_service_procedures:
+  - id: execution_boundary_primitive_fixtures
+    availability: self_service
+    scope: pinned_runtime_primitive_fixtures
+    capability_refs: [exact_call_binding, fresh_authority_at_dispatch, effect_state_distinction]
+    frozen_fixture_contracts: [exact-call-binding-v1, fresh-authority-v1, effect-evidence-v1]
+    runner: scripts/interop_self_service.py
+    procedure_reference: docs/interop/CAPABILITY_DISCOVERY.md#runtime-self-service
+    result_schema: schemas/runtime-self-service-v1.schema.json
+    tests: [tests/test_interop_self_service.py, tests/test_interop_boundary_fixtures.py]
+    revision_rule: explicit_full_commit_at_HEAD_committed_snapshot
+    claim_ceiling: >-
+      Runs the real REMORA lease, grant, dispatcher and declared-delta primitives
+      against frozen v1 fixtures, with synthetic tools and observations.
+      Does not exercise the execution API, deployment credentials, an external
+      observer or a real downstream effect. These v1 corpora have known coverage
+      gaps documented in their draft v1.1 successors. Neither outside operation
+      nor a completed report establishes independent verification.
+    independence: NOT_CLASSIFIED
+    advances_lifecycle: false
+    operator_statement:
+      tool: scripts/interop_operator_statement.py
+      schema: schemas/interop-operator-statement-v1.schema.json
+      procedure: docs/interop/CAPABILITY_DISCOVERY.md#operator-statements
+      requires_extra: security
+      admission: UNADMITTED
+      signature_confers_authority: false
+    external_admission:
+      validator: scripts/interop_external_admission.py
+      operator_registry: artifacts/interop/operators-v1.json
+      submission_schema: schemas/interop-submission-v1.schema.json
+      workflow: .github/workflows/external-interop-admission.yml
+      decision: REVIEW_ONLY
+      reruns_runtime: false
+
 self_service_gaps:
   - capability_ref: exact_call_binding
     package_replay_status: SELF_SERVICE_AVAILABLE
@@ -805,11 +840,11 @@ self_service_gaps:
     public_procedure: PRESENT
     claim_ceiling: PRESENT
     missing:
-      - A procedure that exercises the pinned REMORA implementation from outside the maintainer environment.
+      - A procedure covering the execution API and deployment-owned authorization inputs, beyond the available primitive-fixture runner.
       - An external run record linking an independent operator result to the frozen claim.
     smallest_change: >-
-      Publish a runtime-level reproduction procedure and accept an attributed
-      external run record; do not treat a reference-verifier run as runtime evidence.
+      Extend the primitive-fixture procedure to the execution API and accept
+      an attributed external run record; reference replay remains separate.
   - capability_ref: fresh_authority_at_dispatch
     package_replay_status: SELF_SERVICE_AVAILABLE
     runtime_reproduction_status: NOT_READY
@@ -820,11 +855,11 @@ self_service_gaps:
     public_procedure: PRESENT
     claim_ceiling: PRESENT
     missing:
-      - A procedure that exercises the pinned REMORA implementation and its dispatch-time clock and revocation inputs.
+      - A deployment procedure validating clock and revocation sources, beyond the synthetic inputs in the primitive-fixture runner.
       - An external run record linking an independent operator result to the frozen claim.
     smallest_change: >-
-      Publish a runtime-level reproduction procedure and accept an attributed
-      external run record; retain the explicit clock and revocation boundaries.
+      Extend the primitive-fixture procedure to deployment clock and revocation
+      sources and accept an attributed external run record within those boundaries.
   - capability_ref: effect_state_distinction
     package_replay_status: SELF_SERVICE_AVAILABLE
     runtime_reproduction_status: NOT_READY

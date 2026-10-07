@@ -171,6 +171,139 @@ register is upgraded only when such records exist, never before.
 
 ## Producer contract
 
+### Self-service and publication
+
+Public artifacts have a standing offer for research evaluation under the
+existing [license](../../LICENSE) and [licensing explanation](../../legal/LICENSING.md).
+An operator need not ask permission for each run or for publishing their own
+attributed favorable or negative result. Public visibility does not grant
+production, commercial or relicensing rights beyond those terms. Federation
+participation and open reuse proposals do not change REMORA's license.
+
+The stable index links the
+[runtime procedure](CAPABILITY_DISCOVERY.md#runtime-self-service), its
+machine-readable declaration and report schema. Fetch a pinned commit,
+prepare dependencies, run without maintainer guidance, and keep the original
+output, its digest, command and any setup failures. Record where assistance
+was necessary rather than describing an assisted run as unaided self-service.
+Changes in package files, missing published files and sidecar/hash
+disagreements are publication defects to report, not exceptions to suppress.
+
+Your own publication and admission into REMORA's shared records are separate.
+Admission needs the operator's attribution, consumed and evaluator revisions,
+package digest, complete case coverage, scope and non-claims. Implementation
+ownership, operator control and host control must be reviewed separately.
+Outside operation of REMORA code does not become independent verification;
+the primitive report leaves independence unclassified and advances no edge.
+An optional [detached operator statement](CAPABILITY_DISCOVERY.md#operator-statements)
+binds the observation, source, runner and package digests under an
+operator-owned Ed25519 key. A reviewer selects the trusted key and operator
+identity explicitly; the embedded key cannot admit itself. Valid signatures
+leave host isolation unestablished and admission `UNADMITTED`. The chain is
+producer artifact, reproducible runner, completed observation, signed
+operator statement, then a separate Federation admission decision.
+The existing seven-day producer review proposal applies to requested shared
+admission, not as permission to publish your own findings. Preserve unresolved
+disagreement, unknown outcomes and negative records alongside later repairs.
+Claims made on behalf of another project, private artifacts and unreleased
+material require coordination with their owner.
+
+Runner failure checks retain separate assertions for nonzero exit, no report
+and no `PASS`, as requested by @imokokok in
+[aeoess/agent-governance-vocabulary#177](https://github.com/aeoess/agent-governance-vocabulary/issues/177#issuecomment-5974100278).
+This is finder attribution for the failure pattern, not a claim of coauthorship,
+endorsement or external evaluation of REMORA's runner. REMORA owns and tests
+its implementation. The public self-service default and separate admission
+step follow @aeoess's
+[proposal](https://github.com/aeoess/agent-governance-vocabulary/issues/177#issuecomment-5986386137).
+
+E7 still needs its external result. E8 still needs counterpart agreement on
+the signed field and digest semantics: an aggregate
+`scan.toolManifestDigest` is not assumed equivalent to a per-tool
+`toolspec_hash`. Identity continuity, downstream idempotency and hardware
+attestation are not established by this runner.
+`runtime_capability_surface_completeness` and
+`implementation_effect_non_transitivity` remain `NOT_ESTABLISHED`.
+
+### External admission
+
+[`external-interop-admission.yml`](../../.github/workflows/external-interop-admission.yml)
+is separate from producer CI. Its `pull_request_target` job executes the
+base-owned workflow, validator, tooling lock and schemas. The incoming
+checkout supplies Git objects only; its code, build configuration, lockfiles
+and tests are never installed or executed. Both checkouts discard credentials,
+and job permissions are read-only.
+
+The [operator registry](../../artifacts/interop/operators-v1.json) starts
+empty. Key ownership, operator attribution, relationship to REMORA and scope
+need maintainer review in a separate registry PR. Merge that review before
+submitting an observation: a key introduced by the observation PR cannot
+approve itself. A revoked or absent key in the base revision is refused even
+if the incoming revision restores it. The trusted workflow becomes active
+only after its code and locks have landed on the base branch.
+
+An observation PR adds one directory under `artifacts/interop/submissions/`
+with `observation.json`, `operator-statement.json` and a descriptor validating
+against [interop-submission-v1](../../schemas/interop-submission-v1.schema.json):
+
+```json
+{
+  "schema_version": "remora-interop-submission-v1",
+  "operator_identity": "the identity reviewed for this public key",
+  "observation": "observation.json",
+  "operator_statement": "operator-statement.json",
+  "boundary_digest": "sha256:replace-with-the-observation-boundary-digest",
+  "independence": "NOT_CLASSIFIED",
+  "requested_admission": "REVIEW_ONLY"
+}
+```
+
+[`interop_external_admission.py`](../../scripts/interop_external_admission.py)
+checks regular Git blobs, schemas, the base-reviewed signing key, exact
+observation binding and a consumed revision reachable from the base revision.
+It compares source, runner, package and fixture digests with that committed
+tree, pins the boundary register and summary, and requires every selected
+fixture case. Altered expectations, ceilings, non-claims or promoted claim
+statuses are refused. It reads source as data and never
+reruns REMORA or the reference verifier.
+
+`VALIDATED_FOR_REVIEW` means those bindings passed. A signed `CONTRADICTED`
+observation can pass this validation and must remain negative evidence.
+Validation does not establish that the observed execution occurred or that
+the operator's statement is factually correct. Producer and external
+operator roles remain distinct registry facts; neither role establishes
+independence. Admission stays `UNADMITTED`, no contract lifecycle advances,
+and a maintainer must separately decide whether to record the result in the
+shared index.
+
+### Optional attested execution
+
+[`attested-execution-v1`](../../artifacts/interop/attested-execution-v1/contract.json)
+is a provider-neutral `DRAFT` interface, outside the frozen fixture packages
+and the self-service runner's allowlist. It requires native attestation
+verification, an approved workload measurement, a verifier-issued one-use
+challenge with a deployment/verifier-profile-bound appraisal window, an
+affirming appraisal and binding to the same observation and
+pre-dispatch execution context. Providers and verifier profiles are data;
+no Nitro, SEV-SNP or TDX adapter is implemented or claimed.
+
+Its [candidate schema](../../schemas/attested-execution-v1.schema.json)
+preserves provider-reported claims while fixing local verification at
+`NOT_EVALUATED`. Schema validation and an operator signature do not verify a
+hardware quote. REMORA's attestation claims remain `NOT_ESTABLISHED`, and
+application correctness, complete mediation and effect correctness are
+explicit non-claims.
+
+The [contract graph](../../artifacts/interop/contract-dependencies-v1.json)
+declares proposed exact-call and fresh-authority prerequisites for that
+optional interface. `strengthens` names a property the interface could
+support; it does not establish that property. Empty lists mean no
+relationship is declared here, not that native claim ceilings disappear.
+Dependency links never inherit status, endorsement or authority.
+[`interop_contract_graph.py`](../../scripts/interop_contract_graph.py) checks
+indexed IDs, definition and candidate-schema digests, known properties and cycles. Hardware
+attestation is not a prerequisite for the Federation base contracts.
+
 For each public interop contract REMORA publishes:
 
 1. the immutable source revision the contract was derived from

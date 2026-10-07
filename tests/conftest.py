@@ -103,6 +103,36 @@ def signing_key() -> bytes:
     return b"test-signing-key-do-not-use-in-production"
 
 
+@pytest.fixture(scope="module")
+def interop_pinned_repo(tmp_path_factory, repo_root) -> tuple[Path, str]:
+    """A committed fixture tree for runtime and data-only admission tests."""
+    import shutil
+    import subprocess
+
+    from scripts import interop_self_service as runner
+
+    root = tmp_path_factory.mktemp("pinned-runtime")
+    for relative in runner.INPUTS:
+        source = repo_root / relative
+        target = root / relative
+        if source.is_dir():
+            shutil.copytree(source, target, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+        else:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, target)
+    subprocess.run(["git", "init", "-q", str(root)], check=True)
+    subprocess.run(["git", "-C", str(root), "add", "."], check=True)
+    subprocess.run(
+        ["git", "-C", str(root), "-c", "user.name=Runner fixture",
+         "-c", "user.email=fixture@example.invalid", "-c", "commit.gpgsign=false",
+         "-c", "core.hooksPath=/dev/null", "commit", "-qm",
+         "Pinned test tree\n\nCo-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"],
+        check=True,
+    )
+    revision = subprocess.check_output(["git", "-C", str(root), "rev-parse", "HEAD"]).decode().strip()
+    return root, revision
+
+
 @pytest.fixture(autouse=True)
 def _fresh_rate_limiter_buckets():
     """Every test starts with empty rate-limiter buckets.

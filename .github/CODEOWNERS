@@ -19,3 +19,5 @@
 /schemas/ @darklordVirtual
 /.github/ @darklordVirtual
 /docs/assurance/ @darklordVirtual
+/artifacts/interop/operators-v1.json @darklordVirtual
+/scripts/interop_external_admission.py @darklordVirtual

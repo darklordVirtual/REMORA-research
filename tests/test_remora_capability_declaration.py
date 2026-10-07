@@ -152,3 +152,60 @@ def test_maturity_flags_cannot_exceed_declared_level(
     declaration["workflow_capabilities"][0]["maturity"]["level"] = "IMPLEMENTED"
     with pytest.raises(DeclarationValidationError, match="conflicts with flags"):
         validate_declaration(declaration, root=ROOT)
+
+
+def test_runtime_procedure_is_bounded_and_discoverable(declaration: dict[str, Any]) -> None:
+    procedure, = declaration["runtime_self_service_procedures"]
+    assert procedure["scope"] == "pinned_runtime_primitive_fixtures"
+    assert procedure["independence"] == "NOT_CLASSIFIED"
+    assert procedure["advances_lifecycle"] is False
+    assert set(procedure["capability_refs"]) <= {
+        cap["id"] for cap in declaration["workflow_capabilities"]
+    }
+    validate_declaration(declaration, root=ROOT)
+
+
+@pytest.mark.parametrize("change", ["capability", "fixture", "evidence", "independence", "scope"])
+def test_runtime_procedure_cannot_inflate_evidence(declaration: dict[str, Any], change: str) -> None:
+    procedure = declaration["runtime_self_service_procedures"][0]
+    if change == "capability":
+        procedure["capability_refs"] = ["missing_capability"]
+    elif change == "fixture":
+        procedure["frozen_fixture_contracts"] = ["exact-call-binding-v1.1"]
+    elif change == "evidence":
+        procedure["runner"] = "scripts/missing_runner.py"
+    elif change == "independence":
+        procedure["independence"] = "INDEPENDENT"
+    else:
+        procedure["scope"] = "production"
+    with pytest.raises(DeclarationValidationError):
+        validate_declaration(declaration, root=ROOT)
+
+
+def test_index_cannot_discover_an_undeclared_runtime_procedure(declaration: dict[str, Any]) -> None:
+    declaration.pop("runtime_self_service_procedures")
+    with pytest.raises(DeclarationValidationError, match="index entry"):
+        validate_declaration(declaration, root=ROOT)
+
+
+@pytest.mark.parametrize("field", ["capability_refs", "frozen_fixture_contracts", "tests"])
+def test_runtime_procedure_requires_nonempty_evidence(declaration: dict[str, Any], field: str) -> None:
+    declaration["runtime_self_service_procedures"][0][field] = []
+    with pytest.raises(DeclarationValidationError):
+        validate_declaration(declaration, root=ROOT)
+
+
+@pytest.mark.parametrize("field", ["admission", "signature_confers_authority", "tool"])
+def test_operator_statement_discovery_cannot_grant_authority(declaration: dict[str, Any], field: str) -> None:
+    statement = declaration["runtime_self_service_procedures"][0]["operator_statement"]
+    statement[field] = True if field == "signature_confers_authority" else "ESTABLISHED"
+    with pytest.raises(DeclarationValidationError):
+        validate_declaration(declaration, root=ROOT)
+
+
+@pytest.mark.parametrize("field", ["decision", "reruns_runtime", "operator_registry"])
+def test_external_admission_discovery_preserves_review_only(declaration: dict[str, Any], field: str) -> None:
+    admission = declaration["runtime_self_service_procedures"][0]["external_admission"]
+    admission[field] = True if field == "reruns_runtime" else "ADMITTED"
+    with pytest.raises(DeclarationValidationError):
+        validate_declaration(declaration, root=ROOT)

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "operator_identity", "observation", "operator_statement", "boundary_digest", "independence", "requested_admission"],
+  "properties": {
+    "schema_version": {"const": "remora-interop-submission-v1"},
+    "operator_identity": {"type": "string", "minLength": 1, "maxLength": 512},
+    "observation": {"const": "observation.json"},
+    "operator_statement": {"const": "operator-statement.json"},
+    "boundary_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "independence": {"const": "NOT_CLASSIFIED"},
+    "requested_admission": {"const": "REVIEW_ONLY"}
+  }
+}

@@ -1,0 +1,2 @@
+# Regenerate with pip-tools; the bootstrap installer is itself hash locked.
+pip==26.2.1
