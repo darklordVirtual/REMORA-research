@@ -122,6 +122,10 @@ class EffectVerificationView:
     detail: str = ""
     raw: Mapping[str, Any] = field(default_factory=dict, repr=False)
     execution_context_hash: str = ""
+    #: Where the verdict was observed from (``same_deployment`` or
+    #: ``independent``) and what it covers (``declared_delta_only``).
+    vantage: str = "same_deployment"
+    scope: str = "declared_delta_only"
 
     @classmethod
     def from_payload(cls, payload: Mapping[str, Any]) -> "EffectVerificationView":
@@ -139,6 +143,8 @@ class EffectVerificationView:
             detail=str(payload.get("detail", "")),
             raw=MappingProxyType(dict(payload)),
             execution_context_hash=str(payload.get("execution_context_hash", "")),
+            vantage=str(payload.get("vantage") or "same_deployment"),
+            scope=str(payload.get("scope") or "declared_delta_only"),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -155,6 +161,8 @@ class EffectVerificationView:
             "observed_sha256": self.observed_sha256,
             "verified_at": self.verified_at,
             "detail": self.detail,
+            "vantage": self.vantage,
+            "scope": self.scope,
         }
         if self.execution_context_hash:
             record["execution_context_hash"] = self.execution_context_hash
