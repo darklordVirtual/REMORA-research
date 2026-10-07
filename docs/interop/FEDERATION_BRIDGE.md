@@ -1,9 +1,9 @@
 # REMORA Federation Bridge and loss-aware interoperability
 
 Status: implemented 2026-10-07 for `federation-port/v0` (Mode A, portable
-verifier). Context: [aeoess/agent-governance-vocabulary#177](https://github.com/aeoess/agent-governance-vocabulary/issues/177),
-where [federation-port](https://github.com/aeoess/federation-port) was
-published as a V0 prototype and the next test named was an adapter written by
+verifier). Context: [aeoess/agent-governance-vocabulary#177](https://github.com/aeoess/agent-governance-vocabulary/issues/177).
+There, [federation-port](https://github.com/aeoess/federation-port) was
+published as a V0 prototype. The next test it named was an adapter written by
 another project, for a check it already performs, without changing the core.
 
 ## The problem
@@ -11,7 +11,7 @@ another project, for a check it already performs, without changing the core.
 REMORA's native claims bind more than some federation transports carry. Its
 exact-call binding covers the tool, the full argument content with scalar
 types and array order, the tenant, the target and the principal.
-federation-port/v0 carries the action as JavaScript values, a caller-supplied
+The V0 transport carries the action as JavaScript values, a caller-supplied
 tenant label, an approval id and per-component evidence bytes. A REMORA check
 reported through V0 as "exact-call binding" would claim more than V0 can
 carry.
@@ -102,10 +102,10 @@ change.
 ## Projection records
 
 Every bridge result carries one `remora-federation-projection-v1` record per
-native claim: the projection, what was preserved, what was not established,
-the action's losses, and the digests of the native evidence, the transport
-evidence, the adapter, the map and the capability declaration, with the REMORA
-and transport revisions.
+native claim. It states the projection, what was preserved, what was not
+established and the action's losses. It also carries the digests of the native
+evidence, the transport evidence, the adapter, the map and the capability
+declaration, with the REMORA and transport revisions.
 
 ## Lifecycle: an execution report is not an effect
 
