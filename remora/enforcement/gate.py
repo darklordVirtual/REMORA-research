@@ -283,6 +283,39 @@ class EnforcementGate:
                 "no watermark"
             )
 
+    def _ledger_unavailable(
+        self, token: PolicyDecisionToken, vr: Any, backend: str, exc: BaseException
+    ) -> EnforcementResult:
+        """One refusal for every backend whose consumed-grant ledger failed.
+
+        RMR-CR-015. The D1 path already turned an outage into the named
+        refusal ``consumed_ledger_unavailable``; Postgres and SQLite caught
+        only the uniqueness violation, so any other database error escaped
+        as an exception. That still failed closed, but skipped the
+        ``grant.checked`` event and the refusal record in the chain. Now every
+        backend gives the same outcome and reason; the backend and error
+        class go to the operational event, never the error text.
+
+        Not consuming authority is what the refusal guarantees when the write
+        never committed. If a commit succeeded and the connection failed
+        before it was acknowledged, the grant is spent and the call refused:
+        fail closed, never a second execution.
+        """
+        governance_event(
+            "grant.ledger_unavailable",
+            level=logging.WARNING,
+            backend=backend,
+            error_class=type(exc).__name__,
+            token_jti=token.jti,
+        )
+        return EnforcementResult(
+            allowed=False,
+            action=token.action,
+            token_verified=vr.verified,
+            reason="consumed_ledger_unavailable",
+            strict_mode=self.strict,
+        )
+
     def check(
         self,
         token: PolicyDecisionToken,
@@ -470,6 +503,8 @@ class EnforcementGate:
                         reason="token_already_consumed",
                         strict_mode=self.strict,
                     )
+                except psycopg.Error as exc:
+                    return self._ledger_unavailable(token, vr, "postgres", exc)
             elif self._db_path:
                 import sqlite3
                 try:
@@ -490,6 +525,8 @@ class EnforcementGate:
                         reason="token_already_consumed",
                         strict_mode=self.strict,
                     )
+                except sqlite3.Error as exc:
+                    return self._ledger_unavailable(token, vr, "sqlite", exc)
             elif self._state_endpoint:
                 from remora.persistence.d1_connection import (
                     D1Unavailable,
@@ -530,13 +567,7 @@ class EnforcementGate:
                     # The store the one-time property lives in cannot be
                     # reached. Assuming unspent is exactly the double-spend
                     # the ledger exists to prevent, so this fails closed.
-                    return EnforcementResult(
-                        allowed=False,
-                        action=token.action,
-                        token_verified=vr.verified,
-                        reason="consumed_ledger_unavailable",
-                        strict_mode=self.strict,
-                    )
+                    return self._ledger_unavailable(token, vr, "d1", exc)
             else:
                 with self._consume_lock:
                     if token.jti in self._consumed:
