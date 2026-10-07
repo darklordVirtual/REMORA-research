@@ -6,6 +6,14 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Security
 
+- Effect verdicts state their vantage and scope (CR-008). Every effect
+  verification record, the `/proposals/{id}/effect` response, the lifecycle
+  report, the envelope ledger and the SDK view carry `vantage`
+  (`same_deployment`) and `scope` (`declared_delta_only`), so
+  `EFFECT_VERIFIED` cannot be read as independent confirmation that nothing
+  else changed. `independent` is only derived from an `ObservationVantage`,
+  never asserted. Older records are reported with the vantage the recorder
+  admitted, marked `vantage_recorded: false`.
 - Signature format v2 for the tenant audit chain (CR-011, C3). v1 entries
   are never re-signed. The first v2 append writes an
   `AUDIT_VERSION_TRANSITION` record naming the final v1 head and

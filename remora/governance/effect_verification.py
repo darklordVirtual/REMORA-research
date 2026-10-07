@@ -29,19 +29,36 @@ to a caller's judgement:
 - **verification never re-executes.** The verifier reads. A side effect
   that may already have happened is the one thing this layer must never
   repeat.
+
+What a verdict claims (RMR-CR-008). ``EFFECT_VERIFIED`` is an attestation,
+by a verifier the deployment allowlists, that the DECLARED delta is
+present. Every record says so in two fields rather than leaving it to the
+reader's reading of the status name:
+
+- ``vantage``: ``same_deployment``, unless independence is derived from an
+  :class:`~remora.evidence.admission.ObservationVantage`
+  (:meth:`EffectVerification.observed_from`), never from the verifier's word;
+- ``scope``: ``declared_delta_only``. Fields the postcondition does not
+  declare are not compared, so a verdict says nothing about them.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime
 from enum import Enum
 from types import MappingProxyType
-from typing import Any, Mapping
+from typing import TYPE_CHECKING, Any, Mapping
+
+if TYPE_CHECKING:
+    from remora.evidence.admission import ObservationVantage
 
 from remora import frozen_json
 
 __all__ = [
     "COMPARISON_RULES",
+    "SCOPE_DECLARED_DELTA_ONLY",
+    "VANTAGE_INDEPENDENT",
+    "VANTAGE_SAME_DEPLOYMENT",
     "EffectStatus",
     "EffectVerification",
     "PostconditionContract",
@@ -66,6 +83,14 @@ class EffectStatus(str, Enum):
         Marking them terminal would freeze an unknown into a verdict."""
         return self in (EffectStatus.VERIFIED, EffectStatus.MISMATCH,
                         EffectStatus.UNSUPPORTED)
+
+
+#: Who observed, relative to the deployment that executed (RMR-CR-008).
+VANTAGE_SAME_DEPLOYMENT = "same_deployment"
+VANTAGE_INDEPENDENT = "independent"
+VANTAGES = (VANTAGE_SAME_DEPLOYMENT, VANTAGE_INDEPENDENT)
+#: What a verdict covers: the declared delta, and nothing else.
+SCOPE_DECLARED_DELTA_ONLY = "declared_delta_only"
 
 
 #: The frozen vocabulary of ``schemas/postcondition_contract_v1.yaml``.
@@ -171,6 +196,36 @@ class EffectVerification:
     verifier_version: str = ""
     submitted_by: str = ""
     execution_context_hash: str = ""
+    #: RMR-CR-008. ``independent`` only through :meth:`observed_from`.
+    vantage: str = VANTAGE_SAME_DEPLOYMENT
+    scope: str = SCOPE_DECLARED_DELTA_ONLY
+    _independence_derived: bool = field(default=False, repr=False, compare=False)
+
+    def __post_init__(self) -> None:
+        if self.vantage not in VANTAGES:
+            raise ValueError(f"vantage {self.vantage!r} is not one of {list(VANTAGES)}")
+        if self.vantage == VANTAGE_INDEPENDENT and not self._independence_derived:
+            raise ValueError(
+                "vantage 'independent' is derived from an ObservationVantage "
+                "(observed_from), never asserted")
+        if self.scope != SCOPE_DECLARED_DELTA_ONLY:
+            raise ValueError(
+                f"scope {self.scope!r}: a verdict covers the declared delta only")
+
+    def observed_from(self, vantage: "ObservationVantage") -> "EffectVerification":
+        """This record with its vantage derived from who observed.
+
+        ``independent`` only when the observation vantage derives as
+        INDEPENDENT (a different control domain that the observed party can
+        neither forge nor suppress); the observer's own declaration of
+        independence is never read.
+        """
+        from remora.evidence.admission.models import VantageIndependence
+
+        independent = vantage.independence is VantageIndependence.INDEPENDENT
+        return replace(self, vantage=(VANTAGE_INDEPENDENT if independent
+                                      else VANTAGE_SAME_DEPLOYMENT),
+                       _independence_derived=independent)
 
     @classmethod
     def build(
@@ -234,6 +289,8 @@ class EffectVerification:
             "verified_at": self.verified_at,
             "detail": self.detail,
             "evidence_refs": list(self.evidence_refs),
+            "vantage": self.vantage,
+            "scope": self.scope,
         }
         if self.execution_context_hash:
             record["execution_context_hash"] = self.execution_context_hash
