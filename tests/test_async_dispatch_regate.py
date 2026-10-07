@@ -253,7 +253,7 @@ def test_an_item_without_a_recorded_hash_fails_closed_under_a_bundle(
 def test_no_bundle_then_and_now_is_the_unenforced_research_path(
         client, monkeypatch) -> None:
     _use_bundle(monkeypatch, None)
-    _item, _proposal = _pending(client)
+    _pending(client)
     results = _exec_mod().dispatch_pending_intents("acme", worker_id="w-1")
     assert results[0]["tool_execution"]["executed"] is True
 
