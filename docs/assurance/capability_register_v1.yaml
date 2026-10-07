@@ -81,8 +81,9 @@ capabilities:
   - id: CAP-001
     name: "Decision engine (hard guards -> conditional gates -> trust routing)"
     status: WIRED_API_PATH
-    verified_at_sha: cdddc0439845b761ae6c333f1e9c7e08242d749f
+    verified_at_sha: 01f392f9f3a0d4f69661aa4db3c4da7d45458f8f
     verified_by: >-
+      re-audited 2026-10-07 at 01f392f (RMR-CR-003), from cdddc04: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       rebound 2026-10-07 to the v0.12.0 release commit (cdddc04); servers/api.py changed only in its _PACKAGE_VERSION fallback (0.11.0 -> 0.12.0). The cited behaviour is unchanged, and so are status, scope and caveats.
       rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b); the branch commit d6c630e left the repository at squash. Verified content-identical: the squash tree equals the reviewed branch tip d701c37 (`git diff d701c37 58ebc0b` is empty), and the cited evidence did not change between d6c630e and d701c37. No status, scope or caveat change.
       Prior: re-audit 2026-10-06 (second pass) for the pre-Federation durability and async remediation: Durability: servers/api.py no longer admits REMORA_STATE_ENDPOINT alone as durable execution state in production (the endpoint has no tenant-chain or outbox adapter), still probes a REMORA_CHAIN_DB file beside an endpoint, and reports that configuration as state_endpoint_partial and not durable; servers/execution_api.py reports the same and selects UnbackedExecutionOutbox for it, refusing it in production (wiring point ASW-005). For this capability the decision engine is unchanged; servers/api.py changes only the production prerequisite and backend reporting. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
@@ -130,8 +131,9 @@ capabilities:
       - remora/enforcement/gate.py
       - tests/test_token_hardening.py
       - servers/execution_api.py
-    verified_at_sha: eef64a359b5e3655501f64b614753cf5a81826a8
+    verified_at_sha: 01f392f9f3a0d4f69661aa4db3c4da7d45458f8f
     verified_by: >-
+      re-audited 2026-10-07 at 01f392f (RMR-CR-003), from eef64a3: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       rebound 2026-10-07 to the squash-merge commit of #754 (eef64a3); the branch commit 918e088 left the repository at squash. Verified content-identical: none of the evidence paths cited by the twelve rebound capabilities changed between 918e088 and the reviewed branch tip ff0c097, and the squash tree differs from ff0c097 only in paper/remora_paper.md and paper/remora_paper.tex (#746), which no capability cites. No status, scope or caveat change.
       Re-audit 2026-10-06 for execution-context binding at 918e088c: Context-bound grants sign a call/context/proposal digest plus the authorization context; legacy hashes, expiry, audience and consumption remain unchanged. Status and caveats unchanged. Validation: tests/test_execution_context_binding.py and the existing execution, token, review, effect, custody and capability suites. Deployment source authority remains NOT_ESTABLISHED.
       Prior verification follows.
@@ -213,8 +215,9 @@ capabilities:
   - id: CAP-004
     name: "Tool-call payload binding (canonical hash, recomputed before execution)"
     status: WIRED_API_PATH
-    verified_at_sha: eef64a359b5e3655501f64b614753cf5a81826a8
+    verified_at_sha: 01f392f9f3a0d4f69661aa4db3c4da7d45458f8f
     verified_by: >-
+      re-audited 2026-10-07 at 01f392f (RMR-CR-003), from eef64a3: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       rebound 2026-10-07 to the squash-merge commit of #754 (eef64a3); the branch commit 918e088 left the repository at squash. Verified content-identical: none of the evidence paths cited by the twelve rebound capabilities changed between 918e088 and the reviewed branch tip ff0c097, and the squash tree differs from ff0c097 only in paper/remora_paper.md and paper/remora_paper.tex (#746), which no capability cites. No status, scope or caveat change.
       Re-audit 2026-10-06 for execution-context binding at 918e088c: Exact-call hashing is unchanged; the optional context additionally binds proposal and deployment metadata, with immutable canonical history. Status and caveats unchanged. Validation: tests/test_execution_context_binding.py and the existing execution, token, review, effect, custody and capability suites. Deployment source authority remains NOT_ESTABLISHED.
       Prior verification follows.
@@ -248,8 +251,9 @@ capabilities:
   - id: CAP-005
     name: "Audit chain (hash-chained decision history)"
     status: PERSISTED_ATOMIC
-    verified_at_sha: eef64a359b5e3655501f64b614753cf5a81826a8
+    verified_at_sha: 01f392f9f3a0d4f69661aa4db3c4da7d45458f8f
     verified_by: >-
+      re-audited 2026-10-07 at 01f392f (RMR-CR-003), from eef64a3: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       rebound 2026-10-07 to the squash-merge commit of #754 (eef64a3); the branch commit 918e088 left the repository at squash. Verified content-identical: none of the evidence paths cited by the twelve rebound capabilities changed between 918e088 and the reviewed branch tip ff0c097, and the squash tree differs from ff0c097 only in paper/remora_paper.md and paper/remora_paper.tex (#746), which no capability cites. No status, scope or caveat change.
       Re-audit 2026-10-06 for execution-context binding at 918e088c: New deployment-provider configuration does not bypass existing strict-profile ToolSpec, durable-state or signer prerequisites. Status and caveats unchanged. Validation: tests/test_execution_context_binding.py and the existing execution, token, review, effect, custody and capability suites. Deployment source authority remains NOT_ESTABLISHED.
       Prior verification follows.
@@ -299,8 +303,9 @@ capabilities:
   - id: CAP-007
     name: "Review queue with TTL-to-ABSTAIN and approval freshness re-gate"
     status: WIRED_API_PATH
-    verified_at_sha: eef64a359b5e3655501f64b614753cf5a81826a8
+    verified_at_sha: 01f392f9f3a0d4f69661aa4db3c4da7d45458f8f
     verified_by: >-
+      re-audited 2026-10-07 at 01f392f (RMR-CR-003), from eef64a3: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       rebound 2026-10-07 to the squash-merge commit of #754 (eef64a3); the branch commit 918e088 left the repository at squash. Verified content-identical: none of the evidence paths cited by the twelve rebound capabilities changed between 918e088 and the reviewed branch tip ff0c097, and the squash tree differs from ff0c097 only in paper/remora_paper.md and paper/remora_paper.tex (#746), which no capability cites. No status, scope or caveat change.
       Re-audit 2026-10-06 for execution-context binding at 918e088c: Approval checks historical context against the queued observation; execute refuses context substitution before re-gating. TTL and monotonic decision rules remain unchanged. Status and caveats unchanged. Validation: tests/test_execution_context_binding.py and the existing execution, token, review, effect, custody and capability suites. Deployment source authority remains NOT_ESTABLISHED.
       Prior verification follows.
@@ -352,8 +357,9 @@ capabilities:
   - id: CAP-009
     name: "RBAC (eight-role capability matrix, credential-bound audit identity)"
     status: WIRED_API_PATH
-    verified_at_sha: cdddc0439845b761ae6c333f1e9c7e08242d749f
+    verified_at_sha: 01f392f9f3a0d4f69661aa4db3c4da7d45458f8f
     verified_by: >-
+      re-audited 2026-10-07 at 01f392f (RMR-CR-003), from cdddc04: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       rebound 2026-10-07 to the v0.12.0 release commit (cdddc04); servers/api.py changed only in its _PACKAGE_VERSION fallback (0.11.0 -> 0.12.0). The cited behaviour is unchanged, and so are status, scope and caveats.
       rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b); the branch commit d6c630e left the repository at squash. Verified content-identical: the squash tree equals the reviewed branch tip d701c37 (`git diff d701c37 58ebc0b` is empty), and the cited evidence did not change between d6c630e and d701c37. No status, scope or caveat change.
       Prior: re-audit 2026-10-06 (second pass) for the pre-Federation durability and async remediation: Durability: servers/api.py no longer admits REMORA_STATE_ENDPOINT alone as durable execution state in production (the endpoint has no tenant-chain or outbox adapter), still probes a REMORA_CHAIN_DB file beside an endpoint, and reports that configuration as state_endpoint_partial and not durable; servers/execution_api.py reports the same and selects UnbackedExecutionOutbox for it, refusing it in production (wiring point ASW-005). For this capability the role matrix and credential-bound identity are unchanged. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
@@ -429,8 +435,9 @@ capabilities:
       - tests/test_effect_receipt_atomicity.py
       - tests/test_effect_record_endpoint.py
       - docs/deployment/authority-custody-evidence.md
-    verified_at_sha: eef64a359b5e3655501f64b614753cf5a81826a8
+    verified_at_sha: 01f392f9f3a0d4f69661aa4db3c4da7d45458f8f
     verified_by: >-
+      re-audited 2026-10-07 at 01f392f (RMR-CR-003), from eef64a3: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       rebound 2026-10-07 to the squash-merge commit of #754 (eef64a3); the branch commit 918e088 left the repository at squash. Verified content-identical: none of the evidence paths cited by the twelve rebound capabilities changed between 918e088 and the reviewed branch tip ff0c097, and the squash tree differs from ff0c097 only in paper/remora_paper.md and paper/remora_paper.tex (#746), which no capability cites. No status, scope or caveat change.
       Re-audit 2026-10-06 for execution-context binding at 918e088c: Leases sign the context digest and dispatch checks runtime, build and data validity before nonce consumption. Unknown remote outcomes retain context without fabricating dispatch evidence; effect recording checks context and execution joins. Status and caveats unchanged. Validation: tests/test_execution_context_binding.py and the existing execution, token, review, effect, custody and capability suites. Deployment source authority remains NOT_ESTABLISHED.
       Prior verification follows.
@@ -585,8 +592,9 @@ capabilities:
   - id: CAP-017
     name: "Production fail-closed on signing keys"
     status: WIRED_API_PATH
-    verified_at_sha: cdddc0439845b761ae6c333f1e9c7e08242d749f
+    verified_at_sha: 01f392f9f3a0d4f69661aa4db3c4da7d45458f8f
     verified_by: >-
+      re-audited 2026-10-07 at 01f392f (RMR-CR-003), from cdddc04: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       rebound 2026-10-07 to the v0.12.0 release commit (cdddc04); servers/api.py changed only in its _PACKAGE_VERSION fallback (0.11.0 -> 0.12.0). The cited behaviour is unchanged, and so are status, scope and caveats.
       rebound 2026-10-06 to the squash-merge commit of #745 (58ebc0b); the branch commit d6c630e left the repository at squash. Verified content-identical: the squash tree equals the reviewed branch tip d701c37 (`git diff d701c37 58ebc0b` is empty), and the cited evidence did not change between d6c630e and d701c37. No status, scope or caveat change.
       Prior: re-audit 2026-10-06 (second pass) for the pre-Federation durability and async remediation: Durability: servers/api.py no longer admits REMORA_STATE_ENDPOINT alone as durable execution state in production (the endpoint has no tenant-chain or outbox adapter), still probes a REMORA_CHAIN_DB file beside an endpoint, and reports that configuration as state_endpoint_partial and not durable; servers/execution_api.py reports the same and selects UnbackedExecutionOutbox for it, refusing it in production (wiring point ASW-005). For this capability the signing-key prerequisites are unchanged; the durability prerequisite is strictly narrower. Evidence green at this revision (full suite). Status and caveat unchanged. Bound to the branch commit; rebind to the squash commit after merge.
@@ -609,8 +617,9 @@ capabilities:
   - id: CAP-018
     name: "Task-bound authority and non-decaying loop safety on the execution API"
     status: WIRED_API_PATH
-    verified_at_sha: eef64a359b5e3655501f64b614753cf5a81826a8
+    verified_at_sha: 01f392f9f3a0d4f69661aa4db3c4da7d45458f8f
     verified_by: >-
+      re-audited 2026-10-07 at 01f392f (RMR-CR-003), from eef64a3: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       rebound 2026-10-07 to the squash-merge commit of #754 (eef64a3); the branch commit 918e088 left the repository at squash. Verified content-identical: none of the evidence paths cited by the twelve rebound capabilities changed between 918e088 and the reviewed branch tip ff0c097, and the squash tree differs from ff0c097 only in paper/remora_paper.md and paper/remora_paper.tex (#746), which no capability cites. No status, scope or caveat change.
       Re-audit 2026-10-06 for execution-context binding at 918e088c: Task identity and loop safety remain independent of execution provenance. Workers bind the historical context before the existing fresh re-gate. Status and caveats unchanged. Validation: tests/test_execution_context_binding.py and the existing execution, token, review, effect, custody and capability suites. Deployment source authority remains NOT_ESTABLISHED.
       Prior verification follows.
@@ -643,8 +652,9 @@ capabilities:
   - id: CAP-019
     name: "Evidence coverage verdicts on the evidence export"
     status: WIRED_API_PATH
-    verified_at_sha: eef64a359b5e3655501f64b614753cf5a81826a8
+    verified_at_sha: 01f392f9f3a0d4f69661aa4db3c4da7d45458f8f
     verified_by: >-
+      re-audited 2026-10-07 at 01f392f (RMR-CR-003), from eef64a3: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       rebound 2026-10-07 to the squash-merge commit of #754 (eef64a3); the branch commit 918e088 left the repository at squash. Verified content-identical: none of the evidence paths cited by the twelve rebound capabilities changed between 918e088 and the reviewed branch tip ff0c097, and the squash tree differs from ff0c097 only in paper/remora_paper.md and paper/remora_paper.tex (#746), which no capability cites. No status, scope or caveat change.
       Re-audit 2026-10-06 for execution-context binding at 918e088c: Evidence export reads canonical context from historical chain entries and refuses inconsistent joins; it does not recapture deployment metadata. Status and caveats unchanged. Validation: tests/test_execution_context_binding.py and the existing execution, token, review, effect, custody and capability suites. Deployment source authority remains NOT_ESTABLISHED.
       Prior verification follows.
@@ -672,8 +682,9 @@ capabilities:
   - id: CAP-020
     name: "Pre-dispatch premise checks: resolved effect, plan premises, procedure obligations"
     status: WIRED_API_PATH
-    verified_at_sha: eef64a359b5e3655501f64b614753cf5a81826a8
+    verified_at_sha: 01f392f9f3a0d4f69661aa4db3c4da7d45458f8f
     verified_by: >-
+      re-audited 2026-10-07 at 01f392f (RMR-CR-003), from eef64a3: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       rebound 2026-10-07 to the squash-merge commit of #754 (eef64a3); the branch commit 918e088 left the repository at squash. Verified content-identical: none of the evidence paths cited by the twelve rebound capabilities changed between 918e088 and the reviewed branch tip ff0c097, and the squash tree differs from ff0c097 only in paper/remora_paper.md and paper/remora_paper.tex (#746), which no capability cites. No status, scope or caveat change.
       Re-audit 2026-10-06 for execution-context binding at 918e088c: Existing runtime checks remain intact; context-bound dispatch also compares the recorded runtime and deployment-provided build provenance. Status and caveats unchanged. Validation: tests/test_execution_context_binding.py and the existing execution, token, review, effect, custody and capability suites. Deployment source authority remains NOT_ESTABLISHED.
       Prior verification follows.
@@ -712,8 +723,9 @@ capabilities:
   - id: CAP-021
     name: "Independent recorder: evidence captured outside the executing process"
     status: WIRED_API_PATH
-    verified_at_sha: eef64a359b5e3655501f64b614753cf5a81826a8
+    verified_at_sha: 01f392f9f3a0d4f69661aa4db3c4da7d45458f8f
     verified_by: >-
+      re-audited 2026-10-07 at 01f392f (RMR-CR-003), from eef64a3: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       rebound 2026-10-07 to the squash-merge commit of #754 (eef64a3); the branch commit 918e088 left the repository at squash. Verified content-identical: none of the evidence paths cited by the twelve rebound capabilities changed between 918e088 and the reviewed branch tip ff0c097, and the squash tree differs from ff0c097 only in paper/remora_paper.md and paper/remora_paper.tex (#746), which no capability cites. No status, scope or caveat change.
       Re-audit 2026-10-06 for execution-context binding at 918e088c: Existing resolved-effect comparison remains independent and unchanged; execution-context checks add refusals before nonce consumption. Status and caveats unchanged. Validation: tests/test_execution_context_binding.py and the existing execution, token, review, effect, custody and capability suites. Deployment source authority remains NOT_ESTABLISHED.
       Prior verification follows.
@@ -777,8 +789,9 @@ capabilities:
   - id: CAP-023
     name: "Capability minimization: task-scoped capability sets enforced at assess, execution and dispatch"
     status: WIRED_API_PATH
-    verified_at_sha: eef64a359b5e3655501f64b614753cf5a81826a8
+    verified_at_sha: 01f392f9f3a0d4f69661aa4db3c4da7d45458f8f
     verified_by: >-
+      re-audited 2026-10-07 at 01f392f (RMR-CR-003), from eef64a3: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       rebound 2026-10-07 to the squash-merge commit of #754 (eef64a3); the branch commit 918e088 left the repository at squash. Verified content-identical: none of the evidence paths cited by the twelve rebound capabilities changed between 918e088 and the reviewed branch tip ff0c097, and the squash tree differs from ff0c097 only in paper/remora_paper.md and paper/remora_paper.tex (#746), which no capability cites. No status, scope or caveat change.
       Re-audit 2026-10-06 for execution-context binding at 918e088c: Existing capability membership, epoch and argument checks remain intact. New context validation grants no capability and preserves async fresh re-gating. Status and caveats unchanged. Validation: tests/test_execution_context_binding.py and the existing execution, token, review, effect, custody and capability suites. Deployment source authority remains NOT_ESTABLISHED.
       Prior verification follows.
@@ -826,8 +839,9 @@ capabilities:
   - id: CAP-024
     name: "Capability mediation for implementation effects, with an effect domain for strict deployments (NTA-2 phases 1 to 3)"
     status: WIRED_API_PATH
-    verified_at_sha: 3bab659f04e0f957160fb15de7a7047838a11c4d
+    verified_at_sha: 01f392f9f3a0d4f69661aa4db3c4da7d45458f8f
     verified_by: >-
+      re-audited 2026-10-07 at 01f392f (RMR-CR-003), from 3bab659: servers/api.py and servers/execution_api.py changed only in REMORA_ENV parsing (one parser, unknown values refused) and in authentication (single-token mode refused outside development; a token-table tenant cannot be widened by X-Remora-Tenant). The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 3bab659 (RMR-CR-001): remora/toolcall/toolspec.py gained Ed25519 bundle verification; no line of the downstream-ceiling or schema-version handling changed, and tests/test_toolspec_downstream.py and tests/capabilities pass (333). Status, scope and caveats unchanged.
       rebound 2026-10-07 to the squash-merge commit of #754 (eef64a3); the branch commit 918e088 left the repository at squash. Verified content-identical: none of the evidence paths cited by the twelve rebound capabilities changed between 918e088 and the reviewed branch tip ff0c097, and the squash tree differs from ff0c097 only in paper/remora_paper.md and paper/remora_paper.tex (#746), which no capability cites. No status, scope or caveat change.
       Re-audit 2026-10-06 for execution-context binding at 918e088c: Mediation, downstream ceilings and effect-domain custody remain unchanged; context binding does not establish downstream non-transitivity. Status and caveats unchanged. Validation: tests/test_execution_context_binding.py and the existing execution, token, review, effect, custody and capability suites. Deployment source authority remains NOT_ESTABLISHED.
