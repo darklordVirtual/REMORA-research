@@ -17,6 +17,12 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
+            "selected_ref": "op-valid",
+            "selection_rule": "single_available"
+          },
           "exported_claim": "remora.authorization_integrity",
           "limits": [
             "establishes that the evidence verifies under the pinned REMORA key in REMORA/FEDERATION-ACTION/v1",
@@ -25,6 +31,7 @@
           ],
           "native_claim": "authorization_integrity-v1",
           "native_evidence_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
+          "native_result": null,
           "not_established": [],
           "preserved": [
             "signature"
@@ -32,7 +39,11 @@
           "projection": "PRESERVED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-valid"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:056468ef4f9642ee7fb5b389673255864f2cde56539eb48562fc730e6000f5b9",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -41,6 +52,12 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
+            "selected_ref": "op-valid",
+            "selection_rule": "single_available"
+          },
           "exported_claim": "remora.port_v0.bound_action",
           "limits": [
             "does not establish full REMORA exact_call_binding-v1.1",
@@ -51,6 +68,7 @@
           ],
           "native_claim": "exact_call_binding-v1.1",
           "native_evidence_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
+          "native_result": null,
           "not_established": [
             "authenticated_principal",
             "authenticated_tenant",
@@ -69,7 +87,11 @@
           "projection": "NARROWED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-valid"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:056468ef4f9642ee7fb5b389673255864f2cde56539eb48562fc730e6000f5b9",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -78,6 +100,12 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
+            "selected_ref": "op-valid",
+            "selection_rule": "single_available"
+          },
           "exported_claim": "remora.authorization_unexpired",
           "limits": [
             "expiry is compared at admission on the runtime's local clock",
@@ -85,6 +113,7 @@
           ],
           "native_claim": "fresh_authority_at_dispatch-v1",
           "native_evidence_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
+          "native_result": null,
           "not_established": [
             "revocation_state",
             "signing_key_status",
@@ -97,7 +126,11 @@
           "projection": "NARROWED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-valid"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:056468ef4f9642ee7fb5b389673255864f2cde56539eb48562fc730e6000f5b9",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -106,12 +139,19 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
+            "selected_ref": "op-valid",
+            "selection_rule": "single_available"
+          },
           "exported_claim": null,
           "limits": [
             "the V0 contract carries no authenticated principal"
           ],
           "native_claim": "principal_binding-v1",
           "native_evidence_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
+          "native_result": null,
           "not_established": [
             "authenticated_principal"
           ],
@@ -119,7 +159,11 @@
           "projection": "NOT_ESTABLISHED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-valid"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:056468ef4f9642ee7fb5b389673255864f2cde56539eb48562fc730e6000f5b9",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -128,12 +172,19 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
+            "selected_ref": "op-valid",
+            "selection_rule": "single_available"
+          },
           "exported_claim": null,
           "limits": [
             "V0 adapters run in the runtime's own process"
           ],
           "native_claim": "authority_executor_custody_isolation-v1",
           "native_evidence_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
+          "native_result": null,
           "not_established": [
             "isolated_component"
           ],
@@ -141,7 +192,11 @@
           "projection": "NOT_ESTABLISHED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-valid"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:056468ef4f9642ee7fb5b389673255864f2cde56539eb48562fc730e6000f5b9",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -150,12 +205,19 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
+            "selected_ref": "op-valid",
+            "selection_rule": "single_available"
+          },
           "exported_claim": null,
           "limits": [
             "provider_confirmed is an execution report, never EFFECT_VERIFIED"
           ],
           "native_claim": "effect_verification-v1",
           "native_evidence_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
+          "native_result": null,
           "not_established": [
             "system_of_record_observation"
           ],
@@ -163,7 +225,11 @@
           "projection": "UNSUPPORTED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-valid"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:056468ef4f9642ee7fb5b389673255864f2cde56539eb48562fc730e6000f5b9",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -205,6 +271,12 @@
           },
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
+            "selected_ref": "op-lossy",
+            "selection_rule": "single_available"
+          },
           "exported_claim": "remora.authorization_integrity",
           "limits": [
             "establishes that the evidence verifies under the pinned REMORA key in REMORA/FEDERATION-ACTION/v1",
@@ -213,6 +285,7 @@
           ],
           "native_claim": "authorization_integrity-v1",
           "native_evidence_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
+          "native_result": null,
           "not_established": [],
           "preserved": [
             "signature"
@@ -220,7 +293,11 @@
           "projection": "PRESERVED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-lossy"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:d7ec86581fcdf2a7bd0b0266bf52c3e2e326622fc5e7cc96a34ec2cb271207b4",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -233,6 +310,12 @@
           },
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
+            "selected_ref": "op-lossy",
+            "selection_rule": "single_available"
+          },
           "exported_claim": "remora.port_v0.bound_action",
           "limits": [
             "does not establish full REMORA exact_call_binding-v1.1",
@@ -243,6 +326,7 @@
           ],
           "native_claim": "exact_call_binding-v1.1",
           "native_evidence_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
+          "native_result": null,
           "not_established": [
             "authenticated_principal",
             "authenticated_tenant",
@@ -261,7 +345,11 @@
           "projection": "NARROWED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-lossy"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:d7ec86581fcdf2a7bd0b0266bf52c3e2e326622fc5e7cc96a34ec2cb271207b4",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -274,6 +362,12 @@
           },
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
+            "selected_ref": "op-lossy",
+            "selection_rule": "single_available"
+          },
           "exported_claim": "remora.authorization_unexpired",
           "limits": [
             "expiry is compared at admission on the runtime's local clock",
@@ -281,6 +375,7 @@
           ],
           "native_claim": "fresh_authority_at_dispatch-v1",
           "native_evidence_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
+          "native_result": null,
           "not_established": [
             "revocation_state",
             "signing_key_status",
@@ -293,7 +388,11 @@
           "projection": "NARROWED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-lossy"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:d7ec86581fcdf2a7bd0b0266bf52c3e2e326622fc5e7cc96a34ec2cb271207b4",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -306,12 +405,19 @@
           },
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
+            "selected_ref": "op-lossy",
+            "selection_rule": "single_available"
+          },
           "exported_claim": null,
           "limits": [
             "the V0 contract carries no authenticated principal"
           ],
           "native_claim": "principal_binding-v1",
           "native_evidence_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
+          "native_result": null,
           "not_established": [
             "authenticated_principal"
           ],
@@ -319,7 +425,11 @@
           "projection": "NOT_ESTABLISHED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-lossy"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:d7ec86581fcdf2a7bd0b0266bf52c3e2e326622fc5e7cc96a34ec2cb271207b4",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -332,12 +442,19 @@
           },
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
+            "selected_ref": "op-lossy",
+            "selection_rule": "single_available"
+          },
           "exported_claim": null,
           "limits": [
             "V0 adapters run in the runtime's own process"
           ],
           "native_claim": "authority_executor_custody_isolation-v1",
           "native_evidence_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
+          "native_result": null,
           "not_established": [
             "isolated_component"
           ],
@@ -345,7 +462,11 @@
           "projection": "NOT_ESTABLISHED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-lossy"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:d7ec86581fcdf2a7bd0b0266bf52c3e2e326622fc5e7cc96a34ec2cb271207b4",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -358,12 +479,19 @@
           },
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
+            "selected_ref": "op-lossy",
+            "selection_rule": "single_available"
+          },
           "exported_claim": null,
           "limits": [
             "provider_confirmed is an execution report, never EFFECT_VERIFIED"
           ],
           "native_claim": "effect_verification-v1",
           "native_evidence_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
+          "native_result": null,
           "not_established": [
             "system_of_record_observation"
           ],
@@ -371,7 +499,11 @@
           "projection": "UNSUPPORTED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-lossy"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:d7ec86581fcdf2a7bd0b0266bf52c3e2e326622fc5e7cc96a34ec2cb271207b4",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -409,6 +541,12 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
+            "selected_ref": "op-principal",
+            "selection_rule": "single_available"
+          },
           "exported_claim": "remora.authorization_integrity",
           "limits": [
             "establishes that the evidence verifies under the pinned REMORA key in REMORA/FEDERATION-ACTION/v1",
@@ -417,6 +555,7 @@
           ],
           "native_claim": "authorization_integrity-v1",
           "native_evidence_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
+          "native_result": null,
           "not_established": [],
           "preserved": [
             "signature"
@@ -424,7 +563,11 @@
           "projection": "PRESERVED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-principal"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:8a7df15aef4fb82e4de15dcbe4125243ae48b0c49ac06bcbf05c0922cffe5aa6",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -433,6 +576,12 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
+            "selected_ref": "op-principal",
+            "selection_rule": "single_available"
+          },
           "exported_claim": "remora.port_v0.bound_action",
           "limits": [
             "does not establish full REMORA exact_call_binding-v1.1",
@@ -443,6 +592,7 @@
           ],
           "native_claim": "exact_call_binding-v1.1",
           "native_evidence_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
+          "native_result": null,
           "not_established": [
             "authenticated_principal",
             "authenticated_tenant",
@@ -461,7 +611,11 @@
           "projection": "NARROWED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-principal"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:8a7df15aef4fb82e4de15dcbe4125243ae48b0c49ac06bcbf05c0922cffe5aa6",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -470,6 +624,12 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
+            "selected_ref": "op-principal",
+            "selection_rule": "single_available"
+          },
           "exported_claim": "remora.authorization_unexpired",
           "limits": [
             "expiry is compared at admission on the runtime's local clock",
@@ -477,6 +637,7 @@
           ],
           "native_claim": "fresh_authority_at_dispatch-v1",
           "native_evidence_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
+          "native_result": null,
           "not_established": [
             "revocation_state",
             "signing_key_status",
@@ -489,7 +650,11 @@
           "projection": "NARROWED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-principal"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:8a7df15aef4fb82e4de15dcbe4125243ae48b0c49ac06bcbf05c0922cffe5aa6",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -498,12 +663,19 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
+            "selected_ref": "op-principal",
+            "selection_rule": "single_available"
+          },
           "exported_claim": null,
           "limits": [
             "the V0 contract carries no authenticated principal"
           ],
           "native_claim": "principal_binding-v1",
           "native_evidence_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
+          "native_result": null,
           "not_established": [
             "authenticated_principal"
           ],
@@ -511,7 +683,11 @@
           "projection": "NOT_ESTABLISHED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-principal"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:8a7df15aef4fb82e4de15dcbe4125243ae48b0c49ac06bcbf05c0922cffe5aa6",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -520,12 +696,19 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
+            "selected_ref": "op-principal",
+            "selection_rule": "single_available"
+          },
           "exported_claim": null,
           "limits": [
             "V0 adapters run in the runtime's own process"
           ],
           "native_claim": "authority_executor_custody_isolation-v1",
           "native_evidence_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
+          "native_result": null,
           "not_established": [
             "isolated_component"
           ],
@@ -533,7 +716,11 @@
           "projection": "NOT_ESTABLISHED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-principal"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:8a7df15aef4fb82e4de15dcbe4125243ae48b0c49ac06bcbf05c0922cffe5aa6",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -542,12 +729,19 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
+            "selected_ref": "op-principal",
+            "selection_rule": "single_available"
+          },
           "exported_claim": null,
           "limits": [
             "provider_confirmed is an execution report, never EFFECT_VERIFIED"
           ],
           "native_claim": "effect_verification-v1",
           "native_evidence_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
+          "native_result": null,
           "not_established": [
             "system_of_record_observation"
           ],
@@ -555,7 +749,11 @@
           "projection": "UNSUPPORTED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-principal"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:8a7df15aef4fb82e4de15dcbe4125243ae48b0c49ac06bcbf05c0922cffe5aa6",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -593,6 +791,12 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
+            "selected_ref": "op-expired",
+            "selection_rule": "single_available"
+          },
           "exported_claim": "remora.authorization_integrity",
           "limits": [
             "establishes that the evidence verifies under the pinned REMORA key in REMORA/FEDERATION-ACTION/v1",
@@ -601,6 +805,7 @@
           ],
           "native_claim": "authorization_integrity-v1",
           "native_evidence_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
+          "native_result": null,
           "not_established": [],
           "preserved": [
             "signature"
@@ -608,7 +813,11 @@
           "projection": "PRESERVED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-expired"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:74d9e763fd06096058d941264488e1d119f97d4d3a17d9a373817498ad31a5e9",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -617,6 +826,12 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
+            "selected_ref": "op-expired",
+            "selection_rule": "single_available"
+          },
           "exported_claim": "remora.port_v0.bound_action",
           "limits": [
             "does not establish full REMORA exact_call_binding-v1.1",
@@ -627,6 +842,7 @@
           ],
           "native_claim": "exact_call_binding-v1.1",
           "native_evidence_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
+          "native_result": null,
           "not_established": [
             "authenticated_principal",
             "authenticated_tenant",
@@ -645,7 +861,11 @@
           "projection": "NARROWED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-expired"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:74d9e763fd06096058d941264488e1d119f97d4d3a17d9a373817498ad31a5e9",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -654,6 +874,12 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
+            "selected_ref": "op-expired",
+            "selection_rule": "single_available"
+          },
           "exported_claim": "remora.authorization_unexpired",
           "limits": [
             "expiry is compared at admission on the runtime's local clock",
@@ -661,6 +887,7 @@
           ],
           "native_claim": "fresh_authority_at_dispatch-v1",
           "native_evidence_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
+          "native_result": null,
           "not_established": [
             "revocation_state",
             "signing_key_status",
@@ -673,7 +900,11 @@
           "projection": "NARROWED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-expired"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:74d9e763fd06096058d941264488e1d119f97d4d3a17d9a373817498ad31a5e9",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -682,12 +913,19 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
+            "selected_ref": "op-expired",
+            "selection_rule": "single_available"
+          },
           "exported_claim": null,
           "limits": [
             "the V0 contract carries no authenticated principal"
           ],
           "native_claim": "principal_binding-v1",
           "native_evidence_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
+          "native_result": null,
           "not_established": [
             "authenticated_principal"
           ],
@@ -695,7 +933,11 @@
           "projection": "NOT_ESTABLISHED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-expired"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:74d9e763fd06096058d941264488e1d119f97d4d3a17d9a373817498ad31a5e9",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -704,12 +946,19 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
+            "selected_ref": "op-expired",
+            "selection_rule": "single_available"
+          },
           "exported_claim": null,
           "limits": [
             "V0 adapters run in the runtime's own process"
           ],
           "native_claim": "authority_executor_custody_isolation-v1",
           "native_evidence_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
+          "native_result": null,
           "not_established": [
             "isolated_component"
           ],
@@ -717,7 +966,11 @@
           "projection": "NOT_ESTABLISHED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-expired"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:74d9e763fd06096058d941264488e1d119f97d4d3a17d9a373817498ad31a5e9",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -726,12 +979,19 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
+            "selected_ref": "op-expired",
+            "selection_rule": "single_available"
+          },
           "exported_claim": null,
           "limits": [
             "provider_confirmed is an execution report, never EFFECT_VERIFIED"
           ],
           "native_claim": "effect_verification-v1",
           "native_evidence_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
+          "native_result": null,
           "not_established": [
             "system_of_record_observation"
           ],
@@ -739,7 +999,11 @@
           "projection": "UNSUPPORTED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-expired"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:74d9e763fd06096058d941264488e1d119f97d4d3a17d9a373817498ad31a5e9",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -777,6 +1041,12 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
+            "selected_ref": "op-untrusted",
+            "selection_rule": "single_available"
+          },
           "exported_claim": "remora.authorization_integrity",
           "limits": [
             "establishes that the evidence verifies under the pinned REMORA key in REMORA/FEDERATION-ACTION/v1",
@@ -785,6 +1055,7 @@
           ],
           "native_claim": "authorization_integrity-v1",
           "native_evidence_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
+          "native_result": null,
           "not_established": [],
           "preserved": [
             "signature"
@@ -792,7 +1063,11 @@
           "projection": "PRESERVED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-untrusted"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:2a14a284da15e1ae1fbdc58d0890f63ba5164a367ecc696cbc1445ffe0c4649d",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -801,6 +1076,12 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
+            "selected_ref": "op-untrusted",
+            "selection_rule": "single_available"
+          },
           "exported_claim": "remora.port_v0.bound_action",
           "limits": [
             "does not establish full REMORA exact_call_binding-v1.1",
@@ -811,6 +1092,7 @@
           ],
           "native_claim": "exact_call_binding-v1.1",
           "native_evidence_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
+          "native_result": null,
           "not_established": [
             "authenticated_principal",
             "authenticated_tenant",
@@ -829,7 +1111,11 @@
           "projection": "NARROWED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-untrusted"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:2a14a284da15e1ae1fbdc58d0890f63ba5164a367ecc696cbc1445ffe0c4649d",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -838,6 +1124,12 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
+            "selected_ref": "op-untrusted",
+            "selection_rule": "single_available"
+          },
           "exported_claim": "remora.authorization_unexpired",
           "limits": [
             "expiry is compared at admission on the runtime's local clock",
@@ -845,6 +1137,7 @@
           ],
           "native_claim": "fresh_authority_at_dispatch-v1",
           "native_evidence_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
+          "native_result": null,
           "not_established": [
             "revocation_state",
             "signing_key_status",
@@ -857,7 +1150,11 @@
           "projection": "NARROWED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-untrusted"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:2a14a284da15e1ae1fbdc58d0890f63ba5164a367ecc696cbc1445ffe0c4649d",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -866,12 +1163,19 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
+            "selected_ref": "op-untrusted",
+            "selection_rule": "single_available"
+          },
           "exported_claim": null,
           "limits": [
             "the V0 contract carries no authenticated principal"
           ],
           "native_claim": "principal_binding-v1",
           "native_evidence_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
+          "native_result": null,
           "not_established": [
             "authenticated_principal"
           ],
@@ -879,7 +1183,11 @@
           "projection": "NOT_ESTABLISHED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-untrusted"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:2a14a284da15e1ae1fbdc58d0890f63ba5164a367ecc696cbc1445ffe0c4649d",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -888,12 +1196,19 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
+            "selected_ref": "op-untrusted",
+            "selection_rule": "single_available"
+          },
           "exported_claim": null,
           "limits": [
             "V0 adapters run in the runtime's own process"
           ],
           "native_claim": "authority_executor_custody_isolation-v1",
           "native_evidence_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
+          "native_result": null,
           "not_established": [
             "isolated_component"
           ],
@@ -901,7 +1216,11 @@
           "projection": "NOT_ESTABLISHED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-untrusted"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:2a14a284da15e1ae1fbdc58d0890f63ba5164a367ecc696cbc1445ffe0c4649d",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
@@ -910,12 +1229,19 @@
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
           "capabilities_digest": "sha256:c2595069f3b1c6861170ae2f7add6581f03ad7fa4848461de9f390eed30f80d7",
+          "evidence_selection": {
+            "eligible": 1,
+            "selected_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
+            "selected_ref": "op-untrusted",
+            "selection_rule": "single_available"
+          },
           "exported_claim": null,
           "limits": [
             "provider_confirmed is an execution report, never EFFECT_VERIFIED"
           ],
           "native_claim": "effect_verification-v1",
           "native_evidence_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
+          "native_result": null,
           "not_established": [
             "system_of_record_observation"
           ],
@@ -923,7 +1249,11 @@
           "projection": "UNSUPPORTED",
           "projection_map_digest": "sha256:fda7a82ebaec1346fbfa070825686c2c1dc8c429b8de5a9cdfb787347abbf943",
           "remora_revision": "fixture",
-          "schema_version": "remora-federation-projection-v1",
+          "schema_version": "remora-federation-projection-v2",
+          "subject": {
+            "kind": "operation",
+            "operation_id": "op-untrusted"
+          },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:2a14a284da15e1ae1fbdc58d0890f63ba5164a367ecc696cbc1445ffe0c4649d",
           "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"

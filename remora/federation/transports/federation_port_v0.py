@@ -30,6 +30,7 @@ from remora.federation.capabilities import TransportCapabilities
 from remora.federation.evidence import envelope_evidence, projection_record
 from remora.federation.models import NativeFederationAction
 from remora.federation.projection import ClaimProjection, ProjectionError, ProjectionMap
+from remora.federation.subjects import EvidenceSelection, SubjectRef
 from remora.federation.transports.base import TransportAction
 
 __all__ = ["COMPONENT_ID", "TRANSPORT", "FederationPortV0Transport", "artifact_digest"]
@@ -106,13 +107,21 @@ class FederationPortV0Transport:
         evidence = envelope_evidence(document, self._key)
         native_bytes = json.dumps(native.to_dict(), sort_keys=True,
                                   separators=(",", ":")).encode("utf-8")
+        # At issuance the subject is the operation itself: one authorization,
+        # one operation id, nothing to choose between. Report-specific results
+        # are produced by remora.federation.results, not here.
+        subject = SubjectRef(kind="operation", operation_id=native.operation_id)
+        selection = EvidenceSelection(selected_ref=native.operation_id,
+                                      selected_digest=native.digest(),
+                                      selection_rule="single_available", eligible=1)
         records = [
             projection_record(
                 projection=self.project_claim(claim, native).to_dict(), transport=TRANSPORT,
                 native_evidence=native_bytes, transport_evidence=evidence,
                 adapter_digest=self._adapter_digest, projection_map_digest=self._map.digest,
                 capabilities_digest=self._caps.digest, remora_revision=self._remora_revision,
-                transport_revision=self._transport_revision)
+                transport_revision=self._transport_revision, subject=subject,
+                evidence_selection=selection)
             for claim in NATIVE_CLAIMS
         ]
         request: dict[str, Any] = {

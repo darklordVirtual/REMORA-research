@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/darklordVirtual/REMORA-research/schemas/remora-federation-projection-v2.json",
+  "title": "REMORA federation projection record v2",
+  "description": "How one native claim projected onto one transport, about one named subject (remora.federation.evidence.projection_record). Adds the subject, how it was selected and the native result with its reason. `projection` is transport-projection strength only; `native_result` is what the native verifier concluded, or null when no native evaluation of the subject is reported. v1 records stay valid against remora-federation-projection-v1.json.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "native_claim",
+    "projection",
+    "exported_claim",
+    "preserved",
+    "not_established",
+    "limits",
+    "action_losses",
+    "transport",
+    "native_evidence_digest",
+    "transport_evidence_digest",
+    "adapter_digest",
+    "projection_map_digest",
+    "capabilities_digest",
+    "remora_revision",
+    "transport_revision",
+    "subject",
+    "evidence_selection",
+    "native_result"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "remora-federation-projection-v2"
+    },
+    "native_claim": {
+      "type": "string"
+    },
+    "projection": {
+      "enum": [
+        "PRESERVED",
+        "NARROWED",
+        "NOT_ESTABLISHED",
+        "UNSUPPORTED"
+      ]
+    },
+    "exported_claim": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^remora\\."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "preserved": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "not_established": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "limits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "action_losses": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "transport": {
+      "type": "string"
+    },
+    "native_evidence_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "transport_evidence_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "adapter_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "projection_map_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "capabilities_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "remora_revision": {
+      "type": "string"
+    },
+    "transport_revision": {
+      "type": "string"
+    },
+    "subject": {
+      "type": "object",
+      "required": [
+        "kind",
+        "operation_id"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "operation",
+            "operation_report",
+            "execution_attempt",
+            "effect_observation"
+          ]
+        },
+        "operation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "report_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "report_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "sequence": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "enum": [
+                  "operation_report",
+                  "execution_attempt",
+                  "effect_observation"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "report_id",
+              "report_digest"
+            ]
+          }
+        }
+      ]
+    },
+    "evidence_selection": {
+      "type": "object",
+      "required": [
+        "selected_ref",
+        "selected_digest",
+        "selection_rule",
+        "eligible"
+      ],
+      "properties": {
+        "selected_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "selected_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "selection_rule": {
+          "enum": [
+            "explicit_report_id",
+            "explicit_digest",
+            "single_available",
+            "declared_profile"
+          ]
+        },
+        "eligible": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "profile_id": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "native_result": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "status",
+            "reason_code",
+            "vocabulary"
+          ],
+          "properties": {
+            "status": {
+              "type": "string"
+            },
+            "reason_code": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9_.:-]{0,127}$"
+            },
+            "vocabulary": {
+              "enum": [
+                "remora-claim-result-v1",
+                "remora-effect-status-v1",
+                "federation-port-v0-outcome"
+              ]
+            },
+            "detail": {
+              "type": "string"
+            },
+            "evidence_digest": {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

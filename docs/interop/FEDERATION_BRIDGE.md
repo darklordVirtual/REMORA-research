@@ -107,6 +107,67 @@ established and the action's losses. It also carries the digests of the native
 evidence, the transport evidence, the adapter, the map and the capability
 declaration, with the REMORA and transport revisions.
 
+## A result is about one subject
+
+A claim result is always about a specific subject: an operation, or one
+report, execution attempt or effect observation of that operation. Several
+reports for one operation are not interchangeable:
+
+```text
+same operation + same claim id + different report  !=  same claim evaluation
+```
+
+This ambiguity was highlighted by Rul1an in the Federation #177 discussion
+using the LATE and LATE-CONFLICT synthetic fixtures
+([comment](https://github.com/aeoess/agent-governance-vocabulary/issues/177#issuecomment-6047105582)).
+In LATE, a first report made before any result was delivered is CONTRADICTED
+and a later one ESTABLISHED. In LATE-CONFLICT, the first is ESTABLISHED and a
+second, made after a conflicting final result, is CONTRADICTED. Taking the
+first, the last or any established report each gets at least one of these
+wrong.
+
+`remora/federation/subjects.py` and `remora/federation/results.py` make the
+subject explicit:
+
+- a `Report` digests its kind, operation id, report id, sequence and opaque
+  native body together, so a report id cannot be moved to other bytes;
+- `select_report` selects by a declared rule (`explicit_report_id`,
+  `explicit_digest`, `single_available` or a named `declared_profile`). With
+  several eligible reports and no selector it refuses
+  (`report_selection_ambiguous`) and no result is produced;
+- the native result (status and a bounded reason code, in a declared existing
+  vocabulary) is signed with the claim, the subject and the selection in
+  `REMORA/FEDERATION-RESULT/v1`. `verify_result` returns the native result
+  only when the signed subject is the one asked about, and when the consumer
+  holds the report, only when its bytes hash to the signed digest. Relabelling
+  an ESTABLISHED result for report A as one for report B fails verification.
+
+Claim ids stay claim ids (`definite_support`); the report is in the subject,
+never in the claim name.
+
+Projection records are now `remora-federation-projection-v2`. They add
+`subject`, `evidence_selection` and `native_result` beside `projection`.
+`projection` remains the transport-projection strength only, so a record can
+say `native_result: CONTRADICTED` with `projection: PRESERVED`: the transport
+faithfully carries a negative finding. `native_result` is `null` when the
+record describes a projection at issuance, as the federation-port/v0 records
+do. Their subject is the operation itself.
+
+v1 records stay readable through `read_projection_record`. A v1 record has
+no subject, so its `report_specific_binding` is `NOT_ESTABLISHED`, and the
+reader never infers one from surrounding metadata. A v2 record alone does not
+establish its binding either; the signed result does.
+
+Over federation-port/v0 nothing changes for the runtime. The adapter already
+binds each authorization to its operation id. Report-specific results travel
+as REMORA's own signed evidence, and federation-port receives only the claims
+the projection map permits. No federation-port core change is needed.
+
+The same subjects carry post-dispatch observations. An execution attempt
+reported `provider_confirmed`, an effect observation `EFFECT_UNOBSERVABLE` and
+a later one `EFFECT_VERIFIED` are three attributable results for one
+operation, and none replaces another.
+
 ## Lifecycle: an execution report is not an effect
 
 `remora/federation/lifecycle.py` reads a transport outcome as an execution
@@ -132,6 +193,7 @@ compose with.
 | AC-10 | the transport is replaceable without changing native primitives | `remora/federation/transports/`; nothing in `remora/enforcement` or `remora/execution` imports the bridge |
 | AC-11 | a stronger transport preserves without changing the native claim | a capability declaration alone moves exact-call to PRESERVED |
 | AC-12 | native, projected, runtime and effect layers stay distinct | projection records, lifecycle reading |
+| AC-RS-01 to 14 | report-specific binding (above) | `tests/test_federation_report_selection.py` |
 
 ## What this does not establish
 

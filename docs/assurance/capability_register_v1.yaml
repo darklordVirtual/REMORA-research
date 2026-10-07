@@ -1096,8 +1096,9 @@ capabilities:
   - id: CAP-026
     name: "Federation Bridge: native federation envelope, transport capability declarations, loss-aware claim projection and projection records"
     status: IMPLEMENTED_LIBRARY
-    verified_at_sha: 86f2b8b9def819268f4c22104c48d1e3f17cfdd3
+    verified_at_sha: c70c413ce9773b9040bd4b57363ae41b2cd78083
     verified_by: >-
+      re-audited 2026-10-07 at c70c413 (FEDERATION-REPORT-SELECTION), from 86f2b8b: report-specific binding: projection records v2, subject, selection and native result. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       audit 2026-10-07 at registration: remora/federation builds the native
       envelope (REMORA canonical bytes, digest and typed scalars; unavailable
       fields null and listed), reads a transport capability declaration and a
@@ -1128,8 +1129,9 @@ capabilities:
   - id: CAP-027
     name: "federation-port/v0 adapter: REMORA authorization evidence verified inside an unmodified federation-port runtime"
     status: WIRED_REFERENCE_PATH
-    verified_at_sha: 86f2b8b9def819268f4c22104c48d1e3f17cfdd3
+    verified_at_sha: c70c413ce9773b9040bd4b57363ae41b2cd78083
     verified_by: >-
+      re-audited 2026-10-07 at c70c413 (FEDERATION-REPORT-SELECTION), from 86f2b8b: report-specific binding: projection records v2, subject, selection and native result. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       audit 2026-10-07 at registration: remora/federation/transports/federation_port_v0.py
       produces the V0 request and signed evidence; the TypeScript component in
       integrations/federation-port/remora-adapter verifies it with a pinned key
@@ -1159,3 +1161,38 @@ capabilities:
       *_over_federation_port_v0 properties). Producer-written adapter and
       tests; independence NOT_ESTABLISHED until another party reproduces the
       run. V0 runs adapters in its own process.
+  - id: CAP-028
+    name: "Federation report-specific binding: subject, evidence selection and native result signed with each Federation result"
+    status: IMPLEMENTED_LIBRARY
+    verified_at_sha: c70c413ce9773b9040bd4b57363ae41b2cd78083
+    verified_by: >-
+      audit 2026-10-07 at registration: remora/federation/subjects.py binds a
+      result's subject (operation, report, execution attempt, effect
+      observation) by a digest over its identity and opaque body, selects a
+      report only by a declared rule and refuses report_selection_ambiguous;
+      remora/federation/results.py signs the native result (status, bounded
+      reason, declared vocabulary) with claim, subject and selection in
+      REMORA/FEDERATION-RESULT/v1 and verifies it only for the subject asked
+      about. Evidence green at this revision:
+      tests/test_federation_report_selection.py (31): local synthetic LATE and
+      LATE-CONFLICT (after Rul1an, aeoess/agent-governance-vocabulary#177),
+      always-first, always-last and any-established each wrong at least once,
+      ambiguity refused, subject edits and report relabelling refused, legacy
+      v1 records never upgraded, v2 schema validation; tests/test_federation_bridge.py.
+      Method: test execution plus review; not an external audit.
+    evidence:
+      - remora/federation/subjects.py
+      - remora/federation/results.py
+      - remora/federation/evidence.py
+      - tests/test_federation_report_selection.py
+      - tests/test_federation_bridge.py
+      - docs/interop/FEDERATION_BRIDGE.md
+    caveat: >-
+      Library and test level only: no REMORA API path or deployed component
+      emits report-specific results yet, and the LATE cases are local
+      synthetic reproductions, not a run of the external fixtures. The bridge
+      carries the native verifier's result; it does not establish that the
+      verifier is correct. A v2 projection record alone establishes nothing:
+      the binding holds only for a verified signed result. Over
+      federation-port/v0 the runtime does not see report identity; it stays in
+      REMORA's signed evidence.

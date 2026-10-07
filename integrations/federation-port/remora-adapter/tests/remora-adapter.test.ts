@@ -147,7 +147,11 @@ test('AC-09 every case carries projection records with artifact and revision dig
   const manifest = JSON.parse(readFileSync(join(ADAPTER, 'manifest.json'), 'utf8'))
   for (const c of FIXTURES.cases) {
     for (const p of c.projection_records) {
-      assert.equal(p.schema_version, 'remora-federation-projection-v1')
+      assert.equal(p.schema_version, 'remora-federation-projection-v2')
+      // At issuance the record is about the operation itself, selected as the single one.
+      assert.deepEqual(p.subject, { kind: 'operation', operation_id: c.request.operation_id })
+      assert.equal(p.evidence_selection.selection_rule, 'single_available')
+      assert.equal(p.native_result, null)
       assert.equal(p.adapter_digest, manifest.artifact.digest)
       assert.equal(p.transport_revision, FIXTURES.transport_revision)
       for (const k of ['native_evidence_digest', 'transport_evidence_digest', 'projection_map_digest', 'capabilities_digest']) {
