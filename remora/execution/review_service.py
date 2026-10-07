@@ -41,6 +41,40 @@ class ReviewNotFound(RemoraError):
     category = "execution"
 
 
+class SeparationOfDutiesRefused(RemoraError):
+    """The approver is the principal that proposed the call (route maps to 403).
+
+    RMR-CR-004. A role check alone let one ``admin`` credential propose a
+    call, approve its own escalation and execute it, and the chain then
+    recorded a "human" approval. Under a strict profile the approver must be
+    a different principal from the proposer, whatever its role.
+    """
+
+    code = "separation_of_duties_refused"
+    category = "execution"
+
+    def __init__(self, message: str, *, reason: str) -> None:
+        super().__init__(message)
+        self.reason = reason
+
+
+def proposer_of(chain: AuditChainPort, tenant: str, proposal_id: str) -> str | None:
+    """The authenticated principal that proposed ``proposal_id``.
+
+    Read from the proposal's ``assessed`` event, written by the assess path
+    from the authenticated credential, never from a request body. ``None``
+    when there is no single such event.
+    """
+    actors = {
+        str(e.payload.get("actor", ""))
+        for e in chain.entries(tenant)
+        if e.payload.get("proposal_id") == proposal_id
+        and e.payload.get("event") == "assessed"
+    }
+    actors.discard("")
+    return actors.pop() if len(actors) == 1 else None
+
+
 class ReviewConflict(RemoraError):
     """The item is not in an approvable/rejectable state (route maps to 409).
 
@@ -74,6 +108,7 @@ def approve_item(
     note_proposal_id: Callable[[Any], None],
     transactional_append: TransactionalAppendPort | None = None,
     require_execution_context: bool = False,
+    require_distinct_approver: bool = False,
 ) -> dict[str, Any]:
     """Record an approval by the authenticated reviewer.
 
@@ -98,6 +133,18 @@ def approve_item(
     authorize_approval(item)
 
     proposal_id = getattr(item.observation, "proposal_id", None)
+    proposer = proposer_of(chain, tenant, str(proposal_id or ""))
+    if require_distinct_approver:
+        # Before anything is written: a refused self-approval leaves the item
+        # pending for a different principal. Unknown is refused too; a
+        # separation that cannot be checked is not separation.
+        if proposer is None:
+            raise SeparationOfDutiesRefused(
+                "the proposing principal could not be established",
+                reason="proposer_unknown")
+        if proposer == principal:
+            raise SeparationOfDutiesRefused(
+                "the approver proposed this call", reason="approver_is_proposer")
     context = historical_context(
         chain, tenant, str(proposal_id or ""), required=require_execution_context)
     if (context.digest() if context is not None else "") != item.observation.execution_context_hash:
@@ -124,6 +171,9 @@ def approve_item(
                 "event": "approved",
                 "proposal_id": proposal_id,
                 "actor": principal,
+                # Both principals on the approval record, so a reader can
+                # check the separation without joining events (RMR-CR-004).
+                "proposer": proposer,
                 "on_behalf_of": on_behalf_of,
                 "item_id": item_id,
                 "expires_at": approval.expires_at.isoformat(),

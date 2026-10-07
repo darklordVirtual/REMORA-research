@@ -639,6 +639,7 @@ from remora.execution.service import (
 from remora.execution.review_service import (
     ReviewConflict,
     ReviewNotFound,
+    SeparationOfDutiesRefused,
     approve_item as _approve_item,
     reject_item as _reject_item,
 )
@@ -1105,6 +1106,24 @@ def _capability_or_refuse(tool_call: Any, principal: str, tenant: str) -> None:
 def _require_capability_set() -> bool:
     """``REMORA_REQUIRE_CAPABILITY_SET``: refuse any lease without a capability digest."""
     return _os.environ.get("REMORA_REQUIRE_CAPABILITY_SET", "").strip().lower() in {
+        "1", "true", "yes", "on"}
+
+
+#: Opt-in outside the strict profiles, where separation of duties is always on.
+_ENV_REQUIRE_DISTINCT_APPROVER = "REMORA_REQUIRE_DISTINCT_APPROVER"
+
+
+def _distinct_approver_required() -> bool:
+    """Whether an approver must differ from the proposer (RMR-CR-004).
+
+    Always under a strict profile; opt-in elsewhere, because a development
+    deployment often has one principal doing everything on purpose.
+    """
+    from remora.profiles import STRICT_PROFILES, current_runtime_profile
+
+    if current_runtime_profile() in STRICT_PROFILES:
+        return True
+    return _os.environ.get(_ENV_REQUIRE_DISTINCT_APPROVER, "").strip().lower() in {
         "1", "true", "yes", "on"}
 
 
@@ -1847,11 +1866,14 @@ def approve(req: ApproveRequest, request: Request) -> dict[str, Any]:
             note_proposal_id=_note_proposal_id,
             transactional_append=chain_append_transactional,
             require_execution_context=context_required(),
+            require_distinct_approver=_distinct_approver_required(),
         )
     except ExecutionContextRefused as exc:
         raise HTTPException(status_code=409, detail=exc.reason) from exc
     except ReviewNotFound as exc:
         raise HTTPException(status_code=404, detail="review item not found") from exc
+    except SeparationOfDutiesRefused as exc:
+        raise HTTPException(status_code=403, detail=exc.reason) from exc
     except ReviewConflict as exc:
         raise HTTPException(status_code=409, detail=exc.reason) from exc
     api_mod.record_execution_approval()
