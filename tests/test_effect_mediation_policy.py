@@ -190,6 +190,16 @@ def test_a_required_effect_policy_without_a_check_is_unverifiable(lease_key) -> 
     assert lease.nonce not in dispatcher._ledger._consumed
 
 
+def test_without_effect_mediation_the_check_is_not_consulted(lease_key) -> None:
+    """The v1 path and research use: no policy requirement, no effect check."""
+    dispatcher = _dispatcher(lambda name, mediated: "never")
+    policy = dispatcher._binding_policy
+    dispatcher.bind_binding_policy(dataclasses.replace(
+        policy, bindings={**policy.bindings, "effect_mediation": "UNVERIFIABLE"}))
+    _, result = _dispatch(dispatcher)
+    assert result.executed, result.refusal_reason
+
+
 def test_a_read_only_none_tool_dispatches(lease_key) -> None:
     spec = _one(effect_mode="NONE", action_type="read", **_FORBIDDEN)
     _, result = _dispatch(_dispatcher(_signed_check(spec)))
@@ -335,3 +345,79 @@ def test_a_tool_spec_copy_cannot_flip_its_mode_unsigned() -> None:
     with pytest.raises(ToolSpecRefused):
         ToolSpecBundle.load(bundle, key=KEY, trusted_identities=[IDENTITY])
     assert dataclasses.is_dataclass(_one(**MEDIATED))
+
+
+# -- the API path, in process --------------------------------------------------------
+
+@pytest.fixture
+def api_executor(executor, monkeypatch):
+    import servers.execution_api as exec_mod
+
+    monkeypatch.setattr(exec_mod, "_BINDING_POLICY_CACHE", None)
+    monkeypatch.setattr(exec_mod, "_current_policy_bundle_hash", lambda: "b1")
+    exec_mod._reset_tool_dispatcher()
+    yield exec_mod, executor[1]
+    exec_mod._reset_tool_dispatcher()
+
+
+def test_the_api_refuses_an_unmediated_registration(api_executor, monkeypatch) -> None:
+    exec_mod, root = api_executor
+    (root / "unmediated_registry_inproc.py").write_text(
+        "def register_tools(register):\n"
+        "    register('send_notification', lambda arguments: {'status': 'direct'})\n",
+        encoding="utf-8")
+    monkeypatch.setenv("REMORA_TOOL_REGISTRY_MODULE", "unmediated_registry_inproc")
+    with pytest.raises(RuntimeProfileError, match="effect_mediation_not_registered"):
+        exec_mod._tool_dispatcher()
+
+
+def test_the_api_builds_the_executor_dispatcher_at_startup(api_executor) -> None:
+    import servers.api as api_mod
+
+    exec_mod, _ = api_executor
+    api_mod._build_executor_dispatcher_at_startup()
+    dispatcher = exec_mod._DISPATCHER
+    assert dispatcher is not None and dispatcher.is_mediated("send_notification")
+
+
+def test_startup_builds_nothing_outside_the_executor(api_executor, monkeypatch) -> None:
+    import servers.api as api_mod
+
+    exec_mod, _ = api_executor
+    monkeypatch.setenv("REMORA_EXECUTION_DOMAIN_ROLE", "authority")
+    api_mod._build_executor_dispatcher_at_startup()
+    assert exec_mod._DISPATCHER is None
+
+
+def test_the_api_effect_check_without_a_bundle_is_unverifiable(api_executor, monkeypatch) -> None:
+    exec_mod, _ = api_executor
+    assert exec_mod._effect_policy_check("send_notification", True) is None
+    assert exec_mod._effect_policy_check("unsigned_tool", True) == "effect_mode_missing"
+    monkeypatch.setattr(exec_mod, "_authz_load_bundle", lambda env: None)
+    assert exec_mod._effect_policy_check("send_notification", True) == "effect_policy_unverifiable"
+
+
+def test_mandatory_mediation_needs_a_signed_bundle(executor, monkeypatch) -> None:
+    from remora.execution.authorization import reset_toolspec_bundle_cache
+
+    from remora.enforcement.binding_policy import load_binding_policy
+    from remora.toolcall.runtime_profile import _effect_mediation_problems
+
+    # The strict prerequisites refuse a missing bundle first; the mediation
+    # check refuses it on its own too, rather than passing an empty surface.
+    policy = load_binding_policy(os.environ["REMORA_BINDING_POLICY"])
+    monkeypatch.delenv("REMORA_TOOLSPEC_BUNDLE")
+    reset_toolspec_bundle_cache()
+    assert _effect_mediation_problems(policy) == [
+        "effect_mediation is REQUIRED but no signed bundle is configured"]
+
+
+def test_a_bundle_that_does_not_load_refuses_startup(executor, monkeypatch) -> None:
+    from remora.execution.authorization import reset_toolspec_bundle_cache
+
+    _, root = executor
+    (root / "toolspec-bundle.json").write_text("{}", encoding="utf-8")
+    reset_toolspec_bundle_cache()
+    with pytest.raises(RuntimeProfileError, match="did not load"):
+        _validate()
+
