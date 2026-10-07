@@ -6,6 +6,17 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Security
 
+- A strict v2 deployment can execute end to end (security programme stage
+  I). Running the `remora init-review` scaffold as three real processes
+  found that no runtime was bound into a lease without an execution context
+  provider, so a strict executor refused every call
+  (`runtime_identity_undeclared`). The authority now signs its own declared
+  runtime (`REMORA_RUNTIME_*`) into the lease when there is no execution
+  context; an undeclared runtime binds nothing, as before. The scaffold now
+  declares one shared runtime, names the authority's execution endpoint, and
+  gives its human reviewer the `senior_authority` role its demo tool's risk
+  tier requires. `tests/test_strict_v2_three_domain_e2e.py` runs the three
+  processes and attacks them.
 - A strict authority can forward to its execution domain. The API built the
   tool dispatcher before deciding whether to execute locally or forward, and
   building it registers the registry's callables, which custody refuses in the
