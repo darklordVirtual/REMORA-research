@@ -89,12 +89,29 @@ def test_the_two_halves_never_share_a_secret(scaffold) -> None:
     signing_material = (
         "REMORA_PDP_SIGNING_KEY",
         "REMORA_LEASE_SIGNING_KEY_ED25519_PRIVATE",
-        "REMORA_TOOLSPEC_SIGNING_KEY",
         "REMORA_ENVELOPE_SIGNING_KEY",
     )
     for signing in signing_material:
         assert signing in authority
         assert signing not in executor
+
+
+def test_no_runtime_half_can_author_a_toolspec_bundle(scaffold) -> None:
+    """RMR-CR-001: both halves verify bundles; neither holds signing material."""
+    root, summary = scaffold
+    for half in ("authority.env", "executor.env"):
+        env = _load_env(root / half)
+        assert "REMORA_TOOLSPEC_SIGNING_KEY" not in env, half
+        assert env["REMORA_TOOLSPEC_PINNED_DIGEST"] == summary["toolspec_bundle_digest"]
+        seed = (root / "keys" / "toolspec_ed25519_seed").read_text(encoding="utf-8").strip()
+        assert seed not in "".join(env.values()), half
+
+
+def _verify_keys(env: dict[str, str]):
+    from remora.crypto import SignatureDomain, VerificationKey
+
+    return [VerificationKey.from_text(k, [SignatureDomain.TOOLSPEC_BUNDLE])
+            for k in env["REMORA_TOOLSPEC_VERIFY_KEYS"].split(",")]
 
 
 def test_bundle_verifies_under_the_generated_key_and_identity(scaffold) -> None:
@@ -104,20 +121,25 @@ def test_bundle_verifies_under_the_generated_key_and_identity(scaffold) -> None:
     env = _load_env(root / "authority.env")
     bundle = json.loads((root / "toolspec-bundle.json").read_text(encoding="utf-8"))
     loaded = ToolSpecBundle.load(
-        bundle, key=env["REMORA_TOOLSPEC_SIGNING_KEY"],
-        trusted_identities=[summary["signing_identity"]],
+        bundle, verification_keys=_verify_keys(env), accept_hmac=False,
+        pinned_bundle_digest=env["REMORA_TOOLSPEC_PINNED_DIGEST"],
+        require_pinned_digest=True,
     )
     assert loaded.get("send_notification").version == 1
+    assert loaded.signing_algorithm == "Ed25519"
+    assert loaded.signing_identity == summary["signing_identity"]
 
 
 def test_bundle_is_refused_under_a_different_key(scaffold) -> None:
+    from remora.crypto import SignatureDomain, SigningKey
     from remora.toolcall.toolspec import ToolSpecBundle, ToolSpecRefused
 
-    root, summary = scaffold
+    root, _ = scaffold
     bundle = json.loads((root / "toolspec-bundle.json").read_text(encoding="utf-8"))
-    with pytest.raises(ToolSpecRefused):
-        ToolSpecBundle.load(bundle, key="not-the-key",
-                            trusted_identities=[summary["signing_identity"]])
+    stranger = SigningKey.generate([SignatureDomain.TOOLSPEC_BUNDLE]).verification_key()
+    with pytest.raises(ToolSpecRefused) as exc:
+        ToolSpecBundle.load(bundle, verification_keys=[stranger], accept_hmac=False)
+    assert exc.value.reason_code == "toolspec_signing_identity_unknown"
 
 
 def test_registry_module_registers_the_demo_tool(scaffold, monkeypatch) -> None:

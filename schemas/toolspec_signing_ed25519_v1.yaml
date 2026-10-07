@@ -1,0 +1,83 @@
+# ToolSpec signing model, Ed25519 v1: additions to tool_spec_v1.yaml.
+#
+# tool_spec_v1.yaml records the v1 signing model (HMAC under a deployment key)
+# and deferred asymmetric signing to a later version. This contract is that
+# version. It changes how a bundle is signed and who may hold which key; it
+# changes nothing about the bundle's content, its canonical signing bytes or
+# its digest, so a pinned digest means the same thing under either model.
+#
+# Finding: RMR-CR-001 (review/11_FINDINGS.md). Implementation:
+# remora/crypto/domain_signing.py, remora/toolcall/toolspec.py,
+# remora/execution/authorization.py, remora/toolcall/runtime_profile.py.
+# Tests: tests/test_domain_signing.py, tests/test_toolspec_ed25519_trust.py.
+
+extends: tool_spec_v1.yaml
+status: implemented
+implemented_at: "2026-10-07"
+
+signing_model:
+  algorithm: Ed25519
+  domain: REMORA/TOOLSPEC-BUNDLE/v1
+  preimage: >-
+    The ASCII domain tag, one NUL byte, then the v1 canonical_signing_bytes of
+    the bundle. The domain tag makes a ToolSpec signature unusable as any
+    other REMORA artifact's signature, whatever the key.
+  registry_signature_fields:
+    - signing_identity
+    - algorithm
+    - domain
+    - kid
+    - signed_at
+    - signature
+  identity: >-
+    signing_identity equals kid, and kid is "ed25519-" followed by the SHA-256
+    of the raw public key. A signer is named by its key, so writing another
+    signer's label cannot make a bundle verify as theirs. Every spec's own
+    signing_identity, inside the signed bytes, must equal the kid as well.
+  key_owner: authoring side, offline (python -m remora.toolcall.toolspec_sign)
+  runtime_holds: REMORA_TOOLSPEC_VERIFY_KEYS (public keys only)
+  revocation: >-
+    REMORA_TOOLSPEC_REVOKED_IDENTITIES lists revoked key ids. A revoked key is
+    refused before its signature is checked; revoking a key revokes exactly
+    that key, not a label other keys could share.
+
+profiles:
+  strict:
+    applies_to: [review, controlled_pilot]
+    requires:
+      - REMORA_TOOLSPEC_VERIFY_KEYS
+      - REMORA_TOOLSPEC_PINNED_DIGEST
+    refuses:
+      - an HMAC-signed bundle (toolspec_signature_algorithm_refused)
+      - a missing pinned digest (toolspec_pinned_digest_required)
+      - a runtime holding REMORA_TOOLSPEC_SIGNING_KEY, in any role (startup refusal)
+    rationale: >-
+      Under HMAC the process that verifies a bundle holds the key that authors
+      one. A strict runtime must be able to check every bundle and produce
+      none, and must accept only the bundle the deployment pinned.
+  other:
+    no_ed25519_keys_configured: the v1 HMAC model, unchanged
+    ed25519_keys_configured: >-
+      Ed25519 bundles are verified; HMAC bundles are refused unless
+      REMORA_TOOLSPEC_ACCEPT_HMAC is set, so the migration window is a
+      decision rather than a default.
+    hmac_without_key: refused (an empty key is a key anyone has)
+
+startup_evidence:
+  event: toolspec.bundle_accepted
+  fields: [bundle_hash, signing_algorithm, signer_key_id, pinned, strict]
+  note: >-
+    Every assessment record already carries the bundle digest; this event ties
+    that digest to the algorithm and key that signed it.
+
+reason_codes_added:
+  - toolspec_signature_algorithm_refused
+  - toolspec_pinned_digest_required
+
+does_not_establish:
+  - >-
+    Custody of the signing seed. The contract moves it out of the runtime; it
+    cannot show where the authoring side keeps it (hardware, KMS, offline).
+  - >-
+    That the signed meaning is correct. A valid signature shows who authored a
+    bundle and that it is the pinned one, not that its risk tiers are right.

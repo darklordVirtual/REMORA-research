@@ -92,8 +92,12 @@ def validate_runtime_profile_prerequisites() -> str:
     missing: list[str] = []
     if not _configured("REMORA_TOOLSPEC_BUNDLE"):
         missing.append("REMORA_TOOLSPEC_BUNDLE")
-    if not _configured("REMORA_TOOLSPEC_TRUSTED_IDENTITIES"):
-        missing.append("REMORA_TOOLSPEC_TRUSTED_IDENTITIES")
+    # RMR-CR-001: a strict runtime verifies ToolSpec bundles with public keys
+    # it cannot sign with, and accepts only the pinned bundle.
+    if not _configured("REMORA_TOOLSPEC_VERIFY_KEYS"):
+        missing.append("REMORA_TOOLSPEC_VERIFY_KEYS")
+    if not _configured("REMORA_TOOLSPEC_PINNED_DIGEST"):
+        missing.append("REMORA_TOOLSPEC_PINNED_DIGEST")
     if not _configured("REMORA_TOOL_REGISTRY_MODULE"):
         missing.append("REMORA_TOOL_REGISTRY_MODULE")
     if not _configured("REMORA_PG_DSN", "REMORA_CHAIN_DB"):
@@ -103,8 +107,6 @@ def validate_runtime_profile_prerequisites() -> str:
     # violation. The single list this replaced assumed one process did both,
     # which is the assumption the custody split removes.
     if role == DOMAIN_AUTHORITY:
-        if not _configured("REMORA_TOOLSPEC_SIGNING_KEY"):
-            missing.append("REMORA_TOOLSPEC_SIGNING_KEY")
         if not _configured("REMORA_PDP_SIGNING_KEY"):
             missing.append("REMORA_PDP_SIGNING_KEY")
 
@@ -113,6 +115,16 @@ def validate_runtime_profile_prerequisites() -> str:
             f"REMORA runtime profile {profile!r} refuses the legacy/weaker "
             "execution path; missing required configuration: "
             + ", ".join(missing)
+        )
+
+    # ToolSpec signing is an offline act. A runtime holding the HMAC key could
+    # author any bundle it accepts, so under a strict profile its presence in
+    # any role is a refusal, not a configuration choice.
+    if _configured("REMORA_TOOLSPEC_SIGNING_KEY"):
+        raise RuntimeProfileError(
+            f"REMORA runtime profile {profile!r} refuses a runtime that holds "
+            "REMORA_TOOLSPEC_SIGNING_KEY: ToolSpec bundles are signed offline "
+            "with Ed25519 and verified here with REMORA_TOOLSPEC_VERIFY_KEYS"
         )
 
     # Property D: a strict profile requires the intent to resolve from a

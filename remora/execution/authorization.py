@@ -14,6 +14,13 @@ from typing import Any
 
 from remora.toolcall.toolspec import ToolSpecBundle
 
+#: Comma-separated Ed25519 public keys (hex or base64) trusted to sign ToolSpec
+#: bundles. A runtime configured with these can verify bundles and author none.
+ENV_TOOLSPEC_VERIFY_KEYS = "REMORA_TOOLSPEC_VERIFY_KEYS"
+#: Outside strict profiles, keep accepting HMAC bundles after Ed25519 keys are
+#: configured. Off by default, so the migration window is a decision.
+ENV_TOOLSPEC_ACCEPT_HMAC = "REMORA_TOOLSPEC_ACCEPT_HMAC"
+
 # Cache keyed on the configured bundle path, so a load failure is raised on
 # the first request rather than swallowed at import — a deployment that
 # mis-signs its bundle should find out loudly.
@@ -41,6 +48,7 @@ def load_toolspec_bundle(environ: Any) -> ToolSpecBundle | None:
                 environ.get("REMORA_TOOLSPEC_REVOKED_IDENTITIES", "").split(",")
                 if i.strip()
             ]
+            policy = toolspec_trust_policy(environ)
             _TOOLSPECS = ToolSpecBundle.load(
                 raw,
                 key=environ.get("REMORA_TOOLSPEC_SIGNING_KEY", ""),
@@ -50,8 +58,54 @@ def load_toolspec_bundle(environ: Any) -> ToolSpecBundle | None:
                     environ.get("REMORA_TOOLSPEC_PINNED_DIGEST", "").strip()
                     or None
                 ),
+                verification_keys=policy["verification_keys"],
+                accept_hmac=policy["accept_hmac"],
+                require_pinned_digest=policy["strict"],
+            )
+            # Startup evidence: which bundle was accepted, how it was signed
+            # and by whom. Every assessment record carries the bundle digest,
+            # so this event ties each decision to a named signer.
+            from remora.observability.events import governance_event
+
+            governance_event(
+                "toolspec.bundle_accepted",
+                # Named *_hash / *_id so redaction keeps the values legible.
+                bundle_hash=_TOOLSPECS.bundle_digest,
+                signing_algorithm=_TOOLSPECS.signing_algorithm,
+                signer_key_id=_TOOLSPECS.signing_identity,
+                pinned=bool(environ.get("REMORA_TOOLSPEC_PINNED_DIGEST", "").strip()),
+                strict=policy["strict"],
             )
     return _TOOLSPECS
+
+
+def toolspec_trust_policy(environ: Any) -> dict[str, Any]:
+    """How this process may verify ToolSpec bundles (RMR-CR-001).
+
+    - Strict profile (review, controlled_pilot): Ed25519 only, pinned digest
+      required. HMAC is refused, because a runtime that verifies an HMAC
+      bundle holds the key that authors one.
+    - Otherwise, with Ed25519 keys configured: Ed25519, and HMAC only when
+      ``REMORA_TOOLSPEC_ACCEPT_HMAC`` is set.
+    - Otherwise: the frozen v1 HMAC model, unchanged.
+    """
+    from remora.crypto import SignatureDomain, VerificationKey
+    from remora.profiles import STRICT_PROFILES, current_runtime_profile
+
+    raw_keys = [
+        k.strip() for k in environ.get(ENV_TOOLSPEC_VERIFY_KEYS, "").split(",")
+        if k.strip()
+    ]
+    keys = [
+        VerificationKey.from_text(k, [SignatureDomain.TOOLSPEC_BUNDLE])
+        for k in raw_keys
+    ]
+    strict = current_runtime_profile() in STRICT_PROFILES
+    compat = environ.get(ENV_TOOLSPEC_ACCEPT_HMAC, "").strip().lower() in {
+        "1", "true", "yes", "on",
+    }
+    accept_hmac = not strict and (not keys or compat)
+    return {"verification_keys": keys, "accept_hmac": accept_hmac, "strict": strict}
 
 
 def reset_toolspec_bundle_cache() -> None:

@@ -33,10 +33,11 @@ import hmac
 import json
 from dataclasses import dataclass, field
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Any, Mapping, Sequence
+from typing import TYPE_CHECKING, Any, Iterable, Mapping, Sequence
 
 if TYPE_CHECKING:
     from remora.capabilities.ceiling import DownstreamCeiling
+    from remora.crypto import SigningKey, VerificationKey
 
 __all__ = [
     "ToolSpec",
@@ -44,9 +45,15 @@ __all__ = [
     "ToolSpecRefused",
     "canonical_signing_bytes",
     "sign_bundle",
+    "sign_bundle_ed25519",
 ]
 
+#: The frozen v1 signing model (schemas/tool_spec_v1.yaml): a deployment-held
+#: HMAC key. Whoever can verify can also sign, so a strict profile refuses it.
 SIGNING_ALGORITHM = "HMAC-SHA256"
+#: The asymmetric model (schemas/toolspec_signing_ed25519_v1.yaml): the
+#: runtime holds public keys only and cannot author an accepted bundle.
+ED25519_ALGORITHM = "Ed25519"
 
 
 class ToolSpecRefused(Exception):
@@ -97,6 +104,41 @@ def sign_bundle(
         "algorithm": SIGNING_ALGORITHM,
         "signed_at": signed_at,
         "signature": signature,
+    }
+    return signed
+
+
+def sign_bundle_ed25519(
+    bundle: Mapping[str, Any],
+    *,
+    key: "SigningKey",
+    signed_at: str,
+) -> dict[str, Any]:
+    """Attach an Ed25519 registry signature. Offline signer helper, not runtime.
+
+    The signing identity is the key's derived id, never a chosen label, and
+    every spec must already name it: each spec's ``signing_identity`` is inside
+    the signed bytes, so a spec cannot be moved under another signer.
+    """
+    from remora.crypto import SignatureDomain, sign
+
+    kid = key.kid
+    for raw in bundle.get("tool_specs", []):
+        if str(raw.get("signing_identity", "")) != kid:
+            raise ValueError(
+                f"tool spec {raw.get('tool_id')!r} names signing identity "
+                f"{raw.get('signing_identity')!r}; an Ed25519 bundle's specs must "
+                f"name the signing key's id {kid!r}"
+            )
+    signature = sign(SignatureDomain.TOOLSPEC_BUNDLE, canonical_signing_bytes(bundle), key)
+    signed = dict(bundle)
+    signed["registry_signature"] = {
+        "signing_identity": kid,
+        "algorithm": ED25519_ALGORITHM,
+        "domain": signature.domain,
+        "kid": kid,
+        "signed_at": signed_at,
+        "signature": signature.value,
     }
     return signed
 
@@ -219,9 +261,21 @@ class ToolSpec:
 class ToolSpecBundle:
     """A verified set of signed ToolSpecs, and the checks that use them."""
 
-    def __init__(self, specs: Mapping[str, ToolSpec], bundle_digest: str) -> None:
+    def __init__(
+        self,
+        specs: Mapping[str, ToolSpec],
+        bundle_digest: str,
+        *,
+        signing_algorithm: str = "",
+        signing_identity: str = "",
+    ) -> None:
         self._specs = dict(specs)
         self.bundle_digest = bundle_digest
+        #: How the accepted bundle was signed and by which identity. Recorded
+        #: with every assessment so the audit trail names the signer, not only
+        #: the bundle (RMR-CR-001).
+        self.signing_algorithm = signing_algorithm
+        self.signing_identity = signing_identity
 
     # -- loading -----------------------------------------------------------
 
@@ -230,11 +284,14 @@ class ToolSpecBundle:
         cls,
         bundle: Mapping[str, Any] | None,
         *,
-        key: str,
-        trusted_identities: Sequence[str],
+        key: str = "",
+        trusted_identities: Sequence[str] = (),
         revoked_identities: Sequence[str] = (),
         pinned_bundle_digest: str | None = None,
         strict: bool = True,
+        verification_keys: "Iterable[VerificationKey]" = (),
+        accept_hmac: bool = True,
+        require_pinned_digest: bool = False,
     ) -> "ToolSpecBundle":
         """Verify a bundle and return it, or refuse with a reason code.
 
@@ -254,9 +311,109 @@ class ToolSpecBundle:
                 )
             return cls({}, bundle_digest="")
 
+        if require_pinned_digest and not pinned_bundle_digest:
+            raise ToolSpecRefused(
+                "toolspec_pinned_digest_required",
+                "this profile requires a pinned bundle digest; a signature "
+                "proves who signed, a pin proves which bundle is current",
+            )
+
         signature_block = bundle.get("registry_signature") or {}
         identity = str(signature_block.get("signing_identity", ""))
+        algorithm = str(signature_block.get("algorithm", SIGNING_ALGORITHM))
 
+        if algorithm == ED25519_ALGORITHM:
+            cls._verify_ed25519(
+                bundle, signature_block, identity,
+                verification_keys=verification_keys,
+                revoked=tuple(revoked_identities),
+            )
+        elif algorithm == SIGNING_ALGORITHM and accept_hmac:
+            cls._verify_hmac(
+                bundle, signature_block, identity, key=key,
+                trusted_identities=trusted_identities,
+                revoked_identities=revoked_identities,
+            )
+        else:
+            raise ToolSpecRefused(
+                "toolspec_signature_algorithm_refused",
+                f"bundle signature algorithm {algorithm!r} is not accepted here"
+                + ("; a strict profile or configured Ed25519 verification keys "
+                   "refuse HMAC, because a runtime that can verify an HMAC "
+                   "bundle can also author one"
+                   if algorithm == SIGNING_ALGORITHM else ""),
+            )
+
+        # The outer label is outside the signed bytes, so on its own it can be
+        # relabeled from a revoked signer to a trusted one. Each spec's own
+        # signing_identity is inside them; the label must agree with every one.
+        for raw in bundle.get("tool_specs", []):
+            if str(raw.get("signing_identity", "")) != identity:
+                raise ToolSpecRefused(
+                    "toolspec_signing_identity_mismatch",
+                    f"tool spec {raw.get('tool_id')!r} is signed as "
+                    f"{raw.get('signing_identity')!r}, not as the bundle's "
+                    f"signing identity {identity!r}",
+                )
+        return cls._build(bundle, pinned_bundle_digest, algorithm, identity)
+
+    @staticmethod
+    def _verify_ed25519(
+        bundle: Mapping[str, Any],
+        signature_block: Mapping[str, Any],
+        identity: str,
+        *,
+        verification_keys: "Iterable[VerificationKey]",
+        revoked: Sequence[str],
+    ) -> None:
+        """Ed25519: the identity is the derived key id, checked against keys."""
+        from remora.crypto import Signature, SignatureDomain, verify
+
+        kid = str(signature_block.get("kid", ""))
+        if identity != kid:
+            raise ToolSpecRefused(
+                "toolspec_signing_identity_mismatch",
+                f"the bundle's signing identity {identity!r} is not its key id "
+                f"{kid!r}; an Ed25519 signer is named by its key, not a label",
+            )
+        result = verify(
+            SignatureDomain.TOOLSPEC_BUNDLE,
+            canonical_signing_bytes(bundle),
+            Signature.from_dict(signature_block),
+            list(verification_keys),
+            revoked=revoked,
+        )
+        if result.ok:
+            return
+        code = {
+            "key_revoked": "toolspec_signing_identity_revoked",
+            "unknown_kid": "toolspec_signing_identity_unknown",
+            "key_purpose_mismatch": "toolspec_signing_identity_unknown",
+            "algorithm_unsupported": "toolspec_signature_algorithm_refused",
+        }.get(result.reason, "toolspec_signature_invalid")
+        raise ToolSpecRefused(
+            code, f"Ed25519 bundle signature refused ({result.reason}) for key {kid!r}"
+        )
+
+    @staticmethod
+    def _verify_hmac(
+        bundle: Mapping[str, Any],
+        signature_block: Mapping[str, Any],
+        identity: str,
+        *,
+        key: str,
+        trusted_identities: Sequence[str],
+        revoked_identities: Sequence[str],
+    ) -> None:
+        """The frozen v1 HMAC check, plus one guard: no key, no HMAC."""
+        if not key:
+            # An empty key is a key anyone has: a bundle HMAC-signed under it
+            # would verify. Refuse rather than check against nothing.
+            raise ToolSpecRefused(
+                "toolspec_signature_algorithm_refused",
+                "an HMAC-signed bundle cannot be verified without a configured "
+                "REMORA_TOOLSPEC_SIGNING_KEY",
+            )
         if identity in set(revoked_identities):
             raise ToolSpecRefused(
                 "toolspec_signing_identity_revoked",
@@ -282,18 +439,14 @@ class ToolSpecBundle:
                 "after signing",
             )
 
-        # The outer label is outside the signed bytes, so on its own it can be
-        # relabeled from a revoked signer to a trusted one. Each spec's own
-        # signing_identity is inside them; the label must agree with every one.
-        for raw in bundle.get("tool_specs", []):
-            if str(raw.get("signing_identity", "")) != identity:
-                raise ToolSpecRefused(
-                    "toolspec_signing_identity_mismatch",
-                    f"tool spec {raw.get('tool_id')!r} is signed as "
-                    f"{raw.get('signing_identity')!r}, not as the bundle's "
-                    f"signing identity {identity!r}",
-                )
-
+    @classmethod
+    def _build(
+        cls,
+        bundle: Mapping[str, Any],
+        pinned_bundle_digest: str | None,
+        algorithm: str,
+        identity: str,
+    ) -> "ToolSpecBundle":
         digest = hashlib.sha256(canonical_signing_bytes(bundle)).hexdigest()
         if pinned_bundle_digest and digest != pinned_bundle_digest:
             raise ToolSpecRefused(
@@ -326,7 +479,8 @@ class ToolSpecBundle:
                     "here rather than assumed"
                 )
             specs[spec.tool_id] = spec
-        return cls(specs, bundle_digest=digest)
+        return cls(specs, bundle_digest=digest, signing_algorithm=algorithm,
+                   signing_identity=identity)
 
     # -- lookups and checks ------------------------------------------------
 
