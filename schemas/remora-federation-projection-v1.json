@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/darklordVirtual/REMORA-research/schemas/remora-federation-projection-v1.json",
+  "title": "REMORA federation projection record v1",
+  "description": "How one native claim projected onto one transport, travelling with the result (remora.federation.evidence.projection_record). Projection strength, not a check result.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "native_claim",
+    "projection",
+    "exported_claim",
+    "preserved",
+    "not_established",
+    "limits",
+    "action_losses",
+    "transport",
+    "native_evidence_digest",
+    "transport_evidence_digest",
+    "adapter_digest",
+    "projection_map_digest",
+    "capabilities_digest",
+    "remora_revision",
+    "transport_revision"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "remora-federation-projection-v1"
+    },
+    "native_claim": {
+      "type": "string"
+    },
+    "projection": {
+      "enum": [
+        "PRESERVED",
+        "NARROWED",
+        "NOT_ESTABLISHED",
+        "UNSUPPORTED"
+      ]
+    },
+    "exported_claim": {
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^remora\\."
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "preserved": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "not_established": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "limits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "action_losses": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "transport": {
+      "type": "string"
+    },
+    "native_evidence_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "transport_evidence_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "adapter_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "projection_map_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "capabilities_digest": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "remora_revision": {
+      "type": "string"
+    },
+    "transport_revision": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

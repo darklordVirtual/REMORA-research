@@ -2729,6 +2729,18 @@ documents:
   - maintainers
   - evaluators
   - integrators
+- id: DOC-373
+  path: docs/interop/FEDERATION_BRIDGE.md
+  status: canonical
+  topic: docs_interop_FEDERATION_BRIDGE_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-10-07'
+  last_reviewed: '2026-10-07'
+  audience:
+  - maintainers
+  - evaluators
+  - integrators
 - id: DOC-362
   path: docs/interop/remora-boundaries-v1.yaml
   status: canonical
@@ -2853,6 +2865,7 @@ topics:
 - provenance_manifests_provenance-manifest-v1_json
 - docs_interop_INTEROP_MATRIX_md
 - docs_interop_CAPABILITY_DISCOVERY_md
+- docs_interop_FEDERATION_BRIDGE_md
 - docs_interop_remora-boundaries-v1_yaml
 - docs_interop_remora-boundaries-v1_schema_json
 - docs_integrations_jev_decision_provider_md

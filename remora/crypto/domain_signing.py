@@ -75,6 +75,9 @@ class SignatureDomain(str, Enum):
     #: Tenant audit chain entries from the AUDIT_VERSION_TRANSITION record on.
     AUDIT = "REMORA/AUDIT/v2"
     EVIDENCE = "REMORA/EVIDENCE/v1"
+    #: A Native Federation Action Envelope with its transport projection
+    #: (remora.federation), verified by federation adapters with a pinned key.
+    FEDERATION_ACTION = "REMORA/FEDERATION-ACTION/v1"
     OPERATOR_STATEMENT = "REMORA/OPERATOR-STATEMENT/v1"
 
 

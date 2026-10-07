@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/darklordVirtual/REMORA-research/schemas/remora-federation-action-v1.json",
+  "title": "REMORA Native Federation Action Envelope v1",
+  "description": "Transport-independent description of one REMORA authorization (remora.federation.models). Fields a workflow does not supply are null and listed in unavailable, never invented.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "operation_id",
+    "workflow_id",
+    "action",
+    "authority",
+    "execution_context",
+    "evidence",
+    "unavailable"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "remora-federation-action-v1"
+    },
+    "operation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "workflow_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "action": {
+      "type": "object",
+      "required": [
+        "tool",
+        "canonical_arguments",
+        "canonicalization",
+        "arguments_digest",
+        "typed_scalars",
+        "tool_definition_digest"
+      ],
+      "properties": {
+        "tool": {
+          "type": "string",
+          "minLength": 1
+        },
+        "canonical_arguments": {
+          "type": "string",
+          "description": "REMORA's canonical JSON of the arguments; int and float stay distinct"
+        },
+        "canonicalization": {
+          "const": "remora-canonical-json-v1"
+        },
+        "arguments_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "typed_scalars": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  "integer",
+                  "float",
+                  "string",
+                  "boolean",
+                  "null"
+                ]
+              }
+            ],
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "tool_definition_digest": {
+          "oneOf": [
+            {
+              "type": "string",
+              "pattern": "^sha256:[0-9a-f]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "authority": {
+      "type": "object",
+      "properties": {
+        "authorization_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "principal": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tenant": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "target": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "resource": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "valid_until": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "lease_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "execution_context": {
+      "type": "object",
+      "properties": {
+        "policy_digest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "toolspec_digest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "context_digest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidence": {
+      "type": "object",
+      "properties": {
+        "authorization_digest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "native_claims_digest": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "unavailable": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "transport_projection": {
+      "type": "object",
+      "description": "Present in signed evidence: what one transport carries"
+    }
+  },
+  "additionalProperties": false
+}

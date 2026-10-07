@@ -509,6 +509,7 @@ selective routing is phase-aware rather than a single global threshold. See
 | `remora/state.py` | **CORE** | `RemoraState` engine session-state contract (re-exported via `remora.engine`) |
 | `remora/genome.py` | **CORE** | Hyperparameter configuration |
 | `remora/policy/` | **CORE** | PolicyObservation → DecisionReport pipeline (hard-block-first) |
+| `remora/federation/` | **EXPERIMENTAL** | Federation Bridge: the native federation action envelope, transport capability declarations, the claim projection engine (a projection only weakens a claim), signed federation evidence and projection records, and the `federation-port/v0` transport ([FEDERATION_BRIDGE](docs/interop/FEDERATION_BRIDGE.md)). Nothing in the enforcement or execution path imports it |
 | `remora/interop/` | **EXPERIMENTAL** | RFC 8785 canonicalisation for wire interoperability with the Agent Passport System. Deliberately outside the binding path: `remora/policy/observation.py` still produces the bytes every historical token, lease, receipt and audit entry was signed over, and those bytes are never rewritten. Nothing in the enforcement path imports this module ([aps-authority-profile-v0](docs/design/aps-authority-profile-v0.md)) |
 | `remora/adapters/` | **CORE** | LangGraph, OpenAI, MCP adapters |
 | `remora/governance/` | **CORE** | DecisionEnvelope v2 + AuditBlock |
