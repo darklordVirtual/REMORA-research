@@ -20,6 +20,13 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Interoperability
 
+- `integrations/federation-port/remora-adapter/reproduce.sh` reproduces the
+  adapter the way the other outside adapters on #177 do: installed into
+  federation-port's tree at `92d5078`, sealed with its `scripts/seal.ts`, with
+  `src/` checked unmodified, federation-port's suite and the adapter's tests
+  in one run (61 of 61: 44 upstream, 17 REMORA), `tsc`, and REMORA's own
+  acceptance suites reported separately as JSON. The CI job now runs that
+  script. The adapter test also typechecks inside federation-port's tree.
 - Federation results name the subject they are about (report-specific
   binding). A result now identifies its subject (operation, report, execution
   attempt or effect observation), how it was selected, and the native result

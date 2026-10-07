@@ -392,46 +392,47 @@ jobs:
 
   federation-port-adapter:
     # REMORA's federation-port/v0 adapter (docs/interop/FEDERATION_BRIDGE.md),
-    # run inside an unmodified federation-port runtime at the revision the
-    # fixtures pin. The test asserts the checkout is that revision and that
-    # nothing under its src/ changed, so a pass is the adapter working against
-    # the published contract, not against a patched core.
+    # reproduced exactly as integrations/federation-port/remora-adapter/
+    # reproduce.sh documents it: installed into federation-port's own tree at
+    # the pinned revision and sealed with its scripts/seal.ts, the upstream
+    # suite and the REMORA adapter tests run together, src/ must stay
+    # unmodified, tsc must pass, and REMORA's acceptance suites run separately.
+    # CI runs the published procedure, so the two cannot drift.
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
-
-      - name: Checkout federation-port at the pinned revision
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
-        with:
-          repository: aeoess/federation-port
-          ref: 92d5078af3bbd3610ce4901378e913d5f370a68b
-          path: federation-port
-          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "24"
 
-      - name: Install federation-port
-        working-directory: federation-port
-        run: npm ci
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
 
-      - name: Adapter tests against the unmodified runtime
-        working-directory: integrations/federation-port/remora-adapter
-        env:
-          FEDERATION_PORT_DIR: ${{ github.workspace }}/federation-port
-        run: node --disable-warning=ExperimentalWarning --test --test-concurrency=1 tests/remora-adapter.test.ts
-
-      - name: Typecheck the adapter against the published contract types
-        # Copied into a scratch adapters/ entry only for tsc; the test step
-        # above already ran against the pristine checkout.
+      - name: Install package
         run: |
-          cp -r integrations/federation-port/remora-adapter federation-port/adapters/remora-research-authorization
-          rm -rf federation-port/adapters/remora-research-authorization/tests
-          cd federation-port && npx tsc -p tsconfig.json
+          python -m pip install --upgrade pip
+          grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
+          pip install -e ".[dev]" -c /tmp/constraints.txt
+
+      - name: Reproduce
+        env:
+          PYTHON: python
+          REMORA_REPRODUCE_OUT: ${{ runner.temp }}/remora-federation-port-reproduction.json
+        run: bash integrations/federation-port/remora-adapter/reproduce.sh
+
+      - name: Publish the machine-readable result
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: remora-federation-port-reproduction
+          path: ${{ runner.temp }}/remora-federation-port-reproduction.json
+          if-no-files-found: warn
 
   quality-gates-required:
     # RMR-007: branch protection can only require named contexts, and the legs

@@ -1136,8 +1136,9 @@ capabilities:
   - id: CAP-027
     name: "federation-port/v0 adapter: REMORA authorization evidence verified inside an unmodified federation-port runtime"
     status: WIRED_REFERENCE_PATH
-    verified_at_sha: c70c413ce9773b9040bd4b57363ae41b2cd78083
+    verified_at_sha: c22b2b9e8fd55251e39ffa71d43c640fab1ab387
     verified_by: >-
+      re-audited 2026-10-08 at c22b2b9 (FEDERATION-REPRODUCE), from c70c413: reproduce.sh installs the component into federation-port's tree at 92d5078, seals it with federation-port's scripts/seal.ts (reproduces the pinned digest), checks src/ unmodified and runs test/*.test.ts: 61/61 (44 upstream + 17 REMORA), tsc passes; REMORA acceptance 62/62 reported separately. CI runs the script. Status, scope and caveats unchanged.
       re-audited 2026-10-07 at c70c413 (FEDERATION-REPORT-SELECTION), from 86f2b8b: report-specific binding: projection records v2, subject, selection and native result. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       audit 2026-10-07 at registration: remora/federation/transports/federation_port_v0.py
       produces the V0 request and signed evidence; the TypeScript component in
@@ -1155,6 +1156,7 @@ capabilities:
       - integrations/federation-port/remora-adapter/adapter.ts
       - integrations/federation-port/remora-adapter/manifest.json
       - integrations/federation-port/remora-adapter/tests/remora-adapter.test.ts
+      - integrations/federation-port/remora-adapter/reproduce.sh
       - tests/test_federation_bridge.py
       - artifacts/interop/federation-port-v0/projection-map.yaml
       - artifacts/interop/federation-port-v0/capabilities.yaml
