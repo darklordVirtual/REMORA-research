@@ -64,11 +64,13 @@ def deployment_environment() -> str:
     value) was "not development" to the authentication path and "not
     production" to the startup guard, so it got the weaker half of each.
     Every reader now asks this function, and an unknown value is refused
-    instead of being read as either. Unset or blank means development, as
-    documented.
+    instead of being read as either. Unset means development, as documented.
+    Set but blank is refused like any other unknown value: the old readers
+    treated it as "not development", so reading it as development now would
+    quietly start trusting the self-asserted role header.
     """
     raw = os.getenv(DEPLOYMENT_ENV)
-    if raw is None or not raw.strip():
+    if raw is None:
         return "development"
     value = raw.strip().lower()
     try:
