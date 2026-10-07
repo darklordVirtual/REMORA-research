@@ -1,7 +1,7 @@
 {
   "adapter": "remora",
   "adapter_sha256": "c3ae0f5a2b4108fb3abeeb1d4cc6c68a9290798cb2d1a489b5064000dd70689d",
-  "adapter_version": "0.11.0",
+  "adapter_version": "0.12.0",
   "counts": {
     "divergent": 0,
     "error": 0,

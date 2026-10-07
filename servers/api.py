@@ -83,7 +83,7 @@ _DEV_ENV_VALUES = frozenset({"development", "dev"})
 try:
     _PACKAGE_VERSION: str = importlib.metadata.version("remora-assurance")
 except importlib.metadata.PackageNotFoundError:
-    _PACKAGE_VERSION = "0.11.0"  # fallback for editable installs before first build
+    _PACKAGE_VERSION = "0.12.0"  # fallback for editable installs before first build
 
 # FastAPI is an optional dependency — gate the import.
 try:

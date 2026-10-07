@@ -9,7 +9,7 @@ build-backend = "hatchling.build"
 # import package stays `remora`: `import remora` and the `remora` console
 # script are unchanged, and only the name pip resolves moves.
 name = "remora-assurance"
-version = "0.11.0"
+version = "0.12.0"
 description = "Research-grade policy-gated execution assurance for agentic AI actions with signed tool authority, deterministic governance, verification routing, and audit controls"
 readme = "README.md"
 # PEP 639 SPDX expression. BUSL-1.1 is source-available, not OSI open source;
