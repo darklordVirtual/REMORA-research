@@ -80,6 +80,8 @@ def test_a_strict_executor_with_the_same_runtime_executes(keys) -> None:
     lease = _lease()
     keys.setenv("REMORA_RUNTIME_PROFILE", "review/v1")
     keys.setenv("REMORA_EXECUTION_DOMAIN_ROLE", "executor")
+    # Durable single-use is H-01's subject (tests/test_hostile_review_2026_10_08.py), not this one.
+    keys.setattr(GovernedToolDispatcher, "_durability_refusal", lambda self: None)
     result = _dispatch(lease)
     assert result.executed, result.refusal_reason
 

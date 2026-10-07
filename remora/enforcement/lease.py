@@ -486,6 +486,12 @@ class ExecutionLease:
                 tool_name=self.tool_name, detail=str(exc),
             )
             return LeaseVerificationResult(False, "lease_format_legacy")
+        except _signing.LeaseKeyRevoked as exc:
+            governance_event(
+                "lease.key_revoked", level=logging.WARNING, kid=self.kid,
+                tenant_id=self.tenant_id, tool_name=self.tool_name, detail=str(exc),
+            )
+            return LeaseVerificationResult(False, "lease_key_revoked")
         except _signing.SigningUnavailable as exc:
             # Cannot reach a verdict. Never reported as a valid signature, and
             # kept distinct from "forged" so a downgrade attempt or a missing
@@ -1081,6 +1087,21 @@ class GovernedToolDispatcher:
         self._surface_enforced = enforce
         self._surface_digest_required = require_digest
 
+    def _durability_refusal(self) -> str | None:
+        """A strict profile never relies on the in-process nonce ledger.
+
+        The ledger makes a lease single-use for this process only: a restart
+        or a second worker could consume it again within its validity window.
+        Under a strict profile a dispatcher without a durable nonce store
+        refuses before anything is recorded or consumed (hostile review
+        2026-10-08, H-01). Research and library use keep the ledger.
+        """
+        if self._nonce_store is not None:
+            return None
+        from remora.enforcement.custody import custody_is_enforced
+
+        return "nonce_store_not_durable" if custody_is_enforced() else None
+
     def _surface_refusal(self, lease: ExecutionLease) -> str | None:
         if self._surface_observer is None:
             policy = self._binding_policy
@@ -1503,7 +1524,8 @@ class GovernedToolDispatcher:
         # consumed, so a rejected runtime does not burn a single-use nonce and
         # turn an authorization failure into an unknown-state incident.
         runtime_refusal = (
-            self._policy_refusal(lease)
+            self._durability_refusal()
+            or self._policy_refusal(lease)
             or self._capability_refusal(lease, tool_name, tenant_id,
                                      target_environment or "", capability_set, now,
                                      arguments)

@@ -224,6 +224,7 @@ Several topics have more than one document. This table says which to open.
 | [Security review 2026-10-07](assurance/reviews/2026-10-07-272b6c56/README.md) | Producer-owned, AI-assisted adversarial review of revision 272b6c56 (RMR-CR-001 to 015), revalidated at v0.12.0; independence not established |
 | [Finding disposition](assurance/reviews/2026-10-07-272b6c56/FINDING_DISPOSITION.md) | Current status per RMR-CR finding: fix, regression tests, pull request, remaining boundary |
 | [MCP execution surfaces](assurance/reviews/2026-10-07-272b6c56/MCP_EXECUTION_SURFACE.md) | Every MCP surface that can run a tool, how authority reaches its effects, and the open gaps |
+| [Hostile review 2026-10-08](assurance/reviews/2026-10-08-hostile-review/DISPOSITION.md) | Disposition of a hostile review at 322541c7: three defects fixed (strict durable single-use, lease-key revocation, argument nesting), boundaries restated, two claims refuted |
 | [domain_pack_governance_v1.md](assurance/domain_pack_governance_v1.md) | Domain-pack governance |
 | [aromer_memory_governance_v1.md](assurance/aromer_memory_governance_v1.md) | AROMER memory governance |
 | [validation/EXTERNAL_VALIDATION_PLAN.md](validation/EXTERNAL_VALIDATION_PLAN.md) | External validation plan |

@@ -240,6 +240,8 @@ def test_unbound_lease_is_refused_under_a_strict_profile(monkeypatch):
     monkeypatch.setenv(PROFILE_ENV, "controlled_pilot/v1")
     monkeypatch.setenv("REMORA_EXECUTION_DOMAIN_ROLE", "executor")
     dispatcher, calls = _dispatcher()
+    # Durable single-use is H-01's subject (tests/test_hostile_review_2026_10_08.py), not this one.
+    monkeypatch.setattr(GovernedToolDispatcher, "_durability_refusal", lambda self: None)
 
     result = _dispatch(dispatcher, lease)
 
