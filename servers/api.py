@@ -65,18 +65,19 @@ logger = logging.getLogger("remora.api")
 # ---------------------------------------------------------------------------
 
 def _get_env_mode() -> str:
-    """Return the normalised REMORA_ENV value.
+    """``development`` or ``production`` (remora.profiles.deployment_environment).
 
-    Default is ``"development"`` when the variable is unset or empty.
-    Recognised production values: ``"prod"``, ``"production"``.
-    Any other value (including empty) is treated as development.
+    Unset or blank is development; ``dev`` and ``prod`` are aliases; any
+    other value raises, at startup and on every request (RMR-CR-003).
     """
-    return os.getenv("REMORA_ENV", "development").strip().lower()
+    from remora.profiles import deployment_environment
+
+    return deployment_environment()
 
 
-#: The only REMORA_ENV values that enable the no-auth fallback and the
-#: self-asserted X-Remora-Role header (single-token mode).
-_DEV_ENV_VALUES = frozenset({"development", "dev"})
+#: The only environment that enables the no-auth fallback and the
+#: self-asserted X-Remora-Tenant / X-Remora-Role headers (single-token mode).
+_DEV_ENV_VALUES = frozenset({"development"})
 
 
 # Resolved once at import time for the FastAPI app version string.
@@ -505,7 +506,7 @@ def _env_flag(name: str, default: bool = False) -> bool:
 
 
 def _is_production_mode() -> bool:
-    return _get_env_mode() in {"prod", "production"}
+    return _get_env_mode() == "production"
 
 
 # ---------------------------------------------------------------------------
@@ -944,6 +945,7 @@ def _make_control_plane_store() -> tuple[ControlPlaneStore, str]:
     return InMemoryControlPlaneStore(), "in_memory"
 
 
+_get_env_mode()  # an unknown REMORA_ENV refuses startup here (RMR-CR-003)
 _validate_production_prerequisites()
 
 
@@ -1999,19 +2001,20 @@ def _authenticate(request: Request) -> tuple[str, str]:
 
     Priority:
       1. Multi-tenant mode  (REMORA_API_TOKENS set): token → fixed (tenant, role).
-         Callers cannot forge tenant or role via headers.
-      2. Single-token mode  (REMORA_API_BEARER_TOKEN set): validates token, then
-         reads tenant/role from headers (defaults: 'default' / 'operator').
-         The role is SELF-ASSERTED by the caller — single-token mode is a
-         single-operator/dev profile with NO role separation (anyone holding
-         the token can claim any role). In REMORA_ENV=production the
-         X-Remora-Role header is therefore ignored (in every environment other
-         than the documented dev values) and the role is pinned to
-         'operator', so approval-role gating cannot be satisfied by
-         self-assertion; production role separation requires the token-table
-         mode (external review 2026-07-28, N4).
-      3. No-auth dev mode   (neither set, REMORA_ENV=development): dev fallback.
+         Callers cannot forge tenant or role via headers; an X-Remora-Tenant
+         header naming another tenant is refused with 403 (RMR-CR-003).
+      2. Single-token mode  (REMORA_API_BEARER_TOKEN set): DEVELOPMENT ONLY.
+         Validates the token, then reads tenant/role from headers (defaults:
+         'default' / 'operator'). Both are self-asserted, so outside
+         development the request is refused: one bearer token names no
+         tenant, and the tenant must come from a credential (RMR-CR-003;
+         role pinning outside dev was external review 2026-07-28, N4).
+      3. No-auth dev mode   (neither set, development): dev fallback.
          Production with no credentials configured is a startup error.
+
+    REMORA_ENV is read through remora.profiles.deployment_environment: unset
+    or blank is development, and a value that is neither development nor
+    production is refused.
     """
     # ── Determine which auth mode is active ──────────────────────────────
     has_token_table  = bool(_TOKEN_TABLE)
@@ -2041,20 +2044,34 @@ def _authenticate(request: Request) -> tuple[str, str]:
     if has_token_table:
         for token, (tenant, role) in _TOKEN_TABLE.items():
             if hmac.compare_digest(provided.encode("utf-8"), token.encode("utf-8")):
+                # The tenant comes from the credential. A tenant header may be
+                # absent or repeat it; one that names another tenant is
+                # refused rather than ignored, so a client that believes it
+                # chose a tenant learns that it did not (RMR-CR-003).
+                asserted = request.headers.get("X-Remora-Tenant", "").strip()
+                if asserted and asserted != tenant:
+                    raise HTTPException(
+                        status_code=403,
+                        detail="X-Remora-Tenant does not match the credential's tenant",
+                    )
                 return tenant, role
         raise HTTPException(status_code=401, detail="invalid bearer token")
 
     # Single-token mode
     if not hmac.compare_digest(provided.encode("utf-8"), single_token.encode("utf-8")):
         raise HTTPException(status_code=401, detail="invalid bearer token")
-    tenant = request.headers.get("X-Remora-Tenant", "default").strip() or "default"
     if _get_env_mode() not in _DEV_ENV_VALUES:
-        # Self-asserted roles must not satisfy approval-role gating outside
-        # development (N4): pin to the baseline role; role separation
-        # requires REMORA_API_TOKENS (token -> fixed role). Trusting the
-        # header is opt-in via the documented dev value, not opt-out via the
-        # exact production spelling, so "staging" and typos are untrusted too.
-        return tenant, "operator"
+        # RMR-CR-003: outside development the tenant must come from the
+        # credential, and one bearer token names no tenant. Production startup
+        # already requires REMORA_API_TOKENS; this refuses on the request path
+        # too, so no configuration can let a header choose the tenant.
+        raise HTTPException(
+            status_code=403,
+            detail=("single-token mode is development only: outside "
+                    "development the tenant is derived from REMORA_API_TOKENS, "
+                    "never from X-Remora-Tenant"),
+        )
+    tenant = request.headers.get("X-Remora-Tenant", "default").strip() or "default"
     role   = request.headers.get("X-Remora-Role", "operator").strip().lower() or "operator"
     return tenant, role
 

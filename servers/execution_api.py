@@ -440,8 +440,9 @@ def _build_outbox() -> ExecutionOutbox:
         # The endpoint keeps the ledgers durable, not this. Production is
         # refused here as well as at startup, so an import-time build cannot
         # hand a production worker a process-local outbox.
-        if _os.environ.get("REMORA_ENV", "").strip().lower() in {
-                "prod", "production"}:
+        from remora.profiles import deployment_environment
+
+        if deployment_environment() == "production":
             raise RuntimeError(
                 "REMORA_STATE_ENDPOINT has no dispatch-outbox adapter; "
                 "production requires REMORA_PG_DSN or REMORA_CHAIN_DB")
@@ -2681,9 +2682,9 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
     if not events:
         raise HTTPException(status_code=404, detail="proposal not found")
 
-    if _os.environ.get("REMORA_ENV", "").strip().lower() in {
-        "prod", "production"
-    } and not _effect_audit_is_durable():
+    from remora.profiles import deployment_environment
+
+    if deployment_environment() == "production" and not _effect_audit_is_durable():
         raise HTTPException(
             status_code=503,
             detail=("effect receipt audit store unavailable: production "
