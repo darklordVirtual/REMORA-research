@@ -1334,6 +1334,23 @@ def _tool_dispatcher() -> GovernedToolDispatcher | None:
     return _DISPATCHER
 
 
+def _local_dispatcher(presented_lease: Any) -> GovernedToolDispatcher | None:
+    """The tool dispatcher, only when this process will execute the call.
+
+    A lease minted here with an execution domain configured is forwarded, and
+    ``dispatch_under_lease`` needs no dispatcher for that. Building one anyway
+    imports the registry and registers its callables, which the custody guard
+    refuses in the authority domain under a strict profile, so a strict
+    authority could not forward at all. A presented lease always runs where
+    it arrived.
+    """
+    from remora.execution.remote_dispatch import execution_endpoint
+
+    if presented_lease is None and execution_endpoint():
+        return None
+    return _tool_dispatcher()
+
+
 def _effect_policy_check(tool_name: str, mediated: bool) -> str | None:
     """The CR-005 effect-policy refusal for one registered tool, or None."""
     from remora.execution.effect_policy import effect_policy_refusal
@@ -2286,7 +2303,7 @@ def _dispatch_under_lease(
             tool_call=tool_call,
             semantic=semantic,
             now=now,
-            dispatcher=_tool_dispatcher(),
+            dispatcher=_local_dispatcher(presented_lease),
             policy_bundle_hash=_current_policy_bundle_hash(),
             gate_allowed=gate_allowed,
             toolspec=toolspec,

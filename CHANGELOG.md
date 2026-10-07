@@ -6,6 +6,12 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Security
 
+- A strict authority can forward to its execution domain. The API built the
+  tool dispatcher before deciding whether to execute locally or forward, and
+  building it registers the registry's callables, which custody refuses in the
+  authority domain. A strict authority therefore raised `CustodyViolation` on
+  every dispatch. It now builds the dispatcher only when it executes locally.
+  Found while mapping the MCP execution surfaces.
 - Signature format v2 for the tenant audit chain (CR-011, C3). v1 entries
   are never re-signed. The first v2 append writes an
   `AUDIT_VERSION_TRANSITION` record naming the final v1 head and
