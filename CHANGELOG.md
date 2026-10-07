@@ -46,6 +46,11 @@ This file lists externally relevant changes by release. Fine-grained development
   re-chained with its signatures stripped. `GET /v1/audit/chain/verify` adds
   `verification_scope: linkage_only` and `signature_status: NOT_CHECKED`.
   Additive fields; persisted records are unchanged.
+- The PDP token's issuer is compared when `REMORA_PDP_ISSUER` is set on the
+  verifying side (`issuer_mismatch`), and the token is documented as what it is
+  on the execution API: an in-process, one-time grant record, not a trust
+  boundary between decision and enforcement (RMR-CR-002). The best-practice gap
+  audit downgrades PDP/PEP separation from implemented to partial.
 
 ## 0.12.0 — 2026-10-07
 
