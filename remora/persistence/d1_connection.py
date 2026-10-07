@@ -61,6 +61,13 @@ def _post(statements: list[dict[str, Any]], url: str | None = None) -> list[list
         raise D1Unavailable(f"state store returned {exc.code}: {detail}") from exc
     except urllib.error.URLError as exc:
         raise D1Unavailable(f"state store unreachable: {exc.reason}") from exc
+    except (TimeoutError, OSError) as exc:
+        # A read timeout or a reset connection is an outage like any other
+        # (RMR-CR-015); it used to escape as an unnamed exception.
+        raise D1Unavailable(f"state store unreachable: {type(exc).__name__}") from exc
+    except ValueError as exc:
+        # json.JSONDecodeError: an answer that is not JSON is no answer.
+        raise D1Unavailable("state store returned a malformed response") from exc
     if not payload.get("success"):
         raise D1Unavailable(f"state store refused: {str(payload.get('errors'))[:300]}")
     return payload.get("results") or []
