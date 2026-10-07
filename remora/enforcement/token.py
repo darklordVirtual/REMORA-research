@@ -8,8 +8,18 @@ that flows from the Policy Decision Point to the Policy Enforcement Point.
 The PEP (EnforcementGate) must verify the token's HMAC signature before
 allowing any action execution. This prevents:
   - Bypassing the PDP by directly calling the PEP with an unsigned decision
-  - Token forgery (requires possession of the signing key)
+  - Token forgery by a party without the signing key
   - Decision substitution (observation_hash binds the token to the specific call)
+
+What it does NOT establish (RMR-CR-002): a trust boundary between decision
+and enforcement. On the execution API the PDP and the PEP run in one process
+and share REMORA_PDP_SIGNING_KEY; the token is minted and consumed in the
+same call path (or minted at /assess and redeemed at /execute-accepted by the
+same process). It is an in-process, one-time grant record: jti, expiry,
+audience, context and observation bindings are real and tested, but any code
+that can reach the gate can also mint a token. Separation of decision
+authority from enforcement would need the issuer and verifier in different
+custody domains with asymmetric keys, as the ExecutionLease already supports.
 
 Key management: set REMORA_PDP_SIGNING_KEY in the environment.
   - If absent: token is issued as UNSIGNED (enforcement gate rejects in strict mode)
@@ -454,6 +464,17 @@ class PolicyDecisionToken:
             return TokenVerificationResult(
                 verified=False,
                 reason="signature_invalid",
+                is_signed=True,
+            )
+
+        # RMR-CR-002: the issuer was signed but never compared. When this
+        # process names an expected issuer, a token from any other issuer is
+        # refused, even with a valid signature under a shared key.
+        expected_issuer = os.environ.get(_ENV_ISSUER, "").strip()
+        if expected_issuer and self.issuer != expected_issuer:
+            return TokenVerificationResult(
+                verified=False,
+                reason="issuer_mismatch",
                 is_signed=True,
             )
 
