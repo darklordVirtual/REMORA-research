@@ -39,6 +39,13 @@ This file lists externally relevant changes by release. Fine-grained development
   `grant.ledger_unavailable` event naming the backend. A grant whose write
   never committed stays unspent. D1 also names read timeouts and malformed
   answers.
+- Audit verification states which checks ran (RMR-CR-007).
+  `GET /v1/execution/audit/verify` adds `hash_chain_status` and
+  `signature_status` (`CHECKED`, `NOT_CHECKED_NO_KEY`, `UNSIGNED`): a verifier
+  without the signing key used to report `valid: true` for a history
+  re-chained with its signatures stripped. `GET /v1/audit/chain/verify` adds
+  `verification_scope: linkage_only` and `signature_status: NOT_CHECKED`.
+  Additive fields; persisted records are unchanged.
 
 ## 0.12.0 — 2026-10-07
 

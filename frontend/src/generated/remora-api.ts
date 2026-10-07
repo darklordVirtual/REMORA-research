@@ -1210,10 +1210,20 @@ export interface components {
              * @description True when no records exist: an empty chain is trivially valid and must not pose as verified history.
              */
             empty: boolean;
+            /**
+             * Hash Chain Status
+             * @description INTACT or BROKEN: whether every record links to its predecessor and its hash recomputes. Says nothing about who wrote the records.
+             */
+            hash_chain_status: string;
             /** Problems */
             problems: string[];
             /** Records Checked */
             records_checked: number;
+            /**
+             * Signature Status
+             * @description CHECKED (signatures compared with this process's key), NOT_CHECKED_NO_KEY (records are signed, this process holds no key) or UNSIGNED (no record carries a signature). `valid` covers only the checks that ran.
+             */
+            signature_status: string;
             /** Tenant */
             tenant: string;
             /** Valid */

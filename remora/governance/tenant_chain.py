@@ -284,6 +284,42 @@ def compute_entry_hash_from_canonical(
     return hashlib.sha256(preimage.encode("utf-8")).hexdigest()
 
 
+#: What a verification established about signatures (RMR-CR-007). Kept apart
+#: from the hash-chain result, because a chain re-linked by someone with write
+#: access verifies as intact while its signatures say nothing.
+SIGNATURE_CHECKED = "CHECKED"
+SIGNATURE_NOT_CHECKED_NO_KEY = "NOT_CHECKED_NO_KEY"
+SIGNATURE_UNSIGNED = "UNSIGNED"
+
+_SIGNATURE_PROBLEMS = ("signature_mismatch_at:", "signature_missing_at:")
+
+
+def verification_statuses(
+    entries: "tuple[ChainEntry, ...] | list[ChainEntry]", problems: list[str]
+) -> dict[str, str]:
+    """``hash_chain_status`` and ``signature_status`` for one verification.
+
+    - ``CHECKED``: this process holds ``REMORA_AUDIT_SIGNING_KEY``, so every
+      signature was compared (failures are in ``problems``).
+    - ``NOT_CHECKED_NO_KEY``: entries carry signatures, but this process has
+      no key, so none was compared. An intact hash chain then shows only
+      that the records link, not who wrote them.
+    - ``UNSIGNED``: no entry carries a signature; the chain is hash-linked
+      only, which anyone with write access can reproduce.
+    """
+    if os.environ.get(_ENV_KEY, "").strip():
+        signature = SIGNATURE_CHECKED
+    elif any(getattr(e, "signature", "") for e in entries):
+        signature = SIGNATURE_NOT_CHECKED_NO_KEY
+    else:
+        signature = SIGNATURE_UNSIGNED
+    hash_problems = [p for p in problems if not p.startswith(_SIGNATURE_PROBLEMS)]
+    return {
+        "hash_chain_status": "INTACT" if not hash_problems else "BROKEN",
+        "signature_status": signature,
+    }
+
+
 def verify_exported_chain(
     rows: list[dict[str, Any]],
     *,

@@ -425,7 +425,13 @@ mandatory bounded TTL; profile-specific approval role enforced), `POST
 one-time grant, then dispatches the tool through the app-lifecycle
 `GovernedToolDispatcher`), `GET /audit/verify` (recomputes the per-tenant
 chain and reports `records_checked`; an `empty` chain is flagged because it is
-trivially valid). RBAC: `assess`/`execute` capabilities gate assess/execute;
+trivially valid). Its `hash_chain_status` (`INTACT` or `BROKEN`) and
+`signature_status` are separate: `CHECKED` when this process holds
+`REMORA_AUDIT_SIGNING_KEY`, `NOT_CHECKED_NO_KEY` when the records are signed but
+it does not, and `UNSIGNED` when no record carries a signature. `valid` covers
+only the checks that ran (RMR-CR-007). The control-plane
+`GET /v1/audit/chain/verify` follows record links only and says so with
+`verification_scope: linkage_only` and `signature_status: NOT_CHECKED`. RBAC: `assess`/`execute` capabilities gate assess/execute;
 `review` gates approve; `read` gates audit. `review` also gates `POST /revoke-principal`, which withdraws a principal's authority after the fact. An approval that principal granted is invalidated at the execution re-gate, not rewritten. The chain therefore shows both the approval and the revocation.
 
 **Rejection, effects and the proposal trail.** `POST /reject` (`review`)

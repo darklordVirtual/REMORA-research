@@ -2585,6 +2585,11 @@ def verify_audit_chain(request: Request) -> dict:
         "tenant_id": tenant_id,
         "records_checked": len(records),
         "chain_valid": ok,
+        # RMR-CR-007: this check follows each record's link to its
+        # predecessor. It recomputes no hash and compares no signature, so
+        # chain_valid must not be read as "intact and authentic".
+        "verification_scope": "linkage_only",
+        "signature_status": "NOT_CHECKED",
         "breaks": breaks,
         "control_plane_backend": _CONTROL_PLANE_BACKEND,
         "durable": _CONTROL_PLANE_DURABLE,

@@ -3016,7 +3016,10 @@ def audit_verify(request: Request) -> dict[str, Any]:
 
     api_mod._require_tenant_capability(role, tenant, "read")
     ok, problems = _CHAIN.verify(tenant)
-    records_checked = len(_CHAIN.entries(tenant))
+    entries = _CHAIN.entries(tenant)
+    records_checked = len(entries)
+    from remora.governance.tenant_chain import verification_statuses
+
     return {
         "tenant": tenant,
         "valid": ok,
@@ -3025,4 +3028,7 @@ def audit_verify(request: Request) -> dict[str, Any]:
         # must be able to tell "verified history" from "nothing to verify".
         "records_checked": records_checked,
         "empty": records_checked == 0,
+        # RMR-CR-007: "valid" alone read as intact even when no signature was
+        # compared. These say which checks ran.
+        **verification_statuses(entries, problems),
     }
