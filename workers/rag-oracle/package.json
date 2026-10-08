@@ -9,10 +9,10 @@
  },
  "devDependencies": {
   "@cloudflare/vitest-pool-workers": "^0.22.0",
-  "@cloudflare/workers-types": "^5.20260928.1",
+  "@cloudflare/workers-types": "^5.20261005.1",
   "typescript": "^7.0.2",
   "vitest": "^4.1.11",
-  "wrangler": "^4.143.0"
+  "wrangler": "^4.147.0"
  },
  "overrides": {
   "@emnapi/core": "1.10.0",
