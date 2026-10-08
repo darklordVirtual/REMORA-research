@@ -165,8 +165,13 @@ def check_document_register(errors: list[str], warnings: list[str]) -> None:
     for p in tracked:
         if p not in registered:
             warnings.append(f"document-register: tracked file has no entry: {p}")
-    for p in sorted(registered - set(tracked)):
-        warnings.append(f"document-register: entry for missing/untracked file: {p}")
+    # An entry outside the scanned scope (conformance/, provenance/) is a
+    # registration by choice, not drift; only a file git does not track is.
+    outside = sorted(registered - set(tracked))
+    known = set(_git_ls(".")) if outside else set()
+    for p in outside:
+        if p not in known:
+            warnings.append(f"document-register: entry for missing/untracked file: {p}")
 
     # Controlled topic registry: canonical documents may only claim a topic
     # declared here, so near-duplicate free-text topics cannot proliferate.

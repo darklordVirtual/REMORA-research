@@ -2857,6 +2857,8 @@ documents:
   status: historical
   topic: docs_assurance_reviews_2026-10-07-272b6c56_fix_rebase_md
   referencing_allowed: true
+  code_synced: unreviewed
+  verdict: current
 - id: DOC-370
   path: docs/design/binding-policy-v1.md
   status: canonical
@@ -2893,6 +2895,75 @@ documents:
   - maintainers
   - evaluators
   - researchers
+- id: DOC-377
+  path: docs/assurance/binding_policy_matrix_v1.yaml
+  status: canonical
+  topic: docs_assurance_binding_policy_matrix_v1_yaml
+  code_synced: unreviewed
+  verdict: pending
+  last_reviewed: null
+  audience:
+  - maintainers
+  - evaluators
+- id: DOC-378
+  path: docs/assurance/provenance_concepts_v1.yaml
+  status: canonical
+  topic: docs_assurance_provenance_concepts_v1_yaml
+  code_synced: unreviewed
+  verdict: pending
+  last_reviewed: null
+  audience:
+  - maintainers
+- id: DOC-379
+  path: docs/assurance/provenance_register_v1.json
+  status: generated
+  generated_by: scripts/provenance_register.py
+  topic: docs_assurance_provenance_register_v1_json
+  code_synced: unreviewed
+  verdict: pending
+  last_reviewed: null
+  audience:
+  - maintainers
+- id: DOC-380
+  path: docs/assurance/reviews/2026-10-07-272b6c56/findings.json
+  status: supporting
+  topic: docs_assurance_reviews_2026-10-07-272b6c56_findings_json
+  code_synced: unreviewed
+  verdict: pending
+  last_reviewed: null
+  audience:
+  - maintainers
+  - evaluators
+- id: DOC-381
+  path: docs/design/formal-mathematical-assurance-v1.md
+  status: proposal
+  topic: docs_design_formal-mathematical-assurance-v1_md
+  code_synced: unreviewed
+  verdict: pending
+  last_reviewed: null
+  audience:
+  - maintainers
+  - researchers
+- id: DOC-382
+  path: docs/interop/remora-capabilities-v1.schema.json
+  status: canonical
+  topic: docs_interop_remora-capabilities-v1_schema_json
+  code_synced: unreviewed
+  verdict: pending
+  last_reviewed: null
+  audience:
+  - maintainers
+  - integrators
+- id: DOC-383
+  path: docs/interop/remora-capabilities-v1.yaml
+  status: canonical
+  topic: docs_interop_remora-capabilities-v1_yaml
+  code_synced: unreviewed
+  verdict: pending
+  last_reviewed: null
+  audience:
+  - maintainers
+  - integrators
 topics:
 - provenance_README_md
 - provenance_prior-art-review-2026-10-04_md
@@ -3201,3 +3272,10 @@ topics:
 - docs_assurance_reviews_2026-10-07-272b6c56_fix_rebase_md
 - docs_design_binding-policy-v1_md
 - docs_design_signature-format-v2_md
+- docs_assurance_binding_policy_matrix_v1_yaml
+- docs_assurance_provenance_concepts_v1_yaml
+- docs_assurance_provenance_register_v1_json
+- docs_assurance_reviews_2026-10-07-272b6c56_findings_json
+- docs_design_formal-mathematical-assurance-v1_md
+- docs_interop_remora-capabilities-v1_schema_json
+- docs_interop_remora-capabilities-v1_yaml
