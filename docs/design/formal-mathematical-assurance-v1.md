@@ -4,7 +4,7 @@
 
 ## 1. Purpose and threat model
 
-Build a verifiable chain from *precisely scoped mathematical proposition* → model → machine-checked Lean proof → executable refinement tests → immutable evidence artifact → research-control matrix → bounded product claim. Target failures are: dispatch without applicable authority, replay of consumed lease, result relabelling, confusing execution reports with verified effects, and interpreting repeated correlated observations as independent trials.
+Build a verifiable chain with seven links. In order: a *precisely scoped mathematical proposition*, a model, a machine-checked Lean proof, executable refinement tests, an immutable evidence artifact, the research-control matrix, and a bounded product claim. Target failures are: dispatch without applicable authority, replay of consumed lease, result relabelling, confusing execution reports with verified effects, and interpreting repeated correlated observations as independent trials.
 
 **No claim that math proofs verify Python/TypeScript binaries, out-of-process isolation, key custody, or physical effects.** Existing federation-port/v0 remains unchanged. Proofs are not a replacement for cross-tenant, TOCTOU, concurrency, adversarial or deployment tests.
 
@@ -36,7 +36,7 @@ Lean proofs MUST compile without `sorry`, `admit`, axioms added to bypass obliga
 
 ### FM-02 (P0) — Refinement and correspondence to real code
 
-Implement Python executable state model `tests/formal/model_oracle.py` and `tests/formal/test_refinement.py`; test trace projection against actual `ExecutionLease`, governed dispatcher, enforcement gate, federation result verifier where interfaces exist. Do not quietly mock the code under proof. Build explicit mapping `formal/refinement-map.yaml`: theorem ID → source module/function → executable test → counterexample fixture → limitation. Required 16+ new tests covering normal accept, wrong principal/tenant/target/toolspec/action, reused lease, parallel consume, expired grant, changed policy, wrong report subject, conflicting reports, and crash/retry. Tests must intentionally mutate preconditions and prove the oracle detects them. A formal theorem counts as **MODEL_PROVEN** only; Python-to-model correspondence stays **TESTED_REFINEMENT**, not code equivalence.
+Implement Python executable state model `tests/formal/model_oracle.py` and `tests/formal/test_refinement.py`; test trace projection against actual `ExecutionLease`, governed dispatcher, enforcement gate, federation result verifier where interfaces exist. Do not quietly mock the code under proof. Build an explicit mapping `formal/refinement-map.yaml` with one row per theorem ID, naming its source module and function, its executable test, its counterexample fixture and its limitation. Required 16+ new tests covering normal accept, wrong principal/tenant/target/toolspec/action, reused lease, parallel consume, expired grant, changed policy, wrong report subject, conflicting reports, and crash/retry. Tests must intentionally mutate preconditions and prove the oracle detects them. A formal theorem counts as **MODEL_PROVEN** only; Python-to-model correspondence stays **TESTED_REFINEMENT**, not code equivalence.
 
 ### FM-03 (P1) — Sequential assurance assumptions and bounds
 
@@ -91,12 +91,12 @@ Test counts are targets, **not presently passing results**. Hold a separate inde
 ## 7. Reference literature and exact transferability
 
 1. OpenAI, *Mathematical manuscripts and proof artifacts* (2026), https://github.com/openai/math (README, `lean/README.md`, `lean/formalization.yaml`). **Methodology/example only; not an REMORA proof**; repository warns unformalized work may contain issues.
-2. OpenAI, `lean/OAI/Combinatorics/EditApproximation/Geometry/Regret.lean`, https://github.com/openai/math/blob/main/lean/OAI/Combinatorics/EditApproximation/Geometry/Regret.lean — finite telescoping/Bellman style proof; a methodological example, not a dispatch invariant.
-3. OpenAI, `lean/OAI/Dynamics/StandardMap/EntropyLyapunov.lean`, https://github.com/openai/math/blob/main/lean/OAI/Dynamics/StandardMap/EntropyLyapunov.lean — Lyapunov/entropy formalization in another dynamical system; **not transferable directly**.
+2. OpenAI, `lean/OAI/Combinatorics/EditApproximation/Geometry/Regret.lean`, https://github.com/openai/math/blob/main/lean/OAI/Combinatorics/EditApproximation/Geometry/Regret.lean. A finite telescoping, Bellman-style proof; a methodological example, not a dispatch invariant.
+3. OpenAI, `lean/OAI/Dynamics/StandardMap/EntropyLyapunov.lean`, https://github.com/openai/math/blob/main/lean/OAI/Dynamics/StandardMap/EntropyLyapunov.lean. A Lyapunov and entropy formalization in another dynamical system; **not transferable directly**.
 4. de Moura, Kong, Avigad, van Doorn & von Raumer (2015), *The Lean Theorem Prover (System Description)*, https://doi.org/10.1007/978-3-319-21401-6_26.
 5. Howard, Ramdas, McAuliffe & Sekhon (2021), *Time-uniform, nonparametric, nonasymptotic confidence sequences*, Annals of Statistics, https://doi.org/10.1214/20-AOS1991.
 6. Ramdas, Grünwald, Vovk & Shafer (2023), *Game-Theoretic Statistics and Safe Anytime-Valid Inference*, Statistical Science, https://doi.org/10.1214/23-STS894.
-7. Lamport (2002), *Specifying Systems: The TLA+ Language and Tools for Hardware and Software Engineers*, https://lamport.azurewebsites.net/tla/book.html — alternative finite-state/temporal specification approach, not a Lean replacement.
+7. Lamport (2002), *Specifying Systems: The TLA+ Language and Tools for Hardware and Software Engineers*, https://lamport.azurewebsites.net/tla/book.html. An alternative finite-state and temporal specification approach, not a Lean replacement.
 8. REMORA internal: `docs/assurance/rebenchmark_protocol_v1.md`, `docs/interop/FEDERATION_BRIDGE.md`, `NEGATIVE_RESULTS.md`, `docs/research/research_control_matrix_v1.yaml`.
 
 ## 8. Release plan / done definition
@@ -108,8 +108,8 @@ Wave 0 (this patch): SDD, planned-roadmap cross-reference, documentation consist
 **Counterexample first.** Wave 1 starts with a finite-state model that can
 find faults (TLA+ checked with TLC or Apalache, Lamport 2002), not with a
 Lean proof built to succeed. The model is validated against a fault already
-known: federation-port contract probe CP-F1 (a late provider confirmation
-lost when another worker took over an expired lease) must appear as a
+known, federation-port contract probe CP-F1: a late provider confirmation
+lost when another worker took over an expired lease. CP-F1 must appear as a
 counterexample of the model at the pinned revision, and must disappear in the
 model of the patched runtime. A model that cannot find a known fault is not
 evidence that an unknown one is absent. REMORA's own outbox carried the same
