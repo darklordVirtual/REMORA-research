@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-10-08: **20 `open`**, **27 `accepted`**, **31 `superseded`**.
+Counts as of 2026-10-08: **21 `open`**, **27 `accepted`**, **31 `superseded`**.
 
 ## The actual backlog
 
@@ -122,6 +122,10 @@ cites only `open` sections and that no `open` section is missing a theme.
    corpus let 34 of 107 single-edit faults through; 31 held-out tests and a
    mutation gate in CI close that. The repairs, the tests and the gate are
    the producer's own; no outside reader has run either component.
+14. **A dispatch outcome reported after the stale sweep** (§79): the worker's
+   outcome is now kept beside the `UNKNOWN` the sweep wrote, instead of
+   raising and being lost. The race is injected in tests, not observed under
+   a real slow tool or a skewed sweeper clock.
 
 <!-- backlog-end -->
 
