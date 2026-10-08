@@ -37,6 +37,23 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Interoperability
 
+- Contract probes for federation-port/v0
+  (`integrations/federation-port/contract-probes`). `contract-coverage.json`
+  maps 32 rules of federation-port's `spec/CONTRACT.md` to the upstream,
+  REMORA and probe tests that exercise them, and records how the SDD testplan
+  FED-01 to FED-10 overlapped the existing suite. 26 probes test the
+  unmodified runtime on the rules no test reached (load refusals, secret
+  scoping, frozen check input, duplicate claims, every malformed
+  `valid_until` form, which deadline binds admission, concurrent retries
+  under the dispatch lease, retry refusal order, provenance content). Three
+  record findings at `92d5078`: a late provider confirmation is lost from
+  the operation state under clock skew (CP-F1), the deadline does not bound
+  the first provider contact (CP-F2), and adapter reason text enters
+  provenance unbounded (CP-F3). REMORA-side tests add a retry with re-signed
+  evidence, the recorded deadline and evidence digest, and the effect read
+  apart from the transport state. `reproduce.sh` now reports 182 of 182
+  (44 upstream, 50 and 60 REMORA components, 28 contract probes).
+
 - Mutation check for the federation-port components:
   `integrations/federation-port/mutation_check.py` applies single-edit faults
   to each `adapter.ts`, reseals and re-signs the fixtures, runs the component's

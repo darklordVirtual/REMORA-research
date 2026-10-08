@@ -258,6 +258,31 @@ def test_only_remora_effect_evidence_establishes_the_effect() -> None:
         transport_outcome("settled")
 
 
+def test_the_effect_is_read_apart_from_the_transport_state() -> None:
+    """SDD FED-10. The transport's operation state can be wrong about the effect: contract probe
+    CP-F1 shows federation-port closing an operation as ``failed`` while the provider performed the
+    refund. Only REMORA's observation of the system of record decides the effect, in both
+    directions, and not seeing the object is not a verdict."""
+    from remora.governance.effect_verification import (
+        PostconditionContract,
+        verify_declared_delta,
+    )
+
+    contract = PostconditionContract(tool_id="refund", reader="r", target_selector={},
+                                     expected_fields={"status": "refunded"})
+
+    def observe(observed: dict[str, str] | None):
+        return verify_declared_delta(contract, observed, proposal_id="p", execution_id="e",
+                                     toolspec_hash="h", verifier_identity="v")
+
+    failed_but_done = transport_outcome("failed", observe({"status": "refunded"}))
+    assert failed_but_done == {"transport_outcome": "failed", "execution": "EXECUTION_FAILED",
+                               "effect": "EFFECT_VERIFIED"}
+    assert transport_outcome("provider_confirmed", observe({"status": "open"}))["effect"] == "EFFECT_MISMATCH"
+    # Not yet visible to the reader: unknown, never mismatch and never verified.
+    assert transport_outcome("provider_confirmed", observe(None))["effect"] == "NOT_ESTABLISHED"
+
+
 # -- artifacts ----------------------------------------------------------------------------------
 
 def test_fixtures_and_adapter_seal_match_the_code() -> None:

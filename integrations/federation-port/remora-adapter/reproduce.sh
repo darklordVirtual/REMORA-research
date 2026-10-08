@@ -6,8 +6,10 @@
 # way the other outside adapters on aeoess/agent-governance-vocabulary#177 report it: both
 # components (authorization evidence, and report result in ../remora-report-result) are installed
 # into federation-port's own tree and sealed with its scripts/seal.ts, and the upstream suite and
-# their tests run together. REMORA's own acceptance suites (fixtures,
-# Federation Bridge, report-specific selection) run separately and are reported separately.
+# their tests run together. The contract probes (../contract-probes) run in the same tree: they
+# test the runtime against spec/CONTRACT.md, not a REMORA component. REMORA's own acceptance
+# suites (fixtures, Federation Bridge, report-specific selection) run separately and are
+# reported separately.
 #
 #   integrations/federation-port/remora-adapter/reproduce.sh [--skip-python] [--skip-mutation]
 #
@@ -24,6 +26,7 @@ COMPONENT=remora-research-authorization
 REPORT_COMPONENT=remora-research-report-result
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REPORT_HERE="$(cd "$HERE/../remora-report-result" && pwd)"
+PROBES_HERE="$(cd "$HERE/../contract-probes" && pwd)"
 REPO="$(cd "$HERE/../../.." && pwd)"
 OUT="${REMORA_REPRODUCE_OUT:-$PWD/remora-federation-port-reproduction.json}"
 PYTHON="${PYTHON:-python3}"
@@ -58,9 +61,11 @@ mkdir -p "$DEST" "$REPORT_DEST" "$INTEROP"
 cp "$HERE/adapter.ts" "$HERE/manifest.json" "$DEST/"
 cp "$REPORT_HERE/adapter.ts" "$REPORT_HERE/manifest.json" "$REPORT_DEST/"
 cp "$HERE/tests/remora-adapter.test.ts" "$REPORT_HERE/tests/remora-report-result.test.ts" "$FP/test/"
+cp "$PROBES_HERE/contract-probes.test.ts" "$FP/test/remora-contract-probes.test.ts"
 cp "$REPO/artifacts/interop/federation-port-v0/fixtures.json" \
    "$REPO/artifacts/interop/federation-port-v0/report-results.json" \
-   "$REPO/artifacts/interop/federation-port-v0/projection-map.yaml" "$INTEROP/"
+   "$REPO/artifacts/interop/federation-port-v0/projection-map.yaml" \
+   "$REPO/artifacts/interop/federation-port-v0/contract-coverage.json" "$INTEROP/"
 (cd "$FP" && npm ci --silent)
 
 step "seal with federation-port's scripts/seal.ts; the pinned digests must not move"
@@ -93,13 +98,15 @@ step "federation-port suite with the REMORA components: test/*.test.ts"
 ALL_OK=true; tap "$W/all.tap" 'test/*.test.ts' || { ALL_OK=false; STATUS=1; }
 tail -9 "$W/all.tap"
 UPSTREAM_FILES="$(cd "$FP" && ls test/*.test.ts | grep -v -e '^test/remora-adapter.test.ts$' \
-  -e '^test/remora-report-result.test.ts$')"
+  -e '^test/remora-report-result.test.ts$' -e '^test/remora-contract-probes.test.ts$')"
 step "upstream tests alone"
 UP_OK=true; tap "$W/upstream.tap" $UPSTREAM_FILES || { UP_OK=false; STATUS=1; }
 step "REMORA adapter tests alone"
 RA_OK=true; tap "$W/remora.tap" test/remora-adapter.test.ts || { RA_OK=false; STATUS=1; }
 step "REMORA report-result tests alone (LATE and LATE-CONFLICT, each report evaluated separately)"
 RR_OK=true; tap "$W/report.tap" test/remora-report-result.test.ts || { RR_OK=false; STATUS=1; }
+step "REMORA contract probes alone (the runtime against spec/CONTRACT.md; CP-F* pin findings)"
+CP_OK=true; tap "$W/probes.tap" test/remora-contract-probes.test.ts || { CP_OK=false; STATUS=1; }
 
 step "tsc against the published contract types (adapter and its tests included)"
 TSC_OK=true; (cd "$FP" && npx tsc -p tsconfig.json) || { TSC_OK=false; STATUS=1; }
@@ -132,14 +139,14 @@ node -e '
   const f = require("fs"), n = x => Number(x || 0)
   const tapCounts = p => { const t = f.readFileSync(p, "utf8"), g = k => n((t.match(new RegExp(`^# ${k} (\\d+)$`, "m")) || [])[1])
     return { tests: g("tests"), pass: g("pass"), fail: g("fail"), skipped: g("skipped"), todo: g("todo"), cancelled: g("cancelled") } }
-  const [w, pin, remora, dirty, seal, sealed, pinned, rSealed, rPinned, core, allOk, upOk, raOk, rrOk, tsc, fx, py, pyT, pyF, pyS, mut, mutOut, status] = v
+  const [w, pin, remora, dirty, seal, sealed, pinned, rSealed, rPinned, core, allOk, upOk, raOk, rrOk, cpOk, tsc, fx, py, pyT, pyF, pyS, mut, mutOut, status] = v
   const mutation = f.existsSync(mutOut) ? (() => { const m = JSON.parse(f.readFileSync(mutOut, "utf8"))
     return { state: mut, components: m.components.map(c => ({ component: c.component, mutants: c.mutants, killed: c.killed,
       crashed: c.crashed, survived: c.survived, equivalent_listed: c.equivalent_listed,
       unexplained_survivors: c.unexplained_survivors.map(s => s.id), stale_equivalents: c.stale_equivalents, controls: c.controls })) } })()
     : { state: mut, note: "run without the mutation check" }
   const all = tapCounts(w + "/all.tap"), up = tapCounts(w + "/upstream.tap"), ra = tapCounts(w + "/remora.tap")
-  const rr = tapCounts(w + "/report.tap")
+  const rr = tapCounts(w + "/report.tap"), cp = tapCounts(w + "/probes.tap")
   const result = {
     schema_version: "remora-federation-port-reproduction-v1",
     federation_port: { repository: "aeoess/federation-port", revision: pin, src_unmodified: core === "true" },
@@ -152,7 +159,10 @@ node -e '
     node: process.version,
     federation_port_suite: { command: "node --test --test-concurrency=1 test/*.test.ts", ...all, passed: allOk === "true",
                              upstream: up, remora_adapter: { ...ra, passed: raOk === "true" },
-                             remora_report_result: { ...rr, passed: rrOk === "true" } },
+                             remora_report_result: { ...rr, passed: rrOk === "true" },
+                             remora_contract_probes: { ...cp, passed: cpOk === "true",
+                               coverage: "artifacts/interop/federation-port-v0/contract-coverage.json",
+                               note: "tests of the runtime against spec/CONTRACT.md; CP-F* tests pin findings at this revision" } },
     typecheck: { command: "npx tsc -p tsconfig.json", passed: tsc === "true" },
     remora_acceptance: { fixtures_check: fx,
       suites: ["tests/test_federation_report_selection.py", "tests/test_federation_bridge.py"],
@@ -162,13 +172,13 @@ node -e '
     passed: status === "0",
   }
   f.writeFileSync(out, JSON.stringify(result, null, 2) + "\n")
-  console.log(`federation-port suite: ${all.pass}/${all.tests} (${up.pass}/${up.tests} upstream + ${ra.pass}/${ra.tests} REMORA adapter + ${rr.pass}/${rr.tests} REMORA report result), src unmodified: ${core}, seals match: ${seal}, tsc: ${tsc}`)
+  console.log(`federation-port suite: ${all.pass}/${all.tests} (${up.pass}/${up.tests} upstream + ${ra.pass}/${ra.tests} REMORA adapter + ${rr.pass}/${rr.tests} REMORA report result + ${cp.pass}/${cp.tests} contract probes), src unmodified: ${core}, seals match: ${seal}, tsc: ${tsc}`)
   console.log(`REMORA acceptance (separate): ${py}, ${n(pyT) - n(pyF) - n(pyS)}/${n(pyT)} passed, fixtures: ${fx}`)
   if (mutation.components) console.log(`mutation check: ${mut}, ` + mutation.components.map(c => `${c.component.split("/")[1]} ${c.killed}/${c.mutants} killed, ${c.survived} survived (${c.equivalent_listed} equivalent)`).join("; "))
 ' "$OUT" "$W" "$PIN" "$(git -C "$REPO" rev-parse HEAD)" \
   "$([ -z "$(git -C "$REPO" status --porcelain -- integrations artifacts remora tests scripts)" ] && echo clean || echo dirty)" \
   "$SEAL_OK" "$SEALED_DIGEST" "$PINNED_DIGEST" "$REPORT_SEALED" "$REPORT_PINNED" "$CORE_CLEAN" \
-  "$ALL_OK" "$UP_OK" "$RA_OK" "$RR_OK" "$TSC_OK" \
+  "$ALL_OK" "$UP_OK" "$RA_OK" "$RR_OK" "$CP_OK" "$TSC_OK" \
   "$FIXTURES_STATE" "$PY_STATE" "$PY_TESTS" "$PY_FAIL" "$PY_SKIP" "$MUT_STATE" "$MUT_OUT" "$STATUS"
 echo "result: $OUT"
 exit "$STATUS"
