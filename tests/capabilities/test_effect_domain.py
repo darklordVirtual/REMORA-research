@@ -340,6 +340,101 @@ class TestRefusalPaths:
         # no mediator exists and no effect record was made.
         assert closed == {"closed": True, "durable": False, "effects": 0}
 
+    @staticmethod
+    def _keyed(fail_consume=lambda key: False, fail_read=lambda key: False):
+        class Keyed:
+            def __init__(self):
+                self.keys: set[str] = set()
+
+            def consumed(self, nonce, *, tenant_id):
+                if fail_read(nonce):
+                    raise OSError("down")
+                return nonce in self.keys
+
+            def try_consume(self, nonce, *, tenant_id):
+                if fail_consume(nonce):
+                    raise OSError("down")
+                if nonce in self.keys:
+                    return False
+                self.keys.add(nonce)
+                return True
+
+        return Keyed()
+
+    def _serve(self, ledger):
+        from remora.enforcement.effect_domain import EffectDomain
+
+        calls: list = []
+        domain = EffectDomain(ceilings=lambda t: CEILING, executors={
+            "database.read": lambda r, a: calls.append(r)},
+            execution_started=lambda _lease: True, ledger=ledger)
+        cs = _parent()
+        lease = _lease(cs)
+        answer = domain.serve(_request(lease, cs, "database.read", "database://reporting-eu/m"))
+        return answer, calls, lease
+
+    def test_a_session_opened_elsewhere_without_a_recorded_deadline_is_unverifiable(self):
+        # Another worker won the session claim and has not recorded the
+        # deadline yet, or the record is gone: not known is not open.
+        from remora.enforcement.effect_domain import EffectDomain
+
+        ledger = self._keyed()
+        cs = _parent()
+        calls: list = []
+        domain = EffectDomain(ceilings=lambda t: CEILING, executors={
+            "database.read": lambda r, a: calls.append(r)},
+            execution_started=lambda _lease: True, ledger=ledger)
+        lease = _lease(cs)
+        ledger.keys.add(f"effects-session:{lease.digest()}")
+        answer = domain.serve(_request(lease, cs, "database.read", "database://reporting-eu/m"))
+        assert answer["refusal"] == "execution_state_unverifiable" and calls == []
+
+    def test_a_deadline_recorded_between_the_two_probes_is_found(self):
+        from remora.enforcement import effect_domain as module
+
+        ledger = self._keyed()
+        cs = _parent()
+        lease = _lease(cs)
+        ledger.keys.add(f"effects-session:{lease.digest()}")
+        deadline = module._grid_floor(datetime.now(UTC) + timedelta(seconds=30))
+        key = f"effects-deadline:{lease.digest()}:{deadline}"
+        real = ledger.consumed
+        probes = {"first": True}
+
+        def consumed(nonce, *, tenant_id):
+            # The first probe misses; the winner records before the second.
+            if nonce == key and probes.pop("first", False):
+                return False
+            return real(nonce, tenant_id=tenant_id) or nonce == key
+
+        ledger.consumed = consumed
+        from remora.enforcement.effect_domain import EffectDomain
+
+        calls: list = []
+        domain = EffectDomain(ceilings=lambda t: CEILING, executors={
+            "database.read": lambda r, a: calls.append(r)},
+            execution_started=lambda _lease: True, ledger=ledger)
+        answer = domain.serve(_request(lease, cs, "database.read", "database://reporting-eu/m"))
+        assert answer["state"] == "EXECUTED" and len(calls) == 1
+
+    def test_a_ledger_that_fails_on_the_effect_slot_refuses_the_effect(self):
+        answer, calls, _ = self._serve(self._keyed(fail_consume=lambda k: k.startswith("effect:")))
+        assert answer["refusal"] == "execution_state_unverifiable" and calls == []
+
+    def test_a_ledger_that_fails_on_the_closed_check_refuses_the_effect(self):
+        reads = {"closed": 0}
+
+        def after_open(key):
+            # The open reads the marker once; the check after the slot claim fails.
+            if key.startswith("effects-closed:"):
+                reads["closed"] += 1
+                return reads["closed"] > 1
+            return False
+
+        answer, calls, _ = self._serve(self._keyed(fail_read=after_open))
+        assert reads["closed"] == 2
+        assert answer["refusal"] == "execution_state_unverifiable" and calls == []
+
     def test_close_refuses_a_malformed_or_forged_lease(self):
         w = World()
         malformed = w.domain.close({})
