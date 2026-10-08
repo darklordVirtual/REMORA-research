@@ -1779,3 +1779,16 @@ PARTIALLY_ESTABLISHED or NOT_ESTABLISHED and promotes nothing.
 experimental-unit defect that CLAIM-011's own caveat names, and it does so
 without touching the authority path. The remaining slices are evidence
 deepening, each gated on the previous one existing.
+
+
+---
+
+## RF-16 — Formal mathematical assurance, model-to-code refinement `[formal/research]` `[P1, proposed]`
+
+**Status:** PROPOSED, no Lean theorem or Python/TypeScript correctness claim shipped.
+
+**Spec:** [`docs/design/formal-mathematical-assurance-v1.md`](design/formal-mathematical-assurance-v1.md). FM-01 designs a Lean transition model; FM-02 tests correspondence to real governed dispatch and signed report selection; FM-03 audits statistical independence; FM-04 and FM-05 remain falsifiable research investigations.
+
+**Existing evidence:** `remora/lyapunov.py`, `remora/selective/confidence_sequence.py`, `remora/federation/`, associated tests and fixed result artifacts. Existing confidence sequences are offline and their independence assumption is not established for overlapping AROMER cycles.
+
+**Claim ceiling:** MODEL_PROVEN is a theorem of the abstraction, not equivalence of deployed binaries. No research-control matrix `RES-*` entry, product claim, Federation assertion or release gate may be promoted until proof bytes, implementation tests and bounded artifacts exist.
