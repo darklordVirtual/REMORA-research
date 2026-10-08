@@ -233,8 +233,9 @@ a lost response followed by an outage closes the operation as `failed` past
 the deadline while the refund exists, with one worker and no skew. The TLA+
 model `formal/tla/LeaseRetry.tla` found CP-F4 first and shows that CP-F1 is
 the same fault. The map
-gives conditions, consequence and a suggested change for each; none has been
-raised upstream yet.
+gives conditions, consequence and a suggested change for each. The changes are
+proposed upstream as aeoess/federation-port#1 and have not been reviewed by its
+maintainer.
 
 The map also records how the SDD testplan FED-01 to FED-10 overlapped the
 existing suite. Of its 40 planned cases most were already covered: FED-01,
