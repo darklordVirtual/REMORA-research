@@ -49,11 +49,11 @@ change. They are reported here and not yet raised upstream.
 
 ## How strong the probes are
 
-Each probe was checked against a fault in the runtime it is meant to catch:
-one single-edit change to `src/runtime` per probe (remove the version check,
-take the latest deadline instead of the earliest, drop the lease test, make a
-late confirmation final, and so on), run in a scratch checkout and reverted.
-Every probe failed on its fault. One fault was equivalent (a looser
+Each probe was checked against a fault in the runtime it is meant to catch.
+The fault was one single-edit change to `src/runtime` per probe, run in a
+scratch checkout and reverted. Examples: remove the version check, take the
+latest deadline instead of the earliest, drop the lease test, make a late
+confirmation final. Every probe failed on its fault. One fault was equivalent (a looser
 `valid_until` pattern is still caught by the round-trip check) and was
 replaced by one that is not. This check was run once by hand while the probes
 were written; it is not part of `reproduce.sh`.
