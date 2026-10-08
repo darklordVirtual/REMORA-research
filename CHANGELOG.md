@@ -20,6 +20,18 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Interoperability
 
+- Mutation check for the federation-port components:
+  `integrations/federation-port/mutation_check.py` applies single-edit faults
+  to each `adapter.ts`, reseals and re-signs the fixtures, runs the component's
+  tests and fails on a survivor that is not listed with a reason in that
+  component's `mutation-equivalents.json`, or on a listed entry that no longer
+  survives. `reproduce.sh` and CI run it (`--skip-mutation` leaves it out).
+  Its first run found 34 of 107 faults surviving the authorization
+  component's 17 tests, among them a correctly sized wrong signature
+  (NEGATIVE_RESULTS.md §78); 31 held-out tests close them. The run now reports
+  152 of 152 federation-port tests (44 upstream, 48 and 60 REMORA), 102 of
+  107 and 122 of 131 faults killed, every survivor listed as equivalent.
+  No adapter bytes changed.
 - `remora-research/report-result` refuses two signed results for the selected
   report that are not the same statement (`conflicting_results_for_report`).
   Before this the first of them decided the verdict, which the component's

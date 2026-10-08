@@ -1,0 +1,27 @@
+{
+  "schema_version": "remora-federation-port-mutation-equivalents-v1",
+  "component": "remora-research/authorization-evidence",
+  "note": "Faults the mutation check reports as survivors that change no observable behaviour. The id carries a hash of the original line; an edit to that line makes the entry stale and fails the gate until it is reviewed.",
+  "equivalent": [
+    {
+      "id": "or_to_and:L40:0:1d2ec116",
+      "justification": "instant(): the round-trip check (new Date(ms).toISOString() === v) implies the exact-format regex, so weakening the regex guard admits nothing; toISOString only ever produces that format."
+    },
+    {
+      "id": "guard_false:L40:0:1d2ec116",
+      "justification": "instant(): same as above; with the regex guard removed a non-string or loosely formatted value still fails the round-trip and yields undefined."
+    },
+    {
+      "id": "nullish_to_or:L52:0:cf934b78",
+      "justification": "trusted_keys ?? [] against ||: the two differ only for a falsy non-nullish config value such as 0, which is not a key list under either reading."
+    },
+    {
+      "id": "nullish_to_or:L63:0:8e8b5424",
+      "justification": "input.evidence ?? new Uint8Array() against ||: a Uint8Array is truthy even when empty, so both readings give the same buffer."
+    },
+    {
+      "id": "nullish_to_or:L70:0:2f51af22",
+      "justification": "outer.signature ?? {} against ||: for a falsy non-nullish signature ('' or false) both readings reach algorithm_unsupported, since neither has an algorithm member."
+    }
+  ]
+}

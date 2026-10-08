@@ -85,7 +85,9 @@ own results with the published test seed. They cover:
 Each held-out selection case runs the component alone first and then through the unmodified
 runtime. The first run discriminates on behaviour, not on the artifact pin. The maintainer's
 mutation check of this suite found the conflicting-results gap (`NEGATIVE_RESULTS.md` §77).
-The tests remain the producer's own.
+That check is now [`../mutation_check.py`](../mutation_check.py), run by `reproduce.sh` and CI:
+122 of 131 single-edit faults are killed and the nine survivors are listed with their reason in
+`mutation-equivalents.json`. The tests remain the producer's own.
 
 [`../remora-adapter/reproduce.sh`](../remora-adapter/reproduce.sh) installs and seals this
 component beside the authorization component and reports its tests separately. To run only

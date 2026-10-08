@@ -1,0 +1,43 @@
+{
+  "schema_version": "remora-federation-port-mutation-equivalents-v1",
+  "component": "remora-research/report-result",
+  "note": "Faults the mutation check reports as survivors that change no observable behaviour. The id carries a hash of the original line; an edit to that line makes the entry stale and fails the gate until it is reviewed.",
+  "equivalent": [
+    {
+      "id": "drop_filter_undef:L38:0:049ae0ae",
+      "justification": "canonical() drops undefined members, but this component only canonicalises values parsed from JSON bytes and records it builds without undefined members, so the filter never sees one. (The authorization component's canonical() does compare runtime objects, and there the same fault is killed.)"
+    },
+    {
+      "id": "nullish_to_or:L49:0:cf934b78",
+      "justification": "trusted_keys ?? [] against ||: differs only for a falsy non-nullish config value such as 0, which is not a key list under either reading."
+    },
+    {
+      "id": "nullish_to_or:L54:0:419308f2",
+      "justification": "native_claim ?? '' against ||: both readings produce an empty string for a falsy value, and String() of the result is checked next."
+    },
+    {
+      "id": "nullish_to_or:L65:0:d1c61187",
+      "justification": "outer.signature ?? {} against ||: for '' or false both readings reach algorithm_unsupported."
+    },
+    {
+      "id": "nullish_to_or:L76:0:a1cb7400",
+      "justification": "doc.subject ?? {} against ||: for '' or false both readings reach subject_not_report_specific, since neither has a kind."
+    },
+    {
+      "id": "nullish_to_or:L80:0:5826f303",
+      "justification": "doc.native_result ?? {} against ||: for '' or false both readings reach native_vocabulary_unsupported."
+    },
+    {
+      "id": "nullish_to_or:L86:0:17e73a70",
+      "justification": "input.evidence ?? new Uint8Array() against ||: a Uint8Array is truthy even when empty."
+    },
+    {
+      "id": "nullish_to_or:L100:0:0127887c",
+      "justification": "check.requested ?? {} against ||, used only for member reads: a falsy non-nullish value has no report_id, report_digest or operation_id under either reading. The record's own copy of the request (line 107) is pinned by a test."
+    },
+    {
+      "id": "index_last:L134:0:e3172eb6",
+      "justification": "chosen[0] against chosen[last]: the line before refuses conflicting_results_for_report unless every chosen result has the same payload digest, so all entries are the same signed statement."
+    }
+  ]
+}

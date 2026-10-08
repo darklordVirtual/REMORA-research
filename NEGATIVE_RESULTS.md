@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-10-08: **19 `open`**, **27 `accepted`**, **31 `superseded`**.
+Counts as of 2026-10-08: **20 `open`**, **27 `accepted`**, **31 `superseded`**.
 
 ## The actual backlog
 
@@ -116,10 +116,12 @@ cites only `open` sections and that no `open` section is missing a theme.
    Federation successors `effect-evidence-v1.1` and `exact-call-binding-v1.1`
    have only author runs. `E-ECB` and `E-EE` stay `TESTED` /
    `NOT_ESTABLISHED` until an external verifier runs the v1.1 corpora.
-13. **Report-result component repaired by its author, not re-run** (§77):
-   two differing signed results for one report are now refused instead of
-   the first deciding. The repair and its 40 held-out tests are the
-   producer's own; no outside reader has run the component.
+13. **federation-port components repaired and re-tested by their author,
+   not re-run** (§77, §78): two differing signed results for one report are
+   now refused instead of the first deciding. The authorization component's
+   corpus let 34 of 107 single-edit faults through; 31 held-out tests and a
+   mutation gate in CI close that. The repairs, the tests and the gate are
+   the producer's own; no outside reader has run either component.
 
 <!-- backlog-end -->
 
@@ -4621,3 +4623,51 @@ this component; the component refuses rather than resolves. The equivalent
 mutant "drop the 64-byte signature length check" also survives, because
 Ed25519 verification rejects a wrong-length signature on its own; it is
 recorded here as equivalent, not as a gap.
+
+## §78 The authorization component's corpus let 34 of 107 single-edit faults through, including a correctly sized wrong signature (2026-10-08)
+<!-- finding-status: open -->
+
+**Status:** closed by producer tests and a CI gate, open until an external
+run reaches the component.
+
+**What was measured.** `integrations/federation-port/mutation_check.py`
+applied 107 single-edit faults to `remora-adapter/adapter.ts`: comparison
+and boolean flips, guard removal, negation removal, status flips, index and
+constant shifts. For each fault it resealed the manifest, re-signed the
+fixtures and ran the component's 17 tests inside federation-port at
+`92d5078`. The inert control survived and the status-flip control was
+killed.
+
+**Result.** 73 killed, 34 survived. The survivors were not noise:
+
+- `sig.length !== 64 || !verify(...)` turned into `&&` survived. Under that
+  fault a correctly sized signature that does not verify is accepted. The
+  shipped tests mutated an evidence byte inside the outer JSON, which fails
+  parsing before the signature is reached, so no test presented a
+  well-formed envelope with a wrong 64-byte signature.
+- No test reached `evidence_missing`, `evidence_malformed`,
+  `evidence_format_unknown`, `algorithm_unsupported`, `domain_mismatch`,
+  `envelope_malformed`, `envelope_version_unknown`,
+  `canonicalization_mismatch`, `evidence_not_addressed_to_this_component` or
+  `instant_malformed`; each of those branches could be deleted or its status
+  flipped without a failure.
+- `now <= deadline` turned into `<` survived: the inclusive deadline was
+  never exercised at the boundary.
+- `(port.tenant ?? undefined)` turned into `||` survived: an empty tenant
+  label read as an absent tenant.
+- The regex guard in `instant()` can be removed or weakened without effect,
+  because the round-trip check implies it. That is an equivalent fault and is
+  listed as such, not a gap.
+
+**What changed.** 31 held-out tests in `remora-adapter/tests`, signing their
+own envelopes with the published test seed, kill 102 of the 107. The five
+survivors are listed in `mutation-equivalents.json` with the reason each
+changes no observable behaviour. The check runs in `reproduce.sh` and CI and
+fails on an unlisted survivor or a stale entry. The adapter bytes did not
+change.
+
+**Why it stays open.** The faults, the tests and the equivalence arguments are
+the producer's own. The set of fault operators is fixed and small, so "every
+fault killed" says nothing about faults outside it. An outside operator who
+runs the component, or a held-out fault set the producer has not seen, is
+what would move this.
