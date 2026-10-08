@@ -4671,3 +4671,41 @@ the producer's own. The set of fault operators is fixed and small, so "every
 fault killed" says nothing about faults outside it. An outside operator who
 runs the component, or a held-out fault set the producer has not seen, is
 what would move this.
+
+## §79 A dispatch outcome reported after the stale-dispatch sweep was lost (2026-10-08)
+<!-- finding-status: open -->
+
+**Status:** repaired with tests on all three dispatch paths, open until it has
+run under a real slow tool or a skewed sweeper.
+
+**Claim before.** The outbox crash matrix (`docs/design/execution-lifecycle-outbox-v1.md`
+§3.4) covered every point where a worker dies. `DispatchOutcome.UNKNOWN` is
+"durable but not the last word: a later authoritative observation may
+supersede it".
+
+**What was found.** No row covered a worker that does not die but reports
+late. The stale-dispatch sweep settles a `DISPATCHING` row `UNKNOWN` once its
+claim is older than `REMORA_OUTBOX_STALE_SECONDS` (default 900). A tool call
+that runs longer, or a sweeper whose clock runs ahead of the worker's, gets
+there first. The worker's own `settle` then raised `ValueError` (terminals are
+absorbing), so the request failed with a 500, the item never took the outcome
+and no `execution_result` was written. The only record of an effect the
+worker had observed was `dispatch_unknown`. The analysis started from
+federation-port contract probe CP-F1, where the same race closes an operation
+as `failed` while the provider's refund exists. REMORA's version is milder,
+since the row says `UNKNOWN` and not `FAILED`, but it discarded the answer the
+`UNKNOWN` was waiting for.
+
+**What changed.** `remora/execution/service.py` settles through
+`_settle_reported`: when the row is already terminal, the terminal stands and
+the worker's outcome is written as the `execution_result`, carrying
+`outbox_terminal_state` and `reported_after_terminal`, and the item takes the
+outcome. Row 7 of the crash matrix records this. Tests inject the race on the
+review path, the async worker and the direct-ACCEPT path; each fails on the
+previous code.
+
+**Why it stays open.** The race is injected by running the sweep inside the
+dispatch call, not by a slow tool in a deployment. Whether a late outcome
+should also resolve the outbox row, rather than sit beside it, is the
+maintainer decision of 2026-08-05 (resolution is a new record), which this
+keeps.
