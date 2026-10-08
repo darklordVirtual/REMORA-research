@@ -360,3 +360,39 @@ def test_the_synchronous_default_is_unchanged(client, monkeypatch) -> None:
     assert body["tool_execution"]["executed"] is True
     row = _exec_mod()._outbox().rows_for_proposal("acme", body["proposal_id"])[0]
     assert row.is_terminal
+
+
+def test_a_worker_outcome_after_reconciliation_is_recorded_not_lost(
+    client, monkeypatch
+) -> None:
+    """The worker path of fault-injection row 7: the sweep settles the claim
+    UNKNOWN while the worker is inside the tool call. The UNKNOWN stands
+    (terminals are absorbing); the worker's outcome lands as the
+    execution_result beside it, marked as reported after the terminal,
+    instead of the worker raising and the outcome being lost."""
+    from datetime import UTC, datetime, timedelta
+
+    proposal_id, _row = _authorized_pending(client)
+    exec_mod = _exec_mod()
+    original = exec_mod._dispatch_under_lease
+
+    def slow_dispatch(**kwargs):
+        exec_mod.reconcile_stale_dispatches(
+            "acme", now=datetime.now(UTC) + timedelta(hours=1))
+        return original(**kwargs)
+
+    monkeypatch.setattr(exec_mod, "_dispatch_under_lease", slow_dispatch)
+    results = exec_mod.dispatch_pending_intents("acme", worker_id="w-1")
+    assert len(results) == 1
+    assert results[0]["tool_execution"]["executed"] is True
+
+    row = exec_mod._outbox().rows_for_proposal("acme", proposal_id)[0]
+    assert row.state is OutboxState.UNKNOWN
+    events = [e.payload for e in exec_mod._CHAIN.entries("acme")]
+    assert [e["event"] for e in events
+            if e.get("event") in ("dispatch_unknown", "execution_result")] == [
+        "dispatch_unknown", "execution_result"]
+    result = next(e for e in events if e.get("event") == "execution_result")
+    assert result["tool_executed"] is True
+    assert result["outbox_terminal_state"] == "UNKNOWN"
+    assert result["reported_after_terminal"] is True

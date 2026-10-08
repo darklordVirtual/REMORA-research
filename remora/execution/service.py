@@ -104,6 +104,43 @@ def _claim_or_none(
     return outbox_factory().claim(intent.outbox_id, worker_id=worker_id) is not None
 
 
+def _settle_reported(
+    outbox_factory: Callable[[], Any],
+    outbox_id: str,
+    state: Any,
+    *,
+    detail: str | None,
+    projection_json: str | None,
+) -> tuple[Any, bool]:
+    """Settle the claimed row, or keep the terminal someone else already wrote.
+
+    Returns the row and whether it was already terminal when this worker
+    reported. That happens when the stale-dispatch sweep settles a claim as
+    UNKNOWN while the worker is still inside the tool call: a tool slower
+    than ``REMORA_OUTBOX_STALE_SECONDS``, or a sweeper whose clock runs
+    ahead. Terminals are absorbing, so the UNKNOWN stands. The worker's
+    outcome is still the authoritative observation the UNKNOWN is waiting
+    for (``DispatchOutcome.UNKNOWN``: "a later authoritative observation may
+    supersede it"), so the caller records it as a new record instead of
+    failing the request and losing it. Any other refusal is re-raised.
+    """
+    try:
+        return outbox_factory().settle(
+            outbox_id, state, detail=detail,
+            projection_json=projection_json), False
+    except ValueError:
+        row = outbox_factory().get(outbox_id)
+        if not row.is_terminal:
+            raise
+        return row, True
+
+
+def _mark_reported_after_terminal(record: dict[str, Any], row: Any) -> None:
+    """Say on the result record that the outbox row was settled before it."""
+    record["outbox_terminal_state"] = row.state.value
+    record["reported_after_terminal"] = True
+
+
 def _claim_lost_response(
     response: dict[str, Any],
     *,
@@ -700,12 +737,13 @@ def execute_approved_item(
     # raised. A dispatch that began and then failed is UNKNOWN until something
     # proves otherwise (NEGATIVE_RESULTS section 48).
     outcome = classify_outcome(tool_execution)
+    settled_before: Any = None
     if intent is not None:
         reason = tool_execution.get("refusal_reason")
         # Issue #416: the projection payload commits WITH the terminal
         # state, so a crash after this line strands nothing unrecoverable.
-        outbox().settle(
-            intent.outbox_id, _OUTBOX_STATE[outcome], detail=reason,
+        settled_row, already = _settle_reported(
+            outbox, intent.outbox_id, _OUTBOX_STATE[outcome], detail=reason,
             projection_json=_projection_payload(
                 proposal_id=proposal_id, item_id=item_id, actor=principal,
                 tool_call_hash=fresh_obs.tool_call_hash or "",
@@ -713,6 +751,8 @@ def execute_approved_item(
                 tool_execution=tool_execution,
                 intent_sequence_no=intent_entry.sequence_no,
             ))
+        if already:
+            settled_before = settled_row
 
     # Persist the REAL outcome as the item's terminal state.
     with transaction(tenant) as q:
@@ -752,6 +792,8 @@ def execute_approved_item(
     if tool_execution.get("refusal_reason"):
         result_record["tool_refusal_reason"] = tool_execution["refusal_reason"]
     result_record.update(_nested_effects_fields(tool_execution))
+    if settled_before is not None:
+        _mark_reported_after_terminal(result_record, settled_before)
     # Idempotent by outbox id (issue #416): the in-line write claims the
     # same key the projector would replay under, so the record can land at
     # most once regardless of who finishes it.
@@ -1226,8 +1268,8 @@ def dispatch_pending_intent(
 
     outcome = classify_outcome(tool_execution)
     # Issue #416: projection payload commits WITH the terminal state.
-    outbox().settle(
-        row.outbox_id, _OUTBOX_STATE[outcome],
+    settled_row, already = _settle_reported(
+        outbox, row.outbox_id, _OUTBOX_STATE[outcome],
         detail=tool_execution.get("refusal_reason"),
         projection_json=_projection_payload(
             proposal_id=proposal_id, item_id=row.item_id, actor=actor,
@@ -1267,6 +1309,8 @@ def dispatch_pending_intent(
     if tool_execution.get("refusal_reason"):
         result_record["tool_refusal_reason"] = tool_execution["refusal_reason"]
     result_record.update(_nested_effects_fields(tool_execution))
+    if already:
+        _mark_reported_after_terminal(result_record, settled_row)
     # Idempotent by outbox id (issue #416): the same key the projector
     # replays under, so the record lands at most once.
     entry = chain.append_once(
@@ -1577,14 +1621,15 @@ def redeem_accept_token(
     # Same structural classification as the review path: a dispatch that began
     # and then failed is UNKNOWN, not a durable claim that nothing happened.
     outcome = classify_outcome(tool_execution)
+    settled_before: Any = None
     if intent is not None:
         reason = tool_execution.get("refusal_reason")
         # Issue #416: projection payload commits WITH the terminal state.
         # No review item exists on the direct-ACCEPT path; the payload's
         # item_id is the accept marker and the projector's queue replay
         # converges as a no-op for it.
-        outbox().settle(
-            intent.outbox_id, _OUTBOX_STATE[outcome], detail=reason,
+        settled_row, already = _settle_reported(
+            outbox, intent.outbox_id, _OUTBOX_STATE[outcome], detail=reason,
             projection_json=_projection_payload(
                 proposal_id=proposal_id, item_id=f"accept:{token.jti}",
                 actor=principal, tool_call_hash=obs.tool_call_hash or "",
@@ -1592,6 +1637,8 @@ def redeem_accept_token(
                 tool_execution=tool_execution,
                 intent_sequence_no=intent_entry.sequence_no,
             ))
+        if already:
+            settled_before = settled_row
 
     result_record: dict[str, Any] = {
         "event": "execution_result",
@@ -1615,6 +1662,8 @@ def redeem_accept_token(
     if tool_execution.get("refusal_reason"):
         result_record["tool_refusal_reason"] = tool_execution["refusal_reason"]
     result_record.update(_nested_effects_fields(tool_execution))
+    if settled_before is not None:
+        _mark_reported_after_terminal(result_record, settled_before)
     # Idempotent by outbox id (issue #416): the in-line write claims the
     # same key the projector would replay under, so the record can land at
     # most once regardless of who finishes it.

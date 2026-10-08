@@ -219,3 +219,49 @@ def test_row5_terminal_row_is_authoritative_and_reconcile_is_idempotent(
             "acme", now=datetime.now(UTC) + timedelta(days=1)
         ) == []
     assert exec_mod._outbox().get(rows[0].outbox_id).state is before
+
+
+# ── Row 7: the worker reports after the reconciler already settled UNKNOWN ──
+
+def test_row7_outcome_reported_after_reconciliation_is_recorded_not_lost(
+    client, monkeypatch
+) -> None:
+    """A worker that outlives the staleness window (a slow tool, or a sweeper
+    whose clock runs ahead) finds its row already settled UNKNOWN when it
+    reports. Terminals are absorbing, so the row stays UNKNOWN; but the
+    worker holds the authoritative outcome, and dropping it would leave the
+    chain saying only "undeterminable" about an effect that is known. The
+    late outcome is recorded as a new record beside the UNKNOWN, the item
+    takes it, and the request does not fail. federation-port has the same
+    pattern (contract probe CP-F1)."""
+    item_id = _approved_item(client)
+    exec_mod = _mod()
+    original = exec_mod._dispatch_under_lease
+
+    def slow_dispatch(**kwargs):
+        # While this call runs, a sweep sees the claim as stale.
+        settled = exec_mod.reconcile_stale_dispatches(
+            "acme", now=datetime.now(UTC) + timedelta(hours=1))
+        assert [r.state for r in settled] == [OutboxState.UNKNOWN]
+        return original(**kwargs)
+
+    monkeypatch.setattr(exec_mod, "_dispatch_under_lease", slow_dispatch)
+    r = client.post("/v1/execution/execute",
+                    json={"item_id": item_id, "tool_call": CALL})
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["tool_execution"]["executed"] is True
+
+    rows = exec_mod._outbox().rows_for_proposal("acme", body["proposal_id"])
+    assert [row.state for row in rows] == [OutboxState.UNKNOWN], (
+        "the reconciled terminal is never rewritten")
+    events = [e.payload for e in exec_mod._CHAIN.entries("acme")]
+    assert [e["event"] for e in events if e.get("event") in
+            ("dispatch_unknown", "execution_result")] == [
+        "dispatch_unknown", "execution_result"]
+    result = next(e for e in events if e.get("event") == "execution_result")
+    assert result["tool_executed"] is True
+    assert result["outbox_terminal_state"] == "UNKNOWN"
+    assert result["reported_after_terminal"] is True
+    assert _item_status(item_id) is not ItemStatus.AUTHORIZED, (
+        "the item must not stay AUTHORIZED forever")

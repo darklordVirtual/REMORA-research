@@ -217,3 +217,32 @@ def test_the_authorization_context_binds_environment_bundle_and_spec(
     assert context.policy_bundle_hash
     assert len(context.toolspec_hash) == 64
     assert context.toolspec_hash != semantic["tool_contract_bundle_hash"]
+
+
+def test_an_outcome_after_reconciliation_is_recorded_not_lost(
+    client, monkeypatch
+) -> None:
+    """The direct-ACCEPT path of fault-injection row 7: the sweep settles the
+    claim UNKNOWN while the tool call runs. The UNKNOWN stands; the outcome
+    lands as the execution_result beside it instead of a 500."""
+    exec_mod = _mod()
+    original = exec_mod._dispatch_under_lease
+
+    def slow_dispatch(**kwargs):
+        exec_mod.reconcile_stale_dispatches(
+            "acme", now=datetime.now(UTC) + timedelta(hours=1))
+        return original(**kwargs)
+
+    monkeypatch.setattr(exec_mod, "_dispatch_under_lease", slow_dispatch)
+    token, _ = _mint(client, proposal_id="p-accept-late")
+    response = _redeem(client, token)
+    assert response.status_code == 200, response.text
+    assert response.json()["tool_execution"]["executed"] is True
+
+    events = [e.payload for e in exec_mod._CHAIN.entries("acme")]
+    assert [e["event"] for e in events
+            if e.get("event") in ("dispatch_unknown", "execution_result")] == [
+        "dispatch_unknown", "execution_result"]
+    result = next(e for e in events if e.get("event") == "execution_result")
+    assert result["outbox_terminal_state"] == "UNKNOWN"
+    assert result["reported_after_terminal"] is True

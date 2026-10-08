@@ -709,8 +709,9 @@ capabilities:
   - id: CAP-018
     name: "Task-bound authority and non-decaying loop safety on the execution API"
     status: WIRED_API_PATH
-    verified_at_sha: 8c1314b05c1ec80a59cc26c94840d43ee13013b4
+    verified_at_sha: d45b1dd40163c0a953eef57f90ab4347a9baf1d2
     verified_by: >-
+      re-audited 2026-10-08 at d45b1dd (LATE-OUTCOME), from 8c1314b: remora/execution/service.py changed only in outbox settlement: a worker that reports after the stale sweep settled its row UNKNOWN keeps the terminal and writes its outcome as the execution_result (_settle_reported), instead of raising. Task identity, capability sets and loop safety are untouched. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 8c1314b (FORWARDING-AUTHORITY), from 5e0ce36: forwarding authority builds no tool dispatcher. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 5e0ce36 (CR-008), from 1f09d1d: effect verification vantage and scope. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 1f09d1d (CR-005), from f957c08: ToolSpec v3 effect policy, effect_mediation binding, three-domain scaffold. The capability's mechanism is unchanged; status, scope and caveats unchanged.
@@ -918,8 +919,9 @@ capabilities:
   - id: CAP-023
     name: "Capability minimization: task-scoped capability sets enforced at assess, execution and dispatch"
     status: WIRED_API_PATH
-    verified_at_sha: 20ae2ad8de2698f64a94142fe026df562bfcf126
+    verified_at_sha: d45b1dd40163c0a953eef57f90ab4347a9baf1d2
     verified_by: >-
+      re-audited 2026-10-08 at d45b1dd (LATE-OUTCOME), from 20ae2ad: remora/execution/service.py changed only in outbox settlement: a worker that reports after the stale sweep settled its row UNKNOWN keeps the terminal and writes its outcome as the execution_result (_settle_reported), instead of raising. Task identity, capability sets and loop safety are untouched. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 20ae2ad (HOSTILE-REVIEW), from 8c1314b: strict durable nonce refusal, lease-key revocation, argument nesting bound. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 8c1314b (FORWARDING-AUTHORITY), from 5e0ce36: forwarding authority builds no tool dispatcher. The capability's mechanism is unchanged; status, scope and caveats unchanged.
       re-audited 2026-10-07 at 5e0ce36 (CR-008), from c372d62: effect verification vantage and scope. The capability's mechanism is unchanged; status, scope and caveats unchanged.
