@@ -19,7 +19,7 @@ RF-11 was added on 2026-08-10 (master, SHELF-024 VERIFIED_RETRIEVED). The
 "Already in the repo" subsections record what the draft's gap statements had to
 be corrected against.
 
-**Namespace note.** WP identifiers are RF-01…RF-14 (research frontier). The
+**Namespace note.** WP identifiers are RF-01…RF-16 (research frontier); RF-15 is left unassigned, because the frontier-scan brief used that label for its own list. The
 `REM-` prefix is deliberately not used: it is the namespace of
 `docs/assurance/remediation_register.yaml` (REM-001…REM-047, machine-consumed
 by release-profile gating), and roadmap WPs are not remediation items. Where a
