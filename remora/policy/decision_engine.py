@@ -1060,6 +1060,16 @@ class RemoraDecisionEngine:
                  or obs.expected_effect_matches is None)
         ):
             reasons.append(DecisionReason.SEMANTIC_AUTHORITY_UNKNOWN_VERIFY)
+            # The §23 contract the conditional gates and the schema floor
+            # already honour: a VERIFY whose gap nobody can close is a false
+            # promise. Without this the floor sent a call with an
+            # unobtainable required argument to review instead of ABSTAIN
+            # (NEGATIVE_RESULTS.md §39, unobtainable ABSTAIN 63.3 %). Both
+            # outcomes block; this is about what the block promises.
+            if _unresolvable_gap(obs):
+                reasons.append(DecisionReason.NO_RESOLVER_AVAILABLE)
+                return self._build(DecisionAction.ABSTAIN, reasons, obs,
+                                   credal=_credal, raw_obs=_raw_obs)
             return self._build(DecisionAction.VERIFY, reasons, obs,
                                credal=_credal, raw_obs=_raw_obs)
 
@@ -1363,7 +1373,7 @@ class RemoraDecisionEngine:
         r("schema_unverified_floor",
           _schema_unverified_mutating,
           f"schema_valid={obs.schema_valid}, action_type={obs.action_type!r}",
-          "VERIFY")
+          "ABSTAIN" if _unresolvable_gap(obs) else "VERIFY")
 
         _explain_action_norm = (obs.action_type or "").strip().lower()
         _is_explain_unclassified_actuation = (
@@ -1399,7 +1409,7 @@ class RemoraDecisionEngine:
                     or obs.expected_effect_matches is None)),
           f"tool_matches_goal={obs.tool_matches_goal}, "
           f"expected_effect_matches={obs.expected_effect_matches}",
-          "VERIFY")
+          "ABSTAIN" if _unresolvable_gap(obs) else "VERIFY")
 
 
         if (
