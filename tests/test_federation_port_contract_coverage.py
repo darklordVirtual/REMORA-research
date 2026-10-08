@@ -101,18 +101,23 @@ def test_findings_name_real_clauses_and_are_not_claimed_upstream() -> None:
         assert set(f["clauses"]) <= clause_ids, f["id"]
         for field in ("observed", "conditions", "consequence", "suggested_change"):
             assert f[field].strip(), (f["id"], field)
-        # Reported, and at most proposed upstream: nothing here says federation-port accepted it.
+        # A finding is reported, proposed upstream, or fixed upstream at a named merge revision.
         assert f["status"] in ("reported_not_upstreamed", "patch_proposed_upstream",
-                               "wording_proposed_upstream"), f["id"]
+                               "wording_proposed_upstream", "fixed_upstream"), f["id"]
         if f["status"] != "reported_not_upstreamed":
             assert f.get("upstream") == "aeoess/federation-port#1", f["id"]
+        if f["status"] == "fixed_upstream":
+            # Fixed only at the revision the probes now pin, and the observation keeps its own revision.
+            assert f["fixed_in"] == cov["transport_revision"], f["id"]
+            assert re.fullmatch(r"aeoess/federation-port@[0-9a-f]{40}", f["observed_at"]), f["id"]
+            assert f["observed_at"] != f["fixed_in"], f["id"]
 
 
 def test_the_probe_readme_counts_match_the_map() -> None:
     cov = _load()
     readme = (ROOT / "integrations/federation-port/contract-probes/README.md").read_text(encoding="utf-8")
     counts = {s: sum(c["status"] == s for c in cov["clauses"]) for s in cov["statuses"]}
-    rows = {"covered": "covered before the map", "partly_covered": "partly covered, probes added",
+    rows = {"covered": "covered by upstream or REMORA tests", "partly_covered": "partly covered, probes added",
             "probed": "probed, nothing covered it before", "stated_limit": "stated limit (section 10 says it itself)"}
     for status, label in rows.items():
         assert f"| {label} | {counts[status]} |" in readme, status

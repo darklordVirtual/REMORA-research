@@ -99,7 +99,8 @@ REMORA.
 installs it into federation-port's own tree at the pinned revision, seals it
 with federation-port's `scripts/seal.ts`, checks that `src/` is unmodified and
 runs federation-port's suite with it and with the report-result component
-below. It reports 183 of 183 at `92d5078`: 44 upstream, 50 for this
+below. It reports 193 of 193 at `3a2f6ce`, the merge of
+aeoess/federation-port#1: 54 upstream, 50 for this
 component, 60 for the report-result component and 29 contract probes
 (below). Of the component tests, 71 are held-out cases written after the
 components shipped. It then runs
@@ -222,21 +223,21 @@ checked once against a single-edit fault in `src/runtime` that breaks its
 rule, and each failed on it. The probes test the runtime, not a REMORA
 component, so other adapters on #177 can run them as they are.
 
-Four probes record findings at `92d5078` rather than a rule that holds.
-CP-F1: a provider confirmation from an attempt whose lease another worker
-took over is not recorded on the operation, which can then close as `failed`
-while the refund exists (it needs clock skew between workers). CP-F2: an
-attempt that ends `unknown` before sending is retried after `valid_until`,
-so the deadline bounds admission and not the first provider contact. CP-F3:
-an adapter's reason text reaches provenance verbatim and unbounded. CP-F4:
-a lost response followed by an outage closes the operation as `failed` past
-the deadline while the refund exists, with one worker and no skew. The TLA+
-model `formal/tla/LeaseRetry.tla` found CP-F4 first and shows that CP-F1 is
-the same fault. The map
-gives conditions, consequence and a suggested change for each. The changes are
-proposed upstream as aeoess/federation-port#1. Its maintainer reproduced CP-F4 and
-asked that the deadline become an authorization expiry, which the patch now does;
-it is not merged yet.
+Four probes recorded findings at `92d5078`. CP-F1: a provider confirmation
+from an attempt whose lease another worker took over was not recorded on the
+operation, which could then close as `failed` while the refund existed (it
+needed clock skew between workers). CP-F2: an attempt that ended `unknown`
+before sending was retried after `valid_until`, so the deadline bounded
+admission and not the first provider contact. CP-F3: an adapter's reason text
+reached provenance verbatim and unbounded. CP-F4: a lost response followed by
+an outage closed the operation as `failed` past the deadline while the refund
+existed, with one worker and no skew. The TLA+ model
+`formal/tla/LeaseRetry.tla` found CP-F4 first and showed that CP-F1 is the
+same fault. The fix, aeoess/federation-port#1, was reproduced and reviewed by
+its maintainer and merged on 2026-10-08 as `3a2f6ce`. After review it also made
+the deadline an authorization expiry. The four probes now assert the corrected
+behaviour at the new pin. Read-only reconciliation of an operation still
+`unknown` after the deadline is open upstream as aeoess/federation-port#2.
 
 The map also records how the SDD testplan FED-01 to FED-10 overlapped the
 existing suite. Of its 40 planned cases most were already covered: FED-01,

@@ -21,7 +21,7 @@
 # ./remora-federation-port-reproduction.json) and exits non-zero on any failure.
 set -euo pipefail
 
-PIN=92d5078af3bbd3610ce4901378e913d5f370a68b
+PIN=3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333
 COMPONENT=remora-research-authorization
 REPORT_COMPONENT=remora-research-report-result
 HERE="$(cd "$(dirname "$0")" && pwd)"

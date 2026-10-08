@@ -14,9 +14,10 @@
 //
 // Two kinds of test:
 //   CP-<section><letter>  a clause holds. A failure is a contract violation at the pinned revision.
-//   CP-F<n>               a FINDING: the observed behaviour at the pinned revision, asserted as it is,
-//                         with the clause it bears on. When upstream changes it, the test fails and
-//                         the finding is re-examined; it is never silently kept.
+//   CP-F<n>               a finding these probes made at 92d5078 and that aeoess/federation-port#1
+//                         fixed (merged as 3a2f6ce). Each now asserts the fixed behaviour, so a
+//                         regression upstream fails it. What each found at 92d5078 stays recorded
+//                         in contract-coverage.json.
 //
 // Probe components are generated into temporary directories at run time, sealed with the
 // runtime's own artifactDigest, so nothing under federation-port's tree is changed.
@@ -448,12 +449,10 @@ test('CP-09a provenance holds no action arguments, evidence bytes or secrets of 
   } finally { await env.close() }
 })
 
-// ---- findings: observed behaviour at the pinned revision ------------------------------------------
+// ---- findings, now regression probes: fixed upstream in aeoess/federation-port#1 -------------
 
-test('CP-F1 FINDING (section 7): a provider confirmation that arrives after its lease expired is not recorded as the operation state; the operation can close as failed while the effect exists', async () => {
-  // Needs a second worker that sees attempt 1's lease as expired while attempt 1 still runs. Within
-  // one process the execute timeout (1000 ms) ends attempt 1 before its lease (timeout + 1000 ms),
-  // so this takes clock skew between workers, which section 10 lists as not handled.
+test('CP-F1 FIXED (section 7): a confirmation from an attempt whose lease another worker took over is final; the operation is confirmed, not failed', async () => {
+  // At 92d5078 the operation stayed failed and closed past the deadline while the refund existed.
   const env = await setup()
   try {
     const T0 = new Date(Date.now() - 1000)
@@ -468,32 +467,26 @@ test('CP-F1 FINDING (section 7): a provider confirmation that arrives after its 
     ca.adapter.execute = async (op: any) => { entered(); await gate; return originalA(op) }
     const fromA = env.rt.submit(req)
     await inside
-    // Worker B, 2.5 s ahead, finds the lease expired. It is cut off from the provider, so its
-    // honest outcome is failed and retriable: its own request never arrived.
+    // Worker B, 2.5 s ahead, finds the lease expired and is cut off from the provider.
     const rtB = await Runtime.create({ policy: env.policy, dbPath: env.dbPath, secrets: { provider_api_key: env.apiKey }, clock: () => new Date(nowA.getTime() + 2_500) })
     rtB.component(EXEC).adapter.execute = async () => ({ outcome: 'failed', retriable: true, reason: 'provider_unreachable', evidence: new Uint8Array() })
-    assert.equal((await rtB.submit(req)).status, 'failed')
+    // B's attempt never reached the provider, but attempt 1 may have: unknown, not failed.
+    assert.equal((await rtB.submit(req)).status, 'unknown')
     release()
     const resultA = await fromA
-    // Attempt 1 reached the provider and is recorded as confirmed, but the operation stays failed,
-    // and worker A's caller is told failed.
+    assert.equal(resultA.status, 'provider_confirmed')
+    assert.equal(rtB.store.getOperation(req.operation_id).state, 'provider_confirmed')
     assert.equal(env.provider.refunds.length, 1)
-    const attempts = rtB.store.attempts(req.operation_id)
-    assert.deepEqual(attempts.map((x: any) => x.outcome), ['provider_confirmed', 'failed'])
-    assert.equal(rtB.store.getOperation(req.operation_id).state, 'failed')
-    assert.equal(resultA.status, 'failed')
-    // Past the deadline the retriable failure is closed as if no side effect had happened.
     const rtC = await Runtime.create({ policy: env.policy, dbPath: env.dbPath, secrets: { provider_api_key: env.apiKey }, clock: () => new Date(Date.parse(a.valid_until) + 1) })
-    const closed = await rtC.submit(req)
-    assert.equal(closed.status, 'failed')
-    assert.equal((closed as any).reason, 'approval_expired_before_retry')
-    assert.equal(rtC.store.getOperation(req.operation_id).retriable, 0)
-    assert.equal(env.provider.refunds.length, 1)
+    const later = await rtC.submit(req)
+    assert.equal(later.status, 'provider_confirmed')
+    assert.equal((later as any).replayed, true)
     rtB.close(); rtC.close()
   } finally { await env.close() }
 })
 
-test('CP-F2 FINDING (sections 5.5 and 7): the deadline bounds admission, not the first provider request; an attempt that ends unknown before sending is retried long after valid_until', async () => {
+test('CP-F2 FIXED (sections 5.5 and 7): nothing is dispatched after the deadline; an attempt that ended unknown before sending is never followed by a first request after valid_until', async () => {
+  // At 92d5078 the provider's first request arrived an hour after the deadline.
   const env = await setup()
   try {
     const T0 = new Date(Date.now() - 1000)
@@ -504,19 +497,19 @@ test('CP-F2 FINDING (sections 5.5 and 7): the deadline bounds admission, not the
     const c = env.rt.component(EXEC)
     const original = c.adapter.execute.bind(c.adapter)
     let first = true
-    // A local failure before any byte is written: the runtime cannot tell it from a lost response.
     c.adapter.execute = async (op: any) => { if (first) { first = false; throw new Error('socket closed before the request was written') } return original(op) }
     assert.equal((await env.rt.submit(req)).status, 'unknown')
-    assert.equal(env.provider.requests, 0)
     now = new Date(Date.parse(a.valid_until) + 3_600_000)
     const late = await env.rt.submit(req)
-    assert.equal(late.status, 'provider_confirmed')
-    assert.equal(env.provider.requests, 1)  // the first request the provider ever saw, an hour after valid_until
-    assert.equal(env.provider.refunds.length, 1)
+    assert.equal(late.status, 'unknown')
+    assert.equal((late as any).reason, 'reconciliation_required')
+    assert.equal(env.provider.requests, 0)
+    assert.equal(env.provider.refunds.length, 0)
   } finally { await env.close() }
 })
 
-test('CP-F3 FINDING (section 9): an adapter\'s reason text reaches provenance unbounded and unfiltered, so the no-arguments rule rests on each adapter', async () => {
+test('CP-F3 FIXED (section 9): an adapter\'s reason text is cut to 120 UTF-16 units before it reaches provenance; what fits in 120 units stays the adapter\'s obligation', async () => {
+  // At 92d5078 a 100 kB reason was stored whole.
   const env = await setup()
   try {
     const c = env.rt.component(APS)
@@ -524,24 +517,20 @@ test('CP-F3 FINDING (section 9): an adapter\'s reason text reaches provenance un
     c.adapter.check = async (input: any) => {
       const out = await original(input)
       return { ...out, claims: out.claims.map((x: any, i: number) => i === 0
-        ? { ...x, status: 'not_established', reason: 'args=' + JSON.stringify(input.action.args) + ' ' + 'x'.repeat(100_000) } : x) }
+        ? { ...x, status: 'not_established', reason: 'x'.repeat(100_000) } : x) }
     }
     const { req } = request(env)
     const r = await env.rt.submit(req)
     assert.equal(r.status, 'refused')
-    const prov = JSON.stringify(env.rt.provenance(req.operation_id))
-    // The reason is a JSON string inside provenance, so the arguments appear with escaped quotes.
-    assert.ok(prov.includes(`args={\\"payment_id\\":\\"${APPROVED_REFUND.payment_id}\\"`), 'the action arguments are in provenance')
-    assert.ok(prov.length > 100_000, `provenance is ${prov.length} bytes`)
+    const reason = (env.rt.provenance(req.operation_id) as any).admissions.at(-1).claims[0].reason
+    assert.equal(reason, 'x'.repeat(120))
+    assert.ok(JSON.stringify(env.rt.provenance(req.operation_id)).length < 10_000)
   } finally { await env.close() }
 })
 
-test('CP-F4 FINDING (sections 4 and 7): a lost response, then an outage, then the deadline: the operation closes as failed while the refund exists, with one worker, no skew and no crash', async () => {
-  // Found by the TLA+ model formal/tla/LeaseRetry.tla (configuration pinned_outage) before it was run
-  // here. Attempt 1 reaches the provider and its response is lost: unknown, correctly. The retry
-  // cannot reach the provider: failed and retriable, correctly for that attempt. But the operation
-  // takes the later attempt's outcome, so it reads as "no side effect happened", and past the
-  // deadline section 7 closes it on exactly that premise.
+test('CP-F4 FIXED (sections 4 and 7): a lost response, then an outage, then the deadline: the operation stays unknown and is not closed as failed while the refund exists', async () => {
+  // Found by formal/tla/LeaseRetry.tla (configuration pinned_outage). At 92d5078 the operation was
+  // closed with approval_expired_before_retry while the provider had performed the refund.
   const env = await setup()
   let providerUp = true
   try {
@@ -555,15 +544,13 @@ test('CP-F4 FINDING (sections 4 and 7): a lost response, then an outage, then th
     providerUp = false
     await env.provider.close()  // the provider is now unreachable (ECONNREFUSED)
     const retry = await env.rt.submit(req)
-    assert.equal(retry.status, 'failed')
-    assert.equal((retry as any).reason, 'provider_unreachable')
+    assert.equal(retry.status, 'unknown')
     await restart(env, env.policy, () => new Date(Date.parse(a.valid_until) + 1))
-    const closed = await env.rt.submit(req)
-    assert.equal(closed.status, 'failed')
-    assert.equal((closed as any).reason, 'approval_expired_before_retry')
+    const late = await env.rt.submit(req)
+    assert.equal(late.status, 'unknown')
+    assert.equal((late as any).reason, 'reconciliation_required')
     const row = env.rt.store.getOperation(req.operation_id)
-    assert.equal(row.state, 'failed')
-    assert.equal(row.retriable, 0)
+    assert.equal(row.state, 'unknown')
     assert.deepEqual(env.rt.store.attempts(req.operation_id).map((x: any) => x.outcome), ['unknown', 'failed'])
   } finally { if (providerUp) await env.close(); else env.rt.close() }
 })

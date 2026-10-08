@@ -16,7 +16,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
@@ -46,12 +46,12 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:056468ef4f9642ee7fb5b389673255864f2cde56539eb48562fc730e6000f5b9",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
@@ -94,12 +94,12 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:056468ef4f9642ee7fb5b389673255864f2cde56539eb48562fc730e6000f5b9",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
@@ -133,12 +133,12 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:056468ef4f9642ee7fb5b389673255864f2cde56539eb48562fc730e6000f5b9",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
@@ -166,12 +166,12 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:056468ef4f9642ee7fb5b389673255864f2cde56539eb48562fc730e6000f5b9",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
@@ -199,12 +199,12 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:056468ef4f9642ee7fb5b389673255864f2cde56539eb48562fc730e6000f5b9",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c5a1e357b503cfa407f2b2de054bba4219b1c32e93eac161c6d144aaf7079bc0",
@@ -232,7 +232,7 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:056468ef4f9642ee7fb5b389673255864f2cde56539eb48562fc730e6000f5b9",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         }
       ],
       "request": {
@@ -270,7 +270,7 @@
             ]
           },
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
@@ -300,7 +300,7 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:d7ec86581fcdf2a7bd0b0266bf52c3e2e326622fc5e7cc96a34ec2cb271207b4",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {
@@ -309,7 +309,7 @@
             ]
           },
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
@@ -352,7 +352,7 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:d7ec86581fcdf2a7bd0b0266bf52c3e2e326622fc5e7cc96a34ec2cb271207b4",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {
@@ -361,7 +361,7 @@
             ]
           },
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
@@ -395,7 +395,7 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:d7ec86581fcdf2a7bd0b0266bf52c3e2e326622fc5e7cc96a34ec2cb271207b4",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {
@@ -404,7 +404,7 @@
             ]
           },
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
@@ -432,7 +432,7 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:d7ec86581fcdf2a7bd0b0266bf52c3e2e326622fc5e7cc96a34ec2cb271207b4",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {
@@ -441,7 +441,7 @@
             ]
           },
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
@@ -469,7 +469,7 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:d7ec86581fcdf2a7bd0b0266bf52c3e2e326622fc5e7cc96a34ec2cb271207b4",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {
@@ -478,7 +478,7 @@
             ]
           },
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3170e6a0dc1cd4cb2f2bd654db1d17842581e5c22c3c5d5357bb40bec22d723c",
@@ -506,7 +506,7 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:d7ec86581fcdf2a7bd0b0266bf52c3e2e326622fc5e7cc96a34ec2cb271207b4",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         }
       ],
       "request": {
@@ -540,7 +540,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
@@ -570,12 +570,12 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:8a7df15aef4fb82e4de15dcbe4125243ae48b0c49ac06bcbf05c0922cffe5aa6",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
@@ -618,12 +618,12 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:8a7df15aef4fb82e4de15dcbe4125243ae48b0c49ac06bcbf05c0922cffe5aa6",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
@@ -657,12 +657,12 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:8a7df15aef4fb82e4de15dcbe4125243ae48b0c49ac06bcbf05c0922cffe5aa6",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
@@ -690,12 +690,12 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:8a7df15aef4fb82e4de15dcbe4125243ae48b0c49ac06bcbf05c0922cffe5aa6",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
@@ -723,12 +723,12 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:8a7df15aef4fb82e4de15dcbe4125243ae48b0c49ac06bcbf05c0922cffe5aa6",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:c44e43aa641101aa998f9a567f82191fa2f587a10613cff14a32b61ef3adf5e1",
@@ -756,7 +756,7 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:8a7df15aef4fb82e4de15dcbe4125243ae48b0c49ac06bcbf05c0922cffe5aa6",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         }
       ],
       "request": {
@@ -790,7 +790,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
@@ -820,12 +820,12 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:74d9e763fd06096058d941264488e1d119f97d4d3a17d9a373817498ad31a5e9",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
@@ -868,12 +868,12 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:74d9e763fd06096058d941264488e1d119f97d4d3a17d9a373817498ad31a5e9",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
@@ -907,12 +907,12 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:74d9e763fd06096058d941264488e1d119f97d4d3a17d9a373817498ad31a5e9",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
@@ -940,12 +940,12 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:74d9e763fd06096058d941264488e1d119f97d4d3a17d9a373817498ad31a5e9",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
@@ -973,12 +973,12 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:74d9e763fd06096058d941264488e1d119f97d4d3a17d9a373817498ad31a5e9",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:2982a0874fd659059509b6479384fbeeea909e6174785cae1368cd359f88fa54",
@@ -1006,7 +1006,7 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:74d9e763fd06096058d941264488e1d119f97d4d3a17d9a373817498ad31a5e9",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         }
       ],
       "request": {
@@ -1040,7 +1040,7 @@
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
@@ -1070,12 +1070,12 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:2a14a284da15e1ae1fbdc58d0890f63ba5164a367ecc696cbc1445ffe0c4649d",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
@@ -1118,12 +1118,12 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:2a14a284da15e1ae1fbdc58d0890f63ba5164a367ecc696cbc1445ffe0c4649d",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
@@ -1157,12 +1157,12 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:2a14a284da15e1ae1fbdc58d0890f63ba5164a367ecc696cbc1445ffe0c4649d",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
@@ -1190,12 +1190,12 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:2a14a284da15e1ae1fbdc58d0890f63ba5164a367ecc696cbc1445ffe0c4649d",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
@@ -1223,12 +1223,12 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:2a14a284da15e1ae1fbdc58d0890f63ba5164a367ecc696cbc1445ffe0c4649d",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         },
         {
           "action_losses": {},
           "adapter_digest": "sha256:7ec95be66dd5fe3cacd1508674a930f0deb5bcfc4b31435c1ecb651a9cee1f79",
-          "capabilities_digest": "sha256:05287e35e66bffd4a25c75ae2995071b42675e6d23d8c99865a63fbb77cd4911",
+          "capabilities_digest": "sha256:b7ce06effab13308f05b99c940aee4c16ff1c48be8be7182a70af12d104d90c4",
           "evidence_selection": {
             "eligible": 1,
             "selected_digest": "sha256:3d388431231f2dfdb1a2f7491da49ed3fe9828d7854fa662769dc61356d3ad94",
@@ -1256,7 +1256,7 @@
           },
           "transport": "federation-port/v0",
           "transport_evidence_digest": "sha256:2a14a284da15e1ae1fbdc58d0890f63ba5164a367ecc696cbc1445ffe0c4649d",
-          "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+          "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
         }
       ],
       "request": {
@@ -1282,5 +1282,5 @@
     "public_key_hex": "d404bc44565aedbb899150e5b0b3b32b9441bf0cb7884c33130da8dbc27dd2cf",
     "signing_seed_hex": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
   },
-  "transport_revision": "aeoess/federation-port@92d5078af3bbd3610ce4901378e913d5f370a68b"
+  "transport_revision": "aeoess/federation-port@3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333"
 }
