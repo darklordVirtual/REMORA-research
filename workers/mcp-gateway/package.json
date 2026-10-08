@@ -18,7 +18,7 @@
     "typescript": "^7.0.2",
     "vitest": "^4.1.7",
     "wrangler": "^4.145.0",
-    "@types/node": "^26.6.3"
+    "@types/node": "^26.6.4"
   },
   "overrides": {
     "sharp": "0.35.5"
