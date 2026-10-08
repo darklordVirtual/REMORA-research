@@ -351,7 +351,7 @@ flowchart LR
     REQ["Operator request<br/>(resolved server-side)"] --> ST
     CALL["Proposed tool call<br/>+ signed ToolSpec description"] --> ST
     UNT["Untrusted text<br/>(ticket, alert, e-mail)"] --> ST
-    ST["semantic_state_v2<br/>credential-shaped keys refused"] --> Q["Question set v2.1<br/>intent, target, scope,<br/>four injection questions,<br/>reversibility, risk"]
+    ST["semantic_state_v2<br/>credential-shaped keys refused at any depth;<br/>JSON only, egress bounded"] --> Q["Question set v2.1<br/>intent, target, scope,<br/>four injection questions,<br/>reversibility, risk"]
     Q --> JEV["Jev, pinned jev-1.13.0<br/>api.typesafe.ai or Workers AI"]
     JEV --> EN["enrich()<br/>favourable signal or<br/>adversarial_detected, nothing else"]
     EN --> CF["Counterfactual decision<br/>same engine, execution profile"]

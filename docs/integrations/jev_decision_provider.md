@@ -57,9 +57,20 @@ change quietly.
 
 `semantic_state` builds the state a provider sees: the stated intent, the tool
 name, the arguments, and any declared context. A key whose name suggests a
-credential is refused rather than redacted. Production credentials, tokens and
+credential is refused rather than redacted, at any depth: inside nested objects
+and inside lists, not only at the top level. Before issue #753 a key one level
+down reached the provider. Production credentials, tokens and
 session identifiers have no bearing on a semantic question and must never
 appear in a provider's logs.
+
+The state must also stay inside the JSON domain and the egress bounds in
+`remora/decision_providers/enrich.py`. The bounds are `EGRESS_MAX_DEPTH` for
+nesting, `EGRESS_MAX_ITEMS` entries per object or list, `EGRESS_MAX_TEXT`
+characters per text field and `EGRESS_MAX_BYTES` bytes for the serialized
+state. Bytes, sets, non-finite numbers and non-string keys
+are refused. A state outside these limits is refused, never trimmed, because
+trimming would change the question the provider is asked. On the shadow path a
+refusal becomes a shadow record with `error` set and never reaches the caller.
 
 ## What is asked
 
@@ -107,13 +118,23 @@ A provider that cannot answer raises `DecisionProviderError`, and `enrich`
 returns the observation untouched with outcome `provider_unavailable`. The
 engine then makes the deterministic decision.
 
-No per-tier failure table is offered. A provider can only add a favourable
-signal or raise a flag, so the decision without the provider is never more
-permissive than the decision with it. A table would be a place to configure a
-fail-open, and there is nothing it could express that is safe.
+Provider failure never creates favourable evidence and never clears a safety
+flag. It does not follow that the decision without the provider is never more
+permissive than the decision with it. A provider that raises
+`adversarial_detected` can turn a VERIFY into an ESCALATE; when the same
+provider is unavailable, the observation is unchanged and the decision stays at
+VERIFY. Absence can be less restrictive than a successful narrowing (issue
+#753 corrected the earlier wording here).
 
-Model availability therefore affects automation coverage. It never affects the
-safety boundary.
+On the enforcing path this has no effect today, because Jev runs in shadow
+there and its output is not authoritative. It would matter for any future
+guard that is allowed to narrow a live decision. Such a guard must represent
+provider unavailability explicitly and must never read it as a clean
+assessment. What a decision does when a required guard is unavailable belongs
+in the deterministic policy layer, not in the provider or its adapter.
+
+No per-tier failure table is offered. A table would be a place to configure a
+fail-open, and there is nothing it could express that is safe.
 
 ## TypeSafe API
 
