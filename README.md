@@ -1,6 +1,5 @@
 <img width="2172" height="724" alt="REMORA: policy-gated control between an agent's intent and a real-world effect" src="docs/assets/remora-hero.png" />
 
-
 # REMORA: Governed Execution Assurance for Tool-Using AI Agents
 
 [![Paper (PDF)](https://img.shields.io/badge/paper-PDF-b31b1b.svg)](paper/remora_paper.pdf) [![CI: Deterministic Test Suite](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/ci.yml) [![Quality Gates](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml/badge.svg)](https://github.com/darklordVirtual/REMORA-research/actions/workflows/quality-gates.yml) [![License: BUSL-1.1](https://img.shields.io/badge/License-BUSL--1.1-blue.svg)](LICENSE)
@@ -27,7 +26,7 @@ python -m remora try
 
 ## Where to start
 
-One ordered reading path. Every other document points back here.
+One ordered reading path; the [documentation index](docs/README.md) lists the complete registered set.
 
 1. [Developer handoff](DEVELOPER_OVERVIEW.md): the shortest technical path through the repository
 2. [Architecture](ARCHITECTURE.md): components, data flow, module stability
@@ -37,11 +36,7 @@ One ordered reading path. Every other document points back here.
 6. [Evidence and claims](docs/02-evidence-and-claims.md): what each result establishes, and what it does not
 7. [NEGATIVE_RESULTS.md](NEGATIVE_RESULTS.md): failed hypotheses and limitations, kept permanently
 
-The [documentation index](docs/README.md) lists the complete registered set.
-
 ## How an action gets through
-
-Five steps, deliberately few.
 
 1. Authoritative context. Tool meaning, target, risk and approved intent come from deployment-owned sources such as a Signed ToolSpec, never from the calling agent.
 2. Policy decision. Deterministic hard guards outrank model-derived signals.
@@ -146,9 +141,7 @@ It cannot enforce against a credential path that bypasses its dispatcher. Deploy
 | `docs/archive/` | Superseded or historical material |
 | `paper/` | Research paper and supporting publication artifacts |
 
-Research modules, AROMER, the older statistical-physics work and historical design documents stay in the repository for reproducibility and audit history. Their presence does not make them part of the enforcing runtime path; the capability register says what is wired.
-
-The state of the `servers/execution_api.py` decomposition (issue #241, closed) and of the decoupled dispatch worker behind `REMORA_ASYNC_DISPATCH` (issue #82, closed; not enabled in any reference profile) is stated once, in [DEVELOPER_OVERVIEW.md](DEVELOPER_OVERVIEW.md#known-boundary).
+Research modules, AROMER, the older statistical-physics work and historical design documents stay in the repository for reproducibility and audit history. Their presence does not make them part of the enforcing runtime path; the capability register says what is wired, and [DEVELOPER_OVERVIEW.md](DEVELOPER_OVERVIEW.md#known-boundary) states the known engineering boundary.
 
 For product-oriented integration see [Assured Agent Execution](https://github.com/darklordVirtual/assured-agent-execution), which consumes pinned REMORA artifacts rather than copying the governance core.
 
@@ -158,14 +151,10 @@ Jev (TypeSafe) is a semantic sensor beside the policy engine: experimental, evid
 
 ## Research, AI use and citation
 
-The research-to-control mapping lives in [docs/research/research_control_matrix.generated.md](docs/research/research_control_matrix.generated.md); related work in [docs/09-related-work.md](docs/09-related-work.md).
+The research-to-control mapping lives in [docs/research/research_control_matrix.generated.md](docs/research/research_control_matrix.generated.md); related work in [docs/09-related-work.md](docs/09-related-work.md). Citation metadata is in [CITATION.cff](CITATION.cff); GitHub renders it as BibTeX from the "Cite this repository" panel.
 
 Generative-AI tools were used during development. AI-generated text or code is not evidence by itself; claims must resolve to committed artifacts, tests or verified sources. Disclosure: [docs/AI_USE.md](docs/AI_USE.md).
 
-Citation metadata is in [CITATION.cff](CITATION.cff); GitHub renders it as BibTeX from the "Cite this repository" panel.
-
 ## License and contributions
 
-REMORA versions from `v0.10.0` are source-available under the [Business Source License 1.1](LICENSE), with commercial licensing under the [REMORA Commercial License](legal/COMMERCIAL_LICENSE.md). Research, benchmarking and reproducibility work are permitted within the terms in [LICENSING.md](legal/LICENSING.md).
-
-Contribution requirements, branch lifecycle, documentation style and claim hygiene are defined in [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/10-contributing.md](docs/10-contributing.md).
+REMORA versions from `v0.10.0` are source-available under the [Business Source License 1.1](LICENSE), with commercial licensing under the [REMORA Commercial License](legal/COMMERCIAL_LICENSE.md). Research, benchmarking and reproducibility work are permitted within the terms in [LICENSING.md](legal/LICENSING.md). Contribution requirements, branch lifecycle, documentation style and claim hygiene are defined in [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/10-contributing.md](docs/10-contributing.md).
