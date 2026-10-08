@@ -43,6 +43,7 @@ offered, because a table would be a place to configure a fail-open.
 
 from __future__ import annotations
 
+import json
 import math
 import re
 from dataclasses import dataclass
@@ -107,7 +108,9 @@ def semantic_state(
     Only the fields a semantic question needs: the stated intent, the tool
     name, the arguments, and any declared context. A key whose name suggests
     a credential is refused rather than redacted, so a caller cannot ship a
-    secret by mistake and discover it in a provider's logs.
+    secret by mistake and discover it in a provider's logs. The check reaches
+    every depth, and the state must stay inside the JSON domain and the egress
+    bounds (``EGRESS_MAX_*``), or it is refused.
     """
     _refuse_credentials(arguments, context or {})
     state: dict[str, Any] = {
@@ -117,17 +120,83 @@ def semantic_state(
     }
     if context:
         state["context"] = dict(context)
+    _check_egress(state)
     return state
 
 
+#: Bounds on what may leave the process (issue #753). Generous for a tool call
+#: and its context, tight enough that a provider never receives an unbounded
+#: payload. A state outside them is refused, never trimmed: trimming would change
+#: the meaning of the question the provider is asked.
+EGRESS_MAX_DEPTH = 16
+EGRESS_MAX_ITEMS = 1_000
+EGRESS_MAX_TEXT = 16_384
+EGRESS_MAX_BYTES = 65_536
+
+
 def _refuse_credentials(*sources: Mapping[str, Any]) -> None:
-    offending = sorted(
-        str(key) for source in sources for key in source if _SECRET_KEY.search(str(key))
-    )
+    """Refuse a credential-shaped key at any depth, inside objects and lists."""
+    offending: list[str] = []
+
+    def walk(value: Any, path: str) -> None:
+        if isinstance(value, Mapping):
+            for key, child in value.items():
+                where = f"{path}.{key}" if path else str(key)
+                if _SECRET_KEY.search(str(key)):
+                    offending.append(where)
+                walk(child, where)
+        elif isinstance(value, (list, tuple)):
+            for i, child in enumerate(value):
+                walk(child, f"{path}[{i}]")
+
+    for source in sources:
+        walk(source, "")
     if offending:
         raise ValueError(
-            f"refusing to send credential-shaped keys to a decision provider: {offending}"
+            f"refusing to send credential-shaped keys to a decision provider: {sorted(offending)}"
         )
+
+
+def _check_egress(state: Mapping[str, Any]) -> None:
+    """Refuse a state outside the JSON domain or the egress bounds."""
+
+    def walk(value: Any, depth: int, path: str) -> None:
+        if depth > EGRESS_MAX_DEPTH:
+            raise ValueError(f"refusing to send state nested deeper than {EGRESS_MAX_DEPTH} at {path}")
+        if value is None or isinstance(value, bool):
+            return
+        if isinstance(value, int):
+            return
+        if isinstance(value, float):
+            if not math.isfinite(value):
+                raise ValueError(f"refusing to send a non-finite number at {path}")
+            return
+        if isinstance(value, str):
+            if len(value) > EGRESS_MAX_TEXT:
+                raise ValueError(
+                    f"refusing to send text longer than {EGRESS_MAX_TEXT} characters at {path}")
+            return
+        if isinstance(value, Mapping):
+            if len(value) > EGRESS_MAX_ITEMS:
+                raise ValueError(f"refusing to send more than {EGRESS_MAX_ITEMS} entries at {path}")
+            for key, child in value.items():
+                if not isinstance(key, str):
+                    raise ValueError(f"refusing to send a non-string key at {path}")
+                walk(child, depth + 1, f"{path}.{key}" if path else key)
+            return
+        if isinstance(value, (list, tuple)):
+            if len(value) > EGRESS_MAX_ITEMS:
+                raise ValueError(f"refusing to send more than {EGRESS_MAX_ITEMS} items at {path}")
+            for i, child in enumerate(value):
+                walk(child, depth + 1, f"{path}[{i}]")
+            return
+        raise ValueError(
+            f"refusing to send a {type(value).__name__} at {path}: only JSON values leave the process")
+
+    walk(state, 0, "")
+    size = len(json.dumps(state, ensure_ascii=False).encode("utf-8"))
+    if size > EGRESS_MAX_BYTES:
+        raise ValueError(f"refusing to send {size} bytes of state; the bound is {EGRESS_MAX_BYTES}")
 
 
 def semantic_state_v2(
@@ -158,6 +227,7 @@ def semantic_state_v2(
     state: dict[str, Any] = {"operator_request": operator_request, "proposed_call": call}
     if untrusted_content:
         state["untrusted_content"] = dict(untrusted_content)
+    _check_egress(state)
     return state
 
 
