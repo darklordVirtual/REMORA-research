@@ -16,6 +16,10 @@
       "trace": ["Send(1)", "Claim", "Finish(2,\"failed_retriable\")", "Tick", "Claim"],
       "why": "making a confirmation final does not help when the operation closes before the earlier attempt reports"},
     "sticky_all": {"result": "holds", "why": "uncertainty sticky alone holds under outage, crash and skew"},
-    "sticky_confirmfinal_all": {"result": "holds", "why": "both rules together hold under outage, crash and skew"}
+    "sticky_confirmfinal_all": {"result": "holds", "why": "both rules together hold under outage, crash and skew"},
+    "sticky_confirmfinal_dispatch_after_expiry": {"result": "violated", "invariant": "NoDispatchAfterExpiry",
+      "trace": ["Tick", "Claim"],
+      "why": "aeoess/federation-port#1 at a134e94: past the deadline a retry is still dispatched, so the first request can come after the authorization expired"},
+    "read_only_after_expiry": {"result": "holds", "why": "the rule asked for in review: nothing is dispatched after the deadline; all four invariants hold under outage, crash and skew"}
   }
 }
