@@ -39,6 +39,10 @@ results:
 - path: results/ablation_v2_results.json
   class: live
   generator: python experiments/phase_aware_routing.py
+- path: results/agentharm_discrimination_diagnostic_v1.json
+  class: regenerable
+  generator: python scripts/agentharm_discrimination_diagnostic.py
+  verified_by: 'tests/test_selective_discrimination.py rebuilds it and compares byte-for-byte; --check'
 - path: results/aromer_cross_domain_transfer_v1.json
   class: regenerable
   generator: python scripts/run_cross_domain_transfer.py

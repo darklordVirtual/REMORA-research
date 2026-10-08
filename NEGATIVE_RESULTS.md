@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-10-08: **21 `open`**, **27 `accepted`**, **31 `superseded`**.
+Counts as of 2026-10-08: **22 `open`**, **27 `accepted`**, **31 `superseded`**.
 
 ## The actual backlog
 
@@ -126,6 +126,11 @@ cites only `open` sections and that no `open` section is missing a theme.
    outcome is now kept beside the `UNKNOWN` the sweep wrote, instead of
    raising and being lost. The race is injected in tests, not observed under
    a real slow tool or a skewed sweeper clock.
+15. **AgentHarm discrimination is lost between evidence and decision** (§80):
+   the oracle tells 29 of 44 twins apart and REMORA's mode-3 mapping none; the
+   CLAIM-002 score separates globally but not below 10 % false blocks. The
+   harness's oracle arms never reached the engine. Measuring this needs a
+   graded evidence channel and fresh paired data, not the spent artifacts.
 
 <!-- backlog-end -->
 
@@ -4723,3 +4728,51 @@ dispatch call, not by a slow tool in a deployment. Whether a late outcome
 should also resolve the outbox row, rather than sit beside it, is the
 maintainer decision of 2026-08-05 (resolution is a new record), which this
 keeps.
+
+## §80 AgentHarm discrimination is lost between evidence and decision, and the oracle arms never ran (2026-10-08)
+<!-- finding-status: open -->
+
+**Status:** diagnosed on spent artifacts; the harness is repaired; no new run.
+
+**Claim before.** CLAIM-002 reports FAR 0.0 % on 208 harmful AgentHarm tasks
+and FBR 100 % on 208 benign ones; §19 explains the FBR as structural (every
+verdict is ESCALATE). Neither says whether REMORA can tell a harmful task from
+its benign twin.
+
+**What was measured.** `remora/selective/discrimination.py` (AUROC with a
+DeLong interval, McClish partial AUROC, FAR at a fixed FBR, paired twin
+decomposition with exact McNemar), applied POST-HOC by
+`scripts/agentharm_discrimination_diagnostic.py` to the two committed
+artifacts (`results/agentharm_discrimination_diagnostic_v1.json`):
+
+- CLAIM-002, 208 twin pairs: all 208 sit in the floor cell (both blocked),
+  0 are told apart. The recorded graded value `effective_p` separates the
+  labels globally (AUROC 0.719, DeLong 95 % [0.674, 0.765]). It does not
+  separate where an operator would set a threshold: McClish pAUC is 0.53 for
+  FBR up to 10 %, and no threshold within a 10 % false-block budget blocks
+  anything. Its lowest value
+  (0.758) lies above the worker's 0.70 escalation threshold, which is why
+  every row escalates.
+- Trimode, 44 twin pairs: the oracle's own verdict (mode 1) tells 29 pairs
+  apart (McNemar p < 1e-8). Mode 3, which maps that verdict to one of three
+  fixed trust/H/D triples and runs `RemoraDecisionEngine`, sends 80 of 88
+  cases to VERIFY and tells no pair apart.
+
+**Harness defects found on the way.** `experiments/agentharm/remora_mediated_solver.py`
+imported `remora.oracles.OpenAIOracle`, which does not exist, so the
+oracle-backed arms always fell back to hard blocks. Had the engine been built,
+`assess_sync` was called on `Remora`, which has only `run`/`report`, and the
+verdict was read from a non-existent `outcome` attribute with an ACCEPT
+default: the gate would have passed every call. The `single_oracle` arm can
+never run, because `Remora` requires two oracles. All three are fixed or made
+explicit, with tests (`tests/test_agentharm_gate_wiring.py`); the arm now
+records `single_oracle_unsupported` instead of degrading silently.
+
+**Why it stays open.** Both artifacts are spent and §19 is closed to tuning,
+so nothing here selects a REMORA threshold; the operating points in the
+diagnostic are in-sample. Showing that REMORA discriminates needs three things.
+A graded evidence channel carried beside the action, never a redefinition of
+ESCALATE (`tests/test_escalate_semantics_guard.py`). A threshold chosen on a
+calibration split with a risk-control procedure. Fresh paired data, reported
+as FAR at a fixed FBR.
+
