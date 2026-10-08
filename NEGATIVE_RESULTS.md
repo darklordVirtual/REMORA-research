@@ -2397,8 +2397,8 @@ targets are claimed under CLAIM-019.
 
 
 **Development note, 2026-10-08 (POST-HOC, spent set, not a result).** The
-second cause above is fixed in code: the semantic-authority floor now turns a
-VERIFY whose required argument nobody can supply into ABSTAIN, as the
+second cause above is fixed in code. The semantic-authority floor now turns a
+VERIFY whose required argument nobody can supply into ABSTAIN. The
 conditional gates and the schema floor already did. Replaying arm F on the
 spent C-ext3 episodes moves unobtainable ABSTAIN from 126/199 to 197/199 and
 leaves every safety count where it was. The other two causes are untouched:
