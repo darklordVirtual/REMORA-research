@@ -1792,3 +1792,25 @@ deepening, each gated on the previous one existing.
 **Existing evidence:** `remora/lyapunov.py`, `remora/selective/confidence_sequence.py`, `remora/federation/`, associated tests and fixed result artifacts. Existing confidence sequences are offline and their independence assumption is not established for overlapping AROMER cycles.
 
 **Claim ceiling:** MODEL_PROVEN is a theorem of the abstraction, not equivalence of deployed binaries. No research-control matrix `RES-*` entry, product claim, Federation assertion or release gate may be promoted until proof bytes, implementation tests and bounded artifacts exist.
+
+**Wave 1 status, 2026-10-08.** `formal/tla/LeaseRetry.tla` is checked by
+`scripts/check_tla_models.py` in CI (six configurations, verdicts and traces
+pinned in `formal/tla/expected.json`). It found federation-port finding CP-F4,
+which contract probe CP-F4 replays on the runtime; the upstream patch is
+aeoess/federation-port#1. No Lean file exists yet.
+
+---
+
+## Queue: steps waiting on a maintainer decision (2026-10-08)
+
+Each step below is ready to start. It is held for a decision an agent should
+not take: spending a sealed set, spending money on model calls, or speaking
+for the project in a public thread. None is started.
+
+| Step | Waits on | Prepared so far | Done when |
+|---|---|---|---|
+| C-ext4 sealed BFCL track (QV2-06 confirmation) | a go decision: the reserve (295 positive, 68 irrelevance) can be spent once | the semantic-floor gap rule (§39 development note); the per-cause attribution of the 69 lost reads (25 no intent, 18 no resolver, 16 extractor refutations); SAP v5 discipline to copy | SAP v6 pre-registered with targets fixed before sealing (proposed: read autonomy at least 60 %, native wrong-call ACCEPT with Wilson upper bound at most 1 %), then one run |
+| LLM-as-proposer arm (QV2-06) | which model and provider, and a budget | the 16 extractor refutations diagnosed: function words from unrelated tool names and a capitalised "New" taken as resource or effect, so the deterministic extractor has a low ceiling | proposer behind the existing span-verification guards, prompt and model hashed at lock, record-and-replay cache so a live run is reproducible |
+| Discrimination on fresh paired data (FS-04, §80) | which dataset (candidates: Agent-SafetyBench, FORTRESS benign twins) and a budget | `remora/selective/discrimination.py` (AUROC, McClish pAUC, FAR at fixed FBR, twin decomposition); `ltt_far_threshold` (RES-022); the repaired AgentHarm harness | a graded evidence channel carried beside the action, a threshold certified by LTT on a calibration split, FAR and FBR reported together on a held-out split |
+| Federation #177 message | approval of the text | draft covering the contract probes, CP-F1 to CP-F4, the TLA+ model and aeoess/federation-port#1 | posted, and the coverage map's finding statuses moved from `reported_not_upstreamed` |
+| RF-16 Wave 1 to 2 (Lean and refinement) | none; scheduled after the queue above | the TLA+ model and its expected verdicts | FM-01 statements in a frozen module with an axiom allowlist; FM-02 refinement tests against the governed dispatcher; a TLA+ model of REMORA's own outbox, which §79 suggests |
