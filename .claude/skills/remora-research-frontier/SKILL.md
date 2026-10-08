@@ -74,7 +74,7 @@ Frontier bibliography with verified arXiv IDs and REMORA binding:
 | Topic | What the registers say | What the code says |
 |---|---|---|
 | CRC | RES-003 "CRC-inspired" selector, `crc.py`, no Theorem 1 | A second, direct `crc_threshold` with the `B/(n+1)` term exists in `remora/selective/risk_control.py`, library-only. Name both. |
-| Learn then Test | `risk_control.py` docstring says "LTT-style"; `ltt-2021` is a compendium ref | No LTT fixed-sequence / multiple-testing procedure exists. Write "reviewed, not implemented". |
+| Learn then Test | RES-022 (2026-10-08): `ltt_far_threshold` in `risk_control.py` | Fixed-sequence LTT on the block side, library-only; FAR guarantee checked by simulation, never on REMORA data. Write "implemented as a library, not wired". |
 | AgentDojo | matrix bibliography: `positioning_only`, "not run" | Adapter `remora/toolcall/routing/sources/agentdojo.py` + pinned `data/routing_bench_v1/agentdojo.jsonl`. Write "adapter available, full benchmark not run". |
 | Argument provenance | RF-02 "High gap", SHELF-007/008/041 `UNEVALUATED` | Taint floor, `source_spans`, `DerivationReceipt`, derivation re-execution exist. Status is `PARTIAL`, not absent. |
 | PROV ledger | 17 concept records, all `UNKNOWN` | `provenance/PRIOR_ART.yaml` has `reviews: []` and only three `PA-SRC` sources (related work, adjacent crosswalk, APS suite). AEGIS, CaMeL, Progent, AgentSpec and classic audit/capability prior art are not yet review sources. |
