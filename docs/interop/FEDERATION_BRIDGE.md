@@ -99,9 +99,10 @@ REMORA.
 installs it into federation-port's own tree at the pinned revision, seals it
 with federation-port's `scripts/seal.ts`, checks that `src/` is unmodified and
 runs federation-port's suite with it and with the report-result component
-below. It reports 152 of 152 at `92d5078`: 44 upstream, 48 for this
-component and 60 for the report-result component; 71 of those are held-out
-cases written after the components shipped. It then runs
+below. It reports 182 of 182 at `92d5078`: 44 upstream, 50 for this
+component, 60 for the report-result component and 28 contract probes
+(below). Of the component tests, 71 are held-out cases written after the
+components shipped. It then runs
 `integrations/federation-port/mutation_check.py`, which applies single-edit
 faults to each `adapter.ts` and fails when one survives that component's
 tests without a listed reason. Here it kills 102 of 107 faults, and 122 of
@@ -208,6 +209,37 @@ reported `provider_confirmed`, an effect observation `EFFECT_UNOBSERVABLE` and
 a later one `EFFECT_VERIFIED` are three attributable results for one
 operation, and none replaces another.
 
+## Contract coverage and probes
+
+[`artifacts/interop/federation-port-v0/contract-coverage.json`](../../artifacts/interop/federation-port-v0/contract-coverage.json)
+maps 32 rules of federation-port's `spec/CONTRACT.md` (sections 2 to 10) to
+the tests that exercise them: federation-port's own, REMORA's component
+tests, and the contract probes in
+[`integrations/federation-port/contract-probes`](../../integrations/federation-port/contract-probes/README.md).
+Fourteen rules were exercised only in part or not at all before the map; 26
+probes, run against the unmodified runtime, now cover them. Each probe was
+checked once against a single-edit fault in `src/runtime` that breaks its
+rule, and each failed on it. The probes test the runtime, not a REMORA
+component, so other adapters on #177 can run them as they are.
+
+Three probes record findings at `92d5078` rather than a rule that holds.
+CP-F1: a provider confirmation from an attempt whose lease another worker
+took over is not recorded on the operation, which can then close as `failed`
+while the refund exists (it needs clock skew between workers). CP-F2: an
+attempt that ends `unknown` before sending is retried after `valid_until`,
+so the deadline bounds admission and not the first provider contact. CP-F3:
+an adapter's reason text reaches provenance verbatim and unbounded. The map
+gives conditions, consequence and a suggested change for each; none has been
+raised upstream yet.
+
+The map also records how the SDD testplan FED-01 to FED-10 overlapped the
+existing suite. Of its 40 planned cases most were already covered: FED-01,
+FED-04 and FED-05 entirely, FED-03 and FED-06 except for the forms the probes
+add. FED-09 (adapter isolation) is not turned into tests, because section 10
+of the contract already states what an in-process adapter can do. The new
+REMORA-side tests are FED-02 (a retry with re-signed evidence), FED-08 (the
+stored deadline and evidence digest) and FED-10 below.
+
 ## Lifecycle: an execution report is not an effect
 
 `remora/federation/lifecycle.py` reads a transport outcome as an execution
@@ -215,7 +247,10 @@ report. `provider_confirmed` becomes `EXECUTION_REPORTED_SUCCESS` with the
 effect `NOT_ESTABLISHED`. Only REMORA's effect verifier
 (`remora.governance.effect_verification`), observing a system of record, can
 establish `EFFECT_VERIFIED`; that stays a separate edge any transport can
-compose with.
+compose with. The reading holds in both directions: a transport `failed`
+with an observed refund is `EFFECT_VERIFIED`, which is the case CP-F1
+produces, and a `provider_confirmed` the reader cannot see yet stays
+`NOT_ESTABLISHED` (`test_the_effect_is_read_apart_from_the_transport_state`).
 
 ## Acceptance criteria
 
@@ -237,6 +272,7 @@ compose with.
 | AC-RS-V0 | each LATE and LATE-CONFLICT report evaluated separately in an unmodified V0 runtime | `integrations/federation-port/remora-report-result/tests` |
 | AC-RS-V0-HO | held-out: conflicting results for one report refused in both orders; every set-aside reason recorded; signature sweep; order and subset independence; canonical output | the `held-out` tests in the same file; written by the producer after #793 |
 | AC-HO | held-out for the authorization component: every refusal before and after the signature, a correctly sized wrong signature, envelope and signature sweep, evidence addressed elsewhere, empty tenant, malformed instants, inclusive deadline, null and nested arguments | the `held-out` tests in `remora-adapter/tests`; written after the first mutation run |
+| AC-CP | every rule in `contract-coverage.json` names an existing test, every probe is mapped, and the probes pass against the unmodified runtime | `integrations/federation-port/contract-probes`, run by `reproduce.sh` and CI; `tests/test_federation_port_contract_coverage.py` |
 | AC-MUT | no single-edit fault in either `adapter.ts` survives its tests without a listed reason; an inert edit survives and a status flip is killed (controls) | `integrations/federation-port/mutation_check.py`, run by `reproduce.sh` and CI; `tests/test_federation_port_mutation_check.py` |
 
 ## What this does not establish

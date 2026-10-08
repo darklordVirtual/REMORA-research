@@ -57,7 +57,8 @@ the same procedure as the other outside adapters on #177:
 3. seal both with federation-port's `scripts/seal.ts`, which must reproduce the digests pinned
    in their `manifest.json`;
 4. check that `src/` is unmodified;
-5. run federation-port's suite with both components: `node --test test/*.test.ts`, then the
+5. run federation-port's suite with both components and the
+   [contract probes](../contract-probes/README.md): `node --test test/*.test.ts`, then the
    upstream and each REMORA file alone for the split;
 6. run `tsc` with federation-port's `tsconfig.json` over the component and its tests;
 7. separately, check REMORA's fixtures against the code and run REMORA's acceptance suites
@@ -72,8 +73,8 @@ the same procedure as the other outside adapters on #177:
 It writes `remora-federation-port-reproduction.json` (`remora-federation-port-reproduction-v1`)
 and exits non-zero on any failure. CI runs the same script on every change.
 
-At `92d5078` the result is 152 of 152 federation-port tests: 44 upstream, 48 for this component
-and 60 for the report-result component. `src/` is unmodified, both seals match and `tsc`
+At `92d5078` the result is 182 of 182 federation-port tests: 44 upstream, 50 for this component,
+60 for the report-result component and 28 contract probes. `src/` is unmodified, both seals match and `tsc`
 passes. The mutation check kills 102 of 107 faults here and 122 of 131 in the report-result
 component; every survivor is listed as equivalent with its reason. The REMORA acceptance
 suites are reported beside it, not inside that count. These are the producer's own tests, so

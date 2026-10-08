@@ -404,3 +404,43 @@ test('held-out: the runtime refuses each envelope-level and signature-level case
     } finally { await e.close() }
   }
 })
+
+// ---------------------------------------------------------------------------------------------
+// Retry and provenance through the runtime (SDD FED-02 and FED-08 in
+// artifacts/interop/federation-port-v0/contract-coverage.json). The runtime-level rules are
+// tested upstream and by ../../contract-probes; these check them with REMORA's signed evidence.
+// ---------------------------------------------------------------------------------------------
+
+test('FED-02 a retry carrying REMORA evidence signed again, with a later valid_until, is refused as changed evidence; the original evidence recovers', async () => {
+  const c = validCase
+  const e = await env(c.now)
+  try {
+    const req = submission(c)
+    e.provider.setFault({ mode: 'drop_after_commit', count: 1 })
+    assert.equal((await e.rt.submit(req)).status, 'unknown')
+    const later = new Date(Date.parse(validEnvelope.transport_projection.valid_until) + 3_600_000).toISOString()
+    const resigned = sealEnvelope(envelopeWith(x => { x.transport_projection.valid_until = later }))
+    const r = await e.rt.submit({ ...req, evidence: { [REMORA]: resigned } })
+    assert.deepEqual(r.reasons, ['operation_evidence_changed'])
+    assert.equal(e.provider.requests, 1)
+    // The stored operation is untouched: its deadline is still the one first signed.
+    assert.equal(e.rt.store.getOperation(req.operation_id).valid_until_ms, Date.parse(validEnvelope.transport_projection.valid_until))
+    const recovered = await e.rt.submit(submission(c))
+    assert.equal(recovered.status, 'provider_confirmed', JSON.stringify(recovered))
+    assert.equal(e.provider.refunds.length, 1)
+  } finally { await e.close() }
+})
+
+test('FED-08 the runtime records the deadline REMORA signed and the digest of the exact evidence bytes it was given', async () => {
+  const c = validCase
+  const e = await env(c.now)
+  try {
+    const req = submission(c)
+    assert.equal((await e.rt.submit(req)).status, 'provider_confirmed')
+    assert.equal(e.rt.store.getOperation(req.operation_id).valid_until_ms, Date.parse(validEnvelope.transport_projection.valid_until))
+    const recorded = e.rt.provenance(req.operation_id).admissions[0].evidence.find((x: any) => x.component === REMORA)
+    const expected = 'sha256:' + createHash('sha256').update(Buffer.from(c.evidence_b64, 'base64')).digest('hex')
+    assert.equal(recorded.digest, expected)
+    assert.deepEqual(Buffer.from(e.rt.store.evidence(req.operation_id, REMORA, 'check:0')), Buffer.from(c.evidence_b64, 'base64'))
+  } finally { await e.close() }
+})
