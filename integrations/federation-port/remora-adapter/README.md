@@ -73,8 +73,8 @@ the same procedure as the other outside adapters on #177:
 It writes `remora-federation-port-reproduction.json` (`remora-federation-port-reproduction-v1`)
 and exits non-zero on any failure. CI runs the same script on every change.
 
-At `92d5078` the result is 182 of 182 federation-port tests: 44 upstream, 50 for this component,
-60 for the report-result component and 28 contract probes. `src/` is unmodified, both seals match and `tsc`
+At `92d5078` the result is 183 of 183 federation-port tests: 44 upstream, 50 for this component,
+60 for the report-result component and 29 contract probes. `src/` is unmodified, both seals match and `tsc`
 passes. The mutation check kills 102 of 107 faults here and 122 of 131 in the report-result
 component; every survivor is listed as equivalent with its reason. The REMORA acceptance
 suites are reported beside it, not inside that count. These are the producer's own tests, so

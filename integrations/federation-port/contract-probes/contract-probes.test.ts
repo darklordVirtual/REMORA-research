@@ -536,6 +536,38 @@ test('CP-F3 FINDING (section 9): an adapter\'s reason text reaches provenance un
   } finally { await env.close() }
 })
 
+test('CP-F4 FINDING (sections 4 and 7): a lost response, then an outage, then the deadline: the operation closes as failed while the refund exists, with one worker, no skew and no crash', async () => {
+  // Found by the TLA+ model formal/tla/LeaseRetry.tla (configuration pinned_outage) before it was run
+  // here. Attempt 1 reaches the provider and its response is lost: unknown, correctly. The retry
+  // cannot reach the provider: failed and retriable, correctly for that attempt. But the operation
+  // takes the later attempt's outcome, so it reads as "no side effect happened", and past the
+  // deadline section 7 closes it on exactly that premise.
+  const env = await setup()
+  let providerUp = true
+  try {
+    const T0 = new Date(Date.now() - 1000)
+    await restart(env, env.policy, () => new Date(T0.getTime() + 500))
+    const a = env.operator.issue(APPROVED_REFUND, { issuedAt: T0, ttlMs: 60_000 })
+    const req = { workflow: 'refund', operation_id: opId(), approval_id: a.approval_id, action: { tool: 'refund', args: { ...APPROVED_REFUND } }, evidence: { [APS]: a.evidence } }
+    env.provider.setFault({ mode: 'drop_after_commit', count: 1 })
+    assert.equal((await env.rt.submit(req)).status, 'unknown')
+    assert.equal(env.provider.refunds.length, 1)
+    providerUp = false
+    await env.provider.close()  // the provider is now unreachable (ECONNREFUSED)
+    const retry = await env.rt.submit(req)
+    assert.equal(retry.status, 'failed')
+    assert.equal((retry as any).reason, 'provider_unreachable')
+    await restart(env, env.policy, () => new Date(Date.parse(a.valid_until) + 1))
+    const closed = await env.rt.submit(req)
+    assert.equal(closed.status, 'failed')
+    assert.equal((closed as any).reason, 'approval_expired_before_retry')
+    const row = env.rt.store.getOperation(req.operation_id)
+    assert.equal(row.state, 'failed')
+    assert.equal(row.retriable, 0)
+    assert.deepEqual(env.rt.store.attempts(req.operation_id).map((x: any) => x.outcome), ['unknown', 'failed'])
+  } finally { if (providerUp) await env.close(); else env.rt.close() }
+})
+
 // ---- the coverage map resolves --------------------------------------------------------------
 
 test('contract-coverage.json names only tests that exist, and every probe here is in it', () => {

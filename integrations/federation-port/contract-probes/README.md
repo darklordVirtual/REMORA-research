@@ -22,7 +22,7 @@ test against the rule, not by matching reason codes.
 | probed, nothing covered it before | 6 |
 | stated limit (section 10 says it itself) | 2 |
 
-[`contract-probes.test.ts`](contract-probes.test.ts) holds 26 probes and two
+[`contract-probes.test.ts`](contract-probes.test.ts) holds 27 probes and two
 checks: the pinned revision with `src/` unmodified, and the coverage map
 against the test files actually present. A probe titled `CP-<section><letter>`
 asserts that a rule holds; a failure is a contract violation at the pinned
@@ -35,14 +35,19 @@ runtime's own `artifactDigest`. Nothing under federation-port's tree changes.
 
 ## Findings
 
-Three behaviours at `92d5078` that a reader of the contract would not expect.
-None produces a second side effect; the idempotency key holds in all three.
+Four behaviours at `92d5078` that a reader of the contract would not expect.
+None produces a second side effect; the idempotency key holds in all four.
+CP-F1 and CP-F4 are one fault reached two ways, found as such by the TLA+
+model in [`formal/tla`](../../../formal/tla/README.md): a later attempt's
+failed-and-retriable outcome overrides an earlier attempt that may have
+reached the provider.
 
 | Probe | Rule | Observed |
 |---|---|---|
 | CP-F1 | 7, lease | A confirmation from an attempt whose lease another worker already took over is stored on the attempt but not on the operation. If the later attempt failed retriably, the operation stays `failed`, the first caller is told `failed`, and after the deadline the operation is closed with `approval_expired_before_retry`. The provider performed the refund. It needs clock skew between workers, which section 10 lists as unhandled. |
 | CP-F2 | 5.5 and 7 | An attempt that ends `unknown` without having sent anything is retried after `valid_until`. The provider's first request arrives an hour after the deadline. The deadline bounds admission, not the first provider contact. |
 | CP-F3 | 9 | A claim's `reason` is stored verbatim and unbounded. An adapter that writes the action arguments into it puts them into provenance; a 100 kB reason is accepted. |
+| CP-F4 | 4 and 7 | One worker, no skew, no crash. Attempt 1 reaches the provider and its response is lost: `unknown`. The retry cannot reach the provider: `failed`, retriable. Past the deadline the operation is closed with `approval_expired_before_retry` while the refund exists. The TLA+ model found it before the probe was written. |
 
 The coverage map gives each finding's conditions, consequence and a suggested
 change. They are reported here and not yet raised upstream.
@@ -53,7 +58,9 @@ Each probe was checked against a fault in the runtime it is meant to catch.
 The fault was one single-edit change to `src/runtime` per probe, run in a
 scratch checkout and reverted. Examples: remove the version check, take the
 latest deadline instead of the earliest, drop the lease test, make a late
-confirmation final. Every probe failed on its fault. One fault was equivalent (a looser
+confirmation final. Every probe failed on its fault. CP-F4 was added later
+and was checked the other way: it fails on a runtime patched with the
+uncertainty-sticky rule the model proposes. One fault was equivalent (a looser
 `valid_until` pattern is still caught by the round-trip check) and was
 replaced by one that is not. This check was run once by hand while the probes
 were written; it is not part of `reproduce.sh`.

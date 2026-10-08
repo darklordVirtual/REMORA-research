@@ -103,6 +103,14 @@
      "conditions": "An adapter that writes payload data into reason text, by mistake or otherwise. Executor reasons and thrown error messages are cut to 120 characters but not filtered.",
      "consequence": "Section 9's no-arguments rule holds for what the runtime writes, and for adapter text only by each adapter's discipline.",
      "suggested_change": "Bound claim reasons to a short code form in normalizeCheckOutput, or state the obligation on adapters in section 9.",
+     "status": "reported_not_upstreamed"},
+    {"id": "CP-F4",
+     "probe": "CP-F4",
+     "clauses": ["4.execute_outcome", "7.after_deadline", "7.unknown_not_failed"],
+     "observed": "Attempt 1 reaches the provider and its response is lost, so the operation is unknown. The retry cannot reach the provider and honestly reports failed and retriable; the operation takes that outcome. Past the deadline the retriable failure is closed with approval_expired_before_retry. The operation ends failed, not retriable, while the provider performed the refund.",
+     "conditions": "One worker, no clock skew, no crash: a lost response followed by a provider outage before the deadline. Found by the TLA+ model formal/tla/LeaseRetry.tla (configuration pinned_outage) before the probe was written.",
+     "consequence": "The closing rule of section 7 rests on failed-and-retriable meaning that no side effect happened, but a later attempt's failure says nothing about an earlier attempt that may have reached the provider. CP-F1 is the same fault reached through clock skew.",
+     "suggested_change": "Uncertainty sticky: a failed-and-retriable outcome sets the operation to failed only if every earlier attempt also reported failed and retriable; otherwise the operation stays unknown and is retried with the same key. The TLA+ model holds under this rule with outages, crashes and clock skew; making a confirmation final alone does not.",
      "status": "reported_not_upstreamed"}
   ],
   "sdd_overlap": {

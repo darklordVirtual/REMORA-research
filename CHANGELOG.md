@@ -37,6 +37,17 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Interoperability
 
+- A TLA+ model of federation-port's operation lifecycle
+  (`formal/tla/LeaseRetry.tla`, checked by `scripts/check_tla_models.py`,
+  RF-16). Written counterexample first, it reproduces the known contract
+  finding CP-F1 and found a new one, CP-F4: a lost response followed by a
+  provider outage closes the operation as `failed` past the deadline while
+  the refund exists, with one worker, no clock skew and no crash. Contract
+  probe CP-F4 replays the model's trace on the unmodified runtime. Making a
+  confirmation final does not fix it; an "uncertainty sticky" rule holds under
+  outages, crashes and skew in the model. `reproduce.sh` now reports 183 of
+  183 (29 contract probes).
+
 - Contract probes for federation-port/v0
   (`integrations/federation-port/contract-probes`). `contract-coverage.json`
   maps 32 rules of federation-port's `spec/CONTRACT.md` to the upstream,

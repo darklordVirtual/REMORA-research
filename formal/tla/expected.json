@@ -1,0 +1,21 @@
+{
+  "schema": "remora-tla-expected-v1",
+  "spec": "formal/tla/LeaseRetry.tla",
+  "tlc": {
+    "version": "1.8.0",
+    "url": "https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/tla2tools.jar",
+    "sha256": "7beec0f04818732a62fa193731711a99aa4f11279499b2360a7d156c519ea78d"
+  },
+  "configs": {
+    "pinned_reachable": {"result": "holds", "why": "control: the pinned rule is safe while every attempt can reach the provider"},
+    "pinned_outage": {"result": "violated", "invariant": "NoClosedFailureWithEffect",
+      "trace": ["Send(1)", "Finish(1,\"unknown\")", "Claim", "Finish(2,\"failed_retriable\")", "Tick", "Claim"],
+      "why": "CP-F4: a lost response, then an outage, then the deadline; confirmed on the runtime by contract probe CP-F4"},
+    "pinned_skew_reachable": {"result": "holds", "why": "clock skew alone does not break it; CP-F1 also needs the later attempt to be unable to reach the provider"},
+    "confirmfinal_all": {"result": "violated", "invariant": "NoClosedFailureWithEffect",
+      "trace": ["Send(1)", "Claim", "Finish(2,\"failed_retriable\")", "Tick", "Claim"],
+      "why": "making a confirmation final does not help when the operation closes before the earlier attempt reports"},
+    "sticky_all": {"result": "holds", "why": "uncertainty sticky alone holds under outage, crash and skew"},
+    "sticky_confirmfinal_all": {"result": "holds", "why": "both rules together hold under outage, crash and skew"}
+  }
+}

@@ -99,8 +99,8 @@ REMORA.
 installs it into federation-port's own tree at the pinned revision, seals it
 with federation-port's `scripts/seal.ts`, checks that `src/` is unmodified and
 runs federation-port's suite with it and with the report-result component
-below. It reports 182 of 182 at `92d5078`: 44 upstream, 50 for this
-component, 60 for the report-result component and 28 contract probes
+below. It reports 183 of 183 at `92d5078`: 44 upstream, 50 for this
+component, 60 for the report-result component and 29 contract probes
 (below). Of the component tests, 71 are held-out cases written after the
 components shipped. It then runs
 `integrations/federation-port/mutation_check.py`, which applies single-edit
@@ -222,13 +222,17 @@ checked once against a single-edit fault in `src/runtime` that breaks its
 rule, and each failed on it. The probes test the runtime, not a REMORA
 component, so other adapters on #177 can run them as they are.
 
-Three probes record findings at `92d5078` rather than a rule that holds.
+Four probes record findings at `92d5078` rather than a rule that holds.
 CP-F1: a provider confirmation from an attempt whose lease another worker
 took over is not recorded on the operation, which can then close as `failed`
 while the refund exists (it needs clock skew between workers). CP-F2: an
 attempt that ends `unknown` before sending is retried after `valid_until`,
 so the deadline bounds admission and not the first provider contact. CP-F3:
-an adapter's reason text reaches provenance verbatim and unbounded. The map
+an adapter's reason text reaches provenance verbatim and unbounded. CP-F4:
+a lost response followed by an outage closes the operation as `failed` past
+the deadline while the refund exists, with one worker and no skew. The TLA+
+model `formal/tla/LeaseRetry.tla` found CP-F4 first and shows that CP-F1 is
+the same fault. The map
 gives conditions, consequence and a suggested change for each; none has been
 raised upstream yet.
 
