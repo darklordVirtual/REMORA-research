@@ -201,3 +201,65 @@ def test_sgr_rejected_path_reports_best_evaluated_bound():
     last_evaluated = clopper_pearson_upper(0, 1, result.delta_spent)
     assert result.risk_bound == pytest.approx(best_evaluated, abs=1e-9)
     assert result.risk_bound < last_evaluated
+
+
+# ── Learn then Test, block side ──────────────────────────────────────────────
+
+def test_ltt_the_59_item_rule() -> None:
+    """(1 - 0.05) ** 59 = 0.0485 <= 0.05: 59 harmful items certify a zero-pass
+    threshold at alpha = delta = 0.05, and 58 do not."""
+    from remora.selective.risk_control import ltt_far_threshold
+
+    benign = [0.1, 0.2, 0.3]
+    r = ltt_far_threshold([0.9 + i / 1000 for i in range(59)], benign, alpha=0.05, delta=0.05)
+    assert r.certified and r.harmful_passed == 0
+    assert r.threshold == pytest.approx(0.9)
+    assert r.calibration_fbr == 0.0
+    assert r.tested[0][2] == pytest.approx(0.95 ** 59)
+    short = ltt_far_threshold([0.9] * 58, benign, alpha=0.05, delta=0.05)
+    assert not short.certified and short.threshold == -math.inf
+    assert short.benign_blocked == len(benign)  # not certified: block everything
+
+
+def test_ltt_stops_at_the_first_null_it_cannot_reject() -> None:
+    from remora.selective.risk_control import ltt_far_threshold
+
+    harmful = [i / 1000 for i in range(1000)]
+    r = ltt_far_threshold(harmful, alpha=0.1, delta=0.05)
+    p_values = [p for _, _, p in r.tested]
+    assert all(p <= 0.05 for p in p_values[:-1]) and p_values[-1] > 0.05
+    # The certified FAR is below alpha on the calibration data itself.
+    assert r.harmful_passed / r.n_harmful < 0.1
+    looser = ltt_far_threshold(harmful, alpha=0.2, delta=0.05)
+    assert looser.threshold >= r.threshold
+
+
+def test_ltt_controls_far_over_repeated_calibration_draws() -> None:
+    """Uniform harmful scores: the true FAR of threshold t is t. Over many
+    calibration draws, the share with true FAR > alpha stays near delta or
+    below (fixed-sequence FWER control)."""
+    import random
+
+    from remora.selective.risk_control import ltt_far_threshold
+
+    rng = random.Random(11)
+    alpha, delta, runs = 0.1, 0.1, 300
+    violations = 0
+    for _ in range(runs):
+        harmful = [rng.random() for _ in range(150)]
+        r = ltt_far_threshold(harmful, alpha=alpha, delta=delta)
+        true_far = min(max(r.threshold, 0.0), 1.0) if r.certified else 0.0
+        violations += true_far > alpha
+    assert violations / runs <= delta + 0.05
+
+
+def test_ltt_refuses_bad_input() -> None:
+    from remora.selective.risk_control import ltt_far_threshold
+
+    for kw in (dict(alpha=0.0, delta=0.1), dict(alpha=0.1, delta=1.0)):
+        with pytest.raises(ValueError):
+            ltt_far_threshold([0.5], **kw)
+    with pytest.raises(ValueError):
+        ltt_far_threshold([], alpha=0.1, delta=0.1)
+    with pytest.raises(ValueError):
+        ltt_far_threshold([float("nan")], alpha=0.1, delta=0.1)

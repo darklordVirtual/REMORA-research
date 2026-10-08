@@ -1161,6 +1161,57 @@ entries:
 # NOT implement as controls. Recording them here makes the scope boundary
 # explicit and auditable: "not mapped" is a documented decision, not an oversight.
 # These are honest boundaries, not roadmap promises.
+  - id: RES-022
+    title: "Harmful-versus-benign discrimination at a fixed false-block budget, with a Learn-then-Test block threshold"
+    source:
+      citation: "Angelopoulos, A. N., Bates, S., Candès, E. J., Jordan, M. I., & Lei, L. (2021). Learn then Test: Calibrating predictive algorithms to achieve risk control. arXiv:2110.01052."
+      sections:
+        - "Fixed-sequence testing of nulls FAR(t) > alpha with exact binomial p-values (remora/selective/risk_control.py, ltt_far_threshold)"
+      builds_on:
+        - "DeLong, E. R., DeLong, D. M., & Clarke-Pearson, D. L. (1988). Comparing the areas under two or more correlated ROC curves. Biometrics 44(3):837-845."
+        - "McClish, D. K. (1989). Analyzing a portion of the ROC curve. Medical Decision Making 9(3):190-195."
+        - "McNemar, Q. (1947). Note on the sampling error of the difference between correlated proportions. Psychometrika 12(2):153-157."
+        - "Andriushchenko, M., et al. (2024). AgentHarm. arXiv:2410.09024 (paired harmful and benign variants)."
+        - "Greenblatt, R., et al. (2023). AI Control. arXiv:2312.06942 (a monitor reported at a fixed false-positive budget)."
+    concepts:
+      - discrimination_apart_from_blocking_floor
+      - far_at_fixed_fbr
+      - partial_auroc_low_fbr
+      - paired_twin_decomposition
+      - certified_block_threshold
+    controls:
+      - discrimination_diagnostic
+      - ltt_block_threshold
+    code:
+      - remora/selective/discrimination.py
+      - remora/selective/risk_control.py
+      - scripts/agentharm_discrimination_diagnostic.py
+    tests:
+      - tests/test_selective_discrimination.py
+      - tests/test_risk_control.py
+    evidence: >-
+      Library code with tests; the only application is the POST-HOC
+      diagnostic over the two spent AgentHarm artifacts
+      (results/agentharm_discrimination_diagnostic_v1.json,
+      NEGATIVE_RESULTS.md §80), which shows the recorded decisions tell no
+      twin pair apart while the oracle alone tells 29 of 44 apart. The LTT
+      threshold's FAR guarantee is checked by simulation in the tests, not
+      on any REMORA data.
+    maturity: library_only
+    scope_boundary: >-
+      Measurement and threshold certification only; nothing is wired into a
+      decision path. The LTT guarantee bounds the false-accept rate on
+      harmful items exchangeable with the calibration set, at probability
+      1 - delta, and says nothing about a shift between calibration and use.
+      No REMORA discrimination number is claimed; that needs a graded
+      evidence channel and fresh paired data under a pre-registered plan.
+    related_work_section: "docs/09-related-work.md §2"
+    in_code_citation: true
+    citation_anchor: "Angelopoulos"
+    compendium_refs:
+      - ltt-2021
+      - agentharm-2024
+
 landscape:
   source: "docs/researchpapers/kompendium_ai_assurance_3utgave.md"
   source_status: "local-only working document (gitignored, not published; ~201 works, 2. edition figure). compendium_refs are validated against this file when present locally and skipped in CI where it is absent."

@@ -1,6 +1,6 @@
 # Author: Stian Skogbrott
 # SPDX-License-Identifier: BUSL-1.1
-"""Finite-sample selective risk control: SGR, CRC and LTT-style selection.
+"""Finite-sample selective risk control: SGR, CRC and Learn-then-Test.
 
 Implements the certification procedures surveyed in
 docs/research/method_alternatives_2026_07.md as LIBRARY code with tests.
@@ -30,6 +30,13 @@ Procedures
     (errors-among-accepted counted over ALL items) of a fresh
     exchangeable test point — not the conditional accuracy among accepted,
     and not any statement about out-of-distribution data.
+
+``ltt_far_threshold``
+    Learn then Test (Angelopoulos, Bates, Candes, Jordan, Lei, 2021) with
+    fixed-sequence testing, on the BLOCK side: the highest score threshold
+    whose false-accept rate on harmful actions is certified at most
+    ``alpha`` with probability ``1 - delta``. Benign scores only report the
+    false-block rate that threshold costs; they do not enter the guarantee.
 
 Limitations (stated so callers cannot over-claim):
 - Both guarantees assume exchangeability between calibration and test
@@ -263,3 +270,103 @@ def crc_threshold(
         risk_bound=criterion,
         target=alpha,
     )
+
+
+@dataclass(frozen=True)
+class LTTBlockResult:
+    """A block threshold certified by Learn-then-Test fixed-sequence testing.
+
+    ``certified`` False means no threshold passed its test: block everything
+    (``threshold`` is ``-inf``), the safe and uninformative answer.
+    ``far_bound_holds_with_prob`` is ``1 - delta``: the probability, over the
+    draw of the harmful calibration set, that the returned threshold's true
+    false-accept rate is at most ``alpha``.
+    """
+
+    certified: bool
+    threshold: float
+    alpha: float
+    delta: float
+    n_harmful: int
+    harmful_passed: int
+    n_benign: int
+    benign_blocked: int
+    tested: tuple[tuple[float, int, float], ...]  # (threshold, harmful passed, p-value)
+
+    @property
+    def calibration_fbr(self) -> float | None:
+        return self.benign_blocked / self.n_benign if self.n_benign else None
+
+    @property
+    def far_bound_holds_with_prob(self) -> float:
+        return 1.0 - self.delta
+
+
+def _binom_cdf(k: int, n: int, p: float) -> float:
+    """P(X <= k) for X ~ Binomial(n, p), exact."""
+    if k < 0:
+        return 0.0
+    if k >= n:
+        return 1.0
+    return sum(math.comb(n, i) * p ** i * (1 - p) ** (n - i) for i in range(k + 1))
+
+
+def ltt_far_threshold(
+    harmful_scores: Sequence[float],
+    benign_scores: Sequence[float] = (),
+    *,
+    alpha: float,
+    delta: float,
+) -> LTTBlockResult:
+    """Highest block threshold whose false-accept rate is certified at most ``alpha``.
+
+    Learn then Test (Angelopoulos, Bates, Candès, Jordan, Lei, 2021,
+    arXiv 2110.01052) with fixed-sequence testing. A harmful action is
+    blocked when ``score >= threshold`` and passes otherwise. For each
+    candidate threshold ``t`` the null hypothesis is ``FAR(t) > alpha``; its
+    exact p-value is ``P(Binomial(n, alpha) <= k_t)``, where ``k_t`` counts
+    calibration harmful scores below ``t``. FAR rises with ``t``, so the
+    candidates are tested from the safest (lowest) upward and testing stops at
+    the first null that cannot be rejected at level ``delta``. Fixed-sequence
+    testing controls the family-wise error at ``delta`` without a multiplicity
+    correction, so with probability at least ``1 - delta`` over exchangeable
+    calibration data every certified threshold, and so the returned highest
+    one, has true FAR at most ``alpha``.
+
+    Benign scores only report the false-block rate the chosen threshold costs
+    on the calibration data; they play no part in the guarantee. The
+    guarantee is about the harmful items' score distribution, assumes test
+    items are exchangeable with calibration items, and says nothing about a
+    shift between them. With few harmful items nothing certifies: ``n`` must
+    satisfy ``(1 - alpha) ** n <= delta`` for even a zero-pass threshold
+    (59 items at alpha = delta = 0.05).
+    """
+    if not 0 < alpha < 1 or not 0 < delta < 1:
+        raise ValueError("alpha and delta must lie in (0, 1)")
+    if not harmful_scores:
+        raise ValueError("the harmful calibration set must be non-empty")
+    for s in (*harmful_scores, *benign_scores):
+        if not isinstance(s, (int, float)) or isinstance(s, bool) or not math.isfinite(s):
+            raise ValueError(f"scores must be finite numbers, got {s!r}")
+    n = len(harmful_scores)
+    # A threshold at or below the lowest score blocks every harmful item; the
+    # candidates above it are the distinct scores, each the lowest threshold
+    # that lets one more score value through.
+    candidates = sorted(set(harmful_scores) | set(benign_scores))
+    candidates.append(math.inf)
+    tested: list[tuple[float, int, float]] = []
+    best = -math.inf
+    for t in candidates:
+        k = sum(s < t for s in harmful_scores)
+        p = _binom_cdf(k, n, alpha)
+        tested.append((t, k, p))
+        if p > delta:
+            break
+        best = t
+    certified = best != -math.inf
+    passed = sum(s < best for s in harmful_scores) if certified else 0
+    blocked = sum(s >= best for s in benign_scores) if certified else len(benign_scores)
+    return LTTBlockResult(
+        certified=certified, threshold=best, alpha=alpha, delta=delta,
+        n_harmful=n, harmful_passed=passed, n_benign=len(benign_scores),
+        benign_blocked=blocked, tested=tuple(tested))
