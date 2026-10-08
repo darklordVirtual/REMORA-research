@@ -305,6 +305,35 @@ in a live check. The decision stayed VERIFY, and the view's first focus was
 `confirm_scope`. That is one call, shown to illustrate the view, and is not a
 measurement.
 
+## Three roles, and the narrowing guard
+
+Jev appears in three roles, and they are kept apart:
+
+| Role | Where | What it may do |
+|---|---|---|
+| provider adapter | `typesafe.py`, `cloudflare.py` | ask typed questions and return typed answers; never authoritative |
+| semantic shadow | `servers/semantic_shadow.py`, after the decision is durable | observe and calibrate; the enforcing decision is unchanged |
+| narrowing guard | `remora/decision_providers/narrowing.py`, library only | raise `adversarial_detected` and nothing else |
+
+Semantic evidence and execution authority are separate namespaces. No
+semantic-provider result is evidence of authority.
+
+`SemanticNarrowingGuard` is the contract a future pre-policy guard has to use
+(issue #753). It asks only the injection questions of a pinned question set
+and writes only through `project_narrowing`, so its one possible effect on an
+observation is a narrowing flag going from false to true. It never writes a
+favourable signal. Activation is per tenant. It is refused unless the execution
+profile is on, the model is a pinned version, the question set is allowed for
+a guard, and the profile is calibrated. A calibrated profile
+names its study, corpus hash, language and vertical, and was made with the same
+model, question set and thresholds. A provider that fails, times out, reports
+another model or question set, or answers outside the declared questions gives
+`provider_unavailable`. A result is never clean: not narrowing is not evidence
+that a call is safe. Nothing in `servers/`, `remora/execution/`,
+`remora/policy/` or `remora/enforcement/` imports the guard, and a test pins
+that. Wiring it before a live decision waits for a calibrated profile
+(NEGATIVE_RESULTS.md §74).
+
 ## Per-vertical profiles
 
 One deployment can serve several verticals and languages. Setting

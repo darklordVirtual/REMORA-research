@@ -118,8 +118,11 @@ loop: a bounded lookup answers, and the whole router re-runs on a fresh
 observation rather than patching the old one.
 
 The Jev edges are dotted for the same reason, and they are bounded twice.
-`remora/decision_providers/enrich.py` is the only place a provider answer
-meets an observation. It can write a favourable model signal, which the
+`remora/decision_providers/enrich.py` is the only place on a running path
+where a provider answer meets an observation. The narrowing guard in
+`remora/decision_providers/narrowing.py` is a second, smaller contract that
+can only raise `adversarial_detected`; it is library code that nothing live
+calls (issue #753). It can write a favourable model signal, which the
 execution profile stops at VERIFY, or raise `adversarial_detected`, which the
 floor turns into ESCALATE. It cannot write a deployment fact, lower a flag or
 name a route. On the enforcing `/v1/execution` path Jev runs in **shadow
