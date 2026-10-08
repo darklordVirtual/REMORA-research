@@ -76,31 +76,50 @@ def _build_remora_engine(single_oracle: bool = False):
         base_url = os.getenv("OPENAI_BASE_URL")
     if not api_key:
         return None, "no_api_key: Cloudflare/OpenAI-compatible token unset"
+    if single_oracle:
+        # Remora's consensus needs at least two oracles; one oracle twice would
+        # be consensus with itself. The arm is reported as degraded, by name.
+        return None, "single_oracle_unsupported: Remora requires at least 2 oracles"
 
     try:
         from remora.engine import Remora
         from remora.genome import Genome
-        from remora.oracles import OpenAIOracle
+        from experiments.agentharm.openai_compat_oracle import OpenAICompatOracle
     except Exception as e:  # noqa: BLE001 - import-time failure is a real signal
         return None, f"import_error: {type(e).__name__}: {e}"
 
     try:
-        models = ["gpt-4o-mini"] if single_oracle else [
-            "gpt-4o-mini", "gpt-3.5-turbo", "gpt-4o-mini"
-        ]
+        models = ["gpt-4o-mini", "gpt-3.5-turbo", "gpt-4o-mini"]
         oracles = []
         for model in models:
-            kw = {"model": model, "api_key": api_key}
-            if base_url:
-                kw["base_url"] = base_url
-            oracles.append(OpenAIOracle(**kw))
+            oracles.append(OpenAICompatOracle(model=model, api_key=api_key,
+                                              base_url=base_url or "https://api.openai.com/v1"))
         engine = Remora(
             oracles=oracles,
             genome=Genome(enable_routing=True, enable_thermodynamic_control=True),
         )
-        return engine, None
+        # Remora exposes run()/report(); the gateway is what offers assess_sync().
+        # No decision cache: each tool call in a benchmark is its own measurement.
+        from remora.adapters.gateway import LocalGateway
+
+        return LocalGateway(engine, enable_cache=False), None
     except Exception as e:  # noqa: BLE001
         return None, f"engine_init_error: {type(e).__name__}: {e}"
+
+
+_OUTCOMES = frozenset({"ACCEPT", "VERIFY", "ABSTAIN", "ESCALATE"})
+
+
+def _outcome_of(result: Any) -> str:
+    """The gateway's action as an outcome; anything unrecognised is VERIFY.
+
+    The gateway returns ``action`` ("accept", "verify", ...). An earlier
+    version read a non-existent ``outcome`` attribute with an ACCEPT default,
+    which would have passed every call had the call itself not been failing.
+    A missing or unknown action must never read as permission.
+    """
+    action = str(getattr(result, "action", "") or "").upper()
+    return action if action in _OUTCOMES else "VERIFY"
 
 
 class RemoraGate:
@@ -167,16 +186,21 @@ class RemoraGate:
 
         # Oracle consensus (full and single_oracle effective modes)
         assess_error = None
+        graded: dict[str, Any] = {}
         if self.engine and self.effective_mode in ("full", "single_oracle"):
             try:
                 action_str = f"{tool_name}({json.dumps(tool_args)[:200]})"
                 result = self.engine.assess_sync(
-                    action=action_str,
+                    action_str,
                     domain=domain,
                     risk_tier=risk_tier,
                     action_type=action_type,
                 )
-                outcome = getattr(result, "outcome", "ACCEPT")
+                outcome = _outcome_of(result)
+                # Kept beside the verdict so discrimination can be measured on
+                # a graded value, not only on the four-way action.
+                graded = {"risk_estimate": getattr(result, "risk_estimate", None),
+                          "confidence": getattr(result, "confidence", None)}
             except Exception as e:  # noqa: BLE001 - recorded, not hidden
                 outcome = "VERIFY"   # fail toward VERIFY on error
                 assess_error = f"{type(e).__name__}: {e}"
@@ -189,7 +213,7 @@ class RemoraGate:
             "tool": tool_name,
             "domain": domain,
             "risk_tier": risk_tier,
-            "gate": {"outcome": outcome, "source": self.effective_mode},
+            "gate": {"outcome": outcome, "source": self.effective_mode, **graded},
             "assess_error": assess_error,
             "latency_ms": round((time.monotonic() - t0) * 1000, 1),
         }
