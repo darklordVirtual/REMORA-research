@@ -319,3 +319,72 @@ def test_lf_hash_ignores_crlf(tmp_path):
     lf.write_bytes(b"x\ny\n")
     crlf.write_bytes(b"x\r\ny\r\n")
     assert vrp.sha256_lf(lf) == vrp.sha256_lf(crlf) == hashlib.sha256(b"x\ny\n").hexdigest()
+
+
+# ── --refresh-lock: one command after a dependency change ────────────────────
+
+def _git(root: Path, *args: str) -> None:
+    import subprocess
+
+    subprocess.run(["git", "-c", "user.name=t", "-c", "user.email=t@example.invalid",
+                    "-c", "commit.gpgsign=false", *args],
+                   cwd=root, check=True, capture_output=True)
+
+
+@pytest.fixture()
+def git_copy_root(copy_root: Path) -> Path:
+    _git(copy_root, "init", "-q")
+    _git(copy_root, "add", "-A")
+    _git(copy_root, "commit", "-q", "-m", "pinned")
+    return copy_root
+
+
+def _bump_lock(root: Path) -> None:
+    lock = root / "requirements-lock.txt"
+    lock.write_text(lock.read_text(encoding="utf-8") + "extra==1.0\n", encoding="utf-8")
+
+
+def test_refresh_lock_pins_the_new_lock_and_keeps_the_old_pin(git_copy_root, capsys):
+    root = git_copy_root
+    before = json.loads((root / vrp.PACK).read_text(encoding="utf-8"))["environment"]
+    _bump_lock(root)
+    assert vrp.main(["--refresh-lock", "--reason", "extra 1.0 (#1)", "--root", str(root)]) == 0
+    assert "[PASS] replication pack" in capsys.readouterr().out
+    env = json.loads((root / vrp.PACK).read_text(encoding="utf-8"))["environment"]
+    assert env["requirements_lock"]["sha256_lf"] == vrp.sha256_lf(root / "requirements-lock.txt")
+    head = env["requirements_lock_history"][0]
+    assert head["sha256_lf"] == before["requirements_lock"]["sha256_lf"]
+    assert head["reason"] == "extra 1.0 (#1)" and len(head["git_revision"]) == 40
+    assert env["requirements_lock_history"][1:] == before["requirements_lock_history"]
+
+
+def test_refresh_lock_is_a_no_op_when_the_lock_is_unchanged(git_copy_root, capsys):
+    pack = (git_copy_root / vrp.PACK).read_bytes()
+    assert vrp.main(["--refresh-lock", "--reason", "r", "--root", str(git_copy_root)]) == 0
+    assert "nothing to pin" in capsys.readouterr().out
+    assert (git_copy_root / vrp.PACK).read_bytes() == pack
+
+
+def test_refresh_lock_needs_a_reason(git_copy_root):
+    _bump_lock(git_copy_root)
+    pack = (git_copy_root / vrp.PACK).read_bytes()
+    assert vrp.main(["--refresh-lock", "--root", str(git_copy_root)]) == 1
+    assert (git_copy_root / vrp.PACK).read_bytes() == pack
+
+
+def test_refresh_lock_refuses_an_old_pin_no_commit_matches(git_copy_root):
+    root = git_copy_root
+    pack = json.loads((root / vrp.PACK).read_text(encoding="utf-8"))
+    pack["environment"]["requirements_lock"]["sha256_lf"] = "0" * 64
+    _bump_lock(root)
+    with pytest.raises(vrp.PackError, match="cannot be placed in history"):
+        vrp.refresh_lock(pack, root, "r")
+
+
+def test_refreshing_writes_the_pack_byte_for_byte_in_its_own_format(git_copy_root):
+    root = git_copy_root
+    _bump_lock(root)
+    vrp.main(["--refresh-lock", "--reason", "r", "--root", str(root)])
+    text = (root / vrp.PACK).read_text(encoding="utf-8")
+    assert text == json.dumps(json.loads(text), indent=2) + "\n"
+    assert "\r\n" not in (root / vrp.PACK).read_bytes().decode("utf-8")
