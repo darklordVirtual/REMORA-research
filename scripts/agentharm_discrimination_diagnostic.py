@@ -116,8 +116,21 @@ def trimode() -> dict[str, Any]:
     }
 
 
+def _rounded(v: Any) -> Any:
+    """Round every float to 10 decimals. Python 3.12 made ``sum`` of floats
+    compensated, so the last bits of a DeLong variance differ between 3.11 and
+    later; the committed artifact must not depend on them."""
+    if isinstance(v, float):
+        return round(v, 10)
+    if isinstance(v, dict):
+        return {k: _rounded(x) for k, x in v.items()}
+    if isinstance(v, (list, tuple)):
+        return [_rounded(x) for x in v]
+    return v
+
+
 def build() -> dict[str, Any]:
-    return {
+    return _rounded({
         "schema": "remora-agentharm-discrimination-diagnostic-v1",
         "status": "POST-HOC / DIAGNOSTIC ONLY",
         "caveats": [
@@ -128,7 +141,7 @@ def build() -> dict[str, Any]:
         ],
         "claim_002": claim_002(),
         "trimode_n88": trimode(),
-    }
+    })
 
 
 def main() -> int:
