@@ -21,6 +21,10 @@
 (*   Outages            TRUE lets an attempt fail to reach the provider    *)
 (*                      and say so (failed and retriable, as the simulator *)
 (*                      executor does on ECONNREFUSED).                     *)
+(*   ReadOnlyAfterDeadline  TRUE: past the deadline nothing is dispatched; *)
+(*                      an unknown operation, or one whose lease expired,  *)
+(*                      stays unknown for reconciliation (the rule asked   *)
+(*                      for in review of aeoess/federation-port#1).        *)
 (*   Crashes            TRUE lets a worker die inside execute() without    *)
 (*                      reporting; its lease then expires.                 *)
 (*   UncertaintySticky  TRUE: a later attempt's failed-and-retriable sets  *)
@@ -35,7 +39,8 @@
 (***************************************************************************)
 EXTENDS Naturals, FiniteSets
 
-CONSTANTS ConfirmationFinal, ClockSkew, UncertaintySticky, Crashes, Outages, MaxAttempts
+CONSTANTS ConfirmationFinal, ClockSkew, UncertaintySticky, Crashes, Outages,
+          ReadOnlyAfterDeadline, MaxAttempts
 
 Outcomes == {"provider_confirmed", "failed_retriable", "unknown"}
 
@@ -48,21 +53,22 @@ VARIABLES
     sent,        \* attempts whose request reached the provider
     refunds,     \* refunds the provider performed (idempotent: 0 or 1)
     late,        \* the admission deadline has passed
-    clean        \* attempts that reported failed-and-retriable (never sent)
+    clean,       \* attempts that reported failed-and-retriable (never sent)
+    lateClaimed  \* attempts claimed after the deadline had passed
 
-vars == <<state, retriable, closed, attempts, running, sent, refunds, late, clean>>
+vars == <<state, retriable, closed, attempts, running, sent, refunds, late, clean, lateClaimed>>
 
 Init ==
     /\ state = "dispatched" /\ retriable = FALSE /\ closed = FALSE
     /\ attempts = 1 /\ running = {1} /\ sent = {} /\ refunds = 0
-    /\ late = FALSE /\ clean = {}
+    /\ late = FALSE /\ clean = {} /\ lateClaimed = {}
 
 \* A running attempt's request reaches the provider.
 Send(a) ==
     /\ a \in running /\ a \notin sent
     /\ sent' = sent \cup {a}
     /\ refunds' = 1
-    /\ UNCHANGED <<state, retriable, closed, attempts, running, late, clean>>
+    /\ UNCHANGED <<state, retriable, closed, attempts, running, late, clean, lateClaimed>>
 
 \* The outcomes an attempt can honestly report. If its request got through,
 \* confirmed, or unknown when the response was lost. If it never reached the
@@ -88,13 +94,13 @@ Finish(a, o) ==
                         ELSE o
             /\ retriable' = (o # "provider_confirmed")
        ELSE UNCHANGED <<state, retriable>>
-    /\ UNCHANGED <<closed, attempts, sent, refunds, late>>
+    /\ UNCHANGED <<closed, attempts, sent, refunds, late, lateClaimed>>
 
 \* A worker dies inside execute(): its attempt never reports.
 Crash(a) ==
     /\ Crashes /\ a \in running
     /\ running' = running \ {a}
-    /\ UNCHANGED <<state, retriable, closed, attempts, sent, refunds, late, clean>>
+    /\ UNCHANGED <<state, retriable, closed, attempts, sent, refunds, late, clean, lateClaimed>>
 
 LeaseSeenExpired == running = {} \/ ClockSkew
 
@@ -107,14 +113,19 @@ Claim ==
     /\ IF state = "failed" /\ late
        THEN \* a retriable failure past the deadline is closed, not dispatched
             /\ closed' = TRUE /\ retriable' = FALSE
-            /\ UNCHANGED <<state, attempts, running, sent, refunds, late, clean>>
+            /\ UNCHANGED <<state, attempts, running, sent, refunds, late, clean, lateClaimed>>
+       ELSE IF late /\ ReadOnlyAfterDeadline
+       THEN \* past the deadline: no dispatch; the operation waits for reconciliation
+            /\ state' = "unknown"
+            /\ UNCHANGED <<retriable, closed, attempts, running, sent, refunds, late, clean, lateClaimed>>
        ELSE /\ attempts' = attempts + 1
             /\ running' = running \cup {attempts + 1}
             /\ state' = "dispatched"
+            /\ lateClaimed' = IF late THEN lateClaimed \cup {attempts + 1} ELSE lateClaimed
             /\ UNCHANGED <<retriable, closed, sent, refunds, late, clean>>
 
 Tick == ~late /\ late' = TRUE
-        /\ UNCHANGED <<state, retriable, closed, attempts, running, sent, refunds, clean>>
+        /\ UNCHANGED <<state, retriable, closed, attempts, running, sent, refunds, clean, lateClaimed>>
 
 Next ==
     \/ \E a \in 1..MaxAttempts : Send(a) \/ Crash(a)
@@ -130,6 +141,7 @@ TypeOK ==
     /\ attempts \in 1..MaxAttempts
     /\ running \subseteq 1..MaxAttempts /\ sent \subseteq 1..MaxAttempts
     /\ refunds \in 0..1 /\ clean \subseteq 1..MaxAttempts
+    /\ lateClaimed \subseteq 1..MaxAttempts
 
 \* The property CP-F1 violates. Contract section 4: failed is retriable only
 \* when the provider did not perform the side effect, and the closing rule
@@ -143,4 +155,8 @@ QuiescentStateMatchesEffect ==
         \/ state = "provider_confirmed"
         \/ (state \in {"unknown", "dispatched"} /\ ~closed)
         \/ (state = "failed" /\ retriable /\ ~closed)
+
+\* The authorization expires at the deadline: no request may be dispatched after
+\* it, because a new request could be the first side effect after expiry.
+NoDispatchAfterExpiry == lateClaimed = {}
 =============================================================================

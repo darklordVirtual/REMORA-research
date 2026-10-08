@@ -22,6 +22,13 @@ of each configuration in [`tla/expected.json`](tla/expected.json):
 | `confirmfinal_all` | violated: making a confirmation final does not fix it |
 | `sticky_all` | holds: "uncertainty sticky" under outages, crashes and skew |
 | `sticky_confirmfinal_all` | holds |
+| `sticky_confirmfinal_dispatch_after_expiry` | violated: past the deadline a retry is still dispatched (`NoDispatchAfterExpiry`) |
+| `read_only_after_expiry` | holds: nothing is dispatched after the deadline, and all four invariants hold under outages, crashes and skew |
+
+The last two configurations come from review of aeoess/federation-port#1: the
+maintainer asked that an expired authorization never lead to a dispatch, with
+read-only reconciliation afterwards. The model checks that rule as the invariant
+`NoDispatchAfterExpiry`.
 
 The model was written counterexample first. It had to reproduce the known
 fault CP-F1 (found by a contract probe), and in doing so it found CP-F4, which
