@@ -34,6 +34,11 @@
 #     single named source cited in code; the attribution lives in the narrative
 #     companion docs/09-related-work.md, not in a code docstring.
 #
+# Proposed mathematical assurance is tracked by RF-16 and
+# docs/design/formal-mathematical-assurance-v1.md, NOT by an invented RES entry.
+# Matrix promotion requires actual Lean proof files, executable refinement tests
+# and bounded artifacts; MODEL_PROVEN does not mean deployed binary verified.
+#
 # Scope: this matrix maps the research lines REMORA actually implements, with
 # code + tests on disk. It is deliberately NOT a map of the entire literature
 # landscape (that broader catalogue is a separate local working document);
