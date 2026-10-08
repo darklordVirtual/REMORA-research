@@ -9,10 +9,12 @@
 # their tests run together. REMORA's own acceptance suites (fixtures,
 # Federation Bridge, report-specific selection) run separately and are reported separately.
 #
-#   integrations/federation-port/remora-adapter/reproduce.sh [--skip-python]
+#   integrations/federation-port/remora-adapter/reproduce.sh [--skip-python] [--skip-mutation]
 #
 # Needs git, Node >= 24 and, unless --skip-python, a Python with REMORA's dev dependencies
-# (pytest, cryptography, pyyaml, jsonschema); PYTHON selects it (default python3).
+# (pytest, cryptography, pyyaml, jsonschema); PYTHON selects it (default python3). Unless
+# --skip-mutation, ../mutation_check.py then applies single-edit faults to each component and
+# fails if one survives its tests without a listed justification (a corpus gap, not a defect).
 # Writes a machine-readable result to $REMORA_REPRODUCE_OUT (default
 # ./remora-federation-port-reproduction.json) and exits non-zero on any failure.
 set -euo pipefail
@@ -25,8 +27,14 @@ REPORT_HERE="$(cd "$HERE/../remora-report-result" && pwd)"
 REPO="$(cd "$HERE/../../.." && pwd)"
 OUT="${REMORA_REPRODUCE_OUT:-$PWD/remora-federation-port-reproduction.json}"
 PYTHON="${PYTHON:-python3}"
-SKIP_PYTHON=0
-[ "${1:-}" = "--skip-python" ] && SKIP_PYTHON=1
+SKIP_PYTHON=0; SKIP_MUTATION=0
+for arg in "$@"; do
+  case "$arg" in
+    --skip-python) SKIP_PYTHON=1 ;;
+    --skip-mutation) SKIP_MUTATION=1 ;;
+    *) echo "unknown option: $arg" >&2; exit 2 ;;
+  esac
+done
 
 node -e 'process.exit(+process.versions.node.split(".")[0] >= 24 ? 0 : 1)' \
   || { echo "federation-port needs Node >= 24 (node:sqlite)" >&2; exit 2; }
@@ -112,6 +120,11 @@ if [ "$SKIP_PYTHON" = 0 ]; then
       console.log(a("tests"), a("failures")+a("errors"), a("skipped"))' "$W/py.xml")
   fi
 fi
+MUT_STATE=not_evaluated; MUT_OUT="$W/mutation.json"
+if [ "$SKIP_PYTHON" = 0 ] && [ "$SKIP_MUTATION" = 0 ]; then
+  step "mutation check: single-edit faults against each component's tests (corpus adequacy)"
+  if "$PYTHON" "$HERE/../mutation_check.py" --out "$MUT_OUT"; then MUT_STATE=pass; else MUT_STATE=fail; STATUS=1; fi
+fi
 [ "$SEAL_OK" = true ] && [ "$CORE_CLEAN" = true ] || STATUS=1
 
 node -e '
@@ -119,7 +132,12 @@ node -e '
   const f = require("fs"), n = x => Number(x || 0)
   const tapCounts = p => { const t = f.readFileSync(p, "utf8"), g = k => n((t.match(new RegExp(`^# ${k} (\\d+)$`, "m")) || [])[1])
     return { tests: g("tests"), pass: g("pass"), fail: g("fail"), skipped: g("skipped"), todo: g("todo"), cancelled: g("cancelled") } }
-  const [w, pin, remora, dirty, seal, sealed, pinned, rSealed, rPinned, core, allOk, upOk, raOk, rrOk, tsc, fx, py, pyT, pyF, pyS, status] = v
+  const [w, pin, remora, dirty, seal, sealed, pinned, rSealed, rPinned, core, allOk, upOk, raOk, rrOk, tsc, fx, py, pyT, pyF, pyS, mut, mutOut, status] = v
+  const mutation = f.existsSync(mutOut) ? (() => { const m = JSON.parse(f.readFileSync(mutOut, "utf8"))
+    return { state: mut, components: m.components.map(c => ({ component: c.component, mutants: c.mutants, killed: c.killed,
+      crashed: c.crashed, survived: c.survived, equivalent_listed: c.equivalent_listed,
+      unexplained_survivors: c.unexplained_survivors.map(s => s.id), stale_equivalents: c.stale_equivalents, controls: c.controls })) } })()
+    : { state: mut, note: "run without the mutation check" }
   const all = tapCounts(w + "/all.tap"), up = tapCounts(w + "/upstream.tap"), ra = tapCounts(w + "/remora.tap")
   const rr = tapCounts(w + "/report.tap")
   const result = {
@@ -140,15 +158,17 @@ node -e '
       suites: ["tests/test_federation_report_selection.py", "tests/test_federation_bridge.py"],
       state: py, tests: n(pyT), failed: n(pyF), skipped: n(pyS),
       note: "REMORA-side suites; not part of the federation-port count" },
+    mutation_check: { ...mutation, note: "a check by the producer of its own test corpus; a survivor is a corpus gap, not an adapter defect" },
     passed: status === "0",
   }
   f.writeFileSync(out, JSON.stringify(result, null, 2) + "\n")
   console.log(`federation-port suite: ${all.pass}/${all.tests} (${up.pass}/${up.tests} upstream + ${ra.pass}/${ra.tests} REMORA adapter + ${rr.pass}/${rr.tests} REMORA report result), src unmodified: ${core}, seals match: ${seal}, tsc: ${tsc}`)
   console.log(`REMORA acceptance (separate): ${py}, ${n(pyT) - n(pyF) - n(pyS)}/${n(pyT)} passed, fixtures: ${fx}`)
+  if (mutation.components) console.log(`mutation check: ${mut}, ` + mutation.components.map(c => `${c.component.split("/")[1]} ${c.killed}/${c.mutants} killed, ${c.survived} survived (${c.equivalent_listed} equivalent)`).join("; "))
 ' "$OUT" "$W" "$PIN" "$(git -C "$REPO" rev-parse HEAD)" \
   "$([ -z "$(git -C "$REPO" status --porcelain -- integrations artifacts remora tests scripts)" ] && echo clean || echo dirty)" \
   "$SEAL_OK" "$SEALED_DIGEST" "$PINNED_DIGEST" "$REPORT_SEALED" "$REPORT_PINNED" "$CORE_CLEAN" \
   "$ALL_OK" "$UP_OK" "$RA_OK" "$RR_OK" "$TSC_OK" \
-  "$FIXTURES_STATE" "$PY_STATE" "$PY_TESTS" "$PY_FAIL" "$PY_SKIP" "$STATUS"
+  "$FIXTURES_STATE" "$PY_STATE" "$PY_TESTS" "$PY_FAIL" "$PY_SKIP" "$MUT_STATE" "$MUT_OUT" "$STATUS"
 echo "result: $OUT"
 exit "$STATUS"

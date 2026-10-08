@@ -502,6 +502,17 @@ test('held-out property: an explicit request gives the same record in every orde
                Buffer.from(y.out.evidence).toString('utf8').replace(y.record.submitted_evidence_digest, ''))
 })
 
+test('held-out: the record keeps the request as submitted, whatever shape it has', async () => {
+  const a = direct()
+  const r1 = late().results[0].evidence_b64, r2 = late().results[1].evidence_b64
+  for (const requested of [0, false, '', 'report-2', 42, [], { note: 'no id' }]) {
+    const raw = new Uint8Array(Buffer.from(JSON.stringify({ format: 'remora-report-check-v1', requested, results: [r1, r2] })))
+    const { out, record } = await checkDirect(a, raw)
+    assert.deepEqual([record.requested, record.claim.reason], [requested, 'report_selection_ambiguous'], JSON.stringify(requested))
+    JSON.parse(Buffer.from(out.evidence).toString('utf8'))  // well-formed evidence for every shape
+  }
+})
+
 test('held-out: the record names what was submitted, and the claim never carries a valid_until', async () => {
   const evidence = check({ report_id: 'report-2' }, [late().results[1].evidence_b64])
   const { out, record } = await checkDirect(direct(), evidence)

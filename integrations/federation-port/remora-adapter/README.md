@@ -61,16 +61,34 @@ the same procedure as the other outside adapters on #177:
    upstream and each REMORA file alone for the split;
 6. run `tsc` with federation-port's `tsconfig.json` over the component and its tests;
 7. separately, check REMORA's fixtures against the code and run REMORA's acceptance suites
-   (`tests/test_federation_report_selection.py`, `tests/test_federation_bridge.py`).
+   (`tests/test_federation_report_selection.py`, `tests/test_federation_bridge.py`);
+8. unless `--skip-mutation`, run [`../mutation_check.py`](../mutation_check.py): single-edit
+   faults in each component's `adapter.ts` (comparison flips, guard removal, status flips,
+   index and constant shifts), each resealed and re-signed into the fixtures, run against that
+   component's tests. A fault that survives without an entry in the component's
+   `mutation-equivalents.json` fails the run, and so does a listed entry that no longer
+   survives.
 
 It writes `remora-federation-port-reproduction.json` (`remora-federation-port-reproduction-v1`)
 and exits non-zero on any failure. CI runs the same script on every change.
 
-At `92d5078` the result is 80 of 80 federation-port tests: 44 upstream, 17 for this component
-and 19 for the report-result component. `src/` is unmodified, both seals match and `tsc`
-passes. The REMORA acceptance
+At `92d5078` the result is 152 of 152 federation-port tests: 44 upstream, 48 for this component
+and 60 for the report-result component. `src/` is unmodified, both seals match and `tsc`
+passes. The mutation check kills 102 of 107 faults here and 122 of 131 in the report-result
+component; every survivor is listed as equivalent with its reason. The REMORA acceptance
 suites are reported beside it, not inside that count. These are the producer's own tests, so
 a reproduction is not an independent check.
+
+The `held-out` tests in `tests/remora-adapter.test.ts` were written after the first mutation
+run, which found 34 of 107 faults surviving the 17 fixture-driven tests
+(`NEGATIVE_RESULTS.md` §78). They sign their own envelopes with the published test seed and
+cover:
+
+- each refusal before and after the signature, and a correctly sized wrong signature;
+- a sweep over every bit of the envelope and every byte of the signature;
+- evidence addressed to another transport or component;
+- the empty tenant label, malformed instants on both sides, and the inclusive deadline;
+- null, nested and array-typed arguments, and an array against an object with index keys.
 
 To run only this component's tests against a federation-port checkout:
 

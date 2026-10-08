@@ -99,9 +99,16 @@ REMORA.
 installs it into federation-port's own tree at the pinned revision, seals it
 with federation-port's `scripts/seal.ts`, checks that `src/` is unmodified and
 runs federation-port's suite with it and with the report-result component
-below. It reports 120 of 120 at `92d5078`: 44 upstream, 17 for this
-component and 59 for the report-result component, 40 of them held-out cases
-written after that component shipped. REMORA's acceptance suites run
+below. It reports 152 of 152 at `92d5078`: 44 upstream, 48 for this
+component and 60 for the report-result component; 71 of those are held-out
+cases written after the components shipped. It then runs
+`integrations/federation-port/mutation_check.py`, which applies single-edit
+faults to each `adapter.ts` and fails when one survives that component's
+tests without a listed reason. Here it kills 102 of 107 faults, and 122 of
+131 in the report-result component. Every survivor is listed as equivalent
+in the component's `mutation-equivalents.json`. The first run of that check
+found 34 survivors against the 17 fixture-driven tests
+(NEGATIVE_RESULTS.md §78). REMORA's acceptance suites run
 separately, and the result is written as JSON. CI runs the same script on
 every change.
 
@@ -229,6 +236,8 @@ compose with.
 | AC-RS-01 to 14 | report-specific binding (above) | `tests/test_federation_report_selection.py` |
 | AC-RS-V0 | each LATE and LATE-CONFLICT report evaluated separately in an unmodified V0 runtime | `integrations/federation-port/remora-report-result/tests` |
 | AC-RS-V0-HO | held-out: conflicting results for one report refused in both orders; every set-aside reason recorded; signature sweep; order and subset independence; canonical output | the `held-out` tests in the same file; written by the producer after #793 |
+| AC-HO | held-out for the authorization component: every refusal before and after the signature, a correctly sized wrong signature, envelope and signature sweep, evidence addressed elsewhere, empty tenant, malformed instants, inclusive deadline, null and nested arguments | the `held-out` tests in `remora-adapter/tests`; written after the first mutation run |
+| AC-MUT | no single-edit fault in either `adapter.ts` survives its tests without a listed reason; an inert edit survives and a status flip is killed (controls) | `integrations/federation-port/mutation_check.py`, run by `reproduce.sh` and CI; `tests/test_federation_port_mutation_check.py` |
 
 ## What this does not establish
 
