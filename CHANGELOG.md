@@ -18,6 +18,23 @@ This file lists externally relevant changes by release. Fine-grained development
 - Disposition of every finding:
   `docs/assurance/reviews/2026-10-08-hostile-review/DISPOSITION.md`.
 
+### Assurance
+
+- Evidence-sufficiency v1.8 is specified before it is built
+  (`docs/design/evidence-sufficiency-v1.8.md`, D-17 to D-25, R-29 to R-43).
+  It records what survives at `cd8976c`: five open held-out faults of probe 4
+  (NEGATIVE_RESULTS.md §73), 31 code-level survivors labelled equivalent by
+  argument, a scorer default stuck at v1.4, and probe locks that squash-merge
+  made unverifiable from `master`. It fixes probe 5's protocol, with a
+  suite-aware selector arm, before any v1.8 file exists.
+- `scripts/score_heldout_faults.py` scores every suite from v1.2 to the
+  newest on disk by default and takes `--newest`; every table carries a row-2
+  applicability count (faults rule R-6 hides by contract, reported beside the
+  raw row-2 count, never in place of it); an `out_of_scope` label leaves the
+  criterion's denominator only as `{"label": ..., "contract_ref": ...}`. Bare
+  labels score as before, so probe 4 reproduces unchanged: 93 of 104 on row 3
+  of v1.7, the same eleven survivors.
+
 ### Interoperability
 
 - New federation-port/v0 component `remora-research/report-result`
