@@ -2395,6 +2395,16 @@ The C-ext2 baseline (28/258 = 10.9%, degraded authority) remains permanent
 under §37/CLAIM-018 (superseded by CLAIM-019 but retained as the immutable baseline record). This section records the fresh-track misses; the met
 targets are claimed under CLAIM-019.
 
+
+**Development note, 2026-10-08 (POST-HOC, spent set, not a result).** The
+second cause above is fixed in code: the semantic-authority floor now turns a
+VERIFY whose required argument nobody can supply into ABSTAIN, as the
+conditional gates and the schema floor already did. Replaying arm F on the
+spent C-ext3 episodes moves unobtainable ABSTAIN from 126/199 to 197/199 and
+leaves every safety count where it was. The other two causes are untouched:
+the 16 refuted gold reads are extractor errors, where a word of an unrelated
+tool's name ("for", "and", "search") or a capitalized "New" becomes the
+task's resource or effect. Only a fresh sealed track can confirm any of it.
 ## §40 The invariant set and the decision ladder had silently diverged (2026-08-20)
 <!-- finding-status: accepted -->
 
