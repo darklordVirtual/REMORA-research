@@ -15,7 +15,7 @@
     "files": [
       "adapter.ts"
     ],
-    "digest": "sha256:1635b47d41861eab865d4abefa1b7f67f32c3f2e5cc374eef53a37fa9ad72c3b"
+    "digest": "sha256:57a55a752ad00331dd1b92dab37c703de514bcf9c401abafb2f287f941088db3"
   },
   "role": "action_evaluation",
   "schemas": {

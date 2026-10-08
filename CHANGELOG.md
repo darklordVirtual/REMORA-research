@@ -20,6 +20,14 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Interoperability
 
+- `remora-research/report-result` refuses two signed results for the selected
+  report that are not the same statement (`conflicting_results_for_report`).
+  Before this the first of them decided the verdict, which the component's
+  own description ruled out; the maintainer's mutation check of its test suite
+  found it (NEGATIVE_RESULTS.md §77). Forty held-out tests were added to that
+  suite, each selection case run on the component alone before the runtime,
+  and `reproduce.sh` now reports 120 of 120 (44 upstream, 17 and 59 REMORA).
+  The artifact digest changed and the manifest is resealed.
 - New federation-port/v0 component `remora-research/report-result`
   (`integrations/federation-port/remora-report-result`). It gates a new action
   on REMORA's signed native result for one explicitly requested earlier report.

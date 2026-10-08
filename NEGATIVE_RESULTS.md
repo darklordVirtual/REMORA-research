@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-10-06: **18 `open`**, **27 `accepted`**, **31 `superseded`**.
+Counts as of 2026-10-08: **19 `open`**, **27 `accepted`**, **31 `superseded`**.
 
 ## The actual backlog
 
@@ -116,6 +116,10 @@ cites only `open` sections and that no `open` section is missing a theme.
    Federation successors `effect-evidence-v1.1` and `exact-call-binding-v1.1`
    have only author runs. `E-ECB` and `E-EE` stay `TESTED` /
    `NOT_ESTABLISHED` until an external verifier runs the v1.1 corpora.
+13. **Report-result component repaired by its author, not re-run** (§77):
+   two differing signed results for one report are now refused instead of
+   the first deciding. The repair and its 40 held-out tests are the
+   producer's own; no outside reader has run the component.
 
 <!-- backlog-end -->
 
@@ -4584,3 +4588,36 @@ the attacks. The v1 Federation packages keep their bytes and are marked
 superseded with these blind spots recorded; their successors are `DRAFT`
 with author (L0) runs only. Neither edge is lifted above `TESTED` /
 `NOT_ESTABLISHED` by this section.
+
+## §77 The report-result component let the order of two signed results decide a verdict (2026-10-08)
+<!-- finding-status: open -->
+
+**Status:** repaired by the producer, open until an external run reaches
+the component.
+
+**Claim before.** `remora-research/report-result` (#793) "never takes the
+first, the last or an established one" among the results it is given.
+
+**What was found.** The component refused one report id naming two digests
+(`report_id_not_unique`). Two validly signed results for the *same* report
+digest with different native results were both eligible, and `chosen[0]`
+decided. ESTABLISHED first admitted the action; CONTRADICTED first refused
+it. The nineteen tests that shipped with #793 did not reach
+this path. It was found by the maintainer's own mutation check of the suite:
+the mutant "last instead of first" survived every test, which is only
+possible if order can matter.
+
+**What changed.** The component now refuses with
+`conflicting_results_for_report` when the selected results are not the same
+signed statement; the same statement supplied twice is still one report.
+Four held-out cases pin this in both orders, and forty held-out tests were
+added around it (see the component README). The artifact digest changed and
+the manifest is resealed.
+
+**Why it stays open.** The repair and its tests are the producer's own, so
+this says nothing about independence. Whether REMORA should ever emit two
+differing results for one report is a question for the result emitter, not
+this component; the component refuses rather than resolves. The equivalent
+mutant "drop the 64-byte signature length check" also survives, because
+Ed25519 verification rejects a wrong-length signature on its own; it is
+recorded here as equivalent, not as a gap.

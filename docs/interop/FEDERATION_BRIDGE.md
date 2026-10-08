@@ -99,8 +99,9 @@ REMORA.
 installs it into federation-port's own tree at the pinned revision, seals it
 with federation-port's `scripts/seal.ts`, checks that `src/` is unmodified and
 runs federation-port's suite with it and with the report-result component
-below. It reports 80 of 80 at `92d5078`: 44 upstream, 17 for this component
-and 19 for the report-result component. REMORA's acceptance suites run
+below. It reports 120 of 120 at `92d5078`: 44 upstream, 17 for this
+component and 59 for the report-result component, 40 of them held-out cases
+written after that component shipped. REMORA's acceptance suites run
 separately, and the result is written as JSON. CI runs the same script on
 every change.
 
@@ -179,7 +180,10 @@ is that `action_evaluation` component.
   one per report.
 - It verifies each result against a pinned key and selects exactly the
   requested report. With several eligible reports and no request it refuses
-  (`report_selection_ambiguous`).
+  (`report_selection_ambiguous`). Two signed results for the selected report
+  that are not the same statement are refused too
+  (`conflicting_results_for_report`), so the order results were supplied in
+  never decides the verdict (NEGATIVE_RESULTS.md §77).
 - It reports `remora.report_result`, established only when REMORA's native
   status for that report is ESTABLISHED. A CONTRADICTED report is refused
   with its native reason.
@@ -224,6 +228,7 @@ compose with.
 | AC-12 | native, projected, runtime and effect layers stay distinct | projection records, lifecycle reading |
 | AC-RS-01 to 14 | report-specific binding (above) | `tests/test_federation_report_selection.py` |
 | AC-RS-V0 | each LATE and LATE-CONFLICT report evaluated separately in an unmodified V0 runtime | `integrations/federation-port/remora-report-result/tests` |
+| AC-RS-V0-HO | held-out: conflicting results for one report refused in both orders; every set-aside reason recorded; signature sweep; order and subset independence; canonical output | the `held-out` tests in the same file; written by the producer after #793 |
 
 ## What this does not establish
 

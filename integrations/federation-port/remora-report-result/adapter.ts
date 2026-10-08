@@ -7,7 +7,8 @@
 // A claim result is about one report. Several reports of one operation are not interchangeable, so
 // this component never picks one: the caller names the requested report in its input, the
 // component selects exactly that report among the signed results it was given, and refuses when
-// the request is missing and more than one report is eligible. Its output evidence keeps the
+// the request is missing and more than one report is eligible, or when the results it was given
+// make two different signed statements about the selected report. Its output evidence keeps the
 // requested report, the selected report's identity and digest, the selection rule, and REMORA's
 // native result and reason next to the claim status it reported.
 //
@@ -124,6 +125,11 @@ export function createAdapter(ctx: AdapterContext): Adapter {
       if (chosen.length === 0) return respond('not_established', 'selected_report_absent', base)
       if (new Set(chosen.map(c => c.subject.report_digest)).size > 1) {
         return respond('not_established', 'report_id_not_unique', base)
+      }
+      // Two signed statements about the same report that are not the same statement are not
+      // resolved here: the order they were supplied in must never decide the verdict.
+      if (new Set(chosen.map(c => c.digest)).size > 1) {
+        return respond('not_established', 'conflicting_results_for_report', base)
       }
       const selected = chosen[0]
       const native = selected.native
