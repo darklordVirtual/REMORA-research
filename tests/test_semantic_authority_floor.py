@@ -190,3 +190,22 @@ def test_wrong_resource_tool_still_unsupported() -> None:
     )
     assert result.verdict is GoalMatch.UNSUPPORTED
     assert "resource mismatch" in result.reason
+
+
+def test_floor_with_an_unresolvable_gap_abstains_instead_of_promising_verify() -> None:
+    """§23 for the floor too: a required argument is missing and no resolver
+    can supply it, so a review cannot close the gap. The floor used to send
+    this to VERIFY (NEGATIVE_RESULTS.md §39, unobtainable ABSTAIN 63.3 %)."""
+    engine = RemoraDecisionEngine(low_consequence_accept=True,
+                                  semantic_authority_floor=True)
+    obs = _low_consequence_read(missing_required_arguments=("sensor_id",))
+    report = engine.decide(obs)
+    assert report.action is DecisionAction.ABSTAIN
+    assert DecisionReason.SEMANTIC_AUTHORITY_UNKNOWN_VERIFY in report.reasons
+    assert DecisionReason.NO_RESOLVER_AVAILABLE in report.reasons
+    assert engine.explain(obs).action == "abstain"
+    # With a resolver the gap is closable, and the floor still verifies.
+    resolvable = _low_consequence_read(missing_required_arguments=("sensor_id",),
+                                       argument_resolver_tools=("lookup_sensor",))
+    assert engine.decide(resolvable).action is DecisionAction.VERIFY
+    assert engine.explain(resolvable).action == "verify"
