@@ -131,6 +131,27 @@ def test_missing_register_coverage_warns_not_fails(tmp_path: Path) -> None:
     assert any(("no entry" in w) or ("missing/untracked" in w) for w in warnings)
 
 
+def test_an_entry_for_a_tracked_file_outside_the_scanned_scope_is_not_missing(tmp_path):
+    """conformance/ and provenance/ are not scanned for coverage, but a file
+    there that git tracks may be registered; only an untracked one is drift."""
+    mod = _load_module()
+    reg = tmp_path / "docreg.yaml"
+    reg.write_text(
+        "topics: []\n"
+        "documents:\n"
+        "  - path: provenance/README.md\n"
+        "    status: supporting\n"
+        "  - path: provenance/does_not_exist.md\n"
+        "    status: supporting\n",
+        encoding="utf-8",
+    )
+    mod.DOC_REGISTER = reg
+    warnings: list[str] = []
+    mod.check_document_register([], warnings)
+    missing = [w for w in warnings if "missing/untracked" in w]
+    assert missing == ["document-register: entry for missing/untracked file: provenance/does_not_exist.md"]
+
+
 def _verif_reg(tmp_path: Path, entry_lines: str):
     reg = tmp_path / "docreg.yaml"
     reg.write_text("documents:\n" + entry_lines, encoding="utf-8")
