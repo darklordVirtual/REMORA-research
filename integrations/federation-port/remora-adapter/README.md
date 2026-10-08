@@ -50,7 +50,8 @@ It needs git, Node 24 and a Python with REMORA's dev dependencies (`PYTHON` sele
 `--skip-python` leaves the REMORA-side suites out and records them as `not_evaluated`). It runs
 the same procedure as the other outside adapters on #177:
 
-1. clone `aeoess/federation-port` and check out `92d5078af3bbd3610ce4901378e913d5f370a68b`;
+1. clone `aeoess/federation-port` and check out `3a2f6ce405d1c4f86ac8f2591e136deb5dfbb333`
+   (the merge of aeoess/federation-port#1; the components were first reproduced at `92d5078`);
 2. install this component and the
    [report-result component](../remora-report-result/README.md) under `adapters/` and their
    tests under `test/`, changing nothing under `src/`;
@@ -73,7 +74,7 @@ the same procedure as the other outside adapters on #177:
 It writes `remora-federation-port-reproduction.json` (`remora-federation-port-reproduction-v1`)
 and exits non-zero on any failure. CI runs the same script on every change.
 
-At `92d5078` the result is 183 of 183 federation-port tests: 44 upstream, 50 for this component,
+At `3a2f6ce` the result is 193 of 193 federation-port tests: 54 upstream, 50 for this component,
 60 for the report-result component and 29 contract probes. `src/` is unmodified, both seals match and `tsc`
 passes. The mutation check kills 102 of 107 faults here and 122 of 131 in the report-result
 component; every survivor is listed as equivalent with its reason. The REMORA acceptance

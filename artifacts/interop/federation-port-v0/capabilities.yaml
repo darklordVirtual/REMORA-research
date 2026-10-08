@@ -4,7 +4,7 @@
 # cannot raise it. true supplies a capability; false and partial do not.
 schema_version: remora-federation-transport-capabilities-v1
 transport: federation-port/v0
-revision: aeoess/federation-port@92d5078
+revision: aeoess/federation-port@3a2f6ce
 capabilities:
   frozen_action: true               # CheckInput.action is a frozen copy of what will be dispatched
   raw_action_bytes: false           # the action travels as JavaScript values, not bytes

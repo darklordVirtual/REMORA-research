@@ -37,6 +37,17 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Interoperability
 
+- federation-port is now pinned at `3a2f6ce`, the merge of
+  aeoess/federation-port#1. That pull request, from REMORA-research, fixes the
+  four contract-probe findings (CP-F1 to CP-F4); its maintainer reproduced CP-F4
+  and asked in review that the deadline become an authorization expiry, which
+  it now is. The four `CP-F` probes now assert the corrected behaviour, and fail
+  on the pre-fix runtime; `contract-coverage.json` keeps what each found at
+  `92d5078` (`observed_at`) and records the fix (`fixed_upstream`, `fixed_in`).
+  The map gains three rules the fix introduced. `reproduce.sh` reports 193 of
+  193 (54 upstream, 50 and 60 REMORA components, 29 contract probes).
+  Read-only reconciliation is open upstream as aeoess/federation-port#2.
+
 - A TLA+ model of federation-port's operation lifecycle
   (`formal/tla/LeaseRetry.tla`, checked by `scripts/check_tla_models.py`,
   RF-16). Written counterexample first, it reproduces the known contract

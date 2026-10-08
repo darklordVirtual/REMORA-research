@@ -42,14 +42,15 @@ def test_the_model_has_a_control_that_holds_and_a_fix_that_holds() -> None:
 
 def test_the_cp_f4_trace_is_the_one_the_contract_probe_replays() -> None:
     probe = (ROOT / "integrations/federation-port/contract-probes/contract-probes.test.ts").read_text(encoding="utf-8")
-    assert "test('CP-F4 FINDING" in probe
-    probe = probe[probe.index("test('CP-F4 FINDING"):]
+    assert "test('CP-F4 " in probe
+    probe = probe[probe.index("test('CP-F4 "):]
     probe = probe[:probe.index("\ntest(", 10)]
     assert EXPECTED["configs"]["pinned_outage"]["trace"] == [
         "Send(1)", 'Finish(1,"unknown")', "Claim", 'Finish(2,"failed_retriable")', "Tick", "Claim"]
-    # the probe's steps, in order: lost response, outage, retry, deadline, closing claim
-    order = [probe.index(s) for s in ("drop_after_commit", "provider.close()", "provider_unreachable",
-                                       "approval_expired_before_retry")]
+    # The probe replays the trace's steps in order (lost response, outage, retry, deadline,
+    # claim). Since the upstream fix the claim past the deadline ends in reconciliation, not closure.
+    order = [probe.index(s) for s in ("drop_after_commit", "provider.close()", "const retry",
+                                       "valid_until", "reconciliation_required")]
     assert order == sorted(order)
 
 

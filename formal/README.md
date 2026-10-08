@@ -8,7 +8,7 @@ is never stronger than that test.
 
 ## `tla/LeaseRetry.tla`
 
-One logical operation in federation-port/v0's runtime at `92d5078`:
+One logical operation in federation-port/v0's runtime as it was at `92d5078`:
 admission, dispatch under a lease, retries, the admission deadline, and an
 idempotent provider. Switches select the runtime's rule and the environment
 (clock skew, crashes, provider outages). TLC explores every reachable state
@@ -25,7 +25,9 @@ of each configuration in [`tla/expected.json`](tla/expected.json):
 | `sticky_confirmfinal_dispatch_after_expiry` | violated: past the deadline a retry is still dispatched (`NoDispatchAfterExpiry`) |
 | `read_only_after_expiry` | holds: nothing is dispatched after the deadline, and all four invariants hold under outages, crashes and skew |
 
-The last two configurations come from review of aeoess/federation-port#1: the
+The merged runtime (`3a2f6ce`) corresponds to `read_only_after_expiry`: confirmation
+final, uncertainty sticky and no dispatch after the deadline. The last two
+configurations come from review of aeoess/federation-port#1: the
 maintainer asked that an expired authorization never lead to a dispatch, with
 read-only reconciliation afterwards. The model checks that rule as the invariant
 `NoDispatchAfterExpiry`.
