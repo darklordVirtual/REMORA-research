@@ -36,6 +36,6 @@ def test_route_keeps_only_http_concerns() -> None:
     for moved in ("PolicyDecisionToken.issue", "derive_lineage(",
                   "_ENGINE.decide", "q.enqueue"):
         assert moved not in body, f"assess route still contains {moved}"
-    for kept in ("_require_tenant_capability", "_idempotency_get",
+    for kept in ("_require_tenant_capability", "_idempotency_claim",
                  "reconcile_stale_dispatches", "record_execution_assess"):
         assert kept in body, f"assess route lost {kept}"

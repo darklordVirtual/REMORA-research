@@ -577,10 +577,15 @@ that mode is refused with 403. Dev mode (no credentials) runs without auth.
 startup instead of being read as either. The strict runtime profiles
 (`review`, `controlled_pilot`) require `REMORA_API_TOKENS` (RMR-CR-003).
 
-**Idempotency:** `idempotency_key` deduplicates `POST /assess` per tenant.
-The cache is a bounded in-process LRU (10 000 entries); an evicted key
-simply re-runs assess, which has no side effects beyond a fresh audit
-record.
+**Idempotency:** `idempotency_key` deduplicates `POST /assess` per tenant
+and authenticated principal. The assess permission is checked first. The key
+is then reserved before anything is assessed, so concurrent retries share one
+decision and at most one execution token. A retry with the same key and the
+same request returns the stored answer. The same key with a different request
+is a 409 (`idempotency_key request_mismatch`), and a key another request still
+holds after a 10 s wait is a 409 (`idempotency_key in_progress`). The store is
+durable under `REMORA_PG_DSN` or `REMORA_CHAIN_DB`; otherwise it is a bounded
+in-process LRU (10 000 entries), where an evicted key re-runs assess.
 
 **Trust boundary (issue #34):** the execution request is a PROPOSAL only;
 `tool_name`, exact `arguments`, requested `target_environment` (+

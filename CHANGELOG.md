@@ -4,6 +4,20 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Security (code review of 898758f)
+
+- An effect execution has one deadline, recorded in the ledger by its first
+  opener; a second worker, a restart or a cache miss can no longer give the
+  same lease a fresh effect authority. A `close()` on any worker stops the
+  next effect on every worker (CR898-1, CR898-2).
+- An assess idempotency key is reserved before anything is assessed, so
+  concurrent retries share one decision and at most one grant. The key is
+  scoped to the authenticated principal, bound to the request (a changed
+  request is a 409), and checked after the assess permission (CR898-3,
+  CR898-4). Stored answers from before the upgrade are not read again.
+- Disposition:
+  `docs/assurance/reviews/2026-10-08-code-review-898758f/DISPOSITION.md`.
+
 ### Security (hostile review 2026-10-08)
 
 - A strict profile no longer dispatches on the in-process nonce ledger: a

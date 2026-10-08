@@ -220,6 +220,20 @@ def _assess_idempotency_put(tenant_id: str, key: str, response: dict[str, Any]) 
     _assess_idempotency_store().put(tenant_id, f"assess:{key}", response)
 
 
+def _assess_idempotency_claim(tenant_id: str, principal: str, req: Any) -> Any:
+    """Reserve the key for this principal and request (code review of 898758f,
+    findings 3 and 4, applied to the research surface as well)."""
+    from remora.persistence.idempotency import IdempotencyConflict, idempotency_scope
+
+    scoped, fingerprint = idempotency_scope(
+        principal, req.idempotency_key,
+        req.model_dump(mode="json", exclude={"idempotency_key"}))
+    try:
+        return _assess_idempotency_store().claim(tenant_id, f"assess:{scoped}", fingerprint)
+    except IdempotencyConflict as exc:
+        raise HTTPException(status_code=409, detail=f"idempotency_key {exc.reason}") from exc
+
+
 def _safe_error_response(exc: Exception, status_code: int = 500) -> JSONResponse:
     """Build a safe JSON error response that never leaks internal details.
 
@@ -2378,16 +2392,36 @@ def assess(req: AssessRequest, request: Request) -> AssessResponse | JSONRespons
 
     # Idempotent replay (issue #296): decided once, answered twice. Checked
     # after auth and rate limiting -- a replay still spends budget and still
-    # needs the credential -- and before any engine work.
+    # needs the credential -- and before any engine work. The key is reserved
+    # for this principal and request before the engine runs, so concurrent
+    # retries share one decision.
+    _principal = _authenticated_principal(request)
+    _claim = None
     if req.idempotency_key:
-        _cached_assess = _assess_idempotency_get(tenant_id, req.idempotency_key)
-        if _cached_assess is not None:
-            return JSONResponse(_cached_assess)
+        _claim = _assess_idempotency_claim(tenant_id, _principal, req)
+        if _claim.response is not None:
+            return JSONResponse(_claim.response)
+    try:
+        _answer = _assess_decide(req, request, t0=t0, tenant_id=tenant_id,
+                                 _principal=_principal)
+    except BaseException:
+        if _claim is not None:
+            _assess_idempotency_store().release(_claim)
+        raise
+    if _claim is not None:
+        if isinstance(_answer, JSONResponse):  # an error answer is not stored
+            _assess_idempotency_store().release(_claim)
+        else:
+            _assess_idempotency_store().complete(_claim, _answer.model_dump(mode="json"))
+    return _answer
 
+
+def _assess_decide(req: AssessRequest, request: Request, *, t0: float, tenant_id: str,
+                   _principal: str) -> AssessResponse | JSONResponse:
+    """The body of :func:`assess` once the idempotency key is reserved."""
     # Audit identity comes from the authenticated credential, never a header
     # (review finding: self-reported X-Remora-Actor breaks non-repudiation on
     # the primary endpoint; same rule as /v1/review and /v1/follow-up).
-    _principal = _authenticated_principal(request)
     _claimed_actor = request.headers.get("X-Remora-Actor", "").strip() or None
     if _claimed_actor and _claimed_actor != _principal:
         _actor_identity = f"{_principal} (on_behalf_of={_claimed_actor}, unverified)"
@@ -2544,11 +2578,6 @@ def assess(req: AssessRequest, request: Request) -> AssessResponse | JSONRespons
         review_requirements=review_requirements,
         semantic=semantic_context,
     )
-    if req.idempotency_key:
-        _assess_idempotency_put(
-            tenant_id, req.idempotency_key,
-            _assess_response.model_dump(mode="json"),
-        )
     return _assess_response
 
 

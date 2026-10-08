@@ -29,12 +29,23 @@ The first effect of an execution must arrive while its lease is valid. The
 execution then lasts as long as its effect authority, which is derived at the
 first effect with the default lifetime of ``derive_effect_authority`` and never
 outlives the caller's capability set.
+
+The session deadline is fixed once (code review of 898758f, findings 1 and 2).
+With a ledger the first opener records it as ``effects-deadline:<digest>:<t>``,
+on a 5-second grid rounded down, so it can only be shorter than derived. Any
+worker that opens the same execution later, or after a restart, finds that key
+and uses the same deadline; past it the execution is refused, so a cache miss
+never grants a fresh lifetime. Closure is checked after each effect slot is
+claimed: a ``close()`` that completed before the claim stops the effect, and an
+effect whose slot was claimed before the close completed may finish. Without a
+ledger the same rules hold inside one process, where a closed or expired
+execution stays closed until its lease can no longer open one.
 """
 from __future__ import annotations
 
 import threading
 from collections.abc import Callable, Mapping
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from remora.capabilities.ceiling import DownstreamCeiling
@@ -69,6 +80,17 @@ def _refused(reason: str) -> dict[str, Any]:
     return {"state": "REFUSED", "refusal": reason, "result": None}
 
 
+#: Grid, in seconds, the durable session deadline is recorded on (rounded down).
+DEADLINE_GRID_SECONDS = 5
+#: The effect authority lifetime ``derive_effect_authority`` grants by default.
+EFFECT_TTL_SECONDS = 60
+
+
+def _grid_floor(moment: datetime) -> int:
+    epoch = int(moment.timestamp())
+    return epoch - epoch % DEADLINE_GRID_SECONDS
+
+
 class EffectDomain:
     """Serves mediated effects for dispatched executions. One per effect process."""
 
@@ -89,17 +111,49 @@ class EffectDomain:
         self._clock = clock
         self._lock = threading.Lock()
         self._open: dict[str, CapabilityMediator] = {}
-        #: Closed lease digests, until their effect authority would have
-        #: expired anyway; after that the lease itself can no longer open one.
+        #: Closed or expired lease digests, until their lease can no longer
+        #: open an execution; before that, dropping the entry would let the same
+        #: lease start a fresh effect authority.
         self._closed: dict[str, datetime] = {}
+        self._lease_until: dict[str, datetime] = {}
 
     def _evict(self, now: datetime) -> None:
         for digest in [d for d, until in self._closed.items() if until <= now]:
             del self._closed[digest]
         for digest, mediator in list(self._open.items()):
-            if _parse(mediator.authority.expires_at) <= now:
-                self._closed[digest] = _parse(mediator.authority.expires_at)
+            expires = _parse(mediator.authority.expires_at)
+            if expires <= now:
+                self._closed[digest] = max(expires, self._lease_until.pop(digest, expires))
                 del self._open[digest]
+
+    def _durable_deadline(self, lease: ExecutionLease, now: datetime,
+                          derived: datetime) -> datetime | str:
+        """The execution's one deadline: recorded by the first opener, found by the rest."""
+        digest, tenant = lease.digest(), lease.tenant_id
+        low = _grid_floor(_parse(lease.issued_at))
+        high = _grid_floor(_parse(lease.expires_at) + timedelta(seconds=EFFECT_TTL_SECONDS))
+
+        def find() -> int | None:
+            for t in range(low, high + DEADLINE_GRID_SECONDS, DEADLINE_GRID_SECONDS):
+                if self._ledger.consumed(f"effects-deadline:{digest}:{t}", tenant_id=tenant):
+                    return t
+            return None
+
+        try:
+            found = find()
+            if found is None:
+                if self._ledger.try_consume(f"effects-session:{digest}", tenant_id=tenant):
+                    found = _grid_floor(derived)
+                    self._ledger.try_consume(f"effects-deadline:{digest}:{found}", tenant_id=tenant)
+                else:
+                    # Another worker opened it and has not recorded the deadline
+                    # yet, or the record is gone: not known is not open.
+                    found = find()
+                    if found is None:
+                        return "execution_state_unverifiable"
+        except Exception:  # noqa: BLE001 - unknown is not open
+            return "execution_state_unverifiable"
+        return datetime.fromtimestamp(found, UTC)
 
     def _claim_slot(self, digest: str, tenant_id: str) -> None:
         """Claim the next durable effect slot, or refuse the effect."""
@@ -121,9 +175,21 @@ class EffectDomain:
         def wrap(fn: Callable[..., Any]) -> Callable[..., Any]:
             def run(resource: str, arguments: Mapping[str, Any]) -> Any:
                 self._claim_slot(digest, tenant_id)
+                self._refuse_if_closed(digest, tenant_id)
                 return fn(resource, arguments)
             return run
         return {name: wrap(fn) for name, fn in self._executors.items()}
+
+    def _refuse_if_closed(self, digest: str, tenant_id: str) -> None:
+        """After the slot is claimed: a close any worker completed stops this effect."""
+        if self._ledger is None:
+            return
+        try:
+            closed = self._ledger.consumed(f"effects-closed:{digest}", tenant_id=tenant_id)
+        except Exception as exc:  # noqa: BLE001 - unknown is not open
+            raise EffectRefused("execution_state_unverifiable") from exc
+        if closed:
+            raise EffectRefused(CapabilityRefusal.CONTEXT_MISSING.value)
 
     def _open_execution(self, lease: ExecutionLease, request: Mapping[str, Any],
                         now: datetime) -> CapabilityMediator | str:
@@ -156,9 +222,20 @@ class EffectDomain:
             return "downstream_ceiling_unavailable"
         if ceiling is None:
             ceiling = DownstreamCeiling(tool=lease.tool_name, capabilities=())
+        ttl = EFFECT_TTL_SECONDS
+        if self._ledger is not None:
+            deadline = self._durable_deadline(
+                lease, now, min(now + timedelta(seconds=EFFECT_TTL_SECONDS),
+                                _parse(capability_set.expires_at)))
+            if isinstance(deadline, str):
+                return deadline
+            ttl = int((deadline - now).total_seconds())
+            if ttl <= 0:
+                return CapabilityRefusal.CONTEXT_MISSING.value
         try:
             authority = derive_effect_authority(capability_set, tool_name=lease.tool_name,
-                                                ceiling=ceiling, now=now)
+                                                ceiling=ceiling, now=now,
+                                                ttl_seconds=min(ttl, EFFECT_TTL_SECONDS))
         except DelegationDenied:
             return CapabilityRefusal.DELEGATION_DENIED.value
         context = ExecutionContext.for_dispatch(
@@ -193,6 +270,7 @@ class EffectDomain:
                 if isinstance(opened, str):
                     return _refused(opened)
                 mediator = self._open[digest] = opened
+                self._lease_until[digest] = _parse(lease.expires_at)
         return effect_to_wire(mediator.invoke(capability, request.get("resource"), arguments))
 
     def close(self, request: Mapping[str, Any]) -> dict[str, Any]:
@@ -208,9 +286,11 @@ class EffectDomain:
         digest = lease.digest()
         with self._lock:
             mediator = self._open.pop(digest, None)
+            self._lease_until.pop(digest, None)
             until = (_parse(mediator.authority.expires_at) if mediator is not None
                      else _parse(lease.expires_at))
-            self._closed[digest] = max(until, self._clock())
+            # Closed until the lease itself can no longer open an execution.
+            self._closed[digest] = max(until, _parse(lease.expires_at), self._clock())
         if mediator is not None:
             mediator.close()
         durable = self._ledger is None

@@ -235,8 +235,11 @@ _ENGINE = _engine_from_env()
 # idempotency key re-ran assess and FORKED the proposal identity with a new
 # chain record). In-process fallback keeps the bounded-LRU behavior.
 from remora.persistence.idempotency import (  # noqa: E402
+    IdempotencyClaim,
+    IdempotencyConflict,
     IdempotencyStore,
     build_idempotency_store,
+    idempotency_scope,
 )
 
 import threading as _threading
@@ -267,12 +270,22 @@ def _reset_idempotency_store() -> None:
     _IDEMPOTENCY_STORE = None
 
 
-def _idempotency_get(tenant: str, key: str) -> dict[str, Any] | None:
-    return _idempotency_store().get(tenant, key)
+def _idempotency_claim(tenant: str, principal: str, key: str,
+                       req: Any) -> IdempotencyClaim:
+    """Reserve ``key`` for this principal and request, or return its answer.
 
-
-def _idempotency_put(tenant: str, key: str, response: dict[str, Any]) -> None:
-    _idempotency_store().put(tenant, key, response)
+    Code review of 898758f, findings 3 and 4: the key is scoped to the
+    authenticated principal and bound to the request's fingerprint, and it is
+    reserved before anything is assessed, so one key yields one grant. A key
+    that belongs to another request, or is still being answered after the
+    wait, is a 409 and nothing is assessed.
+    """
+    scoped, fingerprint = idempotency_scope(
+        principal, key, req.model_dump(mode="json", exclude={"idempotency_key"}))
+    try:
+        return _idempotency_store().claim(tenant, scoped, fingerprint)
+    except IdempotencyConflict as exc:
+        raise HTTPException(status_code=409, detail=f"idempotency_key {exc.reason}") from exc
 
 TOOL_REGISTRY: dict[str, dict[str, Any]] = {
     "delete_production_database": {
@@ -1837,38 +1850,46 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     neither. Every assessment appends to the tenant audit chain.
     """
     tenant, role, principal = _auth(request)
-    idemp_key = req.idempotency_key or None
-    if idemp_key:
-        cached = _idempotency_get(tenant, idemp_key)
-        if cached is not None:
-            return cached
 
     from servers import api as api_mod
 
+    # The permission and request checks come before any stored answer: a
+    # cached response is still an assess response (code review of 898758f,
+    # finding 4).
     api_mod._require_tenant_capability(role, tenant, "assess")
     _task_or_refuse(req)
-    # FT-02 lazy sweep (same discipline as REM-032's TTL sweep): a dispatch
-    # whose worker never reported back is settled as UNKNOWN before new
-    # work is considered, so a stranded intent cannot linger unnoticed.
-    reconcile_stale_dispatches(tenant)
-    # Orchestration lives in remora.execution.service (issue #241, slice 7);
-    # this route binds the module's ambient state and stays HTTP conversion.
+    claim = None
+    if req.idempotency_key:
+        claim = _idempotency_claim(tenant, principal, req.idempotency_key, req)
+        if claim.response is not None:
+            return claim.response
     try:
-        response = _assess_proposal_with_loop_state(
-            tenant=tenant, principal=principal, req=req)
-    except LoopSafetyStoreUnavailable as exc:
-        # 503 and no decision. Assessing without the context's history
-        # would read an outage as "nothing accumulated".
-        raise HTTPException(
-            status_code=503,
-            detail="loop safety store unavailable; nothing was assessed "
-                   "and this call must be retried") from exc
-    except ExecutionContextRefused as exc:
-        raise HTTPException(status_code=409, detail=exc.reason) from exc
+        # FT-02 lazy sweep (same discipline as REM-032's TTL sweep): a dispatch
+        # whose worker never reported back is settled as UNKNOWN before new
+        # work is considered, so a stranded intent cannot linger unnoticed.
+        reconcile_stale_dispatches(tenant)
+        # Orchestration lives in remora.execution.service (issue #241, slice 7);
+        # this route binds the module's ambient state and stays HTTP conversion.
+        try:
+            response = _assess_proposal_with_loop_state(
+                tenant=tenant, principal=principal, req=req)
+        except LoopSafetyStoreUnavailable as exc:
+            # 503 and no decision. Assessing without the context's history
+            # would read an outage as "nothing accumulated".
+            raise HTTPException(
+                status_code=503,
+                detail="loop safety store unavailable; nothing was assessed "
+                       "and this call must be retried") from exc
+        except ExecutionContextRefused as exc:
+            raise HTTPException(status_code=409, detail=exc.reason) from exc
+    except BaseException:
+        if claim is not None:
+            _idempotency_store().release(claim)
+        raise
     api_mod.record_execution_assess(response["decision"])
 
-    if idemp_key:
-        _idempotency_put(tenant, idemp_key, response)
+    if claim is not None:
+        _idempotency_store().complete(claim, response)
     return response
 
 
