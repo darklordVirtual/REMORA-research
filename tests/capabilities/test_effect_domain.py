@@ -462,7 +462,8 @@ class TestCloseAndExpiryAcrossWorkers:
         a, b = worker(), worker()
         assert a.serve(request)["state"] == "EXECUTED"
         assert b.serve(request)["state"] == "EXECUTED"
-        assert a.close({"lease": lease.to_dict()})["durable"] is True
+        closed = a.close({"lease": lease.to_dict()})
+        assert closed["durable"] is True
         assert a.serve(request)["state"] == "REFUSED"
         after = b.serve(request)
         assert after["state"] == "REFUSED"
