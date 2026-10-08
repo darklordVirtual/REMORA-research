@@ -221,7 +221,7 @@ state:
     symbol: "remora/enforcement/effect_domain.py::EffectDomain"
     gates: "Which executions the effect domain has closed, and how many effects each has run against its budget (NTA-2 phase 3)."
     on_loss: reauthorizes
-    durable_adapter: "remora/enforcement/nonce_store.py::DurableNonceStore, passed as the ledger: closure is the key effects-closed:<lease digest>, each effect claims effect:<lease digest>:<i> below the budget"
+    durable_adapter: "remora/enforcement/nonce_store.py::DurableNonceStore, passed as the ledger: closure is the key effects-closed:<lease digest>, each effect claims effect:<lease digest>:<i> below the budget, and the session deadline is the key effects-deadline:<lease digest>:<t> on a 5 s grid (code review of 898758f)"
     wired_at: "servers/execution_api.py::_lease_nonce_store"
     reference_implementation: true
     note: >-
@@ -233,6 +233,21 @@ state:
       durable store the server's effect domain refuses every effect, because
       it cannot tell whether the lease was dispatched; ledger=None is the
       in-process control used in library tests.
+
+  - id: AST-015
+    symbol: "remora/persistence/idempotency.py::IdempotencyStore"
+    gates: "One assess decision, and at most one execution token, per principal, request and idempotency key (code review of 898758f, CR898-3)."
+    on_loss: reauthorizes
+    durable_adapter: "remora/persistence/idempotency.py::SQLiteIdempotencyStore and ::PostgresIdempotencyStore, selected by REMORA_CHAIN_DB and REMORA_PG_DSN"
+    wired_at: "servers/execution_api.py::_idempotency_store and servers/api.py::_assess_idempotency_store"
+    reference_implementation: true
+    note: >-
+      Classed reauthorizes because losing a reservation lets a retry with the
+      same key be assessed again and receive a second execution token, which
+      the stored answer would have prevented. The second token is still a
+      full policy decision; what is lost is the one-grant-per-key bound. The
+      in-process store is the bounded LRU used when no durable switch is set;
+      strict profiles require one of them.
 
 # THE SWITCHES
 #

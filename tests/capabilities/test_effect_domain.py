@@ -335,7 +335,105 @@ class TestRefusalPaths:
         answer = domain.serve(_request(lease, cs, "database.read", "database://reporting-eu/m"))
         assert answer["refusal"] == "execution_state_unverifiable" and calls == []
         closed = domain.close({"lease": lease.to_dict()})
-        assert closed == {"closed": True, "durable": False, "effects": 1}
+        # The ledger fails before an execution opens: recording the session
+        # deadline is its first write (code review of 898758f, finding 2), so
+        # no mediator exists and no effect record was made.
+        assert closed == {"closed": True, "durable": False, "effects": 0}
+
+    @staticmethod
+    def _keyed(fail_consume=lambda key: False, fail_read=lambda key: False):
+        class Keyed:
+            def __init__(self):
+                self.keys: set[str] = set()
+
+            def consumed(self, nonce, *, tenant_id):
+                if fail_read(nonce):
+                    raise OSError("down")
+                return nonce in self.keys
+
+            def try_consume(self, nonce, *, tenant_id):
+                if fail_consume(nonce):
+                    raise OSError("down")
+                if nonce in self.keys:
+                    return False
+                self.keys.add(nonce)
+                return True
+
+        return Keyed()
+
+    def _serve(self, ledger):
+        from remora.enforcement.effect_domain import EffectDomain
+
+        calls: list = []
+        domain = EffectDomain(ceilings=lambda t: CEILING, executors={
+            "database.read": lambda r, a: calls.append(r)},
+            execution_started=lambda _lease: True, ledger=ledger)
+        cs = _parent()
+        lease = _lease(cs)
+        answer = domain.serve(_request(lease, cs, "database.read", "database://reporting-eu/m"))
+        return answer, calls, lease
+
+    def test_a_session_opened_elsewhere_without_a_recorded_deadline_is_unverifiable(self):
+        # Another worker won the session claim and has not recorded the
+        # deadline yet, or the record is gone: not known is not open.
+        from remora.enforcement.effect_domain import EffectDomain
+
+        ledger = self._keyed()
+        cs = _parent()
+        calls: list = []
+        domain = EffectDomain(ceilings=lambda t: CEILING, executors={
+            "database.read": lambda r, a: calls.append(r)},
+            execution_started=lambda _lease: True, ledger=ledger)
+        lease = _lease(cs)
+        ledger.keys.add(f"effects-session:{lease.digest()}")
+        answer = domain.serve(_request(lease, cs, "database.read", "database://reporting-eu/m"))
+        assert answer["refusal"] == "execution_state_unverifiable" and calls == []
+
+    def test_a_deadline_recorded_between_the_two_probes_is_found(self):
+        from remora.enforcement import effect_domain as module
+
+        ledger = self._keyed()
+        cs = _parent()
+        lease = _lease(cs)
+        ledger.keys.add(f"effects-session:{lease.digest()}")
+        deadline = module._grid_floor(datetime.now(UTC) + timedelta(seconds=30))
+        key = f"effects-deadline:{lease.digest()}:{deadline}"
+        real = ledger.consumed
+        probes = {"first": True}
+
+        def consumed(nonce, *, tenant_id):
+            # The first probe misses; the winner records before the second.
+            if nonce == key and probes.pop("first", False):
+                return False
+            return real(nonce, tenant_id=tenant_id) or nonce == key
+
+        ledger.consumed = consumed
+        from remora.enforcement.effect_domain import EffectDomain
+
+        calls: list = []
+        domain = EffectDomain(ceilings=lambda t: CEILING, executors={
+            "database.read": lambda r, a: calls.append(r)},
+            execution_started=lambda _lease: True, ledger=ledger)
+        answer = domain.serve(_request(lease, cs, "database.read", "database://reporting-eu/m"))
+        assert answer["state"] == "EXECUTED" and len(calls) == 1
+
+    def test_a_ledger_that_fails_on_the_effect_slot_refuses_the_effect(self):
+        answer, calls, _ = self._serve(self._keyed(fail_consume=lambda k: k.startswith("effect:")))
+        assert answer["refusal"] == "execution_state_unverifiable" and calls == []
+
+    def test_a_ledger_that_fails_on_the_closed_check_refuses_the_effect(self):
+        reads = {"closed": 0}
+
+        def after_open(key):
+            # The open reads the marker once; the check after the slot claim fails.
+            if key.startswith("effects-closed:"):
+                reads["closed"] += 1
+                return reads["closed"] > 1
+            return False
+
+        answer, calls, _ = self._serve(self._keyed(fail_read=after_open))
+        assert reads["closed"] == 2
+        assert answer["refusal"] == "execution_state_unverifiable" and calls == []
 
     def test_close_refuses_a_malformed_or_forged_lease(self):
         w = World()
@@ -425,3 +523,94 @@ def test_a_well_formed_lease_with_a_malformed_capability_is_refused():
     lease, cs = w.open()
     body = {**_request(lease, cs, "database.read", "database://reporting-eu/m"), "capability": 7}
     assert w.domain.serve(body)["refusal"] == "request_malformed" and w.calls == []
+
+
+# ── code review of 898758f: closure and expiry across workers ────────────────
+
+def _durable(db, clock, calls, dispatched):
+    from remora.enforcement.nonce_store import DurableNonceStore
+
+    return EffectDomain(
+        ceilings=lambda tool: CEILING if tool == CEILING.tool else None,
+        executors={"database.read": lambda r, a: calls.append(r) or [1]},
+        execution_started=lambda lease: lease.nonce in dispatched,
+        ledger=DurableNonceStore(db_path=db), clock=lambda: clock[0])
+
+
+class TestCloseAndExpiryAcrossWorkers:
+    """Finding 1: a close on one worker stops a second worker that already has
+    the execution open. Finding 2: expiry is terminal, for one worker, a second
+    worker and after a restart; a cache miss never grants a fresh lifetime."""
+
+    def _world(self, tmp_path):
+        clock = [datetime.now(UTC)]
+        cs = _parent(now=clock[0])
+        lease = _lease(cs, issued=clock[0])
+        calls: list[str] = []
+        dispatched = {lease.nonce}
+        db = str(tmp_path / "effects.db")
+        request = _request(lease, cs, "database.read", "database://reporting-eu/m")
+        return clock, lease, request, calls, lambda: _durable(db, clock, calls, dispatched)
+
+    def test_close_on_one_worker_stops_an_already_open_second_worker(self, tmp_path):
+        clock, lease, request, calls, worker = self._world(tmp_path)
+        a, b = worker(), worker()
+        assert a.serve(request)["state"] == "EXECUTED"
+        assert b.serve(request)["state"] == "EXECUTED"
+        closed = a.close({"lease": lease.to_dict()})
+        assert closed["durable"] is True
+        assert a.serve(request)["state"] == "REFUSED"
+        after = b.serve(request)
+        assert after["state"] == "REFUSED"
+        assert after["refusal"] == CapabilityRefusal.CONTEXT_MISSING.value
+        assert len(calls) == 2
+
+    def test_expiry_is_terminal_on_the_same_worker(self, tmp_path):
+        clock, _lease_, request, calls, worker = self._world(tmp_path)
+        d = worker()
+        assert d.serve(request)["state"] == "EXECUTED"
+        clock[0] += timedelta(seconds=61)
+        assert d.serve(request)["state"] == "REFUSED"
+        clock[0] += timedelta(seconds=1)
+        assert d.serve(request)["state"] == "REFUSED"
+        assert len(calls) == 1
+
+    def test_expiry_is_terminal_after_a_restart(self, tmp_path):
+        clock, _lease_, request, calls, worker = self._world(tmp_path)
+        assert worker().serve(request)["state"] == "EXECUTED"
+        clock[0] += timedelta(seconds=62)
+        assert worker().serve(request)["state"] == "REFUSED"  # a fresh process, a cache miss
+        assert len(calls) == 1
+
+    def test_a_worker_that_joins_later_inherits_the_deadline(self, tmp_path):
+        clock, _lease_, request, calls, worker = self._world(tmp_path)
+        assert worker().serve(request)["state"] == "EXECUTED"
+        clock[0] += timedelta(seconds=30)
+        late = worker()
+        assert late.serve(request)["state"] == "EXECUTED"
+        clock[0] += timedelta(seconds=31)  # 61 s after the first effect, 31 s after the join
+        assert late.serve(request)["state"] == "REFUSED"
+
+    def test_the_recorded_deadline_is_never_later_than_the_derived_one(self, tmp_path):
+        clock, _lease_, request, calls, worker = self._world(tmp_path)
+        d = worker()
+        assert d.serve(request)["state"] == "EXECUTED"
+        mediator = next(iter(d._open.values()))
+        expires = datetime.fromisoformat(mediator.authority.expires_at)
+        assert expires <= clock[0] + timedelta(seconds=60)
+        assert expires > clock[0] + timedelta(seconds=54)  # rounded down to a 5 s grid at most
+
+
+def test_without_a_ledger_expiry_is_terminal_until_the_lease_ends():
+    clock = [datetime.now(UTC)]
+    w = World(clock=lambda: clock[0])
+    cs = _parent(now=clock[0])
+    lease = _lease(cs, issued=clock[0])
+    w.dispatched.add(lease.nonce)
+    request = _request(lease, cs, "database.read", "database://reporting-eu/m")
+    assert w.domain.serve(request)["state"] == "EXECUTED"
+    clock[0] += timedelta(seconds=61)
+    assert w.domain.serve(request)["state"] == "REFUSED"
+    clock[0] += timedelta(seconds=1)
+    assert w.domain.serve(request)["state"] == "REFUSED"
+    assert len(w.calls) == 1
