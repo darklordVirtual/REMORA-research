@@ -50,7 +50,9 @@ reached the provider.
 | CP-F4 | 4 and 7 | One worker, no skew, no crash. Attempt 1 reaches the provider and its response is lost: `unknown`. The retry cannot reach the provider: `failed`, retriable. Past the deadline the operation is closed with `approval_expired_before_retry` while the refund exists. The TLA+ model found it before the probe was written. |
 
 The coverage map gives each finding's conditions, consequence and a suggested
-change. They are reported here and not yet raised upstream.
+change. A patch for CP-F1, CP-F3 and CP-F4 and a wording change for CP-F2 are
+proposed upstream as aeoess/federation-port#1, with six regression tests; the
+maintainer has not reviewed it yet.
 
 ## How strong the probes are
 

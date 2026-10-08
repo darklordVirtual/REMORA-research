@@ -101,8 +101,11 @@ def test_findings_name_real_clauses_and_are_not_claimed_upstream() -> None:
         assert set(f["clauses"]) <= clause_ids, f["id"]
         for field in ("observed", "conditions", "consequence", "suggested_change"):
             assert f[field].strip(), (f["id"], field)
-        # Reported here, not yet raised with or accepted by federation-port.
-        assert f["status"] == "reported_not_upstreamed"
+        # Reported, and at most proposed upstream: nothing here says federation-port accepted it.
+        assert f["status"] in ("reported_not_upstreamed", "patch_proposed_upstream",
+                               "wording_proposed_upstream"), f["id"]
+        if f["status"] != "reported_not_upstreamed":
+            assert f.get("upstream") == "aeoess/federation-port#1", f["id"]
 
 
 def test_the_probe_readme_counts_match_the_map() -> None:
