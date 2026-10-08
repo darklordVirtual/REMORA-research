@@ -1,0 +1,330 @@
+# Evidence-sufficiency v1.8: zero unlabelled survivors, computed equivalence, and a repeatable blind-set intake
+
+Proposed path: `docs/design/evidence-sufficiency-v1.8.md`. Written in the form of `docs/design/evidence-sufficiency-v1.3.md`: decisions, requirements with the check that enforces each, pre-flight that is not evidence, and a protocol fixed before any score is read.
+
+## Status
+
+Draft, 2026-10-08, against `master` at `cd8976c`.
+Nothing in this document has been scored except T-22, which is done in the same change and whose numbers are stated where they appear. Every number in section 1 is read from committed records; every prediction in section 7 is fitted and says so.
+The frozen checker (`conformance/evidence-sufficiency-v1/checker.py`, sha256 `c4ca50ae…`) is not touched. v1.8 is v1.7 verbatim plus runner sections, a declared observation set, and scripts.
+
+## 1. Context: what survives at `82f80a6`
+
+"Survivor" has meant five different pools in this repository. They are listed separately because they have different denominators, different selectors and different labels. Row 3 is the runner's `failures` list or a crash; rows 1 and 2 score the authored cases alone.
+
+| Pool | Denominator | Newest suite scored | Killed | Survivors | Label on survivors | Record |
+|---|---:|---|---:|---:|---|---|
+| External rounds v1.0 to v1.2 (Rul1an) | 103 + 6 | v1.2 | 109 (row 3) | 0 on rows 1 and 3; 13 + 3 on row 2 | row 2: out of scope by R-6 (decisive verdicts carry no guidance) | `docs/assurance/external_adequacy_evidence_sufficiency_v1.md` |
+| Independent analysis 2026-09-30 (24 hand-picked + 19 systematic) | 43 | v1.4 | 43 | 0 | none | same, "Maintainer reproduction, committed" |
+| mutmut, default operators | 489 | v1.3 checks (run on every later suite) | 469 | 20 | `equivalent`, argued: C message text 12, F canonical string form 7, G dead branch 1 | `docs/assurance/mutation_baseline_evidence_sufficiency_v1.txt`, `mutation_testing_v1.md` |
+| Second operator set (AST, 9 operators + 200 second-order) | 905 | v1.3 checks | 901 | 4 | `equivalent`, argued: `.strip()` on canonical text; three guard swaps with one exception class | `mutation_baseline_evidence_sufficiency_ast_v1.txt` |
+| Specification mutation of `model.json` (446 + 300; held-out 19 + 300) | 392 + 298 live; 19 + 300 | v1.4 and later | all | 0 on both rows | none (equivalence computed, 54 + 2 removed from the denominator) | `spec_mutation_baseline_evidence_sufficiency_v1.txt`, NEGATIVE_RESULTS.md §68 and §69 |
+| Blind probe 1 (96 faults, context-free agents) | 96 | v1.5 | 96 (row 3) | 0 | fitted kills of 6 | §70 |
+| Blind probe 2 (97, locked before v1.5) | 97 | v1.6 | 97 (row 3) | 0 | fitted kill of P2C-20 | §71 |
+| Blind probe 3 (104, locked before v1.6) | 104 | v1.7 | 102 | 2 | `equivalent`, argued | §72, `artifacts/evidence-sufficiency-blind-probe-3-2026-09-30/RESULTS.md` |
+| Blind probe 4 (104, locked before v1.7) | 104 | v1.7 | 93 | 11 | 5 `equivalent` argued; 1 `out_of_scope`; **5 `open_gap`** | §73, status **open**; `artifacts/evidence-sufficiency-blind-probe-4-2026-10-01/labels.json` |
+
+The five open gaps, all from probe 4, all from the selector that was told in general terms how thorough the suite is (`p4c`):
+
+| Fault | What it does | Why no v1.7 check sees it |
+|---|---|---|
+| P4C-07 | list validation stops after 32 elements | no check uses a list longer than a few items |
+| P4C-09 | observations that are a non-`dict` `Mapping` skip validation | section 14 tries those containers with valid values only; section 19 crosses invalid values with `dict` only |
+| P4C-16 | the verdict dataclass gains `slots=True` | section 17 omits version-dependent dataclass options |
+| P4C-18 | `EvidenceStatus` looks values up case-insensitively | section 17 records members, not lookup behaviour |
+| P4C-19 | `as_dict()` changes its key order | every comparison sorts keys |
+
+None of the five changes a verdict. Four probes in a row find no decision fault that survives the runner (§70 to §73).
+
+Reproduced on 2026-10-07 at `82f80a6` and again at `cd8976c` after T-22. `scripts/score_heldout_faults.py` on `probe4-faults.json` (sha256 `01080ce2…`) against v1.7 gives row 3 = 93 of 104 and the eleven survivors above. It reports `criterion NOT met` with six "open gaps", because the script excludes only the label `equivalent` and so counts P4C-20 (`out_of_scope`) as open (F-8, D-25).
+
+Five further facts about the current state are findings in their own right:
+
+1. **Every "equivalent" label on a code-level survivor is an argument, not a computation.** 20 + 4 + 2 + 5 = 31 labels rest on prose in `mutation_testing_v1.md` and two `RESULTS.md` files. Specification mutation (§68) computes equivalence by enumeration; code mutation does not. §65 says so: "argued equivalent under the pinned contract, not proven equivalent".
+2. **No run under section 8 of the v1.3 spec has happened.** T-14 and T-15 are open. All four probes were generated by Anthropic models from prompts the maintainer wrote, scored by the maintainer. The independent analysis selected blind but hashed locally. The one external selector (Rul1an) last ran v1.2.
+3. **The committed harness scores a stale default.** `scripts/score_heldout_faults.py` has `DEFAULT_SUITES = ("evidence-sufficiency-v1.2", "evidence-sufficiency-v1.3", "evidence-sufficiency-v1.4")`; v1.5 to v1.7 are reached only with `--suite`. Section 8 item 1 names "`conformance/evidence-sufficiency-v1.3/`" as the directory a selector must not read. A blind set delivered today would be scored against v1.4 by default and would be judged against a protocol that names the wrong corpus.
+4. **The lock of probes 2 to 4 is not verifiable from `master`.** Each probe's `RESULTS.md` cites two branch commits (probe 4: faults in `2954a48`, v1.7 in `e464829`). The PR was squash-merged, so on `master` both land in one commit (`79e25b5`), and the branch commits are not reachable from any ref in a clone. The ordering rests on timestamps in a Markdown file and on GitHub keeping the PR's commits.
+5. **The label vocabulary and the criterion disagree, on purpose.** `labels.json` uses three labels; the scorer's criterion treats everything but `equivalent` as an open gap, and `tests/test_score_heldout_faults.py` asserts that ("only an equivalence label leaves the denominator"). The prose counts differently: §73 and probe 4's `RESULTS.md` say five open, not six, because P4C-20 is "out of scope: the scope's coercion is a recorded limit of the frozen checker". A reader of the record and a reader of the script get different numbers.
+
+Two patterns across the probes decide the shape of v1.8:
+
+- Each round's survivors sit in a part of the public surface no check had been built for; each round's gains lie in classes the round before named (§73). Fixing five faults with five checks would repeat that. v1.8 adds three *generators*, one per class, as v1.5 to v1.7 did.
+- Nine of the eleven probe-4 survivors came from a selector that knew what kinds of checks the suite has. The hardest fair selector is one that reads the suite. Probe 5 includes that arm.
+
+## 2. Findings this spec must close
+
+| ID | Finding | Source |
+|---|---|---|
+| F-1 | Five held-out faults survive every row of v1.7 | §73, `labels.json` |
+| F-2 | Code-level equivalence labels (31) are argued, not computed | §65, `mutation_testing_v1.md` |
+| F-3 | The scoring harness defaults to v1.2 to v1.4, and section 8 names v1.3 | `scripts/score_heldout_faults.py` line 50; v1.3 spec section 8 item 1 |
+| F-4 | Row 2 reports decisive-verdict faults as survivors that R-6 says it cannot see; the number is read as a gap by outsiders and as a contract by the maintainer | external record, v1.1 and v1.2 sections |
+| F-5 | No external, publicly committed blind run exists (T-14, T-15 open) | v1.3 spec section 10 |
+| F-6 | The lock between a probe's fault commit and the corpus commit is read from timestamps in `RESULTS.md`; after squash-merge the two commits are one on `master`, so no script can verify it from a clone | probe 2 to 4 `RESULTS.md`; `git log -- probe4-faults.json conformance/evidence-sufficiency-v1.7/` gives one commit |
+| F-7 | A survivor can be relabelled between runs without a diff that says so; "never moves a label to improve a count" is a rule without a check | section 8 item 5 |
+| F-8 | The scorer counts `out_of_scope` as an open gap by a tested decision, while §73 and `RESULTS.md` count it outside the open set; the two readings of probe 4 give six and five | `score_heldout_faults.py`, `test_criterion_counts_an_unlabelled_survivor_as_an_open_gap_and_honours_equivalent`; reproduced on probe 4 |
+
+## 3. Goals and non-goals
+
+### Goals
+
+1. Zero survivors in the sense of section 12: on row 3 of the newest suite, every fault in every committed pool is killed, `equivalent:computed`, or `out_of_scope` with a cited clause. No `open_gap` and no `equivalent:argued` remain.
+2. Three class-level mechanisms so that the five open faults and their neighbours die by construction, not by name.
+3. A blind-set intake that a stranger can run in one command, with the lock, the commitment, the controls, the rows, the labels and the criterion checked by script.
+4. Probe 5, locked before v1.8 is committed, with a suite-aware arm and, if a selector is found, an external arm under section 8.
+
+### Non-goals
+
+1. Changing the frozen checker. Its two recorded defects (shallow `_scope` copy, `TypeError` on an unhashable claim, section 15.3) and the scope-coercion limit (P4C-20) stay recorded limits. A v2 checker is a different spec.
+2. Claiming checker correctness, generalisation to unseen fault families, or anything about a deployment. A kill says nothing about correctness (Budd and Angluin, 1982).
+3. Reducing any past denominator or editing any past record. v1 to v1.7 stay byte-frozen.
+4. Pinning prose: exception messages, `repr` text and `canonical()` text stay unpinned under D-7, unless D-19 names them observable.
+
+## 4. Decisions
+
+### D-17. The five open gaps are closed by generators over their classes, not by five cases.
+
+P4C-07 is a size boundary; P4C-09 is a container crossed with an invalid value; P4C-16, P4C-18 and P4C-19 are properties of the public types. v1.8 adds one runner section per class (sections 20 to 22). The sections are fitted to the probe-4 list and the record says so.
+
+### D-18. Equivalence of a code-level survivor is computed on a declared observation set over a declared input domain.
+
+An `equivalent` label is written by `scripts/equivalence_oracle.py`, never by hand. The oracle runs the frozen checker and the mutant over the domain in section 6.4 and compares the observation projection of D-19. A mutant indistinguishable on every point gets `equivalent:computed` with the domain digest; a mutant distinguished on any point is live and must be killed or labelled `open_gap`. The label `equivalent:argued` is retired for new survivors and is replaced for the 31 existing ones (section 7, P-3).
+
+### D-19. What is observable is declared data: `observable.json`.
+
+The projection is the tuple a caller can read through the public API under the pinned contract. For `assess` it is the `as_dict()` output and the exception class on refusal. For `canonical` it is the equality relation it induces (`canonical(a) == canonical(b)`) and the exception class, not the text. For the public types it is the section-22 contract. Exception messages, `repr` strings and `canonical()` text are outside the projection, which is D-7 made executable. Changing `observable.json` changes what "equivalent" means and is a reviewed diff.
+
+### D-20. Computed equivalence is a statement about a finite domain, and it is reversible.
+
+The domain is the lattice, the seeded generated inputs of sections 16 to 19, the boundary sweep of section 20 and the container crossing of section 21. A fault labelled `equivalent:computed` that a later input distinguishes was mislabelled; the relabel is a negative result against the oracle's domain, recorded in NEGATIVE_RESULTS.md, and the domain grows. P4C-07 is the example that forces this decision: a 32-element list is exactly an input a small generated domain misses.
+
+### D-21. Row 2 gains a computed applicability column; row 2 itself is unchanged.
+
+For each fault, the unmutated checker decides whether every case the fault changes is decisive. If so, rule R-6 makes the fault invisible to row 2 by contract, and the record reports it as `n/a`, not as survived. The raw row 2 count is still printed. The rule is fixed here, before any new run, and is not applied to past records.
+
+### D-22. A probe and the corpus it tests land on `master` in separate commits, in that order, and the intake checks it with `git`.
+
+From probe 5 on, the probe directory is its own PR, merged before the first commit under the new conformance directory. The intake (section 6.6) checks the fault file against `master` history. It must be byte-identical at a commit that is a strict ancestor of the first `master` commit touching the suite it claims to be locked before, or the probe is refused. Each `PREREGISTRATION.md` names that suite (`locked_before: evidence-sufficiency-v1.8`). For probes 2 to 4 the lock cannot be verified from a clone (F-6); the intake reports them as `lock: unverifiable (squash)` with the branch commits their `RESULTS.md` cite, and never as locked.
+
+### D-23. Labels are append-only in history, and a moved label fails CI.
+
+`labels.json` of every probe is compared with its previous committed version. A change from `open_gap` to anything else, or from `equivalent:*` to anything else, fails `tests/test_blind_probe_labels_are_immutable.py` unless the commit also adds a NEGATIVE_RESULTS.md section naming the relabel. Section 8 item 5 becomes a check (F-7).
+
+### D-24. Probe 5 has three selector arms, and the criterion is the stricter one the independent analysis proposed.
+
+Context-free (comparable to probes 1 to 4), suite-aware (the selector reads the whole v1.8 runner and cases), and external (section 8, a selector who is not the maintainer and not a model the maintainer prompted). At least 30 faults per arm, two operator sets, one complete systematic class. Every fault not `equivalent:computed` or `out_of_scope` must be killed on row 3 of v1.8 (section 8).
+
+### D-25. `out_of_scope` leaves the criterion's denominator only with a cited clause.
+
+A label is a string, as before, or `{"label": "out_of_scope", "contract_ref": "<clause>"}`. A bare `out_of_scope` string stays an open gap, so every committed `labels.json` scores exactly as it did; the cited form leaves the denominator and is printed separately in the record, never merged into the kills. This is the narrowest change that makes the script and the prose count the same way (F-8), and it is a change to section 8 item 6 of the v1.3 spec, recorded there. Relabelling P4C-20 to the cited form is a label move under D-23 and needs its NEGATIVE_RESULTS.md line; it is not done in the change that introduces D-25.
+
+## 5. Requirements
+
+R-1 to R-28 carry over. Each new requirement names the check that enforces it.
+
+| ID | Requirement | Enforced by |
+|---|---|---|
+| R-29 | v1.8 carries the v1.7 cases, guidance, ladders, invariants, model and `api_surface.json` verbatim; v1 to v1.7 directories keep their pinned sha256 values | `test_earlier_tested_bytes_are_frozen`, `test_v17_files_are_carried_verbatim` |
+| R-30 | For every length in the boundary set and every position in the position set, a list or mapping with one invalid element is refused with `ValueError`, in observations and in scope, for every claim; a valid one of the same shape gives the `dict` verdict | runner `size_boundary:*` (section 20), `test_size_boundary_sweep_covers_declared_set` |
+| R-31 | Nesting depth up to the declared maximum is validated at every level; an invalid leaf at the deepest level is refused | runner `depth_boundary:*`, `test_depth_sweep_refuses_deep_invalid_leaf` |
+| R-32 | Every container class in the container set, crossed with every invalid value class of section 19, in every position, for every claim and observation shape, is refused with `ValueError`; crossed with valid values it yields the `dict` verdict on the D-19 projection | runner `container_crossing:*` (section 21), `test_container_crossing_is_complete` |
+| R-33 | The public-type contract holds: dataclass parameters, `__slots__`/`__dict__` presence, enum lookup by value and by name for the probe set, `as_dict()` key sequence on every lattice-sampled verdict, `fields()` order, and hash/eq consistency equal `public_types.json` | runner `public_types:*` (section 22), `test_public_types_snapshot_matches` |
+| R-34 | `observable.json` declares the projection; the oracle reads it; every projection field is exercised by at least one runner check | `test_observable_projection_is_declared_and_exercised` |
+| R-35 | Every `equivalent` label in every baseline and every probe `labels.json` is `equivalent:computed`, carries the oracle version and domain digest, and reproduces | `scripts/equivalence_oracle.py --check`, `test_no_argued_equivalence_labels_remain` |
+| R-36 | A fault labelled `equivalent:computed` that any runner section distinguishes fails the gate | `scripts/mutation_evidence_sufficiency.py`, `..._ast.py`, `score_heldout_faults.py` cross-check |
+| R-37 | `score_heldout_faults.py` scores every suite from v1.2 to the newest by default; `--newest` resolves by directory name | `test_default_suites_include_newest` |
+| R-38 | The intake refuses a probe whose `SHA256SUMS` fails, reports the lock (D-22) as `locked`, `unverifiable (squash)` or `not locked`, and emits `RESULTS.md` tables in the committed format; its criterion excludes `equivalent:computed` and `out_of_scope` with a `contract_ref` (F-8) | `scripts/blind_probe_intake.py`, `test_intake_refuses_unlocked_probe`, `test_intake_reproduces_probe_4_tables`, `test_out_of_scope_with_contract_ref_is_not_an_open_gap` |
+| R-39 | Row 2 reports `n/a` under D-21 with the raw count beside it; the applicability predicate is computed from the unmutated checker only | `test_row2_applicability_uses_unmutated_checker` |
+| R-40 | A moved label fails CI without a named NEGATIVE_RESULTS.md section | `test_blind_probe_labels_are_immutable` |
+| R-41 | Probes 1 to 4 rerun through the intake give their committed tables exactly; on v1.8 no fault previously killed survives (ratchet) | `test_committed_probes_reproduce`, `test_ratchet_on_newest_suite` |
+| R-42 | The record states that sections 20 to 22 were written after probe 4, names P4C-07, -09, -16, -18, -19, and states the frozen checker's limits | `limits` in `run-record.json`, `test_record_discloses_fitting` |
+| R-43 | The v1.8 runner reports crashes as named failures (R-19) and the committed `run-record.json` reproduces byte for byte on CPython 3.11 and 3.14 | `--check`, `test_committed_artifact_reproduces_exactly` |
+
+## 6. Design
+
+### 6.1 Layout
+
+```
+conformance/evidence-sufficiency-v1.8/
+  README.md
+  cases.json guidance.json ladders.json invariants.json model.json api_surface.json   # v1.7 verbatim
+  observable.json      # D-19: the observation projection
+  public_types.json    # section 22 snapshot, with interpreter-version guards
+  boundaries.json      # section 20 and 21 sets: lengths, positions, depths, containers
+  run_evidence_sufficiency.py   # v1.7 runner + sections 20, 21, 22
+  run-record.json
+scripts/
+  equivalence_oracle.py         # D-18; writes equivalent:computed labels with domain digest
+  blind_probe_intake.py         # D-22, D-23; wraps score_heldout_faults.py
+  score_heldout_faults.py       # DEFAULT_SUITES to newest; --newest; row-2 applicability
+tests/
+  test_evidence_sufficiency_v1_8.py
+  test_equivalence_oracle.py
+  test_blind_probe_intake.py
+  test_blind_probe_labels_are_immutable.py
+artifacts/evidence-sufficiency-blind-probe-5-<date>/   # locked before v1.8 (section 8)
+```
+
+### 6.2 Section 20: size and depth boundaries (closes P4C-07's class)
+
+`boundaries.json` declares:
+
+- lengths: `0, 1, 2, 3, 4, 7, 8, 9, 15, 16, 17, 31, 32, 33, 63, 64, 65, 99, 100, 101, 127, 128, 129, 255, 256, 257, 999, 1000, 1001, 1023, 1024, 1025, 4096`, plus 50 seeded lengths in `[0, 5000]` (seed `20261007`);
+- positions of the one invalid element: first, last, middle, and every index for lengths ≤ 40;
+- shapes: list in observations, list in scope, mapping with that many keys in observations and in scope, list nested in a mapping, mapping nested in a list;
+- depths: `1, 2, 4, 8, 16, 32, 64, 100`, with the invalid leaf at the deepest level, for list-in-list, dict-in-dict and alternating.
+
+Depth is capped at 100 because `validate_json` and `json.dumps` in the frozen checker are recursive; the cap keeps the sweep inside what the frozen checker handles and is recorded under `limits`. Powers of two ±1 and round numbers are the constants an implementer writes. The seeded lengths are there so a constant outside that list still has a chance of being hit, and the record says that the sweep cannot enumerate every integer.
+
+For every point, two things must hold. With the invalid element, `assess` must raise `ValueError`. With a valid element of the same shape, the verdict's D-19 projection must not change when the long value is replaced by a short one the reference model already covers. Section 20 therefore checks both the refusal and that length does not change a verdict.
+
+### 6.3 Section 21: container × invalid value crossing (closes P4C-09's class)
+
+The container set starts from what the v1.7 runner already has: `container_variants` (`MappingProxyType`, a reversed `OrderedDict`, the read-only `collections.abc.Mapping` `_ReadOnly`) and the `dict_subclass` and `ordered_dict` values of the section-14 table. It adds `ChainMap`, `collections.UserDict`, a `Mapping` whose `__iter__` and `keys()` disagree, and a `Mapping` whose `__getitem__` raises on one key. The set is declared in `boundaries.json`. The crossing is container × invalid value class of section 19 × position (top-level observations, nested in observations, top-level scope, nested in scope) × claim × observation shape (empty, one premise, full).
+
+Expected: refusal with `ValueError` for every invalid value whatever the container, and the `dict` projection for every valid value whatever the container. The disagreeing and raising containers are recorded as `limits` where the frozen checker's `dict(observations)` makes the outcome interpreter-defined.
+
+### 6.4 Section 22: the public-type contract (closes the class of P4C-16, -18, -19)
+
+`public_types.json` extends `api_surface.json` with behaviour, not only names:
+
+| Field | What is recorded |
+|---|---|
+| `dataclass_params` | `init, repr, eq, order, unsafe_hash, frozen, slots, kw_only, match_args`, and `weakref_slot` where the interpreter defines it (version-guarded) |
+| `instance_layout` | whether an `EvidenceVerdict` has `__dict__`, whether the class defines `__slots__` |
+| `fields_order` | `dataclasses.fields()` names in order |
+| `as_dict_key_sequence` | the key list of `as_dict()` for every verdict of a seeded 200-point lattice sample, compared as sequences |
+| `enum_lookup_by_value` | for the probe set `["established", "ESTABLISHED", "Established", " established", "established ", "", "violated", "VIOLATED", "not_established", "NOT_ESTABLISHED", None, 0, 1, True]`: the member returned or the exception class |
+| `enum_lookup_by_name` | for the same strings via `EvidenceStatus[...]`: the member or `KeyError` |
+| `enum_members` | names, values, `len`, iteration order, `str()` and `format()` of each member |
+| `hash_eq` | two equal verdicts hash equal; a verdict and its `as_dict()` compare unequal; `copy`/`deepcopy`/`pickle` round-trip preserves the projection |
+
+The snapshot pins what the frozen checker is, as section 17 does, and `README.md` says so. The version guard records which fields were compared on which interpreter, so the record still reproduces on 3.11 and 3.14 (R-43).
+
+### 6.5 The equivalence oracle (D-18 to D-20)
+
+`scripts/equivalence_oracle.py MUTANT_SPEC --observable conformance/evidence-sufficiency-v1.8/observable.json --domain <suite>`:
+
+1. Builds the frozen checker and the mutant in isolated namespaces (the mutant from a mutmut id, an AST-operator id, or a `{offset, old, new}` edit).
+2. Enumerates the domain: the 61,544 lattice documents, the seeded inputs of sections 16 to 19 (same seeds), the boundary points of section 20, the crossing of section 21, and the section-22 probes.
+3. Computes the D-19 projection for both on every point.
+4. Writes `equivalent:computed` with `oracle_version`, `domain_digest`, `points` if no point differs; otherwise writes `live` and the first distinguishing point.
+
+`--check` re-derives every `equivalent:computed` label in the three baselines and the four probe `labels.json` files and fails on any change. The oracle shares its author with the checker, as section 16's contract does; the record says so.
+
+### 6.6 Blind-set intake (F-3, F-5, F-6, F-7)
+
+`scripts/blind_probe_intake.py artifacts/evidence-sufficiency-blind-probe-N-<date>/ [--newest | --suite ...] [--require-pass]`:
+
+1. Verifies `SHA256SUMS` over every file `PREREGISTRATION.md` lists.
+2. Lock check (D-22): reads `locked_before` from `PREREGISTRATION.md`, finds the first `master` commit that adds or changes any file under that conformance directory, and requires the probe's fault file to be byte-identical at a strict ancestor of it. Reports `locked`, `unverifiable (squash)` or `not locked`; only `locked` counts toward C-5.
+3. Runs the correct-implementation controls on every row; stops with `E-0 not met` if any fails, as probe 4's harness fault showed is needed.
+4. Scores rows 1, 2, 2-applicable (D-21) and 3 on every suite from v1.2 to the newest.
+5. Runs the oracle on every row-3 survivor of the newest suite and writes the computed labels; an unlabelled survivor is `open_gap`. The criterion excludes `equivalent:computed` and `out_of_scope` with a non-empty `contract_ref` (D-25).
+6. Emits `RESULTS.md` tables in the format of probe 4, a `record.json`, and the criterion verdict (section 8).
+
+Probes 2, 3 and 4 are rerun through the intake as the test of its tables (R-41); their lock is reported as unverifiable, which is a statement about `master`, not about the probes.
+
+### 6.7 CI
+
+`.github/workflows/mutation.yml` gains a `blind-probes` job on every change under `conformance/` or `scripts/`. It reruns every committed probe on the newest suite. It fails on a ratchet regression, on a moved label, on an `equivalent:argued` label, and on an `open_gap` without a NEGATIVE_RESULTS.md section id.
+
+## 7. Pre-flight, not evidence
+
+Fitted predictions, to be recorded with the result. Each one is a statement the maintainer makes before running v1.8; a wrong prediction is a finding.
+
+| ID | Prediction | Why it is fitted |
+|---|---|---|
+| P-1 | v1.8 kills P4C-07, P4C-09, P4C-16, P4C-18 and P4C-19 on row 3; v1.7 does not | sections 20 to 22 were written from their list |
+| P-2 | On probes 1 to 4, v1.8 row 3 equals v1.7 row 3 plus those five; no previously killed fault survives | ratchet |
+| P-3 | The oracle labels all 20 mutmut survivors, all 4 AST survivors, probe 3's 2 and probe 4's 5 as `equivalent:computed` on the v1.8 domain. If any is distinguished, the argued label was wrong, the fault is live, and that is a §-numbered finding before any further change | D-20 |
+| P-4 | The mutmut sweep stays at 469 kills out of 489 and the AST sweep at 901 out of 905; sections 20 to 22 reach no code mutmut's operators generate in the decision paths | §65 |
+| P-5 | Row-2-applicable marks H24 of the independent analysis and nine of probe 4's 80 code faults as n/a by R-6 and changes no raw count | D-21; the first two are measured in the change that adds this spec and are therefore not predictions |
+| P-6 | `blind_probe_intake.py` reproduces the committed tables of probes 2, 3 and 4 exactly and passes their locks | R-41 |
+
+Predictions about probe 5 are in section 8 and are the only ones that will count.
+
+## 8. Probe 5: the blind protocol, generalised
+
+Section 8 of the v1.3 spec carries over with these changes, fixed before any probe-5 file is generated.
+
+1. Item 1 names the newest corpus. The selector does not read `conformance/evidence-sufficiency-v1.8/`, this spec's sections 6 and 7, or `boundaries.json`, `observable.json` and `public_types.json`; the suite-aware arm is the one exception and is labelled as such in every table.
+2. Three arms, reported separately.
+   - Arm A, context-free: six agents on three model sizes, the probe-4 prompts unchanged, at least 30 faults, so that A is comparable to probes 1 to 4.
+   - Arm B, suite-aware: selectors are given the whole v1.8 runner, every data file, and `tests/test_evidence_sufficiency_v1_8.py`, and are asked for faults that pass every check. At least 30 faults. This is the arm that turns `p4c` into a protocol.
+   - Arm C, external: a selector who is not the maintainer and not a model the maintainer prompted, under items 1 to 7 of the v1.3 section 8, with a public commitment of the digest before the run. If no such selector is found by the date in T-30, arm C is reported as not run, and the finding keeps its "no external run" caveat. One arm uses a model family other than Anthropic's, as the 2026-09-30 analysis did, to answer the shared-family caveat of §70 to §73.
+3. One complete systematic class, chosen now: every integer literal in `checker.py` replaced by `n-1`, `n+1` and `0`, as the operator the size-boundary class predicts, and every `type(x) is T` replaced by `isinstance(x, T)`. Both are run in full so the result has a denominator.
+4. Lock: the probe directory, with `SHA256SUMS` and `PREREGISTRATION.md`, is committed before the first commit under `conformance/evidence-sufficiency-v1.8/`; `blind_probe_intake.py` enforces it.
+5. Controls: every arm delivers at least two correct implementations; E-0 as in probe 4.
+6. Criterion C-5, pre-registered:
+   - C-5a: every arm-A and arm-C fault that is not `equivalent:computed` or `out_of_scope` with a cited clause is killed on row 3 of v1.8;
+   - C-5b: at least 90 % of arm-B faults are killed on row 3 of v1.8, and every arm-B survivor is labelled before any corpus change (the suite-aware arm is expected to find gaps; it is reported, not passed or failed on the 100 % criterion);
+   - C-5c: the systematic class is killed in full, or every survivor is `equivalent:computed`;
+   - C-5d: no fault that any earlier probe or sweep killed survives v1.8.
+   - Failing C-5a or C-5c means v1.8 is not confirmed and an open gap goes to v1.9 under the same discipline; failing C-5b produces the v1.9 class list.
+7. Row-3 and row-1 gap reporting as item 7 of the v1.3 section 8: a fault killed on row 3 and not on row 1 signals another K1-style derivation.
+8. Prediction, fitted to nothing: arm A yields 0 open survivors; arm B yields between 1 and 5, in classes no section names; the systematic class yields 0 live survivors after computed equivalence. The maintainer records this before generation.
+
+## 9. Acceptance criteria
+
+1. `python conformance/evidence-sufficiency-v1.8/run_evidence_sufficiency.py --check` exits 0 with empty `failures` and `crashes` on CPython 3.11 and 3.14.
+2. `python scripts/score_heldout_faults.py artifacts/evidence-sufficiency-blind-probe-4-2026-10-01/probe4-faults.json --expect-sha256 01080ce2bcdd61092188430c4d2d4e1cddb5a19a20666016030b002a894fadd8 --newest --labels <relabelled labels.json> --require-pass` exits 0: 104 of 104 killed or `equivalent:computed`/`out_of_scope` on row 3 of v1.8.
+3. `python scripts/equivalence_oracle.py --check` exits 0, and no baseline or `labels.json` contains `equivalent` without `:computed`.
+4. `python scripts/mutation_evidence_sufficiency.py` and `..._ast.py` exit 0 with no survivor outside their baselines, and every baseline entry carries an oracle digest.
+5. `python scripts/blind_probe_intake.py` on probes 2, 3 and 4 reproduces their committed tables and passes the lock check.
+6. `pytest tests/test_evidence_sufficiency_v1_8.py tests/test_equivalence_oracle.py tests/test_blind_probe_intake.py tests/test_blind_probe_labels_are_immutable.py tests/test_score_heldout_faults.py` passes, together with the v1 to v1.7 test modules.
+7. v1 to v1.7 directories are byte-identical to their pinned values.
+8. Probe 5 is committed and locked before the first v1.8 commit, and its `PREREGISTRATION.md` carries section 8 items 2, 3, 6 and 8 verbatim.
+9. NEGATIVE_RESULTS.md §73 is marked superseded with a pointer to the v1.8 result; a new section records the probe-5 result, whatever it is; RES-021, the document register, `mutation_testing_v1.md` and CHANGELOG are updated; the external record gains a v1.8 section in its format.
+
+## 10. Tasks
+
+| ID | Task | Depends on | Status |
+|---|---|---|---|
+| T-22 | Fix section 8 item 1 and `DEFAULT_SUITES`; add `--newest`; add row-2-applicable (D-21); the cited `out_of_scope` form (D-25) | none | done in the change that adds this spec: suites are discovered on disk, `--newest`, `row2_applicable` and `row2_not_applicable_by_r6` in every table, `contract_ref` labels; probe 4 rescored identically (row 3 93 of 104, the same eleven survivors, six open because P4C-20 keeps its bare label) |
+| T-23 | Write `observable.json` and the oracle; relabel the 31 argued survivors; record any live one as a finding before T-25 | T-22 | open |
+| T-24 | Generate probe 5, arms A and B, and the systematic class; commit with `SHA256SUMS` and `PREREGISTRATION.md` (`locked_before: evidence-sufficiency-v1.8`) in its own PR, merged to `master` first; record the section-8 prediction | T-22 | open, **must precede T-25 on `master`** |
+| T-25 | `conformance/evidence-sufficiency-v1.8/`: `boundaries.json`, `public_types.json`, sections 20 to 22, record, README with `limits` | T-23, T-24 | open |
+| T-26 | `tests/test_evidence_sufficiency_v1_8.py` (R-29 to R-34, R-42, R-43) | T-25 | open |
+| T-27 | `blind_probe_intake.py`, lock check, label immutability test, CI job | T-22 | open |
+| T-28 | Rerun probes 2 to 4 through the intake; rerun probe 4 and the sweeps on v1.8; record P-1 to P-6 against the result | T-25, T-27 | open |
+| T-29 | Score probe 5 on v1.7 and v1.8; label survivors with the oracle before any corpus change; apply C-5 | T-28 | open |
+| T-30 | Ask for arm C: offer on #629 and on aeoess/agent-governance-vocabulary; deadline 2026-10-31; report "not run" after it | T-24 | open |
+| T-31 | Registers: NEGATIVE_RESULTS (§73 superseded, new section), RES-021, `mutation_testing_v1.md`, CHANGELOG, external record | T-29 | open |
+
+The order T-24 before T-25 is the whole point: v1.8 may not exist on `master` before the probe that tests it, and the two must not share a squash commit (F-6).
+
+## 11. Risks
+
+| Risk | Effect | Mitigation |
+|---|---|---|
+| The oracle's domain misses the distinguishing input and labels a live fault `equivalent:computed` | a real gap hidden behind a computed label | D-20: the label is reversible; probe-5 arm B targets exactly this; every relabel is a recorded finding |
+| Sections 20 and 21 are slow (the crossing is container × value × position × claim × shape) | the runner takes minutes; `--check` in CI times out | budget: section 21 ≤ 60 s on CI; prune by seeded sampling for the nested positions, report the sample size, keep the top-level crossing exhaustive |
+| `public_types.json` pins interpreter-dependent behaviour and breaks on 3.15 | a false failure | version guards per field; the record names the interpreters compared |
+| Arm B finds many survivors and "0 survivors" is read as failed | the headline is wrong either way | C-5b reports arm B as a class list, not a pass/fail; section 12 defines the claim precisely |
+| No external selector by the deadline | F-5 stays open | T-30 reports it; the claim in section 12 is stated without arm C and says so |
+| The intake's lock check marks probes 1 to 4 unverifiable and that is read as a retraction | the earlier records look weaker than they were | the report says what is unverifiable (ancestry on `master`) and cites the branch commits; the ratchet still runs on all four |
+| Pinning key order and enum lookup is read as pinning prose, against D-7 | a contract dispute with a future external selector | D-19 draws the line in `observable.json`; key order is observable through `as_dict()` iteration and so is in; message text is not |
+
+## 12. What "zero survivors" means, and what it does not
+
+The claim v1.8 can make, if sections 7 and 9 hold, is this:
+
+> On row 3 of `conformance/evidence-sufficiency-v1.8/`, every fault in the committed pools is killed, `equivalent:computed`, or `out_of_scope`. `equivalent:computed` means indistinguishable on the declared observation set over the declared domain; `out_of_scope` means excluded by a cited clause of the frozen checker's contract. No survivor is labelled `open_gap` and none is labelled by argument.
+
+The pools:
+
+| Pool | Faults |
+|---|---:|
+| mutmut mutants | 489 |
+| second-operator mutants | 905 |
+| live specification mutants | 690 + 319 |
+| external faults (Rul1an) | 109 |
+| independent-analysis faults | 43 |
+| held-out faults, probes 1 to 4 | 96 + 97 + 104 + 104 |
+
+It does not say that the checker is correct, that a fault family nobody has named is covered, or that the next blind set will find nothing. The protocol of section 8 exists because it probably will. The measure of v1.8 is that whatever probe 5 finds is reported with its lock, its labels and its denominator, by a script a stranger can run.
+
+## 13. Research grounding
+
+Carried from the v1.3 spec section 12, with two additions. Computed equivalence by enumeration over a finite domain follows the practice of section 13.3 for `model.json` and, in spirit, the trivial-compiler-equivalence line of work (Papadakis et al., 2015). A finite domain is not a proof. The suite-aware arm follows the adversarial-selector reading of Just et al. (2014) on which mutants matter, and the probe-4 observation that the informed selector found nine of eleven survivors.

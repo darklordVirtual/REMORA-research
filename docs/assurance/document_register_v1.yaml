@@ -2870,6 +2870,18 @@ documents:
   - maintainers
   - evaluators
   - integrators
+- id: DOC-375
+  path: docs/design/evidence-sufficiency-v1.8.md
+  status: canonical
+  topic: docs_design_evidence-sufficiency-v1.8_md
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-10-08'
+  last_reviewed: '2026-10-08'
+  audience:
+  - maintainers
+  - evaluators
+  - researchers
 topics:
 - provenance_README_md
 - provenance_prior-art-review-2026-10-04_md
@@ -3163,6 +3175,7 @@ topics:
 - docs_design_evidence-sufficiency-v1.1_md
 - docs_assurance_external_adequacy_evidence_sufficiency_v1_md
 - docs_design_evidence-sufficiency-v1.3_md
+- docs_design_evidence-sufficiency-v1.8_md
 - conformance_autoreview-to-effect-v1_readme_md
 - conformance_safety-case-evidence-profile-v0.1_readme_md
 - docs_design_plan-premise-authority-v1_md

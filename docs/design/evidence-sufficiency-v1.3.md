@@ -311,12 +311,12 @@ None of this is independent evidence. The cases, the relations and the tests wer
 The earlier protocol (v1.1 spec, section 8) withheld faults from the maintainer, but the selector had seen the corpus design and the pre-flight totals.
 For v1.3 the run must be blind, and the record says beforehand what would count.
 
-1. The selector chooses faults from `checker.py` at the pinned commit without reading `conformance/evidence-sufficiency-v1.3/` or this spec's sections 6 and 7, and states that in the commitment.
+1. The selector chooses faults from `checker.py` at the pinned commit without reading the newest `conformance/evidence-sufficiency-v1.N/` directory or this spec's sections 6 and 7 and their successors, and states that in the commitment. The newest directory was v1.3 when this was written; `scripts/score_heldout_faults.py` prints which one is newest now.
 2. The selector commits the sha256 of the fault definitions publicly before the run, as before.
 3. At least one systematic class is run in full (every mutant of one operator), so the result has a denominator, and at least one tool other than corpus-adequacy 0.7.0 or mutmut 3.8.0 is used.
 4. Rows and crash kills are reported as in the earlier runs. Hand-picked and systematic faults are reported in separate tables.
 5. The maintainer labels every survivor (equivalent, out of scope by a stated contract, open gap) before any corpus change, and never moves a label to improve a count.
-6. Pre-registered criterion: v1.3 is confirmed only if every held-out fault that is not labelled equivalent is killed on the runner row. Any open gap goes to v1.4 with the same discipline as sections 12 of the v1.1 spec and this one.
+6. Pre-registered criterion: v1.3 is confirmed only if every held-out fault that is not labelled equivalent is killed on the runner row. Any open gap goes to v1.4 with the same discipline as sections 12 of the v1.1 spec and this one. Since 2026-10-08 an `out_of_scope` label with a cited `contract_ref` also leaves the denominator (v1.8 spec, D-25). A bare `out_of_scope` does not, so every run recorded before that date scores as it did.
 7. Rows 1 and 2 score the authored cases alone; row 3 scores the runner, and only row 3 sees the lattice of D-14. A fault killed on row 3 and not on row 1 is reported as such, and it is the signal that another K1-style derivation is due.
 
 Since 2026-09-30 the protocol has a committed harness, so a run needs only a fault file and its public commitment:
@@ -326,7 +326,7 @@ python scripts/score_heldout_faults.py FAULTS.json --expect-sha256 <committed di
 ```
 
 It refuses a file whose digest differs from the commitment, and it refuses an edit that does not match the frozen checker.
-It scores v1.2, v1.3 and v1.4 in the three rows and applies item 6 to the newest suite. A survivor without an `equivalent` label counts as an open gap.
+It scores every suite from v1.2 to the newest on disk in the three rows, or the newest alone with `--newest`, and applies item 6 to the newest suite. A survivor without an `equivalent` label, or an `out_of_scope` label with a cited `contract_ref`, counts as an open gap. Until 2026-10-08 the default was the fixed triple v1.2, v1.3, v1.4.
 On the 43 faults of the independent analysis it reproduces that analysis's own raw rows for v1.2 and v1.3, case by case, with no disagreement.
 The run still needs a selector who has not read the corpus and a public commitment; the harness removes only the need to write one.
 
@@ -693,6 +693,10 @@ The three new kills lie in classes probe 3 named, and one is a new member of its
 Five survivors are labelled equivalent and one out of scope; five are open (NEGATIVE_RESULTS.md §73).
 The open ones are a size boundary (lists longer than 32 items), a container crossed with an invalid value, and three properties of the public types: `slots`, case-insensitive enum lookup, and key order.
 Nine of the eleven survivors come from the selector that was told how thorough the suite is.
+
+## 18. v1.8: what comes next
+
+The open survivors of probe 4 (§73), the argued equivalence labels, the stale scorer default and the unverifiable lock of the squash-merged probes are taken up in `docs/design/evidence-sufficiency-v1.8.md`. That spec carries D-17 to D-25 and R-29 to R-43 and fixes the probe-5 protocol before any v1.8 file exists.
 
 ## Deliverables
 

@@ -67,8 +67,18 @@ def test_harness_reproduces_every_independent_row() -> None:
     record = H.score(DEFINITIONS, ("evidence-sufficiency-v1.2", "evidence-sufficiency-v1.3"), {})
     _agree(record, ("v1.2", "v1.3"))
     tables = record["tables"]
-    assert tables["evidence-sufficiency-v1.2"]["hand_picked"] == {"faults": 24, "row1": 23, "row2": 22, "row3": 23}
-    assert tables["evidence-sufficiency-v1.3"]["hand_picked"] == {"faults": 24, "row1": 24, "row2": 23, "row3": 24}
+    recorded = ("faults", "row1", "row2", "row3")
+    v12 = {k: tables["evidence-sufficiency-v1.2"]["hand_picked"][k] for k in recorded}
+    v13 = {k: tables["evidence-sufficiency-v1.3"]["hand_picked"][k] for k in recorded}
+    assert v12 == {"faults": 24, "row1": 23, "row2": 22, "row3": 23}
+    assert v13 == {"faults": 24, "row1": 24, "row2": 23, "row3": 24}
+    # H24 (raw `==` for canonical) is the one hand-picked fault row 2 cannot see by
+    # rule R-6; the applicability column names it and the raw row-2 count is unchanged.
+    for suite in ("evidence-sufficiency-v1.2", "evidence-sufficiency-v1.3"):
+        assert tables[suite]["hand_picked"]["row2_not_applicable_by_r6"] == 1
+        rows = {r["id"]: r for r in record["rows"][suite]}
+        assert not rows["H24"]["row2_applicable"] and not rows["H24"]["row2_kill"]
+        assert rows["H24"]["row1_kill"] and rows["H24"]["row3_kill"]
 
 
 def test_criterion_counts_an_unlabelled_survivor_as_an_open_gap_and_honours_equivalent() -> None:
@@ -77,7 +87,63 @@ def test_criterion_counts_an_unlabelled_survivor_as_an_open_gap_and_honours_equi
     record = H.score(_subset({"H15"}), ("evidence-sufficiency-v1.2",), {"H15": "equivalent"})
     assert record["criterion"]["met"]
     record = H.score(_subset({"H15"}), ("evidence-sufficiency-v1.2",), {"H15": "out_of_scope"})
-    assert not record["criterion"]["met"], "only an equivalence label leaves the denominator"
+    assert not record["criterion"]["met"], "a bare out_of_scope string is an open gap, as before v1.8"
+
+
+def test_out_of_scope_leaves_the_denominator_only_with_a_cited_contract_ref() -> None:
+    # v1.8 spec, D-25. The earlier probe label files use bare strings and keep their results.
+    bare = H.score(_subset({"H15"}), ("evidence-sufficiency-v1.2",), {"H15": {"label": "out_of_scope"}})
+    assert bare["criterion"]["open_gaps"] == ["H15"] and not bare["criterion"]["met"]
+    blank = H.score(_subset({"H15"}), ("evidence-sufficiency-v1.2",),
+                    {"H15": {"label": "out_of_scope", "contract_ref": "  "}})
+    assert not blank["criterion"]["met"]
+    cited = H.score(_subset({"H15"}), ("evidence-sufficiency-v1.2",),
+                    {"H15": {"label": "out_of_scope", "contract_ref": "v1.3 spec section 15.3, scope coercion"}})
+    assert cited["criterion"]["met"] and cited["criterion"]["open_gaps"] == []
+    assert cited["criterion"]["out_of_scope"] == {"H15": "v1.3 spec section 15.3, scope coercion"}
+    assert cited["criterion"]["row3_survivors"] == ["H15"], "the survivor is still reported"
+    with pytest.raises(ValueError, match="malformed label"):
+        H.normalise_label({"contract_ref": "no label key"})
+
+
+def test_default_suites_are_discovered_and_end_with_the_newest_on_disk() -> None:
+    # R-37 of the v1.8 spec: the fixed (v1.2, v1.3, v1.4) default went stale three suites later.
+    on_disk = sorted(
+        (p.name for p in (ROOT / "conformance").glob("evidence-sufficiency-v1.*")
+         if (p / "run_evidence_sufficiency.py").exists() and (p / "cases.json").exists()),
+        key=H.suite_version,
+    )
+    expected = tuple(name for name in on_disk if H.suite_version(name) >= H.OLDEST_DEFAULT)
+    assert H.DEFAULT_SUITES == expected
+    assert H.DEFAULT_SUITES[0] == "evidence-sufficiency-v1.2"
+    assert H.suite_version(H.DEFAULT_SUITES[-1]) >= (1, 7)
+    assert H.suite_version("evidence-sufficiency-v1.10") > H.suite_version("evidence-sufficiency-v1.9")
+
+
+def test_newest_scores_only_the_newest_suite(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    faults = tmp_path / "faults.json"
+    faults.write_text(json.dumps(_subset({"S01"})), encoding="utf-8")
+    digest = H.sha256(faults.read_bytes())
+    out = tmp_path / "record.json"
+    assert H.main([str(faults), "--expect-sha256", digest, "--newest", "--json", str(out)]) == 0
+    record = json.loads(out.read_text(encoding="utf-8"))
+    assert record["suites"] == [H.DEFAULT_SUITES[-1]]
+    assert H.main([str(faults), "--expect-sha256", digest, "--newest", "--suite", "evidence-sufficiency-v1.2"]) == 2
+    assert "exclude each other" in capsys.readouterr().err
+
+
+def test_row2_applicability_is_decided_by_the_unmutated_checker() -> None:
+    # A fault killed on row 2 is applicable whatever the cases; a fault that changes no
+    # authored case at all is applicable too (nothing to hide behind R-6); only a fault
+    # whose every row-1 change is on a case decisive under the unmutated checker is n/a.
+    record = H.score(_subset({"H15", "H24"}), ("evidence-sufficiency-v1.3",), {})
+    rows = {r["id"]: r for r in record["rows"]["evidence-sufficiency-v1.3"]}
+    assert rows["H15"]["row2_kill"] and rows["H15"]["row2_applicable"]
+    assert not rows["H24"]["row2_kill"] and not rows["H24"]["row2_applicable"]
+    cases = H.runner("evidence-sufficiency-v1.3").load_json(
+        H.CONFORMANCE / "evidence-sufficiency-v1.3" / "cases.json")["cases"]
+    expected = {c["id"]: c["expected"]["status"] for c in cases}
+    assert all(expected[c] != "not_established" for c in rows["H24"]["row1_cases"])
 
 
 def test_an_edit_that_does_not_match_the_checker_is_refused() -> None:

@@ -26,6 +26,18 @@ Rows, as in every earlier run:
 The criterion (section 8, item 6) is applied to the newest suite scored:
 every fault not labelled ``equivalent`` in ``--labels`` must be killed on row
 3. A fault without a label that survives is an open gap, never excluded.
+Since the v1.8 spec (D-25) an ``out_of_scope`` label also leaves the
+denominator, but only as ``{"label": "out_of_scope", "contract_ref": "..."}``
+with the clause of the frozen checker's contract it rests on; a bare
+``out_of_scope`` string still counts as an open gap, so every earlier label
+file scores as it did.
+
+Row 2 also reports how many faults it cannot see by contract: a fault whose
+every row-1 change lies on a case that is decisive under the unmutated checker
+has no guidance to compare (rule R-6). The raw row-2 count stays beside it.
+
+The suites scored by default are every ``conformance/evidence-sufficiency-v1.N/``
+from v1.2 to the newest on disk; ``--newest`` scores the newest alone.
 
 Usage::
 
@@ -47,8 +59,52 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 CONFORMANCE = ROOT / "conformance"
 CHECKER = CONFORMANCE / "evidence-sufficiency-v1" / "checker.py"
-DEFAULT_SUITES = ("evidence-sufficiency-v1.2", "evidence-sufficiency-v1.3", "evidence-sufficiency-v1.4")
 LABELS = ("equivalent", "out_of_scope", "open_gap")
+OLDEST_DEFAULT = (1, 2)
+
+
+def suite_version(name: str) -> tuple[int, ...]:
+    return tuple(int(part) for part in name.removeprefix("evidence-sufficiency-v").split("."))
+
+
+def discover_suites(oldest: tuple[int, ...] = OLDEST_DEFAULT) -> tuple[str, ...]:
+    """Every ``conformance/evidence-sufficiency-v1.N/`` from ``oldest`` on, oldest first.
+
+    The default used to be a fixed triple (v1.2, v1.3, v1.4) and went stale three
+    suites later; the newest suite is now found on disk so that a run cannot be
+    scored against a superseded corpus by omission (v1.8 spec, D-21 and R-37).
+    """
+    found = []
+    for path in CONFORMANCE.glob("evidence-sufficiency-v1.*"):
+        if (path / "run_evidence_sufficiency.py").exists() and (path / "cases.json").exists():
+            version = suite_version(path.name)
+            if version >= oldest:
+                found.append((version, path.name))
+    return tuple(name for _, name in sorted(found))
+
+
+DEFAULT_SUITES = discover_suites()
+
+
+def normalise_label(value: object) -> dict[str, str]:
+    """A label as ``{"label": ..., "contract_ref": ...}``.
+
+    A bare string is the pre-v1.8 form. ``out_of_scope`` leaves the criterion's
+    denominator only with a non-empty ``contract_ref`` naming the clause of the
+    frozen checker's contract; a bare ``out_of_scope`` is scored as it always was,
+    as an open gap, so earlier label files keep their recorded results.
+    """
+    if isinstance(value, str):
+        return {"label": value, "contract_ref": ""}
+    if isinstance(value, dict) and isinstance(value.get("label"), str):
+        return {"label": value["label"], "contract_ref": str(value.get("contract_ref", "") or "")}
+    raise ValueError(f"malformed label {value!r}")
+
+
+def leaves_denominator(label: dict[str, str]) -> bool:
+    if label["label"] == "equivalent":
+        return True
+    return label["label"] == "out_of_scope" and bool(label["contract_ref"].strip())
 
 
 def sha256(data: bytes) -> str:
@@ -129,6 +185,7 @@ def _verdict(checker: ModuleType, case: dict, scope: dict) -> dict[str, Any]:
 def score_fault(suite: str, base: ModuleType, mutant: ModuleType) -> dict:
     cases = runner(suite).load_json(CONFORMANCE / suite / "cases.json")["cases"]
     row1, row2 = [], []
+    decisive_under_base: set[str] = set()
     for case in cases:
         scope = {"kind": "synthetic_fixture", "suite": suite, "bounded": True, "case": case["id"]}
         got, want = _verdict(mutant, case, scope), _verdict(base, case, scope)
@@ -139,13 +196,22 @@ def score_fault(suite: str, base: ModuleType, mutant: ModuleType) -> dict:
             want.get("missing_evidence"), want.get("decisive_if")
         ):
             row2.append(case["id"])
+        if "crash" not in want and want["status"] != "not_established":
+            decisive_under_base.add(case["id"])
     failures, crash = runner_failures(suite, mutant)
+    # Row 2 cannot see a fault whose every row-1 change lies on a case that is
+    # decisive under the unmutated checker: rule R-6 gives decisive verdicts no
+    # guidance. The predicate reads the unmutated verdicts only (v1.8 spec, D-21);
+    # the raw row-2 count is reported beside it and never replaced.
+    row2_applicable = bool(row2) or not row1 or any(c not in decisive_under_base for c in row1)
     return {"row1_cases": row1, "row2_cases": row2, "row3_failures": failures[:50],
             "row3_failure_count": len(failures), "row3_crash": crash,
-            "row1_kill": bool(row1), "row2_kill": bool(row2), "row3_kill": bool(failures) or crash is not None}
+            "row1_kill": bool(row1), "row2_kill": bool(row2), "row2_applicable": row2_applicable,
+            "row3_kill": bool(failures) or crash is not None}
 
 
-def score(definitions: dict, suites: tuple[str, ...], labels: dict[str, str]) -> dict:
+def score(definitions: dict, suites: tuple[str, ...], labels: dict[str, object]) -> dict:
+    normalised = {fid: normalise_label(value) for fid, value in labels.items()}
     source = CHECKER.read_text(encoding="utf-8")
     base = load_source_module(source, "heldout_base_checker")
     for suite in suites:
@@ -172,20 +238,25 @@ def score(definitions: dict, suites: tuple[str, ...], labels: dict[str, str]) ->
                 "faults": len(selected),
                 "row1": sum(r["row1_kill"] for r in selected),
                 "row2": sum(r["row2_kill"] for r in selected),
+                "row2_applicable": sum(r["row2_applicable"] for r in selected),
+                "row2_not_applicable_by_r6": sum(not r["row2_applicable"] for r in selected),
                 "row3": sum(r["row3_kill"] for r in selected),
             }
     newest = suites[-1]
     survivors = [r["id"] for r in rows[newest] if not r["row3_kill"]]
-    open_gaps = [fid for fid in survivors if labels.get(fid) != "equivalent"]
+    open_gaps = [fid for fid in survivors if not leaves_denominator(normalised.get(fid, {"label": "", "contract_ref": ""}))]
+    out_of_scope = [fid for fid in survivors if normalised.get(fid, {}).get("label") == "out_of_scope"]
     return {
         "checker_sha256": sha256(source.replace("\r\n", "\n").encode("utf-8")),
         "suites": list(suites),
         "tables": tables,
         "criterion": {
             "suite": newest,
-            "rule": "every fault not labelled equivalent is killed on row 3 (v1.3 spec, section 8, item 6)",
+            "rule": ("every fault not labelled equivalent, or out_of_scope with a cited contract_ref, "
+                     "is killed on row 3 (v1.3 spec, section 8, item 6; v1.8 spec, D-25)"),
             "row3_survivors": survivors,
             "open_gaps": open_gaps,
+            "out_of_scope": {fid: normalised[fid]["contract_ref"] for fid in out_of_scope},
             "met": not open_gaps,
         },
         "row1_only_on_runner": {
@@ -201,8 +272,11 @@ def main(argv: list[str]) -> int:
     parser.add_argument("--expect-sha256", required=True,
                         help="the digest committed before the run; the file must match it byte for byte")
     parser.add_argument("--suite", action="append", dest="suites",
-                        help="a corpus to score, oldest first (default: v1.2, v1.3, v1.4)")
-    parser.add_argument("--labels", type=Path, help="JSON {fault id: equivalent|out_of_scope|open_gap}")
+                        help="a corpus to score, oldest first (default: every suite from v1.2 to the newest on disk)")
+    parser.add_argument("--newest", action="store_true",
+                        help="score only the newest suite on disk")
+    parser.add_argument("--labels", type=Path,
+                        help='JSON {fault id: equivalent|out_of_scope|open_gap, or {"label": ..., "contract_ref": ...}}')
     parser.add_argument("--json", type=Path, help="write the full record here")
     parser.add_argument("--require-pass", action="store_true", help="exit 1 unless the criterion is met")
     args = parser.parse_args(argv)
@@ -213,11 +287,21 @@ def main(argv: list[str]) -> int:
         return 2
     definitions = json.loads(data.decode("utf-8"))
     labels = json.loads(args.labels.read_text(encoding="utf-8")) if args.labels else {}
-    bad = {k: v for k, v in labels.items() if v not in LABELS}
+    try:
+        bad = {k: v for k, v in labels.items() if normalise_label(v)["label"] not in LABELS}
+    except ValueError as exc:
+        print(f"[FAIL] {exc}", file=sys.stderr)
+        return 2
     if bad:
         print(f"[FAIL] unknown labels {bad}; allowed: {LABELS}", file=sys.stderr)
         return 2
-    suites = tuple(args.suites or DEFAULT_SUITES)
+    if args.newest and args.suites:
+        print("[FAIL] --newest and --suite exclude each other", file=sys.stderr)
+        return 2
+    if not DEFAULT_SUITES:
+        print("[FAIL] no evidence-sufficiency suite found under conformance/", file=sys.stderr)
+        return 2
+    suites = (DEFAULT_SUITES[-1],) if args.newest else tuple(args.suites or DEFAULT_SUITES)
     record = score(definitions, suites, labels)
     record["fault_definitions_sha256"] = digest
     record["source_commit"] = definitions.get("source_commit")
@@ -225,10 +309,11 @@ def main(argv: list[str]) -> int:
         args.json.write_text(json.dumps(record, indent=1, sort_keys=True) + "\n", encoding="utf-8")
     for suite in suites:
         for group, t in record["tables"][suite].items():
-            print(f"{suite} {group}: {t['faults']} faults; killed on row 1 {t['row1']}, row 2 {t['row2']}, row 3 {t['row3']}")
+            print(f"{suite} {group}: {t['faults']} faults; killed on row 1 {t['row1']}, row 2 {t['row2']} "
+                  f"(n/a by R-6 {t['row2_not_applicable_by_r6']}), row 3 {t['row3']}")
     c = record["criterion"]
     print(f"criterion on {c['suite']}: {'met' if c['met'] else 'NOT met'}; row-3 survivors {c['row3_survivors']}; "
-          f"open gaps {c['open_gaps']}")
+          f"open gaps {c['open_gaps']}; out of scope {c['out_of_scope']}")
     return 1 if args.require_pass and not c["met"] else 0
 
 
