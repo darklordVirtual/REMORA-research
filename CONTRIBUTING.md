@@ -59,6 +59,22 @@ that do not apply to the research modules:
   real number rises; never lower one to make a failing build pass; cover the
   code instead.
 
+### Dependency updates
+
+The replication pack pins the LF SHA-256 of `requirements-lock.txt`, so any
+change to the lock, including a Dependabot bump, fails the replication-pack
+check until the pin is refreshed. After the lock changes, run:
+
+```bash
+python scripts/verify_replication_pack.py --refresh-lock --reason "<package> <version> (#<PR>)"
+```
+
+It pins the new lock, moves the old pin into `requirements_lock_history` with
+the commit it matched and your reason, and then runs the full check. Commit
+`artifacts/replication-pack/replication_pack_v1.json` in the same PR. The pin
+verifies the environment; it does not show that historical results regenerate
+under the new versions.
+
 ### Test structure
 
 - Shared fixtures live in `tests/conftest.py`: `repo_root`, `engine`,

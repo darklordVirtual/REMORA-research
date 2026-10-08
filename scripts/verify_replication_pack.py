@@ -28,8 +28,18 @@ regenerate or structurally validate it. This script checks that list.
     Entries whose mode is ``none`` (sealed or imported results) are only
     checked, never re-run. Needs git and the package's dependencies.
 
+``--refresh-lock --reason TEXT``
+    After a dependency change (a Dependabot bump, a security fix), pins the
+    current ``requirements-lock.txt``. The outgoing pin moves to the front of
+    ``requirements_lock_history`` with the last commit whose lock it matches
+    and the reason given, so the record of which environment verified which
+    result is kept. A no-op when the lock is unchanged. The pin verifies the
+    environment; it does not establish that historical results regenerate
+    under the new dependencies.
+
     python scripts/verify_replication_pack.py
     python scripts/verify_replication_pack.py --regenerate
+    python scripts/verify_replication_pack.py --refresh-lock --reason "fastapi 0.142.2 (#809)"
 """
 from __future__ import annotations
 
@@ -457,12 +467,50 @@ def _pointers(binding: dict) -> list[str]:
 # --------------------------------------------------------------------------
 
 
+def _revision_of(root: Path, rel: str, digest: str) -> str | None:
+    """The newest commit whose ``rel`` has LF SHA-256 ``digest``."""
+    log = subprocess.run(["git", "log", "--format=%H", "--", rel], cwd=root,
+                         capture_output=True, text=True, check=False)
+    for revision in log.stdout.split():
+        blob = subprocess.run(["git", "show", f"{revision}:{rel}"], cwd=root,
+                              capture_output=True, check=False)
+        if blob.returncode == 0 and hashlib.sha256(
+                blob.stdout.replace(b"\r\n", b"\n")).hexdigest() == digest:
+            return revision
+    return None
+
+
+def refresh_lock(pack: dict, root: Path, reason: str) -> str | None:
+    """Pin the current lock; return the new digest, or None when unchanged."""
+    if not reason.strip():
+        raise PackError("--refresh-lock needs a --reason: the history entry is the record")
+    env = pack["environment"]
+    lock = env["requirements_lock"]
+    current = sha256_lf(root / lock["path"])
+    if current == lock["sha256_lf"]:
+        return None
+    revision = _revision_of(root, lock["path"], lock["sha256_lf"])
+    if revision is None:
+        raise PackError(f"no commit has {lock['path']} at the pinned {lock['sha256_lf'][:12]}; "
+                        "the outgoing pin cannot be placed in history")
+    env.setdefault("requirements_lock_history", []).insert(0, {
+        "path": lock["path"], "git_revision": revision,
+        "sha256_lf": lock["sha256_lf"], "reason": reason.strip(),
+    })
+    lock["sha256_lf"] = current
+    return current
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--check", action="store_true", help="offline hash and metric check (default)")
     mode.add_argument("--regenerate", action="store_true",
                       help="also re-run regenerable entries in a temporary worktree of HEAD")
+    mode.add_argument("--refresh-lock", action="store_true",
+                      help="pin the current requirements lock and keep the old pin in history")
+    parser.add_argument("--reason", default="",
+                        help="with --refresh-lock: why the lock changed (recorded in history)")
     parser.add_argument("--root", type=Path, default=ROOT, help="repository root (default: this checkout)")
     parser.add_argument("--pack", type=Path, default=None, help="pack file (default: under --root)")
     args = parser.parse_args(argv)
@@ -476,6 +524,18 @@ def main(argv: list[str] | None = None) -> int:
     if not pack.get("entries"):
         print(f"[FAIL] {pack_path}: no entries; a pack that checks nothing is not evidence")
         return 1
+
+    if args.refresh_lock:
+        try:
+            digest = refresh_lock(pack, root, args.reason)
+        except PackError as exc:
+            print(f"[FAIL] {exc}")
+            return 1
+        if digest is None:
+            print("[OK] requirements lock unchanged; nothing to pin.")
+            return 0
+        pack_path.write_text(json.dumps(pack, indent=2) + "\n", encoding="utf-8", newline="\n")
+        print(f"[WRITE] {pack_path}: requirements lock pinned at {digest[:16]}...")
 
     report = Report()
     run_check(pack, root, report)
