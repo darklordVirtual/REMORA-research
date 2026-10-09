@@ -21,9 +21,15 @@
     "measured_with_python": "3.13.7 (macOS arm64, venv with the dev extras)",
     "requirements_lock": {
       "path": "requirements-lock.txt",
-      "sha256_lf": "26324c97cd4070fcdc018f066499cc330d2f86781f56e28fb4d39d7fa0351ec5"
+      "sha256_lf": "b33c290dbcbe4318464c8492f814b2220833c6b5a778626b62bfbe523d0945cb"
     },
     "requirements_lock_history": [
+      {
+        "path": "requirements-lock.txt",
+        "git_revision": "bb2854d42c5a72a4e13ab30355b35eab06218783",
+        "sha256_lf": "26324c97cd4070fcdc018f066499cc330d2f86781f56e28fb4d39d7fa0351ec5",
+        "reason": "chore(deps): bump the huggingface-stack group with 2 updates (#810)"
+      },
       {
         "path": "requirements-lock.txt",
         "git_revision": "9f35bc2a705b5007990468e8d91c30e16018e3b3",
