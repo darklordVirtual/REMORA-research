@@ -77,3 +77,19 @@ events:
       claimed_by_external_source: "the Federation vocabulary repository lists REMORA's E7 package as a producer-side contract awaiting an external run"
       maintainer_overlap: false
     recorded_in: docs/interop/FEDERATION.md
+  - id: EXT-0006
+    date: '2026-10-02'
+    project: Probity
+    event_type: independent_implementation
+    concepts: [PROV-09]
+    source:
+      url: https://github.com/probityai/agent-evidence-atlas/blob/bee7b009657814f5332bcd61afc073be6645b69d/experiments/remora-e7-2026-10-02/external-run-record-v1.json
+      commit: bee7b009657814f5332bcd61afc073be6645b69d
+    attribution:
+      explicit: true
+      wording: "external-run-record-v1 for runtime-surface-e7-v0.1 at package digest sha256:01dfdb78…; SECOND_IMPLEMENTATION, operator EXTERNAL, independence INDEPENDENT; five of five native outcomes agree"
+    relationship:
+      claimed_by_external_source: "Probity's separately maintained E7 reader (agent-evidence-vectors a0b89170) reproduced all five fixture outcomes without importing REMORA runtime code or the reference verifier; the verifier discloses that published expectations were read before implementation and that reference-verifier text was seen in a lint diagnostic afterwards, so the result is a non-blind second implementation that meets the independence contract, not a blind study"
+      maintainer_overlap: false
+    recorded_in: artifacts/interop/index.json
+    note: "Recorded 2026-10-09 after the seven-day producer review window closed with no objection; moves runtime-surface-e7-v0.1 to EXTERNALLY_VERIFIED. Global runtime_capability_surface_completeness stays NOT_ESTABLISHED."

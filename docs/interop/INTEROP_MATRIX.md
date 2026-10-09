@@ -22,7 +22,7 @@ endorsement, production safety or authority (FED-INV-004).
 | E-FA | REMORA | any | PolicyDecisionToken, ExecutionLease | `fresh_authority_at_dispatch` | [`fresh-authority-v1`](../../artifacts/interop/fresh-authority-v1/README.md) (REPRODUCED) | SPECIFIED | 2 | L0_SELF_TEST | ESTABLISHED | **AUTHOR_RUN** |
 | E-EE | REMORA | any | EffectVerification | `effect_state_distinction` | [`effect-evidence-v1`](../../artifacts/interop/effect-evidence-v1/README.md) (REPRODUCED) | SPECIFIED | 2 | L0_SELF_TEST | ESTABLISHED | **AUTHOR_RUN** |
 | E-EE-V1-1 | REMORA | any | EffectVerification | `effect_state_distinction` | [`effect-evidence-v1.1`](../../artifacts/interop/effect-evidence-v1.1/README.md) (DRAFT) | SPECIFIED | 2 | L0_SELF_TEST | ESTABLISHED | **AUTHOR_RUN** |
-| E7 | REMORA | Probity | runtime observation bundle | `bounded_observed_surface_matches_governed_set` | [`runtime-surface-e7-v0.1`](../../artifacts/interop/runtime-surface-e7-v0.1/README.md) (EXTERNAL_RUN_PENDING) | SPECIFIED | 0 |  |  | **SPECIFIED** |
+| E7 | REMORA | Probity | runtime observation bundle | `bounded_observed_surface_matches_governed_set` | [`runtime-surface-e7-v0.1`](../../artifacts/interop/runtime-surface-e7-v0.1/README.md) (EXTERNALLY_VERIFIED) | SPECIFIED | 0 |  |  | **SPECIFIED** |
 | E8 | AgentAvow | REMORA | signed tool manifest | `attested_definition_binding` | [`agentavow-tool-manifest-e8-v0.1`](../../artifacts/interop/agentavow-tool-manifest-e8-v0.1/README.md) (DRAFT) | SPECIFIED | 2 | L0_SELF_TEST | ESTABLISHED | **EXPERIMENTAL, AUTHOR_RUN** |
 | APS-CANON | REMORA | APS | canonical bytes | `jcs_rfc8785_parity` | [record](../../artifacts/interop/aps-ba8e540-profile-v0.1/SOURCE.md) | PRIOR_RECORD | 0 |  |  | **PRIOR_RECORD** |
 | APS-ARB | REMORA | APS | action result binding | `action_result_binding` | [record](../../artifacts/interop/aps-b64cc8df-action-result-binding/REPORT.md) | PRIOR_RECORD | 0 |  |  | **PRIOR_RECORD** |
@@ -41,6 +41,7 @@ REPRODUCED is a package lifecycle, not independent verification.
 
 | Contract | Lifecycle | Implementation diversity | Independence | Recorded results | Evidence |
 |---|---|---|---|---|---|
+| runtime-surface-e7-v0.1 | EXTERNALLY_VERIFIED | SECOND_IMPLEMENTATION | INDEPENDENT | CONTRADICTED, ESTABLISHED, NOT_ESTABLISHED | [run](https://probityai.github.io/agent-evidence-atlas/lab.html) |
 | exact-call-binding-v1 | REPRODUCED | SECOND_IMPLEMENTATION | NOT_INDEPENDENT | ESTABLISHED, NOT_ESTABLISHED | [run](https://github.com/probityai/agent-evidence-vectors/actions/runs/37232420650) |
 | fresh-authority-v1 | REPRODUCED | SECOND_IMPLEMENTATION | NOT_INDEPENDENT | ESTABLISHED, NOT_ESTABLISHED | [run](https://github.com/probityai/agent-evidence-vectors/actions/runs/37232420650) |
 | effect-evidence-v1 | REPRODUCED | SECOND_IMPLEMENTATION | NOT_INDEPENDENT | ESTABLISHED | [run](https://github.com/probityai/agent-evidence-vectors/actions/runs/37232420650) |

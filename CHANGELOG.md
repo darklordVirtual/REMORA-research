@@ -51,6 +51,21 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ### Interoperability
 
+- `runtime-surface-e7-v0.1` is `EXTERNALLY_VERIFIED`. Probity's
+  `external-run-record-v1` (agent-evidence-atlas `bee7b009`, reader
+  agent-evidence-vectors `a0b89170`) is recorded under `external_runs` after
+  the seven-day producer review closed on 2026-10-09 with no objection:
+  `SECOND_IMPLEMENTATION`, operator `EXTERNAL`, independence `INDEPENDENT`,
+  five of five native outcomes equal to the fixture expectations, neither
+  REMORA runtime code nor the reference verifier imported. The verifier's
+  disclosure (expectations read before implementation; reference-verifier
+  text seen in a lint diagnostic afterwards) travels with the record in
+  `external_run_review`, so the state means a non-blind second implementation
+  that meets the independence contract, not a blind study. Global
+  `runtime_capability_surface_completeness` stays `NOT_ESTABLISHED`. Two later
+  Probity reruns (self-service 2026-10-08, pip-installed reader 0.17.6 on
+  2026-10-09) gave the same five results and are referenced, not recorded.
+  `provenance/EXTERNAL_ADOPTION.yaml` gains EXT-0006.
 - federation-port is now pinned at `3a2f6ce`, the merge of
   aeoess/federation-port#1. That pull request, from REMORA-research, fixes the
   four contract-probe findings (CP-F1 to CP-F4); its maintainer reproduced CP-F4

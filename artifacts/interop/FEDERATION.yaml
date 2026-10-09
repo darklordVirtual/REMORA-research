@@ -41,8 +41,11 @@ claim_ceiling:
   external_validation_record: docs/assurance/external_adequacy_evidence_sufficiency_v1.md
   note: >-
     One external adequacy round has been run on a conformance corpus (#629).
-    No interop contract has reached EXTERNALLY_VERIFIED. A result under any
-    contract establishes only what that contract's claim packet names.
+    One interop contract, runtime-surface-e7-v0.1, reached EXTERNALLY_VERIFIED
+    on 2026-10-09 from a single non-blind second implementation (Probity); the
+    verifier's disclosure travels with the record in index.json. Three
+    contracts are REPRODUCED. A result under any contract establishes only
+    what that contract's claim packet names.
 
 result_schema: artifacts/interop/schemas/interop-result-v1.schema.json
 result_vocabulary: [ESTABLISHED, CONTRADICTED, NOT_ESTABLISHED]

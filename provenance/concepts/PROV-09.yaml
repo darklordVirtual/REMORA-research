@@ -66,6 +66,7 @@ evolution:
 external_adoption:
 - EXT-0003
 - EXT-0005
+- EXT-0006
 
 license:
   spdx: BUSL-1.1

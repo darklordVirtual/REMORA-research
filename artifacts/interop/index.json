@@ -52,8 +52,8 @@
     {
       "id": "runtime-surface-e7-v0.1",
       "edge": "E7",
-      "lifecycle": "EXTERNAL_RUN_PENDING",
-      "external_verification": "PENDING",
+      "lifecycle": "EXTERNALLY_VERIFIED",
+      "external_verification": "INDEPENDENT",
       "source_revision": "35db242ffd212320576a0636e125cf8dbf12a25c",
       "manifest": "artifacts/interop/runtime-surface-e7-v0.1/manifest.json",
       "package_digest": "sha256:01dfdb7885bdbb18c025bc013edc28b482b0631ae282aca877bd0953b865e4bf",
@@ -74,7 +74,104 @@
           "confirmed_at": "2026-10-02"
         }
       ],
-      "external_runs": []
+      "external_runs": [
+        {
+          "claim_ceiling_repeated": true,
+          "command": "/opt/hostedtoolcache/Python/3.13.15/x64/bin/python interop/remora-e7-reader/run.py --upstream interop/remora-e7-reader/upstream --output .build/remora-e7-result --reader-revision a0b89170fd671be2314be6079acccdebdf07a950 --operator EXTERNAL --run-ref https://probityai.github.io/agent-evidence-atlas/lab.html",
+          "consumed_revision": "e4fe474f488c3047b346abb01cbfd77ab447ad69",
+          "contract_id": "runtime-surface-e7-v0.1",
+          "environment": "Python 3.13.15 on Linux-6.17.0-1022-azure-x86_64-with-glibc2.39",
+          "implementation_diversity": "SECOND_IMPLEMENTATION",
+          "imports": {
+            "reference_verifier": false,
+            "remora_runtime": false
+          },
+          "independence": "INDEPENDENT",
+          "input_digests": [
+            {
+              "path": "artifacts/interop/runtime-surface-e7-v0.1/README.md",
+              "sha256": "a12c3da58dd79e651a5a7cd8526d5b6e4ca6a1a24a176bfc0e13d6182540ae15"
+            },
+            {
+              "path": "artifacts/interop/runtime-surface-e7-v0.1/claim-packet.json",
+              "sha256": "6c140d12f66e06aa3ae60e6aec62e38836509a91a32056649520f2bbb8aa2833"
+            },
+            {
+              "path": "artifacts/interop/runtime-surface-e7-v0.1/fixtures.json",
+              "sha256": "b09b937ad263169682fd0d6175564d084b4a61f5c996adb1237fd2eac31aaccf"
+            },
+            {
+              "path": "artifacts/interop/runtime-surface-e7-v0.1/reference_verifier.py",
+              "sha256": "3b8525a5d5b570a9e736c3b8c6f31053b49268965540bb098147a2e10ec1e388"
+            },
+            {
+              "path": "artifacts/interop/runtime-surface-e7-v0.1/verifier-request.json",
+              "sha256": "d9241cebf42d539767bf161e33557dfafc6d34f14fa842d55138a05e359d6119"
+            }
+          ],
+          "non_claims_repeated": true,
+          "operator": "EXTERNAL",
+          "package_digest": "sha256:01dfdb7885bdbb18c025bc013edc28b482b0631ae282aca877bd0953b865e4bf",
+          "results": [
+            {
+              "case_id": "valid_reference_surface",
+              "claim_id": "bounded_observed_surface_matches_governed_set",
+              "note": "Frozen fixture premise only; see report.json for ceilings and non-claims.",
+              "result": "ESTABLISHED"
+            },
+            {
+              "case_id": "undeclared_tool_invocation_surface",
+              "claim_id": "bounded_observed_surface_matches_governed_set",
+              "note": "Frozen fixture premise only; see report.json for ceilings and non-claims.",
+              "result": "CONTRADICTED"
+            },
+            {
+              "case_id": "runtime_identity_changed",
+              "claim_id": "bounded_observed_surface_matches_governed_set",
+              "note": "Frozen fixture premise only; see report.json for ceilings and non-claims.",
+              "result": "NOT_ESTABLISHED"
+            },
+            {
+              "case_id": "observation_coverage_incomplete",
+              "claim_id": "bounded_observed_surface_matches_governed_set",
+              "note": "Frozen fixture premise only; see report.json for ceilings and non-claims.",
+              "result": "NOT_ESTABLISHED"
+            },
+            {
+              "case_id": "alternative_effect_path_observed",
+              "claim_id": "exclusive_effect_path",
+              "note": "Frozen fixture premise only; see report.json for ceilings and non-claims.",
+              "result": "CONTRADICTED"
+            }
+          ],
+          "run_ref": "https://probityai.github.io/agent-evidence-atlas/lab.html",
+          "schema_version": "remora-external-run-record-v1",
+          "verifier": {
+            "implementation_revision": "a0b89170fd671be2314be6079acccdebdf07a950",
+            "maintained_by": "EXTERNAL",
+            "project": "Probity",
+            "repository": "probityai/agent-evidence-vectors"
+          }
+        }
+      ],
+      "external_run_review": [
+        {
+          "run_record": "probityai/agent-evidence-atlas@bee7b009657814f5332bcd61afc073be6645b69d:experiments/remora-e7-2026-10-02/external-run-record-v1.json",
+          "run_record_sha256": "24731968cb599c52f000b4584ed41a5b977637fd9b00f5756f8f8e2c4566fc48",
+          "submitted_at": "2026-10-02T17:04:37Z",
+          "submitted_where": "https://github.com/darklordVirtual/REMORA-research/issues/707#issuecomment-5957358281",
+          "producer_review": "https://github.com/darklordVirtual/REMORA-research/issues/707#issuecomment-5978997462",
+          "review_window_closed": "2026-10-09T17:04:37Z",
+          "objections": "none recorded in the window",
+          "recorded_at": "2026-10-09",
+          "disclosure": "Verifier disclosure carried verbatim: published expected outcomes were available before implementation; not answer-blind. REMORA reference-verifier text was also exposed during lint diagnostics after implementation, with no import and no execution. Probity controls the reader and output; the package-defined INDEPENDENT classification does not establish independent effect custody. Global runtime_capability_surface_completeness remains NOT_ESTABLISHED.",
+          "classification_basis": "external-run-record-v1 independence turns on maintenance (EXTERNAL), operator (EXTERNAL) and imports (none); all three hold. The result is a non-blind second implementation that meets the contract, not a blind study.",
+          "later_reruns_not_recorded": [
+            "probityai/agent-evidence-atlas@0e0a986f24dd2994446051db42a3e40692d7fa41:experiments/remora-e7-selfservice-2026-10-08 (self-service rerun by the same verifier, same five results)",
+            "probityai/agent-evidence-atlas@80f2679f56d4509d4e3b76f8997d633f6d537fe7:experiments/remora-e7-pip-2026-10-09 (pip-installed reader 0.17.6, same five results)"
+          ]
+        }
+      ]
     },
     {
       "id": "exact-call-binding-v1",
