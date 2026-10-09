@@ -70,15 +70,49 @@ def test_committed_boundary_register_and_summary_validate(
         and item["target_id"] == "E7"
         for item in summary["claim_ceilings"]
     )
+    # Since 2026-10-09 E7 carries Probity's external-run-record-v1 (second
+    # implementation, external operator, no REMORA import), so execution and
+    # independence are derived from that record. Nothing else moves: the
+    # aggregate claim result, production and adoption stay unestablished.
     assert e7["status_dimensions"] == {
         "owner_confirmation": "NOT_CONFIRMED",
         "pinning": "PIN_CONFIRMED",
-        "execution": "NOT_RUN",
-        "independence": "NOT_ASSESSED",
+        "execution": "EXTERNAL_RUN_RECORDED",
+        "independence": "INDEPENDENT",
         "claim_result": "NOT_ESTABLISHED",
         "production": "NOT_ESTABLISHED",
         "federation_adoption": "NOT_ADOPTED",
     }
+    e8 = next(item for item in summary["federation_edges"] if item["edge"] == "E8")
+    assert e8["status_dimensions"]["execution"] == "AUTHOR_RUN"
+    assert e8["status_dimensions"]["independence"] == "NOT_ASSESSED"
+
+
+def test_e7_independence_is_derived_from_the_committed_record_not_asserted(
+    declaration: dict[str, Any],
+) -> None:
+    """The INDEPENDENT status on E7 must point at exactly the recorded run; a
+    different evidence URL, or a status the record does not support, is refused."""
+    index = json.loads((ROOT / "artifacts/interop/index.json").read_text(encoding="utf-8"))
+    contract = next(c for c in index["contracts"] if c["id"] == "runtime-surface-e7-v0.1")
+    assert contract["lifecycle"] == "EXTERNALLY_VERIFIED"
+    (run,) = contract["external_runs"]
+    assert run["independence"] == "INDEPENDENT"
+    assert run["implementation_diversity"] == "SECOND_IMPLEMENTATION"
+    assert run["operator"] == "EXTERNAL"
+    assert run["verifier"]["maintained_by"] == "EXTERNAL"
+    assert run["imports"] == {"remora_runtime": False, "reference_verifier": False}
+    dimensions = _edge(declaration, "E7")["status_dimensions"]
+    assert dimensions["independence"] == {"status": "INDEPENDENT", "evidence": [run["run_ref"]]}
+    assert dimensions["execution"] == {"status": "EXTERNAL_RUN_RECORDED", "evidence": [run["run_ref"]]}
+
+    forged = _edge(declaration, "E7")["status_dimensions"]
+    forged["independence"] = {"status": "INDEPENDENT", "evidence": ["https://example.invalid/run/1"]}
+    with pytest.raises(BoundaryValidationError, match="independence evidence does not match"):
+        validate_boundary_register(declaration, root=ROOT)
+    forged["independence"] = {"status": "NOT_INDEPENDENT", "evidence": [run["run_ref"]]}
+    with pytest.raises(BoundaryValidationError, match="independence status must be INDEPENDENT"):
+        validate_boundary_register(declaration, root=ROOT)
 
 
 def test_schema_is_a_valid_draft_2020_12_schema() -> None:
@@ -126,19 +160,21 @@ def test_boundary_maturity_cannot_exceed_supporting_capability(
 def test_external_execution_status_requires_a_committed_run_record(
     declaration: dict[str, Any],
 ) -> None:
-    dimensions = _edge(declaration, "E7")["status_dimensions"]
+    # E8 has author runs only; an external-run status without a record under
+    # external_runs is refused, whatever evidence URL is written next to it.
+    dimensions = _edge(declaration, "E8")["status_dimensions"]
     dimensions["execution"] = {
         "status": "EXTERNAL_RUN_RECORDED",
         "evidence": ["https://example.invalid/run/1"],
     }
-    with pytest.raises(BoundaryValidationError, match="execution status must be NOT_RUN"):
+    with pytest.raises(BoundaryValidationError, match="execution status must be AUTHOR_RUN"):
         validate_boundary_register(declaration, root=ROOT)
 
 
 def test_independence_cannot_be_asserted_without_an_external_run(
     declaration: dict[str, Any],
 ) -> None:
-    dimensions = _edge(declaration, "E7")["status_dimensions"]
+    dimensions = _edge(declaration, "E8")["status_dimensions"]
     dimensions["independence"] = {
         "status": "INDEPENDENT",
         "evidence": ["https://example.invalid/run/1"],
@@ -227,8 +263,10 @@ def test_pin_confirmation_does_not_imply_owner_confirmation(
     dimensions = _edge(declaration, "E7")["status_dimensions"]
     assert dimensions["pinning"]["status"] == "PIN_CONFIRMED"
     assert dimensions["owner_confirmation"]["status"] == "NOT_CONFIRMED"
-    assert dimensions["execution"]["status"] == "NOT_RUN"
-    assert dimensions["independence"]["status"] == "NOT_ASSESSED"
+    # An external run, even an INDEPENDENT one, confirms nothing about ownership.
+    assert dimensions["execution"]["status"] == "EXTERNAL_RUN_RECORDED"
+    assert dimensions["independence"]["status"] == "INDEPENDENT"
+    assert dimensions["owner_confirmation"]["evidence"] == []
 
 
 def test_implementation_changes_after_audit_fail_closed(tmp_path: Path) -> None:

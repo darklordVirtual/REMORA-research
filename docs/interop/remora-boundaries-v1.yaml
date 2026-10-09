@@ -19,13 +19,13 @@ provenance:
       sha256: 9fed2f3bbdb9bb67de579fab4de2f9058b661a649df600f9f79aad703d6ab335
       role: implementation maturity and freshness source
     - path: artifacts/interop/index.json
-      sha256: cdc2be1c7962654a4ceba0ee8ff802113f81146f86396fbb52cd322fe31c471c
+      sha256: 04f3f65f9c2af5c6606c15d1b507631df906a555dc3c578f18ae14e2b3abf866
       role: Federation contract and run-record index
     - path: artifacts/interop/FEDERATION.yaml
-      sha256: 498257148e9051632c127064364ee7cd5c2df132f6f588badc2964d41ce7ee27
+      sha256: 54ba260e12133184f212f77e39ede6721281649f1150694af38d72e6d8b6b62f
       role: Federation edge declarations
     - path: artifacts/interop/runtime-surface-e7-v0.1/manifest.json
-      sha256: f67b6a88ec79219a567b5d47b528f9c47437d6ae6a42bec94d6d5d6c85379ddf
+      sha256: 85b0f85e10812ff9e43975b6911c2db100e00e8e5fefebcaefa2841213574238
       role: E7 artifact digest source
 
 runtime_capability_surface_completeness:
@@ -217,7 +217,10 @@ federation_edges:
       - governed_tool_dispatch
     maturity: DECLARED
     producer_role: REMORA publishes the pinned E7 fixture package.
-    consumer_role: Probity is the named verifier; no external run record exists.
+    consumer_role: >-
+      Probity is the named verifier; one external run record is recorded
+      (agent-evidence-atlas bee7b009, reader agent-evidence-vectors a0b89170),
+      a non-blind second implementation that meets the independence contract.
     claim: bounded_observed_surface_matches_governed_set
     claim_ceiling_ref: cc-edge-e7
     negative_case_ids:
@@ -259,14 +262,17 @@ federation_edges:
         evidence:
           - https://github.com/darklordVirtual/REMORA-research/issues/707#issuecomment-5954893715
       execution:
-        status: NOT_RUN
-        evidence: []
+        status: EXTERNAL_RUN_RECORDED
+        evidence:
+          - https://probityai.github.io/agent-evidence-atlas/lab.html
       independence:
-        status: NOT_ASSESSED
-        evidence: []
+        status: INDEPENDENT
+        evidence:
+          - https://probityai.github.io/agent-evidence-atlas/lab.html
       claim_result:
         status: NOT_ESTABLISHED
-        evidence: []
+        evidence:
+          - https://probityai.github.io/agent-evidence-atlas/lab.html
       production:
         status: NOT_ESTABLISHED
         evidence: []

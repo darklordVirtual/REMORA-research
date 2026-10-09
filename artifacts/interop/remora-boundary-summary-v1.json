@@ -4,7 +4,7 @@
     "project": "REMORA",
     "repository": "darklordVirtual/REMORA-research",
     "register": "docs/interop/remora-boundaries-v1.yaml",
-    "register_sha256": "c874dc5548f6c4e17437936cf339cfd419387c8e2b5e7e261cbd9116d37e6672",
+    "register_sha256": "e7b610a7853c3aabf8dd6c8054373b5667b836b5b6b209c818f7a0b20256de1e",
     "audited_revision": "03b1efd4f76dad018ea637fd088d46e3b682a9a4",
     "freshness": "CURRENT"
   },
@@ -136,7 +136,7 @@
       "contract_id": "runtime-surface-e7-v0.1",
       "package_digest": "sha256:01dfdb7885bdbb18c025bc013edc28b482b0631ae282aca877bd0953b865e4bf",
       "producer_role": "REMORA publishes the pinned E7 fixture package.",
-      "consumer_role": "Probity is the named verifier; no external run record exists.",
+      "consumer_role": "Probity is the named verifier; one external run record is recorded (agent-evidence-atlas bee7b009, reader agent-evidence-vectors a0b89170), a non-blind second implementation that meets the independence contract.",
       "maturity": "DECLARED",
       "claim_ceiling_ref": "cc-edge-e7",
       "negative_case_ids": [
@@ -190,8 +190,8 @@
       "status_dimensions": {
         "owner_confirmation": "NOT_CONFIRMED",
         "pinning": "PIN_CONFIRMED",
-        "execution": "NOT_RUN",
-        "independence": "NOT_ASSESSED",
+        "execution": "EXTERNAL_RUN_RECORDED",
+        "independence": "INDEPENDENT",
         "claim_result": "NOT_ESTABLISHED",
         "production": "NOT_ESTABLISHED",
         "federation_adoption": "NOT_ADOPTED"
