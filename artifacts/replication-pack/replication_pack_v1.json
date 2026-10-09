@@ -21,9 +21,15 @@
     "measured_with_python": "3.13.7 (macOS arm64, venv with the dev extras)",
     "requirements_lock": {
       "path": "requirements-lock.txt",
-      "sha256_lf": "b33c290dbcbe4318464c8492f814b2220833c6b5a778626b62bfbe523d0945cb"
+      "sha256_lf": "afcde635ca078de9c6cc695ba2df3ce0ed66fecf64792a2cc221bd2f56b9d103"
     },
     "requirements_lock_history": [
+      {
+        "path": "requirements-lock.txt",
+        "git_revision": "d10bcefcb8447da8f6c8491cc03495a03e8698bf",
+        "sha256_lf": "b33c290dbcbe4318464c8492f814b2220833c6b5a778626b62bfbe523d0945cb",
+        "reason": "chore(deps): bump the agent-sdk group with 3 updates (#812)"
+      },
       {
         "path": "requirements-lock.txt",
         "git_revision": "bb2854d42c5a72a4e13ab30355b35eab06218783",
