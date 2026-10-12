@@ -276,17 +276,23 @@ only_mutate = [
 # artifacts/interop/ joined 2026-10-04 (512 KB): tests/test_agentavow_edge.py and
 # tests/test_interop_boundary_fixtures.py drive lease, gate and token through
 # the committed interop fixtures and run the packages' reference verifiers.
-also_copy = ["servers/", "schemas/", "deploy/", "artifacts/interop/"]
+# vectors/ (38 KB) and docs/assurance/ (1.5 MB) joined 2026-10-12: the frozen
+# signature vectors are verified against the mutated token/lease code, and
+# tests/test_binding_policy_matrix.py checks the code against
+# docs/assurance/binding_policy_matrix_v1.yaml at import, so without it the
+# whole selection fails to collect (sweeps of 2026-10-05 and 2026-10-12).
+also_copy = ["servers/", "schemas/", "deploy/", "artifacts/interop/", "vectors/", "docs/assurance/"]
 # The meaningful metric: mutants on lines the runner executes. All-lines
 # numbers conflate untested behaviour with uncovered adapter branches the
 # coverage gate already documents (docs/assurance/mutation_testing_v1.md).
 mutate_only_covered_lines = true
-# Five tests in the selected modules assert facts about the REPOSITORY, not
-# about the mutated code, and cannot hold inside the mutants sandbox: three
-# regenerate a committed artifact through scripts/ (absent from the sandbox by
-# design -- copying scripts/ and artifacts/ in would weigh every mutant down
-# for no measurement value), and two assert that a callable has no non-test
-# caller by scanning the source tree, which mutmut has duplicated and mutated.
+# Ten tests in the selected modules assert facts about the REPOSITORY, not
+# about the mutated code, and cannot hold inside the mutants sandbox: seven
+# regenerate a committed artifact or vector set through scripts/ (absent from
+# the sandbox by design -- copying scripts/ and artifacts/ in would weigh every
+# mutant down for no measurement value), one compares the two workers/ copies
+# of a module, and two assert that a callable has no non-test caller by
+# scanning the source tree, which mutmut has duplicated and mutated.
 # They are deselected by node id rather than by dropping their module, so the
 # rest of each module still kills mutants.
 # tests/test_mutation_sweep_selection.py fails if a deselected node id stops
@@ -297,6 +303,16 @@ pytest_add_cli_args = [
     "no:cacheprovider",
     "--deselect",
     "tests/test_task_bound_authority.py::TestTheCommittedArtifactReproduces",
+    "--deselect",
+    "tests/test_resolved_effect_binding.py::test_the_committed_fixtures_reproduce",
+    "--deselect",
+    "tests/test_surface_lease_binding.py::test_the_shadow_measurement_reproduces",
+    "--deselect",
+    "tests/test_signature_vectors.py::test_the_generator_reproduces_every_vector",
+    "--deselect",
+    "tests/test_signature_vectors.py::test_the_generator_refuses_to_rewrite_v1",
+    "--deselect",
+    "tests/test_worker_unsafe_numbers.py::test_both_workers_carry_the_same_module",
     "--deselect",
     "tests/test_toolspec_bound_at_dispatch.py::test_verify_callable_still_has_no_non_test_caller",
     "--deselect",
