@@ -2455,9 +2455,19 @@ the same proposal accepts one more wrong call than arm F (3 against 2 of
 - 6 carry derived values that need a receipt.
 - 4 stop at the schema or default floor.
 
-The levers for read autonomy are contract vocabulary, interrogative read
-cues, resolver coverage and derivation. Each is a pre-registration decision
-for C-ext4, not a change to make against this set.
+The levers for read autonomy are contract vocabulary, resolver coverage
+and derivation. Each is a pre-registration decision for C-ext4, not a change
+to make against this set.
+
+*Interrogative read cues were tried and not adopted.* `EFFECT_VOCABULARY`
+v3 let "what", "which", "who", "where" and "how" ground a weak read. In the
+same replay it moved gold reads from 25 to 28 of 94.
+It also moved obtainable VERIFY from 91 to 84, because more grounded tasks
+mean more refutations of the gold tool, and it left wrong-call ACCEPT at 2.
+Only 4 of the 13 question-form reads gained a cue; the rest ask with
+phrases such as "can you" or "is there". The change is kept unmerged on the
+local branch `wip/qv2-06-interrogative-rejected`; its replay is
+`artifacts/posthoc/bfcl_cext3_interrogative_v3_rejected.json`.
 ## §40 The invariant set and the decision ladder had silently diverged (2026-08-20)
 <!-- finding-status: accepted -->
 
@@ -2540,7 +2550,7 @@ sections again.
 
 | Finding | Where it stands | Severity |
 |---------|-----------------|----------|
-| Deterministic intent extractor caps read autonomy at 26.6% (§39) | Safety confirmed (0/500) but autonomy target missed. The LLM-as-proposer mechanism exists (fill and veto, never overrule; 2026-10-12) but a post-hoc oracle bound leaves reads at 28/94: the remaining levers are contract vocabulary, interrogative read cues, resolver coverage and derivation | **High** |
+| Deterministic intent extractor caps read autonomy at 26.6% (§39) | Safety confirmed (0/500) but autonomy target missed. The LLM-as-proposer mechanism exists (fill and veto, never overrule; 2026-10-12) but a post-hoc oracle bound leaves reads at 28/94: the remaining levers are contract vocabulary, resolver coverage and derivation; interrogative read cues were tried post-hoc and not adopted | **High** |
 | Semantic gates preempt argument routing (§39) | Obtainable VERIFY 46.7% and unobtainable ABSTAIN 63.3% under the floor. Unobtainable side fixed in code 2026-10-08. Ordering question answered post-hoc 2026-10-12: 102 of 108 obtainable losses are extractor refutations of the gold tool, so the order stays and the proposer's veto is the repair. Confirmation needs C-ext4 | **High** |
 | Constructed wrong-tool mutants 2/199 = 1.005% (§39) | Missed the ≤1% bar by 0.005pp; the two accepts are itemized in the result artifact | Low |
 | Derived values lose legitimate autonomy (§35) | Mechanism code-fixed 2026-08-05 (`DerivationReceipt`, versioned deterministic-transform whitelist, verbatim source spans, re-execution verify, 14 pinning tests). Effect on the autonomy loss unmeasured pending new sealed track | Medium |

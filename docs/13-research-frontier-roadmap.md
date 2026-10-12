@@ -2139,17 +2139,17 @@ question. The post-hoc bounds in
 `artifacts/posthoc/bfcl_cext3_proposer_ceiling.json` (spent set, design
 input only) move the plan. Obtainable VERIFY is a proposer problem: the veto
 alone reaches 191/199 if the model disagrees with each false refutation.
-Read autonomy is mostly not a proposer problem. The order below follows
-that.
+Read autonomy is mostly not a proposer problem, and the cheapest
+vocabulary fix was measured and dropped. The order below follows that.
 
 | Step | What | Needs | Done when |
 |---|---|---|---|
-| 1 | Interrogative read cues: questions that name a resource ("what is the weather in Oslo?") count as a weak read request, under the same rule that lets any mutation keyword win | nothing; a reviewed `EFFECT_VOCABULARY` v3 with negative tests. Post-hoc reach: 13 gold reads name the resource but carry no read keyword | vocabulary change merged with adversarial tests; its effect claimed only on C-ext4 |
-| 2 | Contract vocabulary from tool descriptions: author resource aliases deterministically from the declared description as well as the name | the C-ext4 builder must carry each tool's declared description into the registry, which today holds parameter values and produced names only; Role A stays a pure function of tool metadata. Post-hoc reach: 22 gold reads never name the tool's resource, or name only a generic word for it | bundle v2 frozen and hashed; leakage check that no task text enters authoring |
+| 1 | Interrogative read cues | tried post-hoc 2026-10-12 and not adopted: gold reads 25 to 28 of 94, obtainable VERIFY 91 to 84, wrong-call ACCEPT unchanged (NEGATIVE_RESULTS §39). Replay in `artifacts/posthoc/bfcl_cext3_interrogative_v3_rejected.json`; code on local `wip/qv2-06-interrogative-rejected` | reopened only as a C-ext4 arm paired with the proposer's veto, which absorbs the extra refutations |
+| 2 | Contract vocabulary from tool descriptions: author resource aliases deterministically from the declared description as well as the name | the C-ext4 builder must carry each tool's declared description into the registry, which today holds parameter values and produced names only; Role A stays a pure function of tool metadata. Post-hoc reach: 22 gold reads never name the tool's resource, or name only a generic word for it | a new bundle version frozen and hashed; leakage check that no task text enters authoring |
 | 3 | Resolver coverage in the benchmark: the C-ext3 state index is empty, so every gold read with a value to check stops at `no_resolver_available` (18) | a decision on whether C-ext4 runs with declared validators (QV2-04), which changes what the track measures | the choice written into SAP v6 as its own arm, never folded into the confirmatory one |
 | 4 | Derivation arm: `propose_derivations` attaches receipts that `verify_receipt` re-executes | the model choice below | arm measured on C-ext4. Post-hoc reach: 6 gold reads carry derived values |
 | 5 | Proposer arm: record the C-ext4 cache under the chosen model | model, provider, budget | cache digest and prompt hashes pinned at lock |
-| 6 | SAP v6: arms F (current), V (steps 1 to 2), P (V plus proposer), PD (P plus derivation), optional R (P plus validators); targets fixed before sealing from these levers | steps 1 to 5 frozen; the go decision on the reserve | manifest locked, one run, results published as measured |
+| 6 | SAP v6: arms F (current), V (step 2), P (V plus proposer), PD (P plus derivation), optional R (P plus validators); targets fixed before sealing from these levers | steps 2 to 5 frozen; the go decision on the reserve | manifest locked, one run, results published as measured |
 
 Safety constraints carried into every arm: native wrong-call ACCEPT Wilson
 upper bound at most 1 %, irrelevance ABSTAIN at least 95 %, required-UNKNOWN
