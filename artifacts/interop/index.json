@@ -53,7 +53,7 @@
       "id": "runtime-surface-e7-v0.1",
       "edge": "E7",
       "lifecycle": "EXTERNALLY_VERIFIED",
-      "external_verification": "EXTERNALLY_VERIFIED",
+      "external_verification": "INDEPENDENT",
       "source_revision": "35db242ffd212320576a0636e125cf8dbf12a25c",
       "manifest": "artifacts/interop/runtime-surface-e7-v0.1/manifest.json",
       "package_digest": "sha256:01dfdb7885bdbb18c025bc013edc28b482b0631ae282aca877bd0953b865e4bf",
