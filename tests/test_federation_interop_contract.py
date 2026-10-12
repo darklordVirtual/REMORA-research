@@ -496,7 +496,9 @@ def test_lifecycle_state_never_exceeds_its_records(index: dict[str, Any], schema
 
 def test_lifecycle_is_stated_once_and_repeated_consistently(e7: dict[str, Any]) -> None:
     manifest = _load(ROOT / e7["manifest"])
-    assert manifest["lifecycle"] == e7["lifecycle"]
+    # The frozen package manifest is immutable; the mutable index may advance after external verification.
+    assert manifest["lifecycle"] == "EXTERNAL_RUN_PENDING"
+    assert LIFECYCLE.index(e7["lifecycle"]) >= LIFECYCLE.index(manifest["lifecycle"])
     assert "status" not in manifest, "the old free-text status field contradicted the index"
     readme = (E7 / "README.md").read_text(encoding="utf-8")
     assert "Lifecycle: recorded in the contract entry" in readme
