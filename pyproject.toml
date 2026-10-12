@@ -293,7 +293,7 @@ mutate_only_covered_lines = true
 # mutant down for no measurement value), one compares the two workers/ copies
 # of a module, and two assert that a callable has no non-test caller by
 # scanning the source tree, which mutmut has duplicated and mutated.
-# Four more (2026-10-12) start servers.api, or uvicorn for the strict-v2
+# Three more tests and one module (2026-10-12) start servers.api, or uvicorn for the strict-v2
 # three-domain deployment, in a child process whose working directory is a
 # temporary tree. mutmut's trampoline in that child reads its configuration from
 # the working directory, finds none and exits, so the test measures mutmut, not
