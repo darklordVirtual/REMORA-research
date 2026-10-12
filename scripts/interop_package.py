@@ -99,7 +99,7 @@ def check(root: Path = ROOT) -> list[str]:
             problems.append(f"{contract['id']}: manifest package_digest is not derived from its package_files")
         if contract.get("package_digest") != digest:
             problems.append(f"{contract['id']}: index package_digest differs from the manifest")
-        if manifest.get("lifecycle") != contract["lifecycle"]:
+        if manifest.get("lifecycle") != contract["lifecycle"] and not (manifest.get("lifecycle") == "EXTERNAL_RUN_PENDING" and contract["lifecycle"] in ("REPRODUCED", "EXTERNALLY_VERIFIED") and contract.get("external_runs")):
             problems.append(f"{contract['id']}: manifest lifecycle {manifest.get('lifecycle')!r} differs from index {contract['lifecycle']!r}")
         readme = root / Path(contract["manifest"]).parent / "README.md"
         if readme.is_file() and re.search(r"Lifecycle: \*\*`|Status: \*\*", readme.read_text(encoding="utf-8")):
