@@ -1467,7 +1467,7 @@ behavior, no lowered coverage floors, no weakened hard guards.
 | QV2-03 independent harmful holdout | fresh sealed harmful set with valid units for a 0.5% FAR upper-bound target | quality program Q2.1/Q2.3 | not started; needs budget and labelers outside the authoring loop | after RF-14 slice 2 defines the unit |
 | QV2-04 validator contract v1 | typed validator outcomes (PRESENT/ABSENT/UNKNOWN/UNAVAILABLE/STALE/CONTRADICTED), fail-closed on required validators | follows the Q7.1 gate-correctness study | not started | adapter owners assigned |
 | QV2-05 trajectory and cumulative authority | deployment-owned durable trajectory state, cumulative risk budgets, TOCTOU-bound assessment | builds on task identity, loop safety, plan binding | not started | Wave 2 |
-| QV2-06 utility recovery | LLM-as-proposer with deterministic verification, derivation, gate ordering; monotonicity proof required | CLAIM-019 misses | not started; tuning against spent C-ext3 forbidden | Wave 3, on a fresh holdout |
+| QV2-06 utility recovery | LLM-as-proposer with deterministic verification, derivation, gate ordering; monotonicity proof required | CLAIM-019 misses | slice 1 shipped 2026-10-12: proposer mechanism (fill and veto, never overrule) with its monotonicity tests; gate order answered post-hoc and kept (NEGATIVE_RESULTS §39). Tuning against spent C-ext3 forbidden | Wave 3, on a fresh holdout; sequence at the end of this document |
 | QV2-07 durable audit integrity | transactional tenant sequences, external anchoring, ANCHOR_PENDING semantics | REM-025, RF-08 | not started | Wave 2 |
 | QV2-08 database tenant isolation | Postgres RLS bound to verified tenant identity | REM-026, RF-12 | not started | Wave 2; single-tenant pilot exception must be explicit |
 | QV2-09 supply-chain closure | hash-pinned lock, SBOM, image digests, provenance attestation | REM-027 | not started | Wave 2 |
@@ -2126,8 +2126,33 @@ for the project in a public thread. None is started.
 
 | Step | Waits on | Prepared so far | Done when |
 |---|---|---|---|
-| C-ext4 sealed BFCL track (QV2-06 confirmation) | a go decision: the reserve (295 positive, 68 irrelevance) can be spent once | the semantic-floor gap rule (§39 development note); the per-cause attribution of the 69 lost reads (25 no intent, 18 no resolver, 16 extractor refutations); SAP v5 discipline to copy | SAP v6 pre-registered with targets fixed before sealing (proposed: read autonomy at least 60 %, native wrong-call ACCEPT with Wilson upper bound at most 1 %), then one run |
-| LLM-as-proposer arm (QV2-06) | which model and provider, and a budget | the 16 extractor refutations diagnosed: function words from unrelated tool names and a capitalised "New" taken as resource or effect, so the deterministic extractor has a low ceiling | proposer behind the existing span-verification guards, prompt and model hashed at lock, record-and-replay cache so a live run is reproducible |
+| C-ext4 sealed BFCL track (QV2-06 confirmation) | a go decision: the reserve (295 positive, 68 irrelevance) can be spent once; and which read-autonomy levers enter SAP v6 (see the QV2-06 sequence below) | the semantic-floor gap rule and the 2026-10-12 post-hoc bounds (§39 development notes); the per-cause attribution of the 69 lost reads (25 no intent, 18 no resolver, 16 extractor refutations, 6 derived values, 4 floors); SAP v5 discipline to copy | SAP v6 pre-registered with targets fixed before sealing, then one run. The proposed read-autonomy target of at least 60 % is out of reach for an intent proposer alone (oracle bound 28/94) and must be re-derived from the levers chosen |
+| LLM-as-proposer arm (QV2-06) | which model and provider, and a budget | `remora/toolcall/routing/intent_proposer.py` (2026-10-12): task-only intent prompt, closed-lexicon and verbatim-span parsing, `combine_intents` fill-and-veto, derivation-receipt proposals, record-and-replay cache with a digest for the manifest, all behind fake-provider tests | a recorded cache for the C-ext4 tasks under the chosen model, its digest and both prompt hashes pinned in the SAP v6 manifest |
 | Discrimination on fresh paired data (FS-04, §80) | which dataset (candidates: Agent-SafetyBench, FORTRESS benign twins) and a budget | `remora/selective/discrimination.py` (AUROC, McClish pAUC, FAR at fixed FBR, twin decomposition); `ltt_far_threshold` (RES-022); the repaired AgentHarm harness | a graded evidence channel carried beside the action, a threshold certified by LTT on a calibration split, FAR and FBR reported together on a held-out split |
 | Federation #177 message | approval of the text | draft covering the contract probes, CP-F1 to CP-F4, the TLA+ model and aeoess/federation-port#1 | posted, and the coverage map's finding statuses moved from `reported_not_upstreamed` |
 | RF-16 Wave 1 to 2 (Lean and refinement) | none; scheduled after the queue above | the TLA+ model and its expected verdicts | FM-01 statements in a frozen module with an axiom allowlist; FM-02 refinement tests against the governed dispatcher; a TLA+ model of REMORA's own outbox, which §79 suggests |
+
+### QV2-06 sequence after slice 1 (2026-10-12)
+
+Slice 1 shipped the proposer mechanism and answered the gate-ordering
+question. The post-hoc bounds in
+`artifacts/posthoc/bfcl_cext3_proposer_ceiling.json` (spent set, design
+input only) move the plan. Obtainable VERIFY is a proposer problem: the veto
+alone reaches 191/199 if the model disagrees with each false refutation.
+Read autonomy is mostly not a proposer problem. The order below follows
+that.
+
+| Step | What | Needs | Done when |
+|---|---|---|---|
+| 1 | Interrogative read cues: questions that name a resource ("what is the weather in Oslo?") count as a weak read request, under the same rule that lets any mutation keyword win | nothing; a reviewed `EFFECT_VOCABULARY` v3 with negative tests. Post-hoc reach: 13 gold reads name the resource but carry no read keyword | vocabulary change merged with adversarial tests; its effect claimed only on C-ext4 |
+| 2 | Contract vocabulary from tool descriptions: author resource aliases deterministically from the declared description as well as the name | the C-ext4 builder must carry each tool's declared description into the registry, which today holds parameter values and produced names only; Role A stays a pure function of tool metadata. Post-hoc reach: 22 gold reads never name the tool's resource, or name only a generic word for it | bundle v2 frozen and hashed; leakage check that no task text enters authoring |
+| 3 | Resolver coverage in the benchmark: the C-ext3 state index is empty, so every gold read with a value to check stops at `no_resolver_available` (18) | a decision on whether C-ext4 runs with declared validators (QV2-04), which changes what the track measures | the choice written into SAP v6 as its own arm, never folded into the confirmatory one |
+| 4 | Derivation arm: `propose_derivations` attaches receipts that `verify_receipt` re-executes | the model choice below | arm measured on C-ext4. Post-hoc reach: 6 gold reads carry derived values |
+| 5 | Proposer arm: record the C-ext4 cache under the chosen model | model, provider, budget | cache digest and prompt hashes pinned at lock |
+| 6 | SAP v6: arms F (current), V (steps 1 to 2), P (V plus proposer), PD (P plus derivation), optional R (P plus validators); targets fixed before sealing from these levers | steps 1 to 5 frozen; the go decision on the reserve | manifest locked, one run, results published as measured |
+
+Safety constraints carried into every arm: native wrong-call ACCEPT Wilson
+upper bound at most 1 %, irrelevance ABSTAIN at least 95 %, required-UNKNOWN
+ACCEPT zero. The post-hoc steered proposer in override mode accepted one
+more wrong call than arm F (3 against 2 of 699), which is why the shipped
+rule never overrules.

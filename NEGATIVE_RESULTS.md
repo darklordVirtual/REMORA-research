@@ -2410,6 +2410,54 @@ leaves every safety count where it was. The other two causes are untouched:
 the 16 refuted gold reads are extractor errors, where a word of an unrelated
 tool's name ("for", "and", "search") or a capitalized "New" becomes the
 task's resource or effect. Only a fresh sealed track can confirm any of it.
+
+**Development note, 2026-10-12 (POST-HOC, spent set, not a result).**
+`scripts/bfcl_cext3_proposer_ceiling_posthoc.py` replays arm F at the
+current commit and writes `artifacts/posthoc/bfcl_cext3_proposer_ceiling.json`.
+Three things changed in how this section should be read.
+
+*The gate-ordering question is answered, and the order stays.* Of the 108
+obtainable-argument episodes that do not route VERIFY, 102 stop at
+`tool_does_not_match_goal`. Every one of them proposes the gold tool, so
+each is an extractor error that refutes the right tool, not an ordering
+effect. Letting argument routing run before a refutation would hand a
+resolution plan to calls that are genuinely wrong. A refutation is the
+stronger observation and keeps precedence. The repair belongs in the
+intent, and an intent that is only vetoed into UNKNOWN routes VERIFY under
+the floor. If every refutation on these episodes were vetoed, 191 of 199
+would route VERIFY.
+
+*`remora/toolcall/routing/intent_proposer.py` is the QV2-06 mechanism.* A
+model proposes an intent from the task text and the contract lexicon alone.
+`combine_intents` lets it fill a task the extractor could not ground and
+veto one it grounded differently, and never lets it overrule. On every task
+the extractor grounds, the goal-match verdict is therefore the extractor's
+verdict or UNKNOWN. `tests/test_intent_proposer.py` holds that property for
+generated cases and for the 1,793 of 2,799 C-ext3 episodes the extractor
+grounds, against a
+proposer steered at the proposed tool. No model is chosen and nothing is
+measured.
+
+*An intent proposer cannot carry read autonomy to the SAP v6 proposal.*
+Read autonomy was proposed as at least 60 %. Even an oracle proposal of the
+gold tool's own resource and effect leaves read autonomy at 28/94. That
+proposal must be quoted from the task, and it replaces the extractor's
+intent outright, which the shipped rule never does. The steered version of
+the same proposal accepts one more wrong call than arm F (3 against 2 of
+699). The 69 lost gold reads stop here:
+
+- 25 grounded no intent. In 35 gold reads no quoted proposal parses at all:
+  17 never name the tool's resource, 5 name only a generic word for it, and
+  13 name it but ask as a question with no read keyword.
+- 18 are `no_resolver_available`, because the benchmark runs with an empty
+  state index.
+- 16 are refutations, which fill-and-veto turns into VERIFY, not ACCEPT.
+- 6 carry derived values that need a receipt.
+- 4 stop at the schema or default floor.
+
+The levers for read autonomy are contract vocabulary, interrogative read
+cues, resolver coverage and derivation. Each is a pre-registration decision
+for C-ext4, not a change to make against this set.
 ## §40 The invariant set and the decision ladder had silently diverged (2026-08-20)
 <!-- finding-status: accepted -->
 
@@ -2492,8 +2540,8 @@ sections again.
 
 | Finding | Where it stands | Severity |
 |---------|-----------------|----------|
-| Deterministic intent extractor caps read autonomy at 26.6% (§39) | Safety confirmed (0/500) but autonomy target missed; LLM-as-proposer arm is the identified follow-up — the matcher keeps sole authority | **High** |
-| Semantic gates preempt argument routing (§39) | Obtainable VERIFY 46.7% and unobtainable ABSTAIN 63.3% under the floor; gate ordering for combined semantic+argument observations is an open design question | **High** |
+| Deterministic intent extractor caps read autonomy at 26.6% (§39) | Safety confirmed (0/500) but autonomy target missed. The LLM-as-proposer mechanism exists (fill and veto, never overrule; 2026-10-12) but a post-hoc oracle bound leaves reads at 28/94: the remaining levers are contract vocabulary, interrogative read cues, resolver coverage and derivation | **High** |
+| Semantic gates preempt argument routing (§39) | Obtainable VERIFY 46.7% and unobtainable ABSTAIN 63.3% under the floor. Unobtainable side fixed in code 2026-10-08. Ordering question answered post-hoc 2026-10-12: 102 of 108 obtainable losses are extractor refutations of the gold tool, so the order stays and the proposer's veto is the repair. Confirmation needs C-ext4 | **High** |
 | Constructed wrong-tool mutants 2/199 = 1.005% (§39) | Missed the ≤1% bar by 0.005pp; the two accepts are itemized in the result artifact | Low |
 | Derived values lose legitimate autonomy (§35) | Mechanism code-fixed 2026-08-05 (`DerivationReceipt`, versioned deterministic-transform whitelist, verbatim source spans, re-execution verify, 14 pinning tests). Effect on the autonomy loss unmeasured pending new sealed track | Medium |
 | Contextual harm invisible in a single call (§2, §8) | FA=30.7% under neutral metadata; semantic enrichment cut it but the residual needs trajectory-level governance, not another per-call classifier | **High** |

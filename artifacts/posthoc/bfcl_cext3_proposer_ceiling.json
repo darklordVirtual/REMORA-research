@@ -1,0 +1,48 @@
+{
+  "configuration": "arm F: frozen bundle, semantic_authority_floor, low_consequence_accept, empty StateIndex",
+  "counts": {
+    "gold_read.aimed_override.accept": 28,
+    "gold_read.aimed_parses": 59,
+    "gold_read.arm_F.accept": 25,
+    "gold_read.extractor_grounded_nothing": 26,
+    "gold_read.n": 94,
+    "gold_read.veto_ceiling.accept": 25,
+    "obtainable.aimed_override.verify": 95,
+    "obtainable.aimed_parses": 31,
+    "obtainable.arm_F.verify": 91,
+    "obtainable.extractor_grounded_nothing": 72,
+    "obtainable.n": 199,
+    "obtainable.veto_ceiling.verify": 191,
+    "wrong_call.aimed_override.accept": 3,
+    "wrong_call.aimed_parses": 19,
+    "wrong_call.arm_F.accept": 2,
+    "wrong_call.extractor_grounded_nothing": 233,
+    "wrong_call.n": 699,
+    "wrong_call.veto_ceiling.accept": 2
+  },
+  "gold_read_not_accept_by_first_reason": {
+    "abstain:default_safe_abstain": 1,
+    "abstain:no_resolver_available": 18,
+    "abstain:semantic_authority_unknown_verify": 1,
+    "abstain:tool_does_not_match_goal": 16,
+    "verify:schema_unverified_verify": 3,
+    "verify:semantic_authority_unknown_verify": 24,
+    "verify:ungrounded_argument_values_verify": 6
+  },
+  "gold_reads_no_aimed_proposal_parses": {
+    "resource_absent+no_read_keyword": 11,
+    "resource_absent+read_keyword": 6,
+    "resource_generic_only+no_read_keyword": 3,
+    "resource_generic_only+read_keyword": 2,
+    "resource_named+no_read_keyword": 13
+  },
+  "obtainable_not_verify_by_first_reason": {
+    "abstain:default_safe_abstain": 1,
+    "abstain:no_resolver_available": 1,
+    "abstain:semantic_authority_unknown_verify": 2,
+    "abstain:tool_does_not_match_goal": 102,
+    "escalate:schema_unverified_verify": 2
+  },
+  "status": "post_hoc_development_only",
+  "warning": "Spent C-ext3 set, replayed at the current commit. Not a result; may not be cited as one. Purpose: SAP v6 design input for QV2-06."
+}

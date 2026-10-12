@@ -4,6 +4,22 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Research (QV2-06 utility recovery, slice 1)
+
+- `remora.toolcall.routing.intent_proposer` lets a model propose a task
+  intent from the task text and the contract lexicon, never from the call
+  under review. `combine_intents` uses the proposal to fill a task the
+  deterministic extractor cannot ground, or to veto one it grounded
+  differently. The proposal never overrules the extractor, so the goal-match
+  verdict on a grounded task stays the extractor's or becomes UNKNOWN.
+  Record-and-replay caching pins model and prompt for a sealed run. No model
+  is chosen and nothing is measured.
+- Post-hoc bounds on the spent C-ext3 set
+  (`scripts/bfcl_cext3_proposer_ceiling_posthoc.py`) answer the §39
+  gate-ordering question: the order stays. They also show that read autonomy
+  needs levers other than a proposer (NEGATIVE_RESULTS §39,
+  `docs/13-research-frontier-roadmap.md` QV2-06 sequence).
+
 ### Interop (AgenTrust TRACE, experimental)
 
 - `remora.interop.trace.map_result` maps one verified REMORA federation
