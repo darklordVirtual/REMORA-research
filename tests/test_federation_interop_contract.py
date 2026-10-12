@@ -654,3 +654,26 @@ def test_authority_path_does_not_import_a_federation_module() -> None:
         if pattern.search(path.read_text(encoding="utf-8", errors="replace"))
     ]
     assert offenders == []
+
+
+def test_e7_reproduction_pins_the_recorded_pip_reader_and_claims_no_independence(e7: dict[str, Any]) -> None:
+    workflow = (ROOT / ".github" / "workflows" / "probity-e7-reproduction.yml").read_text(encoding="utf-8")
+    pins = {r["verifier"]["implementation_revision"] for r in e7["external_runs"]}
+    (pin,) = [p for p in pins if p.startswith("agent-evidence-vectors==")]
+    assert f"READER_PIN: {pin}" in workflow
+    assert re.search(r"READER_WHEEL_SHA256: [0-9a-f]{64}\n", workflow)
+    assert "--require-hashes" in workflow and "--no-deps" in workflow
+    assert "--operator AUTHOR" in workflow and "--operator EXTERNAL" not in workflow
+    consumed = {r["consumed_revision"] for r in e7["external_runs"]}
+    assert consumed == {re.search(r"FROZEN_REVISION: ([0-9a-f]{40})", workflow).group(1)}  # type: ignore[union-attr]
+
+
+def test_e7_independence_keeps_its_exposure_disclosure(e7: dict[str, Any]) -> None:
+    if e7["external_verification"] != "INDEPENDENT":
+        pytest.skip("disclosure applies once E7 is recorded as independent")
+    text = " ".join((ROOT / "docs" / "interop" / "FEDERATION.md").read_text(encoding="utf-8").split())
+    assert "`INDEPENDENT` is this definition, not a blind study." in text
+    assert "read the published expected answers before writing the reader" in text
+    assert "a lint diagnostic later exposed portions of the retained reference verifier" in text
+    register = (ROOT / "docs" / "interop" / "remora-boundaries-v1.yaml").read_text(encoding="utf-8")
+    assert "not a blind study" in register

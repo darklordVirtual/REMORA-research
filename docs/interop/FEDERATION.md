@@ -375,7 +375,11 @@ output as a CI artifact. That rerun is a `REPRODUCTION` of the external
 record, kept as evidence; it adds no state, creates no REMORA authority and
 never feeds a policy decision. For the three execution-boundary packages the
 rerun is `.github/workflows/probity-boundary-reproduction.yml`, pinned to the
-reader revision named on the control board.
+reader revision named on the control board. For E7 it is
+`.github/workflows/probity-e7-reproduction.yml`, pinned by hash to
+`agent-evidence-vectors==0.17.6`, the distribution named in Probity's pip run
+record. That job runs the reader as `AUTHOR`, so its own record is
+`NOT_INDEPENDENT`.
 
 ### Diversity and independence
 
@@ -391,6 +395,15 @@ combination. A second implementation that misses one condition is real
 evidence and is recorded; it moves the contract to `REPRODUCED`, not to
 `EXTERNALLY_VERIFIED`. This is the claim and provenance discipline of
 aeoess/agent-governance-vocabulary#179.
+
+`INDEPENDENT` is this definition, not a blind study. The two E7 records
+(`runtime-surface-e7-v0.1`, Probity, 2026-10-08 and 2026-10-09) meet it, and
+Probity confirmed that on the control board (#707, comment 6113319343). Their
+exposure stays part of the record: Probity read the published expected
+answers before writing the reader, and a lint diagnostic later exposed
+portions of the retained reference verifier. The reader neither imported nor
+executed it. Both records establish fixture premises only;
+`runtime_capability_surface_completeness` stays `NOT_ESTABLISHED`.
 
 ## Foreign evidence
 

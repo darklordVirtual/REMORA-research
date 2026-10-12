@@ -4,7 +4,7 @@
     "project": "REMORA",
     "repository": "darklordVirtual/REMORA-research",
     "register": "docs/interop/remora-boundaries-v1.yaml",
-    "register_sha256": "3482bf1ce7c723844db4a3ffe90911a7dc83d014ac733ce8efc380c3753b9520",
+    "register_sha256": "52c3db6e83a5b2478210e15b36fd8c736c2a7ce322d6a669e21e5d604f7cbd16",
     "audited_revision": "03b1efd4f76dad018ea637fd088d46e3b682a9a4",
     "freshness": "CURRENT"
   },
@@ -136,7 +136,7 @@
       "contract_id": "runtime-surface-e7-v0.1",
       "package_digest": "sha256:01dfdb7885bdbb18c025bc013edc28b482b0631ae282aca877bd0953b865e4bf",
       "producer_role": "REMORA publishes the pinned E7 fixture package.",
-      "consumer_role": "Probity independently verified the pinned E7 fixtures in self-service and pip reruns; runtime completeness is not established.",
+      "consumer_role": "Probity independently verified the pinned E7 fixtures in self-service and pip reruns, with expected answers read before implementation (not a blind study); runtime completeness is not established.",
       "maturity": "DECLARED",
       "claim_ceiling_ref": "cc-edge-e7",
       "negative_case_ids": [

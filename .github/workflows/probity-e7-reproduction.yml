@@ -1,0 +1,169 @@
+name: Probity E7 reader (reproduction)
+
+# REMORA re-runs Probity's separately maintained E7 reader for the frozen
+# runtime-surface-e7-v0.1 package, pinned to the distribution named in
+# Probity's pip run record (agent-evidence-vectors==0.17.6, #707).
+#
+# Per docs/interop/FEDERATION.md ("After an external run") this rerun is a
+# REPRODUCTION of the external record, kept as a CI artifact. It runs with
+# --operator AUTHOR, so the record it writes is NOT_INDEPENDENT by
+# construction. It changes no file under artifacts/interop, advances no
+# lifecycle, creates no REMORA authority and never feeds a policy decision.
+# The independence of Probity's own runs is a property of their run records,
+# not of this job.
+#
+# Deterministic: no secrets; network only for the hash-pinned wheel.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/workflows/probity-e7-reproduction.yml"
+  push:
+    branches: [master]
+    paths:
+      - ".github/workflows/probity-e7-reproduction.yml"
+      - "artifacts/interop/runtime-surface-e7-v0.1/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: probity-e7-reproduction-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Reader distribution Probity named in its pip run record (#707).
+  READER_PIN: agent-evidence-vectors==0.17.6
+  READER_WHEEL_SHA256: 7031adfb1b30b66754190599cfdfddd855bdb66e79e3d7bbc2ab4c0581a5d57d
+  CONTRACT_ID: runtime-surface-e7-v0.1
+  # REMORA revision the reader consumed (the pin given on #707).
+  FROZEN_REVISION: e4fe474f488c3047b346abb01cbfd77ab447ad69
+
+jobs:
+  reproduce:
+    name: E7 reader on Python ${{ matrix.python }} (REPRODUCTION; advances nothing)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # The version both Probity E7 records ran on; a reproduction keeps it.
+        python: ["3.13.15"]
+
+    steps:
+      - name: Checkout REMORA (full history, so the frozen revision is reachable)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install the hash-pinned reader (no REMORA code)
+        run: |
+          set -euo pipefail
+          git cat-file -e "$FROZEN_REVISION^{commit}"
+          git merge-base --is-ancestor "$FROZEN_REVISION" HEAD
+          mkdir -p ci-artifacts/probity-e7-reproduction
+          python -m venv "$RUNNER_TEMP/reader-venv"
+          printf '%s --hash=sha256:%s\n' "$READER_PIN" "$READER_WHEEL_SHA256" > "$RUNNER_TEMP/reader-requirements.txt"
+          "$RUNNER_TEMP/reader-venv/bin/python" -m pip install --no-deps --only-binary=:all: \
+            --require-hashes -r "$RUNNER_TEMP/reader-requirements.txt"
+          "$RUNNER_TEMP/reader-venv/bin/python" -m pip freeze \
+            > ci-artifacts/probity-e7-reproduction/installed-packages.txt
+          # Isolated mode (-I) keeps the checkout off sys.path, so this sees the
+          # reader environment only.
+          if "$RUNNER_TEMP/reader-venv/bin/python" -I -c "import remora" 2>/dev/null; then
+            echo "remora is installed inside the reader environment" >&2; exit 1
+          fi
+          cat > ci-artifacts/probity-e7-reproduction/PINS.txt <<EOF
+          class=REPRODUCTION (adds no state, no authority, no lifecycle change)
+          remora_head=$(git rev-parse HEAD)
+          remora_frozen_revision=$FROZEN_REVISION
+          reader_pin=$READER_PIN
+          reader_wheel_sha256=$READER_WHEEL_SHA256
+          python=${{ matrix.python }}
+          run=https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EOF
+          cat ci-artifacts/probity-e7-reproduction/PINS.txt
+
+      - name: The wheel ships REMORA's frozen bytes
+        # Independent of anything Probity computed: every producer file the
+        # wheel bundles is compared with REMORA's own tree at FROZEN_REVISION.
+        run: |
+          "$RUNNER_TEMP/reader-venv/bin/python" -I - <<'PY'
+          import json, os, subprocess, sys
+          from pathlib import Path
+          import agent_evidence_vectors.remora_e7 as reader
+          frozen = os.environ["FROZEN_REVISION"]
+          package = Path("artifacts/interop") / os.environ["CONTRACT_ID"]
+          root = Path(reader.__file__).parent / "upstream" / package
+          problems, checked = [], []
+          for bundled in sorted(p for p in root.iterdir() if p.is_file()):
+              name = bundled.name.removesuffix(".source")
+              blob = subprocess.run(["git", "show", f"{frozen}:{(package / name).as_posix()}"], capture_output=True, check=False)
+              if blob.returncode != 0:
+                  problems.append(f"{name}: not in REMORA tree at {frozen}")
+                  continue
+              if bundled.read_bytes() != blob.stdout:
+                  problems.append(f"{name}: bundled bytes differ from REMORA at {frozen}")
+              checked.append(name)
+          if len(checked) < 6:
+              problems.append(f"expected the five package files and the manifest, checked {checked}")
+          out = {"frozen_revision": frozen, "files_checked": checked, "problems": problems}
+          Path("ci-artifacts/probity-e7-reproduction/bundled-bytes-check.json").write_text(json.dumps(out, indent=2), encoding="utf-8")
+          print(json.dumps(out, indent=2))
+          sys.exit(1 if problems else 0)
+          PY
+
+      - name: Run Probity's E7 reader as AUTHOR
+        run: |
+          set -euo pipefail
+          "$RUNNER_TEMP/reader-venv/bin/agent-evidence-vectors-remora-e7" \
+            --output ci-artifacts/probity-e7-reproduction/run \
+            --operator AUTHOR \
+            --run-ref "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            2>&1 | tee ci-artifacts/probity-e7-reproduction/run.log
+
+      - name: Reproduction matches the recorded pip run and claims no independence
+        run: |
+          python - <<'PY'
+          import json, os, sys
+          record = json.load(open("ci-artifacts/probity-e7-reproduction/run/external-run-record-v1.json", encoding="utf-8"))
+          index = json.load(open("artifacts/interop/index.json", encoding="utf-8"))
+          contract = next(c for c in index["contracts"] if c["id"] == os.environ["CONTRACT_ID"])
+          pin = os.environ["READER_PIN"]
+          recorded = [r for r in contract["external_runs"] if r["verifier"]["implementation_revision"] == pin]
+          problems = []
+          if len(recorded) != 1:
+              problems.append(f"index holds {len(recorded)} external runs for {pin}")
+          if record["verifier"]["implementation_revision"] != pin:
+              problems.append(f"reader names {record['verifier']['implementation_revision']}, not {pin}")
+          if record["independence"] != "NOT_INDEPENDENT" or record["operator"] != "AUTHOR":
+              problems.append("a REMORA-hosted rerun must record AUTHOR and NOT_INDEPENDENT")
+          for key in ("package_digest", "consumed_revision", "input_digests"):
+              if recorded and record[key] != recorded[0][key]:
+                  problems.append(f"{key} differs from the recorded pip run")
+          if recorded:
+              got = sorted((r["case_id"], r["result"]) for r in record["results"])
+              want = sorted((r["case_id"], r["result"]) for r in recorded[0]["results"])
+              if got != want:
+                  problems.append(f"results {got} differ from the recorded pip run {want}")
+          print(json.dumps({"problems": problems}, indent=2))
+          sys.exit(1 if problems else 0)
+          PY
+
+      - name: Retain the reproduction (evidence only; nothing reads it back)
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: probity-e7-reproduction-${{ matrix.python }}-${{ github.sha }}
+          include-hidden-files: true
+          retention-days: 90
+          if-no-files-found: error
+          path: ci-artifacts/probity-e7-reproduction

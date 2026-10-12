@@ -4,6 +4,21 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Interop (E7 external verification)
+
+- `runtime-surface-e7-v0.1` records two Probity run records (self-service
+  and pip, 5/5 fixture cases each) and moves to `EXTERNALLY_VERIFIED`, with
+  independence as Probity confirmed it on #707. Independence here means the
+  definition in `docs/interop/FEDERATION.md`, not a blind study: the
+  exposure disclosure (expected answers read before implementation, partial
+  exposure of the reference verifier through a lint diagnostic) is kept
+  there and in the boundary register.
+  `runtime_capability_surface_completeness` stays `NOT_ESTABLISHED`.
+- `.github/workflows/probity-e7-reproduction.yml` reruns the reader from
+  `agent-evidence-vectors==0.17.6` (wheel hash-pinned) as `AUTHOR`. It checks
+  that the wheel ships REMORA's frozen bytes and that the results match the
+  recorded pip run. It is a `REPRODUCTION` and advances nothing.
+
 ### Research (QV2-06 utility recovery, slice 1)
 
 - `remora.toolcall.routing.intent_proposer` lets a model propose a task

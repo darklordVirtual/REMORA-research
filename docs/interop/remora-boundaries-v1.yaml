@@ -217,7 +217,7 @@ federation_edges:
       - governed_tool_dispatch
     maturity: DECLARED
     producer_role: REMORA publishes the pinned E7 fixture package.
-    consumer_role: Probity independently verified the pinned E7 fixtures in self-service and pip reruns; runtime completeness is not established.
+    consumer_role: Probity independently verified the pinned E7 fixtures in self-service and pip reruns, with expected answers read before implementation (not a blind study); runtime completeness is not established.
     claim: bounded_observed_surface_matches_governed_set
     claim_ceiling_ref: cc-edge-e7
     negative_case_ids:
@@ -261,14 +261,18 @@ federation_edges:
       execution:
         status: EXTERNAL_RUN_RECORDED
         evidence:
+          - https://github.com/probityai/agent-evidence-atlas/blob/0e0a986f24dd2994446051db42a3e40692d7fa41/experiments/remora-e7-selfservice-2026-10-08/external-run-record-v1.json
           - https://github.com/probityai/agent-evidence-atlas/blob/80f2679f56d4509d4e3b76f8997d633f6d537fe7/experiments/remora-e7-pip-2026-10-09/external-run-record-v1.json
       independence:
         status: INDEPENDENT
         evidence:
-          - https://github.com/darklordVirtual/REMORA-research/issues/707#issuecomment-6113319343
+          - https://github.com/probityai/agent-evidence-atlas/blob/0e0a986f24dd2994446051db42a3e40692d7fa41/experiments/remora-e7-selfservice-2026-10-08/external-run-record-v1.json
+          - https://github.com/probityai/agent-evidence-atlas/blob/80f2679f56d4509d4e3b76f8997d633f6d537fe7/experiments/remora-e7-pip-2026-10-09/external-run-record-v1.json
       claim_result:
         status: NOT_ESTABLISHED
-        evidence: []
+        evidence:
+          - https://github.com/probityai/agent-evidence-atlas/blob/0e0a986f24dd2994446051db42a3e40692d7fa41/experiments/remora-e7-selfservice-2026-10-08/external-run-record-v1.json
+          - https://github.com/probityai/agent-evidence-atlas/blob/80f2679f56d4509d4e3b76f8997d633f6d537fe7/experiments/remora-e7-pip-2026-10-09/external-run-record-v1.json
       production:
         status: NOT_ESTABLISHED
         evidence: []

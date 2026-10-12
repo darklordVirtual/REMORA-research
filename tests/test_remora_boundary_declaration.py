@@ -73,8 +73,8 @@ def test_committed_boundary_register_and_summary_validate(
     assert e7["status_dimensions"] == {
         "owner_confirmation": "NOT_CONFIRMED",
         "pinning": "PIN_CONFIRMED",
-        "execution": "NOT_RUN",
-        "independence": "NOT_ASSESSED",
+        "execution": "EXTERNAL_RUN_RECORDED",
+        "independence": "INDEPENDENT",
         "claim_result": "NOT_ESTABLISHED",
         "production": "NOT_ESTABLISHED",
         "federation_adoption": "NOT_ADOPTED",
@@ -126,19 +126,20 @@ def test_boundary_maturity_cannot_exceed_supporting_capability(
 def test_external_execution_status_requires_a_committed_run_record(
     declaration: dict[str, Any],
 ) -> None:
-    dimensions = _edge(declaration, "E7")["status_dimensions"]
+    # E8 has only an author run committed, so an external status is unbacked.
+    dimensions = _edge(declaration, "E8")["status_dimensions"]
     dimensions["execution"] = {
         "status": "EXTERNAL_RUN_RECORDED",
         "evidence": ["https://example.invalid/run/1"],
     }
-    with pytest.raises(BoundaryValidationError, match="execution status must be NOT_RUN"):
+    with pytest.raises(BoundaryValidationError, match="execution status must be AUTHOR_RUN"):
         validate_boundary_register(declaration, root=ROOT)
 
 
 def test_independence_cannot_be_asserted_without_an_external_run(
     declaration: dict[str, Any],
 ) -> None:
-    dimensions = _edge(declaration, "E7")["status_dimensions"]
+    dimensions = _edge(declaration, "E8")["status_dimensions"]
     dimensions["independence"] = {
         "status": "INDEPENDENT",
         "evidence": ["https://example.invalid/run/1"],
@@ -227,8 +228,20 @@ def test_pin_confirmation_does_not_imply_owner_confirmation(
     dimensions = _edge(declaration, "E7")["status_dimensions"]
     assert dimensions["pinning"]["status"] == "PIN_CONFIRMED"
     assert dimensions["owner_confirmation"]["status"] == "NOT_CONFIRMED"
-    assert dimensions["execution"]["status"] == "NOT_RUN"
-    assert dimensions["independence"]["status"] == "NOT_ASSESSED"
+    assert dimensions["execution"]["status"] == "EXTERNAL_RUN_RECORDED"
+    assert dimensions["independence"]["status"] == "INDEPENDENT"
+    assert dimensions["claim_result"]["status"] == "NOT_ESTABLISHED"
+
+
+def test_independence_evidence_must_be_the_run_records_not_a_comment(
+    declaration: dict[str, Any],
+) -> None:
+    dimensions = _edge(declaration, "E7")["status_dimensions"]
+    dimensions["independence"]["evidence"] = [
+        "https://github.com/darklordVirtual/REMORA-research/issues/707#issuecomment-6113319343"
+    ]
+    with pytest.raises(BoundaryValidationError, match="independence evidence does not match"):
+        validate_boundary_register(declaration, root=ROOT)
 
 
 def test_implementation_changes_after_audit_fail_closed(tmp_path: Path) -> None:
