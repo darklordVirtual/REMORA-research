@@ -293,6 +293,11 @@ mutate_only_covered_lines = true
 # mutant down for no measurement value), one compares the two workers/ copies
 # of a module, and two assert that a callable has no non-test caller by
 # scanning the source tree, which mutmut has duplicated and mutated.
+# Four more (2026-10-12) start servers.api, or uvicorn for the strict-v2
+# three-domain deployment, in a child process whose working directory is a
+# temporary tree. mutmut's trampoline in that child reads its configuration from
+# the working directory, finds none and exits, so the test measures mutmut, not
+# the code; the startup refusals they pin stay covered by the regular suite.
 # They are deselected by node id rather than by dropping their module, so the
 # rest of each module still kills mutants.
 # tests/test_mutation_sweep_selection.py fails if a deselected node id stops
@@ -313,6 +318,14 @@ pytest_add_cli_args = [
     "tests/test_signature_vectors.py::test_the_generator_refuses_to_rewrite_v1",
     "--deselect",
     "tests/test_worker_unsafe_numbers.py::test_both_workers_carry_the_same_module",
+    "--deselect",
+    "tests/test_binding_policy.py::test_the_api_refuses_to_start_not_to_serve",
+    "--deselect",
+    "tests/test_effect_mediation_policy.py::test_an_unmediated_registry_refuses_the_executor_at_startup",
+    "--deselect",
+    "tests/test_effect_mediation_policy.py::test_the_scaffold_executor_starts",
+    "--deselect",
+    "tests/test_strict_v2_three_domain_e2e.py",
     "--deselect",
     "tests/test_toolspec_bound_at_dispatch.py::test_verify_callable_still_has_no_non_test_caller",
     "--deselect",
