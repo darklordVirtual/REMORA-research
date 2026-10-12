@@ -100,6 +100,8 @@ class TraceExportRefused(ValueError):
     """No mapping is produced. ``code`` is one of ``REFUSAL_CODES``."""
 
     def __init__(self, code: str, reason: str) -> None:
+        if code not in REFUSAL_CODES:
+            raise ValueError(f"unknown TRACE refusal code: {code!r}")
         super().__init__(f"{code}: {reason}")
         self.code = code
         self.reason = reason

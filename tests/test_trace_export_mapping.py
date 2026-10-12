@@ -235,3 +235,12 @@ def test_a_noncanonical_context_is_refused():
                                                  indent=1)
     assert gen.evaluate(case_input) == {"refused": {
         "code": "INVALID_INPUT", "reason": "execution_context_history_noncanonical"}}
+
+
+def test_a_refusal_code_outside_the_declared_vocabulary_is_a_programming_error() -> None:
+    from remora.interop.trace.mapping import REFUSAL_CODES, TraceExportRefused
+
+    for code in REFUSAL_CODES:
+        assert TraceExportRefused(code, "reason").code == code
+    with pytest.raises(ValueError, match="unknown TRACE refusal code"):
+        TraceExportRefused("INVALID_IMPUT", "typo")
