@@ -27,7 +27,7 @@ cachebox==5.2.3
 causal-learn==0.1.4.7
 certifi==2025.10.5
 cffi==2.0.0
-charset-normalizer==3.4.4
+charset-normalizer==3.5.2
 click==8.4.2
 click-option-group==0.5.9
 cohere==7.0.4
