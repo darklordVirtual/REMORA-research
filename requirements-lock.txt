@@ -228,7 +228,7 @@ soupsieve==2.9
 SQLAlchemy==2.0.44
 sqlglot==30.20.0
 sse-starlette==3.0.2
-starlette==1.7.0
+starlette==1.8.0
 statsmodels==0.14.6
 sympy==1.14.0
 tenacity==9.1.4
