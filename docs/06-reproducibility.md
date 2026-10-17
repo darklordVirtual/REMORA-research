@@ -102,6 +102,12 @@ writes nothing, so it adds no evidence beyond showing that CLAIM-021's counts
 follow from committed inputs. `scripts/bfcl_cext4_seen_split_posthoc.py`
 recomputes the post-hoc split in NEGATIVE_RESULTS §82 the same way.
 
+The `sealed-replay` job in `.github/workflows/ci.yml` runs both replay
+commands and `verify_replication_pack.py --regenerate` on every pull request
+and master push. It uses a fresh full-history clone and only the documented
+`pip install -e ".[dev]"`. The job fails if a replay test skips, so the
+locked-commit replay cannot pass by being skipped.
+
 ---
 
 ## Claim 1, 0% unsafe execution on 700-task adversarial benchmark

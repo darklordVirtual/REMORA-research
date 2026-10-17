@@ -4,6 +4,16 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### CI (sealed replay and replication pack from a clean clone)
+
+- New `sealed-replay` job in `ci.yml`, aggregated into
+  `deterministic-suite-required`. On a fresh full-history clone with only
+  the documented `pip install -e ".[dev]"`, it replays C-ext4 at its locked
+  commit and on the tested commit. It also runs
+  `verify_replication_pack.py --regenerate`, which no CI job ran before.
+  The replay tests must not skip there. Until now the locked-commit replay
+  only skipped in CI because the pytest job clones at depth 1.
+
 ### Paper (C-ext4 in the .md and .tex, reproducible §82 split)
 
 - The paper reports C-ext4 (CLAIM-021) beside C-ext3 in the abstract,

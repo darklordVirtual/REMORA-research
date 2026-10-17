@@ -139,7 +139,7 @@ entries:
     note: "The provenance ledger and register pin a snapshot commit; actions/checkout fetches depth 1."
   - pattern: "the locked commit [0-9a-f]{12} is not in this \\(shallow\\) clone"
     class: platform
-    note: "The C-ext4 replay at its locked commit needs full history; the working-tree replay in the same file still runs."
+    note: "The C-ext4 replay at its locked commit needs full history; the working-tree replay in the same file still runs, and the sealed-replay job in ci.yml runs both on a full clone with no skip allowed."
   - pattern: "Stale rate-limited KV cache entry.*"
     class: platform
     note: "Worker integration against a rate-limited cache."

@@ -919,6 +919,48 @@ jobs:
       - name: Full-suite collection succeeds
         run: python -m pytest tests/ -q --collect-only > /dev/null && echo "collection clean"
 
+  sealed-replay:
+    # The pytest job clones at depth 1, so the replay of the sealed C-ext4
+    # track at its locked commit skips there. This job runs the commands in
+    # docs/06-reproducibility.md verbatim, on a fresh full-history clone with
+    # only the documented install, and no skip is allowed.
+    name: Sealed track and replication pack reproduce from a clean clone
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout (full history; the replay checks out the locked commit)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: The documented install
+        run: python -m pip install -e ".[dev]"
+
+      - name: C-ext4 replays at its locked commit
+        run: python scripts/replay_sealed_cext4.py
+
+      - name: C-ext4 replays on this commit (drift check)
+        run: python scripts/replay_sealed_cext4.py --at working-tree
+
+      - name: Replication pack regenerates
+        run: python scripts/verify_replication_pack.py --regenerate
+
+      - name: Replay and post-hoc split tests run without a skip
+        run: |
+          set -euo pipefail
+          python -m pytest -q -rs -p no:cacheprovider \
+            tests/test_replay_sealed_cext4.py tests/test_bfcl_cext4_seen_split.py \
+            | tee /tmp/replay-tests.txt
+          if grep -q "SKIPPED" /tmp/replay-tests.txt; then
+            echo "a replay test skipped on a full-history clone" >&2
+            exit 1
+          fi
+
   container-contract:
     # Issue #89: the locked pilot runtime. Builds the reference image FROM
     # THE WHEEL (deploy/reference/Dockerfile, base pinned by digest,
@@ -983,6 +1025,7 @@ jobs:
       - artifact-integrity
       - container-contract
       - fresh-install-contract
+      - sealed-replay
     runs-on: ubuntu-latest
     steps:
       - name: Fail unless every aggregated leg succeeded
