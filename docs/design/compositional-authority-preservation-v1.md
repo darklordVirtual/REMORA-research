@@ -226,11 +226,11 @@ Defined in section 3. Two invariants:
   (`remora/toolcall/toolspec.py:222`, `remora/toolcall/postcondition_spec.py:69`)
   and computes the verdict itself. A receipt's own status is recorded beside
   that verdict. The unsigned `/effect` path follows the same rule.
-  `controlled_pilot` refuses it outright. In every other profile, when the
-  tool's signed ToolSpec declares a `postcondition`, an unsigned receipt
-  must carry the observed object and the call's arguments, and REMORA
+  `controlled_pilot` refuses it outright. In every other profile, a tool
+  whose signed ToolSpec declares a `postcondition` needs an unsigned receipt
+  that carries the observed object and the call's arguments. REMORA then
   computes the status on the shared code path
-  (`_computed_postcondition_verdict` in `servers/execution_api.py`); a bare
+  (`_computed_postcondition_verdict` in `servers/execution_api.py`). A bare
   reported `EFFECT_VERIFIED` is refused (`postcondition_observation_required`).
   When no postcondition is declared, a reported `EFFECT_VERIFIED` is kept as
   a claim: it settles nothing, and `current_state`, the effect block and the
