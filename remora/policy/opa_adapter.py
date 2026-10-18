@@ -70,6 +70,8 @@ OPA_EXPORT_EXCLUSIONS: frozenset[str] = frozenset({
     "evidence_request_reason",  # human-readable annotation; audit only
     "gainability_score",        # v4 routing signal; not read by the decision engine
     "intent_resolution_status", # internal audit reason; deliberately not public policy input
+    "flow_epoch",               # binding for the dispatch-time re-check (IFC-06); not a guard input
+    "flow_digest",              # same
 })
 
 
@@ -174,6 +176,11 @@ class OPAContext:
     argument_resolver_tools: tuple[str, ...]
     proposed_tool_name: str | None
     untrusted_controlled_arguments: tuple[str, ...]
+    # Derived flow control, rungs F1 to F6 (IFC-05b). Server-derived; null
+    # when flow control is off.
+    flow_status: str | None
+    flow_confidentiality_violation: bool
+    flow_integrity_violation: bool
     unvalidated_required_arguments: tuple[str, ...]
     tool_not_in_available_set: bool | None
     # Declared task-tool semantics (SHELF-020). Both are tri-state: False is an

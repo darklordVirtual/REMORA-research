@@ -22,7 +22,7 @@ compositional authority work packages CAPR-03 to CAPR-05 and CAPR-09
 | 2 | IFC-02 Context store and minting | P0 | DONE | #910 (02a), #912 (02b) | `tests/flow/test_context_store.py` and `tests/flow/test_contexts_route.py` cover every acceptance item. The Postgres cases skip without `REMORA_PG_DSN` and run in the CI Postgres job. |
 | 2 | IFC-03 ToolSpec v4 `flow` block, linter, signing | P0 | IN_PROGRESS | #913 (03a, merged via #916); #914 (03b, open) | Schema, parser and lint rules FL-01 to FL-13 have tests in `tests/flow/test_toolspec_flow.py`. Missing on master: refusal of a spec without `flow` at registry load under the strict profile, and bundle hash coverage in `remora/policy/versioning.py`. Both are in #914. |
 | 2 | IFC-04 Result labelling and handles | P0 | IN_PROGRESS | #915 (04a, merged via #916) | Handle length hiding, foreign-handle refusal and `test_resolve_value_labels` pass in `tests/flow/test_labeler_handles.py`. Missing (IFC-04b): the `GovernedToolDispatcher.dispatch` change with `DispatchResult.rendered_result`, and the commit-before-return fault-injection test. |
-| 2 | IFC-05 Flow check and decision rungs | P0 | IN_PROGRESS | #916 (05a) | `recipients` and `flow_check` pass the four mandatory invariant tests in `tests/flow/test_flow_check.py`. Missing (IFC-05b): rungs F1 to F6 in `hard_guard_floor`, `RemoraDecisionEngine-v6`, v5 golden cases unchanged with flow off, a golden case per F-rung, and the test that a client-supplied `flow` is ignored. No decision reads the verdict yet. |
+| 2 | IFC-05 Flow check and decision rungs | P0 | DONE | #916 (05a); IFC-05b PR | `recipients` and `flow_check` pass the four mandatory invariant tests in `tests/flow/test_flow_check.py`. IFC-05b: rungs F1 to F6 in `hard_guard_floor` and `RemoraDecisionEngine-v6`; the v5 golden cases decide as before with flow off and with a clean flow (`tests/policy/test_flow_rungs.py`); every rung has a golden case in `scripts/opa_conformance.py` and the Rego gate; a client-supplied `flow` is ignored (`tests/flow/test_flow_decision_route.py`). The decision reads the verdict only on `/v1/execution` with `REMORA_FLOW_CONTROL=1`; deviations are listed below. |
 | 2 | IFC-06 Dispatch-time re-check | P0 | NOT_STARTED | | |
 | 3 | IFC-11 Mediation completeness, execution API | P0 | NOT_STARTED | | |
 | 3 | IFC-12 Enforced egress and network isolation | P0 | NOT_STARTED | | |
@@ -80,8 +80,8 @@ The frontier model of §7.3 is therefore a Claude model.
 
 ## Implementation findings (ADRs)
 
-No ADR has been filed. Two deviations from the SDD are recorded in commits
-and in the schema file:
+No ADR has been filed. The deviations from the SDD are recorded in commits,
+in the schema file and here:
 
 - IFC-03a (`52cbcd35`, #913): `schemas/tool_spec_v4.yaml` adds three fields
   beyond the SDD's §5.1 excerpt (`provider`, argument kinds and
@@ -124,3 +124,31 @@ and in the schema file:
     not take the label of the call's arguments. §3.3 requires that join
     ("data that went in can come out"). A PUBLIC rule written by the
     ToolSpec author cannot declassify data the call was given.
+- IFC-05b, 2026-10-19.
+  - **Flat fields, not `FlowVerdict`.** §3.7 names one field
+    `PolicyObservation.flow: FlowVerdict | None`. The observation carries
+    `flow_status`, two violation flags, `flow_epoch` and `flow_digest`
+    instead. Observations are persisted and rebuilt as flat records, the
+    OPA input is flat JSON, and the verdict's recipient sets must not reach
+    a report or a refusal (the agent channel rule). The status values are
+    `FLOW_STATUSES` in `remora/flow/observe.py`; an unknown value is read as
+    F1.
+  - **F4 is grant-only.** A reviewer's approval of an F4 escalation is
+    voided at every re-gate (`GRANT_ONLY_REASONS` in
+    `remora/policy/composition.py`). §3.6 c lets only a
+    DeclassificationGrant from a reader with the declassifier role release
+    the payload, and a plain approval would bypass both conditions. Until
+    IFC-08 an F4 item can be reviewed and nothing it covers runs. F5 and F6
+    stay approvable: §3.11 sends integrity to a human.
+  - **The principal.** Contexts belong to a principal, and the observation
+    builders take only the tenant, so `_auth` records the authenticated
+    principal for the request. A re-gate with no request principal, such as
+    the async dispatch worker, gets `flow_context_unknown` and does not
+    run. IFC-06 owns the dispatch-time check.
+  - **No block outside the strict profile.** F3 fires under the strict
+    profile only, as §3.7 says. Elsewhere a call whose ToolSpec has no
+    `flow` block is `not_declared` and no rung fires.
+  - **No resource ACL registry.** The server passes no resource ACL to the
+    check, so every `resource_of` recipient is unresolved and every write
+    in a flow context is F4. The attack evaluation measures that cost
+    (NEGATIVE_RESULTS.md §87).

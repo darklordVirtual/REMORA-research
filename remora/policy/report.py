@@ -95,6 +95,16 @@ class DecisionReason(str, Enum):
     # Untrusted content controls a recipient/command/credential/egress target:
     # authorising, not informing. Escalates at any declared risk tier.
     UNTRUSTED_CONTROLS_SENSITIVE_ARGUMENT = "untrusted_controls_sensitive_argument"
+    # Derived flow control, rungs F1 to F6 (SDD v1.3 §3.7, IFC-05b). A
+    # refusal carries one of these codes and nothing about recipients, fields
+    # or handles.
+    FLOW_STATE_UNAVAILABLE = "flow_state_unavailable"                        # F1
+    FLOW_CONTEXT_UNKNOWN = "flow_context_unknown"                            # F2
+    FLOW_HANDLE_INVALID = "flow_handle_invalid"                              # F2
+    TOOLSPEC_FLOW_POLICY_MISSING = "toolspec_flow_policy_missing"            # F3
+    FLOW_CONFIDENTIALITY_VIOLATION = "flow_confidentiality_violation"        # F4
+    FLOW_INTEGRITY_VIOLATION_VERIFY = "flow_integrity_violation_verify"      # F5
+    FLOW_INTEGRITY_VIOLATION_ESCALATE = "flow_integrity_violation_escalate"  # F6
     # Credal risk gates (v0.9)
     MINIMAX_ESCALATE = "minimax_escalate"       # worst_case_loss >= threshold
     TRAP_ESCALATE    = "trap_escalate"          # trap_score >= 0.70
@@ -157,11 +167,13 @@ class DecisionReport:
     explanation: str
     raw_observation: PolicyObservation
     source_of_decision: str = "default"
+    # v6 (2026-10-19): flow rungs F1 to F6 in the hard floor (IFC-05b); with
+    # flow control off no rung fires and every v5 decision is unchanged.
     # v5 (2026-07-31): the temperature ACCEPT path excludes the critical
     # phase, matching the marginal conformal path.
     # v4 (2026-07-30): tainted-argument floor is tier-dependent — critical
     # risk escalates instead of the approvable VERIFY (issue #40 decision).
-    policy_version: str = "RemoraDecisionEngine-v5"
+    policy_version: str = "RemoraDecisionEngine-v6"
     in_sample_calibration_warning: str | None = None
     # True when the OPA daemon was unreachable and the Python engine was used
     # as fallback.  Consumers should surface this in audit records.

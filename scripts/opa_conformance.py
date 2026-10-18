@@ -77,6 +77,15 @@ def golden_observations() -> list[tuple[str, PolicyObservation]]:
         ("contradiction_cycles", {"evidence_contradictions": 2, "contradiction_cycles": 1}),
         ("contradiction_no_cycles", {"evidence_contradictions": 2}),
         ("tainted_argument", {"argument_tainted": True}),
+        # Flow rungs F1 to F6 (IFC-05b), one case per rung and status.
+        ("flow_state_unavailable", {"flow_status": "state_unavailable"}),
+        ("flow_context_unknown", {"flow_status": "context_unknown"}),
+        ("flow_handle_invalid", {"flow_status": "handle_invalid"}),
+        ("flow_policy_missing", {"flow_status": "policy_missing"}),
+        ("flow_status_unrecognised", {"flow_status": "no_such_status"}),
+        ("flow_confidentiality", {"flow_status": "evaluated",
+                                  "flow_confidentiality_violation": True}),
+        ("flow_integrity", {"flow_status": "evaluated", "flow_integrity_violation": True}),
     ]
     for name, overrides in hard_guard_overrides:
         cases.append((
@@ -92,7 +101,23 @@ def golden_observations() -> list[tuple[str, PolicyObservation]]:
                           risk_tier="critical", argument_tainted=True),
     ))
 
+    cases.append((
+        "hard_guard:flow_integrity_critical",
+        PolicyObservation(question="golden flow integrity critical", risk_tier="critical",
+                          flow_status="evaluated", flow_integrity_violation=True),
+    ))
+
     cases.extend([
+        # Flow on, and nothing to refuse: the rungs stay silent and routing
+        # decides, as with flow off.
+        ("flow_clean_low_read_ordered", PolicyObservation(
+            question="read service metrics", risk_tier="low", action_type="read",
+            phase="ordered", trust_score=0.92, flow_status="evaluated",
+        )),
+        ("flow_not_declared_low_read_ordered", PolicyObservation(
+            question="read service metrics", risk_tier="low", action_type="read",
+            phase="ordered", trust_score=0.92, flow_status="not_declared",
+        )),
         ("clean_low_read_ordered", PolicyObservation(
             question="read service metrics", risk_tier="low", action_type="read",
             phase="ordered", trust_score=0.92,

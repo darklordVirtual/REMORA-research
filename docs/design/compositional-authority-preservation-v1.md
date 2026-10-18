@@ -124,10 +124,11 @@ not yet merged at the time of writing.
 - **Keys.** Flow grants are signed under `REMORA/FLOW-GRANT/v1` (IFC SDD
   §3.6 c).
 - **Status.** PARTIAL. Labels, contexts, ToolSpec v4 flow blocks, result
-  labelling and `flow_check` are on master (`remora/flow/`). No decision reads
-  the verdict: IFC-05b is not started, and REM-044 is IN_PROGRESS for that
-  reason. In flight: #939 makes an empty recipient rule unresolved and adds
-  FL-14 (RMR-AUD-007, RMR-AUD-008).
+  labelling and `flow_check` are on master (`remora/flow/`). Since IFC-05b
+  the decision reads the verdict through rungs F1 to F6 when
+  `REMORA_FLOW_CONTROL=1`. Results do not raise a context label until
+  IFC-04b, and the verdict is not bound at dispatch until IFC-06, so REM-044
+  stays IN_PROGRESS.
 - **Prevents.** PRF-016, PRF-041, the read-then-send exfiltration measured in
   #932 (NEGATIVE_RESULTS §87 there).
 - **Falsification.** The IFC SDD §3.10 table, run through `/v1/execution`,
@@ -419,7 +420,7 @@ register entry at `RESEARCH` / `NOT_ESTABLISHED` until its acceptance passes.
 |---|---|---|---|
 | CAPR-01 | #935, #936, R3 lattice fix | L0, L4, L5 regression bundle: the public-API cases P0-1A, P0-1B and the R3 vectors as one test module tagged by link | All pass on master; each test names its link |
 | CAPR-02 | R3 effect fix | L6 fold and per-attempt keys verified against the bundle | `test_l6_reapproval_recorded_and_state_folds` |
-| CAPR-03 | IFC-05b (REM-044) | Wire `FlowVerdict` into the decision as rungs F1 to F6 | IFC SDD §6.4 gate; client-supplied `flow` ignored |
+| CAPR-03 | IFC-05b (REM-044) | Wire `FlowVerdict` into the decision as rungs F1 to F6 | IFC SDD §6.4 gate; client-supplied `flow` ignored. Rungs and the ignore test are in (IFC-05b); the §6.4 gate also needs IFC-03b and the capability register entry |
 | CAPR-04 | CAPR-03, IFC-08 | ABER L3a: endorsement source registry, `endorsed` callback, per-check bit cost | Section 3.4 rows for L3a |
 | CAPR-05 | CAPR-04, IFC-14 | ABER L3b: `obligation_required` in ToolSpec, `obligation_unbound` cap, obligation digest in the lease | Section 3.4 rows for L3b; property: case C never ACCEPT |
 | CAPR-06 | none | `REMORA/EFFECT-RECEIPT/v1` domain, verifier key registry, signed receipt schema | Domain-separation tests; unsigned receipts refused in strict profiles |

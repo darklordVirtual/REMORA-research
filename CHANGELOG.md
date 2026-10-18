@@ -4,6 +4,24 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Flow verdict in the decision (IFC-05b, PRF-041)
+
+- With `REMORA_FLOW_CONTROL=1`, `/v1/execution` derives `flow_status`, two
+  violation flags, `flow_epoch` and `flow_digest` from the flow context and
+  the ToolSpec `flow` block (`remora/flow/observe.py`). No request field sets
+  them. Rungs F1 to F6 in `hard_guard_floor` read them, and the engine is
+  `RemoraDecisionEngine-v6`. With the switch off every v5 decision is
+  unchanged, and a pinned v5 golden table checks that.
+- A reviewer's approval does not lift F4 (`GRANT_ONLY_REASONS`): only a
+  declassification grant (IFC-08) may release data to a recipient outside
+  its readers.
+- The attack evaluation gains a `remora_flow_enforced` arm. REMORA's own
+  decision ran none of the 10 exfiltration attacks and 2 of 4 controls. The
+  labels in that arm are still raised by the harness until IFC-04b
+  (NEGATIVE_RESULTS.md §87).
+- Rego gate, OPA golden cases, what-if levers, explanation labels and the
+  policy bundle hash cover the new rungs.
+
 ### Peer-review remainder: approver role, threat model, timestamp proof (PRF-015, PRF-026, PRF-041, PRF-042)
 
 - `scripts/execution_chain_attack_eval.py` adds an `approver_role` class that
