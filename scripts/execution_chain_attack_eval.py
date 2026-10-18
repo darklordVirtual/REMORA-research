@@ -322,6 +322,9 @@ class World:
                         lambda request: ident["principal"])
         self.mp.setattr(api_mod, "_require_tenant_capability",
                         lambda role, tenant, cap: None)
+        # Off by default: the reviewer in ``authorize`` approves unconditionally.
+        # The approver_role class turns the real check back on.
+        self.real_approval_role_check = api_mod._enforce_review_approval_role
         self.mp.setattr(api_mod, "_enforce_review_approval_role", lambda **kw: None)
         with contextlib.suppress(AttributeError):
             api_mod._rate_limiter._buckets.clear()
@@ -494,7 +497,8 @@ def _call(tool: str, target: str = "staging", **arguments: Any) -> dict[str, Any
 
 
 def authorize(world: World, call: dict[str, Any], route: str, *,
-              tenant: str = TENANT, principal: str = AGENT) -> Grant:
+              tenant: str = TENANT, principal: str = AGENT,
+              approver_role: str = "reviewer") -> Grant:
     """Obtain the authorization a legitimate caller would hold for ``call``."""
     grant = Grant(route=route, call=call, tenant=tenant, principal=principal)
     if route == "lease":
@@ -512,7 +516,7 @@ def authorize(world: World, call: dict[str, Any], route: str, *,
         grant.token = assessed.body.get("execution_token")
     elif route == "review" and assessed.body.get("review_item_id"):
         grant.ref = str(assessed.body["review_item_id"])
-        with world.acting_as(tenant=tenant, role="reviewer", principal=REVIEWER):
+        with world.acting_as(tenant=tenant, role=approver_role, principal=REVIEWER):
             approved = world.post("/v1/execution/approve", {"item_id": grant.ref})
         grant.decision = "approved" if approved.status == 200 else f"approve:{approved.reason}"
     return grant
@@ -996,6 +1000,88 @@ LABELS = {"risk_tier": "low", "action_type": "read", "trust_score": 0.99,
           "phase": "ordered", "domain": "general"}
 
 
+def _approver(role: str, *, tier: str = "medium",
+              after: Callable[[World, Grant], None] | None = None
+              ) -> Callable[[World, str], dict[str, Any]]:
+    """A write approved by ``role`` under the real approval-role check.
+
+    ``tier`` is the tool's deployment risk tier at proposal time; ``after``
+    changes the deployment between approval and execution.
+    """
+    def run(world: World, arm: str) -> dict[str, Any]:
+        world.mp.setattr(world.api, "_enforce_review_approval_role",
+                         world.real_approval_role_check)
+        if tier != "medium":
+            _relabel(tier)(world, Grant("review", WRITE, TENANT, AGENT))
+        grant = authorize(world, WRITE, "review", approver_role=role)
+        gateway = PolicyOnlyGateway(world)
+        gateway.record(grant)
+        if after is not None:
+            after(world, grant)
+        if arm == "remora":
+            result = present_remora(world, grant, WRITE)
+        else:
+            result = gateway.dispatch(grant.tenant, grant.ref, WRITE)
+        return _outcome(result, proposal_decision=grant.decision)
+    return run
+
+
+def _raise_medium_requirement(world: World, grant: Grant) -> None:
+    """The risk-profile config is edited so medium-risk approvals need a
+    domain_expert, and the server restarts with it (config is read at start)."""
+    changed = copy.deepcopy(world.api._RISK_PROFILE_CONFIG)
+    changed["profiles"]["medium_risk"].setdefault("action", {})["approval_role"] = "domain_expert"
+    world.mp.setattr(world.api, "_RISK_PROFILE_CONFIG", changed)
+    world.reset_runtime()
+
+
+def _unrelated_profile_edit(world: World, grant: Grant) -> None:
+    """The config is edited and reloaded, but not for the approved tier."""
+    changed = copy.deepcopy(world.api._RISK_PROFILE_CONFIG)
+    changed["profiles"]["critical"].setdefault("action", {})["approval_timeout_hours"] = 2
+    world.mp.setattr(world.api, "_RISK_PROFILE_CONFIG", changed)
+    world.reset_runtime()
+
+
+def _approver_role() -> list[Case]:
+    """PRF-015's unmeasured remainder: who may approve, and whether an
+    approval survives a raised requirement. The real role check runs."""
+    cls = "approver_role"
+    return [
+        Case(cls, "control_reviewer_approves_medium", True,
+             "a reviewer approves a medium-risk write; the profile names no approval role",
+             _approver("reviewer")),
+        Case(cls, "control_domain_expert_approves_high", True,
+             "a domain_expert approves a high-risk write, as the high_risk profile requires",
+             _approver("domain_expert", tier="high")),
+        Case(cls, "control_senior_authority_approves_critical", True,
+             "a senior_authority approves a critical write, as the critical profile requires",
+             _approver("senior_authority", tier="critical")),
+        Case(cls, "control_unrelated_profile_edit_after_approval", True,
+             "a reviewer approves at medium; the profile is then edited for another tier only",
+             _approver("reviewer", after=_unrelated_profile_edit)),
+        Case(cls, "reviewer_approves_high", False,
+             "a generic reviewer approves a high-risk write reserved for domain_expert",
+             _approver("reviewer", tier="high")),
+        Case(cls, "domain_expert_approves_critical", False,
+             "a domain_expert approves a critical write reserved for senior_authority",
+             _approver("domain_expert", tier="critical")),
+        Case(cls, "operator_approves", False,
+             "the operator role, which proposes calls, approves the write",
+             _approver("operator")),
+        Case(cls, "unlisted_role_approves", False,
+             "a role outside the tenant's reviewer_roles approves the write",
+             _approver("intern")),
+        Case(cls, "tier_raised_after_reviewer_approval", False,
+             "a reviewer approves at medium; the tool is raised to high before execution",
+             _approver("reviewer", after=_relabel("high"))),
+        Case(cls, "requirement_raised_after_approval", False,
+             "a reviewer approves at medium; the profile then reserves medium approvals "
+             "for domain_expert, with the tier unchanged",
+             _approver("reviewer", after=_raise_medium_requirement)),
+    ]
+
+
 def _labels_server() -> list[Case]:
     cls = "caller_labels_server"
 
@@ -1231,7 +1317,8 @@ def _composed() -> list[Case]:
 
 def catalogue() -> list[Case]:
     return (_replay() + _substitution() + _toctou() + _cross() + _forged() + _expired()
-            + _labels_server() + _labels_library() + _read_exfil() + _composed())
+            + _approver_role() + _labels_server() + _labels_library() + _read_exfil()
+            + _composed())
 
 
 # ── running and summarising ────────────────────────────────────────────────
@@ -1352,7 +1439,8 @@ def compute(library_label: str = LIBRARY_LABEL) -> dict[str, Any]:
             "secret_reached_sink": ("a sink tool (http_get, send_email, update_record) ran "
                                     "with the secret, or its base64 form, in its arguments"),
             "scored_step": "only the last presentation in a case; setup steps are not scored",
-            "review_route": ("writes are approved by the harness's reviewer unconditionally; "
+            "review_route": ("writes are approved by the harness's reviewer unconditionally, "
+                             "except in approver_role, where the real approval-role check runs; "
                              "whether a human reviewer would refuse is not measured"),
         },
         "rows": rows,

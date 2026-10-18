@@ -4,6 +4,23 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Peer-review remainder: approver role, threat model, timestamp proof (PRF-015, PRF-026, PRF-041, PRF-042)
+
+- `scripts/execution_chain_attack_eval.py` adds an `approver_role` class that
+  runs the real `_enforce_review_approval_role`. REMORA ran none of its 6
+  attacks and the policy-only gateway ran 2. All 4 controls ran. Over all
+  chain classes REMORA ran 0 of 43 attacks and the gateway 33
+  (NEGATIVE_RESULTS.md §87).
+- Paper §3.1 now states that the decision reads neither argument content nor
+  destinations, and that the injection pattern list is a routing hint. The
+  abstract, contribution 1 and §13.13 cite the post-hoc evaluation instead
+  of saying the chain is unevaluated, in both the .md and the .tex.
+- The OpenTimestamps proof of `seal_manifest_2026-10-18.json` is upgraded
+  with Bitcoin attestations in blocks 972029 to 972057.
+- Register: PRF-015 is RESOLVED, with its limits stated, and PRF-042 moves
+  to IN_PROGRESS. PRF-026 and PRF-041 stay IN_PROGRESS: the SAP v7 stamp and
+  a decision path that reads the flow verdict (IFC-05b) remain.
+
 ### Review path binds the intent authority (RMR-AUD-006, part 3)
 
 - An item approved under one intent authority executed under another, and the

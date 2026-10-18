@@ -147,9 +147,9 @@ cites only `open` sections and that no `open` section is missing a theme.
    Closing it needs a baseline or a target-side operation id in the contract,
    which is a design decision.
 17. **Exfiltration through allowed calls** (§87): the execution chain refuses
-   every replay, substitution, forgery, expiry, cross-context and relabel
-   attack in the catalogue (0 of 37 chain attacks ran after the review-path
-   and registry fixes), and the secret reached the sink in all 11
+   every replay, substitution, forgery, expiry, cross-context, relabel and
+   approver-role attack in the catalogue. None of 43 chain attacks ran after
+   the review-path and registry fixes. The secret reached the sink in all 11
    exfiltration attacks. No decision reads argument content or data flow;
    the flow check exists as a library and blocks all 10 it was run on.
 
@@ -5206,7 +5206,7 @@ peer review asked for it (PRF-015, PRF-041 in
 `docs/review/PEER_REVIEW_FINDINGS.md`). It is the author's own attack set,
 not an external benchmark.
 
-`scripts/execution_chain_attack_eval.py` runs 52 attacks and 16 benign
+`scripts/execution_chain_attack_eval.py` runs 58 attacks and 20 benign
 controls against REMORA's `/v1/execution` path and against a policy-only
 gateway, and writes `artifacts/posthoc/execution_chain_attack_eval_v1.json`.
 The gateway takes the same proposal-time decision from the same `/assess`
@@ -5224,12 +5224,13 @@ signing and no semantic bundle.
 | Cross-task, cross-actor and cross-tenant reuse | 0/9 | 6/9 |
 | Forged or tampered token, lease or review item | 0/7 | 4/7 |
 | Expired token or lease | 0/4 | 4/4 |
+| Wrong approver role, or a requirement raised after approval | 0/6 | 2/6 |
 | Server-sent caller labels | 0/4 | 0/4 |
 | Read exfiltration, secret in the URL | 6/6 | 6/6 |
 | Read the secret, then send it with an allowed call | 5/5 | 5/5 |
 
-REMORA ran all 16 controls. Of the 37 chain attacks, it ran none and the
-gateway ran 31, all of them on the gateway and not on REMORA. Both refused
+REMORA ran all 20 controls. Of the 43 chain attacks, it ran none and the
+gateway ran 33, all of them on the gateway and not on REMORA. Both refused
 the three cross-tenant cases and the forgeries that need an authorization
 the attacker never held.
 
@@ -5238,10 +5239,16 @@ table above was first written. The review path now binds the executing
 actor and task through the `AuthorizationContext` comparison; both reuse
 attacks refuse `context_mismatch`. An approval is voided when the reviewed
 risk tier changed (`approval_invalidated` on the medium-to-high and
-medium-to-critical relabels). The harness bypasses
-`_enforce_review_approval_role`, so whether a tenant profile would demand
-a different approver for critical risk is still untested here. The
-approval is now voided before that question is reached.
+medium-to-critical relabels). Until 2026-10-19 the harness bypassed
+`_enforce_review_approval_role`, so the approver-role path was untested.
+The `approver_role` class now runs the real check. Four approvals are
+refused at `/approve`: a generic reviewer on a high-risk write, a
+domain_expert on a critical one, the operator role, and a role outside
+`reviewer_roles`. The gateway takes the same approval, so it refuses them
+too. An approval at medium risk is voided (`approval_invalidated`) when the
+tool is raised to high. It is also voided when the profile is edited to
+reserve medium approvals for a domain_expert. The gateway runs both. An
+edit to another tier's profile leaves the approval valid.
 
 **What REMORA did not stop.**
 
