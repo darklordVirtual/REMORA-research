@@ -17,7 +17,7 @@ compositional authority work packages CAPR-03 to CAPR-05 and CAPR-09
 
 | Step | Work package | Priority | Status | PR | Missing / note |
 |---|---|---|---|---|---|
-| 1 | COMP-01 Meet composition and AgentHarm re-score | P0 | IN_PROGRESS | #907 (open) | Meet composition is in open PR #907. Nothing is on master yet; the AgentHarm re-score is not started. |
+| 1 | COMP-01 Meet composition and AgentHarm re-score | P0 | DONE | #907, #908; amended by #944 | Meet composition is on master (#907), and the AgentHarm re-score is `artifacts/posthoc/comp01_agentharm_rescore_v1.json` (#908, NEGATIVE_RESULTS.md §84). #944 (R3) made every firing guard and gate enter the meet; two monotonicity cases stay open (§90). |
 | 1 | IFC-01 Label lattice | P0 | DONE | #906 | Every acceptance law is a Hypothesis property in `tests/flow/test_label_lattice.py`. Not wired into any decision. |
 | 2 | IFC-02 Context store and minting | P0 | DONE | #910 (02a), #912 (02b) | `tests/flow/test_context_store.py` and `tests/flow/test_contexts_route.py` cover every acceptance item. The Postgres cases skip without `REMORA_PG_DSN` and run in the CI Postgres job. |
 | 2 | IFC-03 ToolSpec v4 `flow` block, linter, signing | P0 | IN_PROGRESS | #913 (03a, merged via #916); #914 (03b, open) | Schema, parser and lint rules FL-01 to FL-13 have tests in `tests/flow/test_toolspec_flow.py`. Missing on master: refusal of a spec without `flow` at registry load under the strict profile, and bundle hash coverage in `remora/policy/versioning.py`. Both are in #914. |

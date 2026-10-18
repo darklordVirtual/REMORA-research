@@ -51,6 +51,38 @@ analysis or data exists.
   behind it is real: Mode 3 tells no twin pair apart where the oracle
   alone tells 29 apart (NEGATIVE_RESULTS.md §80).
 
+- R3 (2026-10-18). An external, AI-assisted adversarial audit of the code,
+  architecture and research record at master `b64e3cc1`. A review of the
+  diffs of the fix PRs (#936, #942, #943, #944) followed the same day. The
+  audit reported thirteen findings (RMR-AUD-001 to RMR-AUD-013, here
+  PRF-044 to PRF-056), and the diff review found four holes in the fix PRs
+  (PRF-057 to PRF-060). Each was reproduced or confirmed against the
+  repository before it was fixed, and each fix carries a regression test.
+  The fixes reached master through #932 to #944 and #940, consolidated in
+  `5b2c7dc8`. R3 is not an independent human review; REM-021 remains open
+  (`docs/AI_USE.md`).
+- R3 errors and claims not adopted. Kept here for the record.
+  - P0-1A (taint added at `/execute` launders a goal-mismatch ESCALATE)
+    reproduced at `b64e3cc1` but no longer at master `b7c6517e`. The COMP-01
+    meet composition (#907) already returned `approval_invalidated` there.
+  - Three flow claims were reproduced but not changed, because the change
+    would break the IFC SDD (`docs/design/derived-information-flow-control-v1.md`
+    §3.2.1, §3.3). An email argument on a read-only tool with no recipients
+    sends nothing to anyone (007c). Walking into a container that has no
+    rule of its own would show its key structure to a model that may not
+    read it (008a); lint rule FL-14 now refuses the unreachable BY_VALUE rule
+    instead. Argument labels are always joined into a result label, so a
+    PUBLIC field under a tainted call is not shown by value (008b).
+  - An instruction given during the fixes, to refuse an `EFFECT_VERIFIED`
+    receipt whose expected and observed digests differ, was wrong. The
+    comparison is rule-based, so a valid verification normally hashes two
+    different maps. It was not applied; the server now re-evaluates the
+    postcondition itself (CAPR-07).
+  - The audit placed entity resolution in `remora/policy/resolution.py`.
+    That module is resolver re-entry for missing arguments and must not
+    endorse data, so the SDD places it as an endorsement source beside the
+    flow check (PRF-060).
+
 ## Level plan (owner decision, 2026-10-17)
 
 1. Level 1: text corrections that need no new numbers.
@@ -91,7 +123,7 @@ conditions?
 | Affected claims | CLAIM-002, CLAIM-019 |
 | Action | Cite §80 in the AgentHarm interpretation and §81 in the C-ext3 caveats. State that bundle v2 handles negation. |
 | Owning PR | level-1 PR |
-| Verification | §10.6 and §10.9 of both files cite them. The v2 negation statement was checked by running `bfcl_semantic_bundle_v2.extract_intent` on "Please do not cancel booking B-104", which returns no intent. |
+| Verification | §10.6 and §10.9 of both files cite them. The v2 negation statement was checked by running `bfcl_semantic_bundle_v2.extract_intent` on "Please do not cancel booking B-104", which returns no intent. R3 (2026-10-18) found that v2 still supports a mutation in conditional and informational sentences ("before cancel", "Tell me if I can cancel"); that limit is PRF-052, and the statement "bundle v2 handles negation" holds for negation only. |
 | Status | RESOLVED |
 
 ### PRF-003 AgentHarm "all three governance goals met" rested on an asymmetric metric
@@ -260,7 +292,7 @@ conditions?
 | Affected claims | none (no claim measures the chain) |
 | Action | Level 3: a threat-model section and an attack evaluation against a policy-only gateway baseline. New §13.13 and contribution 1 now state that the chain is not evaluated. |
 | Owning PR | level-1 PR (disclosure); evaluation in the evidence/execution-chain-attack-eval PR; threat model in #927; approver-role measurement and threat-model update in fix/peer-review-remaining |
-| Verification | The attack evaluation exists: `scripts/execution_chain_attack_eval.py`, `artifacts/posthoc/execution_chain_attack_eval_v1.json`, `tests/test_execution_chain_attack_eval.py`, NEGATIVE_RESULTS.md §87. It drives `/v1/execution` (signed ToolSpec bundle, ACCEPT token, review grant, lease, dispatch re-check) and a policy-only gateway that takes the same proposal-time decision. Over replay, argument substitution, ToolSpec redeploy or callable swap, risk relabel, cross-task/actor/tenant reuse, forgery, expiry and approver role, REMORA ran 0 of 43 attacks and the gateway 33. REMORA ran all 20 benign controls. The four attacks that ran on REMORA in the first measurement are closed: the review path now binds the executing actor and task through the `AuthorizationContext` comparison (both refuse `context_mismatch`), and a reviewed risk tier that changed voids the approval (`approval_invalidated`). 2026-10-19: the `approver_role` class runs the real `_enforce_review_approval_role`, which the harness bypassed before. A wrong role is refused at `/approve` on both arms (reviewer on high, domain_expert on critical, operator, a role outside `reviewer_roles`). An approval is voided when the tier is raised or the profile reserves the tier for another role, and the gateway runs both. Pinned by `test_the_approver_role_path_is_measured_with_the_real_check`. The threat model is paper §3.1 (#927). It now states the argument-content and destination gap and that the injection pattern list is a hint, and points to §13.13, which reports the evaluation. Stated limits, not open work: the catalogue is the author's own and post hoc, in one profile with in-process state and HMAC signing; an external or adaptive attacker is not measured, and exfiltration is PRF-041. |
+| Verification | The attack evaluation exists: `scripts/execution_chain_attack_eval.py`, `artifacts/posthoc/execution_chain_attack_eval_v1.json`, `tests/test_execution_chain_attack_eval.py`, NEGATIVE_RESULTS.md §87. It drives `/v1/execution` (signed ToolSpec bundle, ACCEPT token, review grant, lease, dispatch re-check) and a policy-only gateway that takes the same proposal-time decision. Over replay, argument substitution, ToolSpec redeploy or callable swap, risk relabel, cross-task/actor/tenant reuse, forgery, expiry and approver role, REMORA ran 0 of 43 attacks and the gateway 33. REMORA ran all 20 benign controls. The four attacks that ran on REMORA in the first measurement are closed: the review path now binds the executing actor and task through the `AuthorizationContext` comparison (both refuse `context_mismatch`), and a reviewed risk tier that changed voids the approval (`approval_invalidated`). The artifact was regenerated on master after the R3 fixes (`ac97406f`). 2026-10-19: the `approver_role` class runs the real `_enforce_review_approval_role`, which the harness bypassed before. A wrong role is refused at `/approve` on both arms (reviewer on high, domain_expert on critical, operator, a role outside `reviewer_roles`). An approval is voided when the tier is raised or the profile reserves the tier for another role, and the gateway runs both. Pinned by `test_the_approver_role_path_is_measured_with_the_real_check`. The threat model is paper §3.1 (#927). It now states the argument-content and destination gap and that the injection pattern list is a hint, and points to §13.13, which reports the evaluation. Stated limits, not open work: the catalogue is the author's own and post hoc, in one profile with in-process state and HMAC signing; an external or adaptive attacker is not measured, and exfiltration is PRF-041. |
 | Status | RESOLVED |
 
 ### PRF-016 Per-call authorization does not stop attacks composed of allowed calls
@@ -598,7 +630,7 @@ conditions?
 | Affected claims | none |
 | Action | Level 3: put argument-content and destination policy in the threat model, and measure exfiltration in the attack evaluation (PRF-015) against a policy-only and an information-flow baseline. |
 | Owning PR | evidence/execution-chain-attack-eval PR (measurement) |
-| Verification | Measured in `artifacts/posthoc/execution_chain_attack_eval_v1.json` (`scripts/execution_chain_attack_eval.py`, `tests/test_execution_chain_attack_eval.py`, NEGATIVE_RESULTS.md §87). On `/v1/execution` with `REMORA_LOW_CONSEQUENCE_ACCEPT=1`, `/assess` gives the exfiltrating `http_get` the same ACCEPT as a benign one, and the secret reached the sink in 6 of 6 read-exfiltration and 5 of 5 composed read-then-send attacks, on REMORA and on the policy-only baseline alike. Declaring the untrusted context did not change the decision, because without a semantic bundle it never reaches the observation. The information-flow baseline is `remora.flow.check.flow_check`, applied by the harness and labelled library_only: it refused 10 of 10 and also refused 1 of 4 benign controls. 2026-10-19: paper §3.1 now states that the decision reads neither argument content nor destinations, so a low-risk read whose URL carries a secret is not defended, and that a destination policy must come from `remora.flow`. Remaining: a decision path that reads the flow verdict (IFC-05b) and a measurement with it on; the grounded-read path was not configured and is unmeasured. |
+| Verification | Measured in `artifacts/posthoc/execution_chain_attack_eval_v1.json` (`scripts/execution_chain_attack_eval.py`, `tests/test_execution_chain_attack_eval.py`, NEGATIVE_RESULTS.md §87). On `/v1/execution` with `REMORA_LOW_CONSEQUENCE_ACCEPT=1`, `/assess` gives the exfiltrating `http_get` the same ACCEPT as a benign one, and the secret reached the sink in 6 of 6 read-exfiltration and 5 of 5 composed read-then-send attacks, on REMORA and on the policy-only baseline alike. Declaring the untrusted context did not change the decision, because without a semantic bundle it never reaches the observation. The information-flow baseline is `remora.flow.check.flow_check`, applied by the harness and labelled library_only: it refused 10 of 10 and also refused 1 of 4 benign controls. 2026-10-19: paper §3.1 now states that the decision reads neither argument content nor destinations, so a low-risk read whose URL carries a secret is not defended, and that a destination policy must come from `remora.flow`. Remaining: a decision path that reads the flow verdict (IFC-05b) and a measurement with it on; the grounded-read path was not configured and is unmeasured. R3 (2026-10-18) closed two holes in the library flow check that this measurement relies on: an empty or missing recipient argument now counts as unresolved, and FL-01 covers URL, email and IBAN arguments (PRF-050). The flow verdict is still not wired into a decision; the SDD `docs/design/compositional-authority-preservation-v1.md` plans it as CAPR-03. |
 | Status | IN_PROGRESS |
 
 ### PRF-042 The injection pattern list misses simple paraphrases
@@ -611,7 +643,7 @@ conditions?
 | Affected claims | none |
 | Action | Do not grow the list as a defence. State in the threat model that pattern matching is a hint, and measure injection with an external benchmark (AgentDojo or InjecAgent) in level 3. |
 | Owning PR | fix/peer-review-remaining (threat model); SAP v7 Q6 (benchmark) |
-| Verification | 2026-10-19: paper §3.1 now states that the injection pattern list is a routing hint, not a security boundary, and that an injection is judged by what the injected call can reach. Remaining: the external benchmark run. Pending. Pre-registered, not run: SAP v7 §13 (Q6, draft addendum of 2026-10-18) runs InjecAgent at `f19c9f2c` through `/v1/execution/assess` against allow-all and a policy-only gateway, with a registry fixed before any agent output, benign twin controls, hypotheses H4a and H4b, and blocks due to the pattern list counted apart (S6.5). No data yet; owner approval and sealing are pending (§15.5). |
+| Verification | 2026-10-19: paper §3.1 now states that the injection pattern list is a routing hint, not a security boundary, and that an injection is judged by what the injected call can reach. Remaining: the external benchmark run. Pending. Pre-registered, not run: SAP v7 §13 (Q6, draft addendum of 2026-10-18) runs InjecAgent at `f19c9f2c` through `/v1/execution/assess` against allow-all and a policy-only gateway, with a registry fixed before any agent output, benign twin controls, hypotheses H4a and H4b, and blocks due to the pattern list counted apart (S6.5). No data yet; owner approval and sealing are pending (§15.5). The addendum and the R3 corrections to the draft (inspected tasks kept out of test, PRF-055) are in master (`a8d75c2b`, `8ccd406c`). |
 | Status | IN_PROGRESS |
 
 ### PRF-043 The paper uses BFCL v4 as its main evidence without citing it
@@ -625,5 +657,226 @@ conditions?
 | Action | Added BFCL and Gorilla references to both bibliographies and assigned their roles in the research control matrix (RES-023 and bibliography entries). |
 | Owning PR | #927, reconciled with #909 |
 | Verification | 2026-10-18: `check_paper_sync.py` passes with 73 paired bibliography entries; `generate_research_control_matrix.py --check` passes. Both bibliographies cite BFCL/Gorilla. |
+| Status | RESOLVED |
+
+### PRF-044 Review path: an ABSTAIN could be laundered into an executed call (RMR-AUD-001)
+
+| Field | Value |
+|---|---|
+| Severity | MAJOR |
+| Claim | The proposal fields outside `canonical_tool_call_hash` (`schema_valid`, `rollback_available`, `untrusted_context`, `intent_ref`, derivations) were not bound between `/assess` and `/execute`. A caller could turn an ABSTAIN into an approvable ESCALATE with `schema_valid=false`, have it approved, then drop the flag and add `untrusted_context` at `/execute` so the fresh decision was VERIFY, which the approval accepted. |
+| Evidence | Reproduced at `b64e3cc1` through `/v1/execution/*`. Fix: `remora/execution/service.py:575` (`proposal_envelope_hash`, recorded at assess and compared at execute). |
+| Affected claims | none (no claim measures the review path) |
+| Action | Bind every proposal field in a hash recorded at assess, and refuse a different proposal at execute without consuming the approval. The engine half, a risk signal that opens a review route over an abstain, is PRF-046. |
+| Owning PR | #936 (`7933b1fc`), in master via `3aeb3016` |
+| Verification | `tests/test_review_path_audit_r3.py`: `test_abstain_to_escalate_laundering_is_refused`, `test_any_proposal_field_added_at_execute_is_refused`, `test_the_proposal_hash_covers_every_proposal_field`, `test_an_item_whose_assessment_carries_no_proposal_hash_is_refused`; `tests/test_review_path_public_api_e2e.py::test_p0_1a_taint_added_at_execute_does_not_launder_a_reissued_work_order`. All pass on master `5b2c7dc8`. |
+| Status | RESOLVED |
+
+### PRF-045 An approved ESCALATE could never execute (RMR-AUD-002)
+
+| Field | Value |
+|---|---|
+| Severity | MAJOR |
+| Claim | `_approval_survives` admitted only ACCEPT and VERIFY as fresh decisions. Assess (ESCALATE), approval by a senior authority, then execute with the same observation always returned `approval_invalidated`, so every deterministic escalation was a dead end. |
+| Evidence | Reproduced at `b64e3cc1`. Fix: `remora/governance/review_queue.py:85`. |
+| Affected claims | none |
+| Action | Record the approved reasons with the approval. An approved ESCALATE survives a fresh decision whose reasons lie within them; a new reason or a fresh ABSTAIN still voids it. |
+| Owning PR | #936 (`b0912eeb`) |
+| Verification | `tests/test_review_path_audit_r3.py`: `test_escalate_regate_deadlock_an_approved_escalation_executes`, `test_an_approved_escalation_survives_the_same_or_fewer_reasons`, `test_a_new_escalation_reason_invalidates_the_approval`, `test_a_fresh_abstain_still_invalidates_an_approved_escalation`, `test_the_dispatch_regate_applies_the_same_rule`. All pass. |
+| Status | RESOLVED |
+
+### PRF-046 Policy decisions were not monotone in risk signals (RMR-AUD-003)
+
+| Field | Value |
+|---|---|
+| Severity | MAJOR |
+| Claim | Adding a risk signal could make a decision more executable or more approvable. A VERIFY gate ahead of an ESCALATE gate masked it: `distribution_shift` hid `rollback_unavailable`, and `high_risk_no_evidence` hid `env_mismatch_escalate`. `schema_valid=false` turned a non-approvable cross-tenant ABSTAIN into an approvable ESCALATE. |
+| Evidence | Every counterexample reproduced at `3746bc5d`. Fix: non-approvable reasons rank lowest (`remora/policy/composition.py:66`), and every firing guard and gate enters the meet (`remora/policy/decision_engine.py:160`, `:513`). |
+| Affected claims | none changed: C-ext3 has 0 of 8,397 episode decisions changed, and C-ext4 reproduces its 36 counts |
+| Action | Meet over every firing hard guard and conditional gate, with non-approvable refusals strictest. Remaining: the owner decided on 2026-10-18 that approvability must be monotone too. A risk signal may not open a review route over an abstain, and a higher risk tier may not lower a production write. |
+| Owning PR | #944 (`99cce4cd`); the remaining decision in a follow-up PR |
+| Verification | `tests/policy/test_signal_monotonicity.py`: `test_distribution_shift_does_not_hide_rollback_unavailable`, `test_high_risk_without_evidence_does_not_hide_environment_mismatch`, `test_a_non_approvable_refusal_survives_an_escalating_flag`, `test_taint_never_masks_a_goal_mismatch_escalation`, `test_adding_a_risk_signal_never_raises_executability` (Hypothesis). Still strict xfail on master: `test_a_risk_signal_still_opens_a_route_over_an_epistemic_abstain` and `test_raising_the_risk_tier_never_lowers_a_production_write`. NEGATIVE_RESULTS.md §90. |
+| Status | IN_PROGRESS |
+
+### PRF-047 Effect verification accepted self-attested and unauthorized evidence (RMR-AUD-004)
+
+| Field | Value |
+|---|---|
+| Severity | MAJOR |
+| Claim | The three #918 cases were runtime weaknesses, not only limits of the frozen interop schema. The executor could verify its own effect with arbitrary digests through the operator role and the `_authorised_verifier` fallback. An effect after an abstain or a rejection was projected as `EFFECT_VERIFIED`. `target_selector` was never read. The MCP gateway built the expected value from the tool's own reply, and posted receipts the API refused while telling the model `EFFECT_VERIFIED`. |
+| Evidence | Reproduced on the #920 branch `3a29082a` and through the public API (P0-4A: a crashed call promoted to `EFFECT_VERIFIED`). Fix: `remora/governance/effect_receipt.py:184` (`_authorization_of`), `servers/execution_api.py:2948` and `:3096`, `remora/governance/effect_receipt_signing.py`, `workers/mcp-gateway/src/mcp.ts:49`. |
+| Affected claims | none |
+| Action | Effect evidence only after a full authorization lineage. A separate `verify_effect` capability whose holder is not the executor. A selector bound to the called object. Signed receipts under `REMORA/EFFECT-RECEIPT/v1`, with REMORA re-evaluating the ToolSpec v5 postcondition and deriving the vantage. The frozen `effect-evidence-v1` schema is unchanged. |
+| Owning PR | #942 (`0d62d71d`), #940 (`e86b7d0b`), CAPR-06/07/08 (`1097567f`, `2d8b8682`), in master via `dbd19f23` |
+| Verification | `tests/test_effect_lineage_and_audit_projection.py` (44 tests, including `test_no_effect_after_the_policy_abstained`, `test_evidence_about_another_object_does_not_verify`, `test_p0_4a_the_executor_cannot_verify_its_own_crashed_call`, `test_p0_4a_is_refused_in_production`) and `tests/test_effect_receipt_endpoint_signed.py` (18 tests, including `test_remora_computes_a_mismatch_whatever_the_receipt_claims`, `test_an_observation_of_another_target_never_verifies`, `test_the_executor_cannot_submit_a_signed_receipt`) pass. `tests/test_mcp_gateway_effect_receipt_contract.py` needs esbuild, skips locally and runs in CI. Attributing the delta to the dispatch stays open as NEGATIVE_RESULTS.md §85. |
+| Status | RESOLVED |
+
+### PRF-048 The audit chain dropped re-approvals and froze the state at REFUSED (RMR-AUD-005)
+
+| Field | Value |
+|---|---|
+| Severity | MAJOR |
+| Claim | The outbox key for `approved` and `execution_*` events had no attempt number, so a second approval or refusal on the same item was dropped from the chain. `current_state` returned REFUSED after any earlier refusal, even while the item was approved again. |
+| Evidence | Reproduced on the durable path (`REMORA_CHAIN_DB`). Fix: `remora/execution/review_service.py:213`, `remora/execution/projections.py:223` (`_fold_state`). |
+| Affected claims | none |
+| Action | Approval keys carry the approval's `issued_at` and refusals an attempt id. The state is a fold over the chain in order. |
+| Owning PR | #942 (`0d62d71d`) |
+| Verification | `tests/test_effect_lineage_and_audit_projection.py`: `test_a_second_approval_is_recorded`, `test_every_binding_refusal_is_recorded_and_the_approval_stands`, `test_a_binding_refusal_leaves_the_approval_standing`, `test_a_voided_approval_returns_to_review_and_can_be_approved_again`, `test_terminal_refusals_still_read_refused`. All pass. |
+| Status | RESOLVED |
+
+### PRF-049 The review path did not bind actor, task, risk tier or intent authority (RMR-AUD-006)
+
+| Field | Value |
+|---|---|
+| Severity | MAJOR |
+| Claim | Another operator could execute an approved item, under another task. An approval survived a risk raise when both tiers decide VERIFY. An `intent_ref` swapped at `/execute` signed an intent authority the reviewer never saw into the grant and the lease. |
+| Evidence | Measured by the attack evaluation (NEGATIVE_RESULTS.md §87) and reproduced through the public API (P0-1B). Fix: `remora/execution/service.py:640` (`approved_context_refusal`). |
+| Affected claims | none |
+| Action | Compare the executing context with the assessed record exactly as the ACCEPT token does, void an approval whose reviewed tier changed, and bind the intent authority. Delegated execution is opt-in, named at proposal and bound in the context. |
+| Owning PR | #935 (`7707657a`), #936 (`0880232d`, `7b158ca0`) |
+| Verification | `tests/test_review_path_binding.py` (18 tests), `tests/test_review_path_audit_r3.py::test_intent_ref_swap_on_review_is_refused`, `tests/test_review_path_public_api_e2e.py::test_p0_1b_another_operator_with_a_swapped_task_is_refused` and `tests/test_delegated_execution_and_approval_policy.py` (39 tests) pass. The regenerated attack evaluation ran 0 of 9 cross-context attacks on REMORA. |
+| Status | RESOLVED |
+
+### PRF-050 The flow check passed an empty recipient list (RMR-AUD-007)
+
+| Field | Value |
+|---|---|
+| Severity | MAJOR |
+| Claim | A derived-recipient sink whose recipient argument was `[]`, `None` or omitted gave an empty reached set and a clean verdict for a secret payload. FL-01 let a URL argument through when the recipients were static. |
+| Evidence | Reproduced at `3746bc5d`. Fix: `remora/flow/check.py:110`, and FL-01 in `remora/flow/spec.py`. |
+| Affected claims | none (no decision reads the flow verdict yet, IFC-05b) |
+| Action | A recipient rule that yields no value reports `unresolved:<arg>`. FL-01 requires the URL, email and IBAN arguments of a writing tool to be covered by a recipient rule. 007c was not adopted (see R3 errors). |
+| Owning PR | #939 (`c608a3b4`) |
+| Verification | `tests/flow/test_flow_check.py`: `test_a_derived_recipient_rule_that_yields_no_one_is_unresolved`, `test_a_rule_with_no_values_names_every_argument_unresolved`, `test_an_absent_cc_beside_a_resolved_to_is_not_unresolved`; `tests/flow/test_toolspec_flow.py`: `test_fl01_a_url_argument_must_be_the_url_host_of_rule`, `test_fl01_a_writer_names_every_email_and_iban_argument_as_a_recipient`, `test_fl01_an_email_a_read_only_tool_looks_up_reaches_no_one`. All pass. |
+| Status | RESOLVED |
+
+### PRF-051 Flow labelling of containers and handle references (RMR-AUD-008)
+
+| Field | Value |
+|---|---|
+| Severity | MINOR |
+| Claim | A result container with no rule of its own became one handle, so BY_VALUE child rules were never reached. Argument labels removed the model reader from PUBLIC fields. A `{"$handle", "$type"}` object was not resolved as a whole handle. |
+| Evidence | All three reproduced at `3746bc5d`. Fix: `remora/flow/handles.py:140`, and FL-14 in `remora/flow/spec.py`. |
+| Affected claims | none |
+| Action | Handle-reference objects resolve whole; an altered one stays literal and carries the context label. The first two claims contradict SDD §3.2.1 and §3.3 and were not adopted. FL-14 refuses an unreachable BY_VALUE rule instead, and it showed that the SDD's own §5.1 `get_inbox` example breaks that rule. |
+| Owning PR | #939 (`c608a3b4`) |
+| Verification | `tests/flow/test_labeler_handles.py`: `test_a_handle_reference_object_resolves_as_a_whole_handle`, `test_an_altered_handle_reference_is_literal_and_carries_the_context`, `test_an_undeclared_container_hides_its_whole_subtree`; `tests/flow/test_toolspec_flow.py`: `test_fl14_a_by_value_rule_under_a_container_rendered_as_a_handle`, `test_fl14_refuses_the_sdd_inbox_excerpt_as_written`. All pass. |
+| Status | RESOLVED |
+
+### PRF-052 The v2 intent extractor supports mutations in conditional and informational sentences (RMR-AUD-009)
+
+| Field | Value |
+|---|---|
+| Severity | MAJOR |
+| Claim | `bfcl_semantic_bundle_v2.extract_intent` returns SUPPORTED for `cancel_booking` on "Inspect booking B-104 before cancel.", "Tell me if I can cancel booking B-104." and "Review the policy before we cancel booking B-104." PRF-002 checked negation only. |
+| Evidence | All three reproduced at `3746bc5d` (`remora/toolcall/routing/bfcl_semantic_bundle_v2.py:387`). The sealed C-ext4 manifest pins v2 by hash, so it stays unchanged. |
+| Affected claims | CLAIM-019, CLAIM-021 (a validity limit of the semantic arms) |
+| Action | A versioned v3 extractor (`remora/toolcall/routing/bfcl_semantic_bundle_v3.py:132`) keeps context spans, conditionals and questions, and no sealed runner uses it. Remaining: the paper's §81 citation names negation only, and v3 has no sealed run. |
+| Owning PR | #938 (`32139442`) |
+| Verification | `tests/test_bfcl_semantic_bundle_v3.py`: `test_v2_supports_the_mutation_on_the_audit_sentences`, `test_v3_a_qualified_mutation_is_never_supported`, `test_v3_the_information_request_is_the_read`, `test_v3_keeps_v2_verdicts_on_unqualified_tasks`, `test_v3_is_wired_into_no_sealed_runner`, `test_dev_comparison_artifact_reproduces`. All pass. The development comparison (`artifacts/posthoc/bfcl_v3_extractor_dev_compare.json`) is exploratory. NEGATIVE_RESULTS.md §81. |
+| Status | IN_PROGRESS |
+
+### PRF-053 Worker edge: issuer check, approval hash and review redemption (RMR-AUD-010)
+
+| Field | Value |
+|---|---|
+| Severity | MAJOR |
+| Claim | `agent-control` verified Access JWTs without checking the issuer. Its approval hash used `JSON.stringify` and bound neither tool, tenant nor target. It had no way to redeem an approved review item, so a write looped on HTTP 402. `mcp-gateway` readiness and duplicate JSON members were open at `b64e3cc1`. |
+| Evidence | Confirmed in code and with vitest repros. Fix: `workers/shared/access_jwt.ts:140`, `canonicalToolCallHash` in `workers/agent-control/src/index.ts`, `workers/agent-control/src/execution_adapter.ts:204`. |
+| Affected claims | none |
+| Action | One shared Access verifier with the issuer check, canonical approval hashing, and redemption of an approved review item. #925 and #920 fixed readiness and duplicate members. |
+| Owning PR | #940 (`e86b7d0b`); #925; #920 |
+| Verification | The worker vitest suites cover the issuer refusal and the round trip from 402 through approval to redemption. They had 189 passing at #940 and run in CI; they were not rerun here. |
+| Status | RESOLVED |
+
+### PRF-054 `/v1/assess` and the adapters trusted caller labels (RMR-AUD-011)
+
+| Field | Value |
+|---|---|
+| Severity | MINOR |
+| Claim | After PRF-040 fixed the library, `POST /v1/assess` and `remora/adapters/` still let caller-supplied risk and action labels reach ACCEPT. |
+| Evidence | Reproduced with the oracle ensemble in the ordered phase at high trust. Fix: label resolution in `servers/api.py` (`label_source`, line 1880). |
+| Affected claims | none (no benchmark goes through these paths) |
+| Action | The server resolves labels from its registry, and caller labels can only raise caution. Without registry labels ACCEPT is capped at VERIFY. `/v1/rerun` and the adapters follow the same rule. |
+| Owning PR | #941 (`85083b67`), in master via `a2adeae7` |
+| Verification | `tests/test_assess_api_labels.py` (11 tests, including `test_attack_labels_without_tool_call_do_not_accept`, `test_unregistered_tool_ignores_caller_labels`, `test_registered_low_read_tool_still_accepts`, `test_rerun_of_caller_labels_stays_capped`). All pass. |
+| Status | RESOLVED |
+
+### PRF-055 Benchmark construction and the SAP v7 draft (RMR-AUD-012)
+
+| Field | Value |
+|---|---|
+| Severity | MAJOR |
+| Claim | The evidence rests on substituted wrong calls (4 of 295 in-catalogue in C-ext4), and refuse-all meets most safety targets. REMORA blocked 90 of 91 legitimate AgentDojo calls in the development dry run. The SAP v7 draft kept an inspected task in the test split and had a degenerate H3. |
+| Evidence | `artifacts/control_eval/dev_dry_run_v1.json` (E1 and E2: 90 of 91 blocked, utility 11 of 29 against 10 for refuse-all); SAP v7 §2 and §7 before `86b2b207`. The first two points are PRF-008 and PRF-010. |
+| Affected claims | CLAIM-019, CLAIM-021 (context) |
+| Action | In SAP v7, inspected tasks never enter test, H3 is measured as partial AUROC and tested only if E1 blocks at most half the legitimate calls on development data, and each arm gets a summary refuse-all cannot pass. The dry-run result is NEGATIVE_RESULTS.md §92. |
+| Owning PR | #937 (`86b2b207`), in master via `8ccd406c` |
+| Verification | `tests/test_control_eval_harness.py` (28 tests) passes. The draft is not sealed and no confirmatory data exist; the dry run must be repeated before sealing (SAP v7 §5). |
+| Status | IN_PROGRESS |
+
+### PRF-056 Mutation testing covers only the token, gate, lease and nonce files (RMR-AUD-013)
+
+| Field | Value |
+|---|---|
+| Severity | MINOR |
+| Claim | `[tool.mutmut]` and `docs/assurance/mutation_testing_v1.md` cover `remora/enforcement/{token,gate,lease,nonce_store}.py` only. The review queue, the execution service, the projections and `remora/flow/`, where the R3 defects were, sit outside the sweep and have no stateful lifecycle test. |
+| Evidence | `pyproject.toml` `[tool.mutmut]`; `docs/assurance/mutation_testing_v1.md:5`. |
+| Affected claims | none |
+| Action | Extend the mutation scope, and add a stateful lifecycle test (Hypothesis `RuleBasedStateMachine`) over assess, approve, expire or invalidate, re-approve, execute and record effect. |
+| Owning PR | not yet opened |
+| Verification | Pending. |
+| Status | OPEN |
+
+### PRF-057 An approved VERIFY survived a new VERIFY reason (follow-up to #936)
+
+| Field | Value |
+|---|---|
+| Severity | MAJOR |
+| Claim | The reason-subset check in `_approval_survives` ran only for an approved ESCALATE. An approved VERIFY whose fresh decision was VERIFY for a new reason, such as an ungrounded argument after the entity was deleted, still executed. |
+| Evidence | Diff review of #936. Fix: `remora/governance/review_queue.py:85`. |
+| Affected claims | none |
+| Action | Require the fresh reasons to lie within the approved reasons for VERIFY approvals too. |
+| Owning PR | `24541235`, in master via `5b2c7dc8` |
+| Verification | `tests/test_review_path_audit_r3.py::test_a_new_verify_reason_invalidates_an_approved_verify` passes. |
+| Status | RESOLVED |
+
+### PRF-058 Effect lineage accepted an approval that had been voided (follow-up to #942)
+
+| Field | Value |
+|---|---|
+| Severity | MAJOR |
+| Claim | `_authorization_of` looked for any `approved` event in the history, so an approval that later expired or was invalidated, with no new one, still authorized a dispatch. |
+| Evidence | Diff review of #942. Fix: `remora/governance/effect_receipt.py:184`; the approval must be live at the matching `execution_authorized`. |
+| Affected claims | none |
+| Action | Track in chain order whether an approval is live. |
+| Owning PR | `2d8b8682`, in master via `dbd19f23` |
+| Verification | `tests/test_effect_lineage_and_audit_projection.py::test_a_voided_approval_does_not_authorize_a_later_dispatch` passes. |
+| Status | RESOLVED |
+
+### PRF-059 The chain-only state projection stuck at DISPATCHING (follow-up to #942)
+
+| Field | Value |
+|---|---|
+| Severity | MINOR |
+| Claim | `_fold_state` had no branch for `execution_result`, so without an outbox projection the state stayed DISPATCHING after the result was in the chain. |
+| Evidence | Diff review of #942. Fix: `remora/execution/projections.py:250`. |
+| Affected claims | none |
+| Action | Add an explicit `execution_result` branch. |
+| Owning PR | consolidation `5b2c7dc8` |
+| Verification | `tests/test_effect_lineage_and_audit_projection.py::test_a_result_without_an_outbox_projection_is_not_stuck_dispatching` passes. |
+| Status | RESOLVED |
+
+### PRF-060 ABER case B matched another open obligation of the same tenant (follow-up to #943)
+
+| Field | Value |
+|---|---|
+| Severity | MAJOR |
+| Claim | In the SDD, case B accepted a payment when the registry held a matching open obligation. With ten open invoices, an injected call naming another vendor's real invoice would match. |
+| Evidence | Diff review of #943; `docs/design/compositional-authority-preservation-v1.md:307`. |
+| Affected claims | none |
+| Action | The counterparty, and the reference and amount where the task names them, must lie inside the entities the user authorised (L0/L1). The ten-invoices case is a falsification test of CAPR-04/05. |
+| Owning PR | consolidation `5b2c7dc8` (design text) |
+| Verification | The SDD states the binding and the ten-invoices test at line 307. This fixes the design only; ABER itself is not implemented (CAPR-04 and CAPR-05 are ABSENT). |
 | Status | RESOLVED |
 

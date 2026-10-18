@@ -411,8 +411,11 @@ oai = OpenAIToolCallingAdapter(gateway=gateway)
 wrapped = oai.intercept_tool_call(...)  # OpenAI-shaped convenience wrapper
 ```
 
-`AsyncLocalGateway.execute_gated(...)` raises `PermissionError` for non-ACCEPT
-outcomes: this adapter layer is the actual runtime blocking path.
+The adapters do not raise on a non-ACCEPT outcome. `ActionGateResult.should_execute`
+is False, and the caller must not run the action; the `AsyncLocalGateway`
+docstring shows the pattern. The adapters never hold the tool, so they block
+only as far as the caller obeys them. The enforcing path is `/v1/execution/*`
+with the `GovernedToolDispatcher`.
 
 ---
 

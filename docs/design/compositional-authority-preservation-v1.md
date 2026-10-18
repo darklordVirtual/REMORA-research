@@ -215,14 +215,20 @@ Defined in section 3. Two invariants:
   receipt (L8). The lineage must show `assessed` not ABSTAIN, no `rejected`,
   an approval where one was required, and `execution_authorized` with
   `pep_allowed` for the same grant and call hash.
-- **Status.** ABSENT for re-evaluation, PARTIAL for lineage. The server
-  stores the two digests and does not re-run the comparison, by design
-  (`remora/governance/effect_receipt.py:237`). The ToolSpec signs only the
-  name of a `postcondition_reader` (`remora/toolcall/toolspec.py:258`);
-  contracts are built client-side (`remora/sdk/effects.py`,
-  `remora/integrations/`). `verify_declared_delta` never reads
-  `target_selector`. In flight: the R3 effect fix (lineage checks, a separate
-  verify capability).
+- **Status.** PARTIAL. On the signed path the invariant holds:
+  `POST /v1/execution/proposals/{id}/effect-receipt`
+  (`servers/execution_api.py:3321`) checks the lineage through
+  `resolve_lineage`, which requires an assessment that could dispatch, no
+  rejection, an approval that was not voided before `execution_authorized`,
+  and a matching grant and call hash (`remora/governance/effect_receipt.py:184`).
+  It then instantiates the contract from the signed ToolSpec v5
+  `postcondition` block and the dispatched arguments
+  (`remora/toolcall/toolspec.py:222`, `remora/toolcall/postcondition_spec.py:69`)
+  and computes the verdict itself. A receipt's own status is recorded beside
+  that verdict. The unsigned `/effect` path remains: it records a status that
+  REMORA does not re-evaluate. `controlled_pilot` refuses it
+  (`servers/execution_api.py:3130`), but it is still accepted in other
+  profiles, capped at `same_deployment`.
 - **Prevents.** RMR-AUD-004 (`bundle_for_other_call`, `dispatched_after_deny`),
   NEGATIVE_RESULTS §85, and P0-4A (a crashed call self-attested as verified).
 - **Falsification.** Section 4.4. Failing link: L7.
@@ -233,16 +239,21 @@ Defined in section 3. Two invariants:
   claimed. `independent` requires a receipt signed by a `D_V` key whose
   control domain differs from `D_X` and `D_E`, under a read-only credential.
   Anything else is capped at `same_deployment`.
-- **Status.** PARTIAL. `EffectVerification` already refuses a self-declared
-  `independent` and derives it only from an `ObservationVantage`
-  (`remora/governance/effect_verification.py:198`,
-  `remora/evidence/admission/models.py:203`). The API path never derives it,
-  so every API receipt is `same_deployment`, which is correct but not
-  achievable upward. Receipts are unsigned. The verifier is a name in
-  `REMORA_EFFECT_VERIFIER_BINDINGS`, and when that variable is unset the
-  submitting principal may verify itself (`servers/execution_api.py:2876`).
-  In flight: #940 sends worker receipts under a separate verifier identity;
-  the R3 effect fix separates the capability.
+- **Status.** ESTABLISHED in code, with independence resting on deployment
+  configuration. Signed receipts verify under `REMORA/EFFECT-RECEIPT/v1`
+  against a key registry (`REMORA_EFFECT_VERIFIER_KEYS`) that records each
+  key's control domain, credential scope and tenants
+  (`remora/governance/effect_receipt_signing.py:171`, `:244`). The verifier
+  is the key holder, and the body cannot name it. The API derives the vantage
+  (`servers/execution_api.py:3290`): `independent` needs a declared executor
+  domain (`REMORA_EXECUTOR_CONTROL_DOMAIN`), a verifier key registered for a
+  different domain, and a read-only scope. Otherwise the vantage is
+  `same_deployment`. Lease-domain signatures, unregistered keys and keys of
+  other tenants are refused, and the executor cannot submit a signed receipt
+  (`tests/test_effect_receipt_endpoint_signed.py`). What REMORA cannot check
+  is whether the declared domains and scopes are true. A deployment that
+  registers a writer as read-only, or the executor's own process as a
+  separate domain, gets an `independent` vantage it has not earned.
 - **Prevents.** `observation_from_the_tool` (#918), name-only separation.
 - **Falsification.** Section 4.4. Failing link: L8.
 
