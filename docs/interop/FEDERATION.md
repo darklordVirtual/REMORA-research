@@ -86,9 +86,9 @@ condition holds, and the schema, not the author, decides.
 
 ## Execution-boundary fixtures
 
-Six packages under `artifacts/interop/` follow the producer contract above.
+Seven packages under `artifacts/interop/` follow the producer contract above.
 Each has pinned fixtures, a reference verifier that imports no REMORA code, a
-claim packet, a verifier request and a manifest. Five export a REMORA
+claim packet, a verifier request and a manifest. Six export a REMORA
 boundary; one consumes a foreign artifact.
 
 | Package | Claim | What REMORA runs |
@@ -98,6 +98,7 @@ boundary; one consumes a foreign artifact.
 | `effect-evidence-v1` | `effect_state_distinction` | `verify_declared_delta` over the fixture's state ladder |
 | `exact-call-binding-v1.1` | as v1 | as v1; adds scalar-type cases and names the temporal boundary |
 | `effect-evidence-v1.1` | as v1 | as v1; a rejected rule map is `CONTRACT_REJECTED` and versions compare as integers only |
+| `effect-evidence-v2` | `effect_state_distinction`, `effect_call_binding`, `effect_decision_correspondence`, `effect_observer_independence` | as v1.1, after `verify_receipt` over the case's audit trail and an `ObservationVantage` built as the signed-receipt endpoint builds it |
 | `agentavow-tool-manifest-e8-v0.1` | `attested_definition_binding` | `remora.interop.agentavow` against `toolspec_hash` inside a signed lease |
 
 `remora/interop/boundary_fixtures.py` runs the first three through the real
@@ -151,11 +152,36 @@ the variants project to identical v1 input and get identical verdicts.
 Nothing here changes the frozen package, its lifecycle or its records, and
 none of it is a REMORA runtime result: the experiment never ran REMORA's
 dispatcher. Capture authenticity and capture coverage stay `NOT_ESTABLISHED`,
-and under FED-INV-005 Probity's results confer no REMORA authority. Carrying
-these facts needs a separate, versioned contract with explicit binding rules.
+and under FED-INV-005 Probity's results confer no REMORA authority.
 `integrations/invocation-evidence/` is REMORA's export for its own
 executions: it binds the call and the captured decision under signed keys,
 and it has no observer identity.
+
+`effect-evidence-v2` (DRAFT, edge `E-EE-V2`) is the versioned contract that
+carries the three facts. Each case names the invocation, the captured
+decision bound to a call, the call the bundle is bound to, the executor and
+the observer. `EFFECT_VERIFIED` needs a dispatchable decision bound to the
+invocation, a bundle bound to the same call and an observer derived
+independent. REMORA's evaluator runs the lineage through `verify_receipt`,
+so each refusal name in the fixture is REMORA's own. The 32 v1.1 cases are
+carried with a bound lineage and keep their outcomes, and 22 repair cases
+are new. The reproduction job pairs the same 22 Probity bundles with the v2
+verifier. All three bundles above are refused there, and 19 of 22 agree.
+v2 splits from the reader on three others, in the other direction:
+
+| Case | Reader's observed effect | v2 lineage |
+|---|---|---|
+| `decision_absent` | `ESTABLISHED` | `assessment_decision_unknown` |
+| `decision_bound_to_other_request` | `ESTABLISHED` | `dispatch_not_authorized` |
+| `member_missing` | `ESTABLISHED` | `assessment_decision_unknown` |
+
+The reader keeps its axes apart and fails these cases on request and decision
+correspondence. Its observed-effect axis refuses only a deny. v2 attests to
+no effect without an allow bound to the invocation. The job pins this split
+in `EXPECTED_V2_SPLIT`. Its mapping of a Probity bundle to a v2 case is an
+assumption stated in the package README. It reads `allow` as `accept` and
+takes the observation's source label as the observer configuration, so it
+shows nothing about who actually read.
 
 The fixtures are the invitation. A project that wants to attack a claim
 implements the contract without REMORA code, adds its own mutation, replay,

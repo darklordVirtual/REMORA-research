@@ -4,6 +4,27 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Interop: effect-evidence-v2 carries call binding, decision and observer (#918)
+
+- New DRAFT package `artifacts/interop/effect-evidence-v2` on edge `E-EE-V2`.
+  Each case adds the invocation, the captured decision bound to a call, the
+  call the bundle is bound to, the executor and the observer.
+  `EFFECT_VERIFIED` now needs all three facts. The v1.1 comparison is
+  unchanged. The 32 v1.1 cases are carried with a bound lineage and keep
+  their outcomes, and 22 repair cases are new.
+- `remora/interop/boundary_fixtures.py` evaluates v2 through
+  `verify_receipt` and an `ObservationVantage` built as the signed-receipt
+  endpoint builds it. Eight new L0 author records agree on all 54 cases.
+- The invocation axes reproduction job also pairs Probity's 22 bundles with
+  the v2 verifier. `bundle_for_other_call`, `dispatched_after_deny` and
+  `observation_from_the_tool` are refused, and 19 of 22 agree. v2 is
+  stricter than the reader on `decision_absent`,
+  `decision_bound_to_other_request` and `member_missing`, and
+  `EXPECTED_V2_SPLIT` pins that split.
+- `effect-evidence-v1` and `v1.1` keep their bytes and records. v1.1 is
+  marked `superseded_by` v2, and the v1 limit stays recorded as a preserved
+  negative result.
+
 ### Review path binds the intent authority (RMR-AUD-006, part 3)
 
 - An item approved under one intent authority executed under another, and the

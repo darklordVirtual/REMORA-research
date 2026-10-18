@@ -1,0 +1,2788 @@
+{
+  "schema_version": "remora-effect-evidence-fixtures-v2",
+  "source_revision": "5b2c7dc8d50f35c962711fcb882308189ccdd52a",
+  "claims": [
+    "effect_state_distinction",
+    "effect_call_binding",
+    "effect_decision_correspondence",
+    "effect_observer_independence"
+  ],
+  "result_vocabulary": [
+    "ESTABLISHED",
+    "CONTRADICTED",
+    "NOT_ESTABLISHED"
+  ],
+  "state_ladder": [
+    "NOT_DISPATCHED",
+    "DISPATCHED",
+    "EXECUTION_REPORTED_SUCCESS",
+    "EFFECT_VERIFIED"
+  ],
+  "effect_status_vocabulary": [
+    "NOT_EVALUATED",
+    "EFFECT_VERIFIED",
+    "EFFECT_MISMATCH",
+    "EFFECT_UNOBSERVABLE",
+    "EFFECT_UNSUPPORTED",
+    "CONTRACT_REJECTED"
+  ],
+  "lineage_status_vocabulary": [
+    "NOT_EVALUATED",
+    "BOUND",
+    "dispatched_after_deny",
+    "assessment_decision_unknown",
+    "dispatched_without_approval",
+    "dispatch_not_authorized",
+    "tool_call_hash_mismatch"
+  ],
+  "vantage_vocabulary": [
+    "NOT_EVALUATED",
+    "independent",
+    "not_independent",
+    "not_established"
+  ],
+  "rules": {
+    "state": "The highest state the evidence supports. A success report raises the state to EXECUTION_REPORTED_SUCCESS only when the dispatch happened. Only an independent observation of the declared delta raises it to EFFECT_VERIFIED. A contradicted report falls back to DISPATCHED. An unobservable or vacuous postcondition leaves the state where it was.",
+    "comparison": "Only declared fields are compared. Rules: exact (default; null, bool, int, float and string are distinct kinds at every depth, so true is not 1 and 1 is not 1.0), present, absent, version_increment (both the declared and the observed value must be integers, bool excluded, and the observed must exceed the declared; a string, bool or float on either side is a mismatch), hash. Under exact and hash a declared field the object does not carry is a mismatch, also when the declared value is null.",
+    "contract": "The rule map is checked before the observation. A rule outside the vocabulary, or a rule for a field the contract does not declare, rejects the contract: effect_status CONTRACT_REJECTED, and the state stays where it was. REMORA raises ValueError from validate_comparison_rules here; CONTRACT_REJECTED is the fixture's name for that refusal, not a sixth EffectStatus.",
+    "lineage": "Checked after the dispatch and before the comparison, in this order. A decision verdict of abstain, deny, reject or rejected: dispatched_after_deny. A verdict outside accept, verify and escalate, or no decision: assessment_decision_unknown. verify or escalate without approved set to the JSON boolean true: dispatched_without_approval. A decision whose call is not the invocation: dispatch_not_authorized. A bundle_call that is not the invocation, compared as exact strings: tool_call_hash_mismatch. Otherwise BOUND. The names are the refusal reasons of REMORA's resolve_lineage and verify_receipt.",
+    "lineage_state": "A refused dispatch is NOT_DISPATCHED and nothing else is evaluated. tool_call_hash_mismatch is NOT_DISPATCHED: the dispatch, report and observation are about another call. Any other refusal leaves the state where dispatch and report put it, and the effect and vantage are NOT_EVALUATED.",
+    "vantage": "Derived, never declared. No observer: not_established. An observer whose id is the executor's proposed_by or executed_by, or whose read_only is not the JSON boolean true: not_independent. Otherwise independent when the observer's control_domain differs from the executor's, and not_established when they are equal or the executor's is null.",
+    "effect_state": "EFFECT_VERIFIED needs a BOUND lineage, an EFFECT_VERIFIED comparison and an independent vantage. EFFECT_MISMATCH falls back to DISPATCHED from any vantage. effect_status reports the comparison itself, so a non-independent read that matches is EFFECT_VERIFIED there and leaves the state where it was."
+  },
+  "hash_preimage": {
+    "added_in": "v1.1",
+    "applies_to": "the hash comparison rule: the declared value is the lowercase hex SHA-256 of the observed field's canonical encoding",
+    "definition": [
+      "Encode the observed value as JSON and hash the UTF-8 bytes with SHA-256; the declared value is the 64-character lowercase hex digest.",
+      "No whitespace anywhere: ',' between members and elements, ':' between a key and its value.",
+      "Object members sorted by key, comparing keys as sequences of Unicode code points (not UTF-16 code units, so a key above U+FFFF sorts after U+FFFF).",
+      "Strings: every character outside printable ASCII is escaped as \\uXXXX with lowercase hex, a character above U+FFFF as its UTF-16 surrogate pair (\\ud83d\\ude00); '\"' and '\\\\' are escaped; \\b \\f \\n \\r \\t use their short escapes; other characters below U+0020 use \\u00XX; '/' and U+007F are not escaped.",
+      "Integers in decimal with no exponent; a float as the shortest decimal that round-trips to the same IEEE-754 double, always with a '.' or an exponent: 10.0 is '10.0', -0.0 is '-0.0', 1e-07 is '1e-07', 1e16 is '1e+16'. An integer and a float with the same value hash differently.",
+      "true, false and null as literals. NaN and the infinities are not JSON values: a field holding one cannot be hashed and does not match.",
+      "This is the encoding of Python's json.dumps(value, sort_keys=True, separators=(',', ':'), allow_nan=False). It is not RFC 8785: JCS writes 10.0 as 10, does not escape non-ASCII, and orders keys by UTF-16 code units."
+    ],
+    "vectors": [
+      {
+        "name": "null",
+        "value": null,
+        "canonical": "null",
+        "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+      },
+      {
+        "name": "integer",
+        "value": 10,
+        "canonical": "10",
+        "sha256": "4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5"
+      },
+      {
+        "name": "float_with_integral_value",
+        "value": 10.0,
+        "canonical": "10.0",
+        "sha256": "f1e42019aecc858ffbcca7fddec511b761b474916fde37b1a6ff321a9b459330",
+        "rfc8785_like_sha256": "4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5"
+      },
+      {
+        "name": "negative_zero",
+        "value": -0.0,
+        "canonical": "-0.0",
+        "sha256": "c26617c7ccbcaa6631b45d851b8cf56e21d2ca624bdb1193afdbd4b560702cec",
+        "rfc8785_like_sha256": "5feceb66ffc86f38d952786c6d696c79c2dbc239dd4e91b46729d73a27fb57e9"
+      },
+      {
+        "name": "small_float",
+        "value": 1e-07,
+        "canonical": "1e-07",
+        "sha256": "e485fac25775a7da830698e7daac582737fc8b43ba4b351467a16cf8ed83122a"
+      },
+      {
+        "name": "large_float",
+        "value": 1e+16,
+        "canonical": "1e+16",
+        "sha256": "a144838520595009e7daf5aff8472573f9ce6a4bcd8c30673675618883464ab0",
+        "rfc8785_like_sha256": "139eb393675707818651f879828a526159209ca3ad3b2f94f9f8ec8c4fb5e610"
+      },
+      {
+        "name": "non_ascii_string",
+        "value": "L\u00f6sung \u03a9",
+        "canonical": "\"L\\u00f6sung \\u03a9\"",
+        "sha256": "0ca40d94075cd9aa1ba93aeae8517b919f4d08fba95e312919429af747080842",
+        "rfc8785_like_sha256": "c584a672f79f940ac23e178478739ee56b73ed67d875d0716e18b6c932f1f5f3"
+      },
+      {
+        "name": "non_bmp_string",
+        "value": "ok \ud83d\ude00",
+        "canonical": "\"ok \\ud83d\\ude00\"",
+        "sha256": "d6afc93b8c6e4d1541e1582aa564e226b18ed9b64ceb6aa1e62f4d76b0fadcea",
+        "rfc8785_like_sha256": "6cb04fd4f013620cd4c38edf94d94e2465a8f83afb31640b4b53ae9d61587ad9"
+      },
+      {
+        "name": "control_characters",
+        "value": "a\"b\\c\nd\te\u0001",
+        "canonical": "\"a\\\"b\\\\c\\nd\\te\\u0001\"",
+        "sha256": "23fddd1f0bfd8eeeee4d6d09bfea9e25d890f0a2d7bb72302e99961409138804"
+      },
+      {
+        "name": "key_order_by_code_point",
+        "value": {
+          "z": 1,
+          "\u00e9": 2,
+          "\uffff": 3,
+          "\ud83d\ude00": 4
+        },
+        "canonical": "{\"z\":1,\"\\u00e9\":2,\"\\uffff\":3,\"\\ud83d\\ude00\":4}",
+        "sha256": "06489be61e74b3ce2377b636c6f4e7796c338d1a6ddbd694fa30a7397b4aed07",
+        "rfc8785_like_sha256": "250ad06c004f2f00d435585573226a3d08efadec09155f4c42ccc1ae6b56723e"
+      },
+      {
+        "name": "nested",
+        "value": {
+          "tags": [
+            "a",
+            "b"
+          ],
+          "ok": true,
+          "n": 1,
+          "x": null
+        },
+        "canonical": "{\"n\":1,\"ok\":true,\"tags\":[\"a\",\"b\"],\"x\":null}",
+        "sha256": "169ca1d3979504c26409d75a4fc749991ec3822e9c6fb41f5ae28ff4728ca1c5"
+      }
+    ]
+  },
+  "claim_ceiling": "ESTABLISHED means only that, under this fixture contract, the evaluator keeps the four states apart as effect-evidence-v1.1 does, reaches EFFECT_VERIFIED only when a dispatchable decision bound to the invocation allowed the dispatch, the bundle is bound to the same invocation and an observer derived independent read the declared delta, and does not read a self-declared source label, a decision outside the vocabulary or an approval that is not a boolean as support. It does not establish that the capture is authentic or complete, that the declared control domains are true, that an effect outside the declared delta did not occur, or production deployment safety.",
+  "supersedes": {
+    "contract_id": "effect-evidence-v1.1",
+    "reason": "Probity's invocation_axes corpus (#918) found three bundles v1 verifies that turn on facts its input cannot carry; v1 and v1.1 keep their bytes and their records"
+  },
+  "cases": [
+    {
+      "id": "verified_declared_delta",
+      "claim_id": "effect_state_distinction",
+      "note": "Dispatch, success report, and an independent read showing the declared delta.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed"
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "assignee": "ops"
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_VERIFIED",
+        "vantage": "independent",
+        "highest_established_state": "EFFECT_VERIFIED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "reader_returns_nothing",
+      "claim_id": "effect_state_distinction",
+      "note": "The reader could not see the object. Not knowing is neither success nor failure; the reported success is not upgraded.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed"
+        },
+        "comparison_rules": {}
+      },
+      "observed": null,
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_UNOBSERVABLE",
+        "vantage": "independent",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "observed_contradicts_report",
+      "claim_id": "effect_state_distinction",
+      "note": "The tool reported success; the object says otherwise. A contradicted report establishes nothing beyond the dispatch.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed"
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "open"
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_MISMATCH",
+        "vantage": "independent",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "vacuous_contract",
+      "claim_id": "effect_state_distinction",
+      "note": "No declared delta, so nothing can be verified. A verifier that reports VERIFIED here attests to nothing.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {},
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed"
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_UNSUPPORTED",
+        "vantage": "independent",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "report_without_dispatch",
+      "claim_id": "effect_state_distinction",
+      "note": "A success report and a matching observation for a call the dispatcher refused. Neither is attributed to this action.",
+      "dispatch": {
+        "outcome": "REFUSED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed"
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed"
+      },
+      "expected": {
+        "lineage_status": "NOT_EVALUATED",
+        "effect_status": "NOT_EVALUATED",
+        "vantage": "NOT_EVALUATED",
+        "highest_established_state": "NOT_DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "dispatch_began_outcome_unknown",
+      "claim_id": "effect_state_distinction",
+      "note": "The dispatcher invoked the tool and lost the outcome; the reader sees nothing. UNKNOWN is kept as unknown.",
+      "dispatch": {
+        "outcome": "BEGAN_OUTCOME_UNKNOWN"
+      },
+      "execution_report": null,
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed"
+        },
+        "comparison_rules": {}
+      },
+      "observed": null,
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_UNOBSERVABLE",
+        "vantage": "independent",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "unrelated_field_changed",
+      "claim_id": "effect_state_distinction",
+      "note": "Fields outside the declared delta are out of scope by construction.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed"
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "priority": "p1"
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_VERIFIED",
+        "vantage": "independent",
+        "highest_established_state": "EFFECT_VERIFIED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "version_advanced",
+      "claim_id": "effect_state_distinction",
+      "note": "A version counter that moved past the value at authorization.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "version": 3
+        },
+        "comparison_rules": {
+          "version": "version_increment"
+        }
+      },
+      "observed": {
+        "version": 4
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_VERIFIED",
+        "vantage": "independent",
+        "highest_established_state": "EFFECT_VERIFIED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "version_not_advanced",
+      "claim_id": "effect_state_distinction",
+      "note": "The counter did not move; the write did not land.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "version": 3
+        },
+        "comparison_rules": {
+          "version": "version_increment"
+        }
+      },
+      "observed": {
+        "version": 3
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_MISMATCH",
+        "vantage": "independent",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "bool_is_not_int",
+      "claim_id": "effect_state_distinction",
+      "note": "true and 1 are different claims; a loose comparison would verify the wrong one.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "archived": true
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "archived": 1
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_MISMATCH",
+        "vantage": "independent",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "no_report_no_contract",
+      "claim_id": "effect_state_distinction",
+      "note": "Dispatch only. With no report and no declared delta the state stays at DISPATCHED.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": null,
+      "postcondition": null,
+      "observed": null,
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "NOT_EVALUATED",
+        "vantage": "independent",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "report_failure_observed_delta",
+      "claim_id": "effect_state_distinction",
+      "note": "The tool reported failure but the declared delta is observed. The observation, not the report, decides the effect state; the report is kept in the record.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "failure",
+        "message": "timeout"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed"
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed"
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_VERIFIED",
+        "vantage": "independent",
+        "highest_established_state": "EFFECT_VERIFIED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "exact_null_field_missing",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "The contract declares deleted_at: null; the object has no deleted_at at all. An absent property is not an explicit null. Added in v1.1 after the #744 pre-Federation probes found v1 had no case for this distinction; written with the gap known, so it is a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "deleted_at": null
+        },
+        "comparison_rules": {
+          "deleted_at": "exact"
+        }
+      },
+      "observed": {
+        "status": "closed"
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_MISMATCH",
+        "vantage": "independent",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "exact_null_field_present",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "Companion to exact_null_field_missing: the object carries deleted_at as an explicit null, which is the declared delta. Added in v1.1 after the #744 pre-Federation probes found v1 had no case for this distinction; written with the gap known, so it is a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "deleted_at": null
+        },
+        "comparison_rules": {
+          "deleted_at": "exact"
+        }
+      },
+      "observed": {
+        "status": "closed",
+        "deleted_at": null
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_VERIFIED",
+        "vantage": "independent",
+        "highest_established_state": "EFFECT_VERIFIED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "hash_rule_field_missing",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "The hash rule declares the digest of null; the object does not carry the field. Hashing a missing field as null would verify it. Added in v1.1 after the #744 pre-Federation probes found v1 had no case for this distinction; written with the gap known, so it is a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "body": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+        },
+        "comparison_rules": {
+          "body": "hash"
+        }
+      },
+      "observed": {
+        "status": "closed"
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_MISMATCH",
+        "vantage": "independent",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "absent_rule_rejects_explicit_null",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "The absent rule requires the field not to be there. A field present with value null is present. Added in v1.1 after the #744 pre-Federation probes found v1 had no case for this distinction; written with the gap known, so it is a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "deleted_at": null
+        },
+        "comparison_rules": {
+          "deleted_at": "absent"
+        }
+      },
+      "observed": {
+        "status": "closed",
+        "deleted_at": null
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_MISMATCH",
+        "vantage": "independent",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "present_rule_accepts_explicit_null",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "Companion to absent_rule_rejects_explicit_null: the present rule is met by a field whose value is null. Added in v1.1 after the #744 pre-Federation probes found v1 had no case for this distinction; written with the gap known, so it is a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "deleted_at": null
+        },
+        "comparison_rules": {
+          "deleted_at": "present"
+        }
+      },
+      "observed": {
+        "status": "closed",
+        "deleted_at": null
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_VERIFIED",
+        "vantage": "independent",
+        "highest_established_state": "EFFECT_VERIFIED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "unknown_comparison_rule",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "The rule map names excat, which is not in the vocabulary. Falling back to exact would verify a check nobody declared; the contract is rejected and the state stays where it was. Added in v1.1 after the #744 pre-Federation probes found v1 had no case for this distinction; written with the gap known, so it is a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed"
+        },
+        "comparison_rules": {
+          "status": "excat"
+        }
+      },
+      "observed": {
+        "status": "closed"
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "CONTRACT_REJECTED",
+        "vantage": "independent",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "unknown_rule_with_unobservable_object",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "The rule map is checked before the observation: an invalid contract is rejected even when the reader returned nothing. Added in v1.1 after the #744 pre-Federation probes found v1 had no case for this distinction; written with the gap known, so it is a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed"
+        },
+        "comparison_rules": {
+          "status": "excat"
+        }
+      },
+      "observed": null,
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "CONTRACT_REJECTED",
+        "vantage": "independent",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "rule_for_undeclared_field",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "The rule map constrains priority, which the contract does not declare. Such a rule is never evaluated, so a safety clause would read as present and not be; the contract is rejected. Added in v1.1 after the #744 pre-Federation probes found v1 had no case for this distinction; written with the gap known, so it is a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed"
+        },
+        "comparison_rules": {
+          "priority": "absent"
+        }
+      },
+      "observed": {
+        "status": "closed",
+        "priority": "p1"
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "CONTRACT_REJECTED",
+        "vantage": "independent",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "integer_is_not_integral_float",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "The declared integer 1 and the observed float 1.0 are different scalars under exact. A verifier whose JSON numbers are all doubles must keep the distinction some other way. Added in v1.1 after the #744 pre-Federation probes found v1 had no case for this distinction; written with the gap known, so it is a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "retries": 1
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "retries": 1.0
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_MISMATCH",
+        "vantage": "independent",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "nested_bool_is_not_int",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "bool_is_not_int one level down: {\"archived\": true} is not {\"archived\": 1}. Native container equality in several languages treats them as equal. Added in v1.1 after the #744 pre-Federation probes found v1 had no case for this distinction; written with the gap known, so it is a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "flags": {
+            "archived": true
+          }
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "flags": {
+          "archived": 1
+        }
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_MISMATCH",
+        "vantage": "independent",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "version_as_string",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "The observed version is the string \"4\" against a declared 3. A string is not a version, even one that parses as a larger number. Added in v1.1 after the #744 pre-Federation probes found v1 had no case for this distinction; written with the gap known, so it is a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "version": 3
+        },
+        "comparison_rules": {
+          "version": "version_increment"
+        }
+      },
+      "observed": {
+        "version": "4"
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_MISMATCH",
+        "vantage": "independent",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "version_as_bool",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "The observed version is true against a declared 0. Coercing true to 1 would advance the counter. Added in v1.1 after the #744 pre-Federation probes found v1 had no case for this distinction; written with the gap known, so it is a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "version": 0
+        },
+        "comparison_rules": {
+          "version": "version_increment"
+        }
+      },
+      "observed": {
+        "version": true
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_MISMATCH",
+        "vantage": "independent",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "version_as_integral_float",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "The observed version is the float 4.0 against a declared 3. Versions are integers; a float is not comparable as one. Added in v1.1 after the #744 pre-Federation probes found v1 had no case for this distinction; written with the gap known, so it is a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "version": 3
+        },
+        "comparison_rules": {
+          "version": "version_increment"
+        }
+      },
+      "observed": {
+        "version": 4.0
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_MISMATCH",
+        "vantage": "independent",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "declared_version_as_string",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "The contract declares the string \"3\" and the object carries 4. The declared side must be an integer too. Added in v1.1 after the #744 pre-Federation probes found v1 had no case for this distinction; written with the gap known, so it is a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "version": "3"
+        },
+        "comparison_rules": {
+          "version": "version_increment"
+        }
+      },
+      "observed": {
+        "version": 4
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_MISMATCH",
+        "vantage": "independent",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "hash_preimage_nested_object_verified",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "The declared digest is of an object with its keys in another order; key order does not change the encoding. Added in v1.1 with the hash-rule preimage definition (hash_preimage). Written to tell the defined encoding from the usual alternatives, so a reader that hashes RFC 8785 output, raw UTF-8 or UTF-16-ordered keys reaches the other outcome. Written by the producer with the encoding known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "body": "169ca1d3979504c26409d75a4fc749991ec3822e9c6fb41f5ae28ff4728ca1c5"
+        },
+        "comparison_rules": {
+          "body": "hash"
+        }
+      },
+      "observed": {
+        "status": "closed",
+        "body": {
+          "x": null,
+          "tags": [
+            "a",
+            "b"
+          ],
+          "ok": true,
+          "n": 1
+        }
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_VERIFIED",
+        "vantage": "independent",
+        "highest_established_state": "EFFECT_VERIFIED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "hash_preimage_float_is_not_the_integer",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "The declared digest is of the integer 10; the object carries the float 10.0, which encodes as '10.0'. Added in v1.1 with the hash-rule preimage definition (hash_preimage). Written to tell the defined encoding from the usual alternatives, so a reader that hashes RFC 8785 output, raw UTF-8 or UTF-16-ordered keys reaches the other outcome. Written by the producer with the encoding known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "body": "4a44dc15364204a80fe80e9039455cc1608281820fe2b24f1e5233ade6af1dd5"
+        },
+        "comparison_rules": {
+          "body": "hash"
+        }
+      },
+      "observed": {
+        "status": "closed",
+        "body": 10.0
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_MISMATCH",
+        "vantage": "independent",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "hash_preimage_non_ascii_escaped_verified",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "The value carries non-ASCII and a character above U+FFFF; the declared digest is of the escaped encoding. Added in v1.1 with the hash-rule preimage definition (hash_preimage). Written to tell the defined encoding from the usual alternatives, so a reader that hashes RFC 8785 output, raw UTF-8 or UTF-16-ordered keys reaches the other outcome. Written by the producer with the encoding known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "body": "6866d3f57da2c021afb398c747bd1c90d35965ddc44711e0a1d44c980497ad6d"
+        },
+        "comparison_rules": {
+          "body": "hash"
+        }
+      },
+      "observed": {
+        "status": "closed",
+        "body": "L\u00f6sung \u03a9 \ud83d\ude00"
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_VERIFIED",
+        "vantage": "independent",
+        "highest_established_state": "EFFECT_VERIFIED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "hash_preimage_raw_utf8_digest_refused",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "The declared digest is of the raw UTF-8 encoding without escapes; under the defined encoding it does not match. Added in v1.1 with the hash-rule preimage definition (hash_preimage). Written to tell the defined encoding from the usual alternatives, so a reader that hashes RFC 8785 output, raw UTF-8 or UTF-16-ordered keys reaches the other outcome. Written by the producer with the encoding known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "body": "c584a672f79f940ac23e178478739ee56b73ed67d875d0716e18b6c932f1f5f3"
+        },
+        "comparison_rules": {
+          "body": "hash"
+        }
+      },
+      "observed": {
+        "status": "closed",
+        "body": "L\u00f6sung \u03a9"
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_MISMATCH",
+        "vantage": "independent",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "hash_preimage_key_order_by_code_point_verified",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "Keys 'z', '\u00e9', U+FFFF and U+1F600: sorted by code point, U+FFFF precedes U+1F600, where UTF-16 order would put it after. Added in v1.1 with the hash-rule preimage definition (hash_preimage). Written to tell the defined encoding from the usual alternatives, so a reader that hashes RFC 8785 output, raw UTF-8 or UTF-16-ordered keys reaches the other outcome. Written by the producer with the encoding known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "body": "06489be61e74b3ce2377b636c6f4e7796c338d1a6ddbd694fa30a7397b4aed07"
+        },
+        "comparison_rules": {
+          "body": "hash"
+        }
+      },
+      "observed": {
+        "status": "closed",
+        "body": {
+          "\ud83d\ude00": 4,
+          "\uffff": 3,
+          "\u00e9": 2,
+          "z": 1
+        }
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_VERIFIED",
+        "vantage": "independent",
+        "highest_established_state": "EFFECT_VERIFIED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "hash_preimage_utf16_key_order_refused",
+      "claim_id": "effect_state_distinction",
+      "added_in": "v1.1",
+      "note": "The declared digest is of the same object with keys in UTF-16 code-unit order; under the defined encoding it does not match. Added in v1.1 with the hash-rule preimage definition (hash_preimage). Written to tell the defined encoding from the usual alternatives, so a reader that hashes RFC 8785 output, raw UTF-8 or UTF-16-ordered keys reaches the other outcome. Written by the producer with the encoding known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "body": "250ad06c004f2f00d435585573226a3d08efadec09155f4c42ccc1ae6b56723e"
+        },
+        "comparison_rules": {
+          "body": "hash"
+        }
+      },
+      "observed": {
+        "status": "closed",
+        "body": {
+          "\ud83d\ude00": 4,
+          "\uffff": 3,
+          "\u00e9": 2,
+          "z": 1
+        }
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_MISMATCH",
+        "vantage": "independent",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      }
+    },
+    {
+      "id": "invocation_bound_and_independently_observed",
+      "claim_id": "effect_observer_independence",
+      "added_in": "v2",
+      "note": "Decision, bundle and observer all bind to the invocation; the independent read shows the declared delta. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "reopen_count": 0,
+        "assignee": "ops"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_VERIFIED",
+        "vantage": "independent",
+        "highest_established_state": "EFFECT_VERIFIED",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "bundle_for_other_call",
+      "claim_id": "effect_call_binding",
+      "added_in": "v2",
+      "note": "Probity's bundle_for_other_call: the bundle is bound to another call. Nothing in it is about this invocation. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "reopen_count": 0,
+        "assignee": "ops"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:625368dba19d467ac003d38322745500ba47dfc564fd4c2cb6501538d61a26b2",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      },
+      "expected": {
+        "lineage_status": "tool_call_hash_mismatch",
+        "effect_status": "NOT_EVALUATED",
+        "vantage": "NOT_EVALUATED",
+        "highest_established_state": "NOT_DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "bundle_for_other_call_reports_failure",
+      "claim_id": "effect_call_binding",
+      "added_in": "v2",
+      "note": "The bundle is bound to another call and reports failure; the state does not fall to DISPATCHED for this invocation either. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "failure",
+        "message": "timeout"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "reopen_count": 0,
+        "assignee": "ops"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:625368dba19d467ac003d38322745500ba47dfc564fd4c2cb6501538d61a26b2",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      },
+      "expected": {
+        "lineage_status": "tool_call_hash_mismatch",
+        "effect_status": "NOT_EVALUATED",
+        "vantage": "NOT_EVALUATED",
+        "highest_established_state": "NOT_DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "bundle_call_differs_in_case",
+      "claim_id": "effect_call_binding",
+      "added_in": "v2",
+      "note": "The bundle names the invocation's digest in upper case. Call bindings compare as exact strings. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "reopen_count": 0,
+        "assignee": "ops"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944D7C4E9028CD7923FEBF8E5C35D8B1BE54B6D08CCFE2A35E1FB22E579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      },
+      "expected": {
+        "lineage_status": "tool_call_hash_mismatch",
+        "effect_status": "NOT_EVALUATED",
+        "vantage": "NOT_EVALUATED",
+        "highest_established_state": "NOT_DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "dispatched_after_deny",
+      "claim_id": "effect_decision_correspondence",
+      "added_in": "v2",
+      "note": "Probity's dispatched_after_deny: the captured decision is deny and the bundle shows a dispatch. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "reopen_count": 0,
+        "assignee": "ops"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "deny",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      },
+      "expected": {
+        "lineage_status": "dispatched_after_deny",
+        "effect_status": "NOT_EVALUATED",
+        "vantage": "NOT_EVALUATED",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "dispatched_after_abstain",
+      "claim_id": "effect_decision_correspondence",
+      "added_in": "v2",
+      "note": "An abstain allows no dispatch; it is refused as a deny. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "reopen_count": 0,
+        "assignee": "ops"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "abstain",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      },
+      "expected": {
+        "lineage_status": "dispatched_after_deny",
+        "effect_status": "NOT_EVALUATED",
+        "vantage": "NOT_EVALUATED",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "deny_outranks_other_call",
+      "claim_id": "effect_decision_correspondence",
+      "added_in": "v2",
+      "note": "A deny and a bundle for another call: the decision is checked first, so the refusal names the deny. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "reopen_count": 0,
+        "assignee": "ops"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "deny",
+        "approved": false
+      },
+      "bundle_call": "sha256:625368dba19d467ac003d38322745500ba47dfc564fd4c2cb6501538d61a26b2",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      },
+      "expected": {
+        "lineage_status": "dispatched_after_deny",
+        "effect_status": "NOT_EVALUATED",
+        "vantage": "NOT_EVALUATED",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "deny_and_not_dispatched",
+      "claim_id": "effect_decision_correspondence",
+      "added_in": "v2",
+      "note": "Probity's deny_and_not_dispatched: the dispatch was refused, so nothing is evaluated. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "REFUSED"
+      },
+      "execution_report": null,
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "reopen_count": 0,
+        "assignee": "ops"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "deny",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      },
+      "expected": {
+        "lineage_status": "NOT_EVALUATED",
+        "effect_status": "NOT_EVALUATED",
+        "vantage": "NOT_EVALUATED",
+        "highest_established_state": "NOT_DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "decision_bound_to_other_call",
+      "claim_id": "effect_decision_correspondence",
+      "added_in": "v2",
+      "note": "The captured accept is bound to another call; no decision allowed this invocation. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "reopen_count": 0,
+        "assignee": "ops"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:625368dba19d467ac003d38322745500ba47dfc564fd4c2cb6501538d61a26b2",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      },
+      "expected": {
+        "lineage_status": "dispatch_not_authorized",
+        "effect_status": "NOT_EVALUATED",
+        "vantage": "NOT_EVALUATED",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "decision_absent",
+      "claim_id": "effect_decision_correspondence",
+      "added_in": "v2",
+      "note": "No decision was captured; a dispatch without one attests to nothing. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "reopen_count": 0,
+        "assignee": "ops"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": null,
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      },
+      "expected": {
+        "lineage_status": "assessment_decision_unknown",
+        "effect_status": "NOT_EVALUATED",
+        "vantage": "NOT_EVALUATED",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "decision_value_outside_vocabulary",
+      "claim_id": "effect_decision_correspondence",
+      "added_in": "v2",
+      "note": "The verdict 'allow' is not in REMORA's decision vocabulary (accept, verify, escalate); it is not read as accept. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "reopen_count": 0,
+        "assignee": "ops"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "allow",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      },
+      "expected": {
+        "lineage_status": "assessment_decision_unknown",
+        "effect_status": "NOT_EVALUATED",
+        "vantage": "NOT_EVALUATED",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "escalate_without_approval",
+      "claim_id": "effect_decision_correspondence",
+      "added_in": "v2",
+      "note": "An escalate needs an approval before dispatch and none was captured. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "reopen_count": 0,
+        "assignee": "ops"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "escalate",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      },
+      "expected": {
+        "lineage_status": "dispatched_without_approval",
+        "effect_status": "NOT_EVALUATED",
+        "vantage": "NOT_EVALUATED",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "escalate_with_approval",
+      "claim_id": "effect_decision_correspondence",
+      "added_in": "v2",
+      "note": "An approved escalate bound to the invocation allows the dispatch. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "reopen_count": 0,
+        "assignee": "ops"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "escalate",
+        "approved": true
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_VERIFIED",
+        "vantage": "independent",
+        "highest_established_state": "EFFECT_VERIFIED",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "approval_as_string",
+      "claim_id": "effect_decision_correspondence",
+      "added_in": "v2",
+      "note": "approved is the string 'true', not the boolean; it is not an approval. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "reopen_count": 0,
+        "assignee": "ops"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "verify",
+        "approved": "true"
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      },
+      "expected": {
+        "lineage_status": "dispatched_without_approval",
+        "effect_status": "NOT_EVALUATED",
+        "vantage": "NOT_EVALUATED",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "observation_from_the_tool",
+      "claim_id": "effect_observer_independence",
+      "added_in": "v2",
+      "note": "Probity's observation_from_the_tool: the only read is by the principal that executed the call. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "reopen_count": 0,
+        "assignee": "ops"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "tool-runner",
+        "control_domain": "tenant-deployment",
+        "read_only": false
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_VERIFIED",
+        "vantage": "not_independent",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "observation_by_the_proposer",
+      "claim_id": "effect_observer_independence",
+      "added_in": "v2",
+      "note": "The reader is the agent that proposed the call, from another domain with a read-only credential. An executor is never an independent observer. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "reopen_count": 0,
+        "assignee": "ops"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "agent-7",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_VERIFIED",
+        "vantage": "not_independent",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "observer_can_write",
+      "claim_id": "effect_observer_independence",
+      "added_in": "v2",
+      "note": "A reader in another control domain whose credential can write could have produced the state it reports. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "reopen_count": 0,
+        "assignee": "ops"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": false
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_VERIFIED",
+        "vantage": "not_independent",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "observer_same_control_domain",
+      "claim_id": "effect_observer_independence",
+      "added_in": "v2",
+      "note": "A read-only reader in the executor's own control domain: independence is not established. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "reopen_count": 0,
+        "assignee": "ops"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "tenant-deployment",
+        "read_only": true
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_VERIFIED",
+        "vantage": "not_established",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "executor_domain_undeclared",
+      "claim_id": "effect_observer_independence",
+      "added_in": "v2",
+      "note": "The executor's control domain is not declared, so it is not known to differ from the reader's. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "reopen_count": 0,
+        "assignee": "ops"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": null
+      },
+      "observer": {
+        "id": "verifier-key-1",
+        "control_domain": "verifier-domain",
+        "read_only": true
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_VERIFIED",
+        "vantage": "not_established",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "observer_absent",
+      "claim_id": "effect_observer_independence",
+      "added_in": "v2",
+      "note": "The observation carries no observer: a read by nobody named is not independent of anyone. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "closed",
+        "reopen_count": 0,
+        "assignee": "ops"
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": null,
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_VERIFIED",
+        "vantage": "not_established",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "tool_read_contradicts_report",
+      "claim_id": "effect_observer_independence",
+      "added_in": "v2",
+      "note": "The tool's own read contradicts its success report. A contradicted report is not supported, whoever contradicts it. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": {
+        "status": "open",
+        "reopen_count": 0
+      },
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "tool-runner",
+        "control_domain": "tenant-deployment",
+        "read_only": false
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_MISMATCH",
+        "vantage": "not_independent",
+        "highest_established_state": "DISPATCHED",
+        "claim_result": "ESTABLISHED"
+      }
+    },
+    {
+      "id": "not_independent_and_unobservable",
+      "claim_id": "effect_observer_independence",
+      "added_in": "v2",
+      "note": "A non-independent reader that returned nothing: the state stays where the report left it. Added in v2 for the invocation_axes split (#918). Written by the producer with the gap known: a repair case, not independent evidence.",
+      "dispatch": {
+        "outcome": "DISPATCHED"
+      },
+      "execution_report": {
+        "status": "success",
+        "message": "ticket closed"
+      },
+      "postcondition": {
+        "tool_id": "update_ticket",
+        "expected_fields": {
+          "status": "closed",
+          "reopen_count": 0
+        },
+        "comparison_rules": {}
+      },
+      "observed": null,
+      "invocation": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "decision": {
+        "call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+        "verdict": "accept",
+        "approved": false
+      },
+      "bundle_call": "sha256:16944d7c4e9028cd7923febf8e5c35d8b1be54b6d08ccfe2a35e1fb22e579761",
+      "executor": {
+        "proposed_by": "agent-7",
+        "executed_by": "tool-runner",
+        "control_domain": "tenant-deployment"
+      },
+      "observer": {
+        "id": "tool-runner",
+        "control_domain": "tenant-deployment",
+        "read_only": false
+      },
+      "expected": {
+        "lineage_status": "BOUND",
+        "effect_status": "EFFECT_UNOBSERVABLE",
+        "vantage": "not_independent",
+        "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+        "claim_result": "ESTABLISHED"
+      }
+    }
+  ]
+}
