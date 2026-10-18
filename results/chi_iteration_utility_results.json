@@ -3,8 +3,8 @@
     "experiment": "chi_iteration_utility",
     "condition_compared": "C_remora vs B_majority",
     "n_items": 302,
-    "thermo_artifact": "/workspaces/REMORA/results/thermodynamic_eval_results.json",
-    "ablation_artifact": "/workspaces/REMORA/results/ablation_v2_canonical_results.json"
+    "thermo_artifact": "/workspace/remora-research/results/thermodynamic_eval_results.json",
+    "ablation_artifact": "/workspace/remora-research/results/ablation_v2_canonical_results.json"
   },
   "summary": {
     "n_items": 302,

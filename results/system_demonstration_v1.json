@@ -73,7 +73,7 @@
     },
     "n_conditions": 7
   },
-  "run_at_commit": "f99ab35",
+  "run_at_commit": "51e44224",
   "schema": "system_demonstration_v1",
   "status": "development_rerun_plus_sealed_artifact_reference",
   "validator_study": {

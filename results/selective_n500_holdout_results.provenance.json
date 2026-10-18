@@ -1,9 +1,9 @@
 {
   "schema": "result_provenance_v2",
-  "git_commit": "2f4a6752e6e1a87bb95733b7bb18e52a64b7f69a",
+  "git_commit": "51e44224a286d8ae4bb71aaa8697dca1f31c7f9f",
   "worktree_clean": false,
-  "python_version": "3.14.0",
-  "dependency_lock_sha256": "cc9d9c9523ae5046f29a95b7074c1dddba110bd886db4c89e4e225e25c129281",
+  "python_version": "3.13.16",
+  "dependency_lock_sha256": "eb73b7cbac64ecbada0070a952ae258f92fc7fc512a0f6d81926043c95b9407b",
   "script": "scripts/selective_n500_holdout.py",
   "input_sha256": {
     "data": "5e251481653dfbf6af04790b14f774268debd8c420775ce60a5491e277039039"
@@ -12,12 +12,7 @@
     42
   ],
   "command": "python scripts/selective_n500_holdout.py",
-  "generated_at": "2026-07-27T13:28:32.191336+00:00",
+  "generated_at": "2026-10-18T23:41:19.376152+00:00",
   "artifact": "selective_n500_holdout_results.json",
-  "artifact_sha256": "3ed9f7d61493fb564574202cb832c64f365b5ec015c509e639db0a0104d28a35",
-  "artifact_sha256_correction": {
-    "date": "2026-09-28",
-    "previous_value": "131be665722ab99b59c95bae47110f67d8a49a7ad5adb24d0525ca1635f2fe4e",
-    "reason": "previous value hashed CRLF bytes; the result file is unchanged and this is its LF hash per docs/assurance/artifact_manifest_v1.md. Detected by the sidecar hash check in scripts/check_results_manifest.py."
-  }
+  "artifact_sha256": "3ed9f7d61493fb564574202cb832c64f365b5ec015c509e639db0a0104d28a35"
 }

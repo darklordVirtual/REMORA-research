@@ -15,7 +15,7 @@
   "upper_bound_below_threshold": true,
   "provenance": {
     "script": "scripts/compute_far_confidence_sequence.py",
-    "git_commit": "4b189ff8325e3a19300f3e687bb0d8801073d3d5",
+    "git_commit": "51e44224a286d8ae4bb71aaa8697dca1f31c7f9f",
     "input_sha_note": "input is manifest-tracked; see artifact_manifest_v1.md"
   }
 }

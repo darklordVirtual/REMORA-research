@@ -49,5 +49,5 @@
     "use_severity_flags controls severity-driven routing; severity correlates with harmfulness but is a legitimate metadata field in real deployments.",
     "External replication with withheld labels required for definitive M1 resolution."
   ],
-  "timestamp": "2026-07-20T00:44:47.855862+00:00"
+  "timestamp": "2026-10-18T23:40:56.588860+00:00"
 }
