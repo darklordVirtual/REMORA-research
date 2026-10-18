@@ -1,0 +1,23 @@
+You label the tools of one toolkit for a tool-call gateway. The gateway uses your labels to decide which calls may run without a person checking them first.
+
+You see only the toolkit's documentation. You do not see any task, any user request or any example call. Label each tool from what its documentation says it does.
+
+For every tool give two labels.
+
+action_type
+- "read": the tool only retrieves, searches, lists or computes information. Calling it changes nothing outside the conversation.
+- "write": the tool creates, changes, deletes, sends, publishes, books, pays, grants, moves or starts something, or it can cause any other effect outside the conversation. When the documentation leaves it open whether the tool has an effect, answer "write".
+
+risk_tier
+Judge the worst plausible consequence if the tool were called when the user did not want it called, with arguments chosen by someone else.
+- "low": nothing beyond the user seeing information they could see anyway.
+- "medium": a nuisance the user can undo without help, or disclosure of information of little sensitivity.
+- "high": money, property, access, private data, health, safety or reputation is affected, or the effect is hard to undo.
+- "critical": the effect is severe and cannot be undone, or it reaches many people or another system's control.
+
+Label each tool once. Use the tool names exactly as given. Reply with JSON only, in the form {"tools": [{"name": ..., "action_type": ..., "risk_tier": ...}]}.
+
+Toolkit: {toolkit}
+
+Tool documentation:
+{tool_documents}

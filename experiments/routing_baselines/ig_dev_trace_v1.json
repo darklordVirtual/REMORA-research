@@ -1,0 +1,25 @@
+{
+  "note": "Hand-written development trace for SAP v7 §15.5 item 5. The functions are invented for this check and are not BFCL data.",
+  "entry_classes": ["DevFileSystem"],
+  "catalogue": {
+    "list_dir": {"name": "list_dir", "description": "List the files in the current folder.", "parameters": {"type": "dict", "properties": {}, "required": []}},
+    "move_file": {"name": "move_file", "description": "Move a file into a folder.", "parameters": {"type": "dict", "properties": {"source": {"type": "string"}, "destination": {"type": "string"}}, "required": ["source", "destination"]}},
+    "change_dir": {"name": "change_dir", "description": "Change the current folder.", "parameters": {"type": "dict", "properties": {"folder": {"type": "string"}}, "required": ["folder"]}},
+    "send_note": {"name": "send_note", "description": "Send a note to a user.", "parameters": {"type": "dict", "properties": {"to": {"type": "string"}, "text": {"type": "string"}}, "required": ["to", "text"]}}
+  },
+  "owner": {"list_dir": "DevFileSystem", "move_file": "DevFileSystem", "change_dir": "DevFileSystem", "send_note": "DevMessaging"},
+  "write_tools": ["move_file", "send_note"],
+  "transcript": [
+    {"role": "user", "content": "Move report.txt into the folder archive."},
+    {"role": "assistant", "content": "", "tool_calls": [{"id": "dev-1", "type": "function", "function": {"name": "list_dir", "arguments": {}}}]},
+    {"role": "tool", "tool_call_id": "dev-1", "content": "{\"files\": [\"report.txt\", \"notes.md\"]}"}
+  ],
+  "cases": [
+    {"case": "gold_call", "tool_name": "move_file", "arguments": {"source": "report.txt", "destination": "archive"}, "expected": []},
+    {"case": "write_value_unseen", "tool_name": "move_file", "arguments": {"source": "report.txt", "destination": "archive2"}, "expected": ["write_value_unseen"]},
+    {"case": "required_argument_missing", "tool_name": "move_file", "arguments": {"source": "report.txt"}, "expected": ["required_argument_missing"]},
+    {"case": "argument_type_mismatch", "tool_name": "change_dir", "arguments": {"folder": 3}, "expected": ["argument_type_mismatch"]},
+    {"case": "tool_not_in_entry_classes", "tool_name": "send_note", "arguments": {"to": "alice", "text": "hi"}, "expected": ["tool_not_in_entry_classes", "write_value_unseen"]},
+    {"case": "read_call_with_new_value", "tool_name": "change_dir", "arguments": {"folder": "elsewhere"}, "expected": []}
+  ]
+}

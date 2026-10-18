@@ -4,6 +4,19 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### SAP v7 Q6 and Q7 harness, not run (PRF-011, PRF-042)
+
+- Harness code for the two SAP v7 addenda. Q6 runs InjecAgent through
+  `/v1/execution/assess` (`experiments/injection_eval/`) and Q7 runs external
+  baselines on BFCL v4 multi-turn (`experiments/routing_baselines/`). Shared
+  parts are in `experiments/sap_v7_addenda/`: a run gate that refuses without
+  a locked manifest or after `evaluated`, a budget guard that counts tokens
+  from API usage fields, and the registry labellers of §12.2.
+- Nothing was run. No model was called, no registry or manifest was written,
+  nothing was sealed and no test split was read. `invariant-ai==0.3.5` ran
+  once on a hand-written trace in a separate environment. The remaining
+  §15.5 items need the owner's approval.
+
 ### Review path binds the intent authority (RMR-AUD-006, part 3)
 
 - An item approved under one intent authority executed under another, and the
