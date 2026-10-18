@@ -704,7 +704,7 @@
       "external_verification": "PENDING",
       "source_revision": "5b2c7dc8d50f35c962711fcb882308189ccdd52a",
       "manifest": "artifacts/interop/effect-evidence-v2/manifest.json",
-      "package_digest": "sha256:536413e60e11ed909d3275a2d5c6b60c3f73ee0b34612d5b1ead1851a83be5d5",
+      "package_digest": "sha256:3ebdfb86f94a895ea1778ca887b3ddd6eb8bff673cc0037f082db31a28ab7bf5",
       "claim_packet": "artifacts/interop/effect-evidence-v2/claim-packet.json",
       "verifier_request": "artifacts/interop/effect-evidence-v2/verifier-request.json",
       "fixtures": "artifacts/interop/effect-evidence-v2/fixtures.json",

@@ -19,10 +19,10 @@ provenance:
       sha256: 3505425d03896a9fe49d1d88eeec37468a3a20a18508aaaf958f839af4e05b08
       role: implementation maturity and freshness source
     - path: artifacts/interop/index.json
-      sha256: 6e1172cabf33ca2f141cdb02e28210ca93e66873389a133285620fafeec86d28
+      sha256: 17d821785c132bef88d2439ccc1d00682e309dbcc03fdea2815abe6865a6597d
       role: Federation contract and run-record index
     - path: artifacts/interop/FEDERATION.yaml
-      sha256: 498257148e9051632c127064364ee7cd5c2df132f6f588badc2964d41ce7ee27
+      sha256: f054f3ef71049bc8ed3a857000cde227c5ce49f74fd099ae413dab8bab239a6b
       role: Federation edge declarations
     - path: artifacts/interop/runtime-surface-e7-v0.1/manifest.json
       sha256: f67b6a88ec79219a567b5d47b528f9c47437d6ae6a42bec94d6d5d6c85379ddf

@@ -64,9 +64,9 @@ This package does **not** establish:
 ## What REMORA runs
 
 `remora/interop/boundary_fixtures.py` turns each case into the audit trail a
-deployment would hold: the decision as the assessment, its approval as an
-`approved` event, its call as the `execution_authorized` record, and the
-invocation's dispatch as the `execution_result`. It hands that trail and the
+deployment would hold. The decision becomes the assessment, its approval an
+`approved` event, its call the `execution_authorized` record, and the
+invocation's dispatch the `execution_result`. It hands that trail and the
 bundle's call to `verify_receipt`. The refusal reason that comes back is the
 case's `lineage_status`; the names in the fixture are REMORA's own. The
 vantage is built as `record_signed_effect_receipt` builds it, as an
