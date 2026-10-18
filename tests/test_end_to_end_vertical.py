@@ -80,6 +80,13 @@ def _spec(**overrides) -> dict:
         "idempotency_contract": {"safe_to_retry": True,
                                  "key_derivation": "canonical_args"},
         "postcondition_reader": "artifacts.read",
+        # Signed postcondition (ToolSpec v5): REMORA computes the effect
+        # verdict from the reader's observation (SDD L7).
+        "postcondition": {
+            "target_selector": {"artifact_id": {"$arg": "artifact_id"}},
+            "expected_fields": {"content": {"$arg": "content"}},
+            "comparison_rules": {"content": "hash"},
+        },
         "compensation_tool": None,
         "timeout_policy": {"dispatch_timeout_seconds": 10},
         "network_policy": {"egress": "none"},
@@ -91,7 +98,7 @@ def _spec(**overrides) -> dict:
 
 def _bundle_file(tmp_path, specs=None, name="bundle.json"):
     bundle = sign_bundle(
-        {"schema_version": 1, "tool_specs": specs or [_spec()]},
+        {"schema_version": 5, "tool_specs": specs or [_spec()]},
         key=KEY, signing_identity=IDENTITY, signed_at="2026-08-05T00:00:00Z",
     )
     path = tmp_path / name
@@ -181,7 +188,7 @@ def _observed(**overrides):
 
 # ── 1. The chain closes ────────────────────────────────────────────────────
 
-def _bound(client, proposal_id: str, verification) -> dict:
+def _bound(client, proposal_id: str, verification, *, observed=None) -> dict:
     """A settled verdict must name the dispatch it observed.
 
     Read from the proposal's own lifecycle, as the SDK does. The server
@@ -191,6 +198,13 @@ def _bound(client, proposal_id: str, verification) -> dict:
     trail = client.get(
         f"/v1/execution/proposals/{proposal_id}/lifecycle").json()
     body = verification.to_dict()
+    # The approved call's arguments: REMORA instantiates the signed
+    # postcondition from them and evaluates the observation itself.
+    body["arguments"] = CALL["arguments"]
+    if observed is not None:
+        # What the reader read. The SDK view carries only digests, so a
+        # reader that wants REMORA to compute VERIFIED sends the object.
+        body["observed"] = observed
     for event in trail.get("events") or []:
         if event.get("event") != "execution_result":
             continue
@@ -214,7 +228,7 @@ def test_the_full_vertical_closes_with_a_verified_effect(vertical) -> None:
     assert result.status is EffectStatus.VERIFIED
 
     posted = client.post(f"/v1/execution/proposals/{proposal_id}/effect",
-                         json=_bound(client, proposal_id, result))
+                         json=_bound(client, proposal_id, result, observed=_observed()))
     assert posted.status_code == 200, posted.text
 
     view = client.get(f"/v1/execution/proposals/{proposal_id}").json()
@@ -241,7 +255,7 @@ def test_one_toolspec_hash_travels_from_assessment_to_the_effect_record(
         verifier_identity="acme.artifact_reader/v1",
     )
     client.post(f"/v1/execution/proposals/{proposal_id}/effect",
-                json=_bound(client, proposal_id, result))
+                json=_bound(client, proposal_id, result, observed=_observed()))
 
     trail = client.get(
         f"/v1/execution/proposals/{proposal_id}/lifecycle"
@@ -395,7 +409,7 @@ def test_the_evidence_bundle_carries_the_whole_vertical_and_verifies(
         verifier_identity="acme.artifact_reader/v1",
     )
     client.post(f"/v1/execution/proposals/{proposal_id}/effect",
-                json=_bound(client, proposal_id, result))
+                json=_bound(client, proposal_id, result, observed=_observed()))
 
     bundle = client.get(
         f"/v1/execution/proposals/{proposal_id}/evidence").json()

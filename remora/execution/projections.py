@@ -148,6 +148,37 @@ EFFECT_STATE = {
     "EFFECT_VERIFIER_FAILED": "EFFECT_UNKNOWN",
 }
 
+#: The lifecycle state of a reported EFFECT_VERIFIED that REMORA did not
+#: compute (SDD L7): a claim, not a verdict.
+EFFECT_CLAIMED = "EFFECT_CLAIMED"
+
+
+def is_claimed_verdict(payload: dict[str, Any]) -> bool:
+    """True for a recorded EFFECT_VERIFIED that REMORA did not compute.
+
+    SDD L7: a status REMORA only recorded is not a verdict. A record is a
+    claim when it says so (``verdict:claimed``, set by the unsigned
+    ``/effect`` path), or when it is a digest-only attestation: no
+    ``verdict:computed`` marker and neither compared object stored, which is
+    what that path wrote before the marker existed. A record that stores the
+    expected and observed objects (the in-process verifier, signed and
+    computed receipts) can be re-checked from the chain and is not a claim.
+    """
+    if str(payload.get("status")) != "EFFECT_VERIFIED":
+        return False
+    refs = payload.get("evidence_refs") or ()
+    if "verdict:claimed" in refs:
+        return True
+    if "verdict:computed" in refs:
+        return False
+    return not payload.get("expected") and not payload.get("observed")
+
+
+def _verdict_source(payload: dict[str, Any]) -> str:
+    if "verdict:computed" in (payload.get("evidence_refs") or ()):
+        return "computed"
+    return "claimed" if is_claimed_verdict(payload) else "attested"
+
 
 def effect_projection(events: list[dict[str, Any]]) -> dict[str, Any]:
     """The verification history for one proposal, latest verdict first.
@@ -170,8 +201,17 @@ def effect_projection(events: list[dict[str, Any]]) -> dict[str, Any]:
         VANTAGE_SAME_DEPLOYMENT,
     )
 
+    claimed = latest is not None and is_claimed_verdict(latest)
     return {
+        # The recorded status, in EffectStatus vocabulary so clients keep
+        # parsing it. What REMORA stands behind is verdict_source and
+        # effect_state: a reported VERIFIED it did not compute is a claim,
+        # and its state is EFFECT_CLAIMED, never EFFECT_VERIFIED (SDD L7).
         "status": latest["status"] if latest else None,
+        "verdict_source": _verdict_source(latest) if latest else None,
+        "effect_state": (EFFECT_CLAIMED if claimed
+                         else EFFECT_STATE.get(str(latest["status"])))
+        if latest else None,
         "vantage": (latest.get("vantage") or VANTAGE_SAME_DEPLOYMENT) if latest else None,
         "scope": (latest.get("scope") or SCOPE_DECLARED_DELTA_ONLY) if latest else None,
         "vantage_recorded": bool(latest and latest.get("vantage")),
@@ -203,6 +243,10 @@ def current_state(events: list[dict[str, Any]],
                    and not e["payload"].get("self_attested")]
     status = str(independent[-1]["status"]) if independent else None
     if status in EFFECT_STATE and _lineage_holds(events):
+        if is_claimed_verdict(independent[-1]):
+            # SDD L7: a reported VERIFIED REMORA did not compute never shows
+            # as verified.
+            return EFFECT_CLAIMED
         return EFFECT_STATE[str(status)]
     if dispatch is not None and dispatch["terminal"]:
         return str(dispatch["state"])
@@ -343,6 +387,7 @@ def envelope_projection(
         # effect_outcome so a reader can tell a verified effect from an
         # unverified dispatch without re-deriving the mapping.
         ledger["effect_status"] = effect["status"]
+        ledger["effect_verdict_source"] = effect["verdict_source"]
         ledger["effect_verifier_identity"] = effect["verifier_identity"]
         ledger["effect_vantage"] = effect["vantage"]
         ledger["effect_scope"] = effect["scope"]

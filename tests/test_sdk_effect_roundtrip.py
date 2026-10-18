@@ -127,10 +127,16 @@ def test_a_product_can_close_the_loop_with_the_client(sdk) -> None:
     assert recorded.status is EffectStatus.VERIFIED
     assert recorded.verifier_identity == "acme.reader/v1"
 
+    # No signed ToolSpec postcondition here, so REMORA computed nothing: the
+    # reported VERIFIED is recorded as a claim and never shows as verified
+    # (SDD L7). The computed close is in tests/test_end_to_end_vertical.py.
+    assert recorded.verdict_source == "claimed"
+    assert recorded.is_verified_by_remora is False
     view = sdk.get_proposal(proposal_id)
     assert view.effect is not None
     assert view.effect.status is EffectStatus.VERIFIED
-    assert view.current_state == "EFFECT_VERIFIED"
+    assert view.effect.verdict_source == "claimed"
+    assert view.current_state == "EFFECT_CLAIMED"
 
 
 def test_a_mismatch_survives_the_round_trip_unsoftened(sdk) -> None:
@@ -173,6 +179,9 @@ def test_the_recorded_verification_reaches_the_evidence_bundle(sdk) -> None:
 
     bundle = sdk.export_evidence(proposal_id)
     assert bundle["effect_verification"]["status"] == "EFFECT_VERIFIED"
+    # The export says the record is a claim, not a REMORA verdict (SDD L7).
+    assert bundle["effect_verification"]["verdict_source"] == "claimed"
+    assert bundle["effect_verification"]["effect_state"] == "EFFECT_CLAIMED"
     assert "effect_verification" in bundle["manifest"]["section_sha256"]
 
 

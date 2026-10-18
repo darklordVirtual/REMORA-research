@@ -4,6 +4,34 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Unsigned effect receipts no longer record a claim as a verdict (SDD L7)
+
+- `POST /v1/execution/proposals/{id}/effect` recorded the submitted status
+  as reported, so a bare `EFFECT_VERIFIED` settled the proposal as verified
+  although REMORA compared nothing. The SDD's L7 invariant is that
+  `EFFECT_VERIFIED` is a verdict REMORA computes.
+- When the tool's signed ToolSpec declares a `postcondition`, an unsigned
+  receipt must now carry `observed` and `arguments` (new optional request
+  fields), and REMORA computes the status on the same code path as a signed
+  receipt. A bare reported `EFFECT_VERIFIED` is refused with 409
+  `postcondition_observation_required`.
+- When no postcondition is declared, a reported `EFFECT_VERIFIED` is kept as
+  a claim: it settles nothing, so a later computed verdict can still settle
+  the dispatch, and `current_state`, the envelope's `effect_outcome` and the
+  effect block's `effect_state` show `EFFECT_CLAIMED`, a new non-terminal
+  lifecycle state. Status fields stay in `EffectStatus` vocabulary;
+  `verdict_source` (`computed`, `attested`, `claimed`) says what REMORA
+  stands behind. Digest-only `EFFECT_VERIFIED` records written before this
+  change are projected the same way.
+- **Breaking:** a deployment that posts digest-only `EFFECT_VERIFIED`
+  receipts now sees `EFFECT_CLAIMED`, not `EFFECT_VERIFIED`, until it signs a
+  postcondition and sends the observation (or a signed receipt). Reported
+  MISMATCH and UNOBSERVABLE are recorded as before. `controlled_pilot` still
+  refuses unsigned receipts.
+- The Python SDK's `EffectVerificationView` gains `verdict_source` and
+  `is_verified_by_remora`. The MCP gateway tells the model `EFFECT_CLAIMED`
+  for a claim.
+
 ### Review path binds the intent authority (RMR-AUD-006, part 3)
 
 - An item approved under one intent authority executed under another, and the

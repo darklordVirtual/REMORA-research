@@ -645,6 +645,21 @@ describe("effect read-back (RMR-AUD-004)", () => {
     expect(p.effect_record.recorded).toBe(true);
   });
 
+  it("reports a recorded claim as EFFECT_CLAIMED, never EFFECT_VERIFIED", async () => {
+    // SDD L7: without a signed postcondition REMORA records the reading as a
+    // claim; the model must not be told the effect was verified.
+    const { d } = kgDeps(EXECUTED, {
+      observation: { status: "EFFECT_VERIFIED", reason_code: "delta_matches",
+                     expected_sha256: "", observed_sha256: "", detail: "" },
+      record: { recorded: true, http_status: 200, status: "EFFECT_VERIFIED",
+                verdict_source: "claimed" },
+    });
+    const r: any = await redeem(d);
+    const p = payload(r);
+    expect(p.effect).toBe("EFFECT_CLAIMED");
+    expect(JSON.stringify(r)).toContain("did not check the effect itself");
+  });
+
   it("does not present an unrecorded read-back as a verdict", async () => {
     // The old gateway returned EFFECT_VERIFIED here while REMORA refused
     // every receipt it sent.

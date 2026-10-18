@@ -231,10 +231,20 @@ function effectFields(report: EffectReport | null): {
       "the gateway's own observation, not evidence that the effect happened.",
     );
   }
+  // A reported VERIFIED REMORA had no signed postcondition to check is a
+  // claim. The model is told so; it never reads EFFECT_VERIFIED (SDD L7).
+  const claimed = record.recorded && record.verdict_source === "claimed";
+  if (claimed) {
+    notes.push(
+      "REMORA recorded the gateway's reading as a claim: it has no signed " +
+      "postcondition for this tool, so it did not check the effect itself.",
+    );
+  }
   return {
     fields: {
       ...(record.recorded && record.status
-        ? { effect: record.status, effect_reason: observation.reason_code }
+        ? { effect: claimed ? "EFFECT_CLAIMED" : record.status,
+            effect_reason: observation.reason_code }
         : {}),
       effect_observation: {
         status: observation.status,

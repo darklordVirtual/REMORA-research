@@ -571,6 +571,18 @@ class EffectVerificationRequest(BaseModel):
         description="Lowercase hex SHA-256, or empty.")
     verified_at: str = Field("", max_length=64)
     detail: str = Field("", max_length=2000)
+    observed: dict[str, Any] | None = Field(
+        None,
+        description="The object the verifier read. Required for "
+                    "EFFECT_VERIFIED when the tool's signed ToolSpec declares "
+                    "a postcondition: REMORA then computes the status from it "
+                    "and records the submitted one beside it (SDD L7).")
+    arguments: dict[str, Any] | None = Field(
+        None,
+        description="The approved call's arguments, accepted only when they "
+                    "hash to the dispatched call. Required with observed.")
+    source_revision: str = Field("", max_length=128)
+    pre_state_revision: str = Field("", max_length=128)
 
 
 class ReceiptSignatureModel(BaseModel):
