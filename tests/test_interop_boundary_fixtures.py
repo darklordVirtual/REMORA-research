@@ -289,6 +289,8 @@ def test_v2_vantage_is_the_one_the_receipt_endpoint_derives(monkeypatch: pytest.
     observer that is an executor is refused there before it is built."""
     from types import SimpleNamespace
 
+    # The federation bootstrap job has no fastapi; the full pytest jobs run this.
+    pytest.importorskip("fastapi")
     from remora.governance.effect_receipt import resolve_lineage
     from servers.execution_api import _receipt_vantage
 
