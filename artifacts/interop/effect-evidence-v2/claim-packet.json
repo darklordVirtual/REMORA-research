@@ -1,0 +1,83 @@
+{
+  "schema_version": "remora-claim-packet-v1",
+  "contract_id": "effect-evidence-v2",
+  "producer": "REMORA-research",
+  "source_revision": "5b2c7dc8d50f35c962711fcb882308189ccdd52a",
+  "package_identity": {
+    "manifest": "artifacts/interop/effect-evidence-v2/manifest.json",
+    "rule": "content-addressed; package_digest is computed from manifest.package_files and recorded in manifest.json and index.json, never inside a hashed package file"
+  },
+  "subject": {
+    "class": "effect_verification",
+    "id": "remora-effect-verification"
+  },
+  "artifact_refs": [
+    {
+      "path": "artifacts/interop/effect-evidence-v2/fixtures.json",
+      "sha256": "a88b53c2e771103828d8d6f13080062a175affe92ff12be9d9552b24587047f7",
+      "role": "producer fixture contract"
+    },
+    {
+      "path": "artifacts/interop/effect-evidence-v2/reference_verifier.py",
+      "sha256": "8e17666073b8e40c60d5ee2f74959f405c6ab29743c2c9454659bdcbf7a2fdd7",
+      "role": "author reference implementation; not independent verification"
+    }
+  ],
+  "claims": [
+    {
+      "claim_id": "effect_state_distinction",
+      "result_vocabulary": [
+        "ESTABLISHED",
+        "CONTRADICTED",
+        "NOT_ESTABLISHED"
+      ],
+      "claim_ceiling": "ESTABLISHED means only that, under this fixture contract, NOT_DISPATCHED, DISPATCHED, EXECUTION_REPORTED_SUCCESS and EFFECT_VERIFIED are kept apart, a reported success is never promoted to a verified effect without an observation of the declared delta, an absent field is not an explicit null, a postcondition whose rule map is outside the vocabulary or names an undeclared field is rejected rather than evaluated, and an unobservable or vacuous postcondition leaves the state where it was."
+    },
+    {
+      "claim_id": "effect_call_binding",
+      "result_vocabulary": [
+        "ESTABLISHED",
+        "CONTRADICTED",
+        "NOT_ESTABLISHED"
+      ],
+      "claim_ceiling": "ESTABLISHED means only that, under this fixture contract, a bundle whose call binding is not the invocation, compared as exact strings, is refused as tool_call_hash_mismatch and leaves the invocation at NOT_DISPATCHED. It does not establish that the binding digest was computed over the call that ran."
+    },
+    {
+      "claim_id": "effect_decision_correspondence",
+      "result_vocabulary": [
+        "ESTABLISHED",
+        "CONTRADICTED",
+        "NOT_ESTABLISHED"
+      ],
+      "claim_ceiling": "ESTABLISHED means only that, under this fixture contract, a dispatch is attested to only when a captured accept, or an approved verify or escalate, is bound to the invocation; a deny or abstain, an unknown or missing verdict, an approval that is not the boolean true and a decision bound to another call are each refused by name and attest to no effect. It does not establish that the captured decision is authentic or that it was the only decision taken."
+    },
+    {
+      "claim_id": "effect_observer_independence",
+      "result_vocabulary": [
+        "ESTABLISHED",
+        "CONTRADICTED",
+        "NOT_ESTABLISHED"
+      ],
+      "claim_ceiling": "ESTABLISHED means only that, under this fixture contract, EFFECT_VERIFIED is reached only from an observer derived independent: not the proposer or executor, a read-only credential, and a control domain that differs from the executor's declared one. A missing observer or an undeclared domain is not established. It does not establish that the declared domains or credentials are true of a deployment."
+    }
+  ],
+  "assumptions": [
+    "`observed: null` means the reader returned nothing, not that the object is absent",
+    "only declared fields are compared, under the rules in the fixture's `rules.comparison` note",
+    "a success report for a refused dispatch is not attributed to the action",
+    "an absent field and a field whose value is null are different observations",
+    "a comparison rule outside the vocabulary, or for an undeclared field, rejects the contract instead of being evaluated",
+    "the lineage is checked before the comparison, decision first, then the bundle's call",
+    "independence is derived from observer and executor; nothing a reader says about itself is read"
+  ],
+  "explicit_non_claims": [
+    "that the capture is authentic or complete",
+    "that the declared control domains and credentials are true of a deployment",
+    "that no effect outside the declared delta occurred",
+    "causation of an observed effect",
+    "production deployment safety",
+    "Federation endorsement",
+    "a second implementation is by itself an independent verification record"
+  ],
+  "temporal_scope": "Pinned fixture evaluation only; no live deployment time window is established."
+}

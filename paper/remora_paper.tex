@@ -154,7 +154,10 @@ kept as the baseline (CLAIM-018, superseded by CLAIM-019).
 
 Each result cites its claim-register entry, and machine-readable capability
 and boundary declarations state what the system establishes and what it does
-not. The execution chain has not yet been evaluated against attacks. One
+not. A post-hoc attack evaluation of the execution chain, on the author's
+own catalogue, is in \S\ref{sec:negative}. REMORA ran none of 43 chain
+attacks and a policy-only gateway ran 33, while the secret reached the sink
+in all 11 exfiltrations built from allowed calls, on both. One
 frozen interoperability contract has two external fixture-level runs that
 meet the repository's independence rule; production enforcement
 remains unestablished, and the declared deployment status is
@@ -312,8 +315,8 @@ numbers.
 \item an authority-bound execution chain (signed ToolSpec, exact-call
   \texttt{ExecutionLease}, single-use grant, re-policying at dispatch) whose
   lifecycle separates authorization, dispatch, execution and verified effect
-  (\S\ref{sec:execution-chain}); it is implemented and tested but not yet
-  evaluated against attacks (\S\ref{sec:negative});
+  (\S\ref{sec:execution-chain}); it is implemented and tested, and its
+  attack evaluation is post hoc and author-run (\S\ref{sec:negative});
 \item an argument-resolution ladder in which \textsc{unknown} is a
   first-class verdict and a \textsc{verify} names a bounded lookup followed
   by full re-entry of the router (\S\ref{sec:resolution-ladder},
@@ -777,17 +780,33 @@ escalates whatever risk tier the caller declared
 its clauses count only where their quoted spans occur in the task text
 (\S\ref{sec:wrongcall-implication}).
 
+\paragraph{Argument content and destinations.} The attacker chooses every
+argument value, including URLs, recipients and payload text. The decision
+reads the tool name, the registry's labels and the call's binding. It does
+not read what an argument carries or where a call sends it. A low-risk read
+whose URL carries a secret is therefore within the attacker's reach and is
+not defended. An argument-content and destination policy has to come from
+the information-flow check (\texttt{remora.flow}), and no decision reads
+its verdict yet (\S\ref{sec:negative}).
+
+\paragraph{Injection patterns are a hint.} The admission firewall escalates
+a few known injection phrasings by substring match. A paraphrase passes it,
+so the list is a routing hint, not a security boundary. An injection is
+judged by what the injected call can reach. A run on an external injection
+benchmark is pre-registered and not done.
+
 \paragraph{Out of scope.} The model does not cover calls that bypass the
 governed dispatcher through alternate credential, network or execution
 paths, or privileged effects that an authorized tool's implementation can
 reach (\S\ref{sec:boundary-declarations}). It does not cover exfiltration
-composed of individually authorized calls, because REMORA does not track
-data flow (\S\ref{sec:related}). A strategically subversive agent,
+through an authorized call's arguments, or composed of individually
+authorized calls, because REMORA does not track data flow
+(\S\ref{sec:related}). A strategically subversive agent,
 collusion between monitors and monitor evasion are open items for the
 red-team plan. Compromise of the host, the keys, or the ToolSpec, policy
 or intent sources is excluded, as are availability attacks such as
-rate-limit exhaustion. Within this model the execution chain has not yet
-been evaluated against attacks (\S\ref{sec:negative}).
+rate-limit exhaustion. Section~\ref{sec:negative} reports a post-hoc
+evaluation of the chain within this model.
 
 % =====================================================================
 \section{REMORA Architecture}
@@ -1981,21 +2000,32 @@ correct from incorrect critical-phase items (CLAIM-005). \emph{Consequence:}
 evidence routing (not trust scoring) is the required mechanism for
 critical-phase decisions.
 
-\paragraph{The execution chain is not evaluated against attacks.}
+\paragraph{The execution chain has only a post-hoc, author-run attack evaluation.}
 Everything in \S\ref{sec:results} is measured on the research and
 benchmark path. The authority-bound chain of \S\ref{sec:execution-chain}
 (signed ToolSpec, exact-call lease, single-use grant, re-check at dispatch)
-has unit, property and conformance tests, but no attack evaluation: replay,
-argument substitution after approval, ToolSpec swap, cross-task reuse of a
-grant, a forged lease without the key, and time-of-check/time-of-use races
-are not measured against a baseline gateway.
-Section~\ref{sec:threat-model} states the threat model; what is missing is
-an evaluation against it. Per-call authorization does not stop an attack
-composed of individually authorized calls, such as reading a secret and
-then sending it; REMORA does not claim trajectory-level or data-flow
-enforcement. The information-flow systems in \S\ref{sec:related}
-\cite{wu2024fsecure,costa2025fides} target that case. Until that evaluation exists, contribution~1 is a design and
-artifact contribution, not a measured security result.
+has unit, property and conformance tests. A post-hoc attack evaluation was
+added after the review asked for one
+(\path{scripts/execution_chain_attack_eval.py},
+\path{artifacts/posthoc/execution_chain_attack_eval_v1.json},
+NEGATIVE\_RESULTS.md \S87). It drives \texttt{/v1/execution} and a
+policy-only gateway that takes the same proposal-time decision and then runs
+whatever call is presented. The classes are replay, argument substitution,
+ToolSpec redeploy or callable swap, risk relabel, cross-task, cross-actor
+and cross-tenant reuse, forgery, expiry and approver role. REMORA ran 0 of
+43 such attacks and the gateway ran 33. REMORA ran all 20 benign controls in
+the catalogue.
+
+Per-call authorization does not stop exfiltration through allowed calls.
+The secret reached the sink in all 11 such attacks on both arms, either in a
+read's URL or sent by a later allowed call. REMORA does not claim
+trajectory-level or data-flow enforcement. The information-flow systems in
+\S\ref{sec:related} \cite{wu2024fsecure,costa2025fides} target that case.
+REMORA's own flow check is a library that no decision reads yet. The
+catalogue is the author's own and is not an external benchmark. It runs in
+one profile with in-process state and HMAC signing. Contribution~1 is
+therefore a design and artifact contribution with a descriptive, author-run
+attack measurement, not an independently measured security result.
 
 \paragraph{Oracle diversity is partial.}
 The retired Groq swarm used three LLaMA variants of one weight family, so
@@ -2281,7 +2311,8 @@ beside the reported results and in \S\ref{sec:threats};
 What this paper does not show: transfer to a new tool catalogue,
 discrimination against wrong calls that a model actually made, an advantage
 over external or naive baselines, and the behaviour of the execution chain
-under attack (\S\ref{sec:negative}, \S\ref{sec:threats}).
+under an external or adaptive attack (\S\ref{sec:negative},
+\S\ref{sec:threats}).
 
 REMORA remains \texttt{SHADOW\_ONLY}. It does not claim that all agent
 effects are governed. It makes the governed boundary explicit, declares

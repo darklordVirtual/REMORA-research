@@ -129,6 +129,17 @@ edges:
     contract: effect-evidence-v1.1
     declared: SPECIFIED
     note: Successor of E-EE; adds missing-versus-null, rule-vocabulary and scalar-kind discriminators.
+  - id: E-EE-V2
+    producer: REMORA
+    consumer: any
+    artifact: EffectVerification
+    property: effect_state_distinction
+    contract: effect-evidence-v2
+    declared: SPECIFIED
+    note: >-
+      Successor of E-EE-V1-1; adds the call binding, captured decision and
+      observer identity that Probity's invocation_axes corpus (#918) showed
+      the v1 input cannot carry.
   - id: E7
     producer: REMORA
     consumer: Probity

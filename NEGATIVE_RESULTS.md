@@ -24,18 +24,18 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-10-18: **28 `open`**, **28 `accepted`**, **31 `superseded`**.
+Counts as of 2026-10-18: **30 `open`**, **31 `accepted`**, **31 `superseded`**.
 
 ## The actual backlog
 
-Fifteen themes, all research gaps; the one production gap (CI gates that ran
+Eighteen themes, all research gaps; the one production gap (CI gates that ran
 without blocking, §55) is closed and struck from this list; a backlog that
 keeps closed items is the drift the status gate exists to prevent. The section numbers
 after each theme are where its evidence lives, and CI checks that every theme
 cites only `open` sections and that no `open` section is missing a theme.
 
 <!-- backlog-start -->
-1. **Useful semantic autonomy** (§39, §81, §82, §83): safety is measured and met
+1. **Useful semantic autonomy** (§39, §81, §82, §83, §92): safety is measured and met
    (native wrong-call ACCEPT 0/500 on sealed C-ext3, arm ablation
    24 → 6 → 0), which closed §36's measurement gap. What remains open is
    utility: the frozen deterministic intent extractor grounds only 26.6%
@@ -51,7 +51,9 @@ cites only `open` sections and that no `open` section is missing a theme.
    zero (CLAIM-021). The gain sits on tools seen in development (§82). The
    zero counts are weaker than they look: clustered by tool the upper
    bounds are 3.5 % and 5.42 %, and almost no wrong call comes from the
-   task's own catalogue (§83).
+   task's own catalogue (§83). Outside BFCL the floor grounds almost
+   nothing: in the AgentDojo development dry run it blocked 90 of 91
+   legitimate calls and completed one task more than refuse-all (§92).
 2. **Legitimate autonomy lost to derived values** (§35): grounding cost
    read autonomy 86.1% → 56.8%, mostly dates, unit conversions and computed
    values that are correct but not literally in the user's text. **The
@@ -147,11 +149,16 @@ cites only `open` sections and that no `open` section is missing a theme.
    Closing it needs a baseline or a target-side operation id in the contract,
    which is a design decision.
 17. **Exfiltration through allowed calls** (§87): the execution chain refuses
-   every replay, substitution, forgery, expiry, cross-context and relabel
-   attack in the catalogue (0 of 37 chain attacks ran after the review-path
-   and registry fixes), and the secret reached the sink in all 11
+   every replay, substitution, forgery, expiry, cross-context, relabel and
+   approver-role attack in the catalogue. None of 43 chain attacks ran after
+   the review-path and registry fixes. The secret reached the sink in all 11
    exfiltration attacks. No decision reads argument content or data flow;
    the flow check exists as a library and blocks all 10 it was run on.
+18. **Approvability is not yet monotone** (§90): every firing guard and
+   gate now enters the meet, but a risk signal on an abstained call still
+   opens a review route, and raising a production write from medium to high
+   risk lowers ESCALATE to VERIFY. The owner decided on 2026-10-18 to make
+   approvability monotone too; two strict xfails pin the gap.
 
 <!-- backlog-end -->
 
@@ -2645,8 +2652,10 @@ sections again.
 | Authorization component's corpus let 34 of 107 single-edit faults through (§78) | 31 held-out tests kill 102 of the 107; the five survivors are listed as equivalents and gated in CI. Faults, tests and equivalence arguments are the producer's own | Low |
 | A dispatch outcome reported after the stale-dispatch sweep was lost (§79) | Repaired with tests on all three dispatch paths. The race is injected inside the dispatch call, not observed under a real slow tool or a skewed sweeper | Low |
 | AgentHarm discrimination is lost between evidence and decision (§80) | CLAIM-002 tells 0 of 208 twin pairs apart; trimode mode 3 tells none of 44 apart where the oracle verdict tells 29. Harness repaired, no new run. Needs a graded evidence channel, a calibrated threshold and fresh paired data | Medium |
-| The BFCL intent extractor ignores negation and conditionals (§81) | A validity limit of the C-ext3 semantic arm, pinned by five strict xfails; no deployment bundle imports the extractor. A versioned successor is decided, not built | Low |
+| The BFCL intent extractor ignores negation and conditionals (§81) | A validity limit of the C-ext3 semantic arm, pinned by five strict xfails; no deployment bundle imports the extractor. Bundle v2 (C-ext4) handles negation but not conditionals or questions; v3 (#938) handles both and has no sealed run | Low |
 | The C-ext4 utility gain does not show generalisation to unseen tool families (§82) | 255 of 291 gold calls use tools seen in development (V2D 76, F1 12); on the other 36, V2D 11 and F1 8. A sealed tool catalogue the bundle was never developed against is needed | Medium |
+| Approvability is not yet monotone (§90) | Every firing guard and gate enters the meet (#944). A risk signal on an abstained call still opens a review route, and medium-to-high risk lowers a production write from ESCALATE to VERIFY. Two strict xfails; the owner decided on 2026-10-18 and the change is pending | Medium |
+| REMORA blocked 90 of 91 legitimate AgentDojo calls in a development dry run (§92) | E1 and E2 complete 11 of 29 tasks against 10 for refuse-all; 70 of the blocks are `semantic_authority_unknown_verify`. SAP v7 requires E1 to beat refuse-all; the IFC read path (CAPR-03) is the design response and is not built | **High** |
 | Peer-review re-analysis widens the zero-count bounds (§83) | Clustered by tool, C-ext3 arm F 0/500 bounds at 3.5 % and C-ext4 0/295 at 5.42 %. Only 4 of the 295 C-ext4 wrong calls name a tool the task offered, so confusion between two tools of one task is barely tested | Medium |
 
 ### Accepted negative results — do not "fix" these
@@ -4949,6 +4958,15 @@ for a mutating call. How many C-ext3 tasks are negated is not measured here.
 with negation and conditional handling, and the xfails become passing tests
 against it (`docs/architecture/ADR-sdd-as-v1-owner-decisions.md`, D1 and D5).
 
+**Update 2026-10-18.** Bundle v2, the successor used in C-ext4, handles
+negation. It still supports a mutation in conditional and informational
+sentences ("Inspect booking B-104 before cancel.", "Tell me if I can cancel
+booking B-104."; R3, PRF-052). The sealed C-ext4 manifest pins v2 by hash,
+so it stays as it is, and the limit applies to the C-ext4 semantic arms
+too. A v3 extractor (#938, `remora/toolcall/routing/bfcl_semantic_bundle_v3.py`)
+handles both. No sealed runner uses it, and its comparison with v2 on spent
+development data is exploratory.
+
 ## §82 The C-ext4 utility gain does not show generalisation to unseen tool families (2026-10-17)
 <!-- finding-status: open -->
 
@@ -5145,6 +5163,8 @@ It was then checked against the code here.
 **Related.** The `effect-evidence-v1` interop contract inherits the limit, and
 also has no field for the call binding, the observer or the captured
 decision. `docs/interop/FEDERATION.md` (invocation axes, #918) records that.
+`effect-evidence-v2` (DRAFT) carries those three facts. It does not carry
+prior state or the writer, so this limit holds for v2 as well.
 The per-invocation export in `integrations/invocation-evidence/` keeps
 `effect_observed` at NOT_ESTABLISHED for the same reason.
 
@@ -5206,7 +5226,7 @@ peer review asked for it (PRF-015, PRF-041 in
 `docs/review/PEER_REVIEW_FINDINGS.md`). It is the author's own attack set,
 not an external benchmark.
 
-`scripts/execution_chain_attack_eval.py` runs 52 attacks and 16 benign
+`scripts/execution_chain_attack_eval.py` runs 58 attacks and 20 benign
 controls against REMORA's `/v1/execution` path and against a policy-only
 gateway, and writes `artifacts/posthoc/execution_chain_attack_eval_v1.json`.
 The gateway takes the same proposal-time decision from the same `/assess`
@@ -5224,12 +5244,13 @@ signing and no semantic bundle.
 | Cross-task, cross-actor and cross-tenant reuse | 0/9 | 6/9 |
 | Forged or tampered token, lease or review item | 0/7 | 4/7 |
 | Expired token or lease | 0/4 | 4/4 |
+| Wrong approver role, or a requirement raised after approval | 0/6 | 2/6 |
 | Server-sent caller labels | 0/4 | 0/4 |
 | Read exfiltration, secret in the URL | 6/6 | 6/6 |
 | Read the secret, then send it with an allowed call | 5/5 | 5/5 |
 
-REMORA ran all 16 controls. Of the 37 chain attacks, it ran none and the
-gateway ran 31, all of them on the gateway and not on REMORA. Both refused
+REMORA ran all 20 controls. Of the 43 chain attacks, it ran none and the
+gateway ran 33, all of them on the gateway and not on REMORA. Both refused
 the three cross-tenant cases and the forgeries that need an authorization
 the attacker never held.
 
@@ -5238,10 +5259,16 @@ table above was first written. The review path now binds the executing
 actor and task through the `AuthorizationContext` comparison; both reuse
 attacks refuse `context_mismatch`. An approval is voided when the reviewed
 risk tier changed (`approval_invalidated` on the medium-to-high and
-medium-to-critical relabels). The harness bypasses
-`_enforce_review_approval_role`, so whether a tenant profile would demand
-a different approver for critical risk is still untested here. The
-approval is now voided before that question is reached.
+medium-to-critical relabels). Until 2026-10-19 the harness bypassed
+`_enforce_review_approval_role`, so the approver-role path was untested.
+The `approver_role` class now runs the real check. Four approvals are
+refused at `/approve`: a generic reviewer on a high-risk write, a
+domain_expert on a critical one, the operator role, and a role outside
+`reviewer_roles`. The gateway takes the same approval, so it refuses them
+too. An approval at medium risk is voided (`approval_invalidated`) when the
+tool is raised to high. It is also voided when the profile is edited to
+reserve medium approvals for a domain_expert. The gateway runs both. An
+edit to another tier's profile leaves the approval valid.
 
 **What REMORA did not stop.**
 
@@ -5281,3 +5308,168 @@ unmeasured. External injection benchmarks are PRF-042, not this.
 
 Reproduce: `python scripts/execution_chain_attack_eval.py --check`. Tests:
 `tests/test_execution_chain_attack_eval.py`.
+
+## §88 The review path executed calls the reviewer did not approve, and approved escalations could never run (2026-10-18)
+<!-- finding-status: accepted -->
+
+**Status:** found by the R3 audit (`docs/review/PEER_REVIEW_FINDINGS.md`
+PRF-044, PRF-045, PRF-048, PRF-049, PRF-057) and fixed with tests. Recorded
+as found and fixed, like §86.
+
+At master `b64e3cc1` the human-review route (`/v1/execution/approve`, then
+`/execute`) checked far less than the ACCEPT token and the lease did.
+
+- **Unbound proposal fields.** `schema_valid`, `rollback_available`,
+  `untrusted_context`, `intent_ref` and derivations sat outside the payload
+  hash. A call the policy abstained on could be raised to an approvable
+  ESCALATE with `schema_valid=false`, approved, and then run as VERIFY by
+  dropping the flag and adding untrusted context at `/execute`.
+- **Unbound context.** Another operator in the tenant could execute an
+  approved item, under another task. An `intent_ref` swapped at `/execute`
+  put an intent authority the reviewer never saw into the grant and lease.
+  An approval survived a risk raise when both tiers decide VERIFY, and an
+  approved VERIFY survived a new VERIFY reason.
+- **Escalations could not execute.** `_approval_survives` admitted only
+  ACCEPT and VERIFY as fresh decisions, so every approved ESCALATE was
+  invalidated at `/execute` by its own re-decision.
+- **The audit chain lost events.** A second approval or refusal on the same
+  item reused the first one's outbox key and was dropped, and the state
+  projection stayed REFUSED after any earlier refusal.
+
+**Resolution.** #935, #936, #942 and `24541235`. A hash over every proposal
+field is recorded at assess. The executing context is compared with the
+assessed record as the ACCEPT token does, and delegated execution must be
+named at proposal. An approved ESCALATE survives within its approved
+reasons, and an approved VERIFY needs its fresh reasons within the approved
+ones. Outbox keys carry the approval time and an attempt id, and the state is
+a fold over the chain. The attack evaluation (§87) regenerated after these
+fixes runs 0 of 9 cross-context attacks.
+
+**What it means.** The ACCEPT path had been evaluated and the review path
+had not. Each review-path defect sat in orchestration code
+(`remora/execution/service.py`, `remora/governance/review_queue.py`,
+`remora/execution/projections.py`) that the mutation sweep does not cover
+(PRF-056). Tests: `tests/test_review_path_audit_r3.py`,
+`tests/test_review_path_binding.py`, `tests/test_review_path_public_api_e2e.py`,
+`tests/test_effect_lineage_and_audit_projection.py`.
+
+## §89 Effect evidence could be self-attested and recorded after a refusal (2026-10-18)
+<!-- finding-status: accepted -->
+
+**Status:** found by the R3 audit (PRF-047, PRF-058, PRF-059) and fixed
+with tests. §85, which concerns attributing the delta to the dispatch,
+stays open.
+
+At master `b64e3cc1`, `POST /v1/execution/proposals/{id}/effect`:
+
+- accepted a receipt from the operator that ran the call. With no
+  `REMORA_EFFECT_VERIFIER_BINDINGS`, the verifier only had to equal the
+  caller. Through the public API alone, a call whose tool crashed before
+  writing anything (`state_unknown`) became `EFFECT_VERIFIED` on two made-up
+  digests;
+- took the claimed status as given, and never read `target_selector`, so an
+  observation of another object verified;
+- let `resolve_lineage` and `current_state` report `EFFECT_VERIFIED` on a
+  proposal the policy abstained on or a reviewer rejected.
+
+The MCP gateway built the expected value from the tool's own reply. It posted
+receipts the API refused, to the review id, without the binding fields, and
+swallowed the error, while it told the model `EFFECT_VERIFIED`.
+
+**Resolution.** #942, #940, and CAPR-06/07/08 (`1097567f`, `2d8b8682`). An
+effect needs a full authorization lineage with an approval that is still
+live at dispatch. A separate `verify_effect` role whose holder is not the
+executor is required in strict profiles. Receipts are signed under
+`REMORA/EFFECT-RECEIPT/v1`, REMORA re-evaluates the ToolSpec v5
+postcondition itself, and the vantage is derived, not claimed. The gateway
+takes expected values from the approved arguments.
+
+**Limits.** The frozen `effect-evidence-v1` interop schema is unchanged, so
+the external Probity split (#918) still reads as before. The worker contract
+tests need esbuild and run only in CI. Tests:
+`tests/test_effect_lineage_and_audit_projection.py`,
+`tests/test_effect_receipt_endpoint_signed.py`,
+`tests/test_mcp_gateway_effect_receipt_contract.py`.
+
+## §90 Policy decisions were not monotone in risk signals (2026-10-18)
+<!-- finding-status: open -->
+
+**Status:** partly fixed (#944); two cases remain, pinned as strict xfails.
+
+Adding a risk signal could make a decision more executable or more
+approvable (R3, PRF-046). At `3746bc5d`:
+
+- a VERIFY gate ahead of an ESCALATE gate masked it: `distribution_shift`
+  turned a `rollback_unavailable` ESCALATE into VERIFY, and
+  `high_risk_no_evidence` hid `env_mismatch_escalate`;
+- `schema_valid=false` or an adversarial flag turned a non-approvable
+  cross-tenant ABSTAIN into an approvable ESCALATE.
+
+**Fixed.** Every firing hard guard and conditional gate now enters the meet,
+and refusals no review can lift rank lowest (`99cce4cd`). C-ext3 changed 0 of
+8,397 episode decisions, C-ext4 reproduces its 36 counts, and on 60,000
+generated observations every changed decision moved toward stricter.
+
+**Open.** A risk signal on a call the rest of the policy abstains on for
+lack of evidence still opens a review route. Raising a production write from
+medium to high risk lowers ESCALATE to VERIFY. The owner decided on
+2026-10-18 that approvability must be monotone too. Until that change lands,
+`test_a_risk_signal_still_opens_a_route_over_an_epistemic_abstain` and
+`test_raising_the_risk_tier_never_lowers_a_production_write` in
+`tests/policy/test_signal_monotonicity.py` stay strict xfails. With #936's
+proposal-field binding the abstain-to-execution exploit is closed; the open
+part is that a reviewer can be offered a call the policy would not route to
+anyone.
+
+## §91 The flow check passed an empty recipient list (2026-10-18)
+<!-- finding-status: accepted -->
+
+**Status:** found by the R3 audit (PRF-050, PRF-051) and fixed with tests in
+#939. The flow check is still library-only (IFC-05b).
+
+`flow_check` derived recipients from call arguments. When the recipient
+argument was `[]`, `None` or omitted, the reached set was empty and the
+verdict was clean for a secret payload. FL-01 refused a URL argument only
+when a tool declared no recipients, so a static recipient list let one
+through. A `{"$handle", "$type"}` object passed back by the model was read as
+text, not as the handle.
+
+**Resolution.** A recipient rule that yields no value now reports
+`unresolved:<arg>`. FL-01 requires the URL, email and IBAN arguments of a
+writing tool to be named by a recipient rule. Handle-reference objects
+resolve whole. Two further audit claims about container labelling were not
+adopted because they contradict the IFC SDD (§3.2.1, §3.3). Lint rule FL-14
+refuses the unreachable BY_VALUE rule instead, and it showed that the SDD's
+own §5.1 example breaks that rule. Tests: `tests/flow/test_flow_check.py`,
+`tests/flow/test_toolspec_flow.py`, `tests/flow/test_labeler_handles.py`.
+
+## §92 REMORA blocked 90 of 91 legitimate AgentDojo calls in the development dry run (2026-10-18)
+<!-- finding-status: open -->
+
+**Status:** development dry run, not a confirmatory result. Recorded because
+the SAP v7 draft predicts its main risk from it (PRF-055).
+
+`artifacts/control_eval/dev_dry_run_v1.json` replays the ground-truth calls
+of 29 AgentDojo v1.2.2 development tasks (91 calls; a scripted agent, no
+model, no attacks) through each arm.
+
+| Arm | Calls blocked | Tasks completed |
+|---|---|---|
+| No gate | 0/91 | 29/29 |
+| Refuse all | 91/91 | 10/29 |
+| Per-task allowlist | 0/91 | 29/29 |
+| REMORA strict (E1) | 90/91 | 11/29 |
+| REMORA observed (E2) | 90/91 | 11/29 |
+
+REMORA's blocks were `semantic_authority_unknown_verify` (70),
+`schema_unverified_verify` (16) and `tool_does_not_match_goal` (4). On this
+set REMORA completes one task more than refusing everything. The 10 tasks
+refuse-all completes need no state change.
+
+**What it means.** Outside the BFCL catalogue it was developed on, the
+deterministic semantic floor grounds almost no legitimate call. The SAP v7
+draft states this as the expected risk for H1–H3 and requires E1 to beat
+refuse-all on utility. The design response is in
+`docs/design/compositional-authority-preservation-v1.md`: let reads run
+under information-flow labels instead of lexical intent matching (CAPR-03).
+It is not built.

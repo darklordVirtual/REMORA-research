@@ -10,6 +10,7 @@
     {"contract_id": "fresh-authority-v1", "depends_on": [], "strengthens": [], "does_not_establish": []},
     {"contract_id": "effect-evidence-v1", "depends_on": [], "strengthens": [], "does_not_establish": []},
     {"contract_id": "effect-evidence-v1.1", "depends_on": [], "strengthens": [], "does_not_establish": []},
+    {"contract_id": "effect-evidence-v2", "depends_on": [], "strengthens": [], "does_not_establish": []},
     {"contract_id": "agentavow-tool-manifest-e8-v0.1", "depends_on": [], "strengthens": [], "does_not_establish": []},
     {
       "contract_id": "attested-execution-v1",
