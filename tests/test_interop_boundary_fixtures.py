@@ -3,7 +3,8 @@
 """The three execution-boundary interop fixtures describe REMORA.
 
 For each of ``exact-call-binding-v1``, ``fresh-authority-v1`` and
-``effect-evidence-v1``, and the v1.1 successors of the first and third: the manifest pins the committed bytes; the
+``effect-evidence-v1``, the v1.1 successors of the first and third, and
+``effect-evidence-v2``: the manifest pins the committed bytes; the
 zero-dependency reference verifier reproduces every expected outcome; and,
 separately, REMORA's real primitives reproduce every expected outcome through
 ``remora.interop.boundary_fixtures``. The two agree case by case. Negative
@@ -28,7 +29,7 @@ from remora.interop import boundary_fixtures as bf
 ROOT = Path(__file__).resolve().parents[1]
 INTEROP = ROOT / "artifacts" / "interop"
 PACKAGES = ("exact-call-binding-v1", "fresh-authority-v1", "effect-evidence-v1",
-            "exact-call-binding-v1.1", "effect-evidence-v1.1")
+            "exact-call-binding-v1.1", "effect-evidence-v1.1", "effect-evidence-v2")
 
 
 @pytest.fixture(autouse=True)
@@ -211,3 +212,100 @@ def test_the_hash_rule_preimage_is_the_one_remora_computes() -> None:
     assert {c["expected"]["effect_status"] for c in preimage_cases} == {
         "EFFECT_VERIFIED", "EFFECT_MISMATCH"}
     assert len(preimage_cases) == 6
+
+
+# ── effect-evidence-v2 (#918) ──────────────────────────────────────────────
+
+_V2_FIELDS = ("invocation", "decision", "bundle_call", "executor", "observer")
+
+
+def test_v2_carries_every_v1_1_case_with_only_the_lineage_added() -> None:
+    """Strip the five v2 inputs and each carried case is the v1.1 case; its
+    effect status, state and claim result are unchanged."""
+    v11 = _fixtures("effect-evidence-v1.1")["cases"]
+    v2 = _fixtures("effect-evidence-v2")["cases"]
+    for old, new in zip(v11, v2[: len(v11)], strict=True):
+        stripped = {k: v for k, v in new.items() if k not in _V2_FIELDS and k != "expected"}
+        assert stripped == {k: v for k, v in old.items() if k != "expected"}, old["id"]
+        for key in ("effect_status", "highest_established_state", "claim_result"):
+            assert new["expected"][key] == old["expected"][key], (old["id"], key)
+    added = v2[len(v11):]
+    assert added and all(case.get("added_in") == "v2" for case in added)
+
+
+def test_v2_names_each_invocation_axes_split_case() -> None:
+    """The three bundles v1 verifies and Probity's reader does not are v2
+    cases, and none of them reaches EFFECT_VERIFIED through REMORA."""
+    cases = {c["id"]: c for c in _fixtures("effect-evidence-v2")["cases"]}
+    expected = {"bundle_for_other_call": "tool_call_hash_mismatch",
+                "dispatched_after_deny": "dispatched_after_deny",
+                "observation_from_the_tool": "BOUND"}
+    for case_id, lineage in expected.items():
+        observed = bf.evaluate_effect_evidence_v2(cases[case_id])
+        assert observed["lineage_status"] == lineage, case_id
+        assert observed["highest_established_state"] != "EFFECT_VERIFIED", case_id
+    assert bf.evaluate_effect_evidence_v2(cases["observation_from_the_tool"])["vantage"] == "not_independent"
+
+
+def test_a_fixture_that_verifies_a_bundle_for_another_call_is_contradicted() -> None:
+    fixtures = copy.deepcopy(_fixtures("effect-evidence-v2"))
+    (case,) = [c for c in fixtures["cases"] if c["id"] == "bundle_for_other_call"]
+    case["expected"].update(lineage_status="BOUND", effect_status="EFFECT_VERIFIED",
+                            vantage="independent", highest_established_state="EFFECT_VERIFIED")
+    (record,) = [r for r in bf.evaluate_package(fixtures) if r["case_id"] == case["id"]]
+    assert record["result"] == "CONTRADICTED"
+    assert record["observed"]["value"]["lineage_status"] == "tool_call_hash_mismatch"
+
+
+def test_a_fixture_that_verifies_a_read_by_the_tool_is_contradicted() -> None:
+    fixtures = copy.deepcopy(_fixtures("effect-evidence-v2"))
+    (case,) = [c for c in fixtures["cases"] if c["id"] == "observation_from_the_tool"]
+    case["expected"].update(vantage="independent", highest_established_state="EFFECT_VERIFIED")
+    (record,) = [r for r in bf.evaluate_package(fixtures) if r["case_id"] == case["id"]]
+    assert record["result"] == "CONTRADICTED"
+
+
+def test_v2_lineage_status_is_the_receipt_refusal_reason(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The lineage verdict comes from verify_receipt, not from the evaluator:
+    a receipt check that refuses everything shows up in every case."""
+    from remora.governance import effect_receipt
+
+    def _refuse(**_kwargs: Any) -> Any:
+        raise effect_receipt.ReceiptRefused("fixture_probe")
+
+    monkeypatch.setattr(effect_receipt, "verify_receipt", _refuse)
+    (case,) = [c for c in _fixtures("effect-evidence-v2")["cases"]
+               if c["id"] == "invocation_bound_and_independently_observed"]
+    assert bf.evaluate_effect_evidence_v2(case)["lineage_status"] == "fixture_probe"
+
+
+@pytest.mark.parametrize("case_id", [
+    "invocation_bound_and_independently_observed", "observation_from_the_tool",
+    "observation_by_the_proposer", "observer_can_write", "observer_same_control_domain",
+    "executor_domain_undeclared",
+])
+def test_v2_vantage_is_the_one_the_receipt_endpoint_derives(monkeypatch: pytest.MonkeyPatch, case_id: str) -> None:
+    """The evaluator builds the vantage as servers.execution_api does; an
+    observer that is an executor is refused there before it is built."""
+    from types import SimpleNamespace
+
+    # The federation bootstrap job has no fastapi; the full pytest jobs run this.
+    pytest.importorskip("fastapi")
+    from remora.governance.effect_receipt import resolve_lineage
+    from servers.execution_api import _receipt_vantage
+
+    (case,) = [c for c in _fixtures("effect-evidence-v2")["cases"] if c["id"] == case_id]
+    executors = resolve_lineage(bf._v2_audit_events(case)).executors
+    observer = case["observer"]
+    domain = case["executor"]["control_domain"]
+    if domain:
+        monkeypatch.setenv("REMORA_EXECUTOR_CONTROL_DOMAIN", domain)
+    else:
+        monkeypatch.delenv("REMORA_EXECUTOR_CONTROL_DOMAIN", raising=False)
+    ours = bf._v2_vantage(case, executors)
+    if observer["id"] in executors:
+        assert ours == "not_independent"
+        return
+    record = SimpleNamespace(kid=observer["id"], control_domain=observer["control_domain"],
+                             read_only=observer["read_only"])
+    assert _receipt_vantage(record, executors).independence.value == ours

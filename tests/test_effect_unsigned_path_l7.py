@@ -175,8 +175,7 @@ def test_the_envelope_never_shows_a_claim_as_verified(without_post):
     pid, dispatch = _executed(client)
     assert _unsigned(client, pid, dispatch).status_code == 200
     envelope = client.get(f"/v1/execution/proposals/{pid}/envelope")
-    if envelope.status_code == 404:
-        pytest.skip("no envelope route on this surface")
+    assert envelope.status_code == 200, envelope.text
     effect = envelope.json()["effect"]
     assert effect["effect_outcome"] == "EFFECT_CLAIMED"
     assert effect["ledger_entry"]["effect_verdict_source"] == "claimed"

@@ -182,6 +182,28 @@ def test_a_risk_raise_after_approval_voids_the_approval(evaluation):
         assert not rows[(f"toolspec_toctou/{variant}", "remora")]["tool_body_ran"]
 
 
+def test_the_approver_role_path_is_measured_with_the_real_check(evaluation):
+    """PRF-015 remainder: the real _enforce_review_approval_role runs in this
+    class. A wrong role is refused at /approve on both arms; a requirement
+    raised after approval voids the approval on REMORA only."""
+    _ev, committed, _fresh = evaluation
+    rows = _rows(committed)
+    for variant in ("reviewer_approves_high", "domain_expert_approves_critical",
+                    "operator_approves", "unlisted_role_approves"):
+        for arm in ("remora", "policy_only"):
+            row = rows[(f"approver_role/{variant}", arm)]
+            assert not row["tool_body_ran"], (variant, arm)
+            assert row["proposal_decision"].startswith("approve:"), (variant, arm)
+    for variant in ("tier_raised_after_reviewer_approval", "requirement_raised_after_approval"):
+        remora = rows[(f"approver_role/{variant}", "remora")]
+        assert not remora["tool_body_ran"] and remora["reason"] == "approval_invalidated"
+        assert rows[(f"approver_role/{variant}", "policy_only")]["tool_body_ran"]
+    for variant in ("control_reviewer_approves_medium", "control_domain_expert_approves_high",
+                    "control_senior_authority_approves_critical",
+                    "control_unrelated_profile_edit_after_approval"):
+        assert rows[(f"approver_role/{variant}", "remora")]["tool_body_ran"], variant
+
+
 def test_server_labels_do_not_change_the_decision(evaluation):
     _ev, committed, _fresh = evaluation
     rows = [r for r in committed["rows"] if r["attack_class"] == "caller_labels_server"]
