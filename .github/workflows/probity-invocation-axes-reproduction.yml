@@ -12,6 +12,9 @@ name: Probity invocation axes (reproduction)
 # capture decision and no observer identity, so the bundles that turn on those
 # are listed in EXPECTED_SPLIT. A change in that list fails the job.
 #
+# A second pairing step hands the same bundles to effect-evidence-v2, which
+# carries those three facts (#918). Its split is listed in EXPECTED_V2_SPLIT.
+#
 # This is a REPRODUCTION kept as a CI artifact. It changes no file under
 # artifacts/interop, advances no lifecycle, creates no REMORA authority and
 # never feeds a policy decision.
@@ -24,11 +27,13 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - ".github/workflows/probity-invocation-axes-reproduction.yml"
+      - "artifacts/interop/effect-evidence-v2/**"
   push:
     branches: [master]
     paths:
       - ".github/workflows/probity-invocation-axes-reproduction.yml"
       - "artifacts/interop/effect-evidence-v1/**"
+      - "artifacts/interop/effect-evidence-v2/**"
   workflow_dispatch:
 
 permissions:
@@ -54,6 +59,15 @@ env:
     bundle_for_other_call=bundle_bound_to_other_call
     dispatched_after_deny=dispatched_after_deny
     observation_from_the_tool=observation_not_independent
+  # effect-evidence-v2 (#918) carries the call binding, captured decision and
+  # observer, and refuses the three bundles above. It is stricter than the
+  # reader on three others: the reader's observed_effect axis does not require
+  # an allow bound to the invocation, and v2 attests to no effect without one.
+  # Each entry is case=reader_reason/remora_lineage_status.
+  EXPECTED_V2_SPLIT: >-
+    decision_absent=independent_observation_matches_declared_delta/assessment_decision_unknown
+    decision_bound_to_other_request=independent_observation_matches_declared_delta/dispatch_not_authorized
+    member_missing=independent_observation_matches_declared_delta/assessment_decision_unknown
 
 jobs:
   reproduce:
@@ -175,6 +189,84 @@ jobs:
                      "observed_effect_binary_agree": sum(r["observed_effect_binary_agree"] for r in rows),
                      "split": split, "problems": problems}
           (out / "pairing.json").write_text(json.dumps({"summary": summary, "rows": rows}, indent=2, sort_keys=True), encoding="utf-8")
+          print(json.dumps(summary, indent=2, sort_keys=True))
+          sys.exit(1 if problems else 0)
+          PY
+
+      - name: Pair each execution bundle with REMORA's effect-evidence-v2 verifier
+        # v2 is DRAFT at this revision. Its manifest pins are checked first, so
+        # the pairing runs the bytes index.json names. The mapping from a
+        # Probity bundle to a v2 case is the job's assumption, stated in the
+        # package README: allow is read as accept, and the observation source
+        # label stands in for the observer configuration a deployment holds.
+        run: |
+          python - <<'PY'
+          import hashlib, importlib.util, json, os, sys
+          from pathlib import Path
+          package = Path("artifacts/interop/effect-evidence-v2")
+          out = Path("ci-artifacts/probity-invocation-axes-reproduction")
+          manifest = json.loads((package / "manifest.json").read_text(encoding="utf-8"))
+          for entry in manifest["package_files"]:
+              actual = hashlib.sha256(Path(entry["path"]).read_bytes()).hexdigest()
+              if actual != entry["sha256"]:
+                  sys.exit(f"{entry['path']} does not match its manifest pin")
+          spec = importlib.util.spec_from_file_location("remora_effect_v2", package / "reference_verifier.py")
+          v2 = importlib.util.module_from_spec(spec)
+          spec.loader.exec_module(v2)
+          fixtures = json.loads((package / "fixtures.json").read_text(encoding="utf-8"))
+          control = [c["id"] for c in fixtures["cases"]
+                     if v2.evaluate(c) != {k: c["expected"][k] for k in v2.OUTCOME_KEYS}]
+          corpus = Path("probity-readers/packaging/agent_evidence_vectors/invocation_axes/corpus/cases.json")
+          cases = {c["id"]: c for c in json.loads(corpus.read_text(encoding="utf-8"))["cases"]}
+          report = json.loads((out / "reader/report.json").read_text(encoding="utf-8"))
+          executor = {"proposed_by": "agent", "executed_by": "tool", "control_domain": "executor-domain"}
+          rows, split = [], {}
+          for result in report["results"]:
+              case = cases[result["case_id"]]
+              bundle = case.get("execution")
+              if bundle is None:
+                  continue
+              text = case["capture"]["objects"].get("decision.json")
+              decision = None
+              if text is not None:
+                  captured = json.loads(text)
+                  verdict = {"allow": "accept"}.get(captured.get("decision"), captured.get("decision"))
+                  decision = {"call": captured.get("request_binding"), "verdict": verdict, "approved": False}
+              obs = bundle.get("observation")
+              observer = None
+              if obs is not None:
+                  observer = ({"id": "independent-reader", "control_domain": "reader-domain", "read_only": True}
+                              if obs.get("source") == "independent_reader"
+                              else {"id": "tool", "control_domain": "executor-domain", "read_only": False})
+              post = dict(bundle.get("postcondition") or {})
+              post.setdefault("comparison_rules", {})
+              got = v2.evaluate({"invocation": result["actual"]["invocation_binding"], "decision": decision,
+                                 "bundle_call": bundle.get("call_binding"), "executor": executor, "observer": observer,
+                                 "dispatch": bundle["dispatch"], "execution_report": bundle.get("execution_report"),
+                                 "postcondition": post, "observed": None if obs is None else obs.get("fields")})
+              ours = result["actual"]["observed_effect"]
+              # Binary observed-effect agreement only, as in the v1 step.
+              agree = (got["highest_established_state"] == "EFFECT_VERIFIED") == (ours["result"] == "ESTABLISHED")
+              rows.append({"case_id": result["case_id"], "remora_v2": got, "reader_observed_effect": ours,
+                           "observed_effect_binary_agree": agree})
+              if not agree:
+                  split[result["case_id"]] = f"{ours['reason']}/{got['lineage_status']}"
+          expected = dict(item.split("=", 1) for item in os.environ["EXPECTED_V2_SPLIT"].split())
+          problems = []
+          if control:
+              problems.append(f"v2 fixtures failed the control: {control}")
+          if split != expected:
+              problems.append(f"v2 split {split} != expected {expected}")
+          if len(rows) != int(os.environ["EXPECTED_BUNDLES"]):
+              problems.append(f"expected {os.environ['EXPECTED_BUNDLES']} paired bundles, got {len(rows)}")
+          v1_split = set(os.environ["EXPECTED_SPLIT"].split())
+          if any(item.split("=", 1)[0] in split for item in v1_split):
+              problems.append("a bundle v1 cannot judge still splits under v2")
+          summary = {"package_digest": manifest["package_digest"], "control_fixtures": len(fixtures["cases"]),
+                     "control_failures": control, "bundles": len(rows),
+                     "observed_effect_binary_agree": sum(r["observed_effect_binary_agree"] for r in rows),
+                     "split": split, "problems": problems}
+          (out / "pairing-v2.json").write_text(json.dumps({"summary": summary, "rows": rows}, indent=2, sort_keys=True), encoding="utf-8")
           print(json.dumps(summary, indent=2, sort_keys=True))
           sys.exit(1 if problems else 0)
           PY

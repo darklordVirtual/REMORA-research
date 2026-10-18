@@ -1,0 +1,254 @@
+{
+  "schema_version": "remora-interop-result-v1",
+  "contract_id": "effect-evidence-v2",
+  "edge": "E-EE-V2",
+  "claim": "effect_observer_independence",
+  "subject": "effect_verification:remora-effect-verification",
+  "status": "ESTABLISHED",
+  "producer": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "5b2c7dc8d50f35c962711fcb882308189ccdd52a"
+  },
+  "consumer": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "5b2c7dc8d50f35c962711fcb882308189ccdd52a"
+  },
+  "fixture": {
+    "path": "artifacts/interop/effect-evidence-v2/fixtures.json",
+    "digest": "sha256:a88b53c2e771103828d8d6f13080062a175affe92ff12be9d9552b24587047f7",
+    "package_digest": "sha256:3ebdfb86f94a895ea1778ca887b3ddd6eb8bff673cc0037f082db31a28ab7bf5"
+  },
+  "evaluator": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "5b2c7dc8d50f35c962711fcb882308189ccdd52a",
+    "kind": "REFERENCE",
+    "maintained_by": "PRODUCER",
+    "imports_producer_runtime": false,
+    "imports_reference_evaluator": true,
+    "command": "python artifacts/interop/effect-evidence-v2/reference_verifier.py"
+  },
+  "operator": "PRODUCER",
+  "host": "PRODUCER_CONTROLLED",
+  "independence_level": "L0_SELF_TEST",
+  "runner": {
+    "path": "scripts/interop_author_run.py",
+    "revision": "5b2c7dc8d50f35c962711fcb882308189ccdd52a"
+  },
+  "environment": "Python 3.13.7, Darwin arm64",
+  "started_at": "2026-10-18T22:12:33+00:00",
+  "completed_at": "2026-10-18T22:12:34+00:00",
+  "cases": [
+    {
+      "case_id": "invocation_bound_and_independently_observed",
+      "claim_id": "effect_observer_independence",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EFFECT_VERIFIED",
+          "lineage_status": "BOUND",
+          "vantage": "independent"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EFFECT_VERIFIED",
+          "lineage_status": "BOUND",
+          "vantage": "independent"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "observation_from_the_tool",
+      "claim_id": "effect_observer_independence",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "BOUND",
+          "vantage": "not_independent"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "BOUND",
+          "vantage": "not_independent"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "observation_by_the_proposer",
+      "claim_id": "effect_observer_independence",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "BOUND",
+          "vantage": "not_independent"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "BOUND",
+          "vantage": "not_independent"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "observer_can_write",
+      "claim_id": "effect_observer_independence",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "BOUND",
+          "vantage": "not_independent"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "BOUND",
+          "vantage": "not_independent"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "observer_same_control_domain",
+      "claim_id": "effect_observer_independence",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "BOUND",
+          "vantage": "not_established"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "BOUND",
+          "vantage": "not_established"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "executor_domain_undeclared",
+      "claim_id": "effect_observer_independence",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "BOUND",
+          "vantage": "not_established"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "BOUND",
+          "vantage": "not_established"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "observer_absent",
+      "claim_id": "effect_observer_independence",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "BOUND",
+          "vantage": "not_established"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "BOUND",
+          "vantage": "not_established"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "tool_read_contradicts_report",
+      "claim_id": "effect_observer_independence",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED",
+          "lineage_status": "BOUND",
+          "vantage": "not_independent"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_MISMATCH",
+          "highest_established_state": "DISPATCHED",
+          "lineage_status": "BOUND",
+          "vantage": "not_independent"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "not_independent_and_unobservable",
+      "claim_id": "effect_observer_independence",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_UNOBSERVABLE",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "BOUND",
+          "vantage": "not_independent"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_UNOBSERVABLE",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "BOUND",
+          "vantage": "not_independent"
+        }
+      },
+      "result": "ESTABLISHED"
+    }
+  ],
+  "establishes": [
+    "effect_observer_independence: ESTABLISHED means only that, under this fixture contract, EFFECT_VERIFIED is reached only from an observer derived independent: not the proposer or executor, a read-only credential, and a control domain that differs from the executor's declared one. A missing observer or an undeclared domain is not established. It does not establish that the declared domains or credentials are true of a deployment."
+  ],
+  "does_not_establish": [
+    "that the capture is authentic or complete",
+    "that the declared control domains and credentials are true of a deployment",
+    "that no effect outside the declared delta occurred",
+    "causation of an observed effect",
+    "production deployment safety",
+    "Federation endorsement",
+    "a second implementation is by itself an independent verification record"
+  ],
+  "ceiling": {
+    "implies_endorsement": false,
+    "implies_production_safety": false,
+    "implies_broader_validity": false,
+    "confers_authority": false
+  },
+  "run_ref": "artifacts/interop/runs/effect-evidence-v2-effect_observer_independence-author-reference-L0.json",
+  "published_at": null
+}

@@ -5163,6 +5163,8 @@ It was then checked against the code here.
 **Related.** The `effect-evidence-v1` interop contract inherits the limit, and
 also has no field for the call binding, the observer or the captured
 decision. `docs/interop/FEDERATION.md` (invocation axes, #918) records that.
+`effect-evidence-v2` (DRAFT) carries those three facts. It does not carry
+prior state or the writer, so this limit holds for v2 as well.
 The per-invocation export in `integrations/invocation-evidence/` keeps
 `effect_observed` at NOT_ESTABLISHED for the same reason.
 

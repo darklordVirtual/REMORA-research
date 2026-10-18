@@ -7,8 +7,11 @@ The packages under ``artifacts/interop/exact-call-binding-v1``,
 properties of the execution boundary in implementation-agnostic terms.
 ``exact-call-binding-v1.1`` and ``effect-evidence-v1.1`` succeed the first
 and third with the discriminators the #744 pre-Federation probes found
-missing; the v1 packages keep their bytes and are still evaluated here. The
-reference verifiers next to them model the property without REMORA code.
+missing; the v1 packages keep their bytes and are still evaluated here.
+``effect-evidence-v2`` adds the call binding, captured decision and observer
+the v1 input could not carry (#918); its lineage runs through
+``verify_receipt``. The reference verifiers next to them model the property
+without REMORA code.
 This module is the other half: it runs every fixture case through the real
 primitives (``PolicyDecisionToken`` and ``EnforcementGate`` for a grant,
 ``ExecutionLease`` and ``GovernedToolDispatcher`` for a dispatch,
@@ -42,6 +45,7 @@ __all__ = [
     "REFUSAL_CLASS_BY_REASON",
     "evaluate_effect_evidence",
     "evaluate_effect_evidence_v1_1",
+    "evaluate_effect_evidence_v2",
     "evaluate_exact_call_binding",
     "evaluate_fresh_authority",
     "evaluate_package",
@@ -286,6 +290,101 @@ def evaluate_effect_evidence_v1_1(case: Mapping[str, Any]) -> dict[str, Any]:
     return {"effect_status": "CONTRACT_REJECTED", "highest_established_state": state}
 
 
+# ── effect-evidence-v2 ─────────────────────────────────────────────────────
+
+_V2_PROPOSAL = "fixture-proposal"
+_V2_GRANT = "fixture-grant"
+
+
+def _v2_audit_events(case: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """The audit trail a deployment would hold for the case's invocation.
+
+    The decision becomes the assessment, its approval an ``approved`` event,
+    and its call the ``execution_authorized`` record; the dispatch of the
+    invocation is the ``execution_result``. The bundle's own call is not in
+    the trail: it is what the receipt claims, and is checked against it.
+    """
+    executor = case["executor"]
+    decision = case.get("decision")
+    events: list[dict[str, Any]] = []
+    if decision is not None:
+        events.append({"event": "assessed", "payload": {
+            "decision": decision.get("verdict"), "actor": executor["proposed_by"]}})
+        if decision.get("approved") is True:
+            events.append({"event": "approved", "payload": {}})
+        events.append({"event": "execution_authorized", "payload": {
+            "pep_allowed": True, "grant_jti": _V2_GRANT,
+            "tool_call_hash": decision.get("call"), "executed_by": executor["executed_by"]}})
+    events.append({"event": "execution_result", "timestamp": "2026-10-18T12:00:00+00:00", "payload": {
+        "proposal_id": _V2_PROPOSAL, "tool_call_hash": case["invocation"], "grant_jti": _V2_GRANT,
+        "tool_executed": True, "executed_by": executor["executed_by"]}})
+    return events
+
+
+def _v2_vantage(case: Mapping[str, Any], executors: frozenset[str]) -> str:
+    """The vantage ``record_signed_effect_receipt`` derives for this observer.
+
+    Built the way ``servers.execution_api._receipt_vantage`` builds it (the
+    executor's declared domain, the key's domain, forge from ``read_only``);
+    an observer that is an executor is refused there before the vantage is
+    read (``verifier_is_executor``), which the fixture names not_independent.
+    """
+    from remora.evidence.admission.models import ObservationVantage, VantageIndependence
+
+    observer = case.get("observer")
+    if observer is None:
+        return VantageIndependence.NOT_ESTABLISHED.value
+    if observer["id"] in executors:
+        return VantageIndependence.NOT_INDEPENDENT.value
+    executor_domain = case["executor"].get("control_domain") or ""
+    return ObservationVantage(
+        observer_id=observer["id"],
+        observed_party=",".join(sorted(executors)) or "executor",
+        control_domain=observer["control_domain"],
+        observed_control_domain=executor_domain or observer["control_domain"],
+        can_observed_party_forge=observer.get("read_only") is not True,
+        can_observed_party_suppress=False,
+    ).independence.value
+
+
+def evaluate_effect_evidence_v2(case: Mapping[str, Any]) -> dict[str, Any]:
+    """The lineage through ``verify_receipt``, then the v1.1 comparison, then
+    the vantage, combined by the v2 state rule.
+
+    ``verify_receipt`` is called with UNOBSERVABLE, which needs no digests, so
+    it decides only what v2 asks of it here: that a decision path allowed the
+    dispatch of the invocation and that the bundle names that call. Its
+    refusal reason is the fixture's ``lineage_status``.
+    """
+    from remora.governance.effect_receipt import ReceiptRefused, verify_receipt
+
+    not_evaluated = {"lineage_status": "NOT_EVALUATED", "effect_status": "NOT_EVALUATED",
+                     "vantage": "NOT_EVALUATED"}
+    if case["dispatch"]["outcome"] == "REFUSED":
+        return {**not_evaluated, "highest_established_state": "NOT_DISPATCHED"}
+    report = case.get("execution_report")
+    state = ("EXECUTION_REPORTED_SUCCESS"
+             if report is not None and report.get("status") == "success" else "DISPATCHED")
+    verifier = (case.get("observer") or {}).get("id") or "fixture-verifier"
+    try:
+        lineage, _ = verify_receipt(
+            events=_v2_audit_events(case), proposal_id=_V2_PROPOSAL,
+            claimed_status=EffectStatus.UNOBSERVABLE, tool_call_hash=case["bundle_call"],
+            grant_jti=_V2_GRANT, expected_sha256="", observed_sha256="",
+            verified_at="2026-10-18T12:00:30+00:00", verifier_identity=verifier,
+            trusted_verifiers=(verifier,))
+    except ReceiptRefused as exc:
+        if exc.reason == "tool_call_hash_mismatch":
+            state = "NOT_DISPATCHED"
+        return {**not_evaluated, "lineage_status": exc.reason, "highest_established_state": state}
+    vantage = _v2_vantage(case, lineage.executors)
+    effect = evaluate_effect_evidence_v1_1(case)
+    if effect["effect_status"] == "EFFECT_VERIFIED" and vantage != "independent":
+        effect["highest_established_state"] = state
+    return {"lineage_status": "BOUND", "effect_status": effect["effect_status"],
+            "vantage": vantage, "highest_established_state": effect["highest_established_state"]}
+
+
 # ── package runner ─────────────────────────────────────────────────────────
 
 _EVALUATORS: dict[str, Callable[[Mapping[str, Any]], Any]] = {
@@ -294,6 +393,7 @@ _EVALUATORS: dict[str, Callable[[Mapping[str, Any]], Any]] = {
     "remora-effect-evidence-fixtures-v1": evaluate_effect_evidence,
     "remora-exact-call-binding-fixtures-v1.1": evaluate_exact_call_binding,
     "remora-effect-evidence-fixtures-v1.1": evaluate_effect_evidence_v1_1,
+    "remora-effect-evidence-fixtures-v2": evaluate_effect_evidence_v2,
 }
 
 
@@ -301,6 +401,9 @@ def _expected(case: Mapping[str, Any]) -> Any:
     expected = case["expected"]
     if "outcomes" in expected:
         return expected["outcomes"]
+    if "lineage_status" in expected:
+        return {k: expected[k] for k in ("lineage_status", "effect_status", "vantage",
+                                         "highest_established_state")}
     return {k: expected[k] for k in ("effect_status", "highest_established_state")}
 
 

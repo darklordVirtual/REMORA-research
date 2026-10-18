@@ -693,6 +693,25 @@
       "supersedes": "effect-evidence-v1",
       "freeze_record": null,
       "pin_confirmed_to": [],
+      "external_runs": [],
+      "superseded_by": "effect-evidence-v2",
+      "superseded_note": "Superseded by effect-evidence-v2 on 2026-10-18 and retained unchanged. Preserved negative result from Probity's invocation_axes corpus (#918): like v1, the contract has no field for the call a bundle is bound to, the decision captured for the invocation or who observed, so bundle_for_other_call, dispatched_after_deny and observation_from_the_tool verify as EFFECT_VERIFIED."
+    },
+    {
+      "id": "effect-evidence-v2",
+      "edge": "E-EE-V2",
+      "lifecycle": "DRAFT",
+      "external_verification": "PENDING",
+      "source_revision": "5b2c7dc8d50f35c962711fcb882308189ccdd52a",
+      "manifest": "artifacts/interop/effect-evidence-v2/manifest.json",
+      "package_digest": "sha256:3ebdfb86f94a895ea1778ca887b3ddd6eb8bff673cc0037f082db31a28ab7bf5",
+      "claim_packet": "artifacts/interop/effect-evidence-v2/claim-packet.json",
+      "verifier_request": "artifacts/interop/effect-evidence-v2/verifier-request.json",
+      "fixtures": "artifacts/interop/effect-evidence-v2/fixtures.json",
+      "reference_verifier": "artifacts/interop/effect-evidence-v2/reference_verifier.py",
+      "supersedes": "effect-evidence-v1.1",
+      "freeze_record": null,
+      "pin_confirmed_to": [],
       "external_runs": []
     },
     {

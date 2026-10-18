@@ -1,0 +1,275 @@
+{
+  "schema_version": "remora-interop-result-v1",
+  "contract_id": "effect-evidence-v2",
+  "edge": "E-EE-V2",
+  "claim": "effect_decision_correspondence",
+  "subject": "effect_verification:remora-effect-verification",
+  "status": "ESTABLISHED",
+  "producer": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "5b2c7dc8d50f35c962711fcb882308189ccdd52a"
+  },
+  "consumer": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "5b2c7dc8d50f35c962711fcb882308189ccdd52a"
+  },
+  "fixture": {
+    "path": "artifacts/interop/effect-evidence-v2/fixtures.json",
+    "digest": "sha256:a88b53c2e771103828d8d6f13080062a175affe92ff12be9d9552b24587047f7",
+    "package_digest": "sha256:3ebdfb86f94a895ea1778ca887b3ddd6eb8bff673cc0037f082db31a28ab7bf5"
+  },
+  "evaluator": {
+    "project": "REMORA",
+    "repository": "darklordVirtual/REMORA-research",
+    "revision": "5b2c7dc8d50f35c962711fcb882308189ccdd52a",
+    "kind": "REFERENCE",
+    "maintained_by": "PRODUCER",
+    "imports_producer_runtime": false,
+    "imports_reference_evaluator": true,
+    "command": "python artifacts/interop/effect-evidence-v2/reference_verifier.py"
+  },
+  "operator": "PRODUCER",
+  "host": "PRODUCER_CONTROLLED",
+  "independence_level": "L0_SELF_TEST",
+  "runner": {
+    "path": "scripts/interop_author_run.py",
+    "revision": "5b2c7dc8d50f35c962711fcb882308189ccdd52a"
+  },
+  "environment": "Python 3.13.7, Darwin arm64",
+  "started_at": "2026-10-18T22:12:33+00:00",
+  "completed_at": "2026-10-18T22:12:34+00:00",
+  "cases": [
+    {
+      "case_id": "dispatched_after_deny",
+      "claim_id": "effect_decision_correspondence",
+      "expected": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "dispatched_after_deny",
+          "vantage": "NOT_EVALUATED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "dispatched_after_deny",
+          "vantage": "NOT_EVALUATED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "dispatched_after_abstain",
+      "claim_id": "effect_decision_correspondence",
+      "expected": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "dispatched_after_deny",
+          "vantage": "NOT_EVALUATED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "dispatched_after_deny",
+          "vantage": "NOT_EVALUATED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "deny_outranks_other_call",
+      "claim_id": "effect_decision_correspondence",
+      "expected": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "dispatched_after_deny",
+          "vantage": "NOT_EVALUATED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "dispatched_after_deny",
+          "vantage": "NOT_EVALUATED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "deny_and_not_dispatched",
+      "claim_id": "effect_decision_correspondence",
+      "expected": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "NOT_DISPATCHED",
+          "lineage_status": "NOT_EVALUATED",
+          "vantage": "NOT_EVALUATED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "NOT_DISPATCHED",
+          "lineage_status": "NOT_EVALUATED",
+          "vantage": "NOT_EVALUATED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "decision_bound_to_other_call",
+      "claim_id": "effect_decision_correspondence",
+      "expected": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "dispatch_not_authorized",
+          "vantage": "NOT_EVALUATED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "dispatch_not_authorized",
+          "vantage": "NOT_EVALUATED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "decision_absent",
+      "claim_id": "effect_decision_correspondence",
+      "expected": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "assessment_decision_unknown",
+          "vantage": "NOT_EVALUATED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "assessment_decision_unknown",
+          "vantage": "NOT_EVALUATED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "decision_value_outside_vocabulary",
+      "claim_id": "effect_decision_correspondence",
+      "expected": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "assessment_decision_unknown",
+          "vantage": "NOT_EVALUATED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "assessment_decision_unknown",
+          "vantage": "NOT_EVALUATED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "escalate_without_approval",
+      "claim_id": "effect_decision_correspondence",
+      "expected": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "dispatched_without_approval",
+          "vantage": "NOT_EVALUATED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "dispatched_without_approval",
+          "vantage": "NOT_EVALUATED"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "escalate_with_approval",
+      "claim_id": "effect_decision_correspondence",
+      "expected": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EFFECT_VERIFIED",
+          "lineage_status": "BOUND",
+          "vantage": "independent"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "EFFECT_VERIFIED",
+          "highest_established_state": "EFFECT_VERIFIED",
+          "lineage_status": "BOUND",
+          "vantage": "independent"
+        }
+      },
+      "result": "ESTABLISHED"
+    },
+    {
+      "case_id": "approval_as_string",
+      "claim_id": "effect_decision_correspondence",
+      "expected": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "dispatched_without_approval",
+          "vantage": "NOT_EVALUATED"
+        }
+      },
+      "observed": {
+        "value": {
+          "effect_status": "NOT_EVALUATED",
+          "highest_established_state": "EXECUTION_REPORTED_SUCCESS",
+          "lineage_status": "dispatched_without_approval",
+          "vantage": "NOT_EVALUATED"
+        }
+      },
+      "result": "ESTABLISHED"
+    }
+  ],
+  "establishes": [
+    "effect_decision_correspondence: ESTABLISHED means only that, under this fixture contract, a dispatch is attested to only when a captured accept, or an approved verify or escalate, is bound to the invocation; a deny or abstain, an unknown or missing verdict, an approval that is not the boolean true and a decision bound to another call are each refused by name and attest to no effect. It does not establish that the captured decision is authentic or that it was the only decision taken."
+  ],
+  "does_not_establish": [
+    "that the capture is authentic or complete",
+    "that the declared control domains and credentials are true of a deployment",
+    "that no effect outside the declared delta occurred",
+    "causation of an observed effect",
+    "production deployment safety",
+    "Federation endorsement",
+    "a second implementation is by itself an independent verification record"
+  ],
+  "ceiling": {
+    "implies_endorsement": false,
+    "implies_production_safety": false,
+    "implies_broader_validity": false,
+    "confers_authority": false
+  },
+  "run_ref": "artifacts/interop/runs/effect-evidence-v2-effect_decision_correspondence-author-reference-L0.json",
+  "published_at": null
+}
