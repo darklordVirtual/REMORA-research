@@ -93,4 +93,10 @@ regexes = [
   # value; the value is the public domain constant from
   # remora/crypto/domain_signing.py, not key material. Anchored to the row.
   '''\| the export as a whole \| the evidence key, `REMORA/EVIDENCE/v1` \|''',
+  # experiments/routing_baselines/pins.py — SHA-256 pins of the BFCL v4
+  # multi-turn tool-doc files (Apache-2.0, ShishirPatil/gorilla). Trip cause:
+  # the file names end in "_api.json", so the rule reads "<name>_api":
+  # "<hex>" as a key and its value. The value is the digest of a public
+  # corpus file. Anchored to the BFCL doc path and a 64-hex digest.
+  '''"multi_turn_func_doc/[a-z_]+\.json": "[0-9a-f]{64}",''',
 ]
