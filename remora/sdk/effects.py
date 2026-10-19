@@ -126,6 +126,18 @@ class EffectVerificationView:
     #: ``independent``) and what it covers (``declared_delta_only``).
     vantage: str = "same_deployment"
     scope: str = "declared_delta_only"
+    #: Whether REMORA computed this verdict (``computed``), recorded a status
+    #: that cannot raise the proposal's state (``attested``), or recorded a
+    #: reported VERIFIED it had no contract to check (``claimed``: the
+    #: proposal shows EFFECT_CLAIMED, never EFFECT_VERIFIED; SDD L7). Empty
+    #: when the server predates the field.
+    verdict_source: str = ""
+
+    @property
+    def is_verified_by_remora(self) -> bool:
+        """True only for a VERIFIED that REMORA computed itself."""
+        return (self.status is EffectStatus.VERIFIED
+                and self.verdict_source == "computed")
 
     @classmethod
     def from_payload(cls, payload: Mapping[str, Any]) -> "EffectVerificationView":
@@ -145,6 +157,7 @@ class EffectVerificationView:
             execution_context_hash=str(payload.get("execution_context_hash", "")),
             vantage=str(payload.get("vantage") or "same_deployment"),
             scope=str(payload.get("scope") or "declared_delta_only"),
+            verdict_source=str(payload.get("verdict_source") or ""),
         )
 
     def to_dict(self) -> dict[str, Any]:

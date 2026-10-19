@@ -1,0 +1,14 @@
+# Exact gitleaks fingerprints (commit:file:rule:line) of inspected findings
+# that are not secrets. Unlike an allowlist entry, a fingerprint matches one
+# line of one commit and suppresses nothing else. gitleaks scans history, so
+# rewriting the file later cannot clear a finding in an earlier commit.
+#
+# experiments/routing_baselines/pins.py at 4dc11644, lines 38 to 41: SHA-256
+# pins of the public BFCL v4 tool-doc files math_api.json, message_api.json,
+# posting_api.json and ticket_api.json (ShishirPatil/gorilla at 6ea57973).
+# The generic-api-key rule read "<name>_api.json": "<digest>" as a key and
+# its value. The file now builds the mapping from pairs, which does not trip.
+4dc11644b61604fea5f463dca0e9ae2a2b5bf5bb:experiments/routing_baselines/pins.py:generic-api-key:38
+4dc11644b61604fea5f463dca0e9ae2a2b5bf5bb:experiments/routing_baselines/pins.py:generic-api-key:39
+4dc11644b61604fea5f463dca0e9ae2a2b5bf5bb:experiments/routing_baselines/pins.py:generic-api-key:40
+4dc11644b61604fea5f463dca0e9ae2a2b5bf5bb:experiments/routing_baselines/pins.py:generic-api-key:41

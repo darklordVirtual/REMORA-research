@@ -263,6 +263,11 @@ export interface EffectRecord {
   recorded: boolean;
   http_status?: number;
   status?: EffectStatus;
+  /** REMORA's account of the record: `computed` (it evaluated the
+   *  observation itself), `attested` (a status that cannot raise the state) or
+   *  `claimed` (a reported VERIFIED it had no signed postcondition to check;
+   *  the proposal shows EFFECT_CLAIMED, never EFFECT_VERIFIED). */
+  verdict_source?: string;
   reason?: string;
   detail?: string;
 }
@@ -322,9 +327,11 @@ export async function fileEffectReceipt(
   const body = (res.body ?? {}) as Record<string, unknown>;
   if (res.status === 200) {
     const status = String(body.status ?? "");
+    const source = typeof body.verdict_source === "string"
+      ? { verdict_source: body.verdict_source } : {};
     return EFFECT_STATUSES.includes(status)
-      ? { recorded: true, http_status: 200, status: status as EffectStatus }
-      : { recorded: true, http_status: 200 };
+      ? { recorded: true, http_status: 200, status: status as EffectStatus, ...source }
+      : { recorded: true, http_status: 200, ...source };
   }
   const detail = body.detail;
   return {

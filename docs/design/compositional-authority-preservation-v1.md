@@ -216,9 +216,9 @@ Defined in section 3. Two invariants:
   receipt (L8). The lineage must show `assessed` not ABSTAIN, no `rejected`,
   an approval where one was required, and `execution_authorized` with
   `pep_allowed` for the same grant and call hash.
-- **Status.** PARTIAL. On the signed path the invariant holds:
+- **Status.** ESTABLISHED. On the signed path the invariant holds:
   `POST /v1/execution/proposals/{id}/effect-receipt`
-  (`servers/execution_api.py:3321`) checks the lineage through
+  (`servers/execution_api.py:3473`) checks the lineage through
   `resolve_lineage`, which requires an assessment that could dispatch, no
   rejection, an approval that was not voided before `execution_authorized`,
   and a matching grant and call hash (`remora/governance/effect_receipt.py:184`).
@@ -226,10 +226,23 @@ Defined in section 3. Two invariants:
   `postcondition` block and the dispatched arguments
   (`remora/toolcall/toolspec.py:222`, `remora/toolcall/postcondition_spec.py:69`)
   and computes the verdict itself. A receipt's own status is recorded beside
-  that verdict. The unsigned `/effect` path remains: it records a status that
-  REMORA does not re-evaluate. `controlled_pilot` refuses it
-  (`servers/execution_api.py:3130`), but it is still accepted in other
-  profiles, capped at `same_deployment`.
+  that verdict. The unsigned `/effect` path follows the same rule.
+  `controlled_pilot` refuses it outright. In every other profile, a tool
+  whose signed ToolSpec declares a `postcondition` needs an unsigned receipt
+  that carries the observed object and the call's arguments. REMORA then
+  computes the status on the shared code path
+  (`_computed_postcondition_verdict` in `servers/execution_api.py`). A bare
+  reported `EFFECT_VERIFIED` is refused (`postcondition_observation_required`).
+  When no postcondition is declared, a reported `EFFECT_VERIFIED` is kept as
+  a claim: it settles nothing, and `current_state`, the effect block and the
+  envelope show `EFFECT_CLAIMED` (`is_claimed_verdict` in
+  `remora/execution/projections.py`; `schemas/execution_lifecycle_v1.yaml`).
+  Reported bad news (MISMATCH, UNOBSERVABLE) is still recorded as reported,
+  because it cannot raise the state. Unsigned receipts stay at
+  `same_deployment`. Tests: `tests/test_effect_unsigned_path_l7.py`.
+  What remains is outside L7: a digest-only claim from a tool without a
+  postcondition is recorded, not refused, so a deployment that never signs
+  postconditions gets claims, not verdicts.
 - **Prevents.** RMR-AUD-004 (`bundle_for_other_call`, `dispatched_after_deny`),
   NEGATIVE_RESULTS §85, and P0-4A (a crashed call self-attested as verified).
 - **Falsification.** Section 4.4. Failing link: L7.
@@ -246,7 +259,7 @@ Defined in section 3. Two invariants:
   key's control domain, credential scope and tenants
   (`remora/governance/effect_receipt_signing.py:171`, `:244`). The verifier
   is the key holder, and the body cannot name it. The API derives the vantage
-  (`servers/execution_api.py:3290`): `independent` needs a declared executor
+  (`servers/execution_api.py:3449`): `independent` needs a declared executor
   domain (`REMORA_EXECUTOR_CONTROL_DOMAIN`), a verifier key registered for a
   different domain, and a read-only scope. Otherwise the vantage is
   `same_deployment`. Lease-domain signatures, unregistered keys and keys of
@@ -398,6 +411,9 @@ verdict. A disagreement is a finding, not a refusal.
 | Honest receipt, separate domain, read-only | VERIFIED, `vantage=independent` | none |
 | Receipt signed with a lease key | refused, domain separation | L8 |
 | State already true before dispatch, pre-state revision equal | NOT_ESTABLISHED, `no_attributable_change` | L7 |
+| Unsigned bare VERIFIED for a tool with a signed postcondition | refused, `postcondition_observation_required` | L7 |
+| Unsigned receipt with an observation that differs under the contract | MISMATCH computed by REMORA, claim recorded beside it | L7 |
+| Unsigned VERIFIED for a tool with no postcondition | recorded as a claim; state `EFFECT_CLAIMED`, never `EFFECT_VERIFIED`; settles nothing | L7 |
 
 The last row narrows NEGATIVE_RESULTS §85 for systems that expose revisions.
 It does not close it for systems that do not.

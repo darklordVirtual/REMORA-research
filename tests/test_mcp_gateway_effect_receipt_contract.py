@@ -243,6 +243,11 @@ def test_an_honest_write_is_recorded_as_verified(api, bundle, tmp_path):
     assert recorded["status_code"] == 200, recorded["body"]
     assert recorded["body"]["status"] == "EFFECT_VERIFIED"
     assert recorded["body"]["verifier_identity"] == VERIFIER
+    # kg_assert_fact has no signed ToolSpec postcondition here, so REMORA
+    # records the reading as a claim and the proposal never shows it as
+    # verified (SDD L7).
+    assert recorded["body"]["verdict_source"] == "claimed"
+    assert recorded["body"]["effect_state"] == "EFFECT_CLAIMED"
 
 
 def test_a_tool_that_reports_its_own_tampering_is_recorded_as_mismatch(

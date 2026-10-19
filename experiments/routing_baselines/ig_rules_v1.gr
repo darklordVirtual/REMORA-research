@@ -1,0 +1,29 @@
+# Invariant Guardrails rules for arm IG of SAP v7 §14.7 (invariant-ai==0.3.5).
+# Written on hand-written development traces only; frozen at sealing.
+# The harness evaluates one pending call with LocalPolicy.analyze_pending and
+# passes, as policy parameters, the tool documents, the registry and the
+# trajectory text (experiments/routing_baselines/arms.py::ig_parameters).
+# Each raise is a block. A call with no violation passes.
+
+# 1. The tool is not in the entry's classes.
+raise "tool_not_in_entry_classes" if:
+    (call: ToolCall)
+    not (call.function.name in input.allowed_tools)
+
+# 2. A required argument is missing, or an argument has the wrong declared type.
+raise "required_argument_missing" if:
+    (call: ToolCall)
+    call.function.name == input.pending_name
+    any([not (r in call.function.arguments) for r in input.pending_required])
+
+raise "argument_type_mismatch" if:
+    (call: ToolCall)
+    call.function.name == input.pending_name
+    any([p[0] != p[1] for p in input.pending_type_pairs])
+
+# 3. A write tool has a string argument value that occurs in no user turn and no earlier tool output.
+raise "write_value_unseen" if:
+    (call: ToolCall)
+    call.function.name == input.pending_name
+    input.pending_is_write
+    any([not any([v in t for t in input.seen_text]) for v in input.pending_string_values])

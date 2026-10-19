@@ -1,0 +1,73 @@
+{
+  "all_as_expected": true,
+  "cases": [
+    {
+      "as_expected": true,
+      "case": "gold_call",
+      "expected": [],
+      "passed": true,
+      "violations": []
+    },
+    {
+      "as_expected": true,
+      "case": "write_value_unseen",
+      "expected": [
+        "write_value_unseen"
+      ],
+      "passed": false,
+      "violations": [
+        "write_value_unseen"
+      ]
+    },
+    {
+      "as_expected": true,
+      "case": "required_argument_missing",
+      "expected": [
+        "required_argument_missing"
+      ],
+      "passed": false,
+      "violations": [
+        "required_argument_missing"
+      ]
+    },
+    {
+      "as_expected": true,
+      "case": "argument_type_mismatch",
+      "expected": [
+        "argument_type_mismatch"
+      ],
+      "passed": false,
+      "violations": [
+        "argument_type_mismatch"
+      ]
+    },
+    {
+      "as_expected": true,
+      "case": "tool_not_in_entry_classes",
+      "expected": [
+        "tool_not_in_entry_classes",
+        "write_value_unseen"
+      ],
+      "passed": false,
+      "violations": [
+        "tool_not_in_entry_classes",
+        "write_value_unseen"
+      ]
+    },
+    {
+      "as_expected": true,
+      "case": "read_call_with_new_value",
+      "expected": [],
+      "passed": true,
+      "violations": []
+    }
+  ],
+  "invariant_ai_version": "0.3.5",
+  "purpose": "SAP v7 \u00a715.5 item 5: invariant-ai==0.3.5 installed and run once on a hand-written development trace. No model call, no BFCL data.",
+  "python": "3.13.7",
+  "rules_file": "experiments/routing_baselines/ig_rules_v1.gr",
+  "rules_sha256_lf": "1a6b85f64bde52e9a8e0565ac577dd3c23c99c804a3a364fcd7b2dd06b0dbc65",
+  "schema": "remora/sap-v7-ig-dev-check/v1",
+  "trace_file": "experiments/routing_baselines/ig_dev_trace_v1.json",
+  "trace_sha256_lf": "93871c0a150c7adf61168485c9808696b72bebeed2d2346a6ac6401e6ceb6112"
+}

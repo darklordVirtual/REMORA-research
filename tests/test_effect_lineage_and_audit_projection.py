@@ -55,10 +55,13 @@ def _result(**over) -> dict:
         "actor": "agent-1", **over})
 
 
-def _effect(status: str = "EFFECT_VERIFIED") -> dict:
+def _effect(status: str = "EFFECT_VERIFIED", *, computed: bool = True) -> dict:
+    # A verdict REMORA computed says so (SDD L7); a digest-only attestation
+    # without the marker is a claim and is projected as EFFECT_CLAIMED.
     return _ev("effect_verified", status=status, reason_code="x",
                verified_at=AT.isoformat(), verifier_identity="reader",
-               expected_sha256="a" * 64, observed_sha256="a" * 64)
+               expected_sha256="a" * 64, observed_sha256="a" * 64,
+               evidence_refs=(["verdict:computed"] if computed else []))
 
 
 def _accept_chain() -> list[dict]:
@@ -148,6 +151,13 @@ def test_an_effect_after_abstain_is_not_projected_as_verified() -> None:
 
 def test_an_effect_after_a_valid_lineage_is_projected() -> None:
     assert current_state(_review_chain() + [_effect()], None) == "EFFECT_VERIFIED"
+
+
+def test_a_digest_only_verified_after_a_valid_lineage_is_only_a_claim() -> None:
+    """SDD L7: a reported VERIFIED REMORA did not compute is never projected
+    as verified, even when its lineage holds."""
+    chain = _review_chain() + [_effect(computed=False)]
+    assert current_state(chain, None) == "EFFECT_CLAIMED"
 
 
 def test_a_binding_refusal_leaves_the_approval_standing() -> None:
@@ -390,7 +400,11 @@ def test_a_separate_verifier_settles_the_proposal(monkeypatch, tmp_path) -> None
     assert r.status_code == 200, r.text
     assert r.json()["self_attested"] is False
     view = client.get(f"/v1/execution/proposals/{pid}").json()
-    assert view["current_state"] == "EFFECT_VERIFIED"
+    # The separate verifier's record is the one the proposal shows (a
+    # self-attestation never is). The tool has no signed postcondition, so
+    # REMORA computed nothing and the record is a claim (SDD L7).
+    assert view["current_state"] == "EFFECT_CLAIMED"
+    assert view["effect"]["self_attested"] is False
 
 
 def _production(monkeypatch, tmp_path):

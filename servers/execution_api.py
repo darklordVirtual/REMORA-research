@@ -2943,6 +2943,7 @@ from remora.execution.projections import (
 )
 from remora.execution.projections import (
     EffectVerificationReplay,
+    is_claimed_verdict,
 )
 from remora.execution.projections import (
     current_state as _current_state_impl,
@@ -3063,6 +3064,90 @@ def _effect_separation_required() -> bool:
 
     return (deployment_environment() == "production"
             or current_runtime_profile() in STRICT_PROFILES)
+
+
+def _postcondition_spec_for(tool_id: str) -> Any:
+    """The tool's signed ToolSpec when it declares a ``postcondition`` block.
+
+    None when no bundle is loaded, the tool is not in it, or its spec has no
+    postcondition: REMORA then has no contract to evaluate an effect against.
+    """
+    bundle = _toolspec_bundle()
+    if bundle is None or tool_id not in bundle:
+        return None
+    spec = bundle.get(tool_id)
+    return spec if spec is not None and spec.postcondition is not None else None
+
+
+def _computed_postcondition_verdict(
+        *, events: list[dict[str, Any]], lineage: Any, tenant: str,
+        proposal_id: str, tool_id: str, toolspec_hash: str, spec: Any,
+        arguments: dict[str, Any], observed: Any,
+        verifier_identity: str, pre_state_revision: str = "",
+        source_revision: str = "") -> Any:
+    """The effect verdict REMORA computes itself (SDD L7, CAPR-07).
+
+    The contract comes from the signed ToolSpec ``postcondition`` block and the
+    approved arguments, accepted only when they hash to the dispatched call.
+    Shared by the signed and the unsigned receipt paths, so neither can record
+    a verdict the other would not compute.
+    """
+    if spec.toolspec_hash != toolspec_hash:
+        raise HTTPException(
+            status_code=409,
+            detail=("effect receipt refused (toolspec_changed_since_assessment): "
+                    "the dispatch was assessed under another spec"))
+
+    # The arguments are the approved call's only if they hash to it.
+    from remora.policy.observation import canonical_tool_call_hash
+
+    target = next((str((e.get("payload") or e).get("target_environment") or "")
+                   for e in events if e.get("event") == "assessed"), "")
+    try:
+        argument_hash = canonical_tool_call_hash(
+            name=tool_id, arguments=arguments, tenant=tenant,
+            target=target or None)
+    except (TypeError, ValueError) as exc:
+        raise HTTPException(status_code=409, detail=(
+            f"effect receipt refused (arguments_not_the_dispatched_call): {exc}")) from exc
+    if argument_hash != lineage.tool_call_hash:
+        raise HTTPException(
+            status_code=409,
+            detail=("effect receipt refused (arguments_not_the_dispatched_call): "
+                    "the arguments do not hash to the dispatched call"))
+
+    from remora.governance.effect_verification import (
+        EffectStatus,
+        PostconditionContract,
+        verify_declared_delta,
+    )
+    from remora.toolcall.postcondition_spec import PostconditionSpecError
+
+    try:
+        contract: PostconditionContract = spec.postcondition.instantiate(
+            tool_id=tool_id, reader=str(spec.postcondition_reader),
+            arguments=arguments)
+    except PostconditionSpecError as exc:
+        raise HTTPException(status_code=409, detail=(
+            f"effect receipt refused (postcondition_not_instantiable): {exc}")) from exc
+
+    execution_id = lineage.execution_id or lineage.dispatch_id
+    computed = verify_declared_delta(
+        contract, observed, proposal_id=proposal_id,
+        execution_id=execution_id, toolspec_hash=toolspec_hash,
+        verifier_identity=verifier_identity)
+    if (pre_state_revision and source_revision
+            and pre_state_revision == source_revision
+            and computed.status in (EffectStatus.VERIFIED, EffectStatus.MISMATCH)):
+        # The object did not change across the dispatch, so whatever it holds
+        # is not attributable to this call (NEGATIVE_RESULTS §85, narrowed
+        # for systems that expose revisions).
+        computed = dataclasses.replace(computed, status=EffectStatus.UNOBSERVABLE,
+                           reason_code="postcondition_no_attributable_change",
+                           detail=("pre-state and observed revisions are equal "
+                                   f"({source_revision}); no change is "
+                                   "attributable to this dispatch"))
+    return computed
 
 
 def _current_state(events: list[dict[str, Any]],
@@ -3234,6 +3319,49 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
                     f"{principal!r} may not submit receipts as "
                     f"{req.verifier_identity!r}"))
 
+    # SDD L7: EFFECT_VERIFIED is a verdict REMORA computes, never a status it
+    # records. When the tool's signed ToolSpec declares a postcondition, the
+    # receipt must carry the observed object, and the status recorded is the
+    # one REMORA computes from it, exactly as on the signed path. Without a
+    # postcondition there is nothing to compute, so a reported VERIFIED is
+    # kept as a claim: it shows as EFFECT_CLAIMED and settles nothing.
+    # Reported bad news (MISMATCH, UNOBSERVABLE, ...) cannot raise the state
+    # and is recorded as reported, as before.
+    from remora.governance.effect_receipt import resolve_lineage
+    from remora.governance.effect_verification import EffectStatus
+
+    tool_id, toolspec_hash = _assessed_tool_identity(events)
+    spec = _postcondition_spec_for(tool_id)
+    computed: Any = None
+    claim_only = False
+    if spec is not None and req.observed is not None:
+        if req.arguments is None:
+            raise HTTPException(
+                status_code=409,
+                detail=("effect receipt refused (arguments_required): an "
+                        "observation is evaluated against the approved call, "
+                        "so the call's arguments must come with it"))
+        try:
+            computed_lineage = resolve_lineage(events)
+        except ReceiptRefused as exc:
+            raise _receipt_refused(exc) from exc
+        computed = _computed_postcondition_verdict(
+            events=events, lineage=computed_lineage, tenant=tenant,
+            proposal_id=proposal_id, tool_id=tool_id,
+            toolspec_hash=toolspec_hash, spec=spec, arguments=req.arguments,
+            observed=req.observed, verifier_identity=req.verifier_identity,
+            pre_state_revision=req.pre_state_revision,
+            source_revision=req.source_revision)
+    elif spec is not None and req.status is EffectStatus.VERIFIED:
+        raise HTTPException(
+            status_code=409,
+            detail=(f"effect receipt refused (postcondition_observation_required): "
+                    f"{tool_id!r} declares a signed postcondition, so REMORA "
+                    "computes EFFECT_VERIFIED from the observed object; submit "
+                    "observed and arguments, or a signed receipt"))
+    elif spec is None and req.status is EffectStatus.VERIFIED:
+        claim_only = True
+
     # A settled verdict is accepted only when bound to a real dispatch.
     # Everything the receipt is checked against is read from the audit chain;
     # nothing here trusts the request about which dispatch it describes.
@@ -3241,21 +3369,27 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
         lineage, status = verify_effect_receipt(
             events=events,
             proposal_id=proposal_id,
-            claimed_status=req.status,
+            claimed_status=computed.status if computed is not None else req.status,
             tool_call_hash=req.tool_call_hash,
             grant_jti=req.grant_jti,
-            expected_sha256=req.expected_sha256,
-            observed_sha256=req.observed_sha256,
+            expected_sha256=(computed.expected_sha256 if computed is not None
+                             else req.expected_sha256),
+            observed_sha256=(computed.observed_sha256 if computed is not None
+                             else req.observed_sha256),
             verified_at=verified_at,
             verifier_identity=req.verifier_identity,
             # Bound to the authenticated principal just above, so it is the
             # one identity trusted for this receipt. An empty allowlist would
             # trust nobody.
             trusted_verifiers=(req.verifier_identity,),
-            reason_code=req.reason_code,
+            reason_code=(computed.reason_code if computed is not None
+                         else req.reason_code),
+            # A claim settles nothing, so it cannot make a later verdict a
+            # replay.
             already_recorded=[
                 e.get("payload", {}) for e in events
                 if e.get("event") == "effect_verified"
+                and not is_claimed_verdict(e.get("payload", {}))
             ],
         )
     except ReceiptRefused as exc:
@@ -3279,7 +3413,6 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
     # The record names the governed tool and spec, so both come from the
     # assessment in the chain. Copying them from the request let a receipt
     # store evidence about a tool or spec the dispatch never ran under.
-    tool_id, toolspec_hash = _assessed_tool_identity(events)
     for name, claimed, recorded in (("tool_id", req.tool_id, tool_id),
                                     ("toolspec_hash", req.toolspec_hash,
                                      toolspec_hash)):
@@ -3290,33 +3423,52 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
                         f"dispatch was assessed under {name}="
                         f"{recorded or '<none>'!r}"))
 
-    verification = EffectVerification(
-        proposal_id=proposal_id,
-        execution_id=req.execution_id,
-        tool_id=tool_id,
-        toolspec_hash=toolspec_hash,
-        status=status,
-        reason_code=req.reason_code,
-        verifier_identity=req.verifier_identity,
-        expected={}, observed={},
-        expected_sha256=req.expected_sha256,
-        observed_sha256=req.observed_sha256,
-        verified_at=verified_at,
-        detail=req.detail,
-        dispatch_id=lineage.dispatch_id,
-        tool_call_hash=lineage.tool_call_hash,
-        observed_state_hash=req.observed_state_hash,
-        verifier_version=req.verifier_version,
-        submitted_by=principal,
-        execution_context_hash=req.execution_context_hash,
-    )
+    if computed is not None:
+        verdict_source = "computed"
+        verification = dataclasses.replace(
+            computed, status=status, verified_at=verified_at,
+            dispatch_id=lineage.dispatch_id,
+            tool_call_hash=lineage.tool_call_hash,
+            observed_state_hash=req.source_revision or req.observed_state_hash,
+            verifier_version=req.verifier_version, detail=req.detail or computed.detail,
+            submitted_by=principal,
+            execution_context_hash=req.execution_context_hash,
+            evidence_refs=("verdict:computed", "receipt:unsigned",
+                           f"claimed_status:{req.status.value}"),
+        )
+    else:
+        verdict_source = "claimed" if claim_only else "attested"
+        verification = EffectVerification(
+            proposal_id=proposal_id,
+            execution_id=req.execution_id,
+            tool_id=tool_id,
+            toolspec_hash=toolspec_hash,
+            status=status,
+            reason_code=req.reason_code,
+            verifier_identity=req.verifier_identity,
+            expected={}, observed={},
+            expected_sha256=req.expected_sha256,
+            observed_sha256=req.observed_sha256,
+            verified_at=verified_at,
+            detail=req.detail,
+            dispatch_id=lineage.dispatch_id,
+            tool_call_hash=lineage.tool_call_hash,
+            observed_state_hash=req.observed_state_hash,
+            verifier_version=req.verifier_version,
+            submitted_by=principal,
+            execution_context_hash=req.execution_context_hash,
+            evidence_refs=(("verdict:claimed",) if claim_only else ()),
+        )
     try:
         audit = record_effect_verification(
             tenant, verification,
             submitted_by=principal,
             dispatch_id=lineage.dispatch_id,
+            # A claim settles nothing: a later computed verdict must still be
+            # able to settle the dispatch.
             settled_dispatch_id=(lineage.dispatch_id
-                                 if status.is_terminal else ""),
+                                 if status.is_terminal and not claim_only
+                                 else ""),
             self_attested=self_attested,
         )
     except EffectVerificationReplay as exc:
@@ -3329,12 +3481,19 @@ def record_effect(proposal_id: str, req: EffectVerificationRequest,
         raise HTTPException(status_code=409, detail=exc.reason) from exc
     return {
         "proposal_id": proposal_id,
-        # The adjudicated attestation status. REMORA binds and refuses; it
-        # cannot re-run the deployment's postcondition comparison.
+        # The recorded status, in EffectStatus vocabulary so clients keep
+        # parsing it. verdict_source says what REMORA stands behind: a
+        # computed verdict, an attested status that cannot raise the state,
+        # or a claim (a reported VERIFIED it had no contract to check), which
+        # the proposal shows as effect_state EFFECT_CLAIMED (SDD L7).
         "status": status.value,
+        "verdict_source": verdict_source,
+        "effect_state": "EFFECT_CLAIMED" if claim_only else None,
         "claimed_status": req.status.value,
+        "claim_disagrees": (computed is not None
+                            and req.status.value != status.value),
         "dispatch_id": lineage.dispatch_id,
-        "reason_code": req.reason_code,
+        "reason_code": verification.reason_code,
         "verifier_identity": req.verifier_identity,
         "self_attested": self_attested,
         # RMR-CR-008: an attestation by a verifier of this deployment, about
@@ -3447,69 +3606,20 @@ def record_signed_effect_receipt(proposal_id: str, req: SignedEffectReceiptReque
                     f"{principal!r} proposed or executed this call"))
 
     tool_id, toolspec_hash = _assessed_tool_identity(events)
-    bundle = _toolspec_bundle()
-    spec = bundle.get(tool_id) if bundle is not None and tool_id in bundle else None
-    if spec is None or spec.postcondition is None:
+    spec = _postcondition_spec_for(tool_id)
+    if spec is None:
         raise HTTPException(
             status_code=409,
             detail=(f"effect receipt refused (postcondition_not_declared): "
                     f"{tool_id!r} has no signed postcondition block, so REMORA "
                     "has no contract to evaluate"))
-    if spec.toolspec_hash != toolspec_hash:
-        raise HTTPException(
-            status_code=409,
-            detail=("effect receipt refused (toolspec_changed_since_assessment): "
-                    "the dispatch was assessed under another spec"))
-
-    # The arguments are the approved call's only if they hash to it.
-    from remora.policy.observation import canonical_tool_call_hash
-
-    target = next((str((e.get("payload") or e).get("target_environment") or "")
-                   for e in events if e.get("event") == "assessed"), "")
-    try:
-        argument_hash = canonical_tool_call_hash(
-            name=tool_id, arguments=req.arguments, tenant=tenant,
-            target=target or None)
-    except (TypeError, ValueError) as exc:
-        raise HTTPException(status_code=409, detail=(
-            f"effect receipt refused (arguments_not_the_dispatched_call): {exc}")) from exc
-    if argument_hash != lineage.tool_call_hash:
-        raise HTTPException(
-            status_code=409,
-            detail=("effect receipt refused (arguments_not_the_dispatched_call): "
-                    "the arguments do not hash to the dispatched call"))
-
-    from remora.governance.effect_verification import (
-        EffectStatus,
-        PostconditionContract,
-        verify_declared_delta,
-    )
-    from remora.toolcall.postcondition_spec import PostconditionSpecError
-
-    try:
-        contract: PostconditionContract = spec.postcondition.instantiate(
-            tool_id=tool_id, reader=str(spec.postcondition_reader),
-            arguments=req.arguments)
-    except PostconditionSpecError as exc:
-        raise HTTPException(status_code=409, detail=(
-            f"effect receipt refused (postcondition_not_instantiable): {exc}")) from exc
-
-    execution_id = lineage.execution_id or lineage.dispatch_id
-    computed = verify_declared_delta(
-        contract, receipt.observed, proposal_id=proposal_id,
-        execution_id=execution_id, toolspec_hash=toolspec_hash,
-        verifier_identity=record.kid)
-    if (receipt.pre_state_revision and receipt.source_revision
-            and receipt.pre_state_revision == receipt.source_revision
-            and computed.status in (EffectStatus.VERIFIED, EffectStatus.MISMATCH)):
-        # The object did not change across the dispatch, so whatever it holds
-        # is not attributable to this call (NEGATIVE_RESULTS §85, narrowed
-        # for systems that expose revisions).
-        computed = dataclasses.replace(computed, status=EffectStatus.UNOBSERVABLE,
-                           reason_code="postcondition_no_attributable_change",
-                           detail=("pre-state and observed revisions are equal "
-                                   f"({receipt.source_revision}); no change is "
-                                   "attributable to this dispatch"))
+    computed = _computed_postcondition_verdict(
+        events=events, lineage=lineage, tenant=tenant, proposal_id=proposal_id,
+        tool_id=tool_id, toolspec_hash=toolspec_hash, spec=spec,
+        arguments=req.arguments, observed=receipt.observed,
+        verifier_identity=record.kid,
+        pre_state_revision=receipt.pre_state_revision,
+        source_revision=receipt.source_revision)
 
     try:
         lineage, status = verify_effect_receipt(
@@ -3521,7 +3631,8 @@ def record_signed_effect_receipt(proposal_id: str, req: SignedEffectReceiptReque
             verified_at=receipt.observed_at, verifier_identity=record.kid,
             trusted_verifiers=(record.kid,), reason_code=computed.reason_code,
             already_recorded=[e.get("payload", {}) for e in events
-                              if e.get("event") == "effect_verified"],
+                              if e.get("event") == "effect_verified"
+                              and not is_claimed_verdict(e.get("payload", {}))],
         )
     except ReceiptRefused as exc:
         raise _receipt_refused(exc) from exc

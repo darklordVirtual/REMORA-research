@@ -846,3 +846,25 @@ evidence named.
    repository: `ANTHROPIC_API_KEY` (or an active `ant auth` profile) and
    `GROQ_API_KEY`. Spend caps set in the harness.
 10. Only then the test-split runs, once each.
+
+**Status note (2026-10-19).** No item above is ticked. One PR adds the harness
+code of item 2 and the part of item 5 that needs no model call. Nothing was
+run on InjecAgent or BFCL data. No model was called, no registry was
+generated and no manifest was written.
+
+- Item 2. The shared run gate, budget guard and registry labellers are in
+  `experiments/sap_v7_addenda/`. Q6 is in `experiments/injection_eval/` and Q7
+  in `experiments/routing_baselines/`, including `labels.py`, both prompts and
+  `ig_rules_v1.gr`. The runners are `scripts/run_injection_eval.py` and
+  `scripts/run_routing_baselines.py`, and both refuse to run without a locked
+  manifest. The prompts and rules were written from this plan and from
+  hand-written traces. No development entry was read. The analysis code for
+  H4a to H7 is not written yet.
+- Item 5. `invariant-ai==0.3.5` was installed in a separate virtual
+  environment (Python 3.13.7) and run once on a hand-written trace. All six
+  cases gave the expected verdict (`experiments/routing_baselines/ig_dev_check_v1.json`).
+  Whether it installs in the pinned run environment is checked at seal time.
+- Exposure. While writing the harness the author hashed both pinned
+  checkouts, read InjecAgent's prompt and evaluator code, and printed field
+  names and counts of the data files. No case text, question or answer was
+  printed.

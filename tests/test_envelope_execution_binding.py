@@ -104,11 +104,29 @@ def test_a_verified_effect_outranks_the_dispatch_verdict() -> None:
         "verified_at": "2026-08-20T12:00:00+00:00",
         "verifier_identity": "cmms-reader",
         "expected_sha256": "e", "observed_sha256": "e",
+        # A verdict REMORA computed (SDD L7).
+        "evidence_refs": ["verdict:computed"],
     })
     envelope = _project([ASSESSED, APPROVED, AUTHORIZED, RESULT, verified],
                         DISPATCH)
     assert envelope.effect.effect_outcome == "EFFECT_VERIFIED"
     assert envelope.effect.ledger_entry["effect_verifier_identity"] == "cmms-reader"
+
+
+def test_a_claimed_verified_never_reaches_the_envelope_as_verified() -> None:
+    """SDD L7: a digest-only VERIFIED is the submitter's word."""
+    claimed = _event(4, "effect_verified", {
+        "proposal_id": "p-1",
+        "status": "EFFECT_VERIFIED",
+        "reason_code": "MATCH",
+        "verified_at": "2026-08-20T12:00:00+00:00",
+        "verifier_identity": "cmms-reader",
+        "expected_sha256": "e", "observed_sha256": "e",
+    })
+    envelope = _project([ASSESSED, APPROVED, AUTHORIZED, RESULT, claimed],
+                        DISPATCH)
+    assert envelope.effect.effect_outcome == "EFFECT_CLAIMED"
+    assert envelope.effect.ledger_entry["effect_verdict_source"] == "claimed"
 
 
 def test_a_mismatch_is_carried_not_smoothed() -> None:
