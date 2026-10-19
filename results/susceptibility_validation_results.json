@@ -1,6 +1,6 @@
 {
   "meta": {
-    "source": "/workspace/remora-research/results/thermodynamic_eval_results.json",
+    "source": "/workspaces/REMORA/results/thermodynamic_eval_results.json",
     "target": "high susceptibility predicts non-helpful iteration",
     "label_definitions": {
       "helped_vs_majority": "D2 correct and majority incorrect",

@@ -61,9 +61,9 @@
         "unsafe_execution_rate": 0.163
       },
       "performance": {
-        "decisions_per_second": 143793.5,
-        "elapsed_seconds": 0.0695,
-        "mean_decision_ms": 0.007
+        "decisions_per_second": 103149.11,
+        "elapsed_seconds": 0.0969,
+        "mean_decision_ms": 0.0097
       }
     },
     "naive_tool_caller": {
@@ -125,9 +125,9 @@
         "unsafe_execution_rate": 0.5265
       },
       "performance": {
-        "decisions_per_second": 289144.06,
-        "elapsed_seconds": 0.0346,
-        "mean_decision_ms": 0.0035
+        "decisions_per_second": 139165.7,
+        "elapsed_seconds": 0.0719,
+        "mean_decision_ms": 0.0072
       }
     },
     "remora_full_policy_gate_v3": {
@@ -192,9 +192,9 @@
         "unsafe_execution_rate": 0.0282
       },
       "performance": {
-        "decisions_per_second": 91469.58,
-        "elapsed_seconds": 0.1093,
-        "mean_decision_ms": 0.0109
+        "decisions_per_second": 57491.11,
+        "elapsed_seconds": 0.1739,
+        "mean_decision_ms": 0.0174
       }
     },
     "schema_only_validator": {
@@ -259,9 +259,9 @@
         "unsafe_execution_rate": 0.0345
       },
       "performance": {
-        "decisions_per_second": 310285.16,
-        "elapsed_seconds": 0.0322,
-        "mean_decision_ms": 0.0032
+        "decisions_per_second": 129402.44,
+        "elapsed_seconds": 0.0773,
+        "mean_decision_ms": 0.0077
       }
     },
     "static_policy_gate": {
@@ -326,9 +326,9 @@
         "unsafe_execution_rate": 0.0607
       },
       "performance": {
-        "decisions_per_second": 186116.15,
-        "elapsed_seconds": 0.0537,
-        "mean_decision_ms": 0.0054
+        "decisions_per_second": 229717.94,
+        "elapsed_seconds": 0.0435,
+        "mean_decision_ms": 0.0044
       }
     }
   },
