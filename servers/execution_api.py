@@ -853,7 +853,9 @@ def _auth(request: Request) -> tuple[str, str, str]:
         # per-route, so a new POST route cannot forget it; reads stay
         # unlimited.
         api_mod._enforce_execution_rate_limit(tenant)
-    return tenant, role, api_mod._authenticated_principal(request)
+    principal = api_mod._authenticated_principal(request)
+    _FLOW_PRINCIPAL.set(principal)
+    return tenant, role, principal
 
 
 import hashlib
@@ -1078,6 +1080,66 @@ def _flow_contexts() -> Any:
                         policy = ProcessingPolicy.from_mapping(json.load(fh))
                 _FLOW_CONTEXTS = FlowContextStore(store, policy)
     return _FLOW_CONTEXTS
+
+
+_FLOW_HANDLES: Any = None
+
+# The authenticated principal of the request being served, set by ``_auth``.
+# Flow contexts belong to a principal, and the observation builders take only
+# the tenant. Unset (a worker re-gate, a direct call) reads as no principal,
+# which F2 refuses.
+_FLOW_PRINCIPAL: _contextvars.ContextVar[str | None] = (
+    _contextvars.ContextVar("remora_flow_principal", default=None)
+)
+
+
+def _flow_handles() -> Any:
+    """The handle store. Nothing mints handles before IFC-04b, so any handle a
+    call presents is unknown and refused (F2); per-process, which fails the
+    same way after a restart."""
+    global _FLOW_HANDLES
+    if _FLOW_HANDLES is None:
+        with _LAZY_INIT_LOCK:
+            if _FLOW_HANDLES is None:
+                from remora.flow.handles import HandleStore, InMemoryHandleBackend
+
+                _FLOW_HANDLES = HandleStore(InMemoryHandleBackend())
+    return _FLOW_HANDLES
+
+
+def _with_flow(obs: PolicyObservation, req: ToolCallRequest, tenant: str) -> PolicyObservation:
+    """Add the server-derived flow fields (IFC-05b) when flow control is on.
+
+    The only writer of ``flow_*`` on the execution path; no request field can
+    set one. Off, the observation is returned unchanged and the v5 decision
+    stands.
+    """
+    if not _flow_control_enabled():
+        return obs
+    from remora.enforcement.custody import custody_is_enforced
+    from remora.flow.observe import flow_observation
+
+    fields = flow_observation(
+        contexts=_flow_contexts(), handles=_flow_handles(), tenant=tenant,
+        principal=_FLOW_PRINCIPAL.get(), context_id=req.context_id,
+        flow=_flow_spec(req.tool_name), arguments=req.arguments,
+        strict=custody_is_enforced())
+    return dataclasses.replace(obs, **fields)
+
+
+def _flow_spec(tool_name: str) -> Any:
+    """The signed ToolSpec's ``flow`` block, or None (no bundle, no spec, no block).
+
+    An unknown tool is refused by ``_resolve_toolspec`` on its own; here it
+    only means no block, which the strict profile refuses (F3).
+    """
+    bundle = _toolspec_bundle()
+    if bundle is None:
+        return None
+    try:
+        return bundle.get(tool_name).flow
+    except ToolSpecRefused:
+        return None
 
 
 _EFFECT_RESOLVER: Any = None
@@ -1740,7 +1802,8 @@ def _observation_with_context(
         ),
     )
     if full is None:
-        return _registry_only_observation(req, tenant, registry_entry), context
+        return _with_flow(_registry_only_observation(req, tenant, registry_entry),
+                          req, tenant), context
 
     target_environment = _effective_target_environment(
         registry_entry.get("target_environment"), req.target_environment
@@ -1776,7 +1839,7 @@ def _observation_with_context(
             target=target_environment,
         ),
     )
-    return obs, context
+    return _with_flow(obs, req, tenant), context
 
 
 def semantic_call_context(

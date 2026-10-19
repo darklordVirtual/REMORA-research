@@ -245,7 +245,7 @@ def test_remora_provenance_json():
     assert r.returncode == 0, r.stderr
     d = json.loads(r.stdout)
     assert len(d["policy_bundle_hash"]) == 64
-    assert len(d["policy_bundle_manifest"]) == 10  # COMP-01 plus IFC-03 flow sources
+    assert len(d["policy_bundle_manifest"]) == 12  # COMP-01, IFC-03 and IFC-05b flow sources
     assert "remora_version" in d
 
 

@@ -195,7 +195,8 @@ def _hard_guards(
 ) -> list[tuple[DecisionAction, DecisionReason]]:
     """Every unconditional hard guard that fires, in the engine's priority order."""
     fired: list[tuple[DecisionAction, DecisionReason]] = []
-    for guard in (_guard_admission, _guard_schema, _guard_forbidden, _guard_scope,
+    for guard in (_guard_flow_state, _guard_flow_confidentiality, _guard_flow_integrity,
+                  _guard_admission, _guard_schema, _guard_forbidden, _guard_scope,
                   _guard_intent_provenance, _guard_coercion, _guard_blackmail,
                   _guard_counterfactual, _guard_contradiction, _guard_taint):
         result = guard(obs)
@@ -205,6 +206,41 @@ def _hard_guards(
 
 
 _GuardResult = tuple[DecisionAction, DecisionReason] | None
+
+
+#: F1 to F3: a flow status that leaves the verdict unknown (SDD v1.3 §3.7).
+_FLOW_STATE_REFUSALS: dict[str, DecisionReason] = {
+    "state_unavailable": DecisionReason.FLOW_STATE_UNAVAILABLE,
+    "context_unknown": DecisionReason.FLOW_CONTEXT_UNKNOWN,
+    "handle_invalid": DecisionReason.FLOW_HANDLE_INVALID,
+    "policy_missing": DecisionReason.TOOLSPEC_FLOW_POLICY_MISSING,
+}
+
+
+def _guard_flow_state(obs: PolicyObservation) -> _GuardResult:
+    status = obs.flow_status
+    if status is None or status in ("evaluated", "not_declared"):
+        return None
+    # A status this engine does not know is read as an unavailable store:
+    # nothing about the flow can be shown, so nothing may run.
+    return DecisionAction.ABSTAIN, _FLOW_STATE_REFUSALS.get(
+        status, DecisionReason.FLOW_STATE_UNAVAILABLE)
+
+
+def _guard_flow_confidentiality(obs: PolicyObservation) -> _GuardResult:
+    # F4. Only a declassification grant, which changes the verdict, lifts it.
+    if obs.flow_status == "evaluated" and obs.flow_confidentiality_violation:
+        return DecisionAction.ESCALATE, DecisionReason.FLOW_CONFIDENTIALITY_VIOLATION
+    return None
+
+
+def _guard_flow_integrity(obs: PolicyObservation) -> _GuardResult:
+    # F5 below CRITICAL, F6 at CRITICAL.
+    if obs.flow_status == "evaluated" and obs.flow_integrity_violation:
+        if _normalize_risk_tier(obs.risk_tier) == "critical":
+            return DecisionAction.ESCALATE, DecisionReason.FLOW_INTEGRITY_VIOLATION_ESCALATE
+        return DecisionAction.VERIFY, DecisionReason.FLOW_INTEGRITY_VIOLATION_VERIFY
+    return None
 
 
 def _guard_admission(obs: PolicyObservation) -> _GuardResult:
@@ -1877,9 +1913,10 @@ class RemoraDecisionEngine:
             explanation=explanation_map[action],
             raw_observation=raw_obs if raw_obs is not None else obs,
             source_of_decision=source,
+            # v6 (2026-10-19): flow rungs F1 to F6 (IFC-05b).
             # v5 (2026-07-31): temperature ACCEPT excludes the critical phase.
             # v4 (2026-07-30): tier-dependent tainted floor (issue #40).
-            policy_version="RemoraDecisionEngine-v5",
+            policy_version="RemoraDecisionEngine-v6",
             in_sample_calibration_warning=(
                 "temperature threshold may be in-sample if derived from evaluation artifact"
                 if DecisionReason.TEMPERATURE_ACCEPT in reasons and self.temperature_threshold is not None

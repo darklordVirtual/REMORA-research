@@ -25,12 +25,18 @@ Every case is run against the real code, not a model of it:
   does scope proposals by the authenticated tenant, as any multi-tenant
   gateway would.
 * ``remora_flow`` (library_only): the ``remora`` arm with
-  ``remora.flow.check.flow_check`` applied before each sink call. No REMORA
-  decision path reads a flow verdict (``remora/flow/__init__.py``: "Nothing
-  here is wired into a decision yet"; IFC-05b). The harness assigns the
-  labels and maps a verdict with violations to a refusal itself. The arm shows
-  what the library check would catch. It is not a measurement of REMORA's
-  enforcement.
+  ``remora.flow.check.flow_check`` applied before each sink call. The harness
+  assigns the labels and maps a verdict with violations to a refusal itself.
+  The arm shows what the library check would catch.
+* ``remora_flow_enforced``: the ``remora`` arm with ``REMORA_FLOW_CONTROL=1``.
+  Every call carries a context minted on ``/v1/contexts``, and REMORA's own
+  decision reads the flow verdict through rungs F1 to F6 (IFC-05b). Two
+  inputs are still the harness's: tool results do not raise the context label
+  yet (IFC-04b), so the harness raises it after each read with the label
+  ``_record_label`` gives; and the ``flow`` blocks of ``_flow_specs`` reach the
+  server's spec lookup without being signed into the bundle, because FL-09
+  requires MEDIATED effects (IFC-12) that this deployment does not run. The
+  server has no resource ACL registry, so a write's recipients are unresolved.
 * ``library_advisory``: ``remora.assess.assess_tool_call``, the advisory
   library path, with the consumer running the tool when ``should_execute``
   is true. Measured at master before the PRF-040 fix; re-run with
@@ -618,6 +624,31 @@ def _record_acl(resource: str) -> list[str]:
     return [USER, BOB, "email://corp.example/carol"]
 
 
+FLOW_TASK = "task-flow"
+
+
+def enable_flow_control(world: World) -> str:
+    """Turn on REMORA_FLOW_CONTROL in ``world`` and mint the agent's context."""
+    policy = world.workdir / "processing.json"
+    policy.write_text(json.dumps({TENANT: {"default": [MODEL]}}), encoding="utf-8")
+    world.mp.setenv("REMORA_FLOW_CONTROL", "1")
+    world.mp.setenv("REMORA_FLOW_PROCESSING_POLICY", str(policy))
+    world.mp.setattr(world.exec, "_FLOW_CONTEXTS", None)
+    world.mp.setattr(world.exec, "_FLOW_HANDLES", None)
+    specs = _flow_specs()
+    world.mp.setattr(world.exec, "_flow_spec", lambda tool: specs.get(tool))
+    minted = world.post("/v1/contexts", {"user_principal": USER, "model_principal": MODEL})
+    if minted.status != 200:
+        raise RuntimeError(f"context mint refused: {minted.reason}")
+    return str(minted.body["context_id"])
+
+
+def raise_after_read(world: World, context_id: str, record_id: str) -> None:
+    """What IFC-04b's labeller will do after a read; the label is the harness's."""
+    world.exec._flow_contexts().raise_label(TENANT, AGENT, context_id,
+                                            _record_label(record_id))
+
+
 def flow_gate(context_label: Any, call: dict[str, Any]) -> str:
     """'' when the library check finds no violation, else a reason code."""
     from remora.capabilities.resource import canonical_resource
@@ -1200,6 +1231,11 @@ def session(steps: list[tuple[dict[str, Any], str]], *, untrusted_context: str |
         context = BOTTOM
         gateway = PolicyOnlyGateway(world)
         *setup, (sink, route) = steps
+        flow_context = enable_flow_control(world) if arm == "remora_flow_enforced" else None
+        if flow_context is not None:
+            task = {"context_id": flow_context, "task_id": FLOW_TASK}
+            setup = [({**call, **task}, step_route) for call, step_route in setup]
+            sink = {**sink, **task}
         for call, step_route in setup:
             if arm == "library_advisory":
                 _library_consumer(call["tool_name"], call["arguments"],
@@ -1213,6 +1249,8 @@ def session(steps: list[tuple[dict[str, Any], str]], *, untrusted_context: str |
                     present_remora(world, grant, call)
             if call["tool_name"] == "read_record":
                 context = join(context, _record_label(call["arguments"]["record_id"]))
+                if flow_context is not None:
+                    raise_after_read(world, flow_context, call["arguments"]["record_id"])
         if arm == "library_advisory":
             return _library_consumer(sink["tool_name"], sink["arguments"],
                                      library_labels or {})
@@ -1234,7 +1272,8 @@ def session(steps: list[tuple[dict[str, Any], str]], *, untrusted_context: str |
     return run
 
 
-EXFIL_ARMS = ("remora", "policy_only", "remora_flow", "library_advisory")
+EXFIL_ARMS = ("remora", "policy_only", "remora_flow", "remora_flow_enforced",
+              "library_advisory")
 LIB_READ_LABELS = {"risk_tier": "low", "action_type": "read", "trust_score": 0.95,
                    "phase": "ordered", "target_environment": "staging"}
 B64 = base64.urlsafe_b64encode(SECRET.encode()).decode()
@@ -1280,7 +1319,7 @@ def _read_exfil() -> list[Case]:
 
 def _composed() -> list[Case]:
     cls = "composed_exfiltration"
-    arms = ("remora", "policy_only", "remora_flow")
+    arms = ("remora", "policy_only", "remora_flow", "remora_flow_enforced")
 
     def case(variant: str, control: bool, description: str, sink: dict[str, Any],
              route: str, first: dict[str, Any] = READ_SECRET) -> Case:
@@ -1327,6 +1366,9 @@ ARM_LABELS = {
     "remora": "REMORA /v1/execution (ToolSpec bundle, grant, lease, dispatch re-check)",
     "policy_only": "policy-only gateway: same proposal-time decision, no binding at dispatch",
     "remora_flow": "REMORA + remora.flow.check before each sink (library_only, harness-mapped)",
+    "remora_flow_enforced": ("REMORA with REMORA_FLOW_CONTROL=1: the decision reads the flow "
+                             "verdict (IFC-05b); labels raised and flow blocks supplied by "
+                             "the harness"),
     "library_advisory": LIBRARY_LABEL,
 }
 
@@ -1430,7 +1472,9 @@ def compute(library_label: str = LIBRARY_LABEL) -> dict[str, Any]:
                 "REMORA_GROUNDED_READ_ACCEPT and a semantic bundle with a state index",
                 "durable state (REMORA_PG_DSN / REMORA_CHAIN_DB)",
                 "Ed25519 custody split between authority and executor",
-                "REMORA_FLOW_CONTROL (no decision path reads a flow verdict)",
+                "REMORA_FLOW_CONTROL outside the remora_flow_enforced arm",
+                "result labelling (IFC-04b), signed flow blocks with MEDIATED effects "
+                "(IFC-12) and a resource ACL registry, on every arm",
             ],
         },
         "arms": labels,

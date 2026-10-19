@@ -79,7 +79,7 @@
 % Paper version - kept in lockstep with paper/remora_paper.md by
 % scripts/check_paper_sync.py (CI-enforced). The version and revision
 % strings below MUST match the .md version line.
-\newcommand{\paperversion}{Preprint v0.12.0, revision 2026-10-17; repository release tag \texttt{v0.12.0}}
+\newcommand{\paperversion}{Preprint v0.12.0, revision 2026-10-19; repository release tag \texttt{v0.12.0}}
 
 \author{
   Stian Skogbrott\thanks{Developer and maintainer of REMORA. Luftfiber AS.
@@ -115,6 +115,9 @@ tool, argument set, target and policy bundle. A single-use grant is consumed
 at an enforcement point that re-evaluates policy. The lifecycle records
 \emph{authorized}, \emph{dispatched}, \emph{executed} and \emph{verified
 effect} as separate claims. Model consensus cannot override a hard block.
+The thesis is architectural: authority to act comes from signed,
+deployment-owned artifacts and a deterministic gate, never from the model's
+own judgment, and each step of that authority can be checked afterwards.
 
 Its mechanisms are individually known: capabilities with caveats, reference
 monitors, policy engines and tamper-evident logs. The contribution is a
@@ -149,15 +152,18 @@ track, C-ext4, spent the remaining BFCL v4 reserve (1{,}562 episodes) on a
 revised bundle. It accepted 29.9\% of correct calls against 6.9\% for the
 C-ext3 bundle and accepted no wrong call, as did a refuse-all control. The
 gain sits on tools seen during development, so transfer to new tool families
-is untested (CLAIM-021). The earlier sealed track's 10.9\% wrong-call rate is
-kept as the baseline (CLAIM-018, superseded by CLAIM-019).
+is untested (CLAIM-021). The earlier sealed track's 10.9\% wrong-call rate,
+measured on another sample without contracts, is kept on record and is not
+a baseline for C-ext3 (CLAIM-018, superseded by CLAIM-019).
 
 Each result cites its claim-register entry, and machine-readable capability
 and boundary declarations state what the system establishes and what it does
 not. A post-hoc attack evaluation of the execution chain, on the author's
 own catalogue, is in \S\ref{sec:negative}. REMORA ran none of 43 chain
 attacks and a policy-only gateway ran 33, while the secret reached the sink
-in all 11 exfiltrations built from allowed calls, on both. One
+in all 11 exfiltrations built from allowed calls, on both. With an opt-in
+flow check in the decision and context labels the harness assigns, REMORA
+ran none of 10 exfiltrations and 2 of 4 benign controls. One
 frozen interoperability contract has two external fixture-level runs that
 meet the repository's independence rule; production enforcement
 remains unestablished, and the declared deployment status is
@@ -189,7 +195,7 @@ statement can be traced.
   C-ext3, SAP v6 governs C-ext4, and SAP v7 is a draft.
 \item[C-ext2, C-ext3, C-ext4] three sealed evaluation tracks on disjoint
   rows of BFCL v4, each run once. C-ext2 measured the routing pipeline
-  (CLAIM-018, superseded by CLAIM-019 and kept as the wrong-call baseline). C-ext3 added declared tool contracts and task intents
+  (CLAIM-018, superseded by CLAIM-019 and kept on record; its sample differs, so it is not a baseline for C-ext3). C-ext3 added declared tool contracts and task intents
   (CLAIM-019). C-ext4 spent the remaining reserve on a revised bundle
   (CLAIM-021).
 \item[Arm F, F1, V2D] evaluation arms. Arm F is the confirmatory C-ext3
@@ -200,8 +206,8 @@ statement can be traced.
   exact-call binding, fresh authority, effect evidence and the runtime
   capability surface (\S\ref{sec:federation}). CP-F1 to CP-F4 are the four
   findings of the contract probes against the federation transport.
-\item[Status values] \texttt{NOT\_ESTABLISHED}, \texttt{NOT\_INDEPENDENT},
-  \texttt{EXTERNALLY\_VERIFIED} and \texttt{INDEPENDENT} are status values in
+\item[Status values] \texttt{NOT\_\allowbreak ESTABLISHED}, \texttt{NOT\_\allowbreak INDEPENDENT},
+  \texttt{EXTERNALLY\_\allowbreak VERIFIED} and \texttt{INDEPENDENT} are status values in
   the capability, boundary and interoperability declarations
   (\S\ref{sec:federation}, \S\ref{sec:boundary-declarations}).
 \item[SHADOW\_ONLY] the declared deployment status. Shadow-mode operation is
@@ -350,10 +356,10 @@ Appendices~\ref{app:consensus}--\ref{app:mondrian}.
 \centering\footnotesize
 \caption{Headline results. Every row is bound to the claim register; BFCL
   wrong calls are cross-task substitutions (\S\ref{sec:routing-blind});
-  CLAIM-018 is superseded by CLAIM-019 and kept as the wrong-call baseline.
+  CLAIM-018 is superseded by CLAIM-019 and kept on record; it was measured on another sample and is not a baseline for C-ext3.
   The AgentHarm false-block floor (at most 40\%) was pre-registered for the
   re-scoring of the same 208 benign scenarios and is recorded as missed
-  (\texttt{artifacts/verify\_protocols/agentharm\_rescore\_v1.json};
+  (\texttt{artifacts/\allowbreak verify\_protocols/\allowbreak agentharm\_rescore\_v1.json};
   NEGATIVE\_RESULTS.md \S19).}
 \begin{tabular}{@{}p{0.40\columnwidth}p{0.54\columnwidth}@{}}
 \toprule
@@ -552,8 +558,8 @@ control/data-flow separation and solves 77\% of AgentDojo tasks, against
 frontier and pre-empt any reading of REMORA's zero-FAR corner point as
 sufficient. REMORA's own execution chain
 (\S\ref{sec:execution-chain}) is capability-based enforcement of the same
-family, applied per call. Unlike CaMeL it does not track data flow, so it
-does not stop an exfiltration composed of individually authorized calls
+family, applied per call. Unlike CaMeL it does not track data flow by
+default, so it does not stop an exfiltration composed of individually authorized calls
 (\S\ref{sec:negative}). Its contribution is not the corner but the
 integrated chain and the claim-governed evaluation around it.
 
@@ -786,8 +792,11 @@ reads the tool name, the registry's labels and the call's binding. It does
 not read what an argument carries or where a call sends it. A low-risk read
 whose URL carries a secret is therefore within the attacker's reach and is
 not defended. An argument-content and destination policy has to come from
-the information-flow check (\texttt{remora.flow}), and no decision reads
-its verdict yet (\S\ref{sec:negative}).
+the information-flow check (\texttt{remora.flow}). With
+\texttt{REMORA\_FLOW\_CONTROL=1} the decision reads its verdict, but tool
+results do not yet raise a context's label, so this posture is measured
+only with labels a harness assigns and is off by default
+(\S\ref{sec:negative}).
 
 \paragraph{Injection patterns are a hint.} The admission firewall escalates
 a few known injection phrasings by substring match. A paraphrase passes it,
@@ -800,8 +809,9 @@ governed dispatcher through alternate credential, network or execution
 paths, or privileged effects that an authorized tool's implementation can
 reach (\S\ref{sec:boundary-declarations}). It does not cover exfiltration
 through an authorized call's arguments, or composed of individually
-authorized calls, because REMORA does not track data flow
-(\S\ref{sec:related}). A strategically subversive agent,
+authorized calls, because by default REMORA does not track data flow
+(\S\ref{sec:related}). The opt-in flow check is not part of the evaluated
+threat model (\S\ref{sec:negative}). A strategically subversive agent,
 collusion between monitors and monitor evasion are open items for the
 red-team plan. Compromise of the host, the keys, or the ToolSpec, policy
 or intent sources is excluded, as are availability attacks such as
@@ -1947,13 +1957,15 @@ confidence score moves it.
 vehicle status; the agent proposes \texttt{get\_work\_order} with a work-order
 identifier that happens to appear elsewhere in the task. Schema valid,
 arguments satisfiable, values grounded, nothing tainted: every signal in
-Call A's ladder is satisfied. The superseded C-ext2 track measured
-wrong-call acceptance at 10.9\% without contracts (CLAIM-018). A declared
+Call A's ladder is satisfied. A declared
 tool contract does: the task targets a vehicle, the tool acts on a work order,
 and the mismatch is established rather than merely unverified. The sealed
 C-ext3 track measured that authority with the frozen contract bundle and the
-semantic-authority floor: native wrong-call acceptance fell to 0/500
-(\S\ref{sec:wrongcall-implication}). That measurement does not cover Call C.
+semantic-authority floor. On the same 500 wrong calls, the structural arm
+accepted 24 and the full configuration 0 (a paired test run after the fact,
+\S\ref{sec:wrongcall-implication}). The superseded C-ext2 rate (10.9\%,
+CLAIM-018) was measured on another sample and is not a before-and-after
+comparison. That measurement does not cover Call C.
 Only 2 of its 500 wrong calls name a tool the task itself offered
 (NEGATIVE\_RESULTS.md \S83), so confusing two tools of one catalogue, as
 here, is untested. The draft SAP v7 is to test it with wrong calls drawn
@@ -2021,7 +2033,16 @@ The secret reached the sink in all 11 such attacks on both arms, either in a
 read's URL or sent by a later allowed call. REMORA does not claim
 trajectory-level or data-flow enforcement. The information-flow systems in
 \S\ref{sec:related} \cite{wu2024fsecure,costa2025fides} target that case.
-REMORA's own flow check is a library that no decision reads yet. The
+REMORA's own flow check now enters the decision when
+\texttt{REMORA\_FLOW\_CONTROL=1} (rungs F1 to F6 of the hard floor). With
+it on, REMORA ran none of the 10 exfiltrations it was run on and no secret
+reached a sink. A reviewer's approval does not release a confidentiality
+violation; only a declassification grant could, and grants are not built.
+The cost was 2 of 4 benign controls: a public fetch after the secret read,
+and a write whose readers no registry resolves. The context labels in that
+run are raised by the harness after each read, because tool results do not
+yet raise them. This measures the decision rule, not derived
+information-flow control end to end. The
 catalogue is the author's own and is not an external benchmark. It runs in
 one profile with in-process state and HMAC signing. Contribution~1 is
 therefore a design and artifact contribution with a descriptive, author-run
@@ -2039,7 +2060,7 @@ correlation without removing it.
 The selective threshold $\tau^* = 0.4991$ was chosen on a 436-item training
 split and evaluated on the 108-item holdout of the same 544-item corpus, and
 the signal and coverage target were chosen from an earlier run on that corpus
-(\texttt{results/selective\_n500\_holdout\_results.json}); the SAP v1 round
+(\path{results/selective_n500_holdout_results.json}); the SAP v1 round
 locked $\tau^* = 0.203$ and is superseded; the decision envelope records this in
 \texttt{in\_sample\_calibration\_warning}.
 

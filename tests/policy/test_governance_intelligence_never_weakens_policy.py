@@ -108,7 +108,7 @@ class TestBackwardsCompatibility:
         )
         report = ENGINE.decide(obs)
         assert report.action == DecisionAction.ACCEPT
-        assert report.policy_version == "RemoraDecisionEngine-v5"
+        assert report.policy_version == "RemoraDecisionEngine-v6"
 
     def test_decision_report_schema_stable_through_enriched_path(self):
         from remora.governance_intelligence.enrichment import enrich_then_decide

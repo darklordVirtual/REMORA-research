@@ -33,6 +33,13 @@ HARD_GUARD_REASONS = frozenset({
     "tool_not_in_available_set",
     "capability_not_allowed",
     "loop_safety_escalate",
+    "flow_state_unavailable",
+    "flow_context_unknown",
+    "flow_handle_invalid",
+    "toolspec_flow_policy_missing",
+    "flow_confidentiality_violation",
+    "flow_integrity_violation_verify",
+    "flow_integrity_violation_escalate",
 })
 
 
