@@ -545,6 +545,19 @@
       "EffectVerificationRequest": {
         "description": "A verification observed by the deployment, submitted for recording.\n\nVerification runs where the credentials are, which is the product's\nprocess — REMORA never reaches into a customer's system of record to\ncheck on it. What crosses back is this record, and the chain stores it\nas an **attestation by a named verifier**, not as an independent proof\nby REMORA. ``verifier_identity`` is therefore mandatory: an\nattestation nobody signed is not evidence, because an auditor could\nnot tell who claimed to have looked.\n\nWhat changed, and why the extra fields exist: the recorder used to accept\nany status for any existing proposal, so a proposal that was assessed and\nnever executed could be recorded EFFECT_VERIFIED. The receipt is now bound\nto a dispatch in the audit chain. REMORA adjudicates whether a settled\nattestation is bound, fresh, attributable, unreplayed and re-checkable; it\ndoes not derive VERIFIED because it does not hold the comparison rules.\nSee\n``remora.governance.effect_receipt``.",
         "properties": {
+          "arguments": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The approved call's arguments, accepted only when they hash to the dispatched call. Required with observed.",
+            "title": "Arguments"
+          },
           "detail": {
             "default": "",
             "maxLength": 2000,
@@ -579,6 +592,19 @@
             "title": "Grant Jti",
             "type": "string"
           },
+          "observed": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The object the verifier read. Required for EFFECT_VERIFIED when the tool's signed ToolSpec declares a postcondition: REMORA then computes the status from it and records the submitted one beside it (SDD L7).",
+            "title": "Observed"
+          },
           "observed_sha256": {
             "default": "",
             "description": "Lowercase hex SHA-256, or empty.",
@@ -594,10 +620,22 @@
             "title": "Observed State Hash",
             "type": "string"
           },
+          "pre_state_revision": {
+            "default": "",
+            "maxLength": 128,
+            "title": "Pre State Revision",
+            "type": "string"
+          },
           "reason_code": {
             "maxLength": 100,
             "minLength": 1,
             "title": "Reason Code",
+            "type": "string"
+          },
+          "source_revision": {
+            "default": "",
+            "maxLength": 128,
+            "title": "Source Revision",
             "type": "string"
           },
           "status": {

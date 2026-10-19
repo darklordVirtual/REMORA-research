@@ -234,7 +234,7 @@ backend.
 ## PolicyObservation, input contract
 
 `PolicyObservation` (`remora/policy/observation.py`) is a frozen dataclass
-with 77 fields; on the research `/v1/assess` path **all fields except
+with 82 fields; on the research `/v1/assess` path **all fields except
 `question` are optional and caller-populated**, REMORA is stateless and
 performs no detection itself (the engine treats `None` as "unknown, not
 safe"); see the assess-time authorities subsection below for the two
@@ -255,6 +255,7 @@ Selected fields by group:
 | Verification | `counterfactual_passed`, `distribution_shift_detected`, `classification_confidence`, `classification_alternatives`, `model_misspecification_risk` |
 | Session & fleet | `session_action_count`, `session_cumulative_risk`, `similar_action_seen_count`, `policy_generalization_risk`, `fleet_level_effect` |
 | Binding | `tool_call_hash`, SHA-256 of the full canonical tool call (name, exact args, tenant, target); recompute before execution and refuse on mismatch |
+| Flow control | `flow_status`, `flow_confidentiality_violation`, `flow_integrity_violation`, `flow_epoch`, `flow_digest`. Set only by `/v1/execution/*` with `REMORA_FLOW_CONTROL=1`, from the flow context and the signed ToolSpec; no request field sets them. Rungs F1 to F6 read the first three (IFC-05b) |
 | Execution identity | `execution_context_hash`, optional digest of deployment-owned context captured before assessment and bound through authorization, dispatch and effect evidence; see [execution quickstart](deployment/execution-quickstart.md#optional-authoritative-execution-context) |
 
 Construct from a dict with `PolicyObservation.from_json_record(record)`
@@ -604,9 +605,18 @@ an optional `q_principal` and an optional `parent_context_id`. The response
 is the server-minted `context_id` and `label_epoch`. Every processor must be
 authorized by the processing policy in `REMORA_FLOW_PROCESSING_POLICY`;
 otherwise the mint is a 403 `processing_not_authorized`. The route needs
-`assess`. With the switch off it is a 409 `flow_control_disabled`. Labels
-are not yet raised by tool results, so a context does not change any
-decision in this release.
+`assess`. With the switch off it is a 409 `flow_control_disabled`.
+
+With the switch on, `/v1/execution/assess` and the re-gates at execute and
+dispatch run the flow check for every call (IFC-05b). The call must carry a
+`context_id` minted here, by the same principal; otherwise it ABSTAINs with
+`flow_context_unknown`. Other refusals are `flow_state_unavailable`,
+`flow_handle_invalid` and `toolspec_flow_policy_missing` (ABSTAIN),
+`flow_confidentiality_violation` (ESCALATE) and
+`flow_integrity_violation_verify` or `_escalate`. A refusal carries the code
+and nothing about recipients, fields or handles. Tool results do not yet
+raise a context's label (IFC-04b), so in this release only a raise recorded
+by other means changes a decision.
 
 **Capability sets (WS8 Q8.2, opt-in):** with
 `REMORA_CAPABILITY_POLICY_FILE` naming a YAML or JSON capability policy,

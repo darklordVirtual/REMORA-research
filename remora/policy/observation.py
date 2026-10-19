@@ -372,6 +372,22 @@ class PolicyObservation:
     # available until the value is confirmed.
     unvalidated_required_arguments: tuple[str, ...] = ()
 
+    # Derived flow control (SDD v1.3 §3.7, IFC-05b). Server-only: set by the
+    # execution API from the flow context store and the signed ToolSpec, never
+    # from a request field. None → flow control off, no rung fires. The other
+    # values are FLOW_STATUSES in remora/flow/observe.py; "evaluated" means
+    # flow_check ran and the two violation flags hold its verdict. The
+    # verdict's recipient sets are not copied here, so no report or refusal
+    # can carry them (the agent channel rule).
+    flow_status: str | None = None
+    flow_confidentiality_violation: bool = False
+    # int_viol (role violations included) or ctrl_viol.
+    flow_integrity_violation: bool = False
+    # Binding material for the dispatch-time re-check (§3.8, IFC-06). The
+    # engine does not read them.
+    flow_epoch: int | None = None
+    flow_digest: str | None = None
+
     # Policy generalization / fleet-level risk (v0.9)
     # All fields are caller-populated — REMORA is stateless.
     similar_action_seen_count: int | None = None

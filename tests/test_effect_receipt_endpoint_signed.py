@@ -343,8 +343,8 @@ def test_no_registered_verifier_keys_is_unavailable(api, monkeypatch) -> None:
 
 # ── owner decision 4: unsigned receipts in the strict profiles ─────────────
 
-def _unsigned(client, pid: str, dispatch: dict):
-    return client.post(f"/v1/execution/proposals/{pid}/effect", json={
+def _unsigned(client, pid: str, dispatch: dict, *, with_observation: bool = False):
+    body = {
         "execution_id": "e-1", "tool_id": "store_artifact",
         "tool_call_hash": dispatch["tool_call_hash"],
         "grant_jti": dispatch["grant_jti"],
@@ -352,7 +352,11 @@ def _unsigned(client, pid: str, dispatch: dict):
         "verifier_identity": "acme.reader/v1",
         "expected_sha256": "a" * 64, "observed_sha256": "b" * 64,
         "verified_at": (datetime.now(UTC) + timedelta(seconds=1)).isoformat(),
-    })
+    }
+    if with_observation:
+        body["observed"] = {"artifact_id": "rec-1", "content": CONTENT}
+        body["arguments"] = CALL["arguments"]
+    return client.post(f"/v1/execution/proposals/{pid}/effect", json=body)
 
 
 def test_controlled_pilot_refuses_an_unsigned_receipt(api, monkeypatch) -> None:
@@ -368,9 +372,17 @@ def test_review_records_an_unsigned_receipt_at_same_deployment(api, monkeypatch)
     client, _ = api
     pid, dispatch = _executed(client)
     monkeypatch.setenv("REMORA_RUNTIME_PROFILE", "review")
-    r = _unsigned(client, pid, dispatch)
+    # Decision 4: review records an unsigned receipt, capped at
+    # same_deployment. The tool declares a postcondition, so the receipt must
+    # carry the observation and REMORA computes the verdict (SDD L7).
+    bare = _unsigned(client, pid, dispatch)
+    assert bare.status_code == 409, bare.text
+    assert "postcondition_observation_required" in bare.text
+    r = _unsigned(client, pid, dispatch, with_observation=True)
     assert r.status_code == 200, r.text
     assert r.json()["vantage"] == "same_deployment"
+    assert r.json()["verdict_source"] == "computed"
+    assert r.json()["status"] == "EFFECT_VERIFIED"
 
 
 # ── P0-4A on the signed path, real tokens ───────────────────────────────────

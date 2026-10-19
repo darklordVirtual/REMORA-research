@@ -426,7 +426,10 @@ def test_sdk_context_bound_effect_roundtrip(client):
         execution_context_hash=execution["execution_context_hash"])
     recorded = sdk.record_effect(body["proposal_id"], verification)
     assert recorded.execution_context_hash == execution["execution_context_hash"]
-    assert sdk.get_proposal(body["proposal_id"]).current_state == "EFFECT_VERIFIED"
+    # Context binding holds; with no signed postcondition the reported
+    # VERIFIED is a claim, never a verdict (SDD L7).
+    assert recorded.verdict_source == "claimed"
+    assert sdk.get_proposal(body["proposal_id"]).current_state == "EFFECT_CLAIMED"
 
 
 def test_remote_endpoint_checks_context_digest_and_runtime(client, provider, monkeypatch):

@@ -54,6 +54,13 @@ REASON_TO_LABEL: dict[str, str] = {
     "disordered_no_evidence":    "Disordered phase with no evidence support",
     "default_safe_abstain":      "No accept path matched; conservative default is ABSTAIN",
     "evidence_supported":        "Evidence supports action (context: why ACCEPT was not reached)",
+    "flow_state_unavailable":    "Flow state could not be read (flow control fails closed)",
+    "flow_context_unknown":      "Call is not bound to a server-minted flow context",
+    "flow_handle_invalid":       "Call names a data handle that is unknown, expired or foreign",
+    "toolspec_flow_policy_missing": "Signed ToolSpec declares no flow policy for this tool",
+    "flow_confidentiality_violation": "Payload would reach a recipient outside its readers",
+    "flow_integrity_violation_verify": "Untrusted data controls an integrity-required field",
+    "flow_integrity_violation_escalate": "Untrusted data controls an integrity-required field at critical risk",
 }
 
 # Maps DecisionReason values to the PolicyObservation field(s) that trigger them.
@@ -73,6 +80,13 @@ _REASON_TO_OBS_FIELDS: dict[str, list[str]] = {
     "counterfactual_failed":     ["counterfactual_passed"],
     "distribution_shift":        ["distribution_shift_detected"],
     "env_mismatch_escalate":     ["environment_mismatch_detected"],
+    "flow_state_unavailable":    ["flow_status"],
+    "flow_context_unknown":      ["flow_status"],
+    "flow_handle_invalid":       ["flow_status"],
+    "toolspec_flow_policy_missing": ["flow_status"],
+    "flow_confidentiality_violation": ["flow_confidentiality_violation"],
+    "flow_integrity_violation_verify": ["flow_integrity_violation"],
+    "flow_integrity_violation_escalate": ["flow_integrity_violation"],
 }
 
 # What every CausalExplanation must disclaim.

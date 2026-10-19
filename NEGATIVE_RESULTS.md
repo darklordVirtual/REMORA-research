@@ -152,8 +152,11 @@ cites only `open` sections and that no `open` section is missing a theme.
    every replay, substitution, forgery, expiry, cross-context, relabel and
    approver-role attack in the catalogue. None of 43 chain attacks ran after
    the review-path and registry fixes. The secret reached the sink in all 11
-   exfiltration attacks. No decision reads argument content or data flow;
-   the flow check exists as a library and blocks all 10 it was run on.
+   exfiltration attacks with flow control off, the default. With
+   `REMORA_FLOW_CONTROL=1` REMORA's own decision reads the flow verdict
+   (IFC-05b) and ran none of the 10 attacks it was run on, at the cost of 2
+   of 4 controls. The context labels in that run are still the harness's,
+   because tool results do not raise them yet (IFC-04b).
 18. **Approvability is not yet monotone** (§90): every firing guard and
    gate now enters the meet, but a risk signal on an abstained call still
    opens a review route, and raising a production write from medium to high
@@ -2640,7 +2643,7 @@ sections again.
 | MCE bucket bias and absent cross-domain episodes (§15, §16) | Structural AROMER ceilings: the buckets get no organic traffic and crossDomainCases=0. Needs diverse deployment context | Medium |
 | Authoritative tool metadata still caller-supplied on the advisory path (§14/M4) | Raise-only clamp shipped 2026-08-05 (declared risk cannot undercut the heuristic floor; clamps recorded, unset stays unset). Full authority still needs the signed ToolSpec registry (FT-03) | Medium |
 | External replication, REM-021, field evidence (§1, §4) | Cannot be closed from inside this repository | Medium |
-| Exfiltration through allowed calls (§87) | The chain refused every replay, substitution, forgery, expiry, cross-context and relabel attack (0/37); the secret reached the sink in 11 of 11 exfiltration attacks on REMORA and on the policy-only gateway. The library flow check blocked 10 of 10 but is not wired to a decision | **High** |
+| Exfiltration through allowed calls (§87) | The chain refused every replay, substitution, forgery, expiry, cross-context and relabel attack (0/37); the secret reached the sink in 11 of 11 exfiltration attacks on REMORA and on the policy-only gateway with flow control off. With `REMORA_FLOW_CONTROL=1` the decision refused 10 of 10 (IFC-05b), with harness-raised labels until IFC-04b, and ran 2 of 4 controls | **High** |
 | Five held-out faults survive v1.7 (§73) | List validation stops after 32 items, non-dict `Mapping` skips validation, `slots`, case-insensitive enum lookup, `as_dict` key order; every decision fault of probe 4 is killed | Low |
 | Policy v5's critical-phase exclusion removed mostly correct accepts (§59) | On the N500 round v5 removed 70 accepts, 68 of them correct (97.1 %), more accurate than the 31 it kept. One artifact and an in-sample threshold; an out-of-sample split with the critical phase labelled would decide it. Removing an accept path cannot add a false accept | Low |
 | REMORA's gate is only as safe as its validator (§60) | A prefix matcher let every corrupt read through; fail-open lookups gave a false-allow rate of 0.078 (0.117 on reads, post hoc). No write was auto-accepted in any gated arm. Production validators have no contract that rules these faults out | Medium |
@@ -5217,7 +5220,7 @@ checks the Worker against `admit_strict_json` body by body.
 Unicode normalisation of member names or byte-order marks, are not tested
 here. The edge and the API agree on the cases above, not on every JSON
 document.
-=======
+
 ## §87 The execution chain stops replay, substitution and forgery, and leaks every exfiltration built from allowed calls (2026-10-18)
 <!-- finding-status: open -->
 
@@ -5286,9 +5289,36 @@ edit to another tier's profile leaves the approval valid.
 before each sink, with labels the harness assigns, refused all 10
 exfiltration attacks it was run on. It also refused a benign fetch of a
 public page made after the secret had been read, because the payload label
-includes the context label: 3 of its 4 controls ran. No REMORA decision
-reads a flow verdict yet (IFC-05b), so this measures the library, not
-enforcement.
+includes the context label: 3 of its 4 controls ran. This arm measures
+the library, not enforcement.
+
+**The flow check in REMORA's decision (IFC-05b, 2026-10-19).** The
+`remora_flow_enforced` arm runs the `remora` arm with
+`REMORA_FLOW_CONTROL=1`. Every call carries a context minted on
+`/v1/contexts`, and `/assess`, `/execute` and the dispatch re-gate decide
+with rungs F1 to F6. REMORA ran none of the 10 attacks and no secret reached
+a sink:
+
+| Class | Attacks run | Controls run | How the attacks stopped |
+|---|---|---|---|
+| Read exfiltration | 0/5 | 1/2 | F4 ESCALATE at `/assess`; no token |
+| Read, then send | 0/5 | 1/2 | F4 at `/assess`; the harness approved four writes, and the re-gate voided each approval |
+
+A reviewer's approval does not lift F4. Only a declassification grant from
+a reader of the data with the declassifier role does (SDD §3.6 c), and
+grants are IFC-08, not built. So an F4 item can be reviewed and nothing it
+covers runs. Two controls were refused. One is a public fetch after the secret read, as
+on the library arm. The other is a public write. The server has no resource
+ACL registry, so a write's recipients are unresolved, and F4 fires on every
+write in a flow context.
+
+Two inputs of this arm are still the harness's. Tool results do not raise
+a context's label until IFC-04b, so the harness raises it after each read
+with the label it assigns. The `flow` blocks reach the server's spec lookup
+without being signed into the bundle, because FL-09 requires MEDIATED
+effects (IFC-12) and this deployment does not run them. The finding stays
+open until the labels are derived from results (IFC-04b), the dispatch-time
+re-check binds the verdict (IFC-06), and egress is enforced (IFC-12).
 
 **The advisory library, after the PRF-040 fix.** `assess_tool_call`
 without a registry caps caller labels at VERIFY. R2's `xfer` call
@@ -5425,7 +5455,8 @@ anyone.
 <!-- finding-status: accepted -->
 
 **Status:** found by the R3 audit (PRF-050, PRF-051) and fixed with tests in
-#939. The flow check is still library-only (IFC-05b).
+#939. Since IFC-05b (2026-10-19) a decision reads the flow verdict when
+`REMORA_FLOW_CONTROL=1`; with the switch off the check is still library-only.
 
 `flow_check` derived recipients from call arguments. When the recipient
 argument was `[]`, `None` or omitted, the reached set was empty and the

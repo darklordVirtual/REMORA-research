@@ -3,7 +3,7 @@
   "regenerate": "python scripts/generate_whatif_presets.py",
   "check": "python scripts/generate_whatif_presets.py --check",
   "note": "What would have to change for each `remora try` preset to reach ACCEPT, under the default engine and the execution profile. An analysis of the policy, not a grant. Levers: remora.policy.whatif.LEVERS.",
-  "policy_version": "RemoraDecisionEngine-v5",
+  "policy_version": "RemoraDecisionEngine-v6",
   "lever_catalogue": [
     {
       "name": "high_trust",
@@ -209,6 +209,30 @@
         "unvalidated_required_arguments": []
       },
       "description": "every required argument is validated"
+    },
+    {
+      "name": "flow_context_valid",
+      "kind": "deployment_fact",
+      "assignments": {
+        "flow_status": "evaluated"
+      },
+      "description": "the call runs in a server-minted flow context with valid handles and a flow-declared ToolSpec"
+    },
+    {
+      "name": "flow_declassification_grant",
+      "kind": "deployment_fact",
+      "assignments": {
+        "flow_confidentiality_violation": false
+      },
+      "description": "a declassification grant for the recipients the flow check refused"
+    },
+    {
+      "name": "flow_integrity_grant",
+      "kind": "deployment_fact",
+      "assignments": {
+        "flow_integrity_violation": false
+      },
+      "description": "an integrity grant or endorsement for the fields the flow check refused"
     },
     {
       "name": "rollback_available",

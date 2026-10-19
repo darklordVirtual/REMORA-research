@@ -917,9 +917,13 @@ items:
       - remora/flow/spec.py
       - remora/flow/labeler.py
       - remora/flow/check.py
+      - remora/flow/observe.py
       - tests/flow/test_label_lattice.py
       - tests/flow/test_context_store.py
       - tests/flow/test_flow_check.py
+      - tests/flow/test_flow_observe.py
+      - tests/flow/test_flow_decision_route.py
+      - tests/policy/test_flow_rungs.py
     notes: >
       PROGRESS 2026-10-18: scoped by the derived information-flow control SDD
       v1.3 (#905), whose context high-water label is the session-wide record
@@ -927,9 +931,10 @@ items:
       lattice (#906), IFC-02 context store and POST /v1/contexts (#910, #912),
       IFC-03a ToolSpec v4 flow block and linter, IFC-04a result labelling and
       handles, IFC-05a recipients and flow_check (#913, #915, #916, merged via
-      #916). Nothing blocks a call yet: no decision reads the flow verdict
-      until IFC-05b wires rungs F1 to F6 into hard_guard_floor, and the
-      dispatcher does not label results until IFC-04b. Per-package status is
+      #916). IFC-05b (2026-10-19) wires rungs F1 to F6 into hard_guard_floor
+      behind REMORA_FLOW_CONTROL (RemoraDecisionEngine-v6); the dispatcher
+      does not label results until IFC-04b, so a context label rises only
+      when something else raises it. Per-package status is
       in docs/design/derived-information-flow-control-v1-status.md. The DONE
       criterion below is unchanged.
       The compendium requires policies expressed over execution PATHS (sequences

@@ -166,7 +166,10 @@ def test_a_verification_is_recorded_and_returns_its_chain_position(
     r = _post(client, proposal_id)
     assert r.status_code == 200, r.text
     body = r.json()
-    assert body["status"] == "EFFECT_VERIFIED"
+    # No signed postcondition for this tool, so REMORA had nothing to compute:
+    # the reported VERIFIED is recorded as a claim (SDD L7).
+    assert body["effect_state"] == "EFFECT_CLAIMED"
+    assert body["verdict_source"] == "claimed"
     assert body["audit"]["sequence_no"] > 0
     assert len(body["audit"]["entry_hash"]) == 64
 
@@ -175,7 +178,10 @@ def test_the_recorded_verdict_shows_on_the_proposal(client) -> None:
     proposal_id = _executed(client)
     _post(client, proposal_id)
     view = client.get(f"/v1/execution/proposals/{proposal_id}").json()
-    assert view["current_state"] == "EFFECT_VERIFIED"
+    # A reported VERIFIED REMORA did not compute never shows as verified.
+    assert view["current_state"] == "EFFECT_CLAIMED"
+    assert view["effect"]["effect_state"] == "EFFECT_CLAIMED"
+    assert view["effect"]["verdict_source"] == "claimed"
     assert view["effect"]["verifier_identity"] == "acme.reader/v1"
 
 
@@ -310,21 +316,27 @@ def test_verified_without_a_recorded_observation_is_refused(client) -> None:
 
 
 def test_a_settled_verdict_cannot_be_re_verified(client) -> None:
+    """A settled verdict (here a reported mismatch) is final: a later
+    VERIFIED is a replay. A claimed VERIFIED settles nothing, so it is not
+    the settled verdict in this test (tests/test_effect_unsigned_path_l7.py)."""
     proposal_id = _executed(client)
-    assert _post(client, proposal_id).status_code == 200
+    assert _post(client, proposal_id, status="EFFECT_MISMATCH",
+                 reason_code="postcondition_field_mismatch").status_code == 200
     second = _post(client, proposal_id)
     assert second.status_code == 409
     assert "receipt_replayed" in second.json()["detail"]
 
 
 def test_an_unresolved_verdict_can_still_be_settled(client) -> None:
-    """UNOBSERVABLE then VERIFIED: how an unknown is closed honestly."""
+    """UNOBSERVABLE, then a later report is still accepted. Without a signed
+    postcondition the later VERIFIED is a claim, never a verdict (SDD L7);
+    the computed close is in tests/test_effect_unsigned_path_l7.py."""
     proposal_id = _executed(client)
     assert _post(client, proposal_id, status="EFFECT_UNOBSERVABLE",
                  reason_code="postcondition_read_timeout").status_code == 200
     settled = _post(client, proposal_id)
     assert settled.status_code == 200, settled.text
-    assert settled.json()["status"] == "EFFECT_VERIFIED"
+    assert settled.json()["effect_state"] == "EFFECT_CLAIMED"
 
 
 def test_a_verifier_identity_the_principal_may_not_claim_is_refused(
@@ -344,8 +356,9 @@ def test_the_response_reports_both_claimed_and_adjudicated_status(client) -> Non
     """An operator needs to see that the two agreed, not just the outcome."""
     proposal_id = _executed(client)
     body = _post(client, proposal_id).json()
-    assert body["status"] == "EFFECT_VERIFIED"
+    assert body["effect_state"] == "EFFECT_CLAIMED"
     assert body["claimed_status"] == "EFFECT_VERIFIED"
+    assert body["verdict_source"] == "claimed"
     assert body["dispatch_id"], "the receipt is bound to a dispatch identity"
 
 

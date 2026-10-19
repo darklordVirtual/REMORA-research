@@ -1091,10 +1091,10 @@ def test_tainted_non_critical_keeps_verify_floor(engine: RemoraDecisionEngine, t
     assert DecisionReason.TAINTED_ARGUMENT_VERIFY in report.reasons
 
 
-def test_policy_version_is_v4(engine: RemoraDecisionEngine) -> None:
-    """The tier-dependent tainted floor is a behavior change -> version bump."""
+def test_policy_version_is_v6(engine: RemoraDecisionEngine) -> None:
+    """Each behavior change bumps the version; v6 adds the flow rungs (IFC-05b)."""
     report = engine.decide(PolicyObservation(question="q", risk_tier="low"))
-    assert report.policy_version == "RemoraDecisionEngine-v5"
+    assert report.policy_version == "RemoraDecisionEngine-v6"
 
 
 def test_explain_temperature_accept_excluded_in_critical_phase() -> None:

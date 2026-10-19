@@ -44,6 +44,11 @@ states:
 - EFFECT_VERIFIED     # observed state matches the DECLARED DELTA
 - EFFECT_MISMATCH     # object read, and it differs from what was approved
 - EFFECT_UNKNOWN      # object could not be observed; NOT a mismatch
+# SDD L7 (docs/design/compositional-authority-preservation-v1.md): a
+# reported EFFECT_VERIFIED that REMORA did not compute, because the tool has
+# no signed postcondition to evaluate it against. A claim, never a verdict,
+# and not terminal: a computed verdict can still settle the dispatch.
+- EFFECT_CLAIMED      # verifier reported VERIFIED; REMORA had no contract to check
 
 terminal_states:
 - REFUSED
@@ -78,11 +83,16 @@ transitions:
 - {from: DISPATCHING, to: REFUSED, on: lease_or_pep_refusal}
 - {from: DISPATCHING, to: UNKNOWN, on: crash_or_timeout_after_possible_effect}
 - {from: SUCCEEDED, to: EFFECT_PENDING, on: postcondition_declared}
-# There is deliberately NO transition for a tool that declares no
-# postcondition. Letting it reach EFFECT_VERIFIED would record "we never
-# looked" as "we checked and it was right", which is the exact overclaim
-# this layer exists to prevent. Such a proposal stays SUCCEEDED, and the
-# EFFECT_UNSUPPORTED verification record makes the absence visible.
+# There is deliberately NO transition from SUCCEEDED to EFFECT_VERIFIED for
+# a tool that declares no postcondition. Letting it reach EFFECT_VERIFIED
+# would record "we never looked" as "we checked and it was right", which is
+# the exact overclaim this layer exists to prevent. Such a proposal stays
+# SUCCEEDED (an EFFECT_UNSUPPORTED record makes the absence visible), or,
+# when a verifier reports VERIFIED anyway, moves to EFFECT_CLAIMED (SDD L7).
+- {from: SUCCEEDED, to: EFFECT_CLAIMED, on: verified_reported_without_contract}
+- {from: EFFECT_CLAIMED, to: EFFECT_VERIFIED, on: computed_observation_succeeded}
+- {from: EFFECT_CLAIMED, to: EFFECT_MISMATCH, on: computed_observation_differs}
+- {from: EFFECT_CLAIMED, to: EFFECT_UNKNOWN, on: computed_observation_unobservable}
 - {from: EFFECT_PENDING, to: EFFECT_VERIFIED, on: declared_delta_observed}
 - {from: EFFECT_PENDING, to: EFFECT_MISMATCH, on: declared_delta_differs}
 - {from: EFFECT_PENDING, to: EFFECT_UNKNOWN, on: effect_unobservable}

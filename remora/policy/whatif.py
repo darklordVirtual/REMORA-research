@@ -108,6 +108,9 @@ class Lever:
     kind: LeverKind
     assignments: tuple[tuple[str, Any], ...]
     description: str
+    #: Other current values the engine treats as just as favourable, so the
+    #: lever has nothing to lift (``flow_status`` None: flow control is off).
+    also_favourable: tuple[Any, ...] = ()
 
     @property
     def fields(self) -> frozenset[str]:
@@ -115,7 +118,9 @@ class Lever:
 
     def applies_to(self, obs: PolicyObservation) -> bool:
         """True when applying the lever would change at least one field."""
-        return any(getattr(obs, field) != value for field, value in self.assignments)
+        return any(getattr(obs, field) != value
+                   and getattr(obs, field) not in self.also_favourable
+                   for field, value in self.assignments)
 
     def apply(self, obs: PolicyObservation) -> PolicyObservation:
         return dataclasses.replace(obs, **dict(self.assignments))
@@ -368,10 +373,11 @@ class WhatIfReport:
 # Lever catalogue
 # ---------------------------------------------------------------------------
 
-def _lever(name: str, kind: LeverKind, description: str, **assignments: Any) -> Lever:
+def _lever(name: str, kind: LeverKind, description: str, *,
+           also_favourable: tuple[Any, ...] = (), **assignments: Any) -> Lever:
     return Lever(name=name, kind=kind,
                  assignments=tuple(sorted(assignments.items())),
-                 description=description)
+                 description=description, also_favourable=also_favourable)
 
 
 _D = LeverKind.DEPLOYMENT_FACT
@@ -440,6 +446,18 @@ LEVERS: tuple[Lever, ...] = (
            missing_required_arguments=(), arguments_satisfiable=True),
     _lever("arguments_validated", _D, "every required argument is validated",
            unvalidated_required_arguments=()),
+    # Flow rungs F1 to F6 (IFC-05b). Each names what a human or the deployment
+    # supplies; nothing a model says changes a flow verdict.
+    _lever("flow_context_valid", _D,
+           "the call runs in a server-minted flow context with valid handles "
+           "and a flow-declared ToolSpec",
+           flow_status="evaluated", also_favourable=(None, "not_declared")),
+    _lever("flow_declassification_grant", _D,
+           "a declassification grant for the recipients the flow check refused",
+           flow_confidentiality_violation=False),
+    _lever("flow_integrity_grant", _D,
+           "an integrity grant or endorsement for the fields the flow check refused",
+           flow_integrity_violation=False),
     _lever("rollback_available", _D, "a rollback path is declared",
            rollback_available=True),
     _lever("state_transition_known", _D, "the state transition is understood",
@@ -500,6 +518,16 @@ _GUARD_FIELDS: Mapping[DecisionReason, frozenset[str]] = {
         {"argument_tainted", "untrusted_controlled_arguments"}),
     DecisionReason.TAINTED_ARGUMENT_ESCALATE: frozenset({"argument_tainted"}),
     DecisionReason.TAINTED_ARGUMENT_VERIFY: frozenset({"argument_tainted"}),
+    DecisionReason.FLOW_STATE_UNAVAILABLE: frozenset({"flow_status"}),
+    DecisionReason.FLOW_CONTEXT_UNKNOWN: frozenset({"flow_status"}),
+    DecisionReason.FLOW_HANDLE_INVALID: frozenset({"flow_status"}),
+    DecisionReason.TOOLSPEC_FLOW_POLICY_MISSING: frozenset({"flow_status"}),
+    DecisionReason.FLOW_CONFIDENTIALITY_VIOLATION: frozenset(
+        {"flow_status", "flow_confidentiality_violation"}),
+    DecisionReason.FLOW_INTEGRITY_VIOLATION_VERIFY: frozenset(
+        {"flow_status", "flow_integrity_violation"}),
+    DecisionReason.FLOW_INTEGRITY_VIOLATION_ESCALATE: frozenset(
+        {"flow_status", "flow_integrity_violation"}),
 }
 
 

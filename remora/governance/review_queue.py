@@ -63,6 +63,7 @@ from remora.governance.revocation_store import (
     InMemoryRevocationStore,
     RevocationStore,
 )
+from remora.policy.composition import GRANT_ONLY_REASONS
 from remora.policy.decision_engine import RemoraDecisionEngine
 from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction
@@ -96,6 +97,10 @@ def _approval_survives(fresh: Any, approval: Approval) -> bool:
     """
     fresh_action = fresh.action
     approved_action = approval.approved_action
+    if set(_reason_values(fresh)) & {r.value for r in GRANT_ONLY_REASONS}:
+        # Only a flow grant lifts this, and a grant changes the fresh verdict;
+        # an approval of the same verdict does not (IFC-05b).
+        return False
     if (approved_action is DecisionAction.ESCALATE
             and approval.approved_reasons is not None):
         return (fresh_action in (*_EXECUTABLE, DecisionAction.ESCALATE)

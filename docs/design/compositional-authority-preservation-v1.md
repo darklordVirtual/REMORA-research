@@ -124,10 +124,11 @@ not yet merged at the time of writing.
 - **Keys.** Flow grants are signed under `REMORA/FLOW-GRANT/v1` (IFC SDD
   §3.6 c).
 - **Status.** PARTIAL. Labels, contexts, ToolSpec v4 flow blocks, result
-  labelling and `flow_check` are on master (`remora/flow/`). No decision reads
-  the verdict: IFC-05b is not started, and REM-044 is IN_PROGRESS for that
-  reason. In flight: #939 makes an empty recipient rule unresolved and adds
-  FL-14 (RMR-AUD-007, RMR-AUD-008).
+  labelling and `flow_check` are on master (`remora/flow/`). Since IFC-05b
+  the decision reads the verdict through rungs F1 to F6 when
+  `REMORA_FLOW_CONTROL=1`. Results do not raise a context label until
+  IFC-04b, and the verdict is not bound at dispatch until IFC-06, so REM-044
+  stays IN_PROGRESS.
 - **Prevents.** PRF-016, PRF-041, the read-then-send exfiltration measured in
   #932 (NEGATIVE_RESULTS §87 there).
 - **Falsification.** The IFC SDD §3.10 table, run through `/v1/execution`,
@@ -215,9 +216,9 @@ Defined in section 3. Two invariants:
   receipt (L8). The lineage must show `assessed` not ABSTAIN, no `rejected`,
   an approval where one was required, and `execution_authorized` with
   `pep_allowed` for the same grant and call hash.
-- **Status.** PARTIAL. On the signed path the invariant holds:
+- **Status.** ESTABLISHED. On the signed path the invariant holds:
   `POST /v1/execution/proposals/{id}/effect-receipt`
-  (`servers/execution_api.py:3321`) checks the lineage through
+  (`servers/execution_api.py:3473`) checks the lineage through
   `resolve_lineage`, which requires an assessment that could dispatch, no
   rejection, an approval that was not voided before `execution_authorized`,
   and a matching grant and call hash (`remora/governance/effect_receipt.py:184`).
@@ -225,10 +226,23 @@ Defined in section 3. Two invariants:
   `postcondition` block and the dispatched arguments
   (`remora/toolcall/toolspec.py:222`, `remora/toolcall/postcondition_spec.py:69`)
   and computes the verdict itself. A receipt's own status is recorded beside
-  that verdict. The unsigned `/effect` path remains: it records a status that
-  REMORA does not re-evaluate. `controlled_pilot` refuses it
-  (`servers/execution_api.py:3130`), but it is still accepted in other
-  profiles, capped at `same_deployment`.
+  that verdict. The unsigned `/effect` path follows the same rule.
+  `controlled_pilot` refuses it outright. In every other profile, a tool
+  whose signed ToolSpec declares a `postcondition` needs an unsigned receipt
+  that carries the observed object and the call's arguments. REMORA then
+  computes the status on the shared code path
+  (`_computed_postcondition_verdict` in `servers/execution_api.py`). A bare
+  reported `EFFECT_VERIFIED` is refused (`postcondition_observation_required`).
+  When no postcondition is declared, a reported `EFFECT_VERIFIED` is kept as
+  a claim: it settles nothing, and `current_state`, the effect block and the
+  envelope show `EFFECT_CLAIMED` (`is_claimed_verdict` in
+  `remora/execution/projections.py`; `schemas/execution_lifecycle_v1.yaml`).
+  Reported bad news (MISMATCH, UNOBSERVABLE) is still recorded as reported,
+  because it cannot raise the state. Unsigned receipts stay at
+  `same_deployment`. Tests: `tests/test_effect_unsigned_path_l7.py`.
+  What remains is outside L7: a digest-only claim from a tool without a
+  postcondition is recorded, not refused, so a deployment that never signs
+  postconditions gets claims, not verdicts.
 - **Prevents.** RMR-AUD-004 (`bundle_for_other_call`, `dispatched_after_deny`),
   NEGATIVE_RESULTS §85, and P0-4A (a crashed call self-attested as verified).
 - **Falsification.** Section 4.4. Failing link: L7.
@@ -245,7 +259,7 @@ Defined in section 3. Two invariants:
   key's control domain, credential scope and tenants
   (`remora/governance/effect_receipt_signing.py:171`, `:244`). The verifier
   is the key holder, and the body cannot name it. The API derives the vantage
-  (`servers/execution_api.py:3290`): `independent` needs a declared executor
+  (`servers/execution_api.py:3449`): `independent` needs a declared executor
   domain (`REMORA_EXECUTOR_CONTROL_DOMAIN`), a verifier key registered for a
   different domain, and a read-only scope. Otherwise the vantage is
   `same_deployment`. Lease-domain signatures, unregistered keys and keys of
@@ -397,6 +411,9 @@ verdict. A disagreement is a finding, not a refusal.
 | Honest receipt, separate domain, read-only | VERIFIED, `vantage=independent` | none |
 | Receipt signed with a lease key | refused, domain separation | L8 |
 | State already true before dispatch, pre-state revision equal | NOT_ESTABLISHED, `no_attributable_change` | L7 |
+| Unsigned bare VERIFIED for a tool with a signed postcondition | refused, `postcondition_observation_required` | L7 |
+| Unsigned receipt with an observation that differs under the contract | MISMATCH computed by REMORA, claim recorded beside it | L7 |
+| Unsigned VERIFIED for a tool with no postcondition | recorded as a claim; state `EFFECT_CLAIMED`, never `EFFECT_VERIFIED`; settles nothing | L7 |
 
 The last row narrows NEGATIVE_RESULTS §85 for systems that expose revisions.
 It does not close it for systems that do not.
@@ -419,7 +436,7 @@ register entry at `RESEARCH` / `NOT_ESTABLISHED` until its acceptance passes.
 |---|---|---|---|
 | CAPR-01 | #935, #936, R3 lattice fix | L0, L4, L5 regression bundle: the public-API cases P0-1A, P0-1B and the R3 vectors as one test module tagged by link | All pass on master; each test names its link |
 | CAPR-02 | R3 effect fix | L6 fold and per-attempt keys verified against the bundle | `test_l6_reapproval_recorded_and_state_folds` |
-| CAPR-03 | IFC-05b (REM-044) | Wire `FlowVerdict` into the decision as rungs F1 to F6 | IFC SDD §6.4 gate; client-supplied `flow` ignored |
+| CAPR-03 | IFC-05b (REM-044) | Wire `FlowVerdict` into the decision as rungs F1 to F6 | IFC SDD §6.4 gate; client-supplied `flow` ignored. Rungs and the ignore test are in (IFC-05b); the §6.4 gate also needs IFC-03b and the capability register entry |
 | CAPR-04 | CAPR-03, IFC-08 | ABER L3a: endorsement source registry, `endorsed` callback, per-check bit cost | Section 3.4 rows for L3a |
 | CAPR-05 | CAPR-04, IFC-14 | ABER L3b: `obligation_required` in ToolSpec, `obligation_unbound` cap, obligation digest in the lease | Section 3.4 rows for L3b; property: case C never ACCEPT |
 | CAPR-06 | none | `REMORA/EFFECT-RECEIPT/v1` domain, verifier key registry, signed receipt schema | Domain-separation tests; unsigned receipts refused in strict profiles |

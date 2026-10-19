@@ -39,6 +39,7 @@ from remora.policy.report import DecisionAction, DecisionReason
 __all__ = [
     "EXECUTABILITY",
     "EXTERNAL_CAP_REASONS",
+    "GRANT_ONLY_REASONS",
     "NON_APPROVABLE_REASONS",
     "Cap",
     "executability",
@@ -66,6 +67,15 @@ EXTERNAL_CAP_REASONS: Final = frozenset({
 NON_APPROVABLE_REASONS: Final = frozenset({
     DecisionReason.CROSS_TENANT_ARGUMENT_BLOCKED,
     DecisionReason.INTENT_PROVENANCE_REQUIRED,
+})
+
+#: Escalations a reviewer's approval does not cover. A payload that may not
+#: reach a recipient is released only by a DeclassificationGrant from a
+#: reader of the data who holds the declassifier role; the grant changes the
+#: verdict, so the rung stops firing (SDD v1.3 §3.6 c, §3.7; IFC-08). Until
+#: then the item can be reviewed, and nothing it covers executes.
+GRANT_ONLY_REASONS: Final = frozenset({
+    DecisionReason.FLOW_CONFIDENTIALITY_VIOLATION,
 })
 
 #: Below every action in ``EXECUTABILITY``.

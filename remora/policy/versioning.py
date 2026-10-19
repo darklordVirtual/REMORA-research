@@ -26,7 +26,7 @@ Usage
 
     bundle_hash = compute_policy_bundle_hash()
     audit_block = AuditBlock(
-        policy_version="RemoraDecisionEngine-v5",
+        policy_version="RemoraDecisionEngine-v6",
         policy_bundle_hash=bundle_hash,
         ...
     )
@@ -57,6 +57,9 @@ _POLICY_SOURCE_FILES: tuple[str, ...] = (
     # decision admits.
     "remora/flow/label.py",
     "remora/flow/spec.py",
+    # IFC-05b: the verdict the flow rungs read and the fields built from it.
+    "remora/flow/check.py",
+    "remora/flow/observe.py",
 )
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]

@@ -136,6 +136,9 @@ def test_hard_block_signals_are_exported() -> None:
         "target_environment",
         "oracle_failures",
         "valid_oracle_count",
+        "flow_status",
+        "flow_confidentiality_violation",
+        "flow_integrity_violation",
     }
     assert required <= exported, f"Missing: {sorted(required - exported)}"
 

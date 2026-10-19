@@ -60,6 +60,33 @@ hard_escalate if {
 # critical tier is caught by the hard_escalate rule above).
 tainted_floor if { input.argument_tainted == true }
 
+# Derived flow control, rungs F1 to F6 (IFC-05b). flow_status is null when
+# flow control is off, and then none of these fire.
+# F1 to F3: the verdict is unknown. Any status other than these two refuses.
+flow_abstain if {
+	input.flow_status != null
+	not input.flow_status in {"evaluated", "not_declared"}
+}
+
+# F4: the payload would reach a recipient outside its readers.
+hard_escalate if {
+	input.flow_status == "evaluated"
+	input.flow_confidentiality_violation == true
+}
+
+# F6: an integrity violation at CRITICAL risk.
+hard_escalate if {
+	input.flow_status == "evaluated"
+	input.flow_integrity_violation == true
+	input.risk_tier == "critical"
+}
+
+# F5: an integrity violation below CRITICAL is a VERIFY floor.
+tainted_floor if {
+	input.flow_status == "evaluated"
+	input.flow_integrity_violation == true
+}
+
 # Contradicting evidence without cycles → ABSTAIN (engine parity)
 contradiction_abstain if {
 	input.evidence_contradictions > 0
@@ -77,10 +104,16 @@ gate := "ABSTAIN" if {
 	not hard_escalate
 }
 
+gate := "ABSTAIN" if {
+	flow_abstain
+	not hard_escalate
+}
+
 gate := "VERIFY" if {
 	tainted_floor
 	not hard_escalate
 	not contradiction_abstain
+	not flow_abstain
 }
 
 # ACCEPT: low risk, read-only, ordered phase, clean signals
@@ -164,11 +197,12 @@ gate := "ABSTAIN" if {
 # Helpers
 # ---------------------------------------------------------------------------
 
-# No hard-block, taint, or contradiction signal fired.
+# No hard-block, taint, flow or contradiction signal fired.
 clean_signals if {
 	not hard_escalate
 	not tainted_floor
 	not contradiction_abstain
+	not flow_abstain
 }
 
 critical_destructive_action if {

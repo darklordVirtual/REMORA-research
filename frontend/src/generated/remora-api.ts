@@ -1162,6 +1162,13 @@ export interface components {
          */
         EffectVerificationRequest: {
             /**
+             * Arguments
+             * @description The approved call's arguments, accepted only when they hash to the dispatched call. Required with observed.
+             */
+            arguments?: {
+                [key: string]: unknown;
+            } | null;
+            /**
              * Detail
              * @default
              */
@@ -1187,6 +1194,13 @@ export interface components {
              */
             grant_jti: string;
             /**
+             * Observed
+             * @description The object the verifier read. Required for EFFECT_VERIFIED when the tool's signed ToolSpec declares a postcondition: REMORA then computes the status from it and records the submitted one beside it (SDD L7).
+             */
+            observed?: {
+                [key: string]: unknown;
+            } | null;
+            /**
              * Observed Sha256
              * @description Lowercase hex SHA-256, or empty.
              * @default
@@ -1198,8 +1212,18 @@ export interface components {
              * @default
              */
             observed_state_hash: string;
+            /**
+             * Pre State Revision
+             * @default
+             */
+            pre_state_revision: string;
             /** Reason Code */
             reason_code: string;
+            /**
+             * Source Revision
+             * @default
+             */
+            source_revision: string;
             status: components["schemas"]["EffectStatus"];
             /**
              * Tool Call Hash

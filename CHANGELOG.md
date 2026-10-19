@@ -4,6 +4,52 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Flow verdict in the decision (IFC-05b, PRF-041)
+
+- With `REMORA_FLOW_CONTROL=1`, `/v1/execution` derives `flow_status`, two
+  violation flags, `flow_epoch` and `flow_digest` from the flow context and
+  the ToolSpec `flow` block (`remora/flow/observe.py`). No request field sets
+  them. Rungs F1 to F6 in `hard_guard_floor` read them, and the engine is
+  `RemoraDecisionEngine-v6`. With the switch off every v5 decision is
+  unchanged, and a pinned v5 golden table checks that.
+- A reviewer's approval does not lift F4 (`GRANT_ONLY_REASONS`): only a
+  declassification grant (IFC-08) may release data to a recipient outside
+  its readers.
+- The attack evaluation gains a `remora_flow_enforced` arm. REMORA's own
+  decision ran none of the 10 exfiltration attacks and 2 of 4 controls. The
+  labels in that arm are still raised by the harness until IFC-04b
+  (NEGATIVE_RESULTS.md §87).
+- Rego gate, OPA golden cases, what-if levers, explanation labels and the
+  policy bundle hash cover the new rungs.
+
+### Unsigned effect receipts no longer record a claim as a verdict (SDD L7)
+
+- `POST /v1/execution/proposals/{id}/effect` recorded the submitted status
+  as reported, so a bare `EFFECT_VERIFIED` settled the proposal as verified
+  although REMORA compared nothing. The SDD's L7 invariant is that
+  `EFFECT_VERIFIED` is a verdict REMORA computes.
+- When the tool's signed ToolSpec declares a `postcondition`, an unsigned
+  receipt must now carry `observed` and `arguments` (new optional request
+  fields), and REMORA computes the status on the same code path as a signed
+  receipt. A bare reported `EFFECT_VERIFIED` is refused with 409
+  `postcondition_observation_required`.
+- When no postcondition is declared, a reported `EFFECT_VERIFIED` is kept as
+  a claim: it settles nothing, so a later computed verdict can still settle
+  the dispatch, and `current_state`, the envelope's `effect_outcome` and the
+  effect block's `effect_state` show `EFFECT_CLAIMED`, a new non-terminal
+  lifecycle state. Status fields stay in `EffectStatus` vocabulary;
+  `verdict_source` (`computed`, `attested`, `claimed`) says what REMORA
+  stands behind. Digest-only `EFFECT_VERIFIED` records written before this
+  change are projected the same way.
+- **Breaking:** a deployment that posts digest-only `EFFECT_VERIFIED`
+  receipts now sees `EFFECT_CLAIMED`, not `EFFECT_VERIFIED`, until it signs a
+  postcondition and sends the observation (or a signed receipt). Reported
+  MISMATCH and UNOBSERVABLE are recorded as before. `controlled_pilot` still
+  refuses unsigned receipts.
+- The Python SDK's `EffectVerificationView` gains `verdict_source` and
+  `is_verified_by_remora`. The MCP gateway tells the model `EFFECT_CLAIMED`
+  for a claim.
+
 ### SAP v7 Q6 and Q7 harness, not run (PRF-011, PRF-042)
 
 - Harness code for the two SAP v7 addenda. Q6 runs InjecAgent through
