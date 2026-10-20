@@ -21,9 +21,15 @@
     "measured_with_python": "3.13.7 (macOS arm64, venv with the dev extras)",
     "requirements_lock": {
       "path": "requirements-lock.txt",
-      "sha256_lf": "eb73b7cbac64ecbada0070a952ae258f92fc7fc512a0f6d81926043c95b9407b"
+      "sha256_lf": "6412b7fb12bee91dcca95ee424b6cc02f7f70c9b83c81dae08e9a6ca7388a813"
     },
     "requirements_lock_history": [
+      {
+        "path": "requirements-lock.txt",
+        "git_revision": "966d6acd4c201a76bd9ce417c663c04bae88d269",
+        "sha256_lf": "eb73b7cbac64ecbada0070a952ae258f92fc7fc512a0f6d81926043c95b9407b",
+        "reason": "transformers 5.20.1 (#963)"
+      },
       {
         "path": "requirements-lock.txt",
         "git_revision": "cf58768b4a90e9f15f94dab82d5a2716347a39ad",
