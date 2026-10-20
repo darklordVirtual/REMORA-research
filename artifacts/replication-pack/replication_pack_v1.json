@@ -21,9 +21,15 @@
     "measured_with_python": "3.13.7 (macOS arm64, venv with the dev extras)",
     "requirements_lock": {
       "path": "requirements-lock.txt",
-      "sha256_lf": "a2278b4ec5a955d2ccfba0c2350e042d843d0261111a250dbb86ada5b22dacdd"
+      "sha256_lf": "bfefd7a53c90ae45af89cf98ea2e2cf26f63241083ba640c21e2ab6f3796bd59"
     },
     "requirements_lock_history": [
+      {
+        "path": "requirements-lock.txt",
+        "git_revision": "07bb67f6f0ae4377885a37c1eb6465be859fdacf",
+        "sha256_lf": "a2278b4ec5a955d2ccfba0c2350e042d843d0261111a250dbb86ada5b22dacdd",
+        "reason": "aiohttp 3.14.4, pillow 13.0.0 and yarl 1.25.1 for aiohttp (security-fixes group, #980)"
+      },
       {
         "path": "requirements-lock.txt",
         "git_revision": "29c8f9fdd898e3874dd219855c4a1c1903481a84",
