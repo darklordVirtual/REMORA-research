@@ -5,7 +5,7 @@ aioboto3==15.5.0
 aiobotocore==3.9.2
 aiofiles==25.1.0
 aiohappyeyeballs==2.6.1
-aiohttp==3.14.3
+aiohttp==3.14.4
 aioitertools==0.13.0
 aiosignal==1.4.0
 alembic==1.18.5
@@ -157,7 +157,7 @@ pathlib_abc==0.5.2
 pathspec==1.1.1
 patsy==1.0.2
 peewee==3.19.0
-pillow==12.3.0
+pillow==13.0.0
 platformdirs==4.5.0
 playwright==1.60.0
 pluggy==1.6.0
