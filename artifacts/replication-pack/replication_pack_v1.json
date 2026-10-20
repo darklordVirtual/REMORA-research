@@ -21,9 +21,15 @@
     "measured_with_python": "3.13.7 (macOS arm64, venv with the dev extras)",
     "requirements_lock": {
       "path": "requirements-lock.txt",
-      "sha256_lf": "eb73b7cbac64ecbada0070a952ae258f92fc7fc512a0f6d81926043c95b9407b"
+      "sha256_lf": "2625d0401229877b92f00f360b33b17905e5e9cc498bac08afc660c6c4c3e711"
     },
     "requirements_lock_history": [
+      {
+        "path": "requirements-lock.txt",
+        "git_revision": "966d6acd4c201a76bd9ce417c663c04bae88d269",
+        "sha256_lf": "eb73b7cbac64ecbada0070a952ae258f92fc7fc512a0f6d81926043c95b9407b",
+        "reason": "fastapi 0.143.3 + pydantic-settings 2.16.0 (#962)"
+      },
       {
         "path": "requirements-lock.txt",
         "git_revision": "cf58768b4a90e9f15f94dab82d5a2716347a39ad",
