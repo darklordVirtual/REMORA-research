@@ -275,6 +275,14 @@ exclude_also = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v --tb=short -m 'not live and not live_replay_heavy'"
+# Starlette 1.9 warns on every TestClient import and tells the reader to
+# install `httpx2`. A CI message naming that package once led to an
+# unreviewed install (docs/assurance/development_review_log_v1.md). Filtered
+# so no run prints the instruction; whether to move to httpx2 is a separate,
+# reviewed decision.
+filterwarnings = [
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated",
+]
 markers = [
     "live: marks tests that require a live Cloudflare Worker (deselect with -m 'not live')",
     "live_replay_heavy: long-running deterministic replay/sandbox tests (run in dedicated job)",

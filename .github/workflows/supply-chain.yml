@@ -221,6 +221,13 @@ jobs:
           python -m pip install --upgrade pip
           python scripts/check_lock_resolvable.py
 
+      - name: The measurement-env Dependabot group lists exactly the unused lock entries
+        # Lock entries no install set installs are bumped together in one
+        # pull request, since no test runs against them. The group must name
+        # exactly those entries, or a tested package hides in it, or an
+        # untested one arrives alone.
+        run: python scripts/lock_measurement_only.py --check
+
   supply-chain-required:
     # RMR-007: branch protection can only require named contexts, and the
     # npm-audit leg has a matrix-expanded name that drifts as packages come

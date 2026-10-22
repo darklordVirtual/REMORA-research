@@ -102,6 +102,14 @@ safety-critical codebase's process to behave.
    exposure, and the incident used as the argument for hash-locked installs
    (REM-037).
 
+   Addendum (2026-10-21). Starlette 1.9 now prints the same name on every
+   TestClient import: "install `httpx2` instead". On that date PyPI lists
+   `httpx2` 2.16.0 by Tom Christie, with its source at `pydantic/httpx2`, an
+   unforked repository created the day of the first upload (2026-05-11). It
+   may be the real successor. That is still not a reason to install it from
+   a warning, so pytest filters the message (pyproject `filterwarnings`), and
+   a move from `httpx` to `httpx2` goes through review like any dependency.
+
 3. **A gate refused to self-close.** REM-020's closure tooling found two
    conflicting "canonical" criteria (7-day vs 30-day) and **refused to close
    the gate** until the owner reconciled them, rather than silently picking
