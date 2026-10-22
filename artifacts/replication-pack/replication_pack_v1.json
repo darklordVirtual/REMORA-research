@@ -21,9 +21,15 @@
     "measured_with_python": "3.13.7 (macOS arm64, venv with the dev extras)",
     "requirements_lock": {
       "path": "requirements-lock.txt",
-      "sha256_lf": "dfaf922beb01c9f3a5c408922ca75feea3b8a9aae91da4d32fa6037e813ac80e"
+      "sha256_lf": "a88625b243d001c358adb4e41eba642250f37b82e0094783860234b25dd97cc8"
     },
     "requirements_lock_history": [
+      {
+        "path": "requirements-lock.txt",
+        "git_revision": "fe1e76fe6c4fe06543a7df64610ef268bcb45273",
+        "sha256_lf": "dfaf922beb01c9f3a5c408922ca75feea3b8a9aae91da4d32fa6037e813ac80e",
+        "reason": "fastapi 0.147.0, langchain 1.4.6, langchain-core 1.6.12, langsmith 0.14.11, openai 3.35.1, hypothesis 6.170.2, ruff 0.17.1, sqlglot 30.23.0 (#1015, #1016, #1020; langchain, langchain-core and langsmith: measurement environment only)"
+      },
       {
         "path": "requirements-lock.txt",
         "git_revision": "0f7ebc3117e713c5124f2333f42c31d121c0e759",
