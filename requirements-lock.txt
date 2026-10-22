@@ -240,7 +240,7 @@ toml==0.10.2
 tomli==2.4.1
 torch==2.14.1
 tqdm==4.67.1
-transformers==5.20.1
+transformers==5.20.2
 trio==0.31.0
 trio-websocket==0.12.2
 typer==0.20.0
