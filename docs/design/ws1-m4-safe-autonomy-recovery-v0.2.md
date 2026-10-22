@@ -478,7 +478,7 @@ M4.4 completion requires a third party reproducing results from locked public/ap
 |---|---|---|---|
 | M4.1a Identify trust/clock/state topology | P0 | none | Architecture ADR ([proposed](../architecture/ADR-ws1-m4-admission-topology.md)): same-db transactional domains and backend matrix; threat model. |
 | M4.1b Versioned receipt and epoch writer | P0 | a | Authenticated receipts and revocation serialization tests. |
-| M4.1c Atomic admission/outbox port | P0 | a,b | Real Postgres transaction, deterministic interleavings, T01–T13. |
+| M4.1c Atomic admission/outbox port | P0 | a,b | Real Postgres transaction, deterministic interleavings, T01–T13. Part 1 (ACCEPT path) implemented, see the [ADR](../architecture/ADR-ws1-m4-admission-topology.md); review and worker paths open. |
 | M4.1d Executor permit and UNKNOWN recovery | P0 | c | T14–T20, explicit external fencing claim ceiling. |
 | M4.1e Model and security review | P0 | b–d | Mutation/negative tests, TLA+/explicit-state checks, second author review, new risk register. |
 | M4.2a / M4-OSF-01 Study D preregistration | P1 | M4.1 closed; existing OSF mirror | Hypotheses and protocol frozen; OSF registration ID, immutable timestamp, protocol hash and `OSF-T01`–`OSF-T10` passing. |

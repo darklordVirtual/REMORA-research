@@ -269,6 +269,13 @@ class Ws1Outcome:
     #: reconcile its estimates with what its sources bill.
     lookups: Mapping[str, int] = field(default_factory=dict)
     cost_units_charged: int | None = None
+    #: WS1-M4 admission: the authority subject each precondition's evidence
+    #: depends on (``source:<source_id>``), and the required preconditions,
+    #: so the dispatch path can build receipts (remora/verification/receipts.py).
+    #: A precondition whose resolvers span several sources has no subject,
+    #: and admission refuses it rather than pick one.
+    subjects: Mapping[str, str] = field(default_factory=dict)
+    required_preconditions: tuple[str, ...] = ()
 
     @property
     def clean(self) -> bool:
@@ -310,6 +317,20 @@ class Ws1Outcome:
         return dataclasses.replace(report, action=DecisionAction.ABSTAIN,
                                    reasons=(*report.reasons, reason),
                                    human_review_required=False)
+
+
+def _sources(registry: PreconditionRegistry, resolver_ids: Sequence[str]) -> set[str]:
+    return {registry.resolvers[r].source_id for r in resolver_ids if r in registry.resolvers}
+
+
+def _subjects(requirements: RequirementSet, registry: PreconditionRegistry) -> dict[str, str]:
+    """``precondition_id -> source:<id>`` for each precondition read from one source."""
+    out: dict[str, str] = {}
+    for pre in requirements.preconditions:
+        sources = _sources(registry, pre.resolver_ids)
+        if len(sources) == 1:
+            out[pre.precondition_id] = f"source:{sources.pop()}"
+    return out
 
 
 def _review_route(record: CompositionRecord, requirements: Any) -> str:
@@ -374,6 +395,16 @@ class Ws1Gate:
                 raise ValueError(f"WS1 enforce needs evidence for {missing} (WS1 SDD §13.2 WP5)")
         self.mode = mode
         self.deployment = deployment
+
+    def subjects_for_tool(self, tool_name: str) -> frozenset[str]:
+        """Every authority subject a call of ``tool_name`` can read evidence from.
+
+        Admission reads their epochs before the re-gate's lookups, so a
+        receipt records the epoch its evidence was read under.
+        """
+        registry = self.deployment.registry
+        return frozenset(f"source:{s}" for spec in registry.tools.get(tool_name, ())
+                         for s in _sources(registry, spec.resolver_ids))
 
     def _capability_hash(self, capability: Mapping[str, Any] | None) -> str:
         if capability is None:
@@ -523,7 +554,11 @@ class Ws1Gate:
                              record=record, stop_reason=run.stop_reason,
                              review_role=_review_route(record, requirements),
                              grounding=tuple(sorted(facts)), grounded_report=grounded,
-                             lookups=lookups, cost_units_charged=charged)
+                             lookups=lookups, cost_units_charged=charged,
+                             subjects=_subjects(requirements, d.registry),
+                             required_preconditions=tuple(sorted(
+                                 p.precondition_id for p in requirements.preconditions
+                                 if p.required)))
         if outcome.clean or outcome.review_role:
             binding = tagged_digest("execution-binding", {
                 "context_hash": context.context_hash,

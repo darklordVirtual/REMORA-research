@@ -172,3 +172,33 @@ The owner asked for the recommendations to be followed.
 
 Nothing on an execution path calls either module yet, so no claim or
 capability changes.
+
+## M4.1c, part 1: the ACCEPT path admits atomically
+
+- With `REMORA_WS1_MODE=enforce` and `REMORA_WS1_MAX_CLOCK_SKEW_MS` declared,
+  `redeem_accept_token` runs one `transaction_state`. Inside it, in the order
+  above, admission reads the database instant once, reads the epochs under
+  lock, and runs `admission_refusal`. It then consumes the grant on the same
+  connection (`EnforcementGate.check(..., connection=)`), records the
+  dispatch intent and enqueues `execution_admitted` on the audit outbox. A
+  refusal or a backend error rolls all of it back, and the grant stays
+  unspent.
+- The epochs are read without a lock before the re-gate's lookups, and the
+  receipts are built from the re-gate's composition record and those epochs.
+  `remora/verification/admission.py` holds the checks. The execution core
+  reaches it only through `Ws1AdmissionPort`.
+- A precondition whose resolvers span several sources has no single subject.
+  Admission refuses it (`evidence_receipt_unbuildable`) rather than pick one.
+- The strict profiles refuse to start under WS1 enforce without the declared
+  skew, or with a D1 state endpoint (`_check_ws1_admission`).
+- Tests: `tests/test_ws1_m4_admission.py` covers M4-T02, T04, T05 (admit
+  first), T06, T10, T11, T12 and T13, plus replay on the enlisted ledger.
+  Every case runs on SQLite and on Postgres, the reference backend, in the
+  coverage job's Postgres pass. Control 2b
+  (`tests/test_ws1_gate_controls.py`) still runs without a declared skew, so
+  the residual stays pinned where admission is off.
+
+Not yet done, and still M4.1c: the approved-review path and the async
+worker path consume the grant outside this transaction. Until they move into
+it, INV-M4-01 holds on the ACCEPT path only, and the SDD's M4.1 gate stays
+closed.

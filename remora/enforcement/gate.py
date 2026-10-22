@@ -156,6 +156,52 @@ class EnforcementGate:
     # Legitimate pruning stays possible through an explicit reset, so the
     # discipline is "operator-authorized", not "impossible".
 
+    def _enlisted(self, conn: Any, token: PolicyDecisionToken, vr: Any,
+                  allowed: bool, consume: bool, reason: str) -> EnforcementResult:
+        """The single-use check on the caller's open transaction.
+
+        Postgres runs the insert in a savepoint, so a duplicate jti refuses
+        without aborting the caller's transaction. Only the Postgres and
+        SQLite ledgers can join a transaction; any other backend refuses
+        rather than spending on a connection it does not own.
+        """
+        def refuse(why: str) -> EnforcementResult:
+            return EnforcementResult(allowed=False, action=token.action,
+                                     token_verified=vr.verified, reason=why,
+                                     strict_mode=self.strict)
+
+        if self._dsn:
+            import psycopg  # type: ignore
+            try:
+                if allowed and consume:
+                    with conn.transaction():
+                        conn.execute("INSERT INTO pep_consumed (jti) VALUES (%s)", (token.jti,))
+                        self._bump_watermark(conn)
+                elif conn.execute("SELECT 1 FROM pep_consumed WHERE jti = %s",
+                                  (token.jti,)).fetchone():
+                    return refuse("token_already_consumed")
+            except psycopg.IntegrityError:
+                return refuse("token_already_consumed")
+            except psycopg.Error as exc:
+                return self._ledger_unavailable(token, vr, "postgres", exc)
+        elif self._db_path:
+            import sqlite3
+            try:
+                if allowed and consume:
+                    conn.execute("INSERT INTO pep_consumed (jti) VALUES (?)", (token.jti,))
+                    self._bump_watermark(conn)
+                elif conn.execute("SELECT 1 FROM pep_consumed WHERE jti = ?",
+                                  (token.jti,)).fetchone():
+                    return refuse("token_already_consumed")
+            except sqlite3.IntegrityError:
+                return refuse("token_already_consumed")
+            except sqlite3.Error as exc:
+                return self._ledger_unavailable(token, vr, "sqlite", exc)
+        else:
+            return refuse("consumed_ledger_not_enlistable")
+        return EnforcementResult(allowed=allowed, action=token.action, token_verified=vr.verified,
+                                 reason=reason, strict_mode=self.strict)
+
     def _bump_watermark(self, conn: Any) -> None:
         """Count one more consumed grant, in the caller's transaction.
 
@@ -287,8 +333,14 @@ class EnforcementGate:
         consume: bool = False,
         now: str | None = None,
         context: "AuthorizationContext | None" = None,
+        connection: Any = None,
     ) -> EnforcementResult:
         """Check whether the token authorizes execution, and log the outcome.
+
+        ``connection`` is the caller's open admission transaction (WS1-M4,
+        docs/architecture/ADR-ws1-m4-admission-topology.md). With it the
+        consumption joins that transaction and commits or rolls back with it;
+        the ledger must live in the same database.
 
         Every exit path funnels through the ``grant.checked`` governance
         event. It used to be emitted only on the fall-through path, so the
@@ -298,7 +350,7 @@ class EnforcementGate:
         happened iff consumption was requested and the check allowed.
         """
         result = self._check_unlogged(
-            token, expected_observation_hash, consume, now, context)
+            token, expected_observation_hash, consume, now, context, connection)
         governance_event(
             "grant.checked",
             level=logging.INFO if result.allowed else logging.WARNING,
@@ -319,6 +371,7 @@ class EnforcementGate:
         consume: bool,
         now: str | None,
         context: "AuthorizationContext | None",
+        connection: Any = None,
     ) -> EnforcementResult:
         """The decision logic behind :meth:`check`, with no logging.
 
@@ -450,6 +503,8 @@ class EnforcementGate:
                 reason="token_missing_jti",
                 strict_mode=self.strict,
             )
+        if token.jti and connection is not None:
+            return self._enlisted(connection, token, vr, allowed, consume, reason)
         if token.jti:
             if self._dsn:
                 import psycopg  # type: ignore

@@ -471,6 +471,7 @@ pytest_add_cli_args_test_selection = [
     "tests/test_wheel_excludes_datasets.py",
     "tests/test_worker_unsafe_numbers.py",
     "tests/test_ws1_execution_binding.py",
+    "tests/test_ws1_m4_admission.py",
     "tests/test_ws1_task_budget.py",
     "tests/test_ws7_server_path.py",
 ]

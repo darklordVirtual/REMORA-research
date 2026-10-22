@@ -1089,6 +1089,50 @@ def _ws1_gate() -> Any:
     return _WS1_GATE
 
 
+_WS1_ADMISSION: Any = None
+
+#: WS1-M4 admission (M4.1c): the clock skew the deployment declares between
+#: the hosts that stamp evidence and the database. Required to turn
+#: admission on; at most 5000 ms, no default.
+ENV_WS1_MAX_CLOCK_SKEW_MS = "REMORA_WS1_MAX_CLOCK_SKEW_MS"
+
+
+def _ws1_admission() -> Any:
+    """WS1-M4 admission, or None when WS1 does not enforce or no skew is declared.
+
+    Postgres (``REMORA_PG_DSN``) is the reference backend and SQLite
+    (``REMORA_CHAIN_DB``) single-host exploratory. A D1 state endpoint is
+    refused: it has no interactive transaction to admit in
+    (docs/architecture/ADR-ws1-m4-admission-topology.md, decision 5).
+    """
+    global _WS1_ADMISSION
+    gate = _ws1_gate()
+    raw = _os.environ.get(ENV_WS1_MAX_CLOCK_SKEW_MS, "").strip()
+    if gate is None or gate.mode != "enforce" or not raw:
+        return None
+    if _WS1_ADMISSION is None:
+        if _os.environ.get("REMORA_STATE_ENDPOINT", "").strip():
+            raise ValueError("WS1-M4 admission refuses a D1 state endpoint "
+                             "(capability pending); use REMORA_PG_DSN")
+        dsn = _os.environ.get("REMORA_PG_DSN", "").strip()
+        db_path = _os.environ.get("REMORA_CHAIN_DB", "").strip()
+        if not (dsn or db_path):
+            raise ValueError("WS1-M4 admission needs REMORA_PG_DSN or REMORA_CHAIN_DB")
+        try:
+            skew = int(raw)
+        except ValueError as exc:
+            raise ValueError(f"{ENV_WS1_MAX_CLOCK_SKEW_MS} must be an integer") from exc
+        from remora.governance.authority_epochs import AuthorityEpochs
+        from remora.verification.admission import Ws1Admission
+
+        epochs = (AuthorityEpochs(dsn=dsn, connection_provider=_ACTIVE_TX_CONNECTION.get)
+                  if dsn else
+                  AuthorityEpochs(db_path=db_path, connection_provider=_ACTIVE_TX_CONNECTION.get))
+        _WS1_ADMISSION = Ws1Admission(epochs=epochs, max_clock_skew_ms=skew,
+                                      postgres=bool(dsn))
+    return _WS1_ADMISSION
+
+
 def _ws1_capability(tenant: str) -> Any:
     """The capability block a WS1 binding covers, for a call and its proposer."""
     if _capability_resolver() is None:
@@ -2933,6 +2977,10 @@ def execute_accepted(req: ExecuteAcceptedRequest, request: Request) -> dict[str,
             require_execution_context=context_required(),
             ws1_gate=_ws1_gate(),
             ws1_capability=_ws1_capability(tenant),
+            ws1_admission=_ws1_admission(),
+            transaction=db_transaction_state,
+            active_connection=_ACTIVE_TX_CONNECTION.get,
+            transactional_append=chain_append_transactional,
         )
     except ExecutionContextRefused as exc:
         raise HTTPException(status_code=409, detail=exc.reason) from exc

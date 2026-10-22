@@ -158,6 +158,7 @@ def validate_runtime_profile_prerequisites() -> str:
         )
 
     _check_flow_control(profile)
+    _check_ws1_admission(profile)
 
     # Custody last, so its message is never the one hiding a plainer problem.
     assert_custody_split(strict=True)
@@ -173,6 +174,32 @@ def validate_runtime_profile_prerequisites() -> str:
 
     _check_contract(profile)
     return profile
+
+
+def _check_ws1_admission(profile: str) -> None:
+    """WS1 enforce under a strict profile needs WS1-M4 admission (M4.1c).
+
+    Without it the re-gate proves evidence at one instant and the grant is
+    spent at another, and evidence that lapses in between still runs
+    (control 2b). Admission needs a declared clock skew, 0 to 5000 ms with no
+    default, and a Postgres or SQLite state backend; a D1 endpoint has no
+    interactive transaction (docs/architecture/ADR-ws1-m4-admission-topology.md).
+    """
+    if os.getenv("REMORA_WS1_MODE", "").strip().lower() != "enforce":
+        return
+    raw = os.getenv("REMORA_WS1_MAX_CLOCK_SKEW_MS", "").strip()
+    try:
+        skew = int(raw)
+    except ValueError:
+        skew = -1
+    if not 0 <= skew <= 5_000:
+        raise RuntimeProfileError(
+            f"REMORA runtime profile {profile!r} with REMORA_WS1_MODE=enforce requires "
+            "REMORA_WS1_MAX_CLOCK_SKEW_MS, an integer from 0 to 5000 (WS1-M4 admission)")
+    if _configured("REMORA_STATE_ENDPOINT"):
+        raise RuntimeProfileError(
+            f"REMORA runtime profile {profile!r} with REMORA_WS1_MODE=enforce refuses a "
+            "D1 state endpoint: WS1-M4 admission needs an interactive transaction")
 
 
 #: Derived information-flow control (SDD v1.3). ``1`` turns it on; any other

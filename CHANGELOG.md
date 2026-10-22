@@ -4,6 +4,11 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### WS1-M4 atomic admission on the ACCEPT path (M4.1c, part 1)
+
+- With `REMORA_WS1_MODE=enforce` and `REMORA_WS1_MAX_CLOCK_SKEW_MS` declared, redeeming an ACCEPT grant runs one transaction. It reads the database instant and the authority epochs under lock and re-checks the re-gate's evidence receipts. It then consumes the grant on the same connection, records the dispatch intent and enqueues the admission event. A refusal or backend error spends nothing. Evidence that lapses between the re-gate and consumption now refuses as `evidence_expired_at_admission` (control 2b, M4-T02), on SQLite and on Postgres.
+- The strict profiles refuse WS1 enforce without the declared skew or with a D1 state endpoint. The approved-review and async worker paths do not admit atomically yet ([ADR](docs/architecture/ADR-ws1-m4-admission-topology.md)).
+
 ### WS1-M4 receipts and authority epochs (M4.1b, not wired)
 
 - `remora/verification/receipts.py` and `remora/governance/authority_epochs.py` add the pieces the M4.1 admission transaction will check: versioned evidence receipts with a pure admission check, and durable per-subject authority epochs that join the caller's transaction. No execution path calls them yet ([ADR](docs/architecture/ADR-ws1-m4-admission-topology.md)).

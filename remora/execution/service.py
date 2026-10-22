@@ -18,7 +18,7 @@ import logging
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, NoReturn
 from uuid import uuid4
 
 from remora.enforcement.outbox import OutboxState
@@ -33,6 +33,7 @@ from remora.execution.ports import (
     PolicyEnginePort,
     ToolCallPort,
     TransactionalAppendPort,
+    Ws1AdmissionPort,
     Ws1GatePort,
     Ws1OutcomePort,
     appender,
@@ -1808,6 +1809,91 @@ def ws1_regate(
 
 
 
+class _AdmissionRefusal(Exception):
+    """Raised inside the admission transaction so it rolls back; never escapes."""
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(reason)
+        self.reason = reason
+
+
+def _refuse_admission(chain: AuditChainPort, *, tenant: str, proposal_id: Any,
+                      principal: str, grant_jti: str, reason: str) -> NoReturn:
+    """Record an admission refusal after the rollback, and refuse the call.
+
+    Nothing was spent and no intent exists, so the event is appended on its
+    own, like the ACCEPT path's other pre-consumption refusals."""
+    chain.append(tenant, {
+        "event": "execution_admission_refused",
+        "proposal_id": proposal_id,
+        "actor": principal,
+        "grant_jti": grant_jti,
+        "detail": reason,
+    })
+    raise TokenRefused(f"WS1-M4 admission refused: {reason}", reason)
+
+
+def _admit_atomically(
+    admission: Ws1AdmissionPort, ws1: Any, epochs_before: dict[str, int], *,
+    tenant: str, principal: str, proposal_id: Any, token: Any, obs: Any,
+    tool_call: Any, context: Any, chain: AuditChainPort, gate: EnforcementGatePort,
+    transaction: Callable[[str], Any] | None,
+    active_connection: Callable[[], Any] | None,
+    transactional_append: Callable[..., Any] | None,
+    record_dispatch_intent: Callable[..., Any],
+) -> tuple[Any, Any]:
+    """INV-M4-01 on the ACCEPT path: one transaction or none (M4.1c).
+
+    Order inside, as the topology ADR fixes it: database time and epochs
+    under lock, receipt checks, grant consumption on the same connection,
+    dispatch intent, admission event; then commit. Any refusal raises inside
+    so the transaction rolls back, and the grant stays unspent. A backend
+    that cannot open the transaction refuses: nothing is dispatched on a
+    guess (M4-T13).
+    """
+    if transaction is None or active_connection is None or transactional_append is None:
+        _refuse_admission(chain, tenant=tenant, proposal_id=proposal_id,
+                          principal=principal, grant_jti=token.jti,
+                          reason="admission_backend_unavailable")
+    assert transaction is not None and active_connection is not None
+    assert transactional_append is not None
+    try:
+        with transaction(tenant):
+            connection = active_connection()
+            reason, facts = admission.check(
+                connection, tenant=tenant, outcome=ws1, epochs_before=epochs_before)
+            if reason is not None:
+                raise _AdmissionRefusal(reason)
+            gate_result = gate.check(token, observation_binding(obs), consume=True,
+                                     context=context, connection=connection)
+            if not gate_result.allowed:
+                # Nothing was written; the caller records the grant refusal
+                # as it does without admission.
+                return gate_result, None
+            intent = record_dispatch_intent(
+                proposal_id=str(proposal_id or token.jti), tenant=tenant,
+                item_id=f"accept:{token.jti}", tool_name=tool_call.tool_name,
+                tool_call_hash=obs.tool_call_hash or "", grant_jti=token.jti)
+            transactional_append(tenant, {
+                "event": "execution_admitted",
+                "proposal_id": proposal_id,
+                "actor": principal,
+                "grant_jti": token.jti,
+                "ws1_binding_hash": ws1.binding_hash,
+                **facts,
+            }, key=f"execution_admitted:{token.jti}")
+    except _AdmissionRefusal as exc:
+        _refuse_admission(chain, tenant=tenant, proposal_id=proposal_id,
+                          principal=principal, grant_jti=token.jti, reason=exc.reason)
+    except TokenRefused:
+        raise
+    except Exception as exc:  # the backend failed; refuse, never dispatch on a guess
+        _refuse_admission(chain, tenant=tenant, proposal_id=proposal_id,
+                          principal=principal, grant_jti=token.jti,
+                          reason=f"admission_backend_unavailable:{type(exc).__name__}")
+    return gate_result, intent
+
+
 def _ws1_approval_binding_matches(chain: AuditChainPort, tenant: str,
                                   proposal_id: str, outcome: Ws1OutcomePort | None) -> bool:
     """An approval closes only the WS1 requirement set/configuration assessed.
@@ -1993,6 +2079,10 @@ def redeem_accept_token(
     require_execution_context: bool = False,
     ws1_gate: Ws1GatePort | None = None,
     ws1_capability: Callable[[Any, str], Any] | None = None,
+    ws1_admission: Ws1AdmissionPort | None = None,
+    transaction: Callable[[str], Any] | None = None,
+    active_connection: Callable[[], Any] | None = None,
+    transactional_append: Callable[..., Any] | None = None,
 ) -> dict[str, Any]:
     """Execute a directly-ACCEPTed proposal under its single-use token.
 
@@ -2018,6 +2108,14 @@ def redeem_accept_token(
     ``ws1_regate_refused``, a moved requirement as ``context_mismatch``, and
     neither spends the grant. ``ws1_capability(call, principal)`` gives the
     capability block the binding covers.
+
+    With ``ws1_admission`` (WS1-M4 M4.1c) the re-gate's evidence is checked
+    again at the instant the grant is spent: one ``transaction`` reads the
+    database time and the authority epochs under lock, refuses expired or
+    stale evidence, consumes the grant on its connection, records the intent
+    and enqueues the admission event, and commits all of it or none of it.
+    Evidence that lapses after the re-gate then refuses instead of running
+    (control 2b, M4-T02).
     """
     obs, semantic = build_observation(tool_call, tenant)
     proposal_id = token.request_id or None
@@ -2083,6 +2181,16 @@ def redeem_accept_token(
     # else is compared as themselves and refused as context_mismatch.
     acting_for = _acting_for(
         _assessed_payload(chain, tenant, str(proposal_id or "")), principal)
+    admitting = (ws1_admission is not None and ws1_gate is not None
+                 and ws1_gate.mode == "enforce")
+    epochs_before: dict[str, int] | None = None
+    if admitting:
+        assert ws1_admission is not None
+        epochs_before, why = ws1_admission.before_regate(
+            ws1_gate, tenant=tenant, tool_name=tool_call.tool_name)
+        if epochs_before is None:
+            _refuse_admission(chain, tenant=tenant, proposal_id=proposal_id,
+                              principal=principal, grant_jti=token.jti, reason=why)
     ws1 = ws1_regate(
         ws1_gate, chain=chain, tenant=tenant, proposal_id=str(proposal_id or ""),
         proposer=acting_for or principal, tool_call=tool_call, semantic=semantic,
@@ -2149,8 +2257,19 @@ def redeem_accept_token(
 
     # Consume exactly once. A refused check here is expiry, audience
     # mismatch, a bad signature, or a replay - all terminal for this token.
-    gate_result = gate.check(
-        token, observation_binding(obs), consume=True, context=current_context)
+    intent: Any = None
+    if admitting:
+        assert ws1_admission is not None and epochs_before is not None
+        gate_result, intent = _admit_atomically(
+            ws1_admission, ws1, epochs_before, tenant=tenant, principal=principal,
+            proposal_id=proposal_id, token=token, obs=obs, tool_call=tool_call,
+            context=current_context, chain=chain, gate=gate,
+            transaction=transaction, active_connection=active_connection,
+            transactional_append=transactional_append,
+            record_dispatch_intent=record_dispatch_intent)
+    else:
+        gate_result = gate.check(
+            token, observation_binding(obs), consume=True, context=current_context)
     if not gate_result.allowed:
         chain.append(tenant, {
             "event": "execution_grant_refused",
@@ -2175,15 +2294,17 @@ def redeem_accept_token(
         "pep": {"allowed": gate_result.allowed, "reason": gate_result.reason},
     }
 
-    # Durable dispatch intent before any side effect (FT-02).
-    intent = record_dispatch_intent(
-        proposal_id=str(proposal_id or token.jti),
-        tenant=tenant,
-        item_id=f"accept:{token.jti}",
-        tool_name=tool_call.tool_name,
-        tool_call_hash=obs.tool_call_hash or "",
-        grant_jti=token.jti,
-    )
+    # Durable dispatch intent before any side effect (FT-02). Under WS1-M4
+    # admission it was recorded in the admission transaction above.
+    if not admitting:
+        intent = record_dispatch_intent(
+            proposal_id=str(proposal_id or token.jti),
+            tenant=tenant,
+            item_id=f"accept:{token.jti}",
+            tool_name=tool_call.tool_name,
+            tool_call_hash=obs.tool_call_hash or "",
+            grant_jti=token.jti,
+        )
     intent_entry = chain.append(tenant, {
         "event": "execution_authorized",
         "proposal_id": proposal_id,

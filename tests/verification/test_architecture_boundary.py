@@ -56,8 +56,9 @@ def test_ws1_imports_no_issuer_or_settlement_machinery():
 
 def test_the_execution_core_reaches_ws1_only_through_its_port():
     """WP5: ``remora/execution`` and ``remora/enforcement`` see a
-    ``Ws1GatePort``; the one importer of the library is the server, and it
-    imports only the gate it wires in."""
+    ``Ws1GatePort`` and a ``Ws1AdmissionPort``; the one importer of the
+    library is the server, and it imports only the gate and the WS1-M4
+    admission checks it wires in."""
     importers = {}
     for package in ENFORCING + ("remora/enforcement",):
         for source in (ROOT / package).rglob("*.py"):
@@ -66,7 +67,8 @@ def test_the_execution_core_reaches_ws1_only_through_its_port():
                      or n == "remora.decision_providers.composition_adapter"]
             if names:
                 importers[str(source.relative_to(ROOT))] = sorted(set(names))
-    assert importers == {"servers/execution_api.py": ["remora.verification.execution_gate"]}
+    assert importers == {"servers/execution_api.py": ["remora.verification.admission",
+                                                      "remora.verification.execution_gate"]}
 
 
 def test_ws1_reads_no_clock_or_environment():

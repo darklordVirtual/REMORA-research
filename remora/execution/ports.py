@@ -190,6 +190,7 @@ class EnforcementGatePort(Protocol):
         consume: bool = False,
         now: str | None = None,
         context: Any = None,
+        connection: Any = None,
     ) -> EnforcementResult: ...
 
 
@@ -356,6 +357,21 @@ class Ws1OutcomePort(Protocol):
     def audit_block(self) -> dict[str, Any]: ...
 
     def apply(self, report: DecisionReport) -> DecisionReport: ...
+
+
+class Ws1AdmissionPort(Protocol):
+    """WS1-M4 admission (M4.1c), built in ``remora/verification/admission.py``.
+
+    ``before_regate`` reads authority epochs before the re-gate's lookups.
+    ``check`` runs inside the open admission transaction and returns the
+    refusal reason, or None, with the facts the admission event records.
+    """
+
+    def before_regate(self, gate: Any, *, tenant: str, tool_name: str
+                      ) -> tuple[dict[str, int] | None, str]: ...
+
+    def check(self, connection: Any, *, tenant: str, outcome: Any,
+              epochs_before: Any) -> tuple[str | None, dict[str, Any]]: ...
 
 
 class Ws1GatePort(Protocol):
