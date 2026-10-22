@@ -221,11 +221,11 @@ jobs:
           python -m pip install --upgrade pip
           python scripts/check_lock_resolvable.py
 
-      - name: The measurement-env Dependabot group lists exactly the unused lock entries
+      - name: The measurement-env-N Dependabot groups list exactly the unused lock entries
         # Lock entries no install set installs are bumped together in one
         # pull request, since no test runs against them. The group must name
         # exactly those entries, or a tested package hides in it, or an
-        # untested one arrives alone.
+        # untested one arrives alone. Dependabot caps a group at 100 patterns.
         run: python scripts/lock_measurement_only.py --check
 
   supply-chain-required:

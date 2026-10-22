@@ -75,11 +75,11 @@ the commit it matched and your reason, and then runs the full check. Commit
 verifies the environment; it does not show that historical results regenerate
 under the new versions.
 
-For a package in the `measurement-env` Dependabot group, say so in the
+For a package in a `measurement-env-N` Dependabot group, say so in the
 reason ("measurement environment only"): no declared install set installs
 it, so no test ran against the new version. `python
-scripts/lock_measurement_only.py --check` keeps that group equal to the lock
-entries no install set uses, and CI runs it.
+scripts/lock_measurement_only.py --check` keeps those groups equal to the lock
+entries no install set uses, and CI runs it; `--write` regenerates them.
 
 ### Test structure
 

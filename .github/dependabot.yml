@@ -66,10 +66,12 @@ updates:
       # A bump here changes the lock digest and the replication pack's history
       # but runs no test, so they arrive together in one pull request rather
       # than one each. Last, so a name an earlier group covers stays there.
-      # Regenerate with `python scripts/lock_measurement_only.py`; CI checks
-      # the list with --check. Security updates are not affected: this group
-      # applies to version updates only.
-      measurement-env:
+      # Dependabot allows at most 100 patterns per group, so the list is split
+      # into measurement-env-N groups, and a name an earlier group matches is
+      # left there. Regenerate with `python scripts/lock_measurement_only.py
+      # --write`; CI checks the groups with --check. Security updates are not
+      # affected: these groups apply to version updates only.
+      measurement-env-1:
         applies-to: version-updates
         patterns:
           - "accelerate"
@@ -111,7 +113,6 @@ updates:
           - "grpcio"
           - "h2"
           - "hpack"
-          - "httpx-sse"
           - "hyperframe"
           - "ifcopenshell"
           - "importlib_metadata"
@@ -119,14 +120,10 @@ updates:
           - "isodate"
           - "isort"
           - "kiwisolver"
-          - "langchain"
-          - "langchain-core"
-          - "langchain-protocol"
           - "langgraph"
           - "langgraph-checkpoint"
           - "langgraph-prebuilt"
           - "langgraph-sdk"
-          - "langsmith"
           - "lark"
           - "Mako"
           - "matplotlib"
@@ -148,7 +145,6 @@ updates:
           - "pyasn1"
           - "pyasn1_modules"
           - "pycryptodome"
-          - "pydantic-settings"
           - "pydot"
           - "pyee"
           - "PyGithub"
@@ -157,7 +153,6 @@ updates:
           - "pyparsing"
           - "pypdf"
           - "PySocks"
-          - "pytest-asyncio"
           - "python-multipart"
           - "python-nmap"
           - "pytokens"
@@ -178,8 +173,10 @@ updates:
           - "tomli"
           - "trio"
           - "trio-websocket"
-          - "types-requests"
           - "uuid_utils"
+      measurement-env-2:
+        applies-to: version-updates
+        patterns:
           - "wcmatch"
           - "websocket-client"
           - "wsproto"
