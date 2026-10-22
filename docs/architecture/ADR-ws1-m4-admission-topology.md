@@ -173,7 +173,7 @@ The owner asked for the recommendations to be followed.
 Nothing on an execution path calls either module yet, so no claim or
 capability changes.
 
-## M4.1c, part 1: the ACCEPT path admits atomically
+## M4.1c: all three paths admit atomically
 
 - With `REMORA_WS1_MODE=enforce` and `REMORA_WS1_MAX_CLOCK_SKEW_MS` declared,
   `redeem_accept_token` runs one `transaction_state`. Inside it, in the order
@@ -191,14 +191,36 @@ capability changes.
   Admission refuses it (`evidence_receipt_unbuildable`) rather than pick one.
 - The strict profiles refuse to start under WS1 enforce without the declared
   skew, or with a D1 state endpoint (`_check_ws1_admission`).
-- Tests: `tests/test_ws1_m4_admission.py` covers M4-T02, T04, T05 (admit
-  first), T06, T10, T11, T12 and T13, plus replay on the enlisted ledger.
-  Every case runs on SQLite and on Postgres, the reference backend, in the
-  coverage job's Postgres pass. Control 2b
-  (`tests/test_ws1_gate_controls.py`) still runs without a declared skew, so
-  the residual stays pinned where admission is off.
+- The approved-review and async worker paths follow the owner decision.
+  The intent is recorded when the approval is honoured, as before. The claim
+  is a second transaction: receipt and epoch checks, the exclusive claim on
+  the same connection (`claim_enlisted`), the grant minted and consumed there,
+  and the admission event. A refusal rolls the claim back. The row then
+  settles REFUSED under the admission reason, and no grant was spent.
+- A REVIEW precondition's subject is `review:<role>`. An approval carries no
+  evidence expiry (`NO_EVIDENCE_EXPIRY_MS`), because the review queue owns its
+  lifetime and re-checks it before the claim. Advancing the role's epoch
+  refuses the approved call.
+- Tests: `tests/test_ws1_m4_admission.py`, every case on SQLite and on
+  Postgres, the reference backend, in the coverage job's Postgres pass.
+  - ACCEPT path: M4-T02, T04, T05 (admit first), T06, T10, T11, T12 and T13,
+    plus replay on the enlisted ledger.
+  - Review path: admission at the claim, a lapse after its re-gate, a REVIEW
+    precondition under its role epoch, and a revoked role.
+  - Worker path: admission at the claim, a lapse that settles the row, and
+    four concurrent workers on one row.
 
-Not yet done, and still M4.1c: the approved-review path and the async
-worker path consume the grant outside this transaction. Until they move into
-it, INV-M4-01 holds on the ACCEPT path only, and the SDD's M4.1 gate stays
+  Control 2b (`tests/test_ws1_gate_controls.py`) still runs without a
+  declared skew, so the residual stays pinned where admission is off.
+- M4-T03 is covered for approvers only. The review queue checks approver
+  revocation inside its transaction. The ACCEPT path has no revocation store
+  for the agent principal, so its revocation has to be modelled as an
+  epoch subject first. T07 and T08 (binding swaps) refuse before admission,
+  through the existing context and toolspec binding. T09 is the pure check
+  of M4.1b.
+- Approval expiry between the intent transaction and the claim is not
+  re-checked inside the claim. The grant minted there is capped by the
+  authorization expiry the intent recorded (issue #418).
+
+The M4.1 gate (SDD §5) also needs M4.1d (T14 to T20) and M4.1e; it stays
 closed.

@@ -246,6 +246,11 @@ class DispatchOutboxPort(Protocol):
         self, outbox_id: str, *, worker_id: str, now: datetime | None = None
     ) -> OutboxRow | None: ...
 
+    def claim_enlisted(
+        self, connection: Any, outbox_id: str, *, worker_id: str,
+        now: datetime | None = None,
+    ) -> OutboxRow | None: ...
+
     def record_intent_enlisted(
         self,
         connection: sqlite3.Connection,

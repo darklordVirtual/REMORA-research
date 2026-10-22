@@ -324,12 +324,19 @@ def _sources(registry: PreconditionRegistry, resolver_ids: Sequence[str]) -> set
 
 
 def _subjects(requirements: RequirementSet, registry: PreconditionRegistry) -> dict[str, str]:
-    """``precondition_id -> source:<id>`` for each precondition read from one source."""
+    """``precondition_id -> subject`` for admission's epoch checks.
+
+    ``source:<id>`` for a precondition read from one source, and
+    ``review:<role>`` for a REVIEW precondition, which an approval of that
+    role closes: revoking the role's authority advances that epoch.
+    """
     out: dict[str, str] = {}
     for pre in requirements.preconditions:
         sources = _sources(registry, pre.resolver_ids)
         if len(sources) == 1:
             out[pre.precondition_id] = f"source:{sources.pop()}"
+        elif not sources and pre.review_role:
+            out[pre.precondition_id] = f"review:{pre.review_role}"
     return out
 
 
@@ -403,8 +410,11 @@ class Ws1Gate:
         receipt records the epoch its evidence was read under.
         """
         registry = self.deployment.registry
-        return frozenset(f"source:{s}" for spec in registry.tools.get(tool_name, ())
-                         for s in _sources(registry, spec.resolver_ids))
+        specs = registry.tools.get(tool_name, ())
+        return frozenset(
+            {f"source:{s}" for spec in specs for s in _sources(registry, spec.resolver_ids)}
+            | {f"review:{spec.review_role.strip().lower()}" for spec in specs
+               if spec.review_role and not spec.resolver_ids})
 
     def _capability_hash(self, capability: Mapping[str, Any] | None) -> str:
         if capability is None:

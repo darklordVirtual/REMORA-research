@@ -145,3 +145,29 @@ def test_a_proved_result_admission_could_not_check_is_not_a_receipt(missing):
     with pytest.raises(ValueError):
         receipts_from_record(_record(result), tenant_id=T, binding_hash=BINDING,
                              subject_of=subjects, epochs=epochs)
+
+
+def test_a_review_receipt_has_no_evidence_expiry_but_keeps_its_epoch():
+    """An approval closes a REVIEW precondition without an evidence expiry;
+    the queue owns the approval's lifetime. Its role's epoch still binds."""
+    from remora.verification.receipts import NO_EVIDENCE_EXPIRY_MS
+
+    reviewed = dict(_result("change_approved"), valid_until=None)
+    (receipt,) = receipts_from_record(
+        _record(reviewed), tenant_id=T, binding_hash=BINDING,
+        subject_of={"change_approved": "review:change-manager"},
+        epochs={"review:change-manager": 2})
+    assert receipt.valid_until_ms == NO_EVIDENCE_EXPIRY_MS
+    check = dict(tenant_id=T, binding_hash=BINDING,
+                 expected_set_digest=receipt_set_digest((receipt,)),
+                 required_preconditions=("change_approved",), now_ms=10**15,
+                 max_clock_skew_ms=0)
+    assert admission_refusal((receipt,), epochs={"review:change-manager": (2, False)},
+                             **check) is None
+    assert admission_refusal((receipt,), epochs={"review:change-manager": (3, True)},
+                             **check) == "authority_revoked"
+    # A source receipt without an expiry is still refused.
+    with pytest.raises(ValueError, match="without an expiry"):
+        receipts_from_record(_record(reviewed), tenant_id=T, binding_hash=BINDING,
+                             subject_of={"change_approved": "source:crm"},
+                             epochs={"source:crm": 1})

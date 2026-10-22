@@ -372,6 +372,14 @@ class ExecutionOutbox:
             "use SQLiteExecutionOutbox (or configure REMORA_CHAIN_DB)"
         )
 
+    def claim_enlisted(
+        self, connection: Any, outbox_id: str, *, worker_id: str,
+        now: datetime | None = None,
+    ) -> OutboxRow | None:
+        """Not available in-process, for the reason :meth:`record_intent_enlisted` gives."""
+        raise NotImplementedError(
+            "the in-process outbox cannot claim inside a database transaction")
+
     def claim(
         self, outbox_id: str, *, worker_id: str, now: datetime | None = None
     ) -> OutboxRow | None:
@@ -742,6 +750,35 @@ class SQLiteExecutionOutbox(ExecutionOutbox):
             conn.execute("ROLLBACK")
             raise
         return self.get(outbox_id)
+
+    def claim_enlisted(
+        self, connection: sqlite3.Connection, outbox_id: str, *, worker_id: str,
+        now: datetime | None = None,
+    ) -> OutboxRow | None:
+        """:meth:`claim` inside the caller's open transaction (WS1-M4 admission).
+
+        The claim commits with the grant consumption and rolls back with it,
+        so a refused admission leaves the row DISPATCH_PENDING. Issues no
+        transaction-control statement; the caller's ``BEGIN EXCLUSIVE``
+        already serializes it.
+        """
+        record = connection.execute(
+            "SELECT * FROM execution_outbox WHERE outbox_id = ?", (outbox_id,)
+        ).fetchone()
+        if record is None:
+            raise KeyError(f"unknown outbox row: {outbox_id}")
+        row = self._row_any(record)  # the caller's connection has no row factory
+        _check_claimable(row)
+        if row.state is not OutboxState.DISPATCH_PENDING:
+            return None
+        claimed_at = _now(now)
+        connection.execute(
+            "UPDATE execution_outbox SET state = ?, worker_id = ?, "
+            "claimed_at = ? WHERE outbox_id = ?",
+            (OutboxState.DISPATCHING.value, worker_id, claimed_at.isoformat(), outbox_id),
+        )
+        return replace(row, state=OutboxState.DISPATCHING, worker_id=worker_id,
+                       claimed_at=claimed_at)
 
     def claim(
         self, outbox_id: str, *, worker_id: str, now: datetime | None = None
@@ -1180,6 +1217,29 @@ class PostgresExecutionOutbox(ExecutionOutbox):
             attempt_no=attempt_no,
             created_at=created,
         )
+
+    def claim_enlisted(
+        self, connection: Any, outbox_id: str, *, worker_id: str,
+        now: datetime | None = None,
+    ) -> OutboxRow | None:
+        """:meth:`claim` inside the caller's open transaction (WS1-M4 admission)."""
+        record = connection.execute(
+            self._SELECT + " WHERE outbox_id = %s FOR UPDATE", (outbox_id,),
+        ).fetchone()
+        if record is None:
+            raise KeyError("unknown outbox row: " + outbox_id)
+        row = self._row_tuple(record)
+        _check_claimable(row)
+        if row.state is not OutboxState.DISPATCH_PENDING:
+            return None
+        claimed_at = _now(now)
+        connection.execute(
+            "UPDATE execution_outbox SET state = %s, worker_id = %s, "
+            "claimed_at = %s WHERE outbox_id = %s",
+            (OutboxState.DISPATCHING.value, worker_id, claimed_at.isoformat(), outbox_id),
+        )
+        return replace(row, state=OutboxState.DISPATCHING, worker_id=worker_id,
+                       claimed_at=claimed_at)
 
     def claim(
         self, outbox_id: str, *, worker_id: str, now: datetime | None = None

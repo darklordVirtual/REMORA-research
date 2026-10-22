@@ -109,7 +109,7 @@ def _clock():
     return {"ms": time.time_ns() // 1_000_000}
 
 
-def _setup(monkeypatch, *, ttl_s=60, db_offset_ms=0):
+def _setup(monkeypatch, *, ttl_s=60, db_offset_ms=0, **deployment):
     """Install the WS1 gate and admission sharing one controllable clock.
 
     ``db_offset_ms`` is how far the database instant runs ahead of the clock
@@ -117,7 +117,8 @@ def _setup(monkeypatch, *, ttl_s=60, db_offset_ms=0):
     """
     clock = _clock()
     gate = _install(monkeypatch, "enforce", clock_ms=lambda: clock["ms"], resolvers={
-        "assets": InMemorySource("assets", "asset-inventory", fixture.ASSETS, ttl_s=ttl_s)})
+        "assets": InMemorySource("assets", "asset-inventory", fixture.ASSETS, ttl_s=ttl_s)},
+        **deployment)
     exec_mod = _mod()
     admission = exec_mod._ws1_admission()
     assert admission is not None
@@ -313,3 +314,115 @@ def test_the_strict_profile_requires_a_declared_skew_under_ws1_enforce(monkeypat
     monkeypatch.setenv("REMORA_STATE_ENDPOINT", "https://state.example")
     with pytest.raises(RuntimeProfileError, match="D1"):
         _check_ws1_admission("review")
+
+
+# ── the approved-review and async worker paths (owner decision: the grant
+# is minted and consumed in the claim's admission transaction) ──────────
+
+from tests.test_ws1_execution_binding import (  # noqa: E402
+    WRITE_CALL,
+    _as_role,
+    _assess_write,
+    _review_deployment,
+    _reviewed_item,
+)
+
+
+def _execute(client, item_id):
+    return client.post("/v1/execution/execute",
+                       json={"item_id": item_id, "tool_call": WRITE_CALL})
+
+
+def test_the_review_path_admits_in_the_claim_transaction(db, monkeypatch):
+    _setup(monkeypatch)
+    item_id = _reviewed_item(db["client"])
+    r = _execute(db["client"], item_id)
+    assert r.status_code == 200, r.text
+    assert r.json()["tool_execution"]["executed"] is True
+    jti = r.json()["execution_grant"]["jti"]
+    assert db["backend"].consumed(jti)
+    (event,) = _admitted_events(jti)
+    assert event["outbox_id"] and event["receipt_count"] == 1
+
+
+def test_the_review_path_refuses_a_lapse_after_its_regate_unspent(db, monkeypatch):
+    """M4-T02 on the review path: the approval was honoured and the intent
+    recorded, then the evidence lapsed before the claim. Nothing is spent,
+    nothing runs, and the intent settles REFUSED under the admission reason."""
+    _setup(monkeypatch, ttl_s=1, db_offset_ms=5_000)
+    item_id = _reviewed_item(db["client"])
+    r = _execute(db["client"], item_id)
+    assert r.status_code == 200, r.text
+    execution = r.json()["tool_execution"]
+    assert execution["executed"] is False
+    assert execution["refusal_reason"] == "evidence_expired_at_admission"
+    assert not db["backend"].consumed(r.json()["execution_grant"]["jti"])
+    assert not _admitted_events(r.json()["execution_grant"]["jti"])
+
+
+def test_a_review_precondition_admits_under_its_role_epoch(db, monkeypatch):
+    _setup(monkeypatch, **_review_deployment())
+    item_id = _assess_write(db["client"])["review_item_id"]
+    _as_role(monkeypatch, "change-manager")
+    assert db["client"].post("/v1/execution/approve", json={"item_id": item_id}).status_code == 200
+    r = _execute(db["client"], item_id)
+    assert r.status_code == 200, r.text
+    assert r.json()["tool_execution"]["executed"] is True
+    (event,) = _admitted_events(r.json()["execution_grant"]["jti"])
+    assert set(event["authority_epochs"]) == {SUBJECT, "review:change-manager"}
+
+
+def test_revoking_the_review_role_refuses_the_approved_call(db, monkeypatch):
+    _, _, _, admission = _setup(monkeypatch, **_review_deployment())
+    item_id = _assess_write(db["client"])["review_item_id"]
+    _as_role(monkeypatch, "change-manager")
+    assert db["client"].post("/v1/execution/approve", json={"item_id": item_id}).status_code == 200
+    gate = _mod()._ws1_gate()
+    real = gate.evaluate
+
+    def revoke_during(**kwargs):
+        outcome = real(**kwargs)
+        admission.epochs.advance("review:change-manager", tenant_id="acme", revoked=True)
+        return outcome
+
+    monkeypatch.setattr(gate, "evaluate", revoke_during)
+    execution = _execute(db["client"], item_id).json()["tool_execution"]
+    assert (execution["executed"], execution["refusal_reason"]) == (False, "authority_revoked")
+
+
+def _pending(client, monkeypatch):
+    monkeypatch.setenv("REMORA_ASYNC_DISPATCH", "1")
+    item_id = _reviewed_item(client)
+    assert _execute(client, item_id).status_code in (200, 202)
+    return item_id
+
+
+def test_the_worker_admits_in_the_claim_transaction(db, monkeypatch):
+    _setup(monkeypatch)
+    _pending(db["client"], monkeypatch)
+    (result,) = _mod().dispatch_pending_intents("acme", worker_id="w-1")
+    assert result["tool_execution"]["executed"] is True
+    jti = _events("execution_authorized")[-1]["grant_jti"]
+    assert db["backend"].consumed(jti) and len(_admitted_events(jti)) == 1
+
+
+def test_the_worker_refuses_a_lapse_and_settles_the_row(db, monkeypatch):
+    _, _, offset, _ = _setup(monkeypatch, ttl_s=1)
+    _pending(db["client"], monkeypatch)
+    offset["ms"] = 5_000
+    (result,) = _mod().dispatch_pending_intents("acme", worker_id="w-1")
+    assert result["tool_execution"]["executed"] is False
+    assert result["tool_execution"]["refusal_reason"] == "evidence_expired_at_admission"
+    assert not _events("execution_authorized")
+    assert _mod().dispatch_pending_intents("acme", worker_id="w-2") == []
+
+
+def test_two_workers_claim_one_row_once(db, monkeypatch):
+    _setup(monkeypatch)
+    _pending(db["client"], monkeypatch)
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        results = list(pool.map(
+            lambda n: _mod().dispatch_pending_intents("acme", worker_id=f"w-{n}"), range(4)))
+    executed = [r for batch in results for r in batch if r["tool_execution"]["executed"]]
+    assert len(executed) == 1
+    assert len(_events("execution_authorized")) == 1

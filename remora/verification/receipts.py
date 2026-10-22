@@ -30,6 +30,7 @@ from remora.verification.records import CompositionRecord
 
 __all__ = [
     "MAX_CLOCK_SKEW_MS",
+    "NO_EVIDENCE_EXPIRY_MS",
     "EvidenceReceiptV1",
     "admission_refusal",
     "earliest_valid_until_ms",
@@ -43,6 +44,12 @@ SCHEMA = "remora-ws1-evidence-receipt/v1"
 #: evidence count as fresh long after it lapsed, which is the hole receipts
 #: close; a deployment whose clocks drift further must fix its clocks.
 MAX_CLOCK_SKEW_MS = 5_000
+
+#: ``valid_until_ms`` of a receipt for a REVIEW precondition. An approval
+#: carries no evidence expiry; its own lifetime is the review queue's, which
+#: re-checks it before the admission transaction. Admission still checks the
+#: ``review:<role>`` subject's epoch, so revoking the role refuses.
+NO_EVIDENCE_EXPIRY_MS = 2**63 - 1
 
 
 @dataclass(frozen=True)
@@ -107,7 +114,8 @@ def receipts_from_record(
         if subject not in epochs:
             raise ValueError(f"no epoch was read for subject {subject}")
         verified_at, valid_until = result.get("verified_at"), result.get("valid_until")
-        if verified_at is None or valid_until is None:
+        reviewed = subject.startswith("review:") and valid_until is None
+        if verified_at is None or (valid_until is None and not reviewed):
             raise ValueError(f"precondition {pid} was PROVED without an expiry")
         out.append(EvidenceReceiptV1(
             tenant_id=tenant_id, binding_hash=binding_hash, precondition_id=pid,
@@ -115,7 +123,8 @@ def receipts_from_record(
             source_version=str(result.get("source_version") or ""),
             evidence_refs=tuple(str(r) for r in result.get("evidence_refs") or ()),
             verified_at_ms=int(verified_at) * 1000,
-            valid_until_ms=int(valid_until) * 1000,
+            valid_until_ms=(NO_EVIDENCE_EXPIRY_MS if valid_until is None
+                            else int(valid_until) * 1000),
             verifier_profile_hash=record.profile_hash))
     return tuple(sorted(out, key=lambda r: r.precondition_id))
 

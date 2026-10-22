@@ -760,6 +760,9 @@ def dispatch_pending_intents(tenant: str, *, worker_id: str) -> list[dict[str, A
             approval_policy=_approval_policy_for(tenant),
             ws1_gate=_ws1_gate(),
             ws1_capability=_ws1_capability(tenant),
+            ws1_admission=_ws1_admission(),
+            active_connection=_ACTIVE_TX_CONNECTION.get,
+            transactional_append=chain_append_transactional,
         ))
         if result is not None:
             results.append(result)
@@ -2885,6 +2888,8 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any] | JSONRespo
             approval_policy=_approval_policy_for(tenant),
             ws1_gate=_ws1_gate(),
             ws1_capability=_ws1_capability(tenant),
+            ws1_admission=_ws1_admission(),
+            active_connection=_ACTIVE_TX_CONNECTION.get,
         ))
     except ExecutionContextRefused as exc:
         raise HTTPException(status_code=409, detail=exc.reason) from exc
