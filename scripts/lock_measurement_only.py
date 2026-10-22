@@ -65,12 +65,43 @@ def measurement_only() -> list[str]:
 
 
 def _pip_groups() -> dict[str, list[str]]:
-    import yaml
+    """The groups of the root pip entry and their patterns.
 
-    config = yaml.safe_load(DEPENDABOT.read_text(encoding="utf-8"))
-    pip = next(u for u in config["updates"]
-               if u["package-ecosystem"] == "pip" and u["directory"] == "/")
-    return {name: list(g.get("patterns", [])) for name, g in pip.get("groups", {}).items()}
+    Read with the standard library: the CI job that runs --check has no
+    PyYAML. It relies on the file's layout (groups at six spaces, patterns at
+    ten), which ``--check`` exercises on every run.
+    """
+    lines = DEPENDABOT.read_text(encoding="utf-8").splitlines()
+    start = next(i for i, line in enumerate(lines)
+                 if line.strip() == '- package-ecosystem: "pip"'
+                 and lines[i + 1].strip() == 'directory: "/"')
+    groups: dict[str, list[str]] = {}
+    current: str | None = None
+    in_groups = False
+    for line in lines[start + 1:]:
+        if line.startswith("  - "):
+            break  # the next ecosystem entry
+        if line.strip() == "groups:":
+            in_groups = True
+            continue
+        if not in_groups or not line.strip() or line.lstrip().startswith("#"):
+            continue
+        indent = len(line) - len(line.lstrip())
+        if indent <= 4:
+            break  # past the groups mapping (e.g. "ignore:")
+        group = re.match(r"^ {6}([A-Za-z0-9_.-]+):\s*$", line)
+        if group:
+            current = group.group(1)
+            groups[current] = []
+            continue
+        inline = re.match(r"^\s+patterns:\s*\[(.*)\]\s*$", line)
+        if inline and current is not None:
+            groups[current] += re.findall(r'"([^"]+)"', inline.group(1))
+            continue
+        pattern = re.match(r'^\s+- "([^"]+)"\s*$', line)
+        if pattern and current is not None:
+            groups[current].append(pattern.group(1))
+    return groups
 
 
 def uncovered(names: list[str]) -> list[str]:
