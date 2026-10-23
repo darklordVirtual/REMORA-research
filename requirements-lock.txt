@@ -218,7 +218,7 @@ semantic-version==2.10.0
 semgrep==1.181.0
 semver==3.0.4
 sentence-transformers==6.1.0
-setuptools==84.0.0
+setuptools==84.1.0
 sgmllib3k==1.0.0
 shapely==2.2.0
 shellingham==1.5.4

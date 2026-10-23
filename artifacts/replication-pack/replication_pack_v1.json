@@ -21,9 +21,15 @@
     "measured_with_python": "3.13.7 (macOS arm64, venv with the dev extras)",
     "requirements_lock": {
       "path": "requirements-lock.txt",
-      "sha256_lf": "b131de82e676901f62618af6c0b518d872beea3295747d58c4c3b1f00b9c67d9"
+      "sha256_lf": "ef6fa65e14783b3405a75bfe7d95646ef0371881b3757ca67bf8676809f91657"
     },
     "requirements_lock_history": [
+      {
+        "path": "requirements-lock.txt",
+        "git_revision": "e5b4144bd81c5e6f0fbd3240424bf4b2ae078989",
+        "sha256_lf": "b131de82e676901f62618af6c0b518d872beea3295747d58c4c3b1f00b9c67d9",
+        "reason": "setuptools 84.1.0 (Dependabot security-fixes group, #1047), folded into the 2026-10-24 batch"
+      },
       {
         "path": "requirements-lock.txt",
         "git_revision": "4b291c73f834e2050268f04211cd180172c6161d",
