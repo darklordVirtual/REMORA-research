@@ -68,7 +68,7 @@ identity = ["PyJWT[crypto]>=2.10"]
 # the tracer is a no-op without the API, by design. The extra gives the
 # documented install a lock-pinned path and lets the pytest job run
 # tests/test_tracing_structural.py, which needs the SDK's in-memory exporter.
-otel = ["opentelemetry-api>=1.44", "opentelemetry-sdk>=1.44", "opentelemetry-exporter-otlp-proto-http>=1.44"]
+otel = ["opentelemetry-api>=1.45.1", "opentelemetry-sdk>=1.45.1", "opentelemetry-exporter-otlp-proto-http>=1.45.1"]
 # MCP server transport (httpx is the only hard dep for the MCP workers)
 mcp = ["httpx>=0.25"]
 # REST API gateway (servers/api.py) — FastAPI + ASGI server

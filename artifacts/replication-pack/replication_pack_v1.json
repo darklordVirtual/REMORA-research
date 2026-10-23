@@ -21,9 +21,15 @@
     "measured_with_python": "3.13.7 (macOS arm64, venv with the dev extras)",
     "requirements_lock": {
       "path": "requirements-lock.txt",
-      "sha256_lf": "a88625b243d001c358adb4e41eba642250f37b82e0094783860234b25dd97cc8"
+      "sha256_lf": "59b3b32ea42a144438385a60796d432a764cb1a211c4ce96053463a8cb2ff848"
     },
     "requirements_lock_history": [
+      {
+        "path": "requirements-lock.txt",
+        "git_revision": "68313c97b90f8700c65bb40e554b0988294e3f8e",
+        "sha256_lf": "a88625b243d001c358adb4e41eba642250f37b82e0094783860234b25dd97cc8",
+        "reason": "opentelemetry 1.45.1 (GHSA-xcq7-p3pf-p88h) and pypdf 6.21.2 (GHSA-5hx5-vpf9-5wcv, GHSA-6vvc-x485-93v7, GHSA-cgf9-327m-v77c, GHSA-f54x-cmq8-qg57)"
+      },
       {
         "path": "requirements-lock.txt",
         "git_revision": "fe1e76fe6c4fe06543a7df64610ef268bcb45273",
