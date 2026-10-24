@@ -3270,6 +3270,20 @@ documents:
   - maintainers
   - evaluators
   - researchers
+- id: DOC-409
+  path: docs/design/unified-capability-execution-v1.1.md
+  status: proposal
+  topic: docs_design_unified-capability-execution-v1.1_md
+  code_synced: verified
+  verdict: pending
+  owner: darklordVirtual
+  audience:
+  - maintainers
+  - evaluators
+  - integrators
+  last_reviewed: '2026-10-24'
+  validates_against: []
+  claims: []
 topics:
 - provenance_README_md
 - provenance_prior-art-review-2026-10-04_md
@@ -3604,3 +3618,4 @@ topics:
 - docs_architecture_ADR-ws1-m4-recovery-scheduler_md
 - docs_assurance_horizon55-analysis-plan-v1_md
 - provenance_verified-prior-art-cumulative-limits-2026-10-23_md
+- docs_design_unified-capability-execution-v1.1_md

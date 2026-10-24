@@ -8,6 +8,11 @@ evidence points to current repository records. The
 source of truth for wiring depth, and the [claim register](../assurance/claim_register_v1.yaml)
 remains the source of truth for research claims.
 
+The declaration describes the repository, not a deployment. A per-deployment
+activation manifest that references it, without restating it, is proposed in
+[unified capability execution v1.1](../design/unified-capability-execution-v1.1.md) §3.
+It is not implemented.
+
 ## Workflow discovery
 
 A workflow designer can ask, “I require exact-call binding immediately before
