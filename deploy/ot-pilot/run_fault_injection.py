@@ -289,11 +289,14 @@ def f_store_outage_during_execute(rec: dict) -> bool:
                after=s_after, executed_after=executed(b_after), replay=s_replay,
                old_setpoint_after=result.get("old_setpoint"))
     rec["completed_writes"] = int(executed(b_after) is True)
-    unavailable = "durable_state_unavailable"
+    # Either named 503 is a store outage a client may retry: /execute reads
+    # the stop flag first, so it reports the outage as the stop being
+    # unverifiable; assess reaches the store elsewhere.
+    unavailable = {"durable_state_unavailable", "execution_stop_unverifiable"}
     # The effect ran once: the old setpoint after recovery is the plant's
     # starting value, so nothing moved it while the store was down.
-    return (s_exec == 503 and (b_exec or {}).get("detail") == unavailable
-            and s_assess == 503 and (b_assess or {}).get("detail") == unavailable
+    return (s_exec == 503 and (b_exec or {}).get("detail") in unavailable
+            and s_assess == 503 and (b_assess or {}).get("detail") in unavailable
             and s_after == 200 and executed(b_after) is True
             and result.get("old_setpoint") == 120.0 and s_replay == 409)
 
