@@ -1,0 +1,2215 @@
+{
+  "schema": "remora-pr1084-review-reproduction/v1",
+  "date": "2026-10-26",
+  "revision": "f1641548896a5048422c8363a64fc4478fe47e93",
+  "suite": {
+    "command": "python -m pytest -q --no-cov tests/flow tests/test_execution_api.py",
+    "passed": 424,
+    "skipped": 9,
+    "failed": 0,
+    "errors": 0,
+    "cases": [
+      {
+        "name": "test_postgres_and_every_backend_mint_a_fresh_bottom_context[memory]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_mint_a_fresh_bottom_context[sqlite]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_mint_a_fresh_bottom_context[d1]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_mint_a_fresh_bottom_context[postgres]",
+        "class": "tests.flow.test_context_store",
+        "status": "skipped"
+      },
+      {
+        "name": "test_new_context_ids_carry_128_random_bits",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_unauthorized_processor_cannot_mint",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_ambiguous_principals_are_refused",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_raise_and_never_lower[memory]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_raise_and_never_lower[sqlite]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_raise_and_never_lower[d1]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_raise_and_never_lower[postgres]",
+        "class": "tests.flow.test_context_store",
+        "status": "skipped"
+      },
+      {
+        "name": "test_no_public_api_lowers_or_resets_a_label",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_raise_that_hides_data_from_the_model_provider_is_a_bug",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_loop_safety_reset_leaves_the_flow_label_unchanged",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_fork_inherits_and_shares_the_root_ledger[memory]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_fork_inherits_and_shares_the_root_ledger[sqlite]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_fork_inherits_and_shares_the_root_ledger[d1]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_fork_inherits_and_shares_the_root_ledger[postgres]",
+        "class": "tests.flow.test_context_store",
+        "status": "skipped"
+      },
+      {
+        "name": "test_a_fork_cannot_hand_the_label_to_a_provider_that_may_not_read_it",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_charge_is_never_negative",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_refuse_foreign_tenant_and_principal[memory]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_refuse_foreign_tenant_and_principal[sqlite]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_refuse_foreign_tenant_and_principal[d1]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_refuse_foreign_tenant_and_principal[postgres]",
+        "class": "tests.flow.test_context_store",
+        "status": "skipped"
+      },
+      {
+        "name": "test_postgres_and_every_backend_have_exactly_one_winner[memory]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_have_exactly_one_winner[sqlite]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_have_exactly_one_winner[d1]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_have_exactly_one_winner[postgres]",
+        "class": "tests.flow.test_context_store",
+        "status": "skipped"
+      },
+      {
+        "name": "test_postgres_and_every_backend_refuse_a_stale_or_future_expected_seq[memory]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_refuse_a_stale_or_future_expected_seq[sqlite]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_refuse_a_stale_or_future_expected_seq[d1]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_refuse_a_stale_or_future_expected_seq[postgres]",
+        "class": "tests.flow.test_context_store",
+        "status": "skipped"
+      },
+      {
+        "name": "test_an_unreachable_sqlite_store_raises",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_unreachable_d1_store_raises",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_refused_write_with_no_winner_is_unavailable_not_lost",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_memory_db_is_refused_as_a_durable_store",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_fold_refuses_a_stream_it_cannot_trust",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_fold_tracks_open_dispatches_and_moves_seq_not_epoch",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_second_proposal_cannot_begin_while_a_live_dispatch_holds_the_context",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_fence_at_a_sequence_the_stream_has_moved_past_is_refused",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_renewed_hold_outlives_its_first_expiry_and_an_expired_one_is_not_revived",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_ended_hold_is_not_revived_by_a_renewal",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_let_exactly_one_dispatch_begin[memory]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_let_exactly_one_dispatch_begin[sqlite]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_let_exactly_one_dispatch_begin[d1]",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_and_every_backend_let_exactly_one_dispatch_begin[postgres]",
+        "class": "tests.flow.test_context_store",
+        "status": "skipped"
+      },
+      {
+        "name": "test_a_raise_in_the_fold_still_moves_epoch_with_a_dispatch_open",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_unreadable_dispatch_event_is_unavailable_not_ignored",
+        "class": "tests.flow.test_context_store",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_context_is_minted_and_chained",
+        "class": "tests.flow.test_contexts_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_child_inherits_from_its_parent",
+        "class": "tests.flow.test_contexts_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_unknown_parent_is_a_404",
+        "class": "tests.flow.test_contexts_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_user_of_another_tenant_is_a_403",
+        "class": "tests.flow.test_contexts_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_unauthorized_processor_is_a_403",
+        "class": "tests.flow.test_contexts_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_missing_model_principal_is_a_422",
+        "class": "tests.flow.test_contexts_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_non_canonical_principal_is_a_422",
+        "class": "tests.flow.test_contexts_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_caller_cannot_choose_an_id_a_label_or_an_epoch",
+        "class": "tests.flow.test_contexts_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_it_is_refused_when_flow_control_is_off",
+        "class": "tests.flow.test_contexts_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_without_a_processing_policy_nothing_is_authorized",
+        "class": "tests.flow.test_contexts_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_unreachable_store_is_a_503",
+        "class": "tests.flow.test_contexts_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_route_is_in_the_committed_contract",
+        "class": "tests.flow.test_contexts_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_clean_call_executes_and_commits_before_returning",
+        "class": "tests.flow.test_flow_at_dispatch",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_label_raised_after_the_decision_refuses_before_the_tool_runs",
+        "class": "tests.flow.test_flow_at_dispatch",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_failed_commit_withholds_the_result",
+        "class": "tests.flow.test_flow_at_dispatch",
+        "status": "passed"
+      },
+      {
+        "name": "test_with_flow_control_off_nothing_changes",
+        "class": "tests.flow.test_flow_at_dispatch",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_forwarded_preview_is_not_committed_as_the_result",
+        "class": "tests.flow.test_flow_at_dispatch",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_label_raised_during_dispatch_withholds_the_result",
+        "class": "tests.flow.test_flow_at_dispatch",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_review_path_checks_flow_and_commits_labels",
+        "class": "tests.flow.test_flow_at_dispatch",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_async_worker_checks_flow_as_the_proposer",
+        "class": "tests.flow.test_flow_at_dispatch",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_flow_violation_at_redemption_refuses_before_the_grant_is_spent",
+        "class": "tests.flow.test_flow_at_dispatch",
+        "status": "passed"
+      },
+      {
+        "name": "test_recipients_are_computed_from_the_resolved_call[flow0-args0-expected0]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_recipients_are_computed_from_the_resolved_call[flow1-args1-expected1]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_recipients_are_computed_from_the_resolved_call[flow2-args2-expected2]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_recipients_are_computed_from_the_resolved_call[flow3-args3-expected3]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_iban_and_resource_recipients",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_recipient_that_cannot_be_resolved_is_named_unresolved[flow0-args0]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_recipient_that_cannot_be_resolved_is_named_unresolved[flow1-args1]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_recipient_that_cannot_be_resolved_is_named_unresolved[flow2-args2]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_recipient_that_cannot_be_resolved_is_named_unresolved[flow3-args3]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_recipient_that_cannot_be_resolved_is_named_unresolved[flow4-args4]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_recipient_that_cannot_be_resolved_is_named_unresolved[flow5-args5]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_recipient_that_cannot_be_resolved_is_named_unresolved[flow6-args6]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_recipient_that_cannot_be_resolved_is_named_unresolved[flow7-args7]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_derived_recipient_rule_that_yields_no_one_is_unresolved[value0-flow0-to]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_derived_recipient_rule_that_yields_no_one_is_unresolved[value0-flow1-url]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_derived_recipient_rule_that_yields_no_one_is_unresolved[value0-flow2-iban]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_derived_recipient_rule_that_yields_no_one_is_unresolved[value0-flow3-path]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_derived_recipient_rule_that_yields_no_one_is_unresolved[value1-flow0-to]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_derived_recipient_rule_that_yields_no_one_is_unresolved[value1-flow1-url]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_derived_recipient_rule_that_yields_no_one_is_unresolved[value1-flow2-iban]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_derived_recipient_rule_that_yields_no_one_is_unresolved[value1-flow3-path]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_derived_recipient_rule_that_yields_no_one_is_unresolved[None-flow0-to]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_derived_recipient_rule_that_yields_no_one_is_unresolved[None-flow1-url]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_derived_recipient_rule_that_yields_no_one_is_unresolved[None-flow2-iban]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_derived_recipient_rule_that_yields_no_one_is_unresolved[None-flow3-path]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_derived_recipient_rule_that_yields_no_one_is_unresolved[omitted-flow0-to]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_derived_recipient_rule_that_yields_no_one_is_unresolved[omitted-flow1-url]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_derived_recipient_rule_that_yields_no_one_is_unresolved[omitted-flow2-iban]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_derived_recipient_rule_that_yields_no_one_is_unresolved[omitted-flow3-path]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_absent_cc_beside_a_resolved_to_is_not_unresolved",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_rule_with_no_values_names_every_argument_unresolved",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_clean_call_has_no_violations",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_provider_is_an_implicit_recipient",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_payload_confidentiality_includes_context",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_declassified_recipient_is_not_a_violation",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_only_payload_fields_count_toward_the_payload_label",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_without_payload_args_every_argument_is_payload",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_field_without_a_value_label_counts_as_literal_text",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_trusted_parameter_survives_untrusted_context",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_literal_after_untrusted_read_is_untrusted",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_parameter_role_binding",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_parameter_in_a_field_with_no_declared_roles_is_refused",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_endorsement_and_grants_clear_integrity_violations",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_absent_optional_field_needs_no_integrity",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_control_integrity",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_digest_binds_violations_and_the_payload_label",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_verdict_is_frozen_and_complete",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_half_an_address_is_unresolved_and_named[@corp.example]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_half_an_address_is_unresolved_and_named[bob@]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_half_an_address_is_unresolved_and_named[a@b@c.example]",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_plain_http_resolves_and_other_schemes_do_not",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_principal_recipients_are_canonical_resources",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_resource_acl_resolver_reaches_the_check",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_every_integrity_field_is_checked_after_an_absent_one",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_digest_format",
+        "class": "tests.flow.test_flow_check",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_call_without_a_context_abstains",
+        "class": "tests.flow.test_flow_decision_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_caller_chosen_context_id_abstains",
+        "class": "tests.flow.test_flow_decision_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_context_of_another_principal_abstains",
+        "class": "tests.flow.test_flow_decision_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_clean_flow_leaves_the_decision_to_the_rest_of_the_floor",
+        "class": "tests.flow.test_flow_decision_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_data_the_recipient_may_not_read_escalates",
+        "class": "tests.flow.test_flow_decision_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_unknown_handle_abstains",
+        "class": "tests.flow.test_flow_decision_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_tool_without_a_flow_block_is_not_refused_outside_the_strict_profile",
+        "class": "tests.flow.test_flow_decision_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_unavailable_store_abstains",
+        "class": "tests.flow.test_flow_decision_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_client_supplied_flow_is_ignored[smuggled0]",
+        "class": "tests.flow.test_flow_decision_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_client_supplied_flow_is_ignored[smuggled1]",
+        "class": "tests.flow.test_flow_decision_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_client_supplied_flow_is_ignored[smuggled2]",
+        "class": "tests.flow.test_flow_decision_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_with_flow_control_off_no_flow_field_is_set",
+        "class": "tests.flow.test_flow_decision_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_clean_flow_executes_and_commits_labels",
+        "class": "tests.flow.test_flow_dispatch_leased",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_unknown_context_refuses_before_the_tool_runs",
+        "class": "tests.flow.test_flow_dispatch_leased",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_flow_violation_refuses_and_leaves_the_lease_unspent",
+        "class": "tests.flow.test_flow_dispatch_leased",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_tool_receives_the_resolved_handle_value[whole]",
+        "class": "tests.flow.test_flow_dispatch_leased",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_tool_receives_the_resolved_handle_value[reference]",
+        "class": "tests.flow.test_flow_dispatch_leased",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_tool_receives_the_resolved_handle_value[embedded]",
+        "class": "tests.flow.test_flow_dispatch_leased",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_unknown_handle_refuses_before_the_tool_runs",
+        "class": "tests.flow.test_flow_dispatch_leased",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_lease_still_binds_the_handle_form",
+        "class": "tests.flow.test_flow_dispatch_leased",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_lease_without_a_flow_decision_is_refused_while_flow_is_on",
+        "class": "tests.flow.test_flow_dispatch_leased",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_handle_whose_value_changed_after_the_grant_is_refused",
+        "class": "tests.flow.test_flow_dispatch_leased",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_label_raised_after_the_grant_refuses_before_the_tool_runs",
+        "class": "tests.flow.test_flow_dispatch_leased",
+        "status": "passed"
+      },
+      {
+        "name": "test_two_dispatches_in_one_context_run_exactly_one_tool",
+        "class": "tests.flow.test_flow_dispatch_leased",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_refused_dispatch_does_not_hold_the_context",
+        "class": "tests.flow.test_flow_dispatch_leased",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_expired_fence_does_not_hold_the_context",
+        "class": "tests.flow.test_flow_dispatch_leased",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_live_fence_of_another_proposal_refuses_before_the_tool",
+        "class": "tests.flow.test_flow_dispatch_leased",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_mediated_tool_may_send_the_payload_only_to_the_recipients_the_flow_check_approved",
+        "class": "tests.flow.test_flow_dispatch_leased",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_raise_between_the_check_and_the_fence_refuses_before_the_tool",
+        "class": "tests.flow.test_flow_dispatch_leased",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_tool_running_past_the_fence_ttl_still_holds_the_context",
+        "class": "tests.flow.test_flow_dispatch_leased",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_commit_whose_fence_expired_withholds_the_result",
+        "class": "tests.flow.test_flow_dispatch_leased",
+        "status": "passed"
+      },
+      {
+        "name": "test_every_status_it_returns_is_declared",
+        "class": "tests.flow.test_flow_observe",
+        "status": "passed"
+      },
+      {
+        "name": "test_no_context_is_unknown[None-agent-1]",
+        "class": "tests.flow.test_flow_observe",
+        "status": "passed"
+      },
+      {
+        "name": "test_no_context_is_unknown[-agent-1]",
+        "class": "tests.flow.test_flow_observe",
+        "status": "passed"
+      },
+      {
+        "name": "test_no_context_is_unknown[ctx_aaaaaaaaaaaaaaaaaaaaaaaaaa-agent-1]",
+        "class": "tests.flow.test_flow_observe",
+        "status": "passed"
+      },
+      {
+        "name": "test_no_context_is_unknown[own-None]",
+        "class": "tests.flow.test_flow_observe",
+        "status": "passed"
+      },
+      {
+        "name": "test_no_context_is_unknown[own-agent-2]",
+        "class": "tests.flow.test_flow_observe",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_spec_without_a_block_is_refused_only_under_the_strict_profile",
+        "class": "tests.flow.test_flow_observe",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_clean_context_is_evaluated_without_violations",
+        "class": "tests.flow.test_flow_observe",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_raised_context_cannot_reach_an_outside_host",
+        "class": "tests.flow.test_flow_observe",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_raise_reaches_a_child_context",
+        "class": "tests.flow.test_flow_observe",
+        "status": "passed"
+      },
+      {
+        "name": "test_untrusted_data_in_an_integrity_field_is_an_integrity_violation",
+        "class": "tests.flow.test_flow_observe",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_handle_of_an_ancestor_resolves",
+        "class": "tests.flow.test_flow_observe",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_handle_of_another_context_is_invalid",
+        "class": "tests.flow.test_flow_observe",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_failing_store_is_unavailable",
+        "class": "tests.flow.test_flow_observe",
+        "status": "passed"
+      },
+      {
+        "name": "test_no_recipient_reaches_the_fields",
+        "class": "tests.flow.test_flow_observe",
+        "status": "passed"
+      },
+      {
+        "name": "test_f01_a_named_delegate_redeems_in_the_proposers_flow_context",
+        "class": "tests.flow.test_flow_review_findings_2026_10_25",
+        "status": "passed"
+      },
+      {
+        "name": "test_f01_the_proposer_still_redeems_in_its_own_context",
+        "class": "tests.flow.test_flow_review_findings_2026_10_25",
+        "status": "passed"
+      },
+      {
+        "name": "test_f01_an_actor_the_proposal_did_not_name_gets_no_proposer_context",
+        "class": "tests.flow.test_flow_review_findings_2026_10_25",
+        "status": "passed"
+      },
+      {
+        "name": "test_f03_the_authority_does_not_commit_what_the_execution_domain_committed",
+        "class": "tests.flow.test_flow_review_findings_2026_10_25",
+        "status": "passed"
+      },
+      {
+        "name": "test_f04_an_unauthentic_lease_writes_nothing_to_the_flow_stream",
+        "class": "tests.flow.test_flow_review_findings_2026_10_25",
+        "status": "passed"
+      },
+      {
+        "name": "test_join_is_commutative",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_join_is_associative",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_join_is_idempotent",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_join_is_an_upper_bound",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_flows_to_is_antitone",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_join_is_exact_for_flows",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_intersection_stays_inside_both_inputs",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_bottom_is_least_and_join_identity",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_leq_is_a_partial_order",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_canonical_bytes_identify_labels",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_value_integrity_independent_of_context",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_untrusted_context_taints_literal_text_only",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_reader_sets_are_canonical_antichains",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_subtree_admits_strictly_below_its_base",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_disjoint_reader_sets_join_to_nobody",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_public_flows_everywhere_and_is_top",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_join_all_and_integrity",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_ambiguous_readers_are_refused[bad0]",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_ambiguous_readers_are_refused[bad1]",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_ambiguous_readers_are_refused[bad2]",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_ambiguous_readers_are_refused[bad3]",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_ambiguous_readers_are_refused[email://corp.example/bob]",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_bad_integrity_and_whole_handle_arity_are_refused",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_ambiguous_principal_receives_only_public_data",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_public_survives_pickling_as_the_singleton",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_canonical_bytes_are_pinned",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_subtree_does_not_cover_a_sibling_that_extends_its_name",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_refusals_say_why",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_public_repr",
+        "class": "tests.flow.test_label_lattice",
+        "status": "passed"
+      },
+      {
+        "name": "test_declared_by_value_fields_render_and_raise_the_context",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_handle_carries_its_field_label_and_the_raise_does_not",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_undeclared_field_is_readable_by_the_user_alone",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_by_value_that_cannot_reach_the_model_becomes_a_handle",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_undeclared_container_hides_its_whole_subtree",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_list_length_joins_the_context_unless_declared_public",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_argument_labels_flow_into_every_result_label",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_reader_rules[readers0-expected0]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_reader_rules[readers1-expected1]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_reader_rules[readers2-expected2]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_reader_rules[readers3-expected3]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_inherit_args_with_no_arguments_is_the_user_alone",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_missing_or_invalid_metadata_narrows_never_widens",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_public_trusted_by_value_raises_nothing",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_untrusted_public_content_taints_integrity_only",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_result_outside_the_json_domain_is_refused[raw0]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_result_outside_the_json_domain_is_refused[raw1]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_result_outside_the_json_domain_is_refused[nan]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_result_outside_the_json_domain_is_refused[bytes]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_handle_hides_its_length",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_resolve_value_labels",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_whole_handle_field_keeps_a_non_string_value",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_handle_reference_object_resolves_as_a_whole_handle",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_altered_handle_reference_is_literal_and_carries_the_context[ref0]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_altered_handle_reference_is_literal_and_carries_the_context[ref1]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_altered_handle_reference_is_literal_and_carries_the_context[ref2]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_unknown_handle_reference_is_refused",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_handles_inside_nested_arguments_are_resolved_and_labelled",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_foreign_or_expired_handle_is_refused[lineage0-acme-100.0]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_foreign_or_expired_handle_is_refused[lineage1-other-tenant-100.0]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_foreign_or_expired_handle_is_refused[lineage2-acme-200.0]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_unknown_handle_is_refused_even_inside_text",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_descendant_context_may_use_an_ancestors_handle",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_arguments_without_handles_pass_through_with_the_context_label",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_minted_handles_resolve_through_the_store",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_handle_records_expire_after_the_labeler_ttl",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_record_is_immutable_once_stored",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_subtree_pattern_from_the_source_is_dropped",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_text_substitution_of_a_structured_value_is_canonical_json",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_multi_step_paths_match_exactly",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_index_pattern_never_matches_a_key_and_vice_versa",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_metadata_is_looked_up_at_nested_and_quoted_paths",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_every_valid_reader_survives_an_invalid_neighbour",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_metadata_the_caller_did_not_supply_gives_no_readers",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_several_metadata_names_are_united",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_resource_acl_without_a_resolver_or_a_resource_gives_no_readers[None-res://files/q3]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_resource_acl_without_a_resolver_or_a_resource_gives_no_readers[<lambda>-7]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_container_handle_carries_its_most_restrictive_descendant",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_deep_paths_parse_step_by_step",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_rule_without_return_mode_shows_bottom_and_hides_the_rest",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_non_json_values_are_found_anywhere[raw0]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_non_json_values_are_found_anywhere[raw1]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_non_json_values_are_found_anywhere[raw2]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_is_handle_ref_is_exact",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_commit_before_return_and_fault_injection_leaks_nothing",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_e2e_secret_read_paraphrase_split_and_dispatch_epoch_race",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_default_ttl_is_one_hour",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_commit_fault_has_no_original_exception_chain[fault0]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_commit_fault_has_no_original_exception_chain[fault1]",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_container_handle_carries_its_own_label_too",
+        "class": "tests.flow.test_labeler_handles",
+        "status": "passed"
+      },
+      {
+        "name": "test_every_execution_route_is_classified_and_funnels_through_the_governed_path",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_three_dispatching_routes_and_the_worker_are_the_whole_dispatch_surface",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_route_added_to_neither_set_is_reported",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_classified_route_that_is_no_longer_served_is_reported",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_synthetic_well_formed_api_passes_the_static_check",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_handler_that_leaves_the_governed_path_is_reported[def _dispatch_under_lease():\\n    _flow_at_dispatch()\\n    _dispatch_under_lease_impl()\\ndef execute():\\n    return run_tool()\\ndef dispatch_leased():\\n    x = 'flow_lease_unbound'\\n    _dispatch_under_lease()\\ndef dispatch_pending_intents():\\n    _dispatch_under_lease\\ndef assess():\\n    return {}\\n-does not hand the call to _dispatch_under_lease]",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_handler_that_leaves_the_governed_path_is_reported[def _dispatch_under_lease():\\n    _flow_at_dispatch()\\n    _dispatch_under_lease_impl()\\ndef execute():\\n    service(dispatch_under_lease=_dispatch_under_lease)\\ndef dispatch_leased():\\n    x = 'flow_lease_unbound'\\n    _dispatch_under_lease()\\ndef dispatch_pending_intents():\\n    _dispatch_under_lease\\ndef assess():\\n    return _dispatch_under_lease()\\n-reaches _dispatch_under_lease but returns no tool result]",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_handler_that_leaves_the_governed_path_is_reported[def _dispatch_under_lease():\\n    _flow_at_dispatch()\\n    _dispatch_under_lease_impl()\\ndef execute():\\n    service(dispatch_under_lease=_dispatch_under_lease)\\ndef dispatch_leased():\\n    x = 'flow_lease_unbound'\\n    _dispatch_under_lease()\\ndef dispatch_pending_intents():\\n    _dispatch_under_lease\\ndef assess():\\n    return _tool_dispatcher().dispatch(None)\\n-calls .dispatch()]",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_handler_that_leaves_the_governed_path_is_reported[def _dispatch_under_lease():\\n    _flow_at_dispatch()\\n    _dispatch_under_lease_impl()\\ndef execute():\\n    service(dispatch_under_lease=_dispatch_under_lease)\\ndef dispatch_leased():\\n    x = 'flow_lease_unbound'\\n    _dispatch_under_lease()\\ndef dispatch_pending_intents():\\n    _dispatch_under_lease\\ndef assess():\\n    return _dispatch_under_lease_impl()\\n-reaches _dispatch_under_lease_impl]",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_handler_that_leaves_the_governed_path_is_reported[def _dispatch_under_lease():\\n    _dispatch_under_lease_impl()\\ndef execute():\\n    service(dispatch_under_lease=_dispatch_under_lease)\\ndef dispatch_leased():\\n    x = 'flow_lease_unbound'\\n    _dispatch_under_lease()\\ndef dispatch_pending_intents():\\n    _dispatch_under_lease\\ndef assess():\\n    return {}\\n-does not run _flow_at_dispatch]",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_handler_that_leaves_the_governed_path_is_reported[def _dispatch_under_lease():\\n    _flow_at_dispatch()\\n    _dispatch_under_lease_impl()\\ndef execute():\\n    service(dispatch_under_lease=_dispatch_under_lease)\\ndef dispatch_leased():\\n    _dispatch_under_lease()\\ndef dispatch_pending_intents():\\n    _dispatch_under_lease\\ndef assess():\\n    return {}\\n-flow_lease_unbound]",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_handler_that_leaves_the_governed_path_is_reported[def _dispatch_under_lease():\\n    _flow_at_dispatch()\\n    _dispatch_under_lease_impl()\\ndef execute():\\n    service(dispatch_under_lease=_dispatch_under_lease)\\ndef dispatch_leased():\\n    x = 'flow_lease_unbound'\\n    _dispatch_under_lease()\\ndef dispatch_pending_intents():\\n    pass\\ndef assess():\\n    return {}\\n-worker entry dispatch_pending_intents does not hand the call]",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_service_or_dispatch_call_site_outside_the_allowlist_is_reported",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_inventory_covers_every_surface_the_sdd_names_and_says_what_it_cannot_hold",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_assess_api_may_mount_the_routers_but_not_reach_the_dispatcher",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_mcp_server_that_runs_or_reaches_a_tool_itself_is_reported[import json\\nTOOLS = [{'name': 'remora_status'}, {'name': 'agent_execute_tool'}]\\ndef _agent_post(path, payload):\\n    return {}\\ndef handle_remora_status(args):\\n    return _helper(args)\\ndef _helper(args):\\n    return GovernedToolDispatcher().dispatch(args)\\ndef handle_agent_execute_tool(args):\\n    return str(_agent_post('/execute', args))\\nHANDLERS = {'remora_status': handle_remora_status,\\n            'agent_execute_tool': handle_agent_execute_tool}\\ndef handle_request(request):\\n    return HANDLERS.get(request['params']['name'])\\n-remora_status (handle_remora_status) reaches GovernedToolDispatcher]",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_mcp_server_that_runs_or_reaches_a_tool_itself_is_reported[import json\\nTOOLS = [{'name': 'remora_status'}]\\ndef _agent_post(path, payload):\\n    return {}\\ndef handle_remora_status(args):\\n    return 'ok'\\ndef handle_agent_execute_tool(args):\\n    return str(_agent_post('/execute', args))\\nHANDLERS = {'remora_status': handle_remora_status,\\n            'agent_execute_tool': handle_agent_execute_tool}\\ndef handle_request(request):\\n    return HANDLERS.get(request['params']['name'])\\n-agent_execute_tool is in TOOLS or HANDLERS but not both]",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_mcp_server_that_runs_or_reaches_a_tool_itself_is_reported[import json\\nTOOLS = [{'name': 'remora_status'}, {'name': 'agent_execute_tool'}]\\ndef _agent_post(path, payload):\\n    return {}\\ndef handle_remora_status(args):\\n    return 'ok'\\ndef handle_agent_execute_tool(args):\\n    return str(_agent_post('/execute', args))\\nHANDLERS = {'remora_status': handle_remora_status,\\n            'agent_execute_tool': handle_missing}\\ndef handle_request(request):\\n    return HANDLERS.get(request['params']['name'])\\n-names handle_missing, which is not defined]",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_mcp_server_that_runs_or_reaches_a_tool_itself_is_reported[import json\\nTOOLS = [{'name': 'remora_status'}, {'name': 'agent_execute_tool'}]\\ndef _agent_post(path, payload):\\n    return {}\\ndef handle_remora_status(args):\\n    return 'ok'\\ndef handle_agent_execute_tool(args):\\n    return 'ran it here'\\nHANDLERS = {'remora_status': handle_remora_status,\\n            'agent_execute_tool': handle_agent_execute_tool}\\ndef handle_request(request):\\n    return HANDLERS.get(request['params']['name'])\\n-classified as forwarding but never posts]",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_mcp_server_that_runs_or_reaches_a_tool_itself_is_reported[from servers.execution_api import _dispatch_under_lease\\nimport json\\nTOOLS = [{'name': 'remora_status'}, {'name': 'agent_execute_tool'}]\\ndef _agent_post(path, payload):\\n    return {}\\ndef handle_remora_status(args):\\n    return 'ok'\\ndef handle_agent_execute_tool(args):\\n    return str(_agent_post('/execute', args))\\nHANDLERS = {'remora_status': handle_remora_status,\\n            'agent_execute_tool': handle_agent_execute_tool}\\ndef handle_request(request):\\n    return HANDLERS.get(request['params']['name'])\\n-imports servers.execution_api]",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_mcp_server_that_runs_or_reaches_a_tool_itself_is_reported[import json\\nTOOLS = [{'name': 'remora_status'}, {'name': 'agent_execute_tool'}]\\ndef _agent_post(path, payload):\\n    return {}\\ndef handle_remora_status(args):\\n    return 'ok'\\ndef handle_agent_execute_tool(args):\\n    return str(_agent_post('/execute', args))\\nHANDLERS = {'remora_status': handle_remora_status,\\n            'agent_execute_tool': handle_agent_execute_tool}\\ndef handle_request(request):\\n    return None\\n-handle_request does not look tools/call up in HANDLERS]",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_sdk_path_the_execution_api_does_not_serve_is_reported",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_worker_path_the_execution_api_does_not_serve_is_reported",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_forged_context_is_refused_before_the_tool_and_spends_no_nonce",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_another_principals_context_is_unknown_to_the_lease_actor",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_lease_from_one_context_does_not_run_in_another",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_sdk_cannot_address_a_flow_context_so_nothing_runs_under_flow_control",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_mcp_server_runs_no_governed_tool_and_forwards_only_to_the_agent_control_worker",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_tool_served_by_an_mcp_server_outside_remora_is_unknown_to_the_execution_api",
+        "class": "tests.flow.test_mediation_surface",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_sdd_examples_lint_clean",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_parse_reads_the_declared_meaning",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_every_declared_value_is_read",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_defaults_fail_closed",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl01_a_url_argument_under_no_recipients",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl01_a_url_argument_must_be_the_url_host_of_rule[recipients0]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl01_a_url_argument_must_be_the_url_host_of_rule[recipients1]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl01_a_writer_names_every_email_and_iban_argument_as_a_recipient",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl01_an_email_a_read_only_tool_looks_up_reaches_no_one",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl14_a_by_value_rule_under_a_container_rendered_as_a_handle[fields0]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl14_a_by_value_rule_under_a_container_rendered_as_a_handle[fields1]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl14_refuses_the_sdd_inbox_excerpt_as_written",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl14_holds_when_every_container_on_the_path_is_shown",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl02_an_unknown_argument[<lambda>0]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl02_an_unknown_argument[<lambda>1]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl02_an_unknown_argument[<lambda>2]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl02_an_unknown_argument[<lambda>3]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl02_an_unknown_argument[<lambda>4]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl02_an_unknown_argument[<lambda>5]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl02_an_unknown_argument[<lambda>6]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl02_an_unknown_argument[<lambda>7]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl03_by_value_as_the_default",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl04_public_needs_a_justification",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl05_a_write_to_a_resource_names_the_resource",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl06_no_recipients_only_inside_the_tcb",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl07_reader_metadata_must_come_from_the_source_system",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl07_checks_every_field_not_just_the_first",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl08_a_reader_set_says_how_its_bits_are_paid",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl09_a_sink_needs_mediated_effects[None]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl09_a_sink_needs_mediated_effects[NONE]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl10_every_argument_declares_a_kind_and_no_more",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl11_a_consequential_tool_reaches_someone",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl12_from_args_agrees_with_the_declared_kind",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_fl13_strict_refuses_a_spec_without_flow",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_lint_toolspec_reads_the_spec_it_is_given",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_non_mapping_argument_schema_has_no_arguments",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_findings_are_ordered_and_name_the_tool",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[not a mapping]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow1]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow2]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow3]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow4]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow5]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow6]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow7]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow8]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow9]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow10]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow11]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow12]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow13]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow14]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow15]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow16]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow17]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow18]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow19]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow20]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow21]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow22]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow23]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow24]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow25]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow26]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow27]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow28]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow29]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow30]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow31]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow32]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow33]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow34]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow35]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow36]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow37]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow38]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow39]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow40]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow41]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow42]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow43]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow44]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow45]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow46]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow47]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow48]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_malformed_blocks_are_refused[flow49]",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_schema_file_lists_every_rule_the_linter_has",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_cli_passes_a_clean_bundle_and_fails_a_broken_one",
+        "class": "tests.flow.test_toolspec_flow",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_v4_bundle_carries_the_parsed_block",
+        "class": "tests.flow.test_toolspec_flow_load",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_v4_spec_without_a_block_loads_with_none",
+        "class": "tests.flow.test_toolspec_flow_load",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_block_is_inside_the_signed_bytes",
+        "class": "tests.flow.test_toolspec_flow_load",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_block_changes_the_spec_hash",
+        "class": "tests.flow.test_toolspec_flow_load",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_block_below_v4_is_refused[1]",
+        "class": "tests.flow.test_toolspec_flow_load",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_block_below_v4_is_refused[2]",
+        "class": "tests.flow.test_toolspec_flow_load",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_block_below_v4_is_refused[3]",
+        "class": "tests.flow.test_toolspec_flow_load",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_malformed_block_is_refused_although_signed",
+        "class": "tests.flow.test_toolspec_flow_load",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_block_that_fails_lint_is_refused_although_signed[flow0-FL-02]",
+        "class": "tests.flow.test_toolspec_flow_load",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_block_that_fails_lint_is_refused_although_signed[flow1-FL-05]",
+        "class": "tests.flow.test_toolspec_flow_load",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_block_that_fails_lint_is_refused_although_signed[flow2-FL-10]",
+        "class": "tests.flow.test_toolspec_flow_load",
+        "status": "passed"
+      },
+      {
+        "name": "test_lint_reads_the_signed_effect_mode",
+        "class": "tests.flow.test_toolspec_flow_load",
+        "status": "passed"
+      },
+      {
+        "name": "test_strict_flow_control_refuses_a_spec_without_a_block",
+        "class": "tests.flow.test_toolspec_flow_load",
+        "status": "passed"
+      },
+      {
+        "name": "test_strict_flow_control_starts_when_every_spec_has_a_block",
+        "class": "tests.flow.test_toolspec_flow_load",
+        "status": "passed"
+      },
+      {
+        "name": "test_strict_flow_control_has_no_unsigned_path",
+        "class": "tests.flow.test_toolspec_flow_load",
+        "status": "passed"
+      },
+      {
+        "name": "test_flow_control_off_a_strict_profile_ignores_missing_blocks",
+        "class": "tests.flow.test_toolspec_flow_load",
+        "status": "passed"
+      },
+      {
+        "name": "test_monitor_and_resolver_cannot_receive_unreadable_data_or_exfiltrate_via_errors",
+        "class": "tests.flow.test_ws1_egress",
+        "status": "passed"
+      },
+      {
+        "name": "test_chain_hash_covers_predecessor_tenant_sequence_time",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_concurrent_appends_cannot_fork_the_chain",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_tenants_have_independent_chains",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_client_asserted_trust_cannot_buy_accept",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_asserted_trust_fields_do_not_change_the_decision",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_request_true_cannot_elevate_unpinned_registry_fields",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_request_false_still_downgrades",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_full_verify_approve_execute_flow_with_one_time_grant",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_unattended_overdue_items_expire_on_next_queue_interaction",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_proposal_id_threads_through_the_full_lifecycle",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_audit_verify_reports_record_count_and_empty_flag",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_execute_invokes_registered_tool_via_dispatcher",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_execute_without_registered_tool_is_explicitly_not_executed",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_execute_without_any_signing_key_fails_closed",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_tool_exception_burns_nonce_and_is_reported",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_item_binding_survives_restart_sqlite",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_approval_survives_restart_sqlite",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_approval_is_durable_in_db_mode_same_process",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_riskier_world_invalidates_approval_at_execution",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_request_side_downgrade_added_at_execution_is_refused",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_changed_arguments_are_refused_by_binding",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_cross_tenant_item_access_is_refused",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_profile_approval_role_is_enforced",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_approve_passes_item_risk_tier_to_profile_resolution",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_sqlite_chain_is_durable_atomic_and_fork_free",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_execution_api_uses_durable_chain_when_configured",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_sqlite_transaction_rolls_back_on_exception",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_postgres_chain_contract",
+        "class": "tests.test_execution_api",
+        "status": "skipped"
+      },
+      {
+        "name": "test_postgres_chain_signs_entries_when_key_configured",
+        "class": "tests.test_execution_api",
+        "status": "skipped"
+      },
+      {
+        "name": "test_durable_chain_signature_tamper_is_detected",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_hash_field_boundaries_are_unambiguous",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_idempotency_store_dedups_and_evicts",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_revoked_approver_invalidates_the_pending_execution",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_principal_cannot_revoke_themself",
+        "class": "tests.test_execution_api",
+        "status": "passed"
+      }
+    ]
+  },
+  "diagnostic": {
+    "meaning": "Passing this diagnostic confirms the unresolved slow-commit race; it is not a safety pass.",
+    "observation": "With a 1-second fence TTL and the first result labeling blocked for 2 seconds, a second dispatch executes. The first commit subsequently returns its result too.",
+    "source": "\"\"\"Diagnostic for PR #1084: an expired fence during result labeling.\"\"\"\nimport threading\nimport time\nimport tests.flow.test_flow_dispatch_leased as route\nfrom tests.flow.test_flow_dispatch_leased import executor\nfrom tests.test_dispatch_leased_endpoint import executor as _executor\n\n\ndef test_slow_commit_allows_competing_dispatch(executor):\n    import remora.enforcement.lease as leases\n    from remora.flow.labeler import FlowLabeler\n\n    context_id = route._context(executor)\n    calls = [dict(route._call(context_id), arguments={\"work_order_id\": f\"WO-{i}\", \"status\": \"closed\"}) for i in (1, 2)]\n    grants = [route._lease(executor, call) for call in calls]\n    executor.monkeypatch.setattr(leases, \"DEFAULT_LEASE_TTL_SECONDS\", 1.0)\n    entered, proceed = threading.Event(), threading.Event()\n    original = FlowLabeler.label_result\n    first = {}\n\n    worker = threading.Thread(name=\"slow-result-commit\", target=lambda: first.update(route._post(executor, grants[0], call=calls[0]).json()))\n    # Block the first result commit after its initial fence-liveness check.\n    owner = {\"claimed\": False}\n    def slow_first_label(self, *args, **kwargs):\n        if not owner[\"claimed\"]:\n            owner[\"claimed\"] = True\n            entered.set()\n            assert proceed.wait(15)\n        return original(self, *args, **kwargs)\n    executor.monkeypatch.setattr(FlowLabeler, \"label_result\", slow_first_label)\n    try:\n        worker.start()\n        assert entered.wait(10)\n        time.sleep(2.0)\n        second = route._post(executor, grants[1], call=calls[1]).json()[\"tool_execution\"]\n        assert second[\"executed\"] is True, second\n    finally:\n        proceed.set()\n        worker.join(15)\n    assert first[\"tool_execution\"][\"executed\"] is True, first\n    assert \"result\" in first[\"tool_execution\"], first\n    assert len(executor.registry.CALLS) == 2\n",
+    "passed": 1,
+    "skipped": 0,
+    "failed": 0,
+    "errors": 0,
+    "cases": [
+      {
+        "name": "test_slow_commit_allows_competing_dispatch",
+        "class": "test_slow_commit_review",
+        "status": "passed"
+      }
+    ]
+  },
+  "reproduce": [
+    "git fetch origin pull/1084/head",
+    "git checkout f1641548896a5048422c8363a64fc4478fe47e93",
+    "Extract diagnostic.source from this JSON into /tmp/test_slow_commit_review.py",
+    "PYTHONPATH=. python -m pytest -q --no-cov /tmp/test_slow_commit_review.py"
+  ],
+  "limits": [
+    "Synthetic in-memory execution fixture; PostgreSQL not exercised.",
+    "Existing CHANGES_REQUESTED review already identifies this race.",
+    "No claim that result withholding reverses an external effect."
+  ],
+  "merge_check": {
+    "command": "git merge-tree --write-tree 5a22369fe5297e28f7ba9d63ce5670a3f0cbf85b f1641548896a5048422c8363a64fc4478fe47e93",
+    "exit_code": 1,
+    "conflicts": [
+      "artifacts/interop/remora-boundary-summary-v1.json",
+      "docs/assurance/capability_register_v1.yaml",
+      "docs/interop/remora-boundaries-v1.yaml"
+    ]
+  }
+}

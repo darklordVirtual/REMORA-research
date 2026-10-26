@@ -1,0 +1,792 @@
+{
+  "schema": "remora-ws1-953-followup/v1",
+  "date": "2026-10-26",
+  "issue": 953,
+  "remora_revision": "5a22369fe5297e28f7ba9d63ce5670a3f0cbf85b",
+  "environment": {
+    "python": "3.12.14",
+    "packages": {
+      "pytest": "9.1.1",
+      "fastapi": "0.162.0",
+      "httpx": "0.28.1",
+      "cryptography": "50.0.2",
+      "hypothesis": "6.170.11"
+    }
+  },
+  "legacy_controls": {
+    "agent_evidence_vectors": {
+      "note": "the four controls were not in a released agent-evidence-vectors version (latest v0.24.0) when this ran",
+      "status": "pending"
+    },
+    "controls_source": "REMORA's own versions of the four requested controls",
+    "gate": "remora/verification/execution_gate.Ws1Gate through /v1/execution/execute-accepted",
+    "outcomes": [
+      {
+        "case": "required monitor raises at the re-gate",
+        "control": "monitor_outage",
+        "detail": "ws1_regate_refused",
+        "executed": false,
+        "expected": "refused_unspent",
+        "grant_unspent": true,
+        "status_code": 409,
+        "ws1_reasons": null
+      },
+      {
+        "case": "evidence valid_until reached at the re-gate",
+        "control": "ttl_before_consumption",
+        "detail": "ws1_regate_refused",
+        "executed": false,
+        "expected": "refused_unspent",
+        "grant_unspent": true,
+        "status_code": 409,
+        "ws1_reasons": [
+          "verification_stopped"
+        ]
+      },
+      {
+        "case": "evidence lapses between the re-gate and consumption",
+        "control": "ttl_before_consumption",
+        "detail": "authorized by single-use ACCEPT token",
+        "executed": true,
+        "expected": "documented_residual_executes",
+        "grant_unspent": null,
+        "status_code": 200,
+        "ws1_reasons": null
+      },
+      {
+        "case": "the record now belongs to another tenant",
+        "control": "another_tenants_evidence",
+        "detail": "ws1_regate_refused",
+        "executed": false,
+        "expected": "refused_unspent",
+        "grant_unspent": true,
+        "status_code": 409,
+        "ws1_reasons": null
+      },
+      {
+        "case": "the source returns evidence stamped for another tenant",
+        "control": "another_tenants_evidence",
+        "detail": "ws1_regate_refused",
+        "executed": false,
+        "expected": "refused_unspent",
+        "grant_unspent": true,
+        "status_code": 409,
+        "ws1_reasons": null
+      },
+      {
+        "case": "registry digest changed after ACCEPT",
+        "control": "digest_change_after_accept",
+        "detail": "context_mismatch",
+        "executed": false,
+        "expected": "refused_unspent",
+        "grant_unspent": true,
+        "status_code": 409,
+        "ws1_reasons": null
+      },
+      {
+        "case": "monitor_profile digest changed after ACCEPT",
+        "control": "digest_change_after_accept",
+        "detail": "context_mismatch",
+        "executed": false,
+        "expected": "refused_unspent",
+        "grant_unspent": true,
+        "status_code": 409,
+        "ws1_reasons": null
+      }
+    ],
+    "pytest_exit_code": 0,
+    "remora_revision": "5a22369fe5297e28f7ba9d63ce5670a3f0cbf85b",
+    "requested_by": "@astrogilda (darklordVirtual/REMORA-research#953)",
+    "schema": "remora-ws1-gate-controls/v1"
+  },
+  "atomic_admission": {
+    "command": "python -m pytest -q --no-cov tests/test_ws1_atomic_admission_route.py tests/test_ws1_m4_fault_matrix.py tests/test_atomic_admission.py",
+    "passed": 96,
+    "skipped": 37,
+    "failed": 0,
+    "errors": 0,
+    "cases": [
+      {
+        "name": "test_an_atomic_redemption_executes_and_records_its_admission",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t02_evidence_lapsing_after_the_regate_refuses_unspent",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t03_a_revoked_evidence_source_refuses_unspent",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t04_a_source_revision_during_the_lookups_refuses",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_atomic_admission_refuses_to_start_without_its_prerequisites[env0-unset0]",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_atomic_admission_refuses_to_start_without_its_prerequisites[env1-unset1]",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_atomic_admission_refuses_to_start_without_its_prerequisites[env2-unset2]",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_atomic_admission_refuses_to_start_without_its_prerequisites[env3-unset3]",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_atomic_admission_refuses_to_start_without_its_prerequisites[env4-unset4]",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_atomic_admission_refuses_to_start_without_its_prerequisites[env5-unset5]",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_legacy_admission_is_the_default",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_approved_review_is_admitted_atomically",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_review_admission_refuses_and_settles_without_dispatch[lapse]",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_review_admission_refuses_and_settles_without_dispatch[revocation]",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_worker_admits_atomically",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_worker_refuses_a_revoked_source_and_settles_the_row",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t03_a_principal_revoked_after_the_grant_refuses_unspent",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_authority_route_revokes_and_reinstates_a_source",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_authority_route_names_sources_only[principal:x]",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_authority_route_names_sources_only[source:]",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_authority_route_names_sources_only[sourcex:y]",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_authority_route_refuses_without_atomic_admission",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t12_each_path_commits_its_admission_record_with_the_spend",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t12_the_review_path_commits_its_admission_record",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t12_the_worker_commits_its_admission_record",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t12_an_audit_outbox_failure_refuses_unspent",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t14_the_lease_ends_when_the_evidence_does",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t14_t16_a_change_after_commit_refuses_before_the_send[lapse-evidence_expired_at_admission]",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t14_t16_a_change_after_commit_refuses_before_the_send[revocation-authority_revoked]",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t16_a_revocation_during_the_send_is_not_called_safe_at_effect",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t16_the_review_path_refuses_a_revocation_before_the_send",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t16_the_worker_refuses_a_revocation_before_the_send",
+        "class": "tests.test_ws1_atomic_admission_route",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t15_a_dropped_response_is_unknown_and_never_retried",
+        "class": "tests.test_ws1_m4_fault_matrix",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t15_the_worker_settles_a_dropped_response_unknown",
+        "class": "tests.test_ws1_m4_fault_matrix",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t17_a_required_monitor_that_is_down_refuses_unspent",
+        "class": "tests.test_ws1_m4_fault_matrix",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t17_a_poisoned_monitor_supplies_no_missing_authority[poison0]",
+        "class": "tests.test_ws1_m4_fault_matrix",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t17_a_poisoned_monitor_supplies_no_missing_authority[poison1]",
+        "class": "tests.test_ws1_m4_fault_matrix",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t17_a_poisoned_monitor_supplies_no_missing_authority[poison2]",
+        "class": "tests.test_ws1_m4_fault_matrix",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t18_a_source_revision_mid_lookup_refuses_the_stale_receipt",
+        "class": "tests.test_ws1_m4_fault_matrix",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t18_a_policy_revision_mid_lookup_refuses",
+        "class": "tests.test_ws1_m4_fault_matrix",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t19_a_refused_admission_leaves_no_lease_to_use",
+        "class": "tests.test_ws1_m4_fault_matrix",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t19_an_altered_lease_is_refused_by_the_executor[tool_args_hash-0000000000000000000000000000000000000000000000000000000000000000]",
+        "class": "tests.test_ws1_m4_fault_matrix",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t19_an_altered_lease_is_refused_by_the_executor[actor_identity-someone-else]",
+        "class": "tests.test_ws1_m4_fault_matrix",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t19_an_altered_lease_is_refused_by_the_executor[expires_at-2999-01-01T00:00:00+00:00]",
+        "class": "tests.test_ws1_m4_fault_matrix",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t19_a_lease_for_another_call_is_refused",
+        "class": "tests.test_ws1_m4_fault_matrix",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t20_a_grant_replayed_after_a_restart_is_refused",
+        "class": "tests.test_ws1_m4_fault_matrix",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t07_t08_a_swapped_binding_refuses_unspent[arguments-binding_refused]",
+        "class": "tests.test_ws1_m4_fault_matrix",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t07_t08_a_swapped_binding_refuses_unspent[target-binding_refused]",
+        "class": "tests.test_ws1_m4_fault_matrix",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t07_t08_a_swapped_binding_refuses_unspent[actor-context_mismatch]",
+        "class": "tests.test_ws1_m4_fault_matrix",
+        "status": "passed"
+      },
+      {
+        "name": "test_fresh_evidence_spends_the_grant_and_records_one_intent[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_fresh_evidence_spends_the_grant_and_records_one_intent[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_m4_t01_evidence_expired_before_commit_refuses_unspent[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t01_evidence_expired_before_commit_refuses_unspent[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_m4_t10_the_declared_skew_is_subtracted_at_the_database_instant[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t10_the_declared_skew_is_subtracted_at_the_database_instant[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_the_grant_expires_the_declared_skew_early[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_grant_expires_the_declared_skew_early[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_m4_t02_evidence_lapsing_after_the_regate_refuses[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t02_evidence_lapsing_after_the_regate_refuses[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_m4_t04_an_epoch_advanced_after_the_lookups_refuses[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t04_an_epoch_advanced_after_the_lookups_refuses[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_m4_t03_a_revoked_subject_refuses[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t03_a_revoked_subject_refuses[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_m4_t11_a_failed_intent_rolls_the_spend_back[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t11_a_failed_intent_rolls_the_spend_back[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_a_spent_grant_refuses_and_records_nothing[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_spent_grant_refuses_and_records_nothing[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_m4_t13_an_unreachable_epoch_store_refuses_unspent[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t13_an_unreachable_epoch_store_refuses_unspent[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_an_outcome_without_receipts_is_not_admitted[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_outcome_without_receipts_is_not_admitted[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_without_ws1_the_spend_and_the_intent_still_share_one_transaction[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_without_ws1_the_spend_and_the_intent_still_share_one_transaction[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_m4_t06_one_grant_redeemed_by_eight_admitters_spends_once[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t06_one_grant_redeemed_by_eight_admitters_spends_once[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_m4_t05_a_revocation_committed_first_is_seen_by_admission[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t05_a_revocation_committed_first_is_seen_by_admission[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_m4_t05_an_admission_committed_first_stands[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t05_an_admission_committed_first_stands[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_an_in_process_transaction_is_refused",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_admission_needs_a_transactional_dialect_and_a_bounded_skew[d1-0]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_admission_needs_a_transactional_dialect_and_a_bounded_skew[memory-0]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_admission_needs_a_transactional_dialect_and_a_bounded_skew[sqlite--1]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_admission_needs_a_transactional_dialect_and_a_bounded_skew[sqlite-5001]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_admission_needs_a_transactional_dialect_and_a_bounded_skew[sqlite-True]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_admission_needs_a_transactional_dialect_and_a_bounded_skew[sqlite-1.0]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_in_process_gate_cannot_join_a_transaction",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_the_core_and_ws1_skew_bounds_agree",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_claim_admission_claims_and_spends_together[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_claim_admission_claims_and_spends_together[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_a_lost_claim_spends_nothing[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_lost_claim_spends_nothing[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_a_refused_spend_releases_the_claim[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_refused_spend_releases_the_claim[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_eight_workers_on_one_row_claim_and_spend_once[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_eight_workers_on_one_row_claim_and_spend_once[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_m4_t03_a_revoked_principal_refuses_unspent[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t03_a_revoked_principal_refuses_unspent[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_principals_unrevoked_in_this_tenant_admit[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_principals_unrevoked_in_this_tenant_admit[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_an_unreadable_revocation_store_refuses[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_unreadable_revocation_store_refuses[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_principals_without_a_revocation_store_refuse[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_principals_without_a_revocation_store_refuse[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_an_epoch_change_and_its_record_commit_together[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_epoch_change_and_its_record_commit_together[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_m4_t12_the_admission_enqueues_its_audit_row_before_commit[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t12_the_admission_enqueues_its_audit_row_before_commit[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_m4_t12_an_audit_outbox_failure_rolls_the_whole_admission_back[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t12_an_audit_outbox_failure_rolls_the_whole_admission_back[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_m4_t12_an_audit_failure_on_a_claim_releases_the_claim[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t12_an_audit_failure_on_a_claim_releases_the_claim[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_an_unkeyed_audit_record_refuses_unspent[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_unkeyed_audit_record_refuses_unspent[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_a_failed_drain_leaves_the_committed_row_for_the_next_one[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_failed_drain_leaves_the_committed_row_for_the_next_one[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_a_permit_after_admission_bounds_the_lease_by_the_evidence[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_permit_after_admission_bounds_the_lease_by_the_evidence[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_m4_t14_evidence_lapsing_after_commit_refuses_the_permit[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t14_evidence_lapsing_after_commit_refuses_the_permit[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_m4_t14_evidence_too_close_to_expiry_for_the_executor_refuses[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t14_evidence_too_close_to_expiry_for_the_executor_refuses[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_m4_t16_a_source_revoked_after_commit_refuses_the_permit[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t16_a_source_revoked_after_commit_refuses_the_permit[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_m4_t16_a_principal_revoked_after_commit_refuses_the_permit[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t16_a_principal_revoked_after_commit_refuses_the_permit[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_an_unreachable_epoch_store_refuses_the_permit[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_an_unreachable_epoch_store_refuses_the_permit[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_a_permit_writes_nothing[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_a_permit_writes_nothing[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_m4_t16_a_revocation_racing_the_permit_has_one_order[sqlite]",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      },
+      {
+        "name": "test_m4_t16_a_revocation_racing_the_permit_has_one_order[postgres]",
+        "class": "tests.test_atomic_admission",
+        "status": "skipped"
+      },
+      {
+        "name": "test_m4_t14_a_permit_past_its_bound_mints_no_lease",
+        "class": "tests.test_atomic_admission",
+        "status": "passed"
+      }
+    ]
+  },
+  "conclusion": {
+    "legacy": "The documented post-regate TTL residual still executes. Seven passing control tests include the expected residual; they are not seven security passes.",
+    "atomic": "The existing expiry checks refuse at admission and at the pre-send permit; the lease expiry is bounded by evidence freshness. No new runtime repair was necessary for those tested boundaries.",
+    "limits": [
+      "Local synthetic fixtures; not deployment or OT validation.",
+      "No REMORA_PG_DSN configured; PostgreSQL cases skipped.",
+      "Legacy admission is still the default when REMORA_WS1_ADMISSION is unset.",
+      "Authority at the physical effect instant remains NOT_ESTABLISHED.",
+      "The external four-control vector release is still pending per astrogilda in #953."
+    ]
+  },
+  "reproduce": [
+    "git checkout 5a22369fe5297e28f7ba9d63ce5670a3f0cbf85b",
+    "python scripts/ws1_gate_controls.py --out /tmp/ws1-controls.json",
+    "python -m pytest -q --no-cov tests/test_ws1_atomic_admission_route.py tests/test_ws1_m4_fault_matrix.py tests/test_atomic_admission.py"
+  ]
+}
