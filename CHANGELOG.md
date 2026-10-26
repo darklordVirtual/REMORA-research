@@ -4,6 +4,26 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### OT pilot: fault injection through the whole chain, a frozen configuration and operator measurements
+
+- `deploy/ot-pilot/run_fault_injection.py` injects nine faults into the running pilot over HTTP and `docker compose`:
+  - a restart between approval and execution;
+  - a replay of a spent grant after a restart;
+  - limits across a restart;
+  - PostgreSQL stopped during a governed write;
+  - four racing executions of one approval;
+  - the same proposal approved twice;
+  - a stop between approval and execution;
+  - a tool failing after dispatch began;
+  - an approver revoked after approving.
+- Each run freezes the configuration it ran against: the file digests, the API image id, the commit and the policy hash, with one fingerprint over them. It also measures latency by route (calls made during a fault are counted apart), writes completed against writes intended, false refusals and human steps.
+- Two runs are committed under `artifacts/pilot-pack/runs/`:
+  - before the fixes, 7 of 9: the stop spent the approval, and a store outage answered a bare 500;
+  - after #1079 and #1080, 9 of 9, with 8 of 8 writes, no false refusals and both chains valid. The same directory holds a battery run at 16 of 16 on that configuration.
+- The pilot gains a second admin token (`ot-supervisor`), because a principal cannot revoke themself, and `actor_id` on every token. It also gains `REMORA_LIMITS_EVIDENCE_MODULE: ot_registry`, whose `check_limit_evidence` answers from the plant's log and refuses to answer for an operation older than the plant process. Without it, an unknown outcome's reservation could never be resolved.
+- Still open: a proposal approved twice runs twice, because the pilot's limit policy declares no idempotency keys. Re-signing it needs the pilot limit authority's key.
+- `tests/test_ot_fault_injection.py` (17): the fingerprint, the measurements and the plant evidence checker.
+
 ### A PostgreSQL outage answers 503 `durable_state_unavailable`, not a bare 500
 
 - Found by the OT pilot's fault-injection run on 2026-10-26: with Postgres stopped, `/v1/execution/assess` and `/v1/execution/execute` refused and nothing executed, but both answered 500 "An internal error occurred". The catch-all handler in `servers/api.py` now answers 503 `durable_state_unavailable`, with the same correlation id, when the exception is a PostgreSQL driver's `OperationalError` (psycopg v3 or psycopg2). Other errors, SQL errors and SQLite's `OperationalError` included, stay 500. Neither body carries the driver's message.

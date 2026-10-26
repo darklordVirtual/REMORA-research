@@ -10,6 +10,11 @@
 #
 #   docker compose -f deploy/ot-pilot/docker-compose.yml down -v   # tear down
 #
+# Fault injection against this stack (restart, store outage, races, stop,
+# revocation, a failing tool), with a frozen configuration fingerprint:
+#
+#   python deploy/ot-pilot/run_fault_injection.py --evidence-root artifacts/pilot-pack/runs
+#
 # Every credential, database, registry and work order below is preset. There
 # is nothing to fill in before it runs.
 #

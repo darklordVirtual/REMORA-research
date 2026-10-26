@@ -1,0 +1,5 @@
+Run fault-injection-2026-10-26-70746bdb
+Cases: 9 total, 7 passed, 2 failed
+Confirmed side effects: 7
+Execution chain valid: True
+Envelope chain valid: True

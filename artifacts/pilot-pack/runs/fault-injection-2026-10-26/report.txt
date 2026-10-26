@@ -1,0 +1,5 @@
+Run fault-injection-2026-10-26-8641b555
+Cases: 9 total, 9 passed, 0 failed
+Confirmed side effects: 8
+Execution chain valid: True
+Envelope chain valid: True

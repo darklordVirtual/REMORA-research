@@ -1,0 +1,117 @@
+{
+  "results": [
+    {
+      "name": "Restart between approval and execution",
+      "expect": "runs once after the restart",
+      "intended_writes": 1,
+      "api_back": true,
+      "execute": 200,
+      "executed": true,
+      "replay": 409,
+      "completed_writes": 1,
+      "ok": true
+    },
+    {
+      "name": "Spent grant across a restart",
+      "expect": "the replay after the restart is refused",
+      "intended_writes": 1,
+      "api_back": true,
+      "execute": 200,
+      "executed": true,
+      "replay_after_restart": 409,
+      "completed_writes": 1,
+      "ok": true
+    },
+    {
+      "name": "Cumulative limits across a restart",
+      "expect": "the ledger still counts the earlier move",
+      "intended_writes": 1,
+      "api_back": true,
+      "first_move_executed": true,
+      "over_cap": 409,
+      "over_cap_reason": "limit_exceeded",
+      "under_cap": 200,
+      "completed_writes": 1,
+      "ok": true
+    },
+    {
+      "name": "PostgreSQL stopped during a governed write",
+      "expect": "503, no effect; runs once after recovery",
+      "intended_writes": 1,
+      "store_back": true,
+      "during_execute": 503,
+      "during_execute_detail": "execution_stop_unverifiable",
+      "during_assess": 503,
+      "during_assess_detail": "durable_state_unavailable",
+      "after": 200,
+      "executed_after": true,
+      "replay": 409,
+      "old_setpoint_after": 120.0,
+      "completed_writes": 1,
+      "ok": true
+    },
+    {
+      "name": "Four concurrent executions of one approval",
+      "expect": "exactly one runs",
+      "intended_writes": 1,
+      "statuses": [
+        200,
+        409,
+        409,
+        409
+      ],
+      "executed_count": 1,
+      "completed_writes": 1,
+      "ok": true
+    },
+    {
+      "name": "The same proposal made and approved twice",
+      "expect": "two operations (no key declared)",
+      "intended_writes": 2,
+      "executed_count": 2,
+      "human_approvals": 2,
+      "note": "no idempotency key declared: each approval is its own operation",
+      "completed_writes": 2,
+      "ok": true
+    },
+    {
+      "name": "Stop between approval and execution",
+      "expect": "409 while stopped; runs after resume",
+      "intended_writes": 1,
+      "stop": 200,
+      "while_stopped": 409,
+      "while_stopped_detail": "execution_stopped",
+      "resume": 200,
+      "after_resume": 200,
+      "executed_after_resume": true,
+      "completed_writes": 1,
+      "ok": true
+    },
+    {
+      "name": "Tool fails after dispatch began",
+      "expect": "UNKNOWN, reservation held until resolved",
+      "intended_writes": 0,
+      "execute": 200,
+      "executed": false,
+      "state_unknown": true,
+      "refusal": "tool_failed_nonce_burned",
+      "lifecycle_state": "UNKNOWN",
+      "unresolved_before": 1,
+      "resolve": 200,
+      "unresolved_after": 0,
+      "replay": 409,
+      "ok": true
+    },
+    {
+      "name": "Approver revoked after approving",
+      "expect": "approval invalidated, nothing runs",
+      "intended_writes": 0,
+      "revoke": 200,
+      "execute": 200,
+      "outcome": "approval_invalidated",
+      "executed": null,
+      "self_revoke": 409,
+      "ok": true
+    }
+  ]
+}
