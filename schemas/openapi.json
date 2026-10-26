@@ -2981,7 +2981,7 @@
                 }
               }
             },
-            "description": "Item not in an executable state."
+            "description": "Item not in an executable state, or execution is stopped (execution_stopped); a stopped item stays approved."
           },
           "422": {
             "content": {
@@ -2992,6 +2992,16 @@
               }
             },
             "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "The stop flag could not be read (execution_stop_unverifiable); nothing was spent."
           }
         },
         "summary": "Execute",
@@ -3056,7 +3066,7 @@
                 }
               }
             },
-            "description": "Token refused: replayed/consumed, payload binding mismatch, expired, wrong audience, or not an ACCEPT."
+            "description": "Token refused: replayed/consumed, payload binding mismatch, expired, wrong audience, or not an ACCEPT; or execution is stopped (execution_stopped), with the token unspent."
           },
           "422": {
             "content": {
@@ -3067,6 +3077,16 @@
               }
             },
             "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "The stop flag could not be read (execution_stop_unverifiable); the token is unspent."
           }
         },
         "summary": "Execute Accepted",

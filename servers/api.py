@@ -378,7 +378,7 @@ async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSON
     never reach the client.  The correlation_id allows operators to correlate the
     sanitised response with the full stack trace in server logs.
     """
-    return _safe_error_response(exc, status_code=500)
+    return _unhandled_response(exc)
 
 
 from remora.enforcement.token import (
@@ -3429,3 +3429,41 @@ def system_capabilities(request: Request) -> dict:
     tenant_id, role = _authenticate(request)
     _require_tenant_capability(role, tenant_id, "read")
     return catalogue_view(CAPABILITY_ACTIVATION)
+
+
+# Fault injection on the OT pilot (2026-10-26): with Postgres stopped, assess
+# and execute refused and nothing ran, but both answered a bare 500. A client
+# cannot tell that from a defect, so it cannot know a retry is the move.
+_DURABLE_STATE_DRIVERS = frozenset({"psycopg", "psycopg2"})
+
+
+def _is_durable_state_outage(exc: BaseException) -> bool:
+    """Whether ``exc`` is a PostgreSQL driver's ``OperationalError``.
+
+    psycopg v3 and psycopg2 raise it when the connection fails or is lost;
+    SQL errors are other classes and stay internal errors. Matched on the
+    class hierarchy by module and name, so neither driver has to be
+    installed. SQLite's ``OperationalError`` is not matched: it also covers
+    SQL errors.
+    """
+    for klass in type(exc).__mro__:
+        root = klass.__module__.split(".", 1)[0]
+        if klass.__name__ == "OperationalError" and root in _DURABLE_STATE_DRIVERS:
+            return True
+    return False
+
+
+def _unhandled_response(exc: Exception) -> JSONResponse:
+    """503 ``durable_state_unavailable`` for a store outage, else the safe 500.
+
+    Both keep the correlation id and log the exception server-side; neither
+    body carries the driver's message, which can name hosts and DSNs.
+    """
+    response = _safe_error_response(exc, status_code=500)
+    if not _is_durable_state_outage(exc):
+        return response
+    body = json.loads(bytes(response.body))
+    return JSONResponse(status_code=503, content={
+        "detail": "durable_state_unavailable",
+        "correlation_id": body["correlation_id"],
+    })

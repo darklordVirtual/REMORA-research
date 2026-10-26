@@ -2742,7 +2742,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorDetail"];
                 };
             };
-            /** @description Item not in an executable state. */
+            /** @description Item not in an executable state, or execution is stopped (execution_stopped); a stopped item stays approved. */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -2758,6 +2758,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description The stop flag could not be read (execution_stop_unverifiable); nothing was spent. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
                 };
             };
         };
@@ -2802,7 +2811,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorDetail"];
                 };
             };
-            /** @description Token refused: replayed/consumed, payload binding mismatch, expired, wrong audience, or not an ACCEPT. */
+            /** @description Token refused: replayed/consumed, payload binding mismatch, expired, wrong audience, or not an ACCEPT; or execution is stopped (execution_stopped), with the token unspent. */
             409: {
                 headers: {
                     [name: string]: unknown;
@@ -2818,6 +2827,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+            /** @description The stop flag could not be read (execution_stop_unverifiable); the token is unspent. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
                 };
             };
         };

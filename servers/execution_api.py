@@ -1730,6 +1730,25 @@ def _capability_or_refuse(tool_call: Any, principal: str, tenant: str) -> None:
         raise HTTPException(status_code=409, detail=str(block["refusal"]))
 
 
+def _stop_or_refuse(tenant: str) -> None:
+    """Refuse while the operator has stopped execution for ``tenant``, before
+    an approval or a token is spent (P0 item 7).
+
+    The dispatcher refuses a stopped dispatch too, but by then ``/execute``
+    has consumed the approval and ``/execute-accepted`` the token, so the
+    work could not run after ``/resume``. Read here first: 409
+    ``execution_stopped``, or 503 ``execution_stop_unverifiable`` when the
+    store cannot answer. A stop set after this read is still refused by the
+    dispatcher, with the approval spent; the window is one request.
+    """
+    try:
+        stopped = _execution_stopped(tenant)
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="execution_stop_unverifiable") from exc
+    if stopped:
+        raise HTTPException(status_code=409, detail="execution_stopped")
+
+
 def _require_capability_set() -> bool:
     """Refuse any lease without a capability digest: when the BindingPolicy
     marks capability_set REQUIRED, or ``REMORA_REQUIRE_CAPABILITY_SET`` is set."""
@@ -3593,7 +3612,12 @@ def _dispatch_under_lease_fenced(
                          "Poll the proposal lifecycle for the outcome."},
     **_AUTH_RESPONSES,
     404: {"model": ErrorDetail, "description": "Review item not found for this tenant."},
-    409: {"model": ErrorDetail, "description": "Item not in an executable state."},
+    409: {"model": ErrorDetail, "description": "Item not in an executable state, or "
+                                               "execution is stopped (execution_stopped); "
+                                               "a stopped item stays approved."},
+    503: {"model": ErrorDetail, "description": "The stop flag could not be read "
+                                               "(execution_stop_unverifiable); nothing "
+                                               "was spent."},
 })
 def execute(req: ExecuteRequest, request: Request) -> dict[str, Any] | JSONResponse:
     """Execute a previously approved item under full re-gating.
@@ -3612,6 +3636,7 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any] | JSONRespo
     api_mod._require_tenant_capability(role, tenant, "execute")
     _task_or_refuse(req.tool_call)
     _capability_or_refuse(req.tool_call, principal, tenant)
+    _stop_or_refuse(tenant)
     reconcile_stale_dispatches(tenant)  # FT-02 lazy sweep (see assess)
     # Issue #82: async mode answers 202 after durable authorization; the
     # dispatch half belongs to the standalone worker
@@ -3681,7 +3706,12 @@ def execute(req: ExecuteRequest, request: Request) -> dict[str, Any] | JSONRespo
     **_AUTH_RESPONSES,
     409: {"model": ErrorDetail,
           "description": "Token refused: replayed/consumed, payload binding "
-                         "mismatch, expired, wrong audience, or not an ACCEPT."},
+                         "mismatch, expired, wrong audience, or not an ACCEPT; "
+                         "or execution is stopped (execution_stopped), with the "
+                         "token unspent."},
+    503: {"model": ErrorDetail,
+          "description": "The stop flag could not be read "
+                         "(execution_stop_unverifiable); the token is unspent."},
 })
 def execute_accepted(req: ExecuteAcceptedRequest, request: Request) -> dict[str, Any]:
     """Execute a directly-ACCEPTed proposal under its single-use token.
@@ -3711,6 +3741,7 @@ def execute_accepted(req: ExecuteAcceptedRequest, request: Request) -> dict[str,
     api_mod._require_tenant_capability(role, tenant, "execute")
     _task_or_refuse(req.tool_call)
     _capability_or_refuse(req.tool_call, principal, tenant)
+    _stop_or_refuse(tenant)
     reconcile_stale_dispatches(tenant)
 
     try:

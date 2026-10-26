@@ -4,6 +4,16 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### A PostgreSQL outage answers 503 `durable_state_unavailable`, not a bare 500
+
+- Found by the OT pilot's fault-injection run on 2026-10-26: with Postgres stopped, `/v1/execution/assess` and `/v1/execution/execute` refused and nothing executed, but both answered 500 "An internal error occurred". The catch-all handler in `servers/api.py` now answers 503 `durable_state_unavailable`, with the same correlation id, when the exception is a PostgreSQL driver's `OperationalError` (psycopg v3 or psycopg2). Other errors, SQL errors and SQLite's `OperationalError` included, stay 500. Neither body carries the driver's message.
+- `tests/test_durable_state_outage_503.py` (5).
+### A stop no longer spends the approval or the ACCEPT token it refuses
+
+- Found by the OT pilot's fault-injection run on 2026-10-26: an approved item executed while the operator had stopped execution was refused by the dispatcher, but `/v1/execution/execute` had already consumed the approval and recorded the dispatch as REFUSED, so after `/resume` the same item answered 409 and had to be proposed and approved again. The documentation said a stop refuses before anything is spent.
+- `/v1/execution/execute` and `/v1/execution/execute-accepted` now read the stop flag before they touch the approval or the token: 409 `execution_stopped`, 503 `execution_stop_unverifiable` when the store cannot answer. The approval or token runs after the resume. The dispatcher's own check stays; a stop set between the read and the dispatch is still refused there, with the approval spent. Both responses are declared in `schemas/openapi.json`.
+- `tests/test_execution_stop_spends_nothing.py` (3): the approval stays APPROVED and runs once after the resume, the unanswerable store is 503 with nothing spent, and the ACCEPT token redeems after the resume.
+
 ### Environment flags and the activation manifest must agree: `REMORA_REQUIRE_LIMITS` first (ADR-UE-03 slice 5)
 
 - `FLAG_AGREEMENTS` in `remora/governance/capability_activation.py` holds the flags migrated so far, one per change. The first is `REMORA_REQUIRE_LIMITS` against CAP-031 (cumulative limits): set, the manifest must request CAP-031 enforcing (`ENFORCE`, `VERIFY`); unset, it must not. A loaded manifest that disagrees refuses startup, whether or not `REMORA_CAM_REQUIRED` is set, so neither the flag nor the manifest silently wins. A manifest that leaves CAP-031 out is not compared.
