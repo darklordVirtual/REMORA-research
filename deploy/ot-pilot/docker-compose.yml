@@ -68,11 +68,15 @@ services:
       # Durable DecisionEnvelope store.
       REMORA_CONTROL_PLANE_DSN: postgresql://remora:remora-local-pilot@postgres:5432/remora
       # Token table — the only mode with real role separation. The operator
-      # token cannot approve; the approver token cannot execute.
+      # token cannot approve; the approver token cannot execute. A second
+      # admin, the supervisor, can withdraw the approver's authority: a
+      # principal cannot revoke themself, so revocation needs two. Each token
+      # names its actor, so the audit chain records who acted, not a hash.
       REMORA_API_TOKENS: >-
-        {"ot-agent":{"tenant":"ot-pilot","role":"operator"},
-         "ot-approver":{"tenant":"ot-pilot","role":"admin"},
-         "ot-viewer":{"tenant":"ot-pilot","role":"viewer"}}
+        {"ot-agent":{"tenant":"ot-pilot","role":"operator","actor_id":"ot-agent"},
+         "ot-approver":{"tenant":"ot-pilot","role":"admin","actor_id":"ot-approver"},
+         "ot-supervisor":{"tenant":"ot-pilot","role":"admin","actor_id":"ot-supervisor"},
+         "ot-viewer":{"tenant":"ot-pilot","role":"viewer","actor_id":"ot-viewer"}}
       REMORA_API_BEARER_TOKEN: ot-agent
 
       # --- Surfaces -------------------------------------------------------
@@ -102,6 +106,11 @@ services:
       REMORA_LIMITS_FILE: /app/limits.json
       REMORA_LIMITS_LEDGER: /var/lib/remora/limits-ledger.db
       REMORA_LIMITS_OBSERVER_MODULE: ot_registry
+      # A call whose outcome is unknown holds its budget until a reviewer
+      # resolves it, and the resolution is checked against the plant's log
+      # (ot_registry.check_limit_evidence), not taken on trust. Without a
+      # checker no unknown outcome could ever be resolved.
+      REMORA_LIMITS_EVIDENCE_MODULE: ot_registry
       # Limits are mandatory here: the API refuses to start without them,
       # unsigned, or with coverage other than all_writes. limits.json is
       # signed by the pilot's limit authority; this host holds only its

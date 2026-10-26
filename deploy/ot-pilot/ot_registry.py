@@ -96,6 +96,44 @@ def observe_limit_value(tenant: str, quantity: str, resource: str) -> float:
     raise KeyError(f"no observation for {quantity!r}")
 
 
+#: When this process's plant started. The log below covers nothing earlier.
+PLANT_STARTED_AT = datetime.now(UTC).timestamp()
+
+#: The argument each tool's log entry names its resource by.
+_RESOURCE_FIELD = {
+    "read_sensor": "sensor_id", "adjust_setpoint": "loop", "set_valve_position": "valve",
+    "acknowledge_alarm": "alarm_id", "create_work_order": "wo_id", "close_work_order": "wo_id",
+}
+
+
+def check_limit_evidence(tenant: str, operation: Any, evidence_ref: str) -> dict[str, Any]:
+    """What the plant's log says an operation with an unknown outcome did.
+
+    ``REMORA_LIMITS_EVIDENCE_MODULE`` names this module, so a reviewer's
+    ``POST /v1/execution/limits/resolve`` is checked against the plant rather
+    than taken on trust. ``evidence_ref`` is ``plant-log:<tool>:<resource>``
+    and must name the operation's tool. The answer is whether the log holds an
+    entry for that tool and resource at or after the operation was reserved.
+
+    Raises, so the resolution refuses as ``limit_evidence_unavailable``, when
+    the reference is malformed or names another tool, and when the plant
+    started after the operation: the log is in memory and cannot tell.
+    """
+    kind, _, rest = evidence_ref.partition(":")
+    tool, _, resource = rest.partition(":")
+    if kind != "plant-log" or not resource or tool != operation.get("tool"):
+        raise ValueError(f"evidence_ref {evidence_ref!r} is not plant-log:<tool>:<resource> "
+                         "for this operation's tool")
+    reserved_at = float(operation.get("at") or 0.0)
+    if reserved_at < PLANT_STARTED_AT:
+        raise LookupError("the plant restarted after this operation; its log cannot tell")
+    field = _RESOURCE_FIELD.get(tool)
+    ran = any(entry.get("tool") == tool and str(entry.get(field)) == resource
+              and datetime.fromisoformat(entry["at"]).timestamp() >= reserved_at
+              for entry in PLANT["log"])
+    return {"executed": ran, "source": "ot-plant-log"}
+
+
 def register_tools(register: Callable[[str, Callable[[Any], Any]], None]) -> None:
     for name, fn in (
         ("read_sensor", read_sensor),
