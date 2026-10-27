@@ -3368,11 +3368,20 @@ def _flow_at_dispatch(tenant: str, tool_call: ToolCallRequest, expected: tuple[i
     digest the flow check had when the call was decided. If the context's
     label moved since, or the check now differs, the call is refused before a
     lease is minted. The check then takes the dispatch fence: one ``dispatch``
-    event on the context stream at the sequence the check saw. A context held
+    event on the context stream at the sequence the check read, so a raise
+    that lands between the check and the fence refuses. A context held
     by another proposal's unexpired dispatch, or a fence lost to a concurrent
     writer, refuses as ``flow_dispatch_contended`` before anything is spent;
     so two calls judged at the same epoch cannot both run, and a raise that
-    lands while the holder runs still withholds the holder's result.
+    lands while the holder runs still withholds the holder's result. The
+    fence is renewed while the tool runs, so a tool running past the lease
+    TTL still holds the context, and the renewal stays on until the commit
+    and the release finish, so a slow commit does not outlive the fence; a
+    commit whose fence lapsed anyway refuses as ``flow_dispatch_fence_expired``,
+    decided in the same compare-and-swap that records the commit. The fence
+    cannot reverse an external side effect the tool already caused: an
+    expired fence withholds the result and refuses the competing call, nothing
+    more.
 
     The returned commit labels the raw result, persists the handles it mints,
     raises the context label, releases the fence and only then hands back the
@@ -3383,6 +3392,7 @@ def _flow_at_dispatch(tenant: str, tool_call: ToolCallRequest, expected: tuple[i
     does not hold the context until the fence expires (the lease TTL). The
     fifth is the recipient set the verdict approved (IFC-12).
     """
+    import threading as _threading
     import time as _time
 
     from remora.enforcement.lease import DEFAULT_LEASE_TTL_SECONDS
@@ -3397,7 +3407,7 @@ def _flow_at_dispatch(tenant: str, tool_call: ToolCallRequest, expected: tuple[i
     if flow is None or not principal or not context_id:
         return "flow_state_unavailable", None, None, None, None
     contexts, handles = _flow_contexts(), _flow_handles()
-    ok, reason, resolved = verify_flow_at_dispatch(
+    ok, reason, resolved, checked_seq = verify_flow_at_dispatch(
         contexts=contexts, handles=handles, tenant_id=tenant, principal=principal,
         context_id=context_id, flow=flow, arguments=tool_call.arguments,
         expected_epoch=expected[0], expected_digest=expected[1])
@@ -3412,16 +3422,40 @@ def _flow_at_dispatch(tenant: str, tool_call: ToolCallRequest, expected: tuple[i
     now = _time.time()
     try:
         dispatch_id = contexts.begin_dispatch(
-            tenant, principal, context_id, proposal_id=proposal_id,
-            expires_at=now + DEFAULT_LEASE_TTL_SECONDS, now=now)
+            tenant, principal, context_id, expected_seq=checked_seq,
+            proposal_id=proposal_id, expires_at=now + DEFAULT_LEASE_TTL_SECONDS, now=now)
     except Exception:
         return "flow_state_unavailable", None, None, None, None
     if dispatch_id is None:
         return "flow_dispatch_contended", None, None, None, None
+    # The fence's expiry bounds a process that dies mid-call, not a call that
+    # is still running: renewed every third of the TTL until the release, which
+    # runs only after the commit finishes, so neither a tool nor a slow commit
+    # outlives the hold. A renewal that finds the hold gone stops; the commit
+    # then refuses.
+    ttl = float(DEFAULT_LEASE_TTL_SECONDS)
+    stop_renewing = _threading.Event()
+
+    def renew_while_running() -> None:
+        while not stop_renewing.wait(ttl / 3):
+            at = _time.time()
+            try:
+                if not contexts.renew_dispatch(tenant, principal, context_id, dispatch_id,
+                                               expires_at=at + ttl, now=at):
+                    return
+            except Exception:
+                # Retried at the next tick; if the hold lapses meanwhile, the
+                # commit refuses as flow_dispatch_fence_expired.
+                _LOGGER.warning("flow dispatch fence %s on context %s not renewed",
+                                dispatch_id, context_id, exc_info=True)
+
+    _threading.Thread(target=renew_while_running, name=f"flow-fence-{dispatch_id[:12]}",
+                      daemon=True).start()
     released = False
 
     def release() -> None:
         nonlocal released
+        stop_renewing.set()
         if released:
             return
         released = True
@@ -3438,7 +3472,8 @@ def _flow_at_dispatch(tenant: str, tool_call: ToolCallRequest, expected: tuple[i
             done = commit_labeled_result(
                 FlowLabeler(), flow, contexts=contexts, handles=handles, tenant_id=tenant,
                 principal=principal, context_id=context_id, proposal_id=proposal_id,
-                arguments=tool_call.arguments, raw_result=raw, expected_epoch=expected[0])
+                arguments=tool_call.arguments, raw_result=raw, expected_epoch=expected[0],
+                dispatch_id=dispatch_id)
         finally:
             release()
         return done.rendered_result, {"raw_result_sha256": done.raw_result_sha256,

@@ -44,6 +44,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from remora.capabilities.resource import ResourceRefused, canonical_resource
+from remora.flow.context import FlowDispatchFenceLost
 from remora.flow.handles import HandleRecord, handle_token, new_handle_id
 from remora.flow.label import (
     BOTTOM,
@@ -311,6 +312,7 @@ def commit_labeled_result(
     raw_result: Any,
     source_metadata: Mapping[str, Mapping[str, Iterable[str]]] | None = None,
     expected_epoch: int | None = None,
+    dispatch_id: str | None = None,
 ) -> CommittedFlowResult:
     """Compute labels, persist handles and context raise BEFORE returning
     ``rendered_result`` to the agent (SDD v2 WP-04 / AR-017, IFC-04b).
@@ -319,19 +321,31 @@ def commit_labeled_result(
     rendered payload attached. With *expected_epoch* (the epoch the dispatch
     check passed on), a context whose label moved in between is refused as
     ``flow_epoch_changed_during_dispatch``: the call ran, and its result is
-    not released under a flow decision made on a stale label.
+    not released under a flow decision made on a stale label. With
+    *dispatch_id* (the dispatch fence the call holds, IFC-06), a fence that
+    is no longer held unexpired is refused as ``flow_dispatch_fence_expired``:
+    another proposal may have run in the context while the hold had lapsed,
+    so the result is not released as if the call had run alone.
     """
     import hashlib
+    import time
+
     from remora.flow.observe import _lineage
 
     failed = False
-    moved = False
+    reason: str | None = None
     updated: Any = None
     try:
         state = contexts.load(tenant_id, principal, context_id)
         if expected_epoch is not None and state.epoch != expected_epoch:
-            moved = True
-            raise FlowCommitFailed("flow_epoch_changed_during_dispatch")
+            reason = "flow_epoch_changed_during_dispatch"
+            raise FlowCommitFailed(reason)
+        if dispatch_id is not None:
+            now = time.time()
+            if not any(o.dispatch_id == dispatch_id and o.expires_at > now
+                       for o in state.open_dispatches):
+                reason = "flow_dispatch_fence_expired"
+                raise FlowCommitFailed(reason)
         lineage = _lineage(lambda cid: contexts.load(tenant_id, principal, cid), state)
         if handles is not None:
             res = handles.resolve(tenant_id, lineage, arguments, context_label=state.label)
@@ -358,13 +372,23 @@ def commit_labeled_result(
         raw_sha256 = hashlib.sha256(raw_bytes).hexdigest()
         if handles is not None and labeled.handles:
             handles.put_all(labeled.handles)
-        updated = contexts.raise_label(tenant_id, principal, context_id, labeled.raise_label)
+        if dispatch_id is None:
+            updated = contexts.raise_label(tenant_id, principal, context_id, labeled.raise_label)
+        else:
+            # The final ownership check and the raise are one compare-and-swap
+            # in the store: the append lands only if the fence is still held
+            # unexpired in the state it is conditioned on.
+            updated = contexts.raise_label(tenant_id, principal, context_id, labeled.raise_label,
+                                           dispatch_id=dispatch_id)
+    except FlowDispatchFenceLost:
+        failed = True
+        reason = "flow_dispatch_fence_expired"
     except Exception:
         failed = True
     # Raise outside the handler: neither cause nor implicit exception context
     # may retain a store exception containing raw tool data.
-    if moved:
-        raise FlowCommitFailed("flow_epoch_changed_during_dispatch") from None
+    if reason is not None:
+        raise FlowCommitFailed(reason) from None
     if failed or updated is None:
         raise FlowCommitFailed("flow_result_commit_failed") from None
     return CommittedFlowResult(
@@ -388,9 +412,15 @@ def verify_flow_at_dispatch(
     expected_epoch: int,
     expected_digest: str,
     resource_acl: Callable[[str], Iterable[str]] | None = None,
-) -> tuple[bool, str, dict[str, Any]]:
+) -> tuple[bool, str, dict[str, Any], int]:
     """Re-verify ``flow_epoch``, ``flow_digest`` and resolved arguments right
     before dispatch (SDD v2 WP-04 / AR-018, IFC-06).
+
+    Returns ``(ok, reason, resolved_arguments, seq)``. ``seq`` is the stream
+    sequence of the context state the verdict was computed on (0 on a
+    refusal); the dispatch fence is taken at exactly that sequence
+    (``FlowContextStore.begin_dispatch(expected_seq=...)``), so a context that
+    moved after the check refuses instead of dispatching on a stale verdict.
     """
     from remora.flow.check import flow_check
     from remora.flow.observe import _lineage
@@ -399,15 +429,15 @@ def verify_flow_at_dispatch(
         state = contexts.load(tenant_id, principal, context_id)
         lineage = _lineage(lambda cid: contexts.load(tenant_id, principal, cid), state)
     except Exception:
-        return False, "flow_state_unavailable", {}
+        return False, "flow_state_unavailable", {}, 0
     if state.epoch != expected_epoch:
-        return False, "flow_epoch_changed", {}
+        return False, "flow_epoch_changed", {}, 0
     if handles is not None:
         try:
             res = handles.resolve(tenant_id, lineage, arguments, context_label=state.label)
             resolved_args, value_labels = res.args, res.value_labels
         except Exception:
-            return False, "flow_handle_invalid", {}
+            return False, "flow_handle_invalid", {}, 0
     else:
         resolved_args, value_labels = dict(arguments), {}
     verdict = flow_check(
@@ -419,8 +449,8 @@ def verify_flow_at_dispatch(
         resource_acl=resource_acl,
     )
     if verdict.digest != expected_digest:
-        return False, "flow_digest_changed", {}
+        return False, "flow_digest_changed", {}, 0
     if not verdict.clean:
-        return False, "flow_violation_at_dispatch", {}
-    return True, "ok", resolved_args
+        return False, "flow_violation_at_dispatch", {}, 0
+    return True, "ok", resolved_args, state.seq
 
