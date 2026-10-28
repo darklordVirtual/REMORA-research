@@ -35,7 +35,7 @@ class EnvelopeVerifyResult:
 
     ``hash_ok`` is ``None`` when the record predates v3 and cannot be
     recomputed at all; ``signature_ok`` is ``None`` when there is no
-    signature to check or no key to check it against.
+    key to check it against. A supplied key requires a signature.
     """
 
     schema_version: str | None
@@ -121,7 +121,7 @@ def verify_stored_envelope(stored: dict, signing_key: str | None = None) -> Enve
         )
     version = audit.get("schema_version")
     version_str = version if isinstance(version, str) else None
-    if version_str != "3":
+    if version_str == "2":
         return EnvelopeVerifyResult(
             schema_version=version_str, hash_ok=None, signature_ok=None,
             mode="links",
@@ -129,6 +129,11 @@ def verify_stored_envelope(stored: dict, signing_key: str | None = None) -> Enve
                 "v2 records sealed the hash before tenant/actor/policy/argument "
                 "fields were written (SR-01); verify by chain linkage only"
             ),
+        )
+    if version_str != "3":
+        return EnvelopeVerifyResult(
+            schema_version=version_str, hash_ok=False, signature_ok=None,
+            mode="recompute", detail="unsupported envelope schema version",
         )
     stored_hash = audit.get("hash")
     if not isinstance(stored_hash, str) or not stored_hash.strip():
@@ -140,13 +145,16 @@ def verify_stored_envelope(stored: dict, signing_key: str | None = None) -> Enve
     hash_ok = hmac.compare_digest(recomputed, stored_hash)
 
     signature = audit.get("signature")
-    if isinstance(signature, str) and signature.strip() and signing_key:
+    if signing_key:
         expected = hmac.new(
             signing_key.encode("utf-8"),
             stored_hash.encode("utf-8"),
             hashlib.sha256,
         ).hexdigest()
-        signature_ok: bool | None = hmac.compare_digest(expected, signature)
+        signature_ok: bool | None = (
+            isinstance(signature, str) and signature.isascii()
+            and hmac.compare_digest(expected, signature)
+        )
     else:
         signature_ok = None
     return EnvelopeVerifyResult(

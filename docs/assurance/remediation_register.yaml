@@ -1136,7 +1136,7 @@ items:
       scheduled call. Verified on SQLite; the Postgres branch shares the code
       path but was not exercised against a live server here.
 
-  - id: REM-047
+  - id: REM-048
     section: "security-review-2026-10"
     title: "SR-01: envelope audit hash/HMAC computed before tenant, actor, policy and argument fields were written"
     gate: P0

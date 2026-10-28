@@ -1482,8 +1482,12 @@ def _sign_envelope_audit_hash(audit_hash: str) -> str | None:
 # recompute a stored v3 envelope (SEC-01). Aliased here for the existing
 # call sites and tests.
 from remora.governance.envelope_verify import (
-    canonical_envelope_for_hash as _canonical_envelope_for_hash,
+    canonical_envelope_for_hash as _canonical_envelope_for_hash,  # noqa: F401 -- compatibility export
+)
+from remora.governance.envelope_verify import (
     compute_envelope_chain_hash as _compute_envelope_chain_hash,
+)
+from remora.governance.envelope_verify import (
     verify_stored_envelope,
 )
 
@@ -1542,7 +1546,7 @@ class _SealedAuditDict(dict):
         return (dict, (dict(self),))
 
     @classmethod
-    def seal(cls, mapping: dict[str, Any]) -> "_SealedAuditDict":
+    def seal(cls, mapping: dict[str, Any]) -> _SealedAuditDict:
         inst = cls(mapping)
         inst._sealed = True
         return inst
@@ -2921,6 +2925,17 @@ def verify_audit_chain(request: Request, mode: str = "links") -> dict:
             if not isinstance(envelope, dict):
                 envelopes_missing.append(str(request_id))
                 continue
+            audit = envelope.get("audit")
+            if not isinstance(audit, dict) or any(
+                audit.get(field) != record.get(record_field)
+                for field, record_field in (
+                    ("hash", "envelope_audit_hash"),
+                    ("previous_hash", "envelope_previous_hash"),
+                    ("signature", "envelope_signature"),
+                )
+            ):
+                hash_failures.append(str(request_id))
+                continue
             result = verify_stored_envelope(envelope, signing_key=signing_key)
             if result.mode == "links":
                 links_only_v2 += 1
@@ -2932,7 +2947,9 @@ def verify_audit_chain(request: Request, mode: str = "links") -> dict:
                 signature_checked = True
             if result.signature_ok is False:
                 signature_failures.append(str(request_id))
-        response["chain_valid"] = ok and not hash_failures and not signature_failures
+        response["chain_valid"] = (
+            ok and not hash_failures and not signature_failures and not envelopes_missing
+        )
         response["signature_status"] = "CHECKED" if signature_checked else (
             "NOT_CHECKED_NO_KEY" if signing_key is None else "NO_SIGNATURES_PRESENT"
         )

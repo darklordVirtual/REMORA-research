@@ -331,3 +331,52 @@ def test_overlay_write_between_populate_and_seal_is_bound(
     assert envelope_no_overlay["audit"]["hash"] != envelope["audit"]["hash"], (
         "the overlay-written bundle hash did not move the audit hash"
     )
+
+
+@pytest.mark.parametrize("version", [None, "4", "invalid", 3])
+def test_verifier_rejects_unknown_schema_versions(version: object) -> None:
+    from remora.governance.envelope_verify import verify_stored_envelope
+
+    result = verify_stored_envelope({"audit": {"schema_version": version, "hash": "ab" * 32}})
+    assert result.mode == "recompute"
+    assert result.hash_ok is False
+
+
+def test_verifier_rejects_removed_signature_when_key_is_supplied(monkeypatch: pytest.MonkeyPatch) -> None:
+    from remora.governance.envelope_verify import verify_stored_envelope
+
+    monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", _SIGNING_KEY)
+    api = _load_api_module(monkeypatch)
+    envelope = _post_assess(TestClient(api.app), "Signed decision", "tenant-signature-removal")
+    del envelope["audit"]["signature"]
+    result = verify_stored_envelope(envelope, signing_key=_SIGNING_KEY)
+    assert result.hash_ok is True
+    assert result.signature_ok is False
+
+
+@pytest.mark.parametrize("damage", ["missing", "substituted"])
+def test_recompute_rejects_missing_or_substituted_envelope(
+    monkeypatch: pytest.MonkeyPatch, damage: str,
+) -> None:
+    monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", _SIGNING_KEY)
+    api = _load_api_module(monkeypatch)
+    client = TestClient(api.app)
+    tenant = "tenant-envelope-consistency"
+    first = _post_assess(client, "First action", tenant)
+    second = _post_assess(client, "Second action", tenant)
+    victim = first["request"]["request_id"]
+    store = api._CONTROL_PLANE_STORE
+    original_get = store.get_envelope
+
+    def damaged_get(*, request_id, tenant_id):
+        if request_id == victim:
+            return None if damage == "missing" else second
+        return original_get(request_id=request_id, tenant_id=tenant_id)
+
+    monkeypatch.setattr(store, "get_envelope", damaged_get)
+    response = client.get(
+        "/v1/audit/chain/verify?mode=recompute",
+        headers={"Authorization": "Bearer test-token", "X-Remora-Tenant": tenant},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["chain_valid"] is False

@@ -2242,8 +2242,20 @@
     },
     "/v1/audit/chain/verify": {
       "get": {
-        "description": "Verify hash-chain linkage across this tenant's persisted decisions.\n\nThis is the check that makes the stored trail *provable* rather than\nmerely present: it walks every persisted audit record in write order and\nconfirms each one links to its predecessor, so a deleted or spliced\ndecision is detectable. It reports `durable=false` when the active\nbackend cannot survive a restart — on such a backend a \"valid\" chain\nproves nothing about history.",
+        "description": "Verify hash-chain linkage across this tenant's persisted decisions.\n\nThis is the check that makes the stored trail *provable* rather than\nmerely present: it walks every persisted audit record in write order and\nconfirms each one links to its predecessor, so a deleted or spliced\ndecision is detectable. It reports `durable=false` when the active\nbackend cannot survive a restart — on such a backend a \"valid\" chain\nproves nothing about history.\n\n``mode=recompute`` (SEC-01) additionally rebuilds each v3 envelope's\naudit hash from the stored payload and compares the HMAC signature when\n``REMORA_ENVELOPE_SIGNING_KEY`` is set, so rewritten actor, tenant,\npolicy or argument fields are detected, not just broken links. v2\nrecords predate field binding (SR-01) and are counted as links-only.",
         "operationId": "verify_audit_chain_v1_audit_chain_verify_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "mode",
+            "required": false,
+            "schema": {
+              "default": "links",
+              "title": "Mode",
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "content": {
@@ -2256,6 +2268,16 @@
               }
             },
             "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
           }
         },
         "summary": "Verify Audit Chain",
