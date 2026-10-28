@@ -1135,3 +1135,29 @@ items:
       so an idle tenant is never swept and wall-clock recovery still needs a
       scheduled call. Verified on SQLite; the Postgres branch shares the code
       path but was not exercised against a live server here.
+
+  - id: REM-056
+    section: "security-review-2026-10"
+    title: "SR-13: meta-judge scores unclamped, degraded ignored, prompt fields unfenced, endpoint unauthenticated"
+    gate: P1
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - remora/aromer/meta_judge/judge.py
+      - remora/aromer/meta_judge/rubric.py
+      - remora/aromer/experience/promotion_gate.py
+      - tests/security/test_sr13_meta_judge.py
+    notes: >
+      Security review 2026-10 (SR-13, Low-Med; widens REM-043): the judge
+      parsed rubric scores with a bare float() (a worker returning 50.0
+      scored perfect-plus and drove memory promotion), degraded was read but
+      never gated, and episode fields were interpolated into the judge prompt
+      unfenced, so episode-controlled text could instruct the judge. Fixed
+      per SEC-11/SEC-12: scores are clamped to [0, 1] and any out-of-range or
+      non-finite value marks the response degraded with promotion refused;
+      RubricCritique carries source_authenticated (False for live calls
+      without REMORA_METAJUDGE_WORKER_TOKEN; the offline heuristic is local
+      and authenticated by construction); the promotion gate refuses degraded
+      or unauthenticated critiques; episode fields reach the judge as
+      length-capped JSON inside a fenced <episode-data> block. Tests:
+      tests/security/test_sr13_meta_judge.py (failing-first, then green).
