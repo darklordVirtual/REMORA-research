@@ -186,3 +186,60 @@ class TestAssessChecksTheReader:
             runtime.assess("write", {"value": 1}, tenant="t", principal="p", target="record",
                            postcondition=PostconditionContract("write", "someone-else",
                                                                {"id": "r"}, {"value": 1}))
+
+
+class TestDeploymentSiblings:
+    """A deployment's registry module and the local package it calls (Q3.4).
+
+    The design covers "every module in its import closure that is inside the
+    deployment". The walk followed only the root's own top-level package, so
+    a registry module ``registry_x`` calling ``effects_x.act`` recorded
+    ``effects_x`` as ``unresolved``: a constant. Editing the code that
+    performs the effect left the signed digest byte-identical. Found while
+    wiring the autonomous-ot-control testbed, whose registry calls a local
+    ``adapter`` package.
+    """
+
+    @pytest.fixture()
+    def deployment(self, tmp_path, monkeypatch):
+        tag = secrets.token_hex(4)
+        registry, effects = f"registry_{tag}", f"effects_{tag}"
+        pkg = tmp_path / effects
+        pkg.mkdir()
+        (pkg / "__init__.py").write_text("")
+        (pkg / "act.py").write_text("def act(a):\n    return {'applied': a}\n")
+        (tmp_path / f"{registry}.py").write_text(textwrap.dedent(f"""
+            from {effects}.act import act
+
+            def tool(arguments):
+                return act(arguments)
+        """))
+        monkeypatch.syspath_prepend(str(tmp_path))
+        module = importlib.import_module(registry)
+        yield effects, pkg, module
+        for key in [k for k in sys.modules if k in (registry,) or k.startswith(effects)]:
+            del sys.modules[key]
+
+    def test_a_local_sibling_package_is_followed_by_content(self, deployment):
+        effects, _, module = deployment
+        members = closure_members(module.tool)
+        assert members[f"{effects}.act"].startswith("sha256:")
+        assert effects not in members or members[effects] != "unresolved"
+
+    def test_changing_the_sibling_effect_code_moves_the_digest(self, deployment):
+        _, pkg, module = deployment
+        before = closure_digest(module.tool)
+        (pkg / "act.py").write_text("def act(a):\n    return {'applied': a, 'more': 1}\n")
+        assert closure_digest(module.tool) != before
+
+    def test_an_installed_distribution_is_still_named_by_version(self, deployment, tmp_path,
+                                                                 monkeypatch):
+        _, _, module = deployment
+        assert closure_members(module.tool).get("yaml") is None
+        (tmp_path / "uses_yaml.py").write_text("import yaml\n\ndef run(a):\n    return a\n")
+        monkeypatch.syspath_prepend(str(tmp_path))
+        used = importlib.import_module("uses_yaml")
+        try:
+            assert closure_members(used.run)["yaml"].startswith("dist:")
+        finally:
+            sys.modules.pop("uses_yaml", None)

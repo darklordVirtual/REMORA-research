@@ -73,15 +73,27 @@ def _is_module(name: str) -> bool:
         return False
 
 
+def _is_source_module(name: str) -> bool:
+    """Whether ``name`` resolves to Python source this process can read."""
+    try:
+        spec = importlib.util.find_spec(name)
+    except (ImportError, ValueError):
+        return False
+    return bool(spec is not None and spec.origin and spec.origin.endswith(".py"))
+
+
 def closure_members(fn: Callable[..., Any]) -> dict[str, str]:
     """``{module or distribution: content identity}`` for ``fn``'s import closure.
 
     Modules in the defining module's own top-level package are followed and
-    identified by the SHA-256 of their source file. Anything else is not
-    followed: a third-party module is identified by its distribution name and
-    installed version, and a standard-library module by the interpreter
-    version. A name that resolves to nothing is recorded as unresolved rather
-    than skipped, so it still moves the digest if it later resolves.
+    identified by the SHA-256 of their source file, and so is any other
+    top-level module or package that resolves to source but belongs to no
+    installed distribution: it is part of the deployment, and only its
+    content can identify it. A third-party module is not followed; it is
+    identified by its distribution name and installed version, and a
+    standard-library module by the interpreter version. A name that resolves
+    to nothing is recorded as unresolved rather than skipped, so it still
+    moves the digest if it later resolves.
     """
     from importlib import metadata
 
@@ -89,6 +101,7 @@ def closure_members(fn: Callable[..., Any]) -> dict[str, str]:
     if root is None or not getattr(root, "__file__", None):
         raise ValueError("closure_unavailable: the callable has no module file")
     top = root.__name__.split(".")[0]
+    followed: set[str] = set()
     members: dict[str, str] = {}
     pending = [root.__name__]
     stdlib = set(getattr(sys, "stdlib_module_names", ()))
@@ -98,20 +111,28 @@ def closure_members(fn: Callable[..., Any]) -> dict[str, str]:
         if name in members:
             continue
         head = name.split(".")[0]
-        if head != top:
+        if head != top and head not in followed:
             # Not followed: one entry per top-level name, identified by what
             # is installed rather than by what the tool happened to import.
             if head in members or head == "__future__":
                 continue
             if head in stdlib:
                 members[head] = "stdlib:" + ".".join(map(str, sys.version_info[:2]))
-            else:
-                dist = (distributions.get(head) or [head])[0]
-                try:
-                    members[head] = f"dist:{dist}=={metadata.version(dist)}"
-                except metadata.PackageNotFoundError:
-                    members[head] = "unresolved"
-            continue
+                continue
+            dist = (distributions.get(head) or [head])[0]
+            try:
+                members[head] = f"dist:{dist}=={metadata.version(dist)}"
+                continue
+            except metadata.PackageNotFoundError:
+                pass
+            if not _is_source_module(head):
+                members[head] = "unresolved"
+                continue
+            # Part of the deployment but outside the root's package, such as
+            # the local package a registry module calls to perform its
+            # effect. No distribution version names it, so only its content
+            # can: follow it like the root's own package.
+            followed.add(head)
         try:
             spec = importlib.util.find_spec(name)
         except (ImportError, ValueError):

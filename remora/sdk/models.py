@@ -208,15 +208,33 @@ class ToolCall:
 
 @dataclass(frozen=True)
 class AuditRef:
-    """Position of an operation's record in the tenant audit chain."""
+    """Position of an operation's record in the tenant audit chain.
 
-    sequence_no: int
-    entry_hash: str
+    A state transition's event is enqueued on the same transaction as the
+    transition (REM-047), so it can be durable before the chain has indexed
+    it. The server then says so: ``deferred`` is true, ``sequence_no`` and
+    ``entry_hash`` are None, and ``idempotency_key`` is the key the event
+    will be appended under. A missing index without that statement is
+    refused as malformed rather than read as pending.
+    """
+
+    sequence_no: int | None
+    entry_hash: str | None
+    deferred: bool = False
+    idempotency_key: str | None = None
 
     @classmethod
     def from_payload(cls, payload: Mapping[str, Any]) -> AuditRef:
-        return cls(sequence_no=int(payload["sequence_no"]),
-                   entry_hash=str(payload["entry_hash"]))
+        if payload.get("deferred") is True:
+            key = payload.get("idempotency_key")
+            if not isinstance(key, str) or not key:
+                raise ValueError("a deferred audit ref must name its idempotency_key")
+            return cls(sequence_no=None, entry_hash=None, deferred=True,
+                       idempotency_key=key)
+        sequence_no, entry_hash = payload.get("sequence_no"), payload.get("entry_hash")
+        if sequence_no is None or entry_hash is None:
+            raise ValueError("an audit ref without a chain index must be deferred")
+        return cls(sequence_no=int(sequence_no), entry_hash=str(entry_hash))
 
 
 @dataclass(frozen=True)

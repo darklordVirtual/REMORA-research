@@ -117,11 +117,21 @@ def test_a_principal_without_a_limit_cannot_spend(monkeypatch, tmp_path):
     assert ran(tmp_path) == []
 
 
-@pytest.mark.parametrize("amount", ["7000", 7000.5, -7000, 0, True])
-def test_an_amount_that_is_not_a_positive_integer_is_refused(monkeypatch, tmp_path, amount):
+@pytest.mark.parametrize(("amount", "reason"), [
+    # Not an integer at all: the signed contract (amount: integer) refuses it
+    # before the limit preview runs.
+    ("7000", "toolspec_arguments_schema_invalid"),
+    (7000.5, "toolspec_arguments_schema_invalid"),
+    (True, "toolspec_arguments_schema_invalid"),
+    # An integer the contract admits but the meter cannot charge.
+    (-7000, "limit_amount_invalid"),
+    (0, "limit_amount_invalid"),
+])
+def test_an_amount_that_is_not_a_positive_integer_is_refused(monkeypatch, tmp_path, amount,
+                                                              reason):
     client = make_client(monkeypatch, tmp_path, policy())
     r = assess(client, pay("A", amount=amount))
-    assert (r.status_code, r.json()["detail"]) == (409, "limit_amount_invalid")
+    assert (r.status_code, r.json()["detail"]) == (409, reason)
 
 
 def test_another_unit_has_no_limit(monkeypatch, tmp_path):

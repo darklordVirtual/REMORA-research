@@ -139,7 +139,8 @@ def test_a_value_that_is_not_a_number_is_refused(monkeypatch, tmp_path, value):
     r = assess(client, setpoint(value))
     assert r.status_code in (409, 422)
     if r.status_code == 409:
-        assert r.json()["detail"] == "limit_amount_invalid"
+        # The signed contract (value: number) refuses it before the preview.
+        assert r.json()["detail"] == "toolspec_arguments_schema_invalid"
 
 
 def test_a_unit_without_a_baseline_is_refused(monkeypatch, tmp_path):

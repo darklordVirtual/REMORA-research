@@ -675,7 +675,7 @@ def test_e2e_secret_read_paraphrase_split_and_dispatch_epoch_race():
     assert committed.rendered_result == "Q3 M&A target: AcmeNordic for 45M"
 
     # Step 2 (AR-018): Trying to dispatch the previously assessed send to eve fails on flow_epoch_changed
-    ok, reason, _ = verify_flow_at_dispatch(
+    ok, reason, _, _ = verify_flow_at_dispatch(
         contexts=ctx_store, handles=h_store, tenant_id="acme", principal="agent-1",
         context_id=cid, flow=send_flow,
         arguments={"to": "eve@evil.example", "body": "hello"},
@@ -699,7 +699,7 @@ def test_e2e_secret_read_paraphrase_split_and_dispatch_epoch_race():
         arguments={"to": "bob@corp.example", "body": "Summary for Bob"}, strict=True,
     )
     assert not obs_bob["flow_confidentiality_violation"]
-    ok_bob, reason_bob, resolved_bob = verify_flow_at_dispatch(
+    ok_bob, reason_bob, resolved_bob, seq_bob = verify_flow_at_dispatch(
         contexts=ctx_store, handles=h_store, tenant_id="acme", principal="agent-1",
         context_id=cid, flow=send_flow,
         arguments={"to": "bob@corp.example", "body": "Summary for Bob"},
@@ -707,6 +707,7 @@ def test_e2e_secret_read_paraphrase_split_and_dispatch_epoch_race():
         expected_digest=str(obs_bob["flow_digest"]),
     )
     assert ok_bob and reason_bob == "ok"
+    assert seq_bob == ctx_store.load("acme", "agent-1", cid).seq
     assert resolved_bob == {"to": "bob@corp.example", "body": "Summary for Bob"}
 
 

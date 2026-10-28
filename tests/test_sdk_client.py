@@ -424,3 +424,60 @@ def test_no_limits_configured_is_not_found() -> None:
 
     with _client_for(handler) as client, pytest.raises(NotFoundError):
         client.list_unresolved()
+
+
+def test_approve_parses_a_deferred_audit_ref() -> None:
+    """A transition's audit event is enqueued on its own transaction (REM-047).
+
+    The server then answers ``deferred: true`` with a null index, which is
+    the documented contract (servers/execution_contracts.AuditRef). The SDK
+    used to call ``int(None)`` on it, so a successful approval raised
+    TypeError and the caller could not tell it had been recorded. Found by
+    the first live governed run of the autonomous-ot-control testbed.
+    """
+    key = "ot-pilot|approved|item-7|2026-10-27T07:41:51+00:00"
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={
+            "status": "approved",
+            "proposal_id": "p-2",
+            "item_id": "item-7",
+            "expires_at": "2026-10-27T07:56:51+00:00",
+            "audit": {"sequence_no": None, "entry_hash": None,
+                      "deferred": True, "idempotency_key": key},
+        })
+
+    with _client_for(handler) as client:
+        approval = client.approve("item-7")
+
+    assert approval.status == "approved"
+    assert approval.audit.deferred is True
+    assert approval.audit.sequence_no is None
+    assert approval.audit.entry_hash is None
+    assert approval.audit.idempotency_key == key
+
+
+def test_a_projected_audit_ref_is_not_deferred() -> None:
+    from remora.sdk import AuditRef
+
+    ref = AuditRef.from_payload({"sequence_no": 4, "entry_hash": "e" * 64})
+    assert (ref.sequence_no, ref.entry_hash, ref.deferred) == (4, "e" * 64, False)
+    assert ref.idempotency_key is None
+
+
+@pytest.mark.parametrize("payload", [
+    {"sequence_no": None, "entry_hash": None},
+    {"sequence_no": None, "entry_hash": None, "deferred": False},
+    {"sequence_no": 4, "entry_hash": None, "deferred": False},
+    {"sequence_no": None, "entry_hash": None, "deferred": True},
+])
+def test_an_audit_ref_without_an_index_must_say_it_is_deferred(payload) -> None:
+    """Missing index without ``deferred: true`` plus its key is malformed.
+
+    Accepting it would let a response that recorded nothing look like one
+    whose record is merely pending.
+    """
+    from remora.sdk import AuditRef
+
+    with pytest.raises(ValueError):
+        AuditRef.from_payload(payload)
