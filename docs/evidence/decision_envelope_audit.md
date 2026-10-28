@@ -67,7 +67,7 @@ and are populated by the API layer via `_finalize_envelope_audit`:
 
 | Field | Type | Populated by | Description |
 |---|---|---|---|
-| `schema_version` | `str` | API (`"2"`) | explicit envelope schema version for long-term audit compatibility |
+| `schema_version` | `str` | API (`"3"` since 2026-10-28, `"2"` before) | explicit envelope schema version for long-term audit compatibility |
 | `timestamp_utc` | `str \| None` | API (UTC ISO-8601) | Decision timestamp |
 | `tenant_id` | `str \| None` | API (from auth) | Tenant the decision belongs to |
 | `actor_identity` | `str \| None` | API (credential-derived principal) | Non-repudiable identity from the authenticated bearer token (provisioned `actor_id` or credential fingerprint). A differing self-reported `X-Remora-Actor` header is recorded only as an `on_behalf_of=…, unverified` annotation — it can never become the identity itself (REM-039, 2026-07-20) |
@@ -87,6 +87,28 @@ be set by the deploying organisation's integration layer:
 
 These fields are present in the schema (non-required, nullable) and survive
 `to_dict()` / `from_dict()` roundtrips.
+
+## Schema version 3: sealed audit block (SR-01 remediation)
+
+Under schema version 2 the REST path computed `audit.hash` and the HMAC
+signature before `tenant_id`, `actor_identity`, `policy_bundle_hash`,
+`policy_components`, `tool_args_hash` and `tool_args_binding` were written,
+and the semantic overlay mutated the block after sealing. Those fields were
+recorded but not bound: a stored v2 envelope cannot reproduce its own hash,
+so v2 records verify by chain links (`previous_hash`) only.
+
+Under schema version 3 (2026-10-28, SR-01 / SEC-01) the API populates every
+audit field first, applies the semantic overlay, and seals once. The hash
+preimage is `SHA-256(previous_hash || ":" || canonical JSON)` over the
+envelope whose audit block carries every populated field except `hash`,
+`previous_hash` and `signature`. The HMAC signs that hash. A verifier can
+recompute `audit.hash` from the stored envelope alone. Any single-field
+mutation (actor, tenant, policy, argument binding) invalidates both the hash
+and the signature. After sealing, the in-process block is frozen: a later
+write raises instead of silently landing outside the hash.
+
+Existing v2 records are not rewritten; verifiers dispatch on
+`schema_version`.
 
 ## Remaining Gaps (not yet implemented)
 

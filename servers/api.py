@@ -1493,13 +1493,24 @@ def _canonical_envelope_for_hash(envelope_payload: dict[str, Any]) -> dict[str, 
     canonical = deepcopy(envelope_payload)
     audit = canonical.get("audit") if isinstance(canonical, dict) else None
     if isinstance(audit, dict):
-        # ``genesis`` is a pure derivative of ``previous_hash``, which is
-        # already excluded here and instead prefixed into the preimage. Hashing
-        # it would change every envelope hash and break the committed tenant
-        # chains for no added binding.
-        for key in ("hash", "previous_hash", "signature", "timestamp_utc",
-                    "genesis"):
-            audit.pop(key, None)
+        if audit.get("schema_version") == "3":
+            # v3 (SR-01 / SEC-01): every populated audit field is inside the
+            # preimage. ``previous_hash`` is prefixed into the preimage rather
+            # than serialised; ``hash`` and ``signature`` are the seal itself.
+            for key in ("hash", "previous_hash", "signature"):
+                audit.pop(key, None)
+        else:
+            # v2 legacy rule. ``genesis`` is a pure derivative of
+            # ``previous_hash``, which is already excluded here and instead
+            # prefixed into the preimage. Hashing it would change every
+            # envelope hash and break the committed tenant chains for no added
+            # binding. Fields written after the v2 seal (tenant, actor, policy
+            # and argument binding) cannot be recomputed from a stored v2
+            # record — that gap is SR-01; v2 records verify by chain links
+            # only.
+            for key in ("hash", "previous_hash", "signature", "timestamp_utc",
+                        "genesis"):
+                audit.pop(key, None)
     # Post-v2 audit keys are omitted when unset so control-plane chains
     # recorded before those fields existed keep verifying (see
     # remora/governance/envelope.py::POST_V2_AUDIT_KEYS).
@@ -1517,39 +1528,85 @@ def _compute_envelope_chain_hash(*, previous_hash: str | None, envelope_payload:
     return hashlib.sha256(preimage.encode("utf-8")).hexdigest()
 
 
-def _finalize_envelope_audit(
+class _SealedAuditDict(dict):
+    """Audit block after sealing: any write is a pipeline bug, not input.
+
+    A dict subclass rather than ``MappingProxyType`` so the persistence path
+    (``json.dumps``) and verification path (``deepcopy``) keep working on the
+    sealed block; both produce plain, unsealed copies.
+    """
+
+    _sealed = False
+
+    def _require_unsealed(self) -> None:
+        if self._sealed:
+            raise RuntimeError(
+                "envelope audit block is sealed: a write after "
+                "_seal_envelope_audit would land outside the hash and HMAC "
+                "(SR-01). Populate the field before sealing instead."
+            )
+
+    def __setitem__(self, key: Any, value: Any) -> None:
+        self._require_unsealed()
+        super().__setitem__(key, value)
+
+    def __delitem__(self, key: Any) -> None:
+        self._require_unsealed()
+        super().__delitem__(key)
+
+    def pop(self, *args: Any) -> Any:
+        self._require_unsealed()
+        return super().pop(*args)
+
+    def popitem(self) -> Any:
+        self._require_unsealed()
+        return super().popitem()
+
+    def clear(self) -> None:
+        self._require_unsealed()
+        super().clear()
+
+    def update(self, *args: Any, **kwargs: Any) -> None:
+        self._require_unsealed()
+        super().update(*args, **kwargs)
+
+    def setdefault(self, *args: Any) -> Any:
+        self._require_unsealed()
+        return super().setdefault(*args)
+
+    def __reduce__(self) -> tuple:
+        # Copies (deepcopy/pickle) come out as plain unsealed dicts: sealing
+        # guards the live pipeline block, not copies of its content. Without
+        # this, deepcopy would restore the sealed flag before re-adding the
+        # items and raise on its own reconstruction.
+        return (dict, (dict(self),))
+
+    @classmethod
+    def seal(cls, mapping: dict[str, Any]) -> "_SealedAuditDict":
+        inst = cls(mapping)
+        inst._sealed = True
+        return inst
+
+
+def _populate_envelope_audit_fields(
     *,
     envelope_payload: dict[str, Any],
     tenant_id: str,
-    fallback_hash: str | None,
     actor_identity: str | None = None,
     tool_call: Any | None = None,
 ) -> dict[str, Any]:
+    """Write every audit field the seal binds. Must run BEFORE
+    ``_seal_envelope_audit``: anything written after the seal is outside the
+    hash and the HMAC (SR-01) and raises on the sealed block."""
     audit_block = envelope_payload.get("audit") if isinstance(envelope_payload, dict) else None
     if not isinstance(audit_block, dict):
         audit_block = {}
         envelope_payload["audit"] = audit_block
 
-    previous_hash = _latest_tenant_audit_hash(tenant_id)
-    audit_block["previous_hash"] = previous_hash
-    # Recorded, not inferred: a verifier reading previous_hash=None must be
-    # able to tell a deliberate first link from a lost one. _latest_tenant_
-    # audit_hash raises rather than returning None when a head exists but is
-    # unreadable, so None here means genesis and nothing else.
-    audit_block["genesis"] = previous_hash is None
-    audit_block["hash"] = _compute_envelope_chain_hash(
-        previous_hash=previous_hash,
-        envelope_payload=envelope_payload,
-    )
-
-    signature = None
-    audit_hash = audit_block.get("hash")
-    if isinstance(audit_hash, str) and audit_hash.strip():
-        signature = _sign_envelope_audit_hash(audit_hash)
-    audit_block["signature"] = signature
-
-    # Enterprise audit fields
-    audit_block["schema_version"] = "2"
+    # Enterprise audit fields. schema_version "3": populated before sealing,
+    # so every field below is inside the hash preimage (SEC-01). v2 records
+    # sealed these fields AFTER hashing and verify by chain links only.
+    audit_block["schema_version"] = "3"
     audit_block["timestamp_utc"] = utc_now_iso()
     audit_block["tenant_id"] = tenant_id
     if actor_identity is not None:
@@ -1613,6 +1670,71 @@ def _finalize_envelope_audit(
         audit_block["retention_policy"] = None
 
     return audit_block
+
+
+def _seal_envelope_audit(
+    *,
+    envelope_payload: dict[str, Any],
+    tenant_id: str,
+) -> dict[str, Any]:
+    """Chain-link, hash, sign and freeze the audit block.
+
+    Nothing may write to the block after this returns: the hash and the HMAC
+    cover every populated field, so a later write would silently invalidate
+    the record. The block is replaced by a sealed dict that raises on
+    mutation; JSON serialisation and deepcopy are unaffected.
+    """
+    audit_block = envelope_payload.get("audit") if isinstance(envelope_payload, dict) else None
+    if not isinstance(audit_block, dict):
+        raise TypeError(
+            "_seal_envelope_audit requires _populate_envelope_audit_fields "
+            "to have created the audit block first"
+        )
+
+    previous_hash = _latest_tenant_audit_hash(tenant_id)
+    audit_block["previous_hash"] = previous_hash
+    # Recorded, not inferred: a verifier reading previous_hash=None must be
+    # able to tell a deliberate first link from a lost one. _latest_tenant_
+    # audit_hash raises rather than returning None when a head exists but is
+    # unreadable, so None here means genesis and nothing else.
+    audit_block["genesis"] = previous_hash is None
+    audit_block["hash"] = _compute_envelope_chain_hash(
+        previous_hash=previous_hash,
+        envelope_payload=envelope_payload,
+    )
+
+    signature = None
+    audit_hash = audit_block.get("hash")
+    if isinstance(audit_hash, str) and audit_hash.strip():
+        signature = _sign_envelope_audit_hash(audit_hash)
+    audit_block["signature"] = signature
+
+    sealed = _SealedAuditDict.seal(audit_block)
+    envelope_payload["audit"] = sealed
+    return sealed
+
+
+def _finalize_envelope_audit(
+    *,
+    envelope_payload: dict[str, Any],
+    tenant_id: str,
+    fallback_hash: str | None,
+    actor_identity: str | None = None,
+    tool_call: Any | None = None,
+) -> dict[str, Any]:
+    """Populate and seal in one step, for surfaces without an overlay phase
+    (/v1/rerun). /v1/assess calls the two phases separately so the semantic
+    overlay lands inside the seal."""
+    _populate_envelope_audit_fields(
+        envelope_payload=envelope_payload,
+        tenant_id=tenant_id,
+        actor_identity=actor_identity,
+        tool_call=tool_call,
+    )
+    return _seal_envelope_audit(
+        envelope_payload=envelope_payload,
+        tenant_id=tenant_id,
+    )
 
 
 def _assess_semantic_overlay(
@@ -2646,10 +2768,13 @@ def _assess_decide(req: AssessRequest, request: Request, *, t0: float, tenant_id
             req.tool_call.tool_name if req.tool_call is not None else None)
         label_cap = labels.cap
 
-    _finalize_envelope_audit(
+    # SR-01 / SEC-01: populate every audit field, let the semantic overlay
+    # write its binding, then seal once. The previous order (seal, then
+    # overlay) left tenant, actor, policy and argument fields outside the
+    # hash and the HMAC.
+    _populate_envelope_audit_fields(
         envelope_payload=envelope_payload,
         tenant_id=tenant_id,
-        fallback_hash=report.get("state_hash"),
         actor_identity=_actor_identity,
         tool_call=req.tool_call,
     )
@@ -2663,6 +2788,11 @@ def _assess_decide(req: AssessRequest, request: Request, *, t0: float, tenant_id
         )
         if req.tool_call is not None
         else None
+    )
+
+    _seal_envelope_audit(
+        envelope_payload=envelope_payload,
+        tenant_id=tenant_id,
     )
 
     _record_artifacts(

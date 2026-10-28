@@ -930,7 +930,9 @@ def test_assess_populates_enterprise_audit_fields(monkeypatch: pytest.MonkeyPatc
     assert resp.status_code == 200
     audit = resp.json()["envelope"]["audit"]
 
-    assert audit["schema_version"] == "2"
+    # v3 (SR-01 / SEC-01): all fields below are populated before the seal, so
+    # the audit hash and HMAC bind them. v2 sealed before populating them.
+    assert audit["schema_version"] == "3"
     assert audit["timestamp_utc"] is not None and "T" in audit["timestamp_utc"]
     assert audit["tenant_id"] == "tenant-ent"
     # Identity is credential-derived; the self-reported header is recorded

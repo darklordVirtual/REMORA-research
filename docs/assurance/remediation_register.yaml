@@ -3,7 +3,7 @@
 # Gate definitions: P0 (critical) → P1 (empirical) → P2 (external) → P3 (reproducibility) → P4 (hardening/roadmap)
 
 schema_version: "1"
-last_updated: "2026-10-25T18:00Z"
+last_updated: "2026-10-28T12:00Z"
 
 items:
   - id: REM-001
@@ -1135,3 +1135,31 @@ items:
       so an idle tenant is never swept and wall-clock recovery still needs a
       scheduled call. Verified on SQLite; the Postgres branch shares the code
       path but was not exercised against a live server here.
+
+  - id: REM-047
+    section: "security-review-2026-10"
+    title: "SR-01: envelope audit hash/HMAC computed before tenant, actor, policy and argument fields were written"
+    gate: P0
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - servers/api.py
+      - remora/governance/envelope.py
+      - tests/security/test_sr01_envelope_v3.py
+      - docs/evidence/decision_envelope_audit.md
+    notes: >
+      Security review 2026-10 (SR-01, High): _finalize_envelope_audit computed
+      the chain hash and HMAC before tenant_id, actor_identity,
+      policy_bundle_hash, policy_components, tool_args_hash and
+      tool_args_binding were written, and the semantic overlay mutated the
+      block after sealing, so a stored envelope could have actor, tenant or
+      argument binding rewritten and still verify. Fixed by splitting the
+      finaliser into _populate_envelope_audit_fields and
+      _seal_envelope_audit, running the overlay between populate and seal,
+      freezing the block after sealing (_SealedAuditDict raises on post-seal
+      writes) and bumping schema_version to "3". The v3 preimage binds every
+      populated audit field except hash, previous_hash and signature; v2
+      records are not rewritten and verify by chain links only. The
+      verifier-side recompute endpoint (review task P1-2) ships on the same
+      branch. Tests: tests/security/test_sr01_envelope_v3.py (committed
+      failing-first, then green).
