@@ -1,3 +1,4 @@
+# Author: Stian Skogbrott
 # SPDX-License-Identifier: BUSL-1.1
 """Fail-closed gate for external decision-to-effect self-runs.
 
