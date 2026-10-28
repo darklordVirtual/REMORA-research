@@ -121,3 +121,26 @@ def test_missing_last_hash_does_not_report_an_older_head() -> None:
     assert result.valid is False
     assert result.head_hash is None
     assert result.count == 2
+
+
+def test_sqlite_cli_json_contains_machine_readable_anchors(tmp_path, monkeypatch, capsys) -> None:
+    import json
+
+    from remora.adapters.storage import SQLiteControlPlaneStore
+    from scripts.verify_envelope_chain import main
+
+    db = tmp_path / "audit.db"
+    store = SQLiteControlPlaneStore(db_path=str(db))
+    for record in _chain(2):
+        store.save_decision(
+            request_id=record["request_id"], tenant_id="shadow",
+            envelope={"audit": {}}, audit_record=record,
+        )
+    monkeypatch.setattr("sys.argv", ["verify_envelope_chain.py", "--store-db", str(db), "--json"])
+
+    assert main() == 0
+    result = json.loads(capsys.readouterr().out)
+    assert result["chain_valid"] is True
+    assert result["genesis_ok"] is True
+    assert result["head_hash"] == "h1"
+    assert result["records_checked"] == 2
