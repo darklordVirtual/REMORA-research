@@ -2907,7 +2907,7 @@ def _require_metrics_access(request: Request) -> tuple[str, str]:
 @app.get("/v1/metrics", response_model=dict, tags=["infrastructure"])
 def metrics(request: Request) -> dict:
     """Basic governance gateway metrics for prototype observability."""
-    tenant_id, role = _require_metrics_access(request)
+    _require_metrics_access(request)
     total = _metric_int("assess_total")
     total_elapsed = _metric_float("total_elapsed_ms")
     mean_elapsed = round(total_elapsed / total, 3) if total else 0.0

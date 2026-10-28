@@ -2178,7 +2178,7 @@
     },
     "/metrics": {
       "get": {
-        "description": "Prometheus exposition endpoint for gateway metrics.",
+        "description": "Prometheus exposition endpoint for gateway metrics.\n\nSame process-global counters as /v1/metrics, so the same access rule\napplies (SR-05): the explicit REMORA_PROMETHEUS_PUBLIC opt-out opens the\ntext surface only, and never the JSON one.",
         "operationId": "metrics_prometheus_metrics_get",
         "responses": {
           "200": {

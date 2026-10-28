@@ -18,6 +18,16 @@ fastapi = pytest.importorskip("fastapi")
 from fastapi.testclient import TestClient  # type: ignore[import-not-found]  # noqa: E402
 
 
+@pytest.fixture(autouse=True)
+def _restore_api_configuration(monkeypatch: pytest.MonkeyPatch):
+    """Do not leave the test token table active for later API modules."""
+    yield
+    monkeypatch.undo()
+    import servers.api as api
+
+    importlib.reload(api)
+
+
 def _load_multitenant_api(monkeypatch: pytest.MonkeyPatch, tokens: dict):
     monkeypatch.setenv("REMORA_ENV", "development")
     monkeypatch.delenv("REMORA_CONTROL_PLANE_DSN", raising=False)
