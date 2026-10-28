@@ -145,13 +145,36 @@ def test_world_model_not_activated_from_presumed_labels_only(tmp_path):
 # ---------------------------------------------------------------------------
 
 def _bridge(tmp_path):
-    from remora.aromer.integration.bridge import AromerAdapterBridge
+    """A bridge with a SIGNED proposals file (SEC-07: unsigned files are
+    refused since SR-07) and the matching verification key."""
+    from remora.aromer.integration.bridge import (
+        AromerAdapterBridge,
+        canonical_threshold_proposal_payload,
+    )
+    from remora.crypto.domain_signing import (
+        SignatureDomain,
+        SigningKey,
+        sign,
+    )
 
+    key = SigningKey.generate({SignatureDomain.THRESHOLD_PROPOSAL})
+    payload = {
+        "adjustments": [{"approved": True, "max_delta": 0.05}],
+        "holdout_evidence_sha256": "ab" * 32,
+        "issued_at": "2026-10-28T00:00:00Z",
+        "window_id": "2026-W44",
+    }
+    sig = sign(
+        SignatureDomain.THRESHOLD_PROPOSAL,
+        canonical_threshold_proposal_payload(**payload),
+        key,
+    )
     proposals = tmp_path / "candidate_threshold_adjustments.json"
-    proposals.write_text(json.dumps(
-        {"adjustments": [{"approved": True, "max_delta": 0.05}]}), encoding="utf-8")
+    proposals.write_text(json.dumps({**payload, "signature": sig.to_dict()}),
+                         encoding="utf-8")
     return AromerAdapterBridge(
-        state_path=tmp_path / "bridge_state.json", proposals_path=proposals
+        state_path=tmp_path / "bridge_state.json", proposals_path=proposals,
+        proposal_verification_keys=[key.verification_key()],
     ), proposals
 
 

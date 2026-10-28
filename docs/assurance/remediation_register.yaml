@@ -1135,3 +1135,34 @@ items:
       so an idle tenant is never swept and wall-clock recovery still needs a
       scheduled call. Verified on SQLite; the Postgres branch shares the code
       path but was not exercised against a live server here.
+
+  - id: REM-052
+    section: "security-review-2026-10"
+    title: "SR-07: unsigned proposals file relaxed the conformal ACCEPT threshold"
+    gate: P1
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - remora/crypto/domain_signing.py
+      - remora/aromer/integration/bridge.py
+      - tests/security/test_sr07_signed_thresholds.py
+      - tests/test_aromer_core.py
+      - tests/test_aromer_store_integrity.py
+    notes: >
+      Security review 2026-10 (SR-07, Medium): the AROMER bridge honoured
+      approved:true in a plain JSON proposals file, lowering
+      trust_critical_min every adapt cycle with no signature, no author, no
+      holdout evidence binding and no audit entry. Fixed per SEC-07: new
+      SignatureDomain.THRESHOLD_PROPOSAL; the bridge verifies an Ed25519
+      domain signature over the canonical payload (adjustments, holdout
+      evidence hash, issued_at, window_id) against keys from
+      REMORA_THRESHOLD_PROPOSAL_KEYS or the constructor; unsigned,
+      wrongly-domained or untrusted-key files are refused and left in place;
+      relaxation is capped at 0.05 per rolling 7-day window, persisted across
+      restarts; every applied change emits a threshold_changed event to the
+      optional audit_sink and the persisted state (bounded). The audit_sink
+      is the wiring point for a tenant audit chain; no production caller
+      wires one today, which the chain-side coverage of threshold changes
+      still needs. Tests: tests/security/test_sr07_signed_thresholds.py
+      (failing-first, then green); the three pre-existing proposal tests now
+      sign their fixtures.
