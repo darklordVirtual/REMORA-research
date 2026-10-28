@@ -1135,3 +1135,35 @@ items:
       so an idle tenant is never swept and wall-clock recovery still needs a
       scheduled call. Verified on SQLite; the Postgres branch shares the code
       path but was not exercised against a live server here.
+
+  - id: REM-057
+    section: "security-review-2026-10"
+    title: "SR-14: Merkle construction lacked domain separation; root did not commit to leaf count"
+    gate: P1
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - remora/audit/merkle.py
+      - remora/audit/checkpoint.py
+      - docs/enterprise/audit-anchoring-guide.md
+      - artifacts/audit_anchoring/sample_checkpoints.jsonl
+      - tests/security/test_sr14_merkle.py
+      - tests/test_audit_anchoring.py
+      - tests/test_review_fixes_merkle_ambiguity.py
+    notes: >
+      Security review 2026-10 (SR-14, Low-Med): both Merkle builders hashed
+      hex-string pairs with no leaf/node domain separation and duplicated the
+      last node on odd levels (the CVE-2012-2459 pattern), so [a,b,c] and
+      [a,b,c,c] shared a root and an interior node could pass as a leaf;
+      export_daily_root's n_entries was optional and outside the HMAC input.
+      Fixed per SEC-03 with a versioned construction: v2 (default) applies
+      RFC 6962 prefixes (0x00 leaf, 0x01 node over raw digest bytes) and
+      promotes odd nodes unchanged; v1 remains selectable so anchors recorded
+      before 2026-10-28 still verify (the previously documented ambiguity is
+      pinned under version=1). v2 exports carry "v": 2 and a mandatory
+      n_entries, and the HMAC preimage binds the count. Checkpoints carry a v
+      field and a remora-ckpt-v2 signing prefix; records without the field
+      parse as v1 and verify under v1. The committed sample checkpoint
+      artifact was regenerated with the sanctioned generator (the drift test
+      passes). Tests: tests/security/test_sr14_merkle.py (failing-first, then
+      green).

@@ -42,26 +42,37 @@ if TYPE_CHECKING:
 
 _HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 
-# Version tag for the checkpoint signing payload.  Bump only with a new
-# payload layout; verifiers key their parsing on this prefix.
-_PAYLOAD_PREFIX = "remora-ckpt-v1"
+# Version tag for the checkpoint signing payload.  Verifiers key their
+# parsing on this prefix. v2 (2026-10-28, SR-14) marks checkpoints whose
+# root uses the RFC 6962 Merkle construction; v1 checkpoints keep the legacy
+# construction so previously committed checkpoints stay verifiable.
+_PAYLOAD_PREFIX_V1 = "remora-ckpt-v1"
+_PAYLOAD_PREFIX_V2 = "remora-ckpt-v2"
+_PAYLOAD_PREFIX = _PAYLOAD_PREFIX_V1  # backward-compatible default reference
 
 
-def merkle_root_from_hex_leaves(leaves: Sequence[str]) -> str:
+def merkle_root_from_hex_leaves(leaves: Sequence[str], *, version: int = 2) -> str:
     """Merkle root over leaves that are already 64-char hex digests.
 
     ``remora.audit.merkle.compute_merkle_root`` is typed for
     ``HashChainEntry`` objects and derives each leaf by hashing the entry's
     canonical JSON, so it cannot take raw hex leaves.  This is the smallest
     adapter: the inputs (chain entry hashes) are used as leaf digests
-    directly, and the tree uses the same pairing rule as
-    ``compute_merkle_root`` — pairs combine as SHA-256(left + right) over
-    the concatenated hex strings, odd trees duplicate the last node.
+    directly.
+
+    Version 2 (default since 2026-10-28, SR-14 / SEC-03) applies RFC 6962
+    domain separation — leaf = SHA-256(0x00 || digest bytes), node =
+    SHA-256(0x01 || left || right), odd node promoted unchanged — so a
+    duplicated tail changes the root and no interior node passes as a leaf.
+    Version 1 is the legacy construction (hex-concatenated pairs, last node
+    duplicated), retained so anchors recorded before 2026-10-28 still verify.
 
     Parameters
     ----------
     leaves:
         Ordered hex digests (one per chain entry).
+    version:
+        2 (default) or 1 (legacy, for verifying pre-v2 anchors).
 
     Returns
     -------
@@ -69,18 +80,36 @@ def merkle_root_from_hex_leaves(leaves: Sequence[str]) -> str:
         64-character lowercase hex SHA-256 Merkle root, or ``""`` for
         empty input (mirrors ``compute_merkle_root``).
     """
+    if version not in (1, 2):
+        raise ValueError(f"unsupported merkle version {version!r}")
     if not leaves:
         return ""
 
-    def _combine(left: str, right: str) -> str:
-        return hashlib.sha256((left + right).encode("utf-8")).hexdigest()
+    if version == 1:
+        def _combine_v1(left: str, right: str) -> str:
+            return hashlib.sha256((left + right).encode("utf-8")).hexdigest()
 
-    hashes = list(leaves)
-    while len(hashes) > 1:
-        if len(hashes) % 2 != 0:
-            hashes.append(hashes[-1])  # duplicate last node for odd trees
-        hashes = [_combine(hashes[i], hashes[i + 1]) for i in range(0, len(hashes), 2)]
-    return hashes[0]
+        hashes_v1 = list(leaves)
+        while len(hashes_v1) > 1:
+            if len(hashes_v1) % 2 != 0:
+                hashes_v1.append(hashes_v1[-1])  # legacy: duplicate last node
+            hashes_v1 = [_combine_v1(hashes_v1[i], hashes_v1[i + 1])
+                         for i in range(0, len(hashes_v1), 2)]
+        return hashes_v1[0]
+
+    def _leaf_v2(hex_digest: str) -> bytes:
+        return hashlib.sha256(b"\x00" + bytes.fromhex(hex_digest)).digest()
+
+    def _combine_v2(left: bytes, right: bytes) -> bytes:
+        return hashlib.sha256(b"\x01" + left + right).digest()
+
+    level = [_leaf_v2(leaf) for leaf in leaves]
+    while len(level) > 1:
+        paired = [_combine_v2(level[i], level[i + 1]) for i in range(0, len(level) - 1, 2)]
+        if len(level) % 2:
+            paired.append(level[-1])  # RFC 6962: promote the odd node unchanged
+        level = paired
+    return level[0].hex()
 
 
 def tenant_chain_leaves(entries: Sequence["ChainEntry"]) -> list[str]:
@@ -147,17 +176,21 @@ class Checkpoint:
     seq_end: int
     root: str
     prev_checkpoint_root: str | None
+    #: Merkle construction version: 2 = RFC 6962 (SR-14), 1 = legacy.
+    v: int = 2
 
     def signing_payload(self) -> bytes:
         """Stable byte string for signing / future external anchoring.
 
-        Format: ``b"remora-ckpt-v1|<seq_start>|<seq_end>|<root>|<prev>"``
+        Format: ``b"remora-ckpt-v<N>|<seq_start>|<seq_end>|<root>|<prev>"``
         where ``<prev>`` is the previous checkpoint root or the empty
         string for the first checkpoint.  All fields are decimal integers
-        or lowercase hex, so ``|`` is an unambiguous delimiter.
+        or lowercase hex, so ``|`` is an unambiguous delimiter.  The prefix
+        records the Merkle version, so a v1 root can never be replayed as v2.
         """
         prev = self.prev_checkpoint_root or ""
-        return f"{_PAYLOAD_PREFIX}|{self.seq_start}|{self.seq_end}|{self.root}|{prev}".encode(
+        prefix = _PAYLOAD_PREFIX_V2 if self.v == 2 else _PAYLOAD_PREFIX_V1
+        return f"{prefix}|{self.seq_start}|{self.seq_end}|{self.root}|{prev}".encode(
             "utf-8"
         )
 
@@ -171,6 +204,8 @@ class Checkpoint:
             seq_end=d["seq_end"],
             root=d["root"],
             prev_checkpoint_root=d.get("prev_checkpoint_root"),
+            # Records written before the version field existed are v1.
+            v=int(d.get("v", 1)),
         )
 
 
@@ -178,6 +213,8 @@ def make_checkpoint(
     hashes: Sequence[str],
     seq_start: int,
     prev: Checkpoint | None = None,
+    *,
+    version: int = 2,
 ) -> Checkpoint:
     """Build a checkpoint over *hashes* starting at chain position *seq_start*.
 
@@ -212,8 +249,9 @@ def make_checkpoint(
     return Checkpoint(
         seq_start=seq_start,
         seq_end=seq_start + len(hashes) - 1,
-        root=merkle_root_from_hex_leaves(hashes),
+        root=merkle_root_from_hex_leaves(hashes, version=version),
         prev_checkpoint_root=prev.root if prev is not None else None,
+        v=version,
     )
 
 
@@ -230,7 +268,9 @@ def verify_span(hashes: Sequence[str], checkpoint: Checkpoint) -> bool:
     declared_len = checkpoint.seq_end - checkpoint.seq_start + 1
     if declared_len <= 0 or len(hashes) != declared_len:
         return False
-    return merkle_root_from_hex_leaves(list(hashes)) == checkpoint.root
+    # Recompute under the checkpoint's own construction version: a v1 anchor
+    # verifies against v1, a v2 anchor against v2, and never across.
+    return merkle_root_from_hex_leaves(list(hashes), version=checkpoint.v) == checkpoint.root
 
 
 def verify_checkpoint_chain(checkpoints: Sequence[Checkpoint]) -> tuple[bool, list[str]]:

@@ -32,13 +32,19 @@ checkpoint's root, so the checkpoints form their own chain.
   entry hashes; the final span may be shorter. The interval is a
   deployment choice (`--interval`), not a protocol constant.
 - Root: Merkle root over the span's entry hashes using the same
-  pairing rule as `remora/audit/merkle.py`; leaves are the entry hashes
-  themselves (already SHA-256 digests), pairs combine as
-  SHA-256(left + right) over the concatenated hex strings, and odd trees
-  duplicate the last node. 64-char lowercase hex.
+  construction as `remora/audit/merkle.py`. Version 2 (since 2026-10-28,
+  SR-14) applies RFC 6962 domain separation: a leaf is
+  SHA-256(0x00 || entry-hash bytes), a node is SHA-256(0x01 || left ||
+  right) over raw digest bytes. An odd node is promoted unchanged, so the
+  root commits to the entry count. Version 1 (anchors recorded before
+  2026-10-28) combined SHA-256 hex strings pairwise and duplicated the
+  last node on odd levels; it does not commit to the count. 64-char
+  lowercase hex in both versions.
 - Record fields: `seq_start`, `seq_end`, `root`,
-  `prev_checkpoint_root` (`null` for the first checkpoint of a chain).
-- Signing payload: `remora-ckpt-v1|<seq_start>|<seq_end>|<root>|<prev>`
+  `prev_checkpoint_root` (`null` for the first checkpoint of a chain),
+  `v` (Merkle version; absent means 1 in records written before v2).
+- Signing payload: `remora-ckpt-v2|<seq_start>|<seq_end>|<root>|<prev>`
+  for v2 checkpoints, `remora-ckpt-v1|...` for v1
   (bytes; `<prev>` is empty for the first checkpoint). This is the stable
   byte string a future external anchor would sign or publish. Local
   HMAC-SHA256 signing is available via `sign_checkpoint()` /

@@ -107,9 +107,15 @@ def test_export_signature_binds_n_entries(tmp_path) -> None:
 
     assert record["v"] == 2
     assert record["n_entries"] == 2
-    assert verify_signed_root(root, record["signature"], key="k", n_entries=2) is True
+    assert verify_signed_root(
+        root, record["signature"], key="k", n_entries=2, version=2,
+    ) is True
     # Tampering with the count must invalidate the signature.
-    assert verify_signed_root(root, record["signature"], key="k", n_entries=3) is False
+    assert verify_signed_root(
+        root, record["signature"], key="k", n_entries=3, version=2,
+    ) is False
+    # And a v2 signature must never verify under the legacy rule.
+    assert verify_signed_root(root, record["signature"], key="k") is False
 
 
 def test_v1_export_still_possible_for_legacy_anchors(tmp_path) -> None:
