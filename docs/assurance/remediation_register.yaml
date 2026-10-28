@@ -1135,3 +1135,27 @@ items:
       so an idle tenant is never swept and wall-clock recovery still needs a
       scheduled call. Verified on SQLite; the Postgres branch shares the code
       path but was not exercised against a live server here.
+
+  - id: REM-048
+    section: "security-review-2026-10"
+    title: "SR-02/SR-04: rag-oracle /search unauthenticated across tenants; worker failed open when ORACLE_SECRET unset"
+    gate: P0
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - workers/rag-oracle/src/index.ts
+      - workers/rag-oracle/src/search_auth.test.ts
+    notes: >
+      Security review 2026-10 (SR-02, High; widens issue #55): GET /search had
+      no bearer check and no tenant or clearance filter, returning chunk
+      previews across tenants to any Internet caller, with k unbounded.
+      SR-04 (Medium): /query, /rerank and /translate allowed all requests when
+      ORACLE_SECRET was unset. Fixed by routing every endpoint except /status
+      through requireBearer (503 when the secret is unset, 401 on a missing
+      or wrong token; the allow-all optionalBearer is removed), clamping k to
+      [1, 20] with a 400 on NaN, and adding caller-asserted tenant_id and
+      clearance metadata filters matching /query. Caller-asserted scoping
+      remains a convenience, not an enforced boundary (issue #55): the bearer
+      is a single shared secret, so tenant identity cannot be derived from it
+      inside this worker; that boundary requires an authenticating proxy.
+      Tests: workers/rag-oracle/src/search_auth.test.ts (19 vitest cases).
