@@ -171,3 +171,24 @@ def test_episode_cannot_escape_data_block_or_context(monkeypatch: pytest.MonkeyP
     data = json.loads(data_block)
     assert data["domain"] == episode.domain
     assert len(data_block) <= 2200
+
+
+def test_malformed_numeric_field_cannot_stall_prompt(monkeypatch: pytest.MonkeyPatch) -> None:
+    episode = _Episode()
+    episode.trust_score = 10 ** 2200
+    judge, captured = _judge(monkeypatch, _rubric_payload(), token="tok")
+    dumps = json.dumps
+    attempts = 0
+
+    def bounded_dumps(*args, **kwargs):
+        nonlocal attempts
+        attempts += 1
+        assert attempts <= 20, "prompt serialization did not converge"
+        return dumps(*args, **kwargs)
+
+    monkeypatch.setattr(json, "dumps", bounded_dumps)
+    judge.critique_rubric(episode, "benign")
+
+    data_block = captured["prompt"].split("<episode-data>", 1)[1].split("</episode-data>", 1)[0]
+    assert len(data_block) <= 2200
+    assert json.loads(data_block)["trust_score"] is None

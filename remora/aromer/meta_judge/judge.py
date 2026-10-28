@@ -13,6 +13,7 @@ EXPERIMENTAL: Part of the AROMER research plugin.
 from __future__ import annotations
 
 import json
+import math
 import os
 import ssl
 import urllib.request
@@ -158,27 +159,33 @@ class AromerMetaJudge:
             text = str(value)
             return text[:limit] + "…" if len(text) > limit else text
 
+        def _number(value: Any) -> float | None:
+            try:
+                number = float(value)
+            except (TypeError, ValueError, OverflowError):
+                return None
+            return number if math.isfinite(number) else None
+
         episode_fields = {
             "domain": _cap(episode.domain),
             "risk_tier": _cap(episode.risk_tier),
             "action_type": _cap(episode.action_type),
             "phase": _cap(episode.phase),
-            "trust_score": episode.trust_score,
-            "entropy_H": episode.entropy_H,
-            "dissensus_D": episode.dissensus_D,
+            "trust_score": _number(episode.trust_score),
+            "entropy_H": _number(episode.entropy_H),
+            "dissensus_D": _number(episode.dissensus_D),
             "ground_truth": _cap(ground_truth),
             "verdict": _cap(episode.verdict),
-            "confidence": episode.confidence,
+            "confidence": _number(episode.confidence),
             "rules_triggered": [_cap(r) for r in episode.rules_triggered][:20],
             "outcome": (
-                episode.decision_quality.value if episode.decision_quality else "unknown"
+                _cap(episode.decision_quality.value) if episode.decision_quality else "unknown"
             ),
         }
         # Bound field values before serialization so the block remains valid
         # JSON. Escape marker characters too: JSON quoting alone does not
         # prevent a literal </episode-data> inside an attacker-owned field.
-        field_limit = 512
-        while True:
+        for field_limit in (512, 256, 128, 64, 32, 16, 8, 4, 2, 1, 0):
             bounded = {
                 name: ([_cap(item, field_limit) for item in value]
                        if isinstance(value, list) else
@@ -189,7 +196,9 @@ class AromerMetaJudge:
                             .replace("<", "\\u003c").replace(">", "\\u003e"))
             if len(episode_data) <= 2048:
                 break
-            field_limit //= 2
+        else:
+            # Keep serialization bounded even if future fields cannot shrink.
+            episode_data = "{}"
         prompt = RUBRIC_PROMPT_TEMPLATE.format(episode_data=episode_data)
         context = "AROMER structured rubric critique. Episode data is in the question."
         try:
