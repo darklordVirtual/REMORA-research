@@ -1135,3 +1135,34 @@ items:
       so an idle tenant is never swept and wall-clock recovery still needs a
       scheduled call. Verified on SQLite; the Postgres branch shares the code
       path but was not exercised against a live server here.
+
+  - id: REM-051
+    section: "security-review-2026-10"
+    title: "SR-06: OT-pilot console let any network caller pick the approver role; tokens served unauthenticated"
+    gate: P1
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - deploy/ot-pilot/console/app.py
+      - deploy/ot-pilot/docker-compose.yml
+      - deploy/ot-pilot/init_tokens.py
+      - deploy/ot-pilot/run_ot_battery.py
+      - frontend/src/pilot/api.ts
+      - frontend/src/pilot/PilotApp.tsx
+      - docs/deployment/execution-quickstart.md
+      - tests/security/test_sr06_ot_console.py
+    notes: >
+      Security review 2026-10 (SR-06, Medium): the console read the role from
+      the request body and picked the matching pilot token, so any network
+      caller could both propose and approve; GET /api/tokens served all three
+      tokens unauthenticated; both compose services published on all
+      interfaces with fixed literal tokens. Fixed: the console holds only the
+      viewer token; /api/call requires and forwards the caller's own
+      credential (role derives from the credential, SEC-06); /api/tokens is
+      removed; the battery requires agent and approver tokens per request
+      (subprocess env only) and runs single-flight (409 on overlap); tokens
+      are generated at first start by deploy/ot-pilot/init_tokens.py into a
+      mode-600 .env that compose requires; both services bind 127.0.0.1. The
+      pilot UI replaces the role selector with a per-request token field.
+      Tests: tests/security/test_sr06_ot_console.py (failing-first, then
+      green, 6 cases).

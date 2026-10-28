@@ -11,18 +11,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import {
   pilotApi,
   type EvidenceRunRow,
-  type PilotRole,
   type PilotState,
   type Scenario,
 } from "./api";
@@ -229,7 +221,11 @@ function EvidenceRow({
 
 export function PilotApp() {
   const queryClient = useQueryClient();
-  const [role, setRole] = useState<PilotRole>("operator");
+  // SR-06: the console holds no write-capable token. The operator enters
+  // their own credential; the role is whatever the credential is bound to.
+  const [callToken, setCallToken] = useState("");
+  const [batteryAgentToken, setBatteryAgentToken] = useState("");
+  const [batteryApproverToken, setBatteryApproverToken] = useState("");
   const [output, setOutput] = useState(
     "Select a scenario or run the full battery to inspect the live result payload.",
   );
@@ -272,21 +268,21 @@ export function PilotApp() {
 
   const callMutation = useMutation({
     mutationFn: ({ scenario }: { scenario: Scenario }) =>
-      pilotApi.governedCall(role, scenario.payload),
+      pilotApi.governedCall(callToken, scenario.payload),
     onMutate: () => {
       setVerdict(null);
       setOutput("calling…");
     },
     onSuccess: (r) => {
       setVerdict(chipState(r.body.decision));
-      setOutput(`HTTP ${r.status} · as ${r.role}\n\n${JSON.stringify(r.body, null, 2)}`);
+      setOutput(`HTTP ${r.status}\n\n${JSON.stringify(r.body, null, 2)}`);
       void state.refetch();
     },
     onError: (err) => setOutput(`console error: ${String(err)}`),
   });
 
   const batteryMutation = useMutation({
-    mutationFn: pilotApi.runBattery,
+    mutationFn: () => pilotApi.runBattery(batteryAgentToken, batteryApproverToken),
     onMutate: () => {
       setVerdict(null);
       setOutput("running the OT battery — this drives real approvals and side effects…");
@@ -469,17 +465,15 @@ export function PilotApp() {
           <Panel>
             <SectionLabel>Run a governed call</SectionLabel>
             <div className="mt-4 flex items-center gap-3">
-              <span className="text-xs text-muted-foreground">Act as</span>
-              <Select value={role} onValueChange={(v) => setRole(v as PilotRole)}>
-                <SelectTrigger className="w-56 rounded-none">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="operator">operator (ot-agent)</SelectItem>
-                  <SelectItem value="approver">approver (ot-approver)</SelectItem>
-                  <SelectItem value="viewer">viewer (ot-viewer)</SelectItem>
-                </SelectContent>
-              </Select>
+              <span className="text-xs text-muted-foreground">Your token</span>
+              <Input
+                type="password"
+                className="w-64 rounded-none"
+                placeholder="enter your operator or approver token"
+                value={callToken}
+                onChange={(e) => setCallToken(e.target.value)}
+                autoComplete="off"
+              />
             </div>
             <div className="mt-4">
               <ScenarioButtons
@@ -489,16 +483,37 @@ export function PilotApp() {
               />
             </div>
             <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-              Each action uses the real API path and demonstrates how role-based access and policy
-              enforcement change the outcome.
+              Each action uses the real API path with the credential you present. The role comes
+              from the credential, never from a selector: a caller cannot promote themselves to
+              approver.
             </p>
           </Panel>
           <Panel>
             <SectionLabel>Live result</SectionLabel>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <Input
+                type="password"
+                className="rounded-none"
+                placeholder="agent token"
+                value={batteryAgentToken}
+                onChange={(e) => setBatteryAgentToken(e.target.value)}
+                autoComplete="off"
+              />
+              <Input
+                type="password"
+                className="rounded-none"
+                placeholder="approver token"
+                value={batteryApproverToken}
+                onChange={(e) => setBatteryApproverToken(e.target.value)}
+                autoComplete="off"
+              />
+            </div>
             <div className="mt-4 flex items-center gap-3">
               <Button
                 className="rounded-none"
-                disabled={batteryMutation.isPending}
+                disabled={
+                  batteryMutation.isPending || !batteryAgentToken || !batteryApproverToken
+                }
                 onClick={() => batteryMutation.mutate()}
               >
                 Run the 16-case OT battery
