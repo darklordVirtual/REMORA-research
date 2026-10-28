@@ -127,7 +127,18 @@ _NETWORK_TOOLS = {"WebFetch", "WebSearch", "mcp__brave_search", "mcp__fetch"}
 
 # ── Scanner ────────────────────────────────────────────────────────────────
 
-_AROMER_BASE = os.environ.get("AROMER_WORKER_URL", "https://aromer.razorsharp.workers.dev")
+def _oracle_base() -> str:
+    """Configured oracle destination. SR-08 / SEC-08: no default URL — the
+    previous default posted local tool output to a hard-coded public worker."""
+    return os.environ.get("AROMER_WORKER_URL", "").strip()
+
+
+def _oracle_token() -> str:
+    """Bearer for the oracle. A configured URL without a token disables the
+    oracle: nothing leaves the host unauthenticated."""
+    return os.environ.get("AROMER_WORKER_TOKEN", "").strip()
+
+
 _ORACLE_TIMEOUT = 8  # seconds
 
 
@@ -142,7 +153,7 @@ class ToolResultScanner:
     def __init__(
         self,
         *,
-        oracle_enabled: bool = True,
+        oracle_enabled: bool = False,
         oracle_timeout: int = _ORACLE_TIMEOUT,
         min_oracle_signal_risk: str = "high",  # "medium" | "high" | "critical"
     ) -> None:
@@ -237,18 +248,36 @@ class ToolResultScanner:
         signals: list[InjectionSignal],
     ) -> tuple[bool, float | None]:
         """Call AROMER /scan-result. Returns (oracle_used, confidence)."""
+        base = _oracle_base()
+        token = _oracle_token()
+        if not base or not token:
+            # SR-08 / SEC-08: without an explicitly configured destination
+            # AND credential, nothing leaves the host. The warning keeps a
+            # missing config distinguishable from a disabled oracle.
+            import logging as _logging
+
+            _logging.getLogger(__name__).warning(
+                "result-scanner oracle skipped: set both AROMER_WORKER_URL "
+                "and AROMER_WORKER_TOKEN to enable it"
+            )
+            return False, None
+        # Redact BEFORE anything leaves the host: a heuristic trigger planted
+        # next to a credential must not carry the credential with it.
+        from remora.observability.redaction import redact_text
+
         payload = json.dumps({
             "tool_name":   tool_name,
-            "result_excerpt": excerpt,
+            "result_excerpt": redact_text(excerpt),
             "heuristic_signals": [s.pattern_name for s in signals],
         }).encode()
         try:
             req = urllib.request.Request(
-                f"{_AROMER_BASE}/scan-result",
+                f"{base}/scan-result",
                 data    = payload,
                 headers = {
                     "Content-Type": "application/json",
                     "User-Agent":   "REMORA-ResultScanner/1.0",
+                    "Authorization": f"Bearer {token}",
                 },
                 method  = "POST",
             )

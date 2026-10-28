@@ -1135,3 +1135,36 @@ items:
       so an idle tenant is never swept and wall-clock recovery still needs a
       scheduled call. Verified on SQLite; the Postgres branch shares the code
       path but was not exercised against a live server here.
+
+  - id: REM-053
+    section: "security-review-2026-10"
+    title: "SR-08: result-scanner hook shipped local Read/Bash output unredacted to a hard-coded public worker"
+    gate: P1
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - remora/agent_hook/result_scanner.py
+      - scripts/aromer_result_scanner_hook.py
+      - workers/aromer/src/index.ts
+      - docs/assurance/credential_topology.yaml
+      - tests/security/test_sr08_result_scanner.py
+      - tests/test_result_scanner.py
+    notes: >
+      Security review 2026-10 (SR-08, Medium): AROMER_WORKER_URL defaulted to
+      a hard-coded public worker and the hook sent the first 600 chars of any
+      firing tool result — Read and Bash included — unredacted and
+      unauthenticated; a trigger string planted next to secrets exfiltrated
+      them, and the unauthenticated worker could quarantine arbitrary results
+      (confidence >= 0.80). Fixed per SEC-08: no default destination (oracle
+      fires only when AROMER_WORKER_URL and AROMER_WORKER_TOKEN are both
+      configured), redact_text runs before any send, the request carries a
+      bearer, ToolResultScanner defaults oracle_enabled=False, the hook scans
+      Read/Bash only under AROMER_SCAN_LOCAL=1, and the worker's /scan-result
+      now sits behind requireWriteAuth (fail-closed, constant-time). The
+      AROMER_WORKER_TOKEN credential is declared in the topology register as
+      agent-reachable by design with the blast radius noted. Worker-side auth
+      reuses the requireWriteAuth helper the other write endpoints use; the
+      aromer worker has no vitest harness today, so the route guard is pinned
+      by code review of the shared helper plus the Python-side tests.
+      Tests: tests/security/test_sr08_result_scanner.py (failing-first, then
+      green).

@@ -3246,7 +3246,16 @@ export default {
       return json({ ok: true, critiques_run: n, oracle: usedOracle });
     }
 
-    if (path === '/scan-result') return handleScanResult(env, request);
+    // SR-08: the result scanner ships redacted local tool output here; the
+    // endpoint must require the same bearer the scanner sends
+    // (AROMER_WORKER_TOKEN on the client, AROMER_WRITE_SECRET here), or any
+    // caller could drive oracle verdicts — including confidence ≥ 0.80
+    // quarantines — unauthenticated.
+    if (path === '/scan-result') {
+      const denied = requireWriteAuth(request, env);
+      if (denied) return denied;
+      return handleScanResult(env, request);
+    }
 
     return new Response('Not found', { status: 404, headers: CORS });
   },
