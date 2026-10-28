@@ -55,8 +55,11 @@ def _verify_jsonl(path: str) -> tuple[bool, list[str], int, str]:
 def _verify_sqlite(db_path: str, tenant_id: str) -> tuple[bool, list[str], int, str]:
     store = SQLiteControlPlaneStore(db_path=db_path)
     records = store.list_audit_records_for_tenant(tenant_id=tenant_id)
-    ok, breaks = verify_audit_record_chain(records)
-    return ok, breaks, len(records), "chain_linkage"
+    result = verify_audit_record_chain(records)
+    # SR-10: report both anchors so a caller sees a trimmed trail.
+    print(f"genesis_ok={result.genesis_ok} head_hash={result.head_hash} "
+          f"count={result.count}")
+    return result.valid, list(result.breaks), len(records), "chain_linkage"
 
 
 def _verify_worker_export(path: str, signing_key: str | None) -> tuple[bool, list[str], int, str]:

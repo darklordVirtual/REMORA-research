@@ -736,7 +736,50 @@ class PostgresControlPlaneStore:
             conn.close()
 
 
-def verify_audit_record_chain(records: list[dict[str, Any]]) -> tuple[bool, list[str]]:
+class ChainBreak(str):
+    """A chain break description that also carries its machine-readable kind.
+
+    Subclasses ``str`` so existing callers that match on message text keep
+    working; new callers branch on ``kind`` (``link_mismatch``,
+    ``genesis_missing``, ``missing_hash``).
+    """
+
+    kind: str
+
+    def __new__(cls, kind: str, detail: str) -> "ChainBreak":
+        obj = super().__new__(cls, detail)
+        obj.kind = kind
+        return obj
+
+
+@dataclass(frozen=True)
+class ChainVerifyResult:
+    """Outcome of a chain verification, anchored at both ends (SEC-02).
+
+    ``head_hash`` and ``count`` let an external anchor detect a truncated
+    trail: linkage among surviving records is intact after a tail deletion,
+    so only comparing the head catches it. ``genesis_ok`` records whether the
+    first record started the chain (or linked to a caller-supplied verified
+    retention-checkpoint predecessor). Iterating yields ``(valid, breaks)``
+    so pre-SR-10 unpacking callers keep working.
+    """
+
+    valid: bool
+    breaks: tuple[ChainBreak, ...]
+    head_hash: str | None
+    count: int
+    genesis_ok: bool
+
+    def __iter__(self):
+        yield self.valid
+        yield list(self.breaks)
+
+
+def verify_audit_record_chain(
+    records: list[dict[str, Any]],
+    *,
+    allow_genesis_predecessor: str | None = None,
+) -> ChainVerifyResult:
     """Verify hash-chain linkage across a tenant's persisted audit records.
 
     Each record written by the REST path carries ``envelope_audit_hash``
@@ -744,17 +787,24 @@ def verify_audit_record_chain(records: list[dict[str, Any]]) -> tuple[bool, list
     decision). Walking them in write order proves that no decision was
     deleted from, or spliced into, the middle of the trail.
 
+    Both ends are anchored (SR-10 / SEC-02): the first record must be a
+    genesis record (no predecessor) — previously any first record was
+    accepted, so deleting the oldest records still verified. The one
+    exception is ``allow_genesis_predecessor``: a predecessor hash from a
+    signed retention checkpoint the CALLER verified (no retention-trim
+    producer exists yet; when one lands it must pass the checkpoint's
+    predecessor here, never a raw record value).
+
     Scope of the guarantee: this checks *linkage*, not the envelope payload
     itself. Recomputing an envelope's own hash from its payload is
     ``remora.shadow.replay.verify_envelope_hash_chain`` for shadow-mode
     envelopes; the REST envelope hash is produced by the API and covered by
     ``envelope_signature`` when ``REMORA_ENVELOPE_SIGNING_KEY`` is set.
-
-    Returns ``(ok, breaks)`` where ``breaks`` names every failure found, so
-    a broken trail reports all damage instead of only the first break.
     """
-    breaks: list[str] = []
+    breaks: list[ChainBreak] = []
     expected_previous: str | None = None
+    head_hash: str | None = None
+    genesis_ok = True
 
     for index, record in enumerate(records):
         current = record.get("envelope_audit_hash")
@@ -762,26 +812,48 @@ def verify_audit_record_chain(records: list[dict[str, Any]]) -> tuple[bool, list
         request_id = record.get("request_id", f"index-{index}")
 
         if not isinstance(current, str) or not current.strip():
-            breaks.append(f"{request_id}: missing envelope_audit_hash")
+            breaks.append(ChainBreak("missing_hash",
+                                     f"{request_id}: missing envelope_audit_hash"))
             # The cursor cannot advance across a record with no hash; a later
             # link would be checked against the wrong predecessor.
             expected_previous = None
             continue
 
         if index == 0:
-            # First record for the tenant: any predecessor is accepted, since
-            # the store may have been opened mid-stream (e.g. retention trim).
+            # Genesis anchor: the first record must start the chain. Accepting
+            # any predecessor here made prefix deletion invisible (SR-10).
+            if previous is None or (isinstance(previous, str) and not previous.strip()):
+                pass
+            elif allow_genesis_predecessor is not None and previous == allow_genesis_predecessor:
+                pass
+            else:
+                genesis_ok = False
+                breaks.append(ChainBreak(
+                    "genesis_missing",
+                    f"{request_id}: first record links to {previous!r}, not "
+                    "genesis; a trimmed trail must name a verified retention-"
+                    "checkpoint predecessor",
+                ))
             expected_previous = current
+            head_hash = current
             continue
 
         if previous != expected_previous:
-            breaks.append(
+            breaks.append(ChainBreak(
+                "link_mismatch",
                 f"{request_id}: previous_hash {previous!r} does not link to "
-                f"predecessor {expected_previous!r}"
-            )
+                f"predecessor {expected_previous!r}",
+            ))
         expected_previous = current
+        head_hash = current
 
-    return (not breaks), breaks
+    return ChainVerifyResult(
+        valid=not breaks,
+        breaks=tuple(breaks),
+        head_hash=head_hash,
+        count=len(records),
+        genesis_ok=genesis_ok,
+    )
 
 
 def utc_now_iso() -> str:
