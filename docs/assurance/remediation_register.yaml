@@ -1135,3 +1135,24 @@ items:
       so an idle tenant is never swept and wall-clock recovery still needs a
       scheduled call. Verified on SQLite; the Postgres branch shares the code
       path but was not exercised against a live server here.
+
+  - id: REM-059
+    section: "security-review-2026-10"
+    title: "SR-22: RAG oracle HTTP failures counted as valid votes; bearer never sent"
+    gate: P1
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - remora/oracles/cloudflare_rag.py
+      - tests/security/test_sr22_rag_oracle.py
+      - tests/test_cloudflare_rag.py
+    notes: >
+      Security review 2026-10 (SR-22, Low): _call caught HTTPError/Exception
+      and returned an error-free 0.0-confidence response that the engine
+      counted toward quorum, and the constructor's secret was never sent to
+      the bearer-protected /query. Fixed per SEC-11: transport and HTTP
+      failures raise OracleTransportError so Oracle.ask sets error and the
+      engine's valid_responses filter excludes them; the bearer is sent when
+      secret is configured. The two pre-existing tests that documented
+      errors-as-votes now document errors-as-errors. Tests:
+      tests/security/test_sr22_rag_oracle.py (failing-first, then green).

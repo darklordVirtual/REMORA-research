@@ -96,23 +96,25 @@ class TestCloudflareRAGOracleUnit:
         assert response.extracted["confidence"] == pytest.approx(0.0)
 
     def test_call_handles_http_error_gracefully(self):
+        # SR-22 / SEC-11: an HTTP error is an ERROR, not a zero-confidence
+        # vote — the response carries error= so the engine excludes it from
+        # the quorum (pre-fix it counted as a valid response).
         import urllib.error
         with mock.patch("urllib.request.urlopen",
                         side_effect=urllib.error.HTTPError(None, 503, "Service Unavailable", {}, None)):
             oracle = self._oracle()
             response = oracle.ask("Any question?")
 
-        extracted = response.extracted
-        assert extracted["answer"] is None
-        assert extracted["confidence"] == pytest.approx(0.0)
-        assert "503" in extracted["claim"]
+        assert response.error is not None
+        assert "503" in response.error
 
     def test_call_handles_connection_error_gracefully(self):
+        # SR-22: transport failures also surface as errors, not votes.
         with mock.patch("urllib.request.urlopen", side_effect=ConnectionError("timed out")):
             oracle = self._oracle()
             response = oracle.ask("Any question?")
 
-        assert response.extracted["answer"] is None
+        assert response.error is not None
 
     def test_top_k_clamped(self):
         oracle_low  = self._oracle(top_k=0)
