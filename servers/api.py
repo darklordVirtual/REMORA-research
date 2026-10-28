@@ -993,10 +993,11 @@ def _warn_if_development_mode() -> None:
     if _get_env_mode() in _DEV_ENV_VALUES:
         logger.warning(
             "REMORA API is running in development mode (REMORA_ENV unset or "
-            "'development'): without credentials every request is "
-            "authenticated as tenant 'default' with the operator role, and in "
-            "single-token mode the X-Remora-Role header is trusted. Not for "
-            "production; set REMORA_ENV=production."
+            "'development'): in single-token mode the X-Remora-Role header is "
+            "trusted, and without credentials every request is refused unless "
+            "REMORA_ALLOW_UNAUTHENTICATED_DEV=1 opts in to the read-only "
+            "('default', 'viewer') fallback. Not for production; set "
+            "REMORA_ENV=production."
         )
 
 
@@ -2120,8 +2121,22 @@ def _authenticate(request: Request) -> tuple[str, str]:
                     "or set REMORA_ENV=development to run without auth."
                 ),
             )
-        # Dev fallback — no bearer required
-        return "default", "operator"
+        # SR-03 / SEC-05: the unauthenticated development fallback is opt-in
+        # and read-only. Previously every request was authenticated as
+        # ('default', 'operator') — execute included — without reading any
+        # header, and the reference compose published that on all interfaces.
+        if not _env_flag("REMORA_ALLOW_UNAUTHENTICATED_DEV"):
+            raise HTTPException(
+                status_code=500,
+                detail=(
+                    "Server misconfiguration: no auth credentials set. "
+                    "Set REMORA_API_TOKENS or REMORA_API_BEARER_TOKEN, or "
+                    "opt in to the unauthenticated read-only development "
+                    "fallback with REMORA_ALLOW_UNAUTHENTICATED_DEV=1."
+                ),
+            )
+        # Dev fallback — no bearer required, read-only identity.
+        return "default", "viewer"
 
     # ── Validate bearer token ─────────────────────────────────────────────
     auth = request.headers.get("Authorization", "")

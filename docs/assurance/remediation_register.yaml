@@ -1135,3 +1135,32 @@ items:
       so an idle tenant is never swept and wall-clock recovery still needs a
       scheduled call. Verified on SQLite; the Postgres branch shares the code
       path but was not exercised against a live server here.
+
+  - id: REM-050
+    section: "security-review-2026-10"
+    title: "SR-03: unauthenticated operator fallback shipped in the reference compose"
+    gate: P0
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - servers/api.py
+      - deploy/reference/docker-compose.yml
+      - deploy/reference/.env.example
+      - SECURITY.md
+      - tests/security/test_sr03_dev_fallback.py
+    notes: >
+      Security review 2026-10 (SR-03, Medium): a development server with no
+      configured credentials authenticated every request as
+      ("default", "operator") — execute included — without reading any
+      header, and the reference compose published port 8000 on all interfaces
+      with no token set. Fixed by gating the fallback behind
+      REMORA_ALLOW_UNAUTHENTICATED_DEV=1 (otherwise 500 on governed routes),
+      demoting the fallback identity to ("default", "viewer"), binding the
+      reference compose to 127.0.0.1 and sourcing credentials from .env
+      (deploy/reference/.env.example). SECURITY.md documents the new
+      known-by-design fallback. Tests updated where they relied on the open
+      fallback (test_api_server, test_api_control_plane_selection,
+      test_api_hardening_review, test_api_version_and_env, test_api_security,
+      test_proposal_id_header, test_idempotency_store); credential-topology
+      register line sites re-based. New tests:
+      tests/security/test_sr03_dev_fallback.py (failing-first, then green).
