@@ -101,3 +101,23 @@ def test_backward_compatible_unpacking() -> None:
     ok, breaks = verify_audit_record_chain(_chain(2))
     assert ok is True
     assert list(breaks) == []
+
+
+def test_missing_first_hash_does_not_report_a_verified_genesis() -> None:
+    records = _chain(2)
+    records[0]["envelope_audit_hash"] = None
+    result = verify_audit_record_chain(records)
+
+    assert result.valid is False
+    assert result.genesis_ok is False
+    assert any(b.kind == "missing_hash" for b in result.breaks)
+
+
+def test_missing_last_hash_does_not_report_an_older_head() -> None:
+    records = _chain(2)
+    records[-1]["envelope_audit_hash"] = None
+    result = verify_audit_record_chain(records)
+
+    assert result.valid is False
+    assert result.head_hash is None
+    assert result.count == 2

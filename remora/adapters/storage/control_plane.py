@@ -817,6 +817,9 @@ def verify_audit_record_chain(
             # The cursor cannot advance across a record with no hash; a later
             # link would be checked against the wrong predecessor.
             expected_previous = None
+            head_hash = None
+            if index == 0:
+                genesis_ok = False
             continue
 
         if index == 0:
