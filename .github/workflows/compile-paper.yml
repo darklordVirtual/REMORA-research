@@ -38,7 +38,7 @@ jobs:
         run: |
           # Pinned to the exact version resolved from
           # https://pypi.org/pypi/pymupdf/json on 2026-07-20.
-          python -m pip install --quiet pymupdf==1.28.0
+          python -m pip install --quiet pymupdf==1.28.0  # pinned: paper PDF overflow check tooling
           python scripts/check_paper_overflow.py paper/remora_paper.pdf
 
       # Only master owns the committed PDF, but master is a protected branch

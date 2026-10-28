@@ -92,6 +92,16 @@ Do not infer tool risk, target or authority from agent-provided prose when a dep
 
 Research backends belong behind the existing research interfaces. Add tests, identify the stability class, and do not present a new research signal as part of the execution kernel unless it is deliberately wired and reflected in the capability register.
 
+## Dependency pinning and hashed locks
+
+CI and release installs must not float (security review 2026-10, SR-11/SR-23). Three files serve different surfaces:
+
+- `requirements-lock.txt`: the version constraint set (`pip install -c`) shared by the analysis and interop jobs. Version-pinned, not hashed; it is a superset across extras and is not resolvable as a single install set.
+- `requirements-ci.lock`: the hash-pinned install set for the main CI test job. Regenerate with `pip-compile --generate-hashes --extra dev --extra causal --extra api --extra security --extra identity --extra otel --constraint <(grep -vE '^-e|^#|file://' requirements-lock.txt) --output-file requirements-ci.lock pyproject.toml`.
+- `requirements-release.in` / `requirements-release.lock`: the hash-pinned build, SBOM and supply-chain tooling (pip, build, hatchling, editables, cyclonedx-bom, jsonschema, pyyaml, pip-audit). Regenerate with `pip-compile --generate-hashes --allow-unsafe --output-file requirements-release.lock requirements-release.in`.
+
+`scripts/check_require_hashes.py` runs in CI and fails on any workflow install that is not hash-pinned, constrained, or explicitly marked `# hash-exempt:` / `# pinned:` with a reason.
+
 ## Negative results
 
 Negative results are retained as first-class research evidence. Do not delete a failed experiment because a later design supersedes it. Mark the current status and link the successor instead.

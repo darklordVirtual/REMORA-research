@@ -152,6 +152,8 @@ jobs:
           sys.exit(1 if problems else 0)
           PY
 
+      # hash-exempt: the reader profile's requirements-check.txt is fetched
+      # with the pinned external reader (FROZEN_REVISION), not floating input.
       - name: Install the readers and pinned Verify (no REMORA code)
         run: |
           set -euo pipefail

@@ -1,0 +1,8 @@
+pip
+build
+hatchling
+editables
+cyclonedx-bom
+jsonschema
+pyyaml
+pip-audit

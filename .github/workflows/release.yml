@@ -21,16 +21,16 @@ permissions:
   contents: read
 
 jobs:
-  build-attest:
-    name: Build, SBOM, checksums, Sigstore attestations
+  build:
+    # SR-11 / SEC-17: the build job holds NO signing identity. Everything it
+    # installs is hash-pinned, so a compromised build tool cannot sign.
+    name: Build, SBOM, checksums
     runs-on: ubuntu-latest
     outputs:
-      # Consumed by publish-pypi to name the artifact it downloads.
+      # Consumed by attest and publish-pypi to name the artifact they handle.
       version: ${{ steps.ver.outputs.version }}
     permissions:
-      contents: write      # upload release assets
-      id-token: write      # Sigstore OIDC identity
-      attestations: write  # store attestations
+      contents: read
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
         with:
@@ -50,27 +50,62 @@ jobs:
           echo "version=$PKG" >> "$GITHUB_OUTPUT"
         id: ver
 
+      - name: Install hash-pinned build tooling (SR-11 / SEC-17)
+        # The job holding the attestation identity installs ONLY from the
+        # hash-pinned release lock: no unpinned pip upgrades, no bare package
+        # installs. requirements-release.lock is generated with
+        # `pip-compile --generate-hashes --allow-unsafe requirements-release.in`.
+        run: >-
+          python -m pip install --require-hashes "--only-binary=:all:" -r requirements-release.lock
+
       - name: Build wheel and sdist from the tagged commit
+        # --no-isolation: the build uses the hash-pinned environment above,
+        # never a freshly resolved isolated one.
         run: |
-          python -m pip install --upgrade pip build
-          python -m build --outdir dist/
+          python -m build --no-isolation --outdir dist/
           ls -l dist/
 
       - name: CycloneDX SBOM against the lockfile
         run: |
-          python -m pip install cyclonedx-bom
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/sbom-reqs.txt
           cyclonedx-py requirements /tmp/sbom-reqs.txt --of JSON -o dist/sbom-python.cdx.json
 
       - name: Provenance manifest for this tag (concept records, registers, expressing files)
         run: |
-          python -m pip install jsonschema pyyaml
           python scripts/build_provenance_manifest.py --release "${GITHUB_REF_NAME}" --out dist/provenance-manifest-v1.json
           cp docs/assurance/claim_register_v1.yaml docs/assurance/provenance_register_v1.json provenance/PRIOR_ART.yaml provenance/EXTERNAL_ADOPTION.yaml dist/
 
       - name: SHA256SUMS
         working-directory: dist
         run: sha256sum remora_assurance-* sbom-python.cdx.json provenance-manifest-v1.json claim_register_v1.yaml provenance_register_v1.json PRIOR_ART.yaml EXTERNAL_ADOPTION.yaml > SHA256SUMS.txt && cat SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-${{ steps.ver.outputs.version }}
+          path: dist/
+          if-no-files-found: error
+
+  attest:
+    # SR-11 / SEC-17: the signing identity exists only here, in a job that
+    # installs nothing. It downloads the build job's artifact and verifies
+    # every file against the build job's SHA256SUMS manifest before signing,
+    # so a tampered artifact fails closed rather than being attested.
+    name: Sigstore attestations and release assets
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: write      # upload release assets
+      id-token: write      # Sigstore OIDC identity
+      attestations: write  # store attestations
+    steps:
+      - uses: actions/download-artifact@07f3cb04e0f167f965c00b4ef58acb620a3b9472 # v8.0.0
+        with:
+          name: release-${{ needs.build.outputs.version }}
+          path: dist/
+
+      - name: Verify the artifact against the build job's manifest
+        working-directory: dist
+        run: sha256sum -c SHA256SUMS.txt
 
       - name: Attest build provenance (wheel, sdist, checksums)
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
@@ -95,12 +130,6 @@ jobs:
             gh attestation verify "$f" --repo "${GITHUB_REPOSITORY}"
           done
 
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: release-${{ steps.ver.outputs.version }}
-          path: dist/
-          if-no-files-found: error
-
       - name: Upload assets to the GitHub release for this tag
         if: github.ref_type == 'tag'
         env:
@@ -109,7 +138,8 @@ jobs:
 
   publish-pypi:
     name: Publish to PyPI (opt-in, Trusted Publishing)
-    needs: build-attest
+    # Builds on the attested artifact chain: build (outputs) then attest.
+    needs: [build, attest]
     # Two independent locks, both of which must be open.
     #
     # 1. Only a tag push. A workflow_dispatch run builds and attests but
@@ -141,7 +171,7 @@ jobs:
       - name: Download the artifacts this run attested
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: release-${{ needs.build-attest.outputs.version }}
+          name: release-${{ needs.build.outputs.version }}
           path: dist/
 
       - name: Publish only the distributions, never the SBOM or checksums

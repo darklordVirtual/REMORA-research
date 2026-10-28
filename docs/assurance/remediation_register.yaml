@@ -1135,3 +1135,48 @@ items:
       so an idle tenant is never swept and wall-clock recovery still needs a
       scheduled call. Verified on SQLite; the Postgres branch shares the code
       path but was not exercised against a live server here.
+
+  - id: REM-060
+    section: "security-review-2026-10"
+    title: "SR-11/SR-23: unpinned build/SBOM tooling in the attesting release job; lock without hashes; unconstrained CI jobs"
+    gate: P1
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - requirements-ci.lock
+      - requirements-release.in
+      - requirements-release.lock
+      - requirements-lock.txt
+      - scripts/check_require_hashes.py
+      - .github/workflows/ci.yml
+      - .github/workflows/release.yml
+      - .github/workflows/supply-chain.yml
+      - .github/workflows/compile-paper.yml
+      - .github/workflows/mutation.yml
+      - .github/workflows/agentharm-experiment.yml
+      - .github/workflows/deploy-frontend.yml
+      - .github/workflows/probity-boundary-reproduction.yml
+      - docs/10-contributing.md
+      - tests/meta/test_check_require_hashes.py
+    notes: >
+      Security review 2026-10 (SR-11, Medium; SR-23, Low): the release job
+      installed unpinned build/SBOM/schema tools in the job holding the
+      attestation token; requirements-lock.txt had zero hashes and served
+      only as constraints; two CI jobs installed unconstrained. Fixed per
+      SEC-17/SEC-19: new hash-pinned requirements-ci.lock (compiled from the
+      pyproject extras with the existing lock as version constraints; zero
+      drift on the 53 shared packages, verified by a clean-venv install plus
+      full test collection) drives the main CI job as a two-step install
+      (hashed lock, then --no-deps -e .); new requirements-release.lock (with
+      hatchling/editables so `python -m build --no-isolation` works, verified
+      by building the wheel in a clean venv) drives release.yml and the
+      supply-chain jobs. The release workflow is split into build (no
+      id-token) and attest (identity; verifies the build job's SHA256SUMS
+      before signing). The pywin32 pin gained its missing sys_platform marker
+      (it broke Linux resolution of the lock as a set). New CI gate
+      scripts/check_require_hashes.py fails on any unpinned, unhashed,
+      unmarked install; the two verbatim documentation-contract jobs are
+      marked hash-exempt with reasons (they publish nothing and hold no
+      credentials), and the dispatch-only agentharm experiment pins carry a
+      marker pointing at P3-3 for the full treatment. Tests:
+      tests/meta/test_check_require_hashes.py.

@@ -194,7 +194,7 @@ python-multipart==0.0.32
 python-nmap==0.7.1
 pytokens==0.4.1
 pytz==2025.2
-pywin32==312
+pywin32==312 ; sys_platform == "win32"  # Windows-only; unmarked pin broke Linux resolution (found during SR-11)
 PyYAML==6.0.3
 pyyaml_env_tag==1.1
 referencing==0.37.0
