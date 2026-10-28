@@ -1477,55 +1477,15 @@ def _sign_envelope_audit_hash(audit_hash: str) -> str | None:
     ).hexdigest()
 
 
-def _canonical_envelope_for_hash(envelope_payload: dict[str, Any]) -> dict[str, Any]:
-    """Return an envelope payload suitable for deterministic chain hashing.
-
-    A non-dict payload is an internal invariant violation, not user input:
-    silently canonicalising it to ``{}`` gave every malformed envelope the
-    same chain hash for a given predecessor, so the hash could not tell two
-    different bad inputs apart.
-    """
-    if not isinstance(envelope_payload, dict):
-        raise TypeError(
-            f"envelope payload must be a mapping to be chain-hashed, got "
-            f"{type(envelope_payload).__name__}"
-        )
-    canonical = deepcopy(envelope_payload)
-    audit = canonical.get("audit") if isinstance(canonical, dict) else None
-    if isinstance(audit, dict):
-        if audit.get("schema_version") == "3":
-            # v3 (SR-01 / SEC-01): every populated audit field is inside the
-            # preimage. ``previous_hash`` is prefixed into the preimage rather
-            # than serialised; ``hash`` and ``signature`` are the seal itself.
-            for key in ("hash", "previous_hash", "signature"):
-                audit.pop(key, None)
-        else:
-            # v2 legacy rule. ``genesis`` is a pure derivative of
-            # ``previous_hash``, which is already excluded here and instead
-            # prefixed into the preimage. Hashing it would change every
-            # envelope hash and break the committed tenant chains for no added
-            # binding. Fields written after the v2 seal (tenant, actor, policy
-            # and argument binding) cannot be recomputed from a stored v2
-            # record — that gap is SR-01; v2 records verify by chain links
-            # only.
-            for key in ("hash", "previous_hash", "signature", "timestamp_utc",
-                        "genesis"):
-                audit.pop(key, None)
-    # Post-v2 audit keys are omitted when unset so control-plane chains
-    # recorded before those fields existed keep verifying (see
-    # remora/governance/envelope.py::POST_V2_AUDIT_KEYS).
-    from remora.governance.envelope import normalize_audit_for_hash
-
-    normalize_audit_for_hash(canonical)
-    return canonical
-
-
-def _compute_envelope_chain_hash(*, previous_hash: str | None, envelope_payload: dict[str, Any]) -> str:
-    """Compute SHA-256(previous_hash || canonical_envelope_json)."""
-    canonical = _canonical_envelope_for_hash(envelope_payload)
-    serialized = json.dumps(canonical, sort_keys=True, separators=(",", ":"))
-    preimage = f"{previous_hash or ''}:{serialized}"
-    return hashlib.sha256(preimage.encode("utf-8")).hexdigest()
+# The canonicalisation and chain-hash functions live in
+# remora/governance/envelope_verify.py so verifiers outside this server can
+# recompute a stored v3 envelope (SEC-01). Aliased here for the existing
+# call sites and tests.
+from remora.governance.envelope_verify import (
+    canonical_envelope_for_hash as _canonical_envelope_for_hash,
+    compute_envelope_chain_hash as _compute_envelope_chain_hash,
+    verify_stored_envelope,
+)
 
 
 class _SealedAuditDict(dict):
@@ -2899,7 +2859,7 @@ def get_audit_record(request_id: str, request: Request) -> dict:
 
 
 @app.get("/v1/audit/chain/verify", response_model=dict, tags=["governance"])
-def verify_audit_chain(request: Request) -> dict:
+def verify_audit_chain(request: Request, mode: str = "links") -> dict:
     """Verify hash-chain linkage across this tenant's persisted decisions.
 
     This is the check that makes the stored trail *provable* rather than
@@ -2908,9 +2868,18 @@ def verify_audit_chain(request: Request) -> dict:
     decision is detectable. It reports `durable=false` when the active
     backend cannot survive a restart — on such a backend a "valid" chain
     proves nothing about history.
+
+    ``mode=recompute`` (SEC-01) additionally rebuilds each v3 envelope's
+    audit hash from the stored payload and compares the HMAC signature when
+    ``REMORA_ENVELOPE_SIGNING_KEY`` is set, so rewritten actor, tenant,
+    policy or argument fields are detected, not just broken links. v2
+    records predate field binding (SR-01) and are counted as links-only.
     """
     tenant_id, role = _authenticate(request)
     _require_tenant_capability(role, tenant_id, "read")
+
+    if mode not in ("links", "recompute"):
+        raise HTTPException(status_code=422, detail="mode must be 'links' or 'recompute'")
 
     lister = getattr(_CONTROL_PLANE_STORE, "list_audit_records_for_tenant", None)
     if lister is None:
@@ -2920,19 +2889,61 @@ def verify_audit_chain(request: Request) -> dict:
         )
     records = lister(tenant_id=tenant_id)
     ok, breaks = verify_audit_record_chain(records)
-    return {
+    response = {
         "tenant_id": tenant_id,
         "records_checked": len(records),
         "chain_valid": ok,
-        # RMR-CR-007: this check follows each record's link to its
-        # predecessor. It recomputes no hash and compares no signature, so
-        # chain_valid must not be read as "intact and authentic".
-        "verification_scope": "linkage_only",
+        # RMR-CR-007: in links mode this check follows each record's link to
+        # its predecessor. It recomputes no hash and compares no signature,
+        # so chain_valid must not be read as "intact and authentic" unless
+        # mode=recompute was used.
+        "verification_scope": "linkage_only" if mode == "links" else "recompute",
         "signature_status": "NOT_CHECKED",
         "breaks": breaks,
         "control_plane_backend": _CONTROL_PLANE_BACKEND,
         "durable": _CONTROL_PLANE_DURABLE,
     }
+    if mode == "recompute":
+        signing_key = os.getenv("REMORA_ENVELOPE_SIGNING_KEY", "").strip() or None
+        recomputed = 0
+        links_only_v2 = 0
+        hash_failures: list[str] = []
+        signature_failures: list[str] = []
+        envelopes_missing: list[str] = []
+        signature_checked = False
+        for record in records:
+            request_id = record.get("request_id") if isinstance(record, dict) else None
+            envelope = (
+                _CONTROL_PLANE_STORE.get_envelope(request_id=request_id, tenant_id=tenant_id)
+                if isinstance(request_id, str) and request_id
+                else None
+            )
+            if not isinstance(envelope, dict):
+                envelopes_missing.append(str(request_id))
+                continue
+            result = verify_stored_envelope(envelope, signing_key=signing_key)
+            if result.mode == "links":
+                links_only_v2 += 1
+                continue
+            recomputed += 1
+            if result.hash_ok is False:
+                hash_failures.append(str(request_id))
+            if result.signature_ok is not None:
+                signature_checked = True
+            if result.signature_ok is False:
+                signature_failures.append(str(request_id))
+        response["chain_valid"] = ok and not hash_failures and not signature_failures
+        response["signature_status"] = "CHECKED" if signature_checked else (
+            "NOT_CHECKED_NO_KEY" if signing_key is None else "NO_SIGNATURES_PRESENT"
+        )
+        response["recompute"] = {
+            "recomputed": recomputed,
+            "links_only_v2": links_only_v2,
+            "hash_failures": hash_failures,
+            "signature_failures": signature_failures,
+            "envelopes_missing": envelopes_missing,
+        }
+    return response
 
 
 @app.post("/v1/review", response_model=dict, tags=["governance"])
