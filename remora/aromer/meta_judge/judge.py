@@ -158,30 +158,40 @@ class AromerMetaJudge:
             text = str(value)
             return text[:limit] + "…" if len(text) > limit else text
 
-        episode_data = json.dumps(
-            {
-                "domain": _cap(episode.domain),
-                "risk_tier": _cap(episode.risk_tier),
-                "action_type": _cap(episode.action_type),
-                "phase": _cap(episode.phase),
-                "trust_score": episode.trust_score,
-                "entropy_H": episode.entropy_H,
-                "dissensus_D": episode.dissensus_D,
-                "ground_truth": _cap(ground_truth),
-                "verdict": _cap(episode.verdict),
-                "confidence": episode.confidence,
-                "rules_triggered": [_cap(r) for r in episode.rules_triggered][:20],
-                "outcome": (
-                    episode.decision_quality.value if episode.decision_quality else "unknown"
-                ),
-            },
-            ensure_ascii=True,
-        )[:2048]
+        episode_fields = {
+            "domain": _cap(episode.domain),
+            "risk_tier": _cap(episode.risk_tier),
+            "action_type": _cap(episode.action_type),
+            "phase": _cap(episode.phase),
+            "trust_score": episode.trust_score,
+            "entropy_H": episode.entropy_H,
+            "dissensus_D": episode.dissensus_D,
+            "ground_truth": _cap(ground_truth),
+            "verdict": _cap(episode.verdict),
+            "confidence": episode.confidence,
+            "rules_triggered": [_cap(r) for r in episode.rules_triggered][:20],
+            "outcome": (
+                episode.decision_quality.value if episode.decision_quality else "unknown"
+            ),
+        }
+        # Bound field values before serialization so the block remains valid
+        # JSON. Escape marker characters too: JSON quoting alone does not
+        # prevent a literal </episode-data> inside an attacker-owned field.
+        field_limit = 512
+        while True:
+            bounded = {
+                name: ([_cap(item, field_limit) for item in value]
+                       if isinstance(value, list) else
+                       _cap(value, field_limit) if isinstance(value, str) else value)
+                for name, value in episode_fields.items()
+            }
+            episode_data = (json.dumps(bounded, ensure_ascii=True)
+                            .replace("<", "\\u003c").replace(">", "\\u003e"))
+            if len(episode_data) <= 2048:
+                break
+            field_limit //= 2
         prompt = RUBRIC_PROMPT_TEMPLATE.format(episode_data=episode_data)
-        context = (
-            f"AROMER structured rubric critique. "
-            f"Domain: {episode.domain}. Ground truth: {ground_truth}."
-        )
+        context = "AROMER structured rubric critique. Episode data is in the question."
         try:
             raw = self._call_worker(prompt, context)
             return self._parse_rubric_response(
