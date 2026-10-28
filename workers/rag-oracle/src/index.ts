@@ -600,8 +600,8 @@ async function handleSearch(url: URL, env: Env): Promise<Response> {
 
   // SR-02: clamp k. An unbounded k made this debug route a cheap full-index
   // read, one AI embedding call per request, with no rate limit.
-  const k = parseInt(url.searchParams.get('k') ?? '5', 10);
-  if (Number.isNaN(k) || k < 1 || k > 20) {
+  const k = Number(url.searchParams.get('k') ?? '5');
+  if (!Number.isInteger(k) || k < 1 || k > 20) {
     return err('k must be an integer in [1, 20]', 400);
   }
 

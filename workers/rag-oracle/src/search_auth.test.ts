@@ -120,6 +120,13 @@ describe("/search authentication (SR-02)", () => {
 });
 
 describe("/search k clamp (SR-02)", () => {
+  it.each(["1.5", "2x", "20.5"])("rejects a non-integer k=%s without querying the index", async (k) => {
+    const { env, captured } = makeEnv({ secret: SECRET });
+    const res = await worker.fetch(searchReq(`q=x&k=${k}`), env as never);
+    expect(res.status).toBe(400);
+    expect(captured).toEqual([]);
+  });
+
   it("rejects k=10000", async () => {
     const { env } = makeEnv({ secret: SECRET });
     const res = await worker.fetch(searchReq("q=x&k=10000"), env as never);
