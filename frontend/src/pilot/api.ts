@@ -86,10 +86,7 @@ export const pilotApi = {
   // SR-06: the caller presents their own credential; the console holds no
   // write-capable token and the role comes from the credential, never from
   // a selector.
-  async governedCall(
-    token: string,
-    payload: Record<string, unknown>,
-  ): Promise<GovernedCallResult> {
+  async governedCall(token: string, payload: Record<string, unknown>): Promise<GovernedCallResult> {
     const res = await fetch("/api/call", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

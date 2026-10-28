@@ -12,12 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import {
-  pilotApi,
-  type EvidenceRunRow,
-  type PilotState,
-  type Scenario,
-} from "./api";
+import { pilotApi, type EvidenceRunRow, type PilotState, type Scenario } from "./api";
 
 const DECISIONS = ["accept", "verify", "abstain", "escalate"] as const;
 
@@ -511,9 +506,7 @@ export function PilotApp() {
             <div className="mt-4 flex items-center gap-3">
               <Button
                 className="rounded-none"
-                disabled={
-                  batteryMutation.isPending || !batteryAgentToken || !batteryApproverToken
-                }
+                disabled={batteryMutation.isPending || !batteryAgentToken || !batteryApproverToken}
                 onClick={() => batteryMutation.mutate()}
               >
                 Run the 16-case OT battery

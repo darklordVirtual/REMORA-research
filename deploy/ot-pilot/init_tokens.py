@@ -20,6 +20,7 @@ from __future__ import annotations
 import os
 import secrets
 import sys
+import tempfile
 from pathlib import Path
 
 ENV_PATH = Path(__file__).resolve().parent / ".env"
@@ -44,8 +45,24 @@ def main() -> int:
             "",
         ]
     )
-    ENV_PATH.write_text(content, encoding="utf-8")
-    os.chmod(ENV_PATH, 0o600)
+    # mkstemp creates mode 600 before any credential is written. Publish the
+    # complete file atomically; rotation replaces symlinks rather than writing
+    # through them, and first-start publication cannot clobber another run.
+    fd, temporary = tempfile.mkstemp(prefix=".env-", dir=ENV_PATH.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(content)
+        if force:
+            os.replace(temporary, ENV_PATH)
+        else:
+            try:
+                os.link(temporary, ENV_PATH)
+            except FileExistsError:
+                print(f"{ENV_PATH} already exists; use --force to rotate the tokens.",
+                      file=sys.stderr)
+                return 1
+    finally:
+        Path(temporary).unlink(missing_ok=True)
     print(f"wrote {ENV_PATH} (mode 600). The agent/approver tokens are entered "
           "per request in the console UI; the viewer token is read by the "
           "console for its dashboard polls.")

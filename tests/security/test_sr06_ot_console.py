@@ -217,3 +217,65 @@ def test_battery_is_single_flight(monkeypatch: pytest.MonkeyPatch) -> None:
     first, second = asyncio.run(_two_at_once())
     assert peak == 1, "two battery runs overlapped"
     assert sorted([first.status_code, second.status_code]) == [200, 409]
+
+
+def test_generated_tokens_are_private_before_contents_are_written(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+) -> None:
+    """Credentials must never be readable under the caller's default umask."""
+    import os
+    import stat
+
+    spec = importlib.util.spec_from_file_location(
+        "ot_init_tokens", MODULE_PATH.parent.parent / "init_tokens.py"
+    )
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    destination = tmp_path / ".env"
+    monkeypatch.setattr(module, "ENV_PATH", destination)
+    monkeypatch.setattr(module.sys, "argv", ["init_tokens.py"])
+    original_write = Path.write_text
+
+    def check_write(path, content, *args, **kwargs):
+        result = original_write(path, content, *args, **kwargs)
+        assert stat.S_IMODE(path.stat().st_mode) == 0o600
+        return result
+
+    original_fdopen = os.fdopen
+
+    def check_fdopen(fd, *args, **kwargs):
+        assert stat.S_IMODE(os.fstat(fd).st_mode) == 0o600
+        return original_fdopen(fd, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "write_text", check_write)
+    monkeypatch.setattr(os, "fdopen", check_fdopen)
+    old_umask = os.umask(0o022)
+    try:
+        assert module.main() == 0
+    finally:
+        os.umask(old_umask)
+    assert stat.S_IMODE(destination.stat().st_mode) == 0o600
+    assert "OT_TOKEN_AGENT=ot-" in destination.read_text()
+
+
+def test_token_rotation_replaces_symlink_without_overwriting_its_target(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path,
+) -> None:
+    spec = importlib.util.spec_from_file_location(
+        "ot_init_tokens", MODULE_PATH.parent.parent / "init_tokens.py"
+    )
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    target = tmp_path / "unrelated"
+    target.write_text("preserve me")
+    destination = tmp_path / ".env"
+    destination.symlink_to(target)
+    monkeypatch.setattr(module, "ENV_PATH", destination)
+    monkeypatch.setattr(module.sys, "argv", ["init_tokens.py", "--force"])
+
+    assert module.main() == 0
+    assert target.read_text() == "preserve me"
+    assert not destination.is_symlink()
+    assert "OT_TOKEN_AGENT=ot-" in destination.read_text()
