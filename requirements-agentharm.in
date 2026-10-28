@@ -1,0 +1,4 @@
+inspect-ai==0.3.248
+inspect-evals==0.15.0
+pyyaml==6.0.3
+openai==2.46.0

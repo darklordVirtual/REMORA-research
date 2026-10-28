@@ -16,32 +16,27 @@ on:
         default: 'openai/gpt-4o-mini'
         required: false
 
-env:
-  HF_TOKEN: ${{ secrets.HF_TOKEN }}
-  # Account-level Cloudflare API token (cfat_...) for api.cloudflare.com AI REST calls.
-  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  # Route all LLM calls through Cloudflare/CG AI Gateway.
-  # OPENAI_API_KEY is the environment variable expected by the OpenAI-compatible SDK,
-  # but for Unified Billing the value is a Cloudflare API token, not a direct
-  # provider key. BASE_URL is optional when CLOUDFLARE_ACCOUNT_ID is set.
-  OPENAI_API_KEY: ${{ secrets.CF_AI_GATEWAY_KEY }}
-  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-  CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-  CF_GATEWAY_ID: ${{ secrets.CF_GATEWAY_ID }}
-  OPENAI_BASE_URL: ${{ secrets.BASE_URL }}
-  # inspect-ai picks up OPENAI_BASE_URL automatically via the OpenAI-compatible SDK.
-  CF_AIG_TOKEN: ${{ secrets.CF_AI_GATEWAY_KEY }}
+# SR-12 / SEC-18: no workflow-level secrets. Every secret is scoped to the
+# step that needs it (HF_TOKEN to the dataset check; the Cloudflare/OpenAI
+# gateway set to the eval step), so a compromised install or test step sees
+# no credentials.
 
 jobs:
   agentharm:
-    # The final step commits the full-run results back to the repo.
+    # Results return via pull request to a results branch, never a direct
+    # push to the default branch (SR-12).
     permissions:
       contents: write
+      pull-requests: write
     runs-on: ubuntu-latest
     timeout-minutes: 120
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
+        with:
+          # The job runs third-party eval code; do not leave a usable
+          # credential in the git config (SR-12).
+          persist-credentials: false
 
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -55,9 +50,10 @@ jobs:
           # pip rejects in a constraints file.
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
           python -m pip install -e ".[dev]" -c /tmp/constraints.txt
-          # Experiment deps pinned to exact versions resolved from PyPI
-          # (https://pypi.org/pypi/<name>/json) on 2026-07-20.
-          pip install inspect-ai==0.3.248 inspect-evals==0.15.0 pyyaml==6.0.3 openai==2.46.0
+          # Experiment deps are hash-pinned (SR-12 / SEC-19):
+          # requirements-agentharm.lock is generated with
+          # `pip-compile --generate-hashes requirements-agentharm.in`.
+          pip install --require-hashes -r requirements-agentharm.lock
 
       - name: Verify HF dataset access
         # Secret hygiene: never interpolate secrets into inline scripts — pass
@@ -85,11 +81,25 @@ jobs:
 
       - name: Run experiment arms
         # Dispatch inputs reach the shell through env, never by ${{ }} text
-        # substitution into the script body.
+        # substitution into the script body. The Cloudflare/OpenAI gateway
+        # secrets are scoped to this step only (SR-12).
         env:
           INPUT_MODEL: ${{ inputs.model }}
           INPUT_LIMIT: ${{ inputs.limit }}
           INPUT_ARMS: ${{ inputs.arms }}
+          # Account-level Cloudflare API token (cfat_...) for api.cloudflare.com AI REST calls.
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # Route all LLM calls through Cloudflare/CG AI Gateway.
+          # OPENAI_API_KEY is the environment variable expected by the OpenAI-compatible SDK,
+          # but for Unified Billing the value is a Cloudflare API token, not a direct
+          # provider key. BASE_URL is optional when CLOUDFLARE_ACCOUNT_ID is set.
+          OPENAI_API_KEY: ${{ secrets.CF_AI_GATEWAY_KEY }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_GATEWAY_ID: ${{ secrets.CF_GATEWAY_ID }}
+          OPENAI_BASE_URL: ${{ secrets.BASE_URL }}
+          # inspect-ai picks up OPENAI_BASE_URL automatically via the OpenAI-compatible SDK.
+          CF_AIG_TOKEN: ${{ secrets.CF_AI_GATEWAY_KEY }}
         run: |
           set -euo pipefail
 
@@ -262,12 +272,19 @@ jobs:
             experiments/agentharm/envelopes.jsonl
           retention-days: 90
 
-      - name: Commit results to repo
+      - name: Propose results via pull request
+        # SR-12: results return on a results branch through a pull request —
+        # never a direct push to the default branch from a job that ran
+        # third-party experiment code.
         if: inputs.limit == '0'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add results/agentharm/ experiments/agentharm/tau_config.yaml
-          git diff --staged --quiet || git commit -m \
-            "experiment(agentharm): full run results - $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          git push
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          branch: results/agentharm-${{ github.run_id }}
+          title: "AgentHarm full run results (run ${{ github.run_id }})"
+          commit-message: "experiment(agentharm): full run results"
+          add-paths: |
+            results/agentharm/
+            experiments/agentharm/tau_config.yaml
+          body: |
+            Full AgentHarm run results from workflow run ${{ github.run_id }}.
+            Review the summary and the tau* config before merging.

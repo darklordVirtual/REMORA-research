@@ -1135,3 +1135,31 @@ items:
       so an idle tenant is never swept and wall-clock recovery still needs a
       scheduled call. Verified on SQLite; the Postgres branch shares the code
       path but was not exercised against a live server here.
+
+  - id: REM-061
+    section: "security-review-2026-10"
+    title: "SR-12: agentharm workflow exposed an account-wide Cloudflare token to every step and pushed to master"
+    gate: P1
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - .github/workflows/agentharm-experiment.yml
+      - requirements-agentharm.in
+      - requirements-agentharm.lock
+    notes: >
+      Security review 2026-10 (SR-12, Medium): the dispatch-only experiment
+      workflow carried HF_TOKEN, an account-level CLOUDFLARE_API_TOKEN and
+      the AI gateway key at workflow level (every step, including the
+      third-party eval runner, saw them), checkout persisted credentials, the
+      experiment deps installed unhashed, and the final step git-pushed
+      straight to the default branch. Fixed per SEC-18: secrets are scoped to
+      the steps that need them (HF_TOKEN to the dataset check; the gateway
+      set to the eval step), checkout uses persist-credentials: false,
+      experiment deps install from the hash-pinned requirements-agentharm.lock
+      (pip-compile --generate-hashes from requirements-agentharm.in; note the
+      job runs Python 3.11 while the lock was compiled under 3.12 — the
+      pinned versions are identical and both platforms' wheels are hashed),
+      and results return via peter-evans/create-pull-request (already
+      SHA-pinned in this repo) to results/agentharm-<run_id>. The workflow is
+      dispatch-only, so the residual risk was supply-chain, not external
+      trigger; this closes the over-exposure.
