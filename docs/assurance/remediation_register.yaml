@@ -1135,3 +1135,23 @@ items:
       so an idle tenant is never swept and wall-clock recovery still needs a
       scheduled call. Verified on SQLite; the Postgres branch shares the code
       path but was not exercised against a live server here.
+
+  - id: REM-049
+    section: "security-review-2026-10"
+    title: "SR-05: Prometheus /metrics skipped the multi-tenant admin check"
+    gate: P1
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - servers/api.py
+      - tests/security/test_sr05_metrics_access.py
+    notes: >
+      Security review 2026-10 (SR-05, Medium): /metrics called only
+      _authenticate while /v1/metrics additionally refused non-admins when the
+      token table held more than one tenant; both serve the same
+      process-global counters, so any tenant's viewer token could read
+      cross-tenant decision and refusal volumes. Fixed by factoring the check
+      into _require_metrics_access, used by both endpoints. The explicit
+      REMORA_PROMETHEUS_PUBLIC opt-out still opens the text surface only.
+      Tests: tests/security/test_sr05_metrics_access.py (failing-first, then
+      green; single-tenant read access and the public opt-out pinned).

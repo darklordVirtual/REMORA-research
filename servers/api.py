@@ -2884,20 +2884,30 @@ def follow_up(req: FollowUpRequest, request: Request) -> dict:
     }
 
 
-@app.get("/v1/metrics", response_model=dict, tags=["infrastructure"])
-def metrics(request: Request) -> dict:
-    """Basic governance gateway metrics for prototype observability."""
+def _require_metrics_access(request: Request) -> tuple[str, str]:
+    """Authenticate and authorise access to process-global metrics.
+
+    These counters are process-global, not per tenant. When more than one
+    tenant is provisioned, exposing them to any tenant holding `read` leaks
+    other tenants' decision/refusal volumes, so the global view needs admin.
+    A single-tenant deployment has nobody to leak to and keeps `read`.
+    Shared by /v1/metrics and /metrics so the Prometheus surface cannot drift
+    weaker than the JSON one (SR-05).
+    """
     tenant_id, role = _authenticate(request)
     _require_tenant_capability(role, tenant_id, "read")
-    # These counters are process-global, not per tenant. When more than one
-    # tenant is provisioned, exposing them to any tenant holding `read` leaks
-    # other tenants' decision/refusal volumes, so the global view needs admin.
-    # A single-tenant deployment has nobody to leak to and keeps `read`.
     if len({t for t, _ in _TOKEN_TABLE.values()}) > 1 and role != "admin":
         raise HTTPException(
             status_code=403,
             detail="global metrics span all tenants; admin role required",
         )
+    return tenant_id, role
+
+
+@app.get("/v1/metrics", response_model=dict, tags=["infrastructure"])
+def metrics(request: Request) -> dict:
+    """Basic governance gateway metrics for prototype observability."""
+    tenant_id, role = _require_metrics_access(request)
     total = _metric_int("assess_total")
     total_elapsed = _metric_float("total_elapsed_ms")
     mean_elapsed = round(total_elapsed / total, 3) if total else 0.0
@@ -2950,9 +2960,14 @@ def metrics(request: Request) -> dict:
 
 @app.get("/metrics", response_class=PlainTextResponse, tags=["infrastructure"])
 def metrics_prometheus(request: Request) -> PlainTextResponse:
-    """Prometheus exposition endpoint for gateway metrics."""
+    """Prometheus exposition endpoint for gateway metrics.
+
+    Same process-global counters as /v1/metrics, so the same access rule
+    applies (SR-05): the explicit REMORA_PROMETHEUS_PUBLIC opt-out opens the
+    text surface only, and never the JSON one.
+    """
     if os.getenv("REMORA_PROMETHEUS_PUBLIC", "").lower() not in {"1", "true", "yes"}:
-        _authenticate(request)
+        _require_metrics_access(request)
     return PlainTextResponse(_prometheus_metrics_text(), media_type="text/plain; version=0.0.4")
 
 
