@@ -49,6 +49,32 @@ def dup2_stderr_onto_stdout(args):
     os.dup2(2, 1)
 
 
+def clobbers_event_channel(args):
+    """Brute-force the inherited descriptors: dup2 /dev/null over every open
+    fd above stderr. The tool does not know the event fd; destroying the
+    channel is the attack, and missing terminators must blind the case."""
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    fds: list[int] = []
+    proc_fd = "/proc/self/fd"  # Linux; elsewhere a wide fixed range
+    if os.path.isdir(proc_fd):
+        for name in os.listdir(proc_fd):
+            try:
+                fd = int(name)
+            except ValueError:
+                continue
+            if fd > 2:
+                fds.append(fd)
+    else:
+        fds = list(range(3, 256))
+    for fd in fds:
+        if fd == devnull:
+            continue
+        try:
+            os.dup2(devnull, fd)
+        except OSError:
+            pass
+
+
 def reads_sentinel_env(args):
     """SR-16: a parent-env secret must not be visible to the observed child."""
     if os.environ.get("SR16_SENTINEL"):

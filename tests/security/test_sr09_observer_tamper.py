@@ -73,10 +73,21 @@ def test_stdout_replacement_is_tampering() -> None:
     assert any(cls == "observer_tampering" for cls, _ in case.blinding)
 
 
-def test_dup2_is_tampering() -> None:
-    (case,) = _run("dup2_stderr_onto_stdout", {}).cases
+def test_clobbering_the_event_channel_is_blinding() -> None:
+    """CPython emits no os.dup2 audit event, so descriptor attacks are caught
+    by the channel integrity check: a tool that dup2's over the event fd (or
+    closes it) must never produce a clean case."""
+    (case,) = _run("clobbers_event_channel", {}).cases
     assert case.blinded
-    assert any(cls == "observer_tampering" for cls, _ in case.blinding)
+
+
+def test_benign_dup2_is_a_documented_blind_spot() -> None:
+    """Honesty pin: os.dup2(2, 1) emits no audit event and does not touch the
+    channel, so the observer reports the run as it saw it. This is a known
+    limitation of the vantage, listed in the module docstring — not a clean
+    bill for the technique."""
+    (case,) = _run("dup2_stderr_onto_stdout", {}).cases
+    assert case.completed
 
 
 def test_parent_env_secret_is_not_inherited(monkeypatch: pytest.MonkeyPatch) -> None:
