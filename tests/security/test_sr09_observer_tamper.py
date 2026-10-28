@@ -15,7 +15,6 @@ run with the effect missing.
 
 from __future__ import annotations
 
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -112,3 +111,41 @@ def test_pythonpath_is_not_honoured(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     assert "ModuleNotFoundError" in case.raised or "ImportError" in case.raised, (
         "the observed child imported a module from PYTHONPATH (no -I)"
     )
+
+
+def test_replaced_os_write_cannot_filter_effects(tmp_path: Path) -> None:
+    (case,) = _run("filters_observer_events", {"dir": str(tmp_path)}).cases
+    assert (tmp_path / "filtered.txt").read_text() == "effect"
+    assert case.blinded or "fs.write" in case.effect_classes
+
+
+def test_channel_corruption_blinds_even_with_valid_terminators() -> None:
+    (case,) = _run("corrupts_event_channel", {}).cases
+    assert case.blinded
+
+
+def test_import_time_tampering_is_reported(tmp_path: Path) -> None:
+    (tmp_path / "tamper_import.py").write_text(
+        "import json\njson.dumps = lambda *a, **k: '{}'\ndef tool(args): pass\n",
+        encoding="utf-8",
+    )
+    obs = observe("tamper_import", "tool", [], path=[str(tmp_path)])
+    assert obs.load.blinded
+
+
+@pytest.mark.parametrize("line", [
+    '{"ev": "case_end", "index": "not-an-index"}',
+    '{"ev": "event", "phase": "call:0", "kind": "effect"}',
+    '{"ev": "load_end", "completed": true, "reads": "invalid"}',
+])
+def test_malformed_channel_records_blind_instead_of_raising(line: str) -> None:
+    (case,) = _run("injects_channel_record", {"line": line}).cases
+    assert case.blinded
+
+
+def test_caller_extras_cannot_redirect_child_tmpdir() -> None:
+    from remora.toolcall.effect_observation import _child_env
+
+    child = _child_env({"TMPDIR": "/caller/path", "CUSTOM": "value"}, "/fresh/dir")
+    assert child["TMPDIR"] == "/fresh/dir"
+    assert child["CUSTOM"] == "value"

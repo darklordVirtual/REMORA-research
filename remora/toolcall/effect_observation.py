@@ -25,7 +25,8 @@ that has one cannot support "no undeclared effect" later:
 - ``native_code``: ``ctypes`` loading a library, or a non-standard-library
   extension module imported during the observation;
 - ``observer_tampering``: the tool installing an audit hook of its own,
-  replacing ``json.dumps``/``sys.stdout``/``sys.stderr``, or replacing or
+  replacing channel functions or ``json.dumps``/``sys.stdout``/``sys.stderr``,
+  or replacing or
   closing the event channel (checked by descriptor identity after each
   case — CPython emits no ``os.dup2`` audit event, so a descriptor swap
   that leaves the channel intact is a documented blind spot);
@@ -34,6 +35,12 @@ that has one cannot support "no undeclared effect" later:
 A process the tool starts is observed as ``process.spawn``; what that child
 does is outside this vantage. Reads are counted, not reported as effects:
 reading is not reaching.
+
+This is a same-interpreter diagnostic, not a sandbox for hostile Python.
+The closure removes the old public record list; Python frame/closure
+introspection and mutation of serializer internals remain outside the
+tamper checks. A nonce on this channel authenticates completion only against
+stdout forgery, not against code that introspects the harness itself.
 """
 from __future__ import annotations
 
@@ -56,8 +63,8 @@ BLINDING = ("native_code", "observer_tampering", "timeout", "crash")
 #
 # SEC-09 (SR-09): events stream to the parent over an inherited pipe, one
 # JSON line each, from inside the hook. Nothing is stored in __main__
-# globals, so the observed code cannot clear or rewrite the record
-# (pre-fix PoC: ``__main__.records.clear()``). Every case ends with a
+# globals, closing the direct ``__main__.records.clear()`` attack. This
+# does not isolate the closure against Python introspection. Every case ends with a
 # terminator carrying a per-run nonce the parent generated; a missing or
 # mismatched terminator is blinding, never a clean run, and stdout carries
 # nothing the parent trusts (pre-fix PoC: forged @@OBSERVATION@@ marker plus
@@ -74,13 +81,15 @@ def _main():
     # Pinned references: a tool that replaces json.dumps or sys.stdout after
     # this point does not reach the channel, and the swap is reported.
     _dumps = json.dumps
+    _write = os.write
+    _fstat = os.fstat
     _stdout = sys.stdout
     _stderr = sys.stderr
     state = {"phase": "load", "reads": 0}
 
     def emit(obj):
         try:
-            os.write(efd, _dumps(obj).encode() + b"\n")
+            _write(efd, _dumps(obj).encode() + b"\n")
         except Exception:
             pass
 
@@ -139,12 +148,14 @@ def _main():
     # case. A tool that dup2's over the channel (or closes it) turns every
     # later write into a missing terminator, which the parent reports as
     # blinding — but the fstat check names it earlier and precisely.
-    _fd_identity = os.fstat(efd)
+    _fd_identity = _fstat(efd)
 
     def _integrity():
         """Channel self-check after each case: a replaced serialiser, stream
         or event descriptor is tampering, reported as blinding, never
         papered over."""
+        if os.write is not _write or os.fstat is not _fstat:
+            _note("observer_tampering", "the tool replaced channel functions", "blinding")
         if json.dumps is not _dumps:
             _note("observer_tampering", "the tool replaced json.dumps", "blinding")
         if sys.stdout is not _stdout:
@@ -152,7 +163,7 @@ def _main():
         if sys.stderr is not _stderr:
             _note("observer_tampering", "the tool replaced sys.stderr", "blinding")
         try:
-            now = os.fstat(efd)
+            now = _fstat(efd)
             if (now.st_dev, now.st_ino) != (_fd_identity.st_dev, _fd_identity.st_ino):
                 _note("observer_tampering", "the event descriptor was replaced", "blinding")
         except OSError:
@@ -162,9 +173,11 @@ def _main():
         import importlib
         module = importlib.import_module(spec["module"])
         fn = getattr(module, spec["function"])
+        _integrity()
         emit({"ev": "load_end", "completed": True, "reads": state["reads"]})
     except BaseException as exc:
         fn = None
+        _integrity()
         emit({"ev": "load_end", "completed": False,
               "error": f"{type(exc).__name__}: {exc}"[:300], "reads": state["reads"]})
 
@@ -200,10 +213,14 @@ def _child_env(extra: Mapping[str, str] | None, workdir: str) -> dict[str, str]:
     additions (merged over the allowlist), not a full replacement; TMPDIR
     always points at the child's fresh working directory.
     """
-    base = {k: os.environ[k] for k in ("PATH", "LANG", "LC_ALL") if k in os.environ}
-    base["TMPDIR"] = workdir
+    base = {
+        "PATH": os.environ.get("PATH", os.defpath),
+        "LANG": os.environ.get("LANG", "C"),
+        "LC_ALL": os.environ.get("LC_ALL", "C"),
+    }
     if extra:
         base.update(extra)
+    base["TMPDIR"] = workdir
     return base
 
 
@@ -348,14 +365,39 @@ def observe(module: str, function: str, cases: Sequence[Any], *, timeout_s: floa
             channel_corrupt = True
             continue
         kind = ev.get("ev")
+        # Everything crossing this boundary is untrusted, including valid
+        # JSON. Reject malformed/duplicate records before indexing or coercion.
         if kind == "event":
-            phase_events.setdefault(str(ev.get("phase", "?")), []).append(ev)
+            if (not isinstance(ev.get("phase"), str)
+                    or ev.get("kind") not in ("effect", "blinding")
+                    or not isinstance(ev.get("class"), str)
+                    or not isinstance(ev.get("detail"), str)):
+                channel_corrupt = True
+                continue
+            phase_events.setdefault(ev["phase"], []).append(ev)
         elif kind == "load_end":
+            if (load_end is not None or type(ev.get("completed")) is not bool
+                    or type(ev.get("reads")) is not int or ev["reads"] < 0):
+                channel_corrupt = True
+                continue
             load_end = ev
+        elif kind == "case_begin":
+            if type(ev.get("index")) is not int or not 0 <= ev["index"] < len(cases):
+                channel_corrupt = True
         elif kind == "case_end":
-            case_ends[int(ev.get("index", -1))] = ev
+            index = ev.get("index")
+            if (type(index) is not int or not 0 <= index < len(cases)
+                    or index in case_ends or ev.get("nonce") != nonce
+                    or type(ev.get("reads")) is not int or ev["reads"] < 0
+                    or not isinstance(ev.get("raised"), str)):
+                channel_corrupt = True
+                continue
+            case_ends[index] = ev
         elif kind == "end":
-            terminated = ev.get("nonce") == nonce
+            if terminated or ev.get("nonce") != nonce:
+                channel_corrupt = True
+            else:
+                terminated = True
         else:
             channel_corrupt = True
 
@@ -364,6 +406,8 @@ def observe(module: str, function: str, cases: Sequence[Any], *, timeout_s: floa
         records = phase_events.get(phase, [])
         effects = tuple((r["class"], r["detail"]) for r in records if r.get("kind") == "effect")
         blinding = [(r["class"], r["detail"]) for r in records if r.get("kind") == "blinding"]
+        if channel_corrupt:
+            blinding.append(("observer_tampering", "channel corruption"))
         end = case_ends.get(index)
         if end is None or end.get("nonce") != nonce:
             # Missing or forged terminator: os._exit, a killed process or a
@@ -394,6 +438,11 @@ def observe(module: str, function: str, cases: Sequence[Any], *, timeout_s: floa
         reads=int(load_end.get("reads", 0)),
         raised=str(load_end.get("error", "") if not load_end.get("completed") else ""),
     )
+    if channel_corrupt:
+        load = CaseObservation(
+            phase="load", completed=load.completed, effects=load.effects,
+            blinding=load.blinding + (("observer_tampering", "channel corruption"),),
+            reads=load.reads, raised=load.raised)
     observed = tuple(_case(i) for i in range(len(cases)))
     if not terminated:
         # No valid final terminator: the run ended mid-stream (os._exit,

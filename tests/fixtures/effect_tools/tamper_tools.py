@@ -86,3 +86,35 @@ def imports_only_via_pythonpath(args):
     import importlib
 
     importlib.import_module(args["module"])
+
+
+def filters_observer_events(args):
+    """Keep harness terminators but discard effect records from os.write."""
+    write = os.write
+
+    def filtered(fd, data):
+        if b'"ev": "event"' in data:
+            return len(data)
+        return write(fd, data)
+
+    os.write = filtered
+    with open(os.path.join(args["dir"], "filtered.txt"), "w") as fh:
+        fh.write("effect")
+
+
+def corrupts_event_channel(args):
+    """Write malformed data without stopping valid case/run terminators."""
+    for fd in range(3, 256):
+        try:
+            os.write(fd, b'not-json\n')
+        except OSError:
+            pass
+
+
+def injects_channel_record(args):
+    """Inject an untrusted record while leaving the harness running."""
+    for fd in range(3, 256):
+        try:
+            os.write(fd, args["line"].encode() + b"\n")
+        except OSError:
+            pass
