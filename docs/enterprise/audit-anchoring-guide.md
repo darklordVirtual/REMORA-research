@@ -44,8 +44,8 @@ checkpoint's root, so the checkpoints form their own chain.
   `prev_checkpoint_root` (`null` for the first checkpoint of a chain),
   `v` (Merkle version; absent means 1 in records written before v2).
   `Checkpoint.from_dict` refuses any other value (3, `"2"`, `2.0`,
-  `true`, `null`); a checkpoint with an unsupported version never verifies
-  and is reported as `unsupported_version_at:<i>` by the chain check.
+  `true`, `null`). A checkpoint with an unsupported version never verifies,
+  and the chain check reports it as `unsupported_version_at:<i>`.
   v2 leaves must be lowercase 64-char hex: upper case or whitespace,
   which `bytes.fromhex` would otherwise accept, is refused.
 - Signing payload: `remora-ckpt-v2|<seq_start>|<seq_end>|<root>|<prev>`
