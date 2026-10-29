@@ -80,12 +80,17 @@ def test_identity_fields_document_their_trust_semantics() -> None:
             f"{model}.{field} does not document its trust semantics")
 
 
-def test_demo_tokens_are_marked_demo_only() -> None:
+def test_pilot_tokens_are_generated_not_published() -> None:
+    """SR-06: pilot tokens are generated per install by init_tokens.py; the
+    API description must point there and must not publish literal tokens."""
     info = _openapi()["info"]
     text = str(info.get("description", ""))
-    assert "ot-agent" in text, "pilot tokens left the description entirely?"
+    assert "deploy/ot-pilot/init_tokens.py" in text, (
+        "the description must say where the pilot tokens come from")
+    for literal in ("`ot-agent`", "`ot-approver`", "`ot-viewer`", "`ot-supervisor`"):
+        assert literal not in text, f"description still publishes literal token {literal}"
     assert "Demo profile only" in text, (
-        "the pilot tokens must be explicitly marked as demo-only credentials")
+        "the pilot credentials must be explicitly marked as demo-only")
 
 
 def test_tool_call_request_carries_a_worked_example() -> None:
