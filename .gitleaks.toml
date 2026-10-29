@@ -93,4 +93,14 @@ regexes = [
   # value; the value is the public domain constant from
   # remora/crypto/domain_signing.py, not key material. Anchored to the row.
   '''\| the export as a whole \| the evidence key, `REMORA/EVIDENCE/v1` \|''',
+  # tests/security/test_sr08_result_scanner.py — redaction fixtures for the
+  # SR-08 review follow-up. They must look like credentials, because the test
+  # asserts redact_text() removes them; none is a live value. The AWS one is
+  # the documented AWS example secret prefix, the password is the xkcd phrase,
+  # the PEM bodies are 24-byte base64 fragments that decode to no key. Each
+  # entry is anchored to the exact fixture tuple it appears in.
+  '''\("AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENGbPxRfiCY", "wJalrXUtnFEMI/K7MDENGbPxRfiCY"\)''',
+  '''\("DB_PASSWORD=correct-horse-battery", "correct-horse-battery"\)''',
+  '''"-----BEGIN OPENSSH PRIVATE KEY-----\\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmU\\n"''',
+  '''"-----BEGIN PRIVATE KEY-----\\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASC"''',
 ]
