@@ -279,3 +279,70 @@ def test_token_rotation_replaces_symlink_without_overwriting_its_target(
     assert target.read_text() == "preserve me"
     assert not destination.is_symlink()
     assert "OT_TOKEN_AGENT=ot-" in destination.read_text()
+
+
+# ── Fault-injection runner: no literal pilot tokens ─────────────────────────
+
+FAULT_RUNNER_PATH = MODULE_PATH.parents[1] / "run_fault_injection.py"
+
+
+def _load_fault_runner(monkeypatch: pytest.MonkeyPatch, **env: str):
+    import sys
+
+    for name in ("AGENT", "APPROVER", "SUPERVISOR", "VIEWER"):
+        monkeypatch.delenv(f"OT_TOKEN_{name}", raising=False)
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+    monkeypatch.syspath_prepend(str(FAULT_RUNNER_PATH.parent))
+    monkeypatch.setattr(sys, "argv", ["run_fault_injection.py"])
+    spec = importlib.util.spec_from_file_location("ot_fault_runner", FAULT_RUNNER_PATH)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_fault_runner_refuses_to_run_without_tokens(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Tokens come from init_tokens.py's .env; with none set the runner stops
+    before touching the stack instead of falling back to literal tokens."""
+    module = _load_fault_runner(monkeypatch, OT_TOKEN_AGENT="a", OT_TOKEN_VIEWER="v")
+    assert "ot-agent" not in (module.AGENT, module.APPROVER, module.SUPERVISOR, module.VIEWER)
+
+    def _must_not_contact(*args, **kwargs):
+        raise AssertionError("runner contacted the stack without credentials")
+
+    monkeypatch.setattr(module, "wait_healthy", _must_not_contact)
+    assert module.main() == 2
+    err = capsys.readouterr().err
+    assert "OT_TOKEN_APPROVER" in err and "OT_TOKEN_SUPERVISOR" in err
+    assert "OT_TOKEN_AGENT" not in err
+    assert "init_tokens.py" in err
+
+
+def test_fault_runner_revokes_by_actor_id_not_by_token(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """revoke-principal takes the actor id the API resolves a token to, never
+    the bearer token itself (which would also leak it into the audit chain)."""
+    module = _load_fault_runner(
+        monkeypatch,
+        OT_TOKEN_AGENT="tok-a", OT_TOKEN_APPROVER="tok-ap",
+        OT_TOKEN_SUPERVISOR="tok-s", OT_TOKEN_VIEWER="tok-v",
+    )
+    sent: list[dict] = []
+
+    def _call(method, path, token, body=None):
+        if path == "/v1/execution/revoke-principal":
+            sent.append(body)
+            return (200 if body["principal"] != "ot-supervisor" else 409), {}
+        return 200, {"outcome": "approval_invalidated"}
+
+    monkeypatch.setattr(module, "call", _call)
+    monkeypatch.setattr(module, "approved_item", lambda tc, token=None: "item")
+    monkeypatch.setattr(module, "execute", lambda item, tc: (200, {"outcome": "approval_invalidated"}))
+    rec: dict = {}
+    module.f_approver_revoked_after_approval(rec)
+    assert [b["principal"] for b in sent] == ["ot-approver", "ot-supervisor"]
+    assert not any(b["principal"].startswith("tok-") for b in sent)

@@ -1,17 +1,19 @@
 # REMORA OT pilot — the whole thing, locally, in production mode.
 #
-# One command, nothing to configure:
+# Generate the pilot credentials once, then one command:
 #
+#   python deploy/ot-pilot/init_tokens.py      # writes deploy/ot-pilot/.env
 #   docker compose -f deploy/ot-pilot/docker-compose.yml up --build -d
 #
 # Then open http://localhost:8081 — operator console with live metrics, the
 # scenario buttons and a one-click run of the 16-case OT battery.
-# Swagger is at http://localhost:8080/docs (press Authorize, paste `ot-agent`).
+# Swagger is at http://localhost:8080/docs (press Authorize, paste the
+# OT_TOKEN_AGENT value from deploy/ot-pilot/.env, made by init_tokens.py).
 #
 #   docker compose -f deploy/ot-pilot/docker-compose.yml down -v   # tear down
 #
-# Every credential, database, registry and work order below is preset. There
-# is nothing to fill in before it runs.
+# Every database, registry and work order below is preset. The bearer tokens
+# are not: compose refuses to start until init_tokens.py has generated them.
 #
 # Production mode is not decoration here. REMORA_ENV=production makes the
 # fail-closed prerequisites binding for the surfaces this deployment serves:

@@ -1147,6 +1147,10 @@ items:
       - deploy/ot-pilot/docker-compose.yml
       - deploy/ot-pilot/init_tokens.py
       - deploy/ot-pilot/run_ot_battery.py
+      - deploy/ot-pilot/run_fault_injection.py
+      - servers/api.py
+      - schemas/openapi.json
+      - tests/test_execution_openapi_contract.py
       - frontend/src/pilot/api.ts
       - frontend/src/pilot/PilotApp.tsx
       - docs/deployment/execution-quickstart.md
@@ -1164,8 +1168,20 @@ items:
       are generated at first start by deploy/ot-pilot/init_tokens.py into a
       mode-600 .env that compose requires; both services bind 127.0.0.1. The
       pilot UI replaces the role selector with a per-request token field.
+      Review follow-up: run_fault_injection.py no longer hard-codes the old
+      literal tokens; it reads OT_TOKEN_AGENT/APPROVER/SUPERVISOR/VIEWER and
+      refuses to start (exit 2, before contacting the stack) if any is empty,
+      and revoke-principal now names the actor id (ot-approver /
+      ot-supervisor) rather than the bearer token. The API description
+      (servers/api.py, schemas/openapi.json) and the compose header no longer
+      publish literal tokens; they point to init_tokens.py.
       Tests: tests/security/test_sr06_ot_console.py (failing-first, then
-      green, 6 cases).
+      green, 10 cases: 8 console/battery/token-generation cases plus 2
+      fault-runner cases) and
+      tests/test_execution_openapi_contract.py::test_pilot_tokens_are_generated_not_published
+      (failing-first). The fault-injection runner itself still needs a live
+      Docker stack; its end-to-end run with generated tokens is not part of
+      this evidence.
 
   - id: REM-058
     section: "security-review-2026-10"
