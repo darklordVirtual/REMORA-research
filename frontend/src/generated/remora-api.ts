@@ -40,6 +40,10 @@ export interface paths {
         /**
          * Metrics Prometheus
          * @description Prometheus exposition endpoint for gateway metrics.
+         *
+         *     Same process-global counters as /v1/metrics, so the same access rule
+         *     applies (SR-05): the explicit REMORA_PROMETHEUS_PUBLIC opt-out opens the
+         *     text surface only, and never the JSON one.
          */
         get: operations["metrics_prometheus_metrics_get"];
         put?: never;
