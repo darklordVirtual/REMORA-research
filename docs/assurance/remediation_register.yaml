@@ -1146,6 +1146,8 @@ items:
       - .github/workflows/agentharm-experiment.yml
       - requirements-agentharm.in
       - requirements-agentharm.lock
+      - scripts/osf_sync.py
+      - tests/meta/test_agentharm_workflow_scoping.py
     notes: >
       Security review 2026-10 (SR-12, Medium): the dispatch-only experiment
       workflow carried HF_TOKEN, an account-level CLOUDFLARE_API_TOKEN and
@@ -1153,16 +1155,35 @@ items:
       third-party eval runner, saw them), checkout persisted credentials, the
       experiment deps installed unhashed, and the final step git-pushed
       straight to the default branch. Fixed per SEC-18: secrets are scoped to
-      the steps that need them (HF_TOKEN to the dataset check; the gateway
-      set to the eval step), checkout uses persist-credentials: false,
-      experiment deps install from the hash-pinned requirements-agentharm.lock
-      (pip-compile --generate-hashes from requirements-agentharm.in; note the
-      job runs Python 3.11 while the lock was compiled under 3.12 — the
-      pinned versions are identical and both platforms' wheels are hashed),
-      and results return via peter-evans/create-pull-request (already
-      SHA-pinned in this repo) to results/agentharm-<run_id>. The workflow is
-      dispatch-only, so the residual risk was supply-chain, not external
-      trigger; this closes the over-exposure.
+      the steps that need them (HF_TOKEN to the dataset check and to the eval
+      step, which downloads the dataset the check step probes with a token;
+      the gateway set to the eval step only), checkout uses
+      persist-credentials: false, and the workflow is split in two jobs. The
+      eval job runs with contents: read and uploads results as an artifact;
+      a separate propose-results job (needs the eval job, only when
+      limit == '0', contents and pull-requests write, no secrets, runs no
+      experiment code) copies only results/agentharm/ and the tau* config
+      from the artifact and opens a pull request via
+      peter-evans/create-pull-request (SHA-pinned) to
+      results/agentharm-<run_id>. Experiment deps install from the
+      hash-pinned requirements-agentharm.lock, compiled for Python 3.12
+      (uv pip compile --python-version 3.12 --python-platform
+      x86_64-unknown-linux-gnu --generate-hashes); the job now runs
+      Python 3.12 (it ran 3.11, for which the lock's numpy 2.5.4 has no
+      wheel). The frozen experiment versions changed on 2026-10-29:
+      inspect-ai 0.3.248 -> 0.3.266 and inspect-evals 0.15.0 -> 0.21.0 (the
+      versions requirements-lock.txt already pins), because 0.3.248 caps
+      fsspec at <=2025.9.0, which carries PYSEC-2026-4217 / CVE-2026-104851
+      (fixed in 2026.6.0); the lock now resolves fsspec 2026.6.0 and
+      `pip-audit -r requirements-agentharm.lock --no-deps --disable-pip`
+      reports no known vulnerabilities. Verified only that the lock installs
+      with --require-hashes in a clean 3.12 venv and that
+      experiments/agentharm/solvers.py imports against it; no AgentHarm run
+      was made on the new versions; runs of this workflow before this change
+      used 0.3.248 / 0.15.0 and are not re-measured by it.
+      The workflow is dispatch-only, so the residual risk was supply-chain,
+      not external trigger. Tests:
+      tests/meta/test_agentharm_workflow_scoping.py.
 
   - id: REM-058
     section: "security-review-2026-10"
