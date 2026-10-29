@@ -338,6 +338,15 @@ class MemoryPromotionGate:
         if rubric is None:
             record.blocked_reason = "No rubric available"
             return False
+        # SEC-11 (SR-13): never learn from a degraded judge response (offline
+        # fallback, out-of-range or non-finite scores) or from one whose
+        # source was not authenticated. Both were read but not gated before.
+        if rubric.degraded:
+            record.blocked_reason = "judge response degraded"
+            return False
+        if not rubric.source_authenticated:
+            record.blocked_reason = "judge source unauthenticated"
+            return False
         if rubric.composite_score < _L0_TO_L1_MIN_COMPOSITE:
             record.blocked_reason = (
                 f"composite {rubric.composite_score:.2f} < {_L0_TO_L1_MIN_COMPOSITE}"
