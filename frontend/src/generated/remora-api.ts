@@ -95,6 +95,12 @@ export interface paths {
          *     decision is detectable. It reports `durable=false` when the active
          *     backend cannot survive a restart — on such a backend a "valid" chain
          *     proves nothing about history.
+         *
+         *     ``mode=recompute`` (SEC-01) additionally rebuilds each v3 envelope's
+         *     audit hash from the stored payload and compares the HMAC signature when
+         *     ``REMORA_ENVELOPE_SIGNING_KEY`` is set, so rewritten actor, tenant,
+         *     policy or argument fields are detected, not just broken links. v2
+         *     records predate field binding (SR-01) and are counted as links-only.
          */
         get: operations["verify_audit_chain_v1_audit_chain_verify_get"];
         put?: never;
@@ -2172,7 +2178,9 @@ export interface operations {
     };
     verify_audit_chain_v1_audit_chain_verify_get: {
         parameters: {
-            query?: never;
+            query?: {
+                mode?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2188,6 +2196,15 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

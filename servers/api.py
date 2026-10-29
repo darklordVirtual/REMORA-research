@@ -1482,14 +1482,11 @@ def _sign_envelope_audit_hash(audit_hash: str) -> str | None:
 # recompute a stored v3 envelope (SEC-01). Aliased here for the existing
 # call sites and tests.
 from remora.governance.envelope_verify import (
-    canonical_envelope_for_hash as _canonical_envelope_for_hash,  # noqa: F401 -- compatibility export
-)
-from remora.governance.envelope_verify import (
+    canonical_envelope_for_hash,
     compute_envelope_chain_hash as _compute_envelope_chain_hash,
-)
-from remora.governance.envelope_verify import (
     verify_stored_envelope,
 )
+_canonical_envelope_for_hash = canonical_envelope_for_hash
 
 
 class _SealedAuditDict(dict):
