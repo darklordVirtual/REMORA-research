@@ -32,11 +32,23 @@ pytest.importorskip("fastapi")
 
 @pytest.fixture()
 def dev_client():
-    """TestClient in development mode (no auth required)."""
+    """TestClient in development mode with an explicit dev token.
+
+    SR-03: the credential-free fallback is opt-in and read-only, so these
+    tests authenticate with a single dev bearer token to reach the governed
+    routes they exercise.
+    """
     from fastapi.testclient import TestClient
-    with patch.dict(os.environ, {"REMORA_ENV": "development"}):
+    with patch.dict(os.environ, {
+        "REMORA_ENV": "development",
+        "REMORA_API_BEARER_TOKEN": "dev-security-test-token",
+    }):
         from servers.api import app
-        yield TestClient(app, raise_server_exceptions=False)
+        yield TestClient(
+            app,
+            raise_server_exceptions=False,
+            headers={"Authorization": "Bearer dev-security-test-token"},
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -152,13 +164,20 @@ class TestRateLimiting:
         with patch.dict(os.environ, {
             "REMORA_ENV": "development",
             "REMORA_ASSESS_RATE_LIMIT_PER_MIN": "2",
+            # SR-03: reloads need an explicit credential; the credential-free
+            # fallback is opt-in and read-only.
+            "REMORA_API_BEARER_TOKEN": "dev-security-test-token",
         }):
             from fastapi.testclient import TestClient
             # Force module reload to pick up new rate limit
             import importlib
             import servers.api
             importlib.reload(servers.api)
-            client = TestClient(servers.api.app, raise_server_exceptions=False)
+            client = TestClient(
+                servers.api.app,
+                raise_server_exceptions=False,
+                headers={"Authorization": "Bearer dev-security-test-token"},
+            )
 
             payload = {"question": "test", "risk_tier": "low"}
             responses = [client.post("/v1/assess", json=payload) for _ in range(4)]

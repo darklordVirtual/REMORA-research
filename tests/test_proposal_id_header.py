@@ -9,6 +9,8 @@ response header, and requests with no proposal involved carry no header.
 """
 from __future__ import annotations
 
+import importlib
+import json
 import sys
 from pathlib import Path
 
@@ -17,14 +19,22 @@ from fastapi.testclient import TestClient
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from servers.api import app
+import servers.api
 
 AUTH = {"Authorization": "Bearer ot-agent"}
 
 
 @pytest.fixture()
-def client() -> TestClient:
-    return TestClient(app)
+def client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
+    # SR-03: the credential-free dev fallback is opt-in and read-only, so
+    # these tests provision the ot-agent credential they send.
+    monkeypatch.setenv("REMORA_ENV", "development")
+    monkeypatch.setenv(
+        "REMORA_API_TOKENS",
+        json.dumps({"ot-agent": {"tenant": "default", "role": "operator"}}),
+    )
+    module = importlib.reload(servers.api)
+    return TestClient(module.app)
 
 
 def test_assess_response_header_matches_body(client: TestClient) -> None:

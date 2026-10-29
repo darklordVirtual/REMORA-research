@@ -968,7 +968,10 @@ bearer token to a fixed tenant and role; callers cannot forge either. An
 one naming another tenant is refused with 403. Single-token mode
 (`REMORA_API_BEARER_TOKEN`) takes tenant and role from caller-asserted
 headers, so it is **development only**: outside development every request in
-that mode is refused with 403. Dev mode (no credentials) runs without auth.
+that mode is refused with 403. With no credentials configured, development
+refuses every request (500) unless `REMORA_ALLOW_UNAUTHENTICATED_DEV=1` opts
+in to a read-only fallback that authenticates as `default`/`viewer` (no assess
+or execute); production always refuses (SR-03).
 `REMORA_ENV` has two values, `development` (also unset, blank or `dev`) and
 `production` (also `prod`); any other value, such as `staging`, refuses
 startup instead of being read as either. The strict runtime profiles

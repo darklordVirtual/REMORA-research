@@ -60,19 +60,15 @@ jobs:
           cache: "pip"
 
       - name: Install package and test dependencies
+        # SR-23 / SEC-19: hash-pinned install. requirements-ci.lock is compiled
+        # from pyproject.toml extras (dev, causal, api, security, identity,
+        # otel) with `pip-compile --generate-hashes`, version-constrained by
+        # requirements-lock.txt (zero drift on shared packages, verified
+        # 2026-10-28). The repository itself installs with --no-deps: its
+        # dependencies all come from the hashed lock.
         run: |
-          python -m pip install --upgrade pip
-          # causal extra: tests/test_causal.py imports remora.causal.domains,
-          # whose loader needs pyyaml — without it, test collection fails.
-          # Constraints (-c) pin every resolved dependency to the exact versions
-          # in the committed requirements-lock.txt, while the extras still drive
-          # WHAT gets installed. The lock file contains editable (-e) and comment
-          # lines that pip rejects in a constraints file, so filter them out.
-          grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
-          # identity: PyJWT for the identity-adapter tests; otel: the SDK for the
-          # structural tracing tests. Both otherwise skip, and
-          # docs/assurance/skip_reason_allowlist_v1.yaml lists no reason for it.
-          pip install -e ".[dev,causal,api,security,identity,otel]" -c /tmp/constraints.txt
+          pip install --require-hashes -r requirements-ci.lock
+          pip install --no-deps --no-build-isolation -e ".[dev,causal,api,security,identity,otel]"
 
       - name: Select the test files this change can affect (pull requests only)
         # scripts/select_tests_for_change.py: the import graph (static imports and
@@ -199,7 +195,6 @@ jobs:
       - name: Install package and test dependencies
         # Same install as the pytest job, so the same modules import.
         run: |
-          python -m pip install --upgrade pip
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
           pip install -e ".[dev,causal,api,security,identity,otel]" -c /tmp/constraints.txt
 
@@ -250,7 +245,6 @@ jobs:
 
       - name: Install package
         run: |
-          python -m pip install --upgrade pip
           # Constraints (-c) = version pinning from requirements-lock.txt; the
           # extras drive what gets installed. Filter out -e/comment lines that
           # pip rejects in a constraints file.
@@ -336,7 +330,6 @@ jobs:
 
       - name: Install package and Postgres driver
         run: |
-          python -m pip install --upgrade pip
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
           # DB drivers come from the declared `postgres` extra (REM-045) —
           # the CI environment installs exactly what the packaging promises.
@@ -482,6 +475,11 @@ jobs:
         # tests/conformance/test_execution_boundary.py; property E is reported
         # as both together, never this gate alone.
         run: python scripts/check_credential_topology.py
+
+      # SR-11/SR-23 (SEC-19): no unpinned or unhashed pip installs anywhere in
+      # CI, and the hashed locks carry a sha256 on every package.
+      - name: Hash-pinning gate
+        run: python scripts/check_require_hashes.py
 
       - name: Authority-state durability
         # docs/assurance/authority_state_topology.yaml enumerates every
@@ -630,8 +628,10 @@ jobs:
 
       - name: Build wheel
         run: |
-          python -m pip install --upgrade pip
-          python -m pip wheel . --no-deps -w dist/
+          # --no-build-isolation: the build backend (hatchling, editables) comes
+          # from the hashed lock, never a freshly resolved isolated env.
+          python -m pip install --require-hashes --no-deps -r requirements-ci.lock
+          python -m pip wheel . --no-deps --no-build-isolation -w dist/
 
       - name: The runtime wheel carries no benchmark datasets (RMR-CR-014)
         run: |
@@ -652,6 +652,10 @@ jobs:
       - name: Install wheel with [api,sdk] into a clean venv
         run: |
           python -m venv "$RUNNER_TEMP/wheelenv"
+          # hash-exempt: this contract proves the wheel's OWN dependency
+          # metadata resolves for [api,sdk]; installing a hashed superset
+          # first would mask a missing declaration. The job holds no
+          # credentials and publishes nothing.
           "$RUNNER_TEMP/wheelenv/bin/pip" install --quiet "$(ls dist/*.whl)[api,sdk]"
 
       - name: Contract smoke from an empty directory
@@ -753,7 +757,6 @@ jobs:
 
       - name: Install package
         run: |
-          python -m pip install --upgrade pip
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
           pip install -e ".[dev,causal]" -c /tmp/constraints.txt
 
@@ -960,7 +963,11 @@ jobs:
           python-version: "3.12"
 
       - name: The verbatim README command
-        run: python -m pip install -e ".[dev]"
+        run: |
+          # hash-exempt: verbatim README contract job; its purpose is to run the
+          # documented command exactly as written and prove the suite collects.
+          # It publishes no artifacts and holds no credentials.
+          python -m pip install -e ".[dev]"
 
       - name: Full-suite collection succeeds
         run: python -m pytest tests/ -q --collect-only > /dev/null && echo "collection clean"
@@ -985,7 +992,10 @@ jobs:
           python-version: "3.12"
 
       - name: The documented install
-        run: python -m pip install -e ".[dev]"
+        run: |
+          # hash-exempt: verbatim documentation contract job (same reasoning as
+          # the README contract job; publishes nothing, holds no credentials).
+          python -m pip install -e ".[dev]"
 
       - name: C-ext4 replays at its locked commit
         run: python scripts/replay_sealed_cext4.py
