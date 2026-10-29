@@ -1535,6 +1535,11 @@ class _SealedAuditDict(dict):
         self._require_unsealed()
         return super().setdefault(*args)
 
+    def __ior__(self, other: Any) -> Any:
+        # ``audit |= {...}`` bypasses update(); guard it too.
+        self._require_unsealed()
+        return super().__ior__(other)
+
     def __reduce__(self) -> tuple:
         # Copies (deepcopy/pickle) come out as plain unsealed dicts: sealing
         # guards the live pipeline block, not copies of its content. Without
@@ -2291,6 +2296,11 @@ def _record_artifacts(
         "envelope_audit_hash": env_audit.get("hash") if isinstance(env_audit, dict) else None,
         "envelope_previous_hash": env_audit.get("previous_hash") if isinstance(env_audit, dict) else None,
         "envelope_signature": env_audit.get("signature") if isinstance(env_audit, dict) else None,
+        # SR-01 follow-up: the row records the envelope's schema version so a
+        # recompute can refuse a stored envelope relabelled v3 -> v2.
+        "envelope_schema_version": (
+            env_audit.get("schema_version") if isinstance(env_audit, dict) else None
+        ),
         "oracle_calls": report.get("oracle_calls"),
         "elapsed_ms": elapsed_ms,
     }
@@ -2912,6 +2922,13 @@ def verify_audit_chain(request: Request, mode: str = "links") -> dict:
         signature_failures: list[str] = []
         envelopes_missing: list[str] = []
         signature_checked = False
+        # SR-01 follow-up: a v2 record (links-only) after any v3 record in
+        # write order is a downgrade — relabelling a tampered v3 envelope as
+        # v2 would otherwise skip the recompute. REMORA_ENVELOPE_V3_REQUIRED
+        # refuses every v2 record, for trails written entirely after v3.
+        require_v3 = _env_flag("REMORA_ENVELOPE_V3_REQUIRED")
+        seen_v3 = False
+        downgraded: list[str] = []
         for record in records:
             request_id = record.get("request_id") if isinstance(record, dict) else None
             envelope = (
@@ -2930,13 +2947,23 @@ def verify_audit_chain(request: Request, mode: str = "links") -> dict:
                     ("previous_hash", "envelope_previous_hash"),
                     ("signature", "envelope_signature"),
                 )
+            ) or (
+                # Rows written after the SR-01 follow-up carry the version;
+                # older rows do not, and are checked by write order below.
+                record.get("envelope_schema_version") is not None
+                and audit.get("schema_version") != record.get("envelope_schema_version")
             ):
                 hash_failures.append(str(request_id))
                 continue
             result = verify_stored_envelope(envelope, signing_key=signing_key)
             if result.mode == "links":
-                links_only_v2 += 1
+                if seen_v3 or require_v3:
+                    downgraded.append(str(request_id))
+                    hash_failures.append(str(request_id))
+                else:
+                    links_only_v2 += 1
                 continue
+            seen_v3 = True
             recomputed += 1
             if result.hash_ok is False:
                 hash_failures.append(str(request_id))
@@ -2956,7 +2983,13 @@ def verify_audit_chain(request: Request, mode: str = "links") -> dict:
             "hash_failures": hash_failures,
             "signature_failures": signature_failures,
             "envelopes_missing": envelopes_missing,
+            "downgraded": downgraded,
+            # True only when every record was recomputed: links-only v2
+            # records mean chain_valid does not cover their field content.
+            "fully_recomputed": links_only_v2 == 0,
         }
+        if links_only_v2:
+            response["verification_scope"] = "recompute_partial"
     return response
 
 

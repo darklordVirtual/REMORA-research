@@ -380,3 +380,94 @@ def test_recompute_rejects_missing_or_substituted_envelope(
     )
     assert response.status_code == 200, response.text
     assert response.json()["chain_valid"] is False
+
+
+def _downgrade_tamper(api, monkeypatch: pytest.MonkeyPatch, victim: str, *, strip_row_version: bool):
+    """Rewrite a stored v3 envelope's actor and tenant AND relabel it v2, so
+    the recompute would treat it as links-only. Optionally also strip the
+    row's recorded version (an attacker who can write rows can do that too,
+    or the row predates the follow-up)."""
+    store = api._CONTROL_PLANE_STORE
+    original_get = store.get_envelope
+    original_list = store.list_audit_records_for_tenant
+
+    def _tampered_env(*, request_id, tenant_id):
+        envelope = original_get(request_id=request_id, tenant_id=tenant_id)
+        if request_id == victim and isinstance(envelope, dict):
+            envelope = copy.deepcopy(envelope)
+            envelope["audit"]["actor_identity"] = "mallory"
+            envelope["audit"]["schema_version"] = "2"
+        return envelope
+
+    def _tampered_rows(*, tenant_id):
+        rows = [dict(r) for r in original_list(tenant_id=tenant_id)]
+        if strip_row_version:
+            for r in rows:
+                r.pop("envelope_schema_version", None)
+        return rows
+
+    monkeypatch.setattr(store, "get_envelope", _tampered_env)
+    monkeypatch.setattr(store, "list_audit_records_for_tenant", _tampered_rows)
+
+
+@pytest.mark.parametrize("strip_row_version", [False, True], ids=["row-versioned", "legacy-row"])
+def test_recompute_refuses_v3_to_v2_downgrade(
+    monkeypatch: pytest.MonkeyPatch, strip_row_version: bool
+) -> None:
+    """Review follow-up (HIGH): relabelling a tampered v3 envelope as
+    schema_version "2" made mode=recompute count it as links-only and report
+    chain_valid with no hash failure."""
+    monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", _SIGNING_KEY)
+    tenant = "tenant-sr01-downgrade"
+    api = _load_api_module(monkeypatch)
+    client = TestClient(api.app)
+    headers = {"Authorization": "Bearer test-token", "X-Remora-Tenant": tenant}
+
+    _post_assess(client, "Approve maintenance action D1?", tenant)
+    second = _post_assess(client, "Approve maintenance action D2?", tenant)
+    victim = second["request"]["request_id"]
+    _downgrade_tamper(api, monkeypatch, victim, strip_row_version=strip_row_version)
+
+    body = client.get(
+        "/v1/audit/chain/verify", params={"mode": "recompute"}, headers=headers
+    ).json()
+    assert body["chain_valid"] is False
+    assert victim in body["recompute"]["hash_failures"]
+
+
+def test_all_v2_trail_is_reported_partial_and_refused_when_v3_required(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """If EVERY record is relabelled v2, write order cannot reveal it. The
+    response must then say the recompute was partial, and the opt-in
+    REMORA_ENVELOPE_V3_REQUIRED must refuse it."""
+    monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", _SIGNING_KEY)
+    tenant = "tenant-sr01-allv2"
+    api = _load_api_module(monkeypatch)
+    client = TestClient(api.app)
+    headers = {"Authorization": "Bearer test-token", "X-Remora-Tenant": tenant}
+
+    only = _post_assess(client, "Approve maintenance action V1?", tenant)
+    _downgrade_tamper(api, monkeypatch, only["request"]["request_id"], strip_row_version=True)
+
+    body = client.get(
+        "/v1/audit/chain/verify", params={"mode": "recompute"}, headers=headers
+    ).json()
+    assert body["recompute"]["fully_recomputed"] is False
+    assert body["verification_scope"] == "recompute_partial"
+
+    monkeypatch.setenv("REMORA_ENVELOPE_V3_REQUIRED", "1")
+    strict = client.get(
+        "/v1/audit/chain/verify", params={"mode": "recompute"}, headers=headers
+    ).json()
+    assert strict["chain_valid"] is False
+    assert only["request"]["request_id"] in strict["recompute"]["downgraded"]
+
+
+def test_sealed_audit_block_rejects_in_place_or(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Review follow-up: ``audit |= {...}`` bypassed the update() guard."""
+    api = _load_api_module(monkeypatch)
+    block = api._SealedAuditDict({"hash": "h"})
+    block._sealed = True
+    with pytest.raises(RuntimeError, match="sealed"):
+        block |= {"actor_identity": "mallory"}

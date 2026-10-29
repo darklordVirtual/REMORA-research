@@ -108,7 +108,26 @@ and the signature. After sealing, the in-process block is frozen: a later
 write raises instead of silently landing outside the hash.
 
 Existing v2 records are not rewritten; verifiers dispatch on
-`schema_version`.
+`schema_version`. Because `schema_version` is itself a stored field, the
+`mode=recompute` endpoint does not take it on trust (SR-01 review follow-up,
+2026-10-29):
+
+- each new audit row records `envelope_schema_version`, and an envelope whose
+  version differs from its row is a hash failure;
+- in write order, a v2 (links-only) record after any v3 record is a downgrade
+  and is reported under `recompute.downgraded` and `hash_failures`;
+- `recompute.fully_recomputed` is false and `verification_scope` is
+  `recompute_partial` whenever any record was checked by links only, so
+  `chain_valid: true` is never read as a full recompute of such a trail;
+- `REMORA_ENVELOPE_V3_REQUIRED=1` refuses every v2 record, for trails written
+  entirely under v3.
+
+Limits: a writer who relabels *every* record as v2 and strips the row
+versions defeats the write-order check; only the partial-scope report and the
+opt-in catch that. Without `REMORA_ENVELOPE_SIGNING_KEY` the recompute uses
+unkeyed SHA-256, so a writer who rewrites a record, its row and every
+successor consistently is not detected (`signature_status:
+NOT_CHECKED_NO_KEY`).
 
 ## Remaining Gaps (not yet implemented)
 

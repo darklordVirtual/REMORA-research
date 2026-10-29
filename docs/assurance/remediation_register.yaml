@@ -1161,8 +1161,19 @@ items:
       populated audit field except hash, previous_hash and signature; v2
       records are not rewritten and verify by chain links only. The
       verifier-side recompute endpoint (review task P1-2) ships on the same
-      branch. Tests: tests/security/test_sr01_envelope_v3.py (committed
-      failing-first, then green).
+      branch. Review follow-up (2026-10-29, HIGH): the recompute counted any
+      envelope claiming schema_version "2" as links-only, so rewriting a v3
+      envelope's actor and tenant and relabelling it v2 returned chain_valid
+      with no failure. Rows now record envelope_schema_version and a
+      mismatch fails; a v2 record after any v3 record fails as a downgrade;
+      the response reports fully_recomputed and recompute_partial;
+      REMORA_ENVELOPE_V3_REQUIRED=1 refuses all v2 records. The sealed block
+      also guards |= (it bypassed update()). Residual, documented in
+      docs/evidence/decision_envelope_audit.md: relabelling every record and
+      stripping row versions defeats the order check, and without a signing
+      key a consistent full rewrite is undetected. Tests:
+      tests/security/test_sr01_envelope_v3.py (committed failing-first, then
+      green; +4 downgrade and seal cases).
 
   - id: REM-058
     section: "security-review-2026-10"
