@@ -19,9 +19,16 @@ services:
       dockerfile: deploy/reference/Dockerfile
     image: remora-reference:latest
     ports:
-      - "8000:8000"
+      # SR-03 / SEC-05: loopback only. Publishing 8000 on all interfaces
+      # exposed the governed API to the network by default.
+      - "127.0.0.1:8000:8000"
     environment:
       REMORA_ENV: ${REMORA_ENV:-development}
+      # SR-03 / SEC-05: explicit credentials required. Copy .env.example to
+      # .env (or export REMORA_API_TOKENS) before `docker compose up`;
+      # without credentials the API refuses governed routes instead of
+      # serving them unauthenticated.
+      REMORA_API_TOKENS: ${REMORA_API_TOKENS:-}
       REMORA_PG_DSN: postgresql://remora:${POSTGRES_PASSWORD:-remora-dev-only}@postgres:5432/remora
       REMORA_PDP_SIGNING_KEY: ${REMORA_PDP_SIGNING_KEY:-}
       REMORA_LEASE_SIGNING_KEY: ${REMORA_LEASE_SIGNING_KEY:-}
