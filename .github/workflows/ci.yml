@@ -67,9 +67,8 @@ jobs:
         # 2026-10-28). The repository itself installs with --no-deps: its
         # dependencies all come from the hashed lock.
         run: |
-          python -m pip install --upgrade pip
           pip install --require-hashes -r requirements-ci.lock
-          pip install --no-deps -e ".[dev,causal,api,security,identity,otel]"
+          pip install --no-deps --no-build-isolation -e ".[dev,causal,api,security,identity,otel]"
 
       - name: Select the test files this change can affect (pull requests only)
         # scripts/select_tests_for_change.py: the import graph (static imports and
@@ -196,7 +195,6 @@ jobs:
       - name: Install package and test dependencies
         # Same install as the pytest job, so the same modules import.
         run: |
-          python -m pip install --upgrade pip
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
           pip install -e ".[dev,causal,api,security,identity,otel]" -c /tmp/constraints.txt
 
@@ -247,7 +245,6 @@ jobs:
 
       - name: Install package
         run: |
-          python -m pip install --upgrade pip
           # Constraints (-c) = version pinning from requirements-lock.txt; the
           # extras drive what gets installed. Filter out -e/comment lines that
           # pip rejects in a constraints file.
@@ -333,7 +330,6 @@ jobs:
 
       - name: Install package and Postgres driver
         run: |
-          python -m pip install --upgrade pip
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
           # DB drivers come from the declared `postgres` extra (REM-045) —
           # the CI environment installs exactly what the packaging promises.
@@ -632,8 +628,10 @@ jobs:
 
       - name: Build wheel
         run: |
-          python -m pip install --upgrade pip
-          python -m pip wheel . --no-deps -w dist/
+          # --no-build-isolation: the build backend (hatchling, editables) comes
+          # from the hashed lock, never a freshly resolved isolated env.
+          python -m pip install --require-hashes --no-deps -r requirements-ci.lock
+          python -m pip wheel . --no-deps --no-build-isolation -w dist/
 
       - name: The runtime wheel carries no benchmark datasets (RMR-CR-014)
         run: |
@@ -654,6 +652,10 @@ jobs:
       - name: Install wheel with [api,sdk] into a clean venv
         run: |
           python -m venv "$RUNNER_TEMP/wheelenv"
+          # hash-exempt: this contract proves the wheel's OWN dependency
+          # metadata resolves for [api,sdk]; installing a hashed superset
+          # first would mask a missing declaration. The job holds no
+          # credentials and publishes nothing.
           "$RUNNER_TEMP/wheelenv/bin/pip" install --quiet "$(ls dist/*.whl)[api,sdk]"
 
       - name: Contract smoke from an empty directory
@@ -755,7 +757,6 @@ jobs:
 
       - name: Install package
         run: |
-          python -m pip install --upgrade pip
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
           pip install -e ".[dev,causal]" -c /tmp/constraints.txt
 
@@ -961,11 +962,12 @@ jobs:
         with:
           python-version: "3.12"
 
-      # hash-exempt: verbatim README contract job — its purpose is to run the
-      # documented command exactly as written and prove the suite collects.
-      # It publishes no artifacts and holds no credentials.
       - name: The verbatim README command
-        run: python -m pip install -e ".[dev]"
+        run: |
+          # hash-exempt: verbatim README contract job; its purpose is to run the
+          # documented command exactly as written and prove the suite collects.
+          # It publishes no artifacts and holds no credentials.
+          python -m pip install -e ".[dev]"
 
       - name: Full-suite collection succeeds
         run: python -m pytest tests/ -q --collect-only > /dev/null && echo "collection clean"
@@ -989,10 +991,11 @@ jobs:
         with:
           python-version: "3.12"
 
-      # hash-exempt: verbatim documentation contract job (same reasoning as
-      # the README contract job above; publishes nothing, holds no credentials).
       - name: The documented install
-        run: python -m pip install -e ".[dev]"
+        run: |
+          # hash-exempt: verbatim documentation contract job (same reasoning as
+          # the README contract job; publishes nothing, holds no credentials).
+          python -m pip install -e ".[dev]"
 
       - name: C-ext4 replays at its locked commit
         run: python scripts/replay_sealed_cext4.py

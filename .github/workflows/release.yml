@@ -22,13 +22,17 @@ permissions:
 
 jobs:
   build:
-    # SR-11 / SEC-17: the build job holds NO signing identity. Everything it
-    # installs is hash-pinned, so a compromised build tool cannot sign.
+    # SR-11 / SEC-17: the build job holds NO signing identity, and everything
+    # it installs comes from the hash-pinned release lock. A compromised build
+    # tool can still alter what it builds; it cannot reach the OIDC token.
     name: Build, SBOM, checksums
     runs-on: ubuntu-latest
     outputs:
       # Consumed by attest and publish-pypi to name the artifact they handle.
       version: ${{ steps.ver.outputs.version }}
+      # SHA-256 of SHA256SUMS.txt, passed to attest through the job-output
+      # channel rather than inside the artifact it describes.
+      sums_sha256: ${{ steps.sums.outputs.sha256 }}
     permissions:
       contents: read
     steps:
@@ -51,9 +55,8 @@ jobs:
         id: ver
 
       - name: Install hash-pinned build tooling (SR-11 / SEC-17)
-        # The job holding the attestation identity installs ONLY from the
-        # hash-pinned release lock: no unpinned pip upgrades, no bare package
-        # installs. requirements-release.lock is generated with
+        # The build job installs ONLY from the hash-pinned release lock: no
+        # unpinned pip upgrades, no bare package installs. requirements-release.lock is generated with
         # `pip-compile --generate-hashes --allow-unsafe requirements-release.in`.
         run: >-
           python -m pip install --require-hashes "--only-binary=:all:" -r requirements-release.lock
@@ -76,8 +79,13 @@ jobs:
           cp docs/assurance/claim_register_v1.yaml docs/assurance/provenance_register_v1.json provenance/PRIOR_ART.yaml provenance/EXTERNAL_ADOPTION.yaml dist/
 
       - name: SHA256SUMS
+        id: sums
         working-directory: dist
-        run: sha256sum remora_assurance-* sbom-python.cdx.json provenance-manifest-v1.json claim_register_v1.yaml provenance_register_v1.json PRIOR_ART.yaml EXTERNAL_ADOPTION.yaml > SHA256SUMS.txt && cat SHA256SUMS.txt
+        run: |
+          set -euo pipefail
+          sha256sum remora_assurance-* sbom-python.cdx.json provenance-manifest-v1.json claim_register_v1.yaml provenance_register_v1.json PRIOR_ART.yaml EXTERNAL_ADOPTION.yaml > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+          echo "sha256=$(sha256sum SHA256SUMS.txt | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
@@ -87,9 +95,13 @@ jobs:
 
   attest:
     # SR-11 / SEC-17: the signing identity exists only here, in a job that
-    # installs nothing. It downloads the build job's artifact and verifies
-    # every file against the build job's SHA256SUMS manifest before signing,
-    # so a tampered artifact fails closed rather than being attested.
+    # installs nothing. Before signing it checks the downloaded
+    # SHA256SUMS.txt against the digest the build job emitted as a job output,
+    # then every file against that manifest. A change to the artifact between
+    # upload and download (files or manifest) therefore fails the job instead
+    # of being attested. Scope: this protects the hand-off between the two
+    # jobs; it does not detect a build job that was itself compromised, since
+    # that job computes both the manifest and its digest.
     name: Sigstore attestations and release assets
     runs-on: ubuntu-latest
     needs: build
@@ -98,14 +110,22 @@ jobs:
       id-token: write      # Sigstore OIDC identity
       attestations: write  # store attestations
     steps:
-      - uses: actions/download-artifact@07f3cb04e0f167f965c00b4ef58acb620a3b9472 # v8.0.0
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: release-${{ needs.build.outputs.version }}
           path: dist/
 
-      - name: Verify the artifact against the build job's manifest
+      - name: Verify the manifest digest, then the artifact against the manifest
         working-directory: dist
-        run: sha256sum -c SHA256SUMS.txt
+        env:
+          EXPECTED_SUMS_SHA256: ${{ needs.build.outputs.sums_sha256 }}
+        run: |
+          set -euo pipefail
+          if [ -z "${EXPECTED_SUMS_SHA256}" ]; then
+            echo "build job emitted no SHA256SUMS digest" >&2; exit 1
+          fi
+          echo "${EXPECTED_SUMS_SHA256}  SHA256SUMS.txt" | sha256sum -c --strict -
+          sha256sum -c --strict SHA256SUMS.txt
 
       - name: Attest build provenance (wheel, sdist, checksums)
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2

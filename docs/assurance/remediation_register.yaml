@@ -1146,7 +1146,11 @@ items:
       - requirements-ci.lock
       - requirements-release.in
       - requirements-release.lock
+      - requirements-mutation.in
+      - requirements-mutation.lock
       - requirements-lock.txt
+      - artifacts/replication-pack/replication_pack_v1.json
+      - scripts/check_pip_audit_baseline.py
       - scripts/check_require_hashes.py
       - .github/workflows/ci.yml
       - .github/workflows/release.yml
@@ -1156,6 +1160,14 @@ items:
       - .github/workflows/agentharm-experiment.yml
       - .github/workflows/deploy-frontend.yml
       - .github/workflows/probity-boundary-reproduction.yml
+      - .github/workflows/aps-interop.yml
+      - .github/workflows/aromer-replay-publish.yml
+      - .github/workflows/attestation.yml
+      - .github/workflows/docs-site.yml
+      - .github/workflows/nli-parity.yml
+      - .github/workflows/pre-federation-redteam.yml
+      - .github/workflows/quality-gates.yml
+      - .github/workflows/shadow-replay-smoke.yml
       - docs/10-contributing.md
       - tests/meta/test_check_require_hashes.py
     notes: >
@@ -1164,22 +1176,54 @@ items:
       attestation token; requirements-lock.txt had zero hashes and served
       only as constraints; two CI jobs installed unconstrained. Fixed per
       SEC-17/SEC-19: new hash-pinned requirements-ci.lock (compiled from the
-      pyproject extras with the existing lock as version constraints; zero
-      drift on the 53 shared packages, verified by a clean-venv install plus
-      full test collection) drives the main CI job as a two-step install
-      (hashed lock, then --no-deps -e .); new requirements-release.lock (with
-      hatchling/editables so `python -m build --no-isolation` works, verified
-      by building the wheel in a clean venv) drives release.yml and the
-      supply-chain jobs. The release workflow is split into build (no
-      id-token) and attest (identity; verifies the build job's SHA256SUMS
-      before signing). The pywin32 pin gained its missing sys_platform marker
-      (it broke Linux resolution of the lock as a set). New CI gate
-      scripts/check_require_hashes.py fails on any unpinned, unhashed,
-      unmarked install; the two verbatim documentation-contract jobs are
-      marked hash-exempt with reasons (they publish nothing and hold no
-      credentials), and the dispatch-only agentharm experiment pins carry a
-      marker pointing at P3-3 for the full treatment. Tests:
-      tests/meta/test_check_require_hashes.py.
+      pyproject extras plus the build backend, hatchling and editables, via
+      --all-build-deps, with requirements-lock.txt as version constraints;
+      zero version drift on the 57 packages it shares with that lock,
+      checked by comparing the two files) drives the main CI job and the
+      wheel-contract build as hashed lock, then
+      --no-deps --no-build-isolation install of the repository (verified in
+      a clean Python 3.12 venv: hashed install, editable install, pip check
+      and a wheel build, all without index resolution of the project's
+      dependencies or build backend). The unhashed
+      `pip install --upgrade pip` lines were removed from every workflow;
+      jobs use the runner's pip. New requirements-mutation.lock (dev, api,
+      postgres extras plus mutmut==3.8.0, same constraints, zero drift on
+      52 shared packages) replaces the unconstrained mutation.yml installs.
+      requirements-release.lock (with hatchling/editables so
+      `python -m build --no-isolation` works, verified by building the wheel
+      in a clean venv) drives release.yml and the supply-chain jobs; in the
+      pip-audit job it installs into a separate tooling venv and pip-audit
+      audits the project environment from there (--audit-python), so the
+      project's -c install can no longer overwrite the hashed tool pins.
+      The release workflow is split into build (no id-token) and attest
+      (identity, installs nothing). Build emits the SHA-256 of SHA256SUMS.txt
+      as a job output; attest checks the downloaded manifest against that
+      digest, then every file against the manifest, before signing. This
+      protects the artifact hand-off between the two jobs; it does not
+      detect a compromised build job, which computes both values. The
+      pywin32 pin gained its missing sys_platform marker (it broke Linux
+      resolution of the lock as a set). filelock moved 3.20.3 -> 4.2.4 in
+      requirements-lock.txt (CVE-2026-112909, CVE-2026-112910, fixed in
+      4.2.1); the replication pack pins the new lock digest with the old one
+      in its history; `pip-audit -r <lock> --no-deps --disable-pip` reports
+      no known vulnerabilities for requirements-lock.txt and every
+      requirements-*.lock on 2026-10-29. The CI gate
+      scripts/check_require_hashes.py was rewritten after review (the first
+      version passed on a `-c`/`--require-hashes` substring anywhere on the
+      line, pip3, uvx/pipx/uv tool/poetry, a command chained after `-e .`,
+      bare local paths, markers leaking across steps or from continuation
+      lines, unscanned composite actions, and a hard-coded lock list): it
+      now tokenises each command, scans .github/actions/** and every
+      requirements-*.lock, and accepts a marker only directly above a single
+      command in the same run script. Marked exceptions: the two verbatim
+      documentation-contract jobs and the wheel-contract clean-venv install
+      (hash-exempt, no credentials, publish nothing), the probity reader
+      install (hash-exempt, reads a pinned external checkout), the paper
+      overflow check and the dispatch-only agentharm experiment (pinned).
+      The gate is static: it does not see installs inside scripts a workflow
+      calls or inside third-party actions. Tests:
+      tests/meta/test_check_require_hashes.py (one test per review bypass,
+      each failing on the first version of the gate).
 
   - id: REM-058
     section: "security-review-2026-10"

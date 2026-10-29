@@ -94,13 +94,14 @@ Research backends belong behind the existing research interfaces. Add tests, ide
 
 ## Dependency pinning and hashed locks
 
-CI and release installs must not float (security review 2026-10, SR-11/SR-23). Three files serve different surfaces:
+CI and release installs must not float (security review 2026-10, SR-11/SR-23). The files serve different surfaces:
 
 - `requirements-lock.txt`: the version constraint set (`pip install -c`) shared by the analysis and interop jobs. Version-pinned, not hashed; it is a superset across extras and is not resolvable as a single install set.
-- `requirements-ci.lock`: the hash-pinned install set for the main CI test job. Regenerate with `pip-compile --generate-hashes --extra dev --extra causal --extra api --extra security --extra identity --extra otel --constraint <(grep -vE '^-e|^#|file://' requirements-lock.txt) --output-file requirements-ci.lock pyproject.toml`.
-- `requirements-release.in` / `requirements-release.lock`: the hash-pinned build, SBOM and supply-chain tooling (pip, build, hatchling, editables, cyclonedx-bom, jsonschema, pyyaml, pip-audit). Regenerate with `pip-compile --generate-hashes --allow-unsafe --output-file requirements-release.lock requirements-release.in`.
+- `requirements-ci.lock`: the hash-pinned install set for the main CI test job and the wheel-contract build, including the build backend (`hatchling`, `editables`, via `--all-build-deps`). The project then installs with `pip install --no-deps --no-build-isolation -e ...`, so neither its dependencies nor its build backend resolve from the index. Regenerate with `pip-compile --all-build-deps --generate-hashes --extra dev --extra causal --extra api --extra security --extra identity --extra otel --constraint <(grep -vE '^-e|^#|file://' requirements-lock.txt) --output-file requirements-ci.lock pyproject.toml`.
+- `requirements-mutation.in` / `requirements-mutation.lock`: the hash-pinned dependency set for `mutation.yml` (extras `dev`, `api`, `postgres` plus `mutmut==3.8.0`, version-constrained by `requirements-lock.txt`). Regenerate with `uv pip compile --python-version 3.12 --python-platform x86_64-unknown-linux-gnu --generate-hashes --no-emit-index-url -c <constraints> --extra api --extra dev --extra postgres pyproject.toml requirements-mutation.in -o requirements-mutation.lock`.
+- `requirements-release.in` / `requirements-release.lock`: the hash-pinned build, SBOM and supply-chain tooling (pip, build, hatchling, editables, cyclonedx-bom, jsonschema, pyyaml, pip-audit). Regenerate with `pip-compile --generate-hashes --allow-unsafe --output-file requirements-release.lock requirements-release.in`. In `supply-chain.yml` it installs into a separate tooling venv, and pip-audit audits the project environment from there.
 
-`scripts/check_require_hashes.py` runs in CI and fails on any workflow install that is not hash-pinned, constrained, or explicitly marked `# hash-exempt:` / `# pinned:` with a reason.
+`scripts/check_require_hashes.py` runs in CI over every `run:` script in `.github/workflows/` and `.github/actions/`, and over every `requirements-*.lock`. It tokenises each command (pip, pip3, `python -m pip`, `uv pip`, `uvx`, `pipx`, `uv tool`, `poetry add`, and installs inside `bash -c`) and accepts only: `--require-hashes` with `-r <lock>`; a `-c <constraints>` file (the weaker, version-only tier); in-repository code installed with `--no-deps` and `--no-build-isolation`; or a `# hash-exempt: <reason>` / `# pinned: <reason>` comment directly above a single command inside the same `run:` script. It is a static check over workflow text: it cannot see installs performed by a script the workflow calls, or by third-party actions.
 
 ## Negative results
 

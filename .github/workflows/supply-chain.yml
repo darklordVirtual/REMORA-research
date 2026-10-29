@@ -49,9 +49,14 @@ jobs:
         # them, not what caused them. Keep this list identical to the install
         # in quality-gates.yml; a narrower one silently un-audits a dependency.
         run: |
-          # SEC-19 (SR-11): the auditing tool itself is hash-pinned from the
-          # release lock; an unpinned pip-audit would be its own blind spot.
-          python -m pip install --require-hashes "--only-binary=:all:" -r requirements-release.lock
+          # SEC-19 (SR-11): the auditing tool is hash-pinned from the release
+          # lock into its OWN venv. Installing it into the audited env and
+          # then the project with -c constraints would let the second install
+          # overwrite the first's hashed pins (and audit the tool, not the
+          # project). check_pip_audit_baseline.py --audit-python runs it from
+          # there against this interpreter's environment.
+          python -m venv "$RUNNER_TEMP/audit-tools"
+          "$RUNNER_TEMP/audit-tools/bin/python" -m pip install --require-hashes "--only-binary=:all:" -r requirements-release.lock
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
           pip install -e ".[dev,causal,api,security,postgres]" -c /tmp/constraints.txt
 
@@ -60,7 +65,7 @@ jobs:
         # (.github/pip_audit_baseline.json) records the currently-known set
         # explicitly so the backlog is visible and burn-down-able instead of
         # silently accepted.
-        run: python scripts/check_pip_audit_baseline.py
+        run: python scripts/check_pip_audit_baseline.py --audit-python "$RUNNER_TEMP/audit-tools/bin/python"
 
   npm-audit:
     name: npm dependency audit (frontend + workers)
@@ -221,7 +226,6 @@ jobs:
         # contradictions in the same file. This job resolves instead of
         # reading. --dry-run runs the full resolver and downloads no wheels.
         run: |
-          python -m pip install --upgrade pip
           python scripts/check_lock_resolvable.py
 
       - name: The measurement-env-N Dependabot groups list exactly the unused lock entries

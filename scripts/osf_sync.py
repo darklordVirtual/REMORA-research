@@ -95,6 +95,7 @@ LAYOUT: tuple[Component, ...] = (
         ("remora/", "servers/", "workers/", "frontend/", "integrations/", "deploy/", "db/",
          "schemas/", "examples/"),
         ("pyproject.toml", "requirements-lock.txt", "requirements-ci.lock",
+         "requirements-mutation.in", "requirements-mutation.lock",
          "requirements-release.in", "requirements-release.lock",
          "requirements-federation.in", "requirements-federation.lock",
          "requirements-federation-bootstrap.in",

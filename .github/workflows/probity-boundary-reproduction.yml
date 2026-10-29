@@ -152,12 +152,14 @@ jobs:
           sys.exit(1 if problems else 0)
           PY
 
-      # hash-exempt: the reader profile's requirements-check.txt is fetched
-      # with the pinned external reader (FROZEN_REVISION), not floating input.
       - name: Install the readers and pinned Verify (no REMORA code)
         run: |
           set -euo pipefail
           python -m venv "$RUNNER_TEMP/reader-venv"
+          # hash-exempt: the reader profile's requirements-check.txt is read
+          # from the pinned external reader checkout (FROZEN_REVISION), not
+          # floating input; this job holds no secrets and publishes only a
+          # reproduction artifact.
           "$RUNNER_TEMP/reader-venv/bin/python" -m pip install \
             -r "probity-readers/$READER_PROFILE/requirements-check.txt"
           "$RUNNER_TEMP/reader-venv/bin/python" -m pip install --no-deps --no-build-isolation \
