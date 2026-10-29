@@ -76,14 +76,16 @@ _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("vendor", _VENDOR),
     # key=value and key: value forms for anything credential-shaped. The key
     # may be quoted (JSON), and the value may be quoted and contain spaces.
-    # The key may carry _ or - separated affixes (AWS_SECRET_ACCESS_KEY,
+    # The key may carry a _ or - separated prefix (AWS_SECRET_ACCESS_KEY,
     # DB_PASSWORD, client-secret): ``_`` is a word character, so a bare
-    # ``\b`` boundary missed every environment-variable spelling.
+    # ``\b`` boundary missed every environment-variable spelling. The
+    # credential word must END the key, so reason codes such as
+    # ``token_verification_failed:...`` are not read as assignments.
     (
         "assignment",
         re.compile(
             r"(?i)(?<![A-Za-z0-9])(?:[A-Za-z0-9]+[_-])*(?:" + _CREDENTIAL_KEYS
-            + r")(?:[_-][A-Za-z0-9]+)*\b[\"']?"
+            + r")\b[\"']?"
             r"\s*[:=]\s*(?:\"[^\"]*\"|'[^']*'|[^\s,;)\]}\"']+)"
         ),
     ),

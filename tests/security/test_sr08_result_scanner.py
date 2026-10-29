@@ -180,8 +180,11 @@ def test_redaction_catches_env_style_keys_and_pem(secret_text: str, secret: str)
 def test_redaction_keeps_ordinary_prose() -> None:
     from remora.observability.redaction import redact_text
 
-    text = "the author=Alice wrote about authority"
-    assert redact_text(text) == text
+    for text in (
+        "the author=Alice wrote about authority",
+        "reason=token_verification_failed:signature_invalid",
+    ):
+        assert redact_text(text) == text
 
 
 def test_scan_endpoint_does_not_accept_the_write_secret() -> None:
