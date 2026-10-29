@@ -2899,18 +2899,22 @@ def verify_audit_chain(request: Request, mode: str = "links") -> dict:
             detail="active control-plane store cannot enumerate the audit trail",
         )
     records = lister(tenant_id=tenant_id)
-    ok, breaks = verify_audit_record_chain(records)
+    chain = verify_audit_record_chain(records)
     response = {
         "tenant_id": tenant_id,
         "records_checked": len(records),
-        "chain_valid": ok,
+        "chain_valid": chain.valid,
+        # SR-10 / SEC-02: both ends anchored — genesis on the first record,
+        # and head/count so an external anchor detects tail truncation.
+        "genesis_ok": chain.genesis_ok,
+        "head_hash": chain.head_hash,
         # RMR-CR-007: in links mode this check follows each record's link to
         # its predecessor. It recomputes no hash and compares no signature,
         # so chain_valid must not be read as "intact and authentic" unless
         # mode=recompute was used.
         "verification_scope": "linkage_only" if mode == "links" else "recompute",
         "signature_status": "NOT_CHECKED",
-        "breaks": breaks,
+        "breaks": list(chain.breaks),
         "control_plane_backend": _CONTROL_PLANE_BACKEND,
         "durable": _CONTROL_PLANE_DURABLE,
     }
@@ -2955,8 +2959,8 @@ def verify_audit_chain(request: Request, mode: str = "links") -> dict:
             ):
                 hash_failures.append(str(request_id))
                 continue
-            result = verify_stored_envelope(envelope, signing_key=signing_key)
-            if result.mode == "links":
+            env_check = verify_stored_envelope(envelope, signing_key=signing_key)
+            if env_check.mode == "links":
                 if seen_v3 or require_v3:
                     downgraded.append(str(request_id))
                     hash_failures.append(str(request_id))
@@ -2965,14 +2969,14 @@ def verify_audit_chain(request: Request, mode: str = "links") -> dict:
                 continue
             seen_v3 = True
             recomputed += 1
-            if result.hash_ok is False:
+            if env_check.hash_ok is False:
                 hash_failures.append(str(request_id))
-            if result.signature_ok is not None:
+            if env_check.signature_ok is not None:
                 signature_checked = True
-            if result.signature_ok is False:
+            if env_check.signature_ok is False:
                 signature_failures.append(str(request_id))
         response["chain_valid"] = (
-            ok and not hash_failures and not signature_failures and not envelopes_missing
+            chain.valid and not hash_failures and not signature_failures and not envelopes_missing
         )
         response["signature_status"] = "CHECKED" if signature_checked else (
             "NOT_CHECKED_NO_KEY" if signing_key is None else "NO_SIGNATURES_PRESENT"
