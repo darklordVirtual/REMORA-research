@@ -41,6 +41,10 @@ interface Env {
   // Shared secret gating every mutating (POST) endpoint (issue #55). When
   // unset the worker fails closed and refuses all writes.
   AROMER_WRITE_SECRET?: string;
+  // Separate bearer for POST /scan-result only (SR-08). The result scanner
+  // runs inside the agent's hook process, so its token is agent-reachable and
+  // must not be the governance write secret. Unset → /scan-result refuses.
+  AROMER_SCAN_SECRET?: string;
 }
 
 interface EpisodeRow {
@@ -114,6 +118,25 @@ function requireWriteAuth(request: Request, env: Env): Response | null {
   const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
   if (!token || !timingSafeEqual(token, secret)) {
     return err('unauthorized: valid Bearer token required for write endpoints', 401);
+  }
+  return null;
+}
+
+/**
+ * Bearer check for POST /scan-result (SR-08). Deliberately a different secret
+ * from AROMER_WRITE_SECRET: the scanner's token lives in the agent's hook
+ * environment, so holding it must not authorise episode, outcome, adapt or
+ * replay writes. Fails closed (503) when AROMER_SCAN_SECRET is unset.
+ */
+function requireScanAuth(request: Request, env: Env): Response | null {
+  const secret = (env.AROMER_SCAN_SECRET || '').trim();
+  if (!secret) {
+    return err('scan auth not configured (AROMER_SCAN_SECRET unset) — scans refused', 503);
+  }
+  const header = request.headers.get('Authorization') || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+  if (!token || !timingSafeEqual(token, secret)) {
+    return err('unauthorized: valid Bearer token required for /scan-result', 401);
   }
   return null;
 }
@@ -2989,7 +3012,9 @@ export default {
     // Fail-closed write auth: every POST mutates governance state. GET
     // endpoints (/status, /stats, /world, /log, /intelligence, /thresholds)
     // are published read-only telemetry and stay open (issue #55).
-    if (request.method === 'POST') {
+    // /scan-result has its own, agent-reachable bearer (SR-08) and is
+    // checked at its route; every other POST needs the write secret.
+    if (request.method === 'POST' && path !== '/scan-result') {
       const authError = requireWriteAuth(request, env);
       if (authError) return authError;
     }
@@ -3246,13 +3271,13 @@ export default {
       return json({ ok: true, critiques_run: n, oracle: usedOracle });
     }
 
-    // SR-08: the result scanner ships redacted local tool output here; the
-    // endpoint must require the same bearer the scanner sends
-    // (AROMER_WORKER_TOKEN on the client, AROMER_WRITE_SECRET here), or any
-    // caller could drive oracle verdicts — including confidence ≥ 0.80
-    // quarantines — unauthenticated.
+    // SR-08: the result scanner ships redacted local tool output here. It
+    // authenticates with AROMER_WORKER_TOKEN, checked against
+    // AROMER_SCAN_SECRET — never the governance write secret, because the
+    // scanner's token is reachable from the agent's hook process.
     if (path === '/scan-result') {
-      const denied = requireWriteAuth(request, env);
+      if (request.method !== 'POST') return err('method not allowed', 405);
+      const denied = requireScanAuth(request, env);
       if (denied) return denied;
       return handleScanResult(env, request);
     }

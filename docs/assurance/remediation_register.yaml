@@ -1146,6 +1146,7 @@ items:
       - remora/agent_hook/result_scanner.py
       - scripts/aromer_result_scanner_hook.py
       - workers/aromer/src/index.ts
+      - remora/observability/redaction.py
       - docs/assurance/credential_topology.yaml
       - tests/security/test_sr08_result_scanner.py
       - tests/test_result_scanner.py
@@ -1154,20 +1155,27 @@ items:
       a hard-coded public worker and the hook sent the first 600 chars of any
       firing tool result — Read and Bash included — unredacted and
       unauthenticated; a trigger string planted next to secrets exfiltrated
-      them, and the unauthenticated worker could quarantine arbitrary results
-      (confidence >= 0.80). Fixed per SEC-08: no default destination (oracle
+      them. Fixed per SEC-08: no default destination (oracle
       fires only when AROMER_WORKER_URL and AROMER_WORKER_TOKEN are both
       configured), redact_text runs before any send, the request carries a
       bearer, ToolResultScanner defaults oracle_enabled=False, the hook scans
-      Read/Bash only under AROMER_SCAN_LOCAL=1, and the worker's /scan-result
-      now sits behind requireWriteAuth (fail-closed, constant-time). The
-      AROMER_WORKER_TOKEN credential is declared in the topology register as
-      agent-reachable by design with the blast radius noted. Worker-side auth
-      reuses the requireWriteAuth helper the other write endpoints use; the
-      aromer worker has no vitest harness today, so the route guard is pinned
-      by code review of the shared helper plus the Python-side tests.
-      Tests: tests/security/test_sr08_result_scanner.py (failing-first, then
-      green).
+      Read/Bash only under AROMER_SCAN_LOCAL=1. Review follow-up
+      (2026-10-29): /scan-result was already behind the worker's global POST
+      write guard on master, so the client token had to equal
+      AROMER_WRITE_SECRET, which authorises every AROMER write (episodes,
+      outcomes, adapt, replay reports) — an agent-reachable credential
+      granting governance writes. /scan-result now checks a separate
+      AROMER_SCAN_SECRET (fail-closed 503 when unset, constant-time, POST
+      only) and is excluded from the write guard; operators must set the new
+      secret on the worker. Redaction (remora/observability/redaction.py)
+      missed affixed environment-variable keys (AWS_SECRET_ACCESS_KEY=,
+      DB_PASSWORD=) and PEM private-key blocks; both are now redacted. The
+      worker has no TypeScript test harness, so the route is pinned by a
+      source-level test. Out of scope and still open:
+      scripts/aromer_recorder_hook.py defaults to the public worker and sends
+      the first 200 chars of tool input unauthenticated unless
+      AROMER_RECORDER=0. Tests: tests/security/test_sr08_result_scanner.py
+      (failing-first, then green; +7 redaction and route cases).
 
   - id: REM-058
     section: "security-review-2026-10"

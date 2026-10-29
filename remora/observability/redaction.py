@@ -59,6 +59,15 @@ _IDENTIFIER_SHAPE = re.compile(r"[A-Za-z0-9._:\-/+=]{0,256}")
 #: Ordered longest-context-first: a bearer token inside a URL should be caught
 #: by the credential rule before the URL rule rewrites the host.
 _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    # PEM private-key blocks (any algorithm), including a truncated block
+    # that was cut off before its END line.
+    (
+        "pem",
+        re.compile(
+            r"-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----[\s\S]*?"
+            r"(?:-----END [A-Z0-9 ]*PRIVATE KEY-----|\Z)"
+        ),
+    ),
     # Authorization headers and bearer/basic tokens, with or without a header name.
     ("bearer", re.compile(r"(?i)\b(bearer|basic|token)\s+[A-Za-z0-9._\-+/=]{8,}")),
     # JWTs: three base64url segments separated by dots.
@@ -67,10 +76,14 @@ _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("vendor", _VENDOR),
     # key=value and key: value forms for anything credential-shaped. The key
     # may be quoted (JSON), and the value may be quoted and contain spaces.
+    # The key may carry _ or - separated affixes (AWS_SECRET_ACCESS_KEY,
+    # DB_PASSWORD, client-secret): ``_`` is a word character, so a bare
+    # ``\b`` boundary missed every environment-variable spelling.
     (
         "assignment",
         re.compile(
-            r"(?i)\b(?:" + _CREDENTIAL_KEYS + r")\b[\"']?"
+            r"(?i)(?<![A-Za-z0-9])(?:[A-Za-z0-9]+[_-])*(?:" + _CREDENTIAL_KEYS
+            + r")(?:[_-][A-Za-z0-9]+)*\b[\"']?"
             r"\s*[:=]\s*(?:\"[^\"]*\"|'[^']*'|[^\s,;)\]}\"']+)"
         ),
     ),

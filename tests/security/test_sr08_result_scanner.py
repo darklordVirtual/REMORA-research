@@ -149,3 +149,52 @@ def test_hook_oracle_requires_explicit_configuration(
     monkeypatch.delenv("AROMER_WORKER_TOKEN", raising=False)
     module = _load_hook(monkeypatch, scan_local=False)
     assert module._scanner._oracle_enabled is False
+
+
+@pytest.mark.parametrize(
+    "secret_text, secret",
+    [
+        ("AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENGbPxRfiCY", "wJalrXUtnFEMI/K7MDENGbPxRfiCY"),
+        ("DB_PASSWORD=correct-horse-battery", "correct-horse-battery"),
+        (
+            "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmU\n"
+            "-----END OPENSSH PRIVATE KEY-----",
+            "b3BlbnNzaC1rZXktdjEAAAAABG5vbmU",
+        ),
+        (
+            "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASC",
+            "MIIEvQIBADANBgkqhkiG9w0BAQEFAASC",
+        ),
+    ],
+    ids=["env-affixed-key", "db-password", "pem-block", "pem-truncated"],
+)
+def test_redaction_catches_env_style_keys_and_pem(secret_text: str, secret: str) -> None:
+    """Review follow-up: environment-variable spellings (``_`` is a word
+    character, so ``\\bkey\\b`` never matched inside them) and PEM private
+    keys passed redaction and would have reached the oracle."""
+    from remora.observability.redaction import redact_text
+
+    assert secret not in redact_text(secret_text)
+
+
+def test_redaction_keeps_ordinary_prose() -> None:
+    from remora.observability.redaction import redact_text
+
+    text = "the author=Alice wrote about authority"
+    assert redact_text(text) == text
+
+
+def test_scan_endpoint_does_not_accept_the_write_secret() -> None:
+    """Review follow-up: the scanner's token is agent-reachable, so the
+    worker's /scan-result must check its own secret, and the global write
+    guard must not be the one gating it. Source-level pin: the aromer worker
+    has no TypeScript test harness."""
+    src = (Path(__file__).resolve().parents[2] / "workers/aromer/src/index.ts").read_text(
+        encoding="utf-8"
+    )
+    assert "AROMER_SCAN_SECRET" in src
+    assert "request.method === 'POST' && path !== '/scan-result'" in src
+    route = src[src.index("if (path === '/scan-result') {"):]
+    route = route[: route.index("return handleScanResult")]
+    assert "requireScanAuth(request, env)" in route
+    assert "requireWriteAuth" not in route
