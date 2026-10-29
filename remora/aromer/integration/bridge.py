@@ -56,6 +56,10 @@ _ORACLE_POOL = ["cf_fast", "cf_strong", "cf_diverse"]
 # one proposal may spend the whole window budget, never more.
 _MAX_RELAX_PER_WINDOW = 0.05
 _RELAX_WINDOW_SECONDS = 7 * 24 * 3600
+# A signed proposal is valid from issued_at (minus clock skew) for one window,
+# and each signature is applied at most once (replay ledger kept in state).
+_PROPOSAL_CLOCK_SKEW_SECONDS = 300
+_MAX_SEEN_PROPOSAL_SIGS = 500
 
 
 def canonical_threshold_proposal_payload(
@@ -165,6 +169,7 @@ class AromerAdapterBridge:
         )
         self._audit_sink = audit_sink
         self._relax_log: list[tuple[float, float]] = []
+        self._seen_proposal_sigs: list[str] = []
         self._threshold_events: list[dict[str, Any]] = []
         # Friction optimizer proposals file; defaults to repo artifacts/ directory
         if proposals_path is not None:
@@ -323,6 +328,31 @@ class AromerAdapterBridge:
                 return {"applied": 0, "skipped": len(adjustments),
                         "error": f"proposal signature invalid: {result.reason}"}
 
+            # SR-07 review follow-up: a valid signature is single-use and
+            # time-bound. Without this, restoring a consumed file after the
+            # rolling window rolled re-applied the same signed relaxation
+            # until the threshold reached its floor.
+            sig_id = hashlib.sha256(
+                str(sig_raw.get("value", "")).encode("utf-8")
+            ).hexdigest()
+            if sig_id in self._seen_proposal_sigs:
+                return {"applied": 0, "skipped": len(adjustments),
+                        "error": "threshold proposal replayed"}
+            try:
+                issued = datetime.fromisoformat(
+                    str(data.get("issued_at", "")).replace("Z", "+00:00")
+                )
+            except ValueError:
+                return {"applied": 0, "skipped": len(adjustments),
+                        "error": "threshold proposal issued_at invalid"}
+            if issued.tzinfo is None:
+                return {"applied": 0, "skipped": len(adjustments),
+                        "error": "threshold proposal issued_at lacks a timezone"}
+            age = time.time() - issued.timestamp()
+            if age < -_PROPOSAL_CLOCK_SKEW_SECONDS or age > _RELAX_WINDOW_SECONDS:
+                return {"applied": 0, "skipped": len(adjustments),
+                        "error": "threshold proposal outside its validity window"}
+
             approved = [a for a in adjustments if a.get("approved") is True]
             if not approved:
                 return {"applied": 0, "skipped": len(adjustments)}
@@ -354,12 +384,7 @@ class AromerAdapterBridge:
             # Consume the proposals FIRST (atomic replace, overwrites a stale
             # .consumed file on Windows) so a failed consume can never leave a
             # relaxed threshold with a still-pending proposals file.
-            consumed_path = proposals_path.with_suffix(".consumed.json")
-            os.replace(proposals_path, consumed_path)
-            self._threshold._thresholds["trust_critical_min"].current_value = new_val
             applied_delta = current - new_val
-            self._relax_log.append((now, applied_delta))
-
             event = {
                 "event": "threshold_changed",
                 "threshold": "trust_critical_min",
@@ -371,9 +396,20 @@ class AromerAdapterBridge:
                 "holdout_evidence_sha256": data.get("holdout_evidence_sha256"),
                 "timestamp_utc": datetime.now(timezone.utc).isoformat(),
             }
-            self._threshold_events = (self._threshold_events + [event])[-50:]
+            # SR-07 review follow-up: the audit record is written before the
+            # change. A failing sink leaves the threshold untouched and the
+            # proposals file in place, so no relaxation is ever unaudited.
             if self._audit_sink is not None:
                 self._audit_sink(event)
+
+            consumed_path = proposals_path.with_suffix(".consumed.json")
+            os.replace(proposals_path, consumed_path)
+            self._threshold._thresholds["trust_critical_min"].current_value = new_val
+            self._relax_log.append((now, applied_delta))
+            self._seen_proposal_sigs = (
+                self._seen_proposal_sigs + [sig_id]
+            )[-_MAX_SEEN_PROPOSAL_SIGS:]
+            self._threshold_events = (self._threshold_events + [event])[-50:]
             self._save_state()
 
             return {
@@ -439,6 +475,7 @@ class AromerAdapterBridge:
             # SEC-07: the relaxation budget must survive restarts, or a
             # process restart would reset the rolling window.
             "relax_log": [[t, d] for t, d in self._relax_log],
+            "seen_proposal_sigs": list(self._seen_proposal_sigs),
             "threshold_events": self._threshold_events,
         }
         tmp = self._state_path.with_name(self._state_path.name + ".tmp")
@@ -468,6 +505,10 @@ class AromerAdapterBridge:
                 for t, d in payload.get("relax_log", [])
                 if isinstance(t, (int, float)) and isinstance(d, (int, float))
             ]
+            self._seen_proposal_sigs = [
+                s for s in payload.get("seen_proposal_sigs", [])
+                if isinstance(s, str)
+            ][-_MAX_SEEN_PROPOSAL_SIGS:]
             events = payload.get("threshold_events", [])
             self._threshold_events = [e for e in events if isinstance(e, dict)][-50:]
         except Exception:

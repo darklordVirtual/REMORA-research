@@ -10,6 +10,7 @@
 """
 from __future__ import annotations
 
+import datetime as _dt
 import json
 import os
 from datetime import datetime, timedelta, timezone
@@ -161,7 +162,7 @@ def _bridge(tmp_path):
     payload = {
         "adjustments": [{"approved": True, "max_delta": 0.05}],
         "holdout_evidence_sha256": "ab" * 32,
-        "issued_at": "2026-10-28T00:00:00Z",
+        "issued_at": _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "window_id": "2026-W44",
     }
     sig = sign(

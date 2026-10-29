@@ -5,6 +5,7 @@ Workers AI (MetaJudge) is stubbed by disabling run_meta_judge=False.
 """
 from __future__ import annotations
 
+import datetime as _dt
 import os
 import tempfile
 from pathlib import Path
@@ -460,7 +461,7 @@ def _signed_proposals_file(path, adjustments):
     payload = {
         "adjustments": adjustments,
         "holdout_evidence_sha256": "ab" * 32,
-        "issued_at": "2026-06-08T00:00:00Z",
+        "issued_at": _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "window_id": "2026-W24",
     }
     sig = sign(
