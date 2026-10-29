@@ -40,6 +40,7 @@ from remora.adapters.storage import (  # noqa: E402
     SQLiteControlPlaneStore,
     verify_audit_record_chain,
 )
+from remora.adapters.storage.control_plane import ChainVerifyResult  # noqa: E402
 from remora.governance.tenant_chain import verify_exported_chain  # noqa: E402
 from remora.shadow.replay import verify_envelope_file  # noqa: E402
 
@@ -52,11 +53,10 @@ def _verify_jsonl(path: str) -> tuple[bool, list[str], int, str]:
     return ok, breaks, len(envelopes), "full_payload_recompute"
 
 
-def _verify_sqlite(db_path: str, tenant_id: str) -> tuple[bool, list[str], int, str]:
+def _verify_sqlite(db_path: str, tenant_id: str) -> ChainVerifyResult:
     store = SQLiteControlPlaneStore(db_path=db_path)
     records = store.list_audit_records_for_tenant(tenant_id=tenant_id)
-    ok, breaks = verify_audit_record_chain(records)
-    return ok, breaks, len(records), "chain_linkage"
+    return verify_audit_record_chain(records)
 
 
 def _verify_worker_export(path: str, signing_key: str | None) -> tuple[bool, list[str], int, str]:
@@ -108,6 +108,7 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    anchors: dict[str, object] = {}
     try:
         if args.envelopes:
             source_label = args.envelopes
@@ -119,7 +120,11 @@ def main() -> int:
             )
         else:
             source_label = f"{args.store_db}[tenant={args.tenant}]"
-            ok, breaks, count, method = _verify_sqlite(args.store_db, args.tenant)
+            result = _verify_sqlite(args.store_db, args.tenant)
+            ok, breaks, count, method = (
+                result.valid, list(result.breaks), result.count, "chain_linkage"
+            )
+            anchors = {"genesis_ok": result.genesis_ok, "head_hash": result.head_hash}
     except (OSError, ValueError) as exc:
         print(f"verify_envelope_chain: {exc}", file=sys.stderr)
         return 2
@@ -132,10 +137,14 @@ def main() -> int:
                 "records_checked": count,
                 "chain_valid": ok,
                 "breaks": breaks,
+                **anchors,
             },
             indent=2,
         ))
     else:
+        if anchors:
+            print(f"genesis_ok={anchors['genesis_ok']} head_hash={anchors['head_hash']} "
+                  f"count={count}")
         print(f"Source:          {source_label}")
         print(f"Method:          {method}")
         print(f"Records checked: {count}")
