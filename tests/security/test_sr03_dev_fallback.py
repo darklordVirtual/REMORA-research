@@ -98,3 +98,21 @@ def test_credentials_still_work_without_opt_in(monkeypatch: pytest.MonkeyPatch) 
         headers={"Authorization": "Bearer real-token"},
     )
     assert resp.status_code == 200
+
+
+
+def test_opt_in_cannot_enable_fallback_in_production(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Review follow-up: REMORA_ALLOW_UNAUTHENTICATED_DEV=1 must not open a
+    production server with no credentials. Production refuses to start
+    without credentials; this pins the per-request check too, in case a
+    deployment reaches it (the production refusal precedes the opt-in)."""
+    api = _load_no_credential_api(monkeypatch, opt_in=True)
+    monkeypatch.setattr(api, "_get_env_mode", lambda: "production")
+    client = TestClient(api.app, raise_server_exceptions=False)
+
+    for method, path in (("GET", "/v1/metrics"), ("POST", "/v1/assess")):
+        resp = client.request(method, path, json={"question": "x"} if method == "POST" else None)
+        assert resp.status_code == 500, (
+            f"{method} {path}: production with the dev opt-in must refuse, "
+            f"got {resp.status_code}"
+        )

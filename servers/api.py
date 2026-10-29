@@ -76,8 +76,10 @@ def _get_env_mode() -> str:
     return deployment_environment()
 
 
-#: The only environment that enables the no-auth fallback and the
-#: self-asserted X-Remora-Tenant / X-Remora-Role headers (single-token mode).
+#: The only environment that enables the self-asserted X-Remora-Tenant /
+#: X-Remora-Role headers (single-token mode) and, with the explicit
+#: REMORA_ALLOW_UNAUTHENTICATED_DEV=1 opt-in, the read-only (viewer) no-auth
+#: fallback (SR-03).
 _DEV_ENV_VALUES = frozenset({"development"})
 
 
@@ -2099,8 +2101,10 @@ def _authenticate(request: Request) -> tuple[str, str]:
          development the request is refused: one bearer token names no
          tenant, and the tenant must come from a credential (RMR-CR-003;
          role pinning outside dev was external review 2026-07-28, N4).
-      3. No-auth dev mode   (neither set, development): dev fallback.
-         Production with no credentials configured is a startup error.
+      3. No-auth dev mode   (neither set, development, and
+         REMORA_ALLOW_UNAUTHENTICATED_DEV=1): ('default', 'viewer') - read
+         only, no assess or execute. Without the opt-in, or in production,
+         a request with no credentials configured is refused with 500 (SR-03).
 
     REMORA_ENV is read through remora.profiles.deployment_environment: unset
     is development, and any value that is neither development nor production,
@@ -2117,8 +2121,9 @@ def _authenticate(request: Request) -> tuple[str, str]:
                 status_code=500,
                 detail=(
                     "Server misconfiguration: no auth credentials set. "
-                    "Set REMORA_API_TOKENS or REMORA_API_BEARER_TOKEN, "
-                    "or set REMORA_ENV=development to run without auth."
+                    "Set REMORA_API_TOKENS or REMORA_API_BEARER_TOKEN. "
+                    "The unauthenticated read-only fallback exists only with "
+                    "REMORA_ENV=development and REMORA_ALLOW_UNAUTHENTICATED_DEV=1."
                 ),
             )
         # SR-03 / SEC-05: the unauthenticated development fallback is opt-in
