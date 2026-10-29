@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     from remora.governance.envelope import DecisionEnvelope
     from remora.governance.tenant_chain import ChainEntry
 
-_HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
+_HEX64_RE = re.compile(r"\A[0-9a-f]{64}\Z")  # \Z: "$" would admit a trailing newline
 
 # Version tag for the checkpoint signing payload.  Verifiers key their
 # parsing on this prefix. v2 (2026-10-28, SR-14) marks checkpoints whose
@@ -48,6 +48,14 @@ _HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 # construction so previously committed checkpoints stay verifiable.
 _PAYLOAD_PREFIX_V1 = "remora-ckpt-v1"
 _PAYLOAD_PREFIX_V2 = "remora-ckpt-v2"
+#: The only supported versions. An unknown version has no prefix and never
+#: falls back to another construction.
+_PAYLOAD_PREFIXES = {1: _PAYLOAD_PREFIX_V1, 2: _PAYLOAD_PREFIX_V2}
+
+
+def _supported_version(v: object) -> bool:
+    # ``type(v) is int`` excludes bool (True == 1) and floats/strings.
+    return type(v) is int and v in _PAYLOAD_PREFIXES
 
 
 def merkle_root_from_hex_leaves(leaves: Sequence[str], *, version: int = 2) -> str:
@@ -79,7 +87,7 @@ def merkle_root_from_hex_leaves(leaves: Sequence[str], *, version: int = 2) -> s
         64-character lowercase hex SHA-256 Merkle root, or ``""`` for
         empty input (mirrors ``compute_merkle_root``).
     """
-    if version not in (1, 2):
+    if not _supported_version(version):
         raise ValueError(f"unsupported merkle version {version!r}")
     if not leaves:
         return ""
@@ -95,6 +103,12 @@ def merkle_root_from_hex_leaves(leaves: Sequence[str], *, version: int = 2) -> s
             hashes_v1 = [_combine_v1(hashes_v1[i], hashes_v1[i + 1])
                          for i in range(0, len(hashes_v1), 2)]
         return hashes_v1[0]
+
+    # bytes.fromhex accepts upper case and whitespace, so distinct leaf
+    # strings would share a root. v2 admits only the canonical form.
+    for i, leaf in enumerate(leaves):
+        if not isinstance(leaf, str) or not _HEX64_RE.match(leaf):
+            raise ValueError(f"v2 leaf {i} is not a lowercase 64-char hex digest: {leaf!r}")
 
     def _leaf_v2(hex_digest: str) -> bytes:
         return hashlib.sha256(b"\x00" + bytes.fromhex(hex_digest)).digest()
@@ -186,9 +200,13 @@ class Checkpoint:
         string for the first checkpoint.  All fields are decimal integers
         or lowercase hex, so ``|`` is an unambiguous delimiter.  The prefix
         records the Merkle version, so a v1 root can never be replayed as v2.
+
+        Raises ``ValueError`` for an unsupported version.
         """
+        if not _supported_version(self.v):
+            raise ValueError(f"unsupported checkpoint version {self.v!r}")
         prev = self.prev_checkpoint_root or ""
-        prefix = _PAYLOAD_PREFIX_V2 if self.v == 2 else _PAYLOAD_PREFIX_V1
+        prefix = _PAYLOAD_PREFIXES[self.v]
         return f"{prefix}|{self.seq_start}|{self.seq_end}|{self.root}|{prev}".encode(
             "utf-8"
         )
@@ -198,13 +216,17 @@ class Checkpoint:
 
     @classmethod
     def from_dict(cls, d: dict[str, Any]) -> "Checkpoint":
+        # Records written before the version field existed are v1. Any other
+        # value (3, "2", 2.0, True, None) is refused rather than coerced.
+        v = d.get("v", 1)
+        if not _supported_version(v):
+            raise ValueError(f"unsupported checkpoint version {v!r}")
         return cls(
             seq_start=d["seq_start"],
             seq_end=d["seq_end"],
             root=d["root"],
             prev_checkpoint_root=d.get("prev_checkpoint_root"),
-            # Records written before the version field existed are v1.
-            v=int(d.get("v", 1)),
+            v=v,
         )
 
 
@@ -259,24 +281,32 @@ def verify_span(hashes: Sequence[str], checkpoint: Checkpoint) -> bool:
 
     Returns ``True`` only when *hashes* has exactly the length the
     checkpoint declares AND its recomputed Merkle root equals
-    ``checkpoint.root``.  Any tamper (a single flipped bit in any hash) or
-    length mismatch returns ``False``.  Leaves are expected to be strings
-    (malformed hex simply fails the root comparison); non-string leaves
-    raise ``TypeError``.
+    ``checkpoint.root``.  Any tamper (a single flipped bit in any hash),
+    length mismatch, unsupported checkpoint version, or (for v2) any leaf
+    that is not a lowercase 64-char hex digest returns ``False``.  Under the
+    legacy v1 construction leaves are expected to be strings (malformed hex
+    simply fails the root comparison); non-string v1 leaves raise
+    ``TypeError``.
     """
+    if not _supported_version(checkpoint.v):
+        return False
     declared_len = checkpoint.seq_end - checkpoint.seq_start + 1
     if declared_len <= 0 or len(hashes) != declared_len:
         return False
     # Recompute under the checkpoint's own construction version: a v1 anchor
     # verifies against v1, a v2 anchor against v2, and never across.
-    return merkle_root_from_hex_leaves(list(hashes), version=checkpoint.v) == checkpoint.root
+    try:
+        recomputed = merkle_root_from_hex_leaves(list(hashes), version=checkpoint.v)
+    except ValueError:
+        return False
+    return recomputed == checkpoint.root
 
 
 def verify_checkpoint_chain(checkpoints: Sequence[Checkpoint]) -> tuple[bool, list[str]]:
     """Consistency check over consecutive checkpoints; reports every break.
 
-    Checks, per checkpoint: the span is well-formed (``seq_end >=
-    seq_start``); from the second checkpoint on, ``prev_checkpoint_root``
+    Checks, per checkpoint: the version is supported (1 or 2); the span is
+    well-formed (``seq_end >= seq_start``); from the second checkpoint on, ``prev_checkpoint_root``
     equals the previous checkpoint's ``root`` and spans are contiguous
     (``seq_start == previous.seq_end + 1``).  The first checkpoint's
     ``prev_checkpoint_root`` anchors outside the given window and is not
@@ -290,6 +320,8 @@ def verify_checkpoint_chain(checkpoints: Sequence[Checkpoint]) -> tuple[bool, li
     """
     problems: list[str] = []
     for i, checkpoint in enumerate(checkpoints):
+        if not _supported_version(checkpoint.v):
+            problems.append(f"unsupported_version_at:{i}")
         if checkpoint.seq_end < checkpoint.seq_start:
             problems.append(f"invalid_span_at:{i}")
         if i == 0:
@@ -312,5 +344,10 @@ def sign_checkpoint(checkpoint: Checkpoint, *, key: str) -> str:
 
 
 def verify_checkpoint_signature(checkpoint: Checkpoint, signature: str, *, key: str) -> bool:
-    """Verify an HMAC-SHA256 checkpoint signature (constant-time compare)."""
+    """Verify an HMAC-SHA256 checkpoint signature (constant-time compare).
+
+    Returns ``False`` for an unsupported checkpoint version.
+    """
+    if not _supported_version(checkpoint.v):
+        return False
     return verify_signed_root(checkpoint.signing_payload().decode("utf-8"), signature, key=key)

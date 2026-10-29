@@ -43,6 +43,11 @@ checkpoint's root, so the checkpoints form their own chain.
 - Record fields: `seq_start`, `seq_end`, `root`,
   `prev_checkpoint_root` (`null` for the first checkpoint of a chain),
   `v` (Merkle version; absent means 1 in records written before v2).
+  `Checkpoint.from_dict` refuses any other value (3, `"2"`, `2.0`,
+  `true`, `null`); a checkpoint with an unsupported version never verifies
+  and is reported as `unsupported_version_at:<i>` by the chain check.
+  v2 leaves must be lowercase 64-char hex: upper case or whitespace,
+  which `bytes.fromhex` would otherwise accept, is refused.
 - Signing payload: `remora-ckpt-v2|<seq_start>|<seq_end>|<root>|<prev>`
   for v2 checkpoints, `remora-ckpt-v1|...` for v1
   (bytes; `<prev>` is empty for the first checkpoint). This is the stable
@@ -57,6 +62,11 @@ checkpoint's root, so the checkpoints form their own chain.
   entry hashes for positions `seq_start..seq_end` from the chain, then
   `verify_span(hashes, checkpoint)`, which returns `False` on any length
   mismatch or any tampered hash (a single flipped bit changes the root).
+- Exported daily roots (`audit-root-*.jsonl`): `verify_root_record(record,
+  key=...)` in `remora/audit/merkle.py` checks one record's HMAC,
+  dispatching on `v` (absent = legacy v1, bare root; 2 = count-bound
+  preimage, `n_entries` required). It checks the signature only; recompute
+  the root from the covered entries with `compute_merkle_root` as well.
 - Consistency (checkpoint chain): `verify_checkpoint_chain(checkpoints)`
   checks that each checkpoint's `prev_checkpoint_root` equals the previous
   checkpoint's `root` and that spans are contiguous

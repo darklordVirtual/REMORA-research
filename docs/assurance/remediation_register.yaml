@@ -1167,6 +1167,25 @@ items:
       artifact was regenerated with the sanctioned generator (the drift test
       passes). Tests: tests/security/test_sr14_merkle.py (failing-first, then
       green).
+      Review follow-up (2026-10-29): Checkpoint.from_dict accepted any
+      int-coercible v, and signing_payload used the v1 prefix for every v
+      other than 2, so a v=3 record parsed, signed and verified under v1
+      while verify_span raised. from_dict now admits only int 1 or 2 (absent
+      = 1; bool, float, string and null refused); signing_payload uses an
+      explicit {1, 2} prefix map and raises otherwise; verify_span,
+      verify_checkpoint_signature and verify_signed_root return False for an
+      unsupported version, and verify_checkpoint_chain reports
+      unsupported_version_at. v2 leaves must match lowercase 64-hex
+      (bytes.fromhex accepted upper case and whitespace, giving distinct
+      leaf strings one root); the hex check now anchors with \A...\Z, since
+      ^...$ also admitted a trailing newline in make_checkpoint and the leaf
+      adapters. New verify_root_record(record, key) verifies an exported
+      root record's HMAC, dispatching on v and requiring an integer
+      n_entries for v2; it does not recompute the root. Tests: 17 new cases
+      in tests/security/test_sr14_merkle.py, 16 failing on the PR head
+      before the fix. Open: scripts/verify_audit_anchor.py verifies
+      AuditAnchor records, not audit-root-*.jsonl, so no shipped CLI calls
+      verify_root_record yet.
 
   - id: REM-058
     section: "security-review-2026-10"

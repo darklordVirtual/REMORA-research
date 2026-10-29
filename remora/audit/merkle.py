@@ -132,8 +132,10 @@ def sign_root(root_hash: str, *, key: str, n_entries: int | None = None,
     or public auditability, replace with an asymmetric scheme (Ed25519, ECDSA).
     The key must be kept secret; anyone who holds it can forge a valid signature.
     """
+    if type(version) is not int or version not in (1, 2):
+        raise ValueError(f"unsupported root signature version {version!r}")
     if version == 2:
-        if n_entries is None:
+        if type(n_entries) is not int or n_entries < 0:
             raise ValueError("version-2 root signatures require n_entries (SEC-03)")
         preimage = f"v2:{n_entries}:{root_hash}"
     else:
@@ -156,10 +158,47 @@ def verify_signed_root(root_hash: str, signature: str, *, key: str,
     Returns
     -------
     bool
-        ``True`` if the signature is valid for the given root and key.
+        ``True`` if the signature is valid for the given root and key;
+        ``False`` for an unsupported version or a v2 call without a valid
+        ``n_entries`` (never a fallback to another construction).
     """
-    expected = sign_root(root_hash, key=key, n_entries=n_entries, version=version)
+    try:
+        expected = sign_root(root_hash, key=key, n_entries=n_entries, version=version)
+    except ValueError:
+        return False
+    if not isinstance(signature, str):
+        return False
     return hmac.compare_digest(expected, signature)
+
+
+def verify_root_record(record: dict, *, key: str) -> bool:
+    """Verify one exported root record (a line of ``audit-root-*.jsonl``).
+
+    Dispatches on the record's ``"v"`` field: a record without it is a legacy
+    v1 record (bare-root HMAC); ``"v": 2`` requires an integer ``n_entries``,
+    which the signature binds. Any other version, a missing or non-string
+    root or signature, or a v2 record without a valid count returns
+    ``False``. A v2 record stripped of its ``"v"`` field is checked as v1 and
+    fails, because its signature covers the count-bound v2 preimage.
+
+    This checks the HMAC only. It does not recompute the root from the chain;
+    pair it with ``compute_merkle_root`` over the entries the record covers.
+    """
+    if not isinstance(record, dict):
+        return False
+    version = record.get("v", 1)
+    if type(version) is not int or version not in (1, 2):
+        return False
+    root = record.get("merkle_root")
+    signature = record.get("signature")
+    if not isinstance(root, str) or not isinstance(signature, str):
+        return False
+    n_entries = record.get("n_entries")
+    if version == 2 and (type(n_entries) is not int or n_entries < 0):
+        return False
+    return verify_signed_root(root, signature, key=key,
+                              n_entries=n_entries if version == 2 else None,
+                              version=version)
 
 
 def export_daily_root(
@@ -186,7 +225,8 @@ def export_daily_root(
     signing_key:
         If provided, an HMAC-SHA256 ``signature`` field is added to the record.
     n_entries:
-        Optional: number of audit chain entries the root covers.
+        Number of audit chain entries the root covers. Required for
+        version 2 (the default) and bound into its signature; optional for v1.
     timestamp:
         ISO-8601 UTC timestamp (default: ``datetime.now(tz=timezone.utc).isoformat()``).
 
