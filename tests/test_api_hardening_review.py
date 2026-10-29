@@ -58,10 +58,11 @@ def test_oversized_chunked_body_is_rejected_with_413(monkeypatch):
 
 
 def test_normal_body_still_accepted(monkeypatch):
-    api = _reload(monkeypatch, REMORA_MAX_REQUEST_BYTES="2048")
+    api = _reload(monkeypatch, bearer="test-token", REMORA_MAX_REQUEST_BYTES="2048")
     client = TestClient(api.app)
     resp = client.post("/v1/assess", json={"question": "Should we patch?",
-                                           "risk_tier": "medium"})
+                                           "risk_tier": "medium"},
+                       headers={"Authorization": "Bearer test-token"})
     assert resp.status_code == 200, resp.text
 
 

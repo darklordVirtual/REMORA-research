@@ -34,6 +34,12 @@ id      = "6e84acea1ed4488a9b32cef6181900b2"
 #     wrangler secret put AROMER_WRITE_SECRET
 # Callers send `Authorization: Bearer <secret>`. With the secret unset the
 # worker fails closed and refuses all writes (503). GET telemetry stays open.
+#
+# POST /scan-result (the agent-side result scanner, SR-08) uses its own
+# secret, because the scanner's token is reachable from the agent's hook
+# process and must not authorise governance writes:
+#     wrangler secret put AROMER_SCAN_SECRET
+# Unset → /scan-result refuses (503). Clients send it as AROMER_WORKER_TOKEN.
 
 [vars]
 AROMER_VERSION             = "0.2.0-experimental"
