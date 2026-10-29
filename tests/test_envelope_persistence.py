@@ -196,7 +196,13 @@ def test_audit_record_chain_flags_a_record_with_no_hash() -> None:
 
 def test_empty_trail_verifies_but_proves_nothing() -> None:
     # Documented behaviour, not an accident: callers must check the count too.
-    assert verify_audit_record_chain([]) == (True, [])
+    # SR-10: the result is a ChainVerifyResult; unpacking keeps (valid, breaks).
+    result = verify_audit_record_chain([])
+    ok, breaks = result
+    assert ok is True
+    assert breaks == []
+    assert result.count == 0
+    assert result.head_hash is None
 
 
 # ── Shadow-mode envelopes: persist, reload, verify ────────────────────────────
