@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 from unittest.mock import MagicMock, patch
 
+import pytest
 import urllib.error
 
 from remora.agent_hook.result_scanner import (
@@ -279,6 +280,13 @@ class TestVerdictLogic:
 
 class TestOracleIntegration:
     """Oracle enable/disable and confidence threshold behaviour."""
+
+    @pytest.fixture(autouse=True)
+    def _oracle_env(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # SR-08: the oracle needs an explicit destination and credential;
+        # there is no default worker URL.
+        monkeypatch.setenv("AROMER_WORKER_URL", "https://oracle.test")
+        monkeypatch.setenv("AROMER_WORKER_TOKEN", "test-scan-token")
 
     def test_oracle_disabled_no_network_call(self) -> None:
         """oracle_enabled=False → urlopen never called; verdict is pure heuristic."""

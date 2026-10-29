@@ -35,3 +35,21 @@ f5f3363090becd74f64e399d37b099370c336967:deploy/ot-pilot/docker-compose.yml:gene
 # own earlier comment, which quoted that line verbatim and so matched too.
 793d9164cc5174e323d38563f589d9c193505b8b:docs/design/unified-capability-execution-v1.1.md:generic-api-key:158
 71182d4073180ac9173baefa2bf8ce7651a8470c:.gitleaksignore:generic-api-key:31
+#
+# tests/security/test_sr08_result_scanner.py at 9e35b29d, lines 157, 158, 160
+# and 165: redaction fixtures for the SR-08 review follow-up. They have to look
+# like credentials, because the test asserts redact_text() removes them. Line
+# 157 is the documented AWS example secret prefix, 158 the xkcd passphrase, and
+# 160/165 open PEM blocks whose bodies are 24-byte base64 fragments that
+# decode to no key. None is a live value.
+9e35b29d23cc9ebb46e18015a020687d7381a9ee:tests/security/test_sr08_result_scanner.py:generic-api-key:157
+9e35b29d23cc9ebb46e18015a020687d7381a9ee:tests/security/test_sr08_result_scanner.py:generic-api-key:158
+9e35b29d23cc9ebb46e18015a020687d7381a9ee:tests/security/test_sr08_result_scanner.py:private-key:160
+9e35b29d23cc9ebb46e18015a020687d7381a9ee:tests/security/test_sr08_result_scanner.py:private-key:165
+#
+# .gitleaks.toml at c0d0f3e8, lines 102 to 105: the same fixtures, briefly
+# allowlisted by value before tests/test_gitleaks_allowlist.py rejected
+# unanchored entries; replaced by the fingerprints above in the next commit.
+c0d0f3e891ba4436a772f56fd4e97510cf03270a:.gitleaks.toml:generic-api-key:102
+c0d0f3e891ba4436a772f56fd4e97510cf03270a:.gitleaks.toml:generic-api-key:103
+c0d0f3e891ba4436a772f56fd4e97510cf03270a:.gitleaks.toml:private-key:104

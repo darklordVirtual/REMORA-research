@@ -50,9 +50,16 @@ def test_assess_replays_identically_across_store_instances(tmp_path: Path,
     idempotency key after a simulated restart returns the SAME proposal_id
     instead of minting a new one."""
     import importlib
+    import json as _json
 
     monkeypatch.setenv("REMORA_CHAIN_DB", str(tmp_path / "chain.db"))
     monkeypatch.delenv("REMORA_PG_DSN", raising=False)
+    # SR-03: the credential-free dev fallback is opt-in and read-only, so
+    # provision the ot-agent credential the requests below send.
+    monkeypatch.setenv(
+        "REMORA_API_TOKENS",
+        _json.dumps({"ot-agent": {"tenant": "default", "role": "operator"}}),
+    )
     import servers.execution_api as exec_mod
     importlib.reload(exec_mod)
     try:

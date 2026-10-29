@@ -358,6 +358,15 @@ class CloudflareRAGOracle(Oracle):
         data = self._get(path)
         return data.get("matches", [])
 
+    def _json_post_headers(self) -> dict[str, str]:
+        """Headers for an authenticated JSON POST. SR-02/SR-04: every worker
+        route except /status requires the bearer, so debug helpers send it
+        too."""
+        headers = {"Content-Type": "application/json", "User-Agent": "REMORA-RAGOracle/1.0"}
+        if self._secret:
+            headers["Authorization"] = f"Bearer {self._secret}"
+        return headers
+
     def rerank(self, query: str, texts: list[str]) -> list[dict]:
         """
         Debug: rerank a list of texts against a query via the cross-encoder.
@@ -367,7 +376,7 @@ class CloudflareRAGOracle(Oracle):
         req = urllib.request.Request(
             f"{self._worker_url}/rerank",
             data=payload,
-            headers={"Content-Type": "application/json", "User-Agent": "REMORA-RAGOracle/1.0"},
+            headers=self._json_post_headers(),
             method="POST",
         )
         with urllib.request.urlopen(req, context=self._ssl_ctx, timeout=self._timeout) as r:
@@ -386,7 +395,7 @@ class CloudflareRAGOracle(Oracle):
         req = urllib.request.Request(
             f"{self._worker_url}/translate",
             data=payload,
-            headers={"Content-Type": "application/json", "User-Agent": "REMORA-RAGOracle/1.0"},
+            headers=self._json_post_headers(),
             method="POST",
         )
         with urllib.request.urlopen(req, context=self._ssl_ctx, timeout=self._timeout) as r:
