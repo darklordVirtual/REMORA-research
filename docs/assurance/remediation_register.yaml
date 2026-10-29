@@ -1159,8 +1159,18 @@ items:
       without REMORA_METAJUDGE_WORKER_TOKEN; the offline heuristic is local
       and authenticated by construction); the promotion gate refuses degraded
       or unauthenticated critiques; episode fields reach the judge as
-      length-capped JSON inside a fenced <episode-data> block. Tests:
-      tests/security/test_sr13_meta_judge.py (failing-first, then green).
+      length-capped JSON inside a fenced <episode-data> block. Review
+      follow-up (2026-10-29): a missing, boolean, string or list score, a
+      non-object claim, and the offline fallback taken after a failed live
+      call are all marked degraded, so none of them passes the gate (before
+      this, the fallback returned degraded=False and a malformed response
+      promoted). Caveat: source_authenticated=True records only that the
+      client presented the bearer; the judge Worker is external to this
+      repository and nothing here shows it verifies the token. The legacy
+      critique() path still interpolates episode fields unfenced; its score
+      is clamped to [-1, 1] and does not feed the promotion gate. Tests:
+      tests/security/test_sr13_meta_judge.py (failing-first, then green;
+      +6 malformed-output and fallback cases).
 
   - id: REM-058
     section: "security-review-2026-10"

@@ -17,7 +17,7 @@ import math
 import os
 import ssl
 import urllib.request
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, replace
 from typing import Any
 
 from remora.aromer.experience.episode import Episode
@@ -208,8 +208,10 @@ class AromerMetaJudge:
                 source_authenticated=bool(_worker_token()),
             )
         except Exception:
-            # Fall back to offline heuristic rubric — no API keys needed
-            return compute_offline_rubric(episode, ground_truth)
+            # Fall back to offline heuristic rubric — no API keys needed.
+            # SR-13: a fallback is never a judged critique; mark it degraded so
+            # the promotion gate refuses it.
+            return replace(compute_offline_rubric(episode, ground_truth), degraded=True)
 
     def critique_rubric_batch(
         self,
@@ -244,7 +246,12 @@ class AromerMetaJudge:
         import math
 
         def _bounded(name: str) -> tuple[float, bool]:
-            value = float(rubric_raw.get(name, 0.5))
+            raw_value = rubric_raw.get(name)
+            # SR-13: only real numbers are scores; a missing field, bool, str,
+            # list etc. is malformed output and marks the critique out of range.
+            if isinstance(raw_value, bool) or not isinstance(raw_value, (int, float)):
+                return 0.5, False
+            value = float(raw_value)
             if not math.isfinite(value):
                 return 0.5, False
             return min(1.0, max(0.0, value)), 0.0 <= value <= 1.0
@@ -257,6 +264,8 @@ class AromerMetaJudge:
                     rubric_raw = json.loads(raw["claim"])
                 except json.JSONDecodeError:
                     pass  # non-JSON claim text is kept as plain text
+            if not isinstance(rubric_raw, dict):
+                rubric_raw = {}
 
             truth, ok_t = _bounded("truth_score")
             safety, ok_s = _bounded("safety_score")
@@ -294,7 +303,7 @@ class AromerMetaJudge:
                 legacy_score=legacy,
             )
         except Exception:
-            return compute_offline_rubric(episode, ground_truth)
+            return replace(compute_offline_rubric(episode, ground_truth), degraded=True)
 
     def critique_batch(
         self, episodes: list[Episode], max_batch: int = 10

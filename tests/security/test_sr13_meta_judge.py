@@ -192,3 +192,54 @@ def test_malformed_numeric_field_cannot_stall_prompt(monkeypatch: pytest.MonkeyP
     data_block = captured["prompt"].split("<episode-data>", 1)[1].split("</episode-data>", 1)[0]
     assert len(data_block) <= 2200
     assert json.loads(data_block)["trust_score"] is None
+
+
+def _gate_admits(tmp_path: Path, critique: RubricCritique) -> bool:
+    from remora.aromer.experience.promotion_gate import (
+        MemoryPromotionGate,
+        PromotionRecord,
+    )
+
+    gate = MemoryPromotionGate(ledger_path=tmp_path / "ledger.json")
+    record = PromotionRecord(episode_id=critique.episode_id, level=0, rubric=None)
+    return gate._gate_L0_to_L1(record, critique)
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        _rubric_payload(truth_score="abc"),
+        _rubric_payload(truth_score=True),
+        _rubric_payload(safety_score=[0.9]),
+        {"claim": json.dumps([1, 2])},
+        {"claim": json.dumps(_rubric_payload(evidence_score=None))},
+    ],
+    ids=["str-score", "bool-score", "list-score", "non-dict-claim", "null-score"],
+)
+def test_malformed_live_response_cannot_promote(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, payload: dict
+) -> None:
+    """Review follow-up: a malformed worker answer must not reach the gate as
+    a clean critique, whether it is parsed as degraded or falls back."""
+    judge, _ = _judge(monkeypatch, payload, token="tok")
+    critique = judge.critique_rubric(_Episode(), "benign")
+
+    assert critique.degraded, "malformed judge output must be marked degraded"
+    assert _gate_admits(tmp_path, critique) is False
+
+
+def test_worker_failure_fallback_cannot_promote(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """A failed live call falls back to the offline heuristic, which is not a
+    judged critique: it is degraded and the gate refuses it."""
+    judge, _ = _judge(monkeypatch, _rubric_payload(), token="tok")
+
+    def _boom(prompt: str, context: str) -> dict:
+        raise OSError("worker unreachable")
+
+    judge._call_worker = _boom  # type: ignore[method-assign]
+    critique = judge.critique_rubric(_Episode(), "benign")
+
+    assert critique.degraded
+    assert _gate_admits(tmp_path, critique) is False
