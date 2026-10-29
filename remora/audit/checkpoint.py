@@ -48,7 +48,6 @@ _HEX64_RE = re.compile(r"^[0-9a-f]{64}$")
 # construction so previously committed checkpoints stay verifiable.
 _PAYLOAD_PREFIX_V1 = "remora-ckpt-v1"
 _PAYLOAD_PREFIX_V2 = "remora-ckpt-v2"
-_PAYLOAD_PREFIX = _PAYLOAD_PREFIX_V1  # backward-compatible default reference
 
 
 def merkle_root_from_hex_leaves(leaves: Sequence[str], *, version: int = 2) -> str:

@@ -26,7 +26,6 @@ from remora.audit.hash_chain import AuditHashChain
 from remora.audit.merkle import (
     compute_merkle_root,
     export_daily_root,
-    sign_root,
     verify_signed_root,
 )
 
