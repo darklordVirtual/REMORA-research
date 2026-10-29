@@ -3352,6 +3352,20 @@ documents:
   last_reviewed: '2026-10-26'
   validates_against: []
   claims: []
+- id: DOC-415
+  path: docs/design/harness-governance-bridge-v1.md
+  status: proposal
+  topic: docs_design_harness-governance-bridge-v1_md
+  code_synced: unreviewed
+  verdict: pending
+  owner: darklordVirtual
+  last_reviewed: '2026-10-29'
+  audience:
+  - maintainers
+  - evaluators
+  - integrators
+  validates_against: []
+  claims: []
 topics:
 - provenance_README_md
 - provenance_prior-art-review-2026-10-04_md
@@ -3692,3 +3706,4 @@ topics:
 - docs_architecture_ADR-UE-03-capability-manifest-hook-and-mode_md
 - docs_architecture_ADR-pilot-readiness-owner-decision_md
 - docs_assurance_fault_scenario_crosswalk_v1_md
+- docs_design_harness-governance-bridge-v1_md
