@@ -1136,6 +1136,28 @@ items:
       scheduled call. Verified on SQLite; the Postgres branch shares the code
       path but was not exercised against a live server here.
 
+  - id: REM-058
+    section: "security-review-2026-10"
+    title: "SR-15: benchmark sandbox escapes (absolute ls target, SQL ATTACH) reported as non-escapes"
+    gate: P1
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - remora/toolcall/live_execution.py
+      - tests/security/test_sr15_sandbox.py
+    notes: >
+      Security review 2026-10 (SR-15, Low, reproduced): _exec_shell let an
+      absolute ls target replace the workspace base (ls /etc listed 168 host
+      entries) and the "./" mangling broke traversal detection; _exec_database
+      ran arbitrary SQL, so ATTACH DATABASE wrote outside the sandbox root;
+      both traces reported sandbox_escape_blocked=False. Fixed per SEC-10:
+      the shell listing resolves the raw target and enforces _under_root, and
+      the database executor sets SQLITE_LIMIT_ATTACHED=0 plus an authorizer
+      denying ATTACH, DETACH and PRAGMA; sqlite errors are captured into the
+      trace with sandbox_escape_blocked=True for authorizer-denied classes.
+      Tests: tests/security/test_sr15_sandbox.py (failing-first, then green);
+      the cases extend the external-scan pin for the dry-run claim.
+
   - id: REM-059
     section: "security-review-2026-10"
     title: "SR-22: RAG oracle HTTP failures counted as valid votes; bearer never sent"
