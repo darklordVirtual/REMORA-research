@@ -1164,3 +1164,46 @@ items:
       test_proposal_id_header, test_idempotency_store); credential-topology
       register line sites re-based. New tests:
       tests/security/test_sr03_dev_fallback.py (failing-first, then green).
+
+  - id: REM-058
+    section: "security-review-2026-10"
+    title: "SR-15: benchmark sandbox escapes (absolute ls target, SQL ATTACH) reported as non-escapes"
+    gate: P1
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - remora/toolcall/live_execution.py
+      - tests/security/test_sr15_sandbox.py
+    notes: >
+      Security review 2026-10 (SR-15, Low, reproduced): _exec_shell let an
+      absolute ls target replace the workspace base (ls /etc listed 168 host
+      entries) and the "./" mangling broke traversal detection; _exec_database
+      ran arbitrary SQL, so ATTACH DATABASE wrote outside the sandbox root;
+      both traces reported sandbox_escape_blocked=False. Fixed per SEC-10:
+      the shell listing resolves the raw target and enforces _under_root, and
+      the database executor sets SQLITE_LIMIT_ATTACHED=0 plus an authorizer
+      denying ATTACH, DETACH and PRAGMA; sqlite errors are captured into the
+      trace with sandbox_escape_blocked=True for authorizer-denied classes.
+      Tests: tests/security/test_sr15_sandbox.py (failing-first, then green);
+      the cases extend the external-scan pin for the dry-run claim.
+
+  - id: REM-059
+    section: "security-review-2026-10"
+    title: "SR-22: RAG oracle HTTP failures counted as valid votes; bearer never sent"
+    gate: P1
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - remora/oracles/cloudflare_rag.py
+      - tests/security/test_sr22_rag_oracle.py
+      - tests/test_cloudflare_rag.py
+    notes: >
+      Security review 2026-10 (SR-22, Low): _call caught HTTPError/Exception
+      and returned an error-free 0.0-confidence response that the engine
+      counted toward quorum, and the constructor's secret was never sent to
+      the bearer-protected /query. Fixed per SEC-11: transport and HTTP
+      failures raise OracleTransportError so Oracle.ask sets error and the
+      engine's valid_responses filter excludes them; the bearer is sent when
+      secret is configured. The two pre-existing tests that documented
+      errors-as-votes now document errors-as-errors. Tests:
+      tests/security/test_sr22_rag_oracle.py (failing-first, then green).

@@ -191,9 +191,17 @@ class LiveToolSandboxExecutor:
         result: dict[str, Any] = {"success": True, "command": command}
 
         if text.startswith("ls "):
-            target = text[3:].strip().replace("./", "")
-            listing_root = workspace / target
-            if listing_root.exists():
+            target = text[3:].strip()
+            # SR-15 / SEC-10: an absolute target would REPLACE the workspace
+            # base (Path.__truediv__ semantics) and traversal would resolve
+            # outside it; both listed the host while the trace reported no
+            # escape. Resolve the RAW target (the earlier "./"-mangling broke
+            # traversal detection), then enforce the root.
+            listing_root = (workspace / target).resolve()
+            if not _under_root(listing_root, workspace):
+                result["entries"] = []
+                result["sandbox_escape_blocked"] = True
+            elif listing_root.exists():
                 result["entries"] = sorted(p.name for p in listing_root.iterdir())
             else:
                 result["entries"] = []
@@ -235,6 +243,18 @@ class LiveToolSandboxExecutor:
         query = str(task.proposed_tool_args.get("query", "")).strip()
         result: dict[str, Any] = {"success": True, "query": query}
         con = sqlite3.connect(db_path)
+        # SR-15 / SEC-10: the sandbox executes user-supplied SQL; ATTACH
+        # DATABASE wrote outside the root (review PoC). Deny ATTACH, DETACH
+        # and PRAGMA at the authorizer, and cap attached databases at zero.
+        con.setlimit(sqlite3.SQLITE_LIMIT_ATTACHED, 0)
+
+        def _deny_escape(action, _arg1, _arg2, _db, _source):  # noqa: ANN001
+            if action in (sqlite3.SQLITE_ATTACH, sqlite3.SQLITE_DETACH,
+                          sqlite3.SQLITE_PRAGMA):
+                return sqlite3.SQLITE_DENY
+            return sqlite3.SQLITE_OK
+
+        con.set_authorizer(_deny_escape)
         try:
             cur = con.cursor()
             lowered = query.lower()
@@ -255,6 +275,14 @@ class LiveToolSandboxExecutor:
                 else:
                     con.commit()
                     result["rows_affected"] = cur.rowcount
+        except sqlite3.Error as exc:
+            # A denied or rejected statement is a blocked escape attempt when
+            # the authorizer fired, and a benchmark failure otherwise — never
+            # an exception out of the trace path (the trace reports it).
+            result["success"] = False
+            result["error"] = f"sqlite: {type(exc).__name__}"
+            if any(k in lowered for k in ("attach", "detach", "pragma")):
+                result["sandbox_escape_blocked"] = True
         finally:
             con.close()
 
