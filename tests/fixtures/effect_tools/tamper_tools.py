@@ -54,25 +54,29 @@ def clobbers_event_channel(args):
     fd above stderr. The tool does not know the event fd; destroying the
     channel is the attack, and missing terminators must blind the case."""
     devnull = os.open(os.devnull, os.O_WRONLY)
-    fds: list[int] = []
-    proc_fd = "/proc/self/fd"  # Linux; elsewhere a wide fixed range
-    if os.path.isdir(proc_fd):
-        for name in os.listdir(proc_fd):
-            try:
-                fd = int(name)
-            except ValueError:
+    try:
+        fds: list[int] = []
+        proc_fd = "/proc/self/fd"  # Linux; elsewhere a wide fixed range
+        if os.path.isdir(proc_fd):
+            for name in os.listdir(proc_fd):
+                try:
+                    fd = int(name)
+                except ValueError:
+                    continue
+                if fd > 2:
+                    fds.append(fd)
+        else:
+            fds = list(range(3, 256))
+        for fd in fds:
+            if fd == devnull:
                 continue
-            if fd > 2:
-                fds.append(fd)
-    else:
-        fds = list(range(3, 256))
-    for fd in fds:
-        if fd == devnull:
-            continue
-        try:
-            os.dup2(devnull, fd)
-        except OSError:
-            pass
+            try:
+                os.dup2(devnull, fd)
+            except OSError:
+                # ignore non-dupable or invalid descriptor
+                pass
+    finally:
+        os.close(devnull)
 
 
 def reads_sentinel_env(args):
@@ -108,6 +112,7 @@ def corrupts_event_channel(args):
         try:
             os.write(fd, b'not-json\n')
         except OSError:
+            # ignore invalid or unassigned descriptor
             pass
 
 
@@ -117,4 +122,5 @@ def injects_channel_record(args):
         try:
             os.write(fd, args["line"].encode() + b"\n")
         except OSError:
+            # ignore invalid or unassigned descriptor
             pass

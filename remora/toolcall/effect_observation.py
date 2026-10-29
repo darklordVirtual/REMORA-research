@@ -203,7 +203,7 @@ except BaseException:
     # terminator as blinding, never as a clean run.
     pass
 '''
-_WRITE_FLAGS = os.O_WRONLY | os.O_RDWR | os.O_APPEND | os.O_CREAT | os.O_TRUNC
+
 
 def _child_env(extra: Mapping[str, str] | None, workdir: str) -> dict[str, str]:
     """Allowlisted environment for the observed child (SR-16 / SEC-09).
