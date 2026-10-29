@@ -53,6 +53,15 @@ from remora.core import Oracle
 
 logger = logging.getLogger(__name__)
 
+
+class OracleTransportError(RuntimeError):
+    """The RAG worker call failed at the transport or HTTP layer (SR-22).
+
+    Raised from ``_call`` so ``Oracle.ask`` records ``error`` and the engine
+    excludes the response from the quorum — a refused or unreachable oracle
+    is not a zero-confidence vote.
+    """
+
 # Default Worker endpoint — override with REMORA_RAG_WORKER_URL env variable.
 # The built-in default points to the reference deployment; replace with your own
 # Cloudflare Worker URL before deploying to production.
@@ -211,10 +220,15 @@ class CloudflareRAGOracle(Oracle):
                 f":{ctx.tenant_id or ''}"
             )
         body = json.dumps(payload).encode()
+        headers = {"Content-Type": "application/json", "User-Agent": "REMORA-RAGOracle/1.0"}
+        # SR-22: the configured secret was never sent; the worker's /query is
+        # behind a bearer (SEC-04), so the oracle must present it.
+        if self._secret:
+            headers["Authorization"] = f"Bearer {self._secret}"
         req = urllib.request.Request(
             f"{self._worker_url}/query",
             data=body,
-            headers={"Content-Type": "application/json", "User-Agent": "REMORA-RAGOracle/1.0"},
+            headers=headers,
             method="POST",
         )
         t0 = time.perf_counter()
@@ -222,11 +236,16 @@ class CloudflareRAGOracle(Oracle):
             with urllib.request.urlopen(req, context=self._ssl_ctx, timeout=self._timeout) as r:
                 data: dict = json.loads(r.read())
         except urllib.error.HTTPError as exc:
+            # SR-22 / SEC-11: raise so Oracle.ask sets ``error`` and the
+            # engine excludes this from the quorum. Returning an error-free
+            # 0.0-confidence response counted a refused call as a vote.
             logger.warning("RAG oracle HTTP %d: %s", exc.code, exc.read().decode("utf-8", "replace")[:200])
-            return json.dumps({"answer": None, "claim": f"HTTP {exc.code}", "confidence": 0.0}), 0.0, 0.0
+            raise OracleTransportError(f"RAG oracle HTTP {exc.code}") from exc
+        except OracleTransportError:
+            raise
         except Exception as exc:
             logger.error("RAG oracle error: %s", exc)
-            return json.dumps({"answer": None, "claim": str(exc), "confidence": 0.0}), 0.0, 0.0
+            raise OracleTransportError(f"RAG oracle transport failure: {exc}") from exc
 
         latency_ms = (time.perf_counter() - t0) * 1000
         logger.debug(
