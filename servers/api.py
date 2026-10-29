@@ -2789,17 +2789,21 @@ def verify_audit_chain(request: Request) -> dict:
             detail="active control-plane store cannot enumerate the audit trail",
         )
     records = lister(tenant_id=tenant_id)
-    ok, breaks = verify_audit_record_chain(records)
+    result = verify_audit_record_chain(records)
     return {
         "tenant_id": tenant_id,
         "records_checked": len(records),
-        "chain_valid": ok,
+        "chain_valid": result.valid,
+        # SR-10 / SEC-02: both ends anchored — genesis on the first record,
+        # and head/count so an external anchor detects tail truncation.
+        "genesis_ok": result.genesis_ok,
+        "head_hash": result.head_hash,
         # RMR-CR-007: this check follows each record's link to its
         # predecessor. It recomputes no hash and compares no signature, so
         # chain_valid must not be read as "intact and authentic".
         "verification_scope": "linkage_only",
         "signature_status": "NOT_CHECKED",
-        "breaks": breaks,
+        "breaks": list(result.breaks),
         "control_plane_backend": _CONTROL_PLANE_BACKEND,
         "durable": _CONTROL_PLANE_DURABLE,
     }
