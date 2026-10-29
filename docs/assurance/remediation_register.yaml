@@ -1145,6 +1145,9 @@ items:
     artifacts:
       - workers/rag-oracle/src/index.ts
       - workers/rag-oracle/src/search_auth.test.ts
+      - workers/rag-oracle/README.md
+      - remora/oracles/cloudflare_rag.py
+      - tests/security/test_sr02_rag_client_auth.py
     notes: >
       Security review 2026-10 (SR-02, High; widens issue #55): GET /search had
       no bearer check and no tenant or clearance filter, returning chunk
@@ -1158,7 +1161,14 @@ items:
       remains a convenience, not an enforced boundary (issue #55): the bearer
       is a single shared secret, so tenant identity cannot be derived from it
       inside this worker; that boundary requires an authenticating proxy.
-      Tests: workers/rag-oracle/src/search_auth.test.ts (19 vitest cases).
+      Review follow-up (2026-10-29): the bearer comparison is constant-time
+      and takes only the Bearer scheme; the Python client's rerank() and
+      translate() now send the bearer (they sent none, so they would have
+      failed closed against every deployment); the worker README no longer
+      says the secret gates /ingest only. Tests:
+      workers/rag-oracle/src/search_auth.test.ts (18 vitest cases; the
+      worker suite runs 24 in total) and
+      tests/security/test_sr02_rag_client_auth.py (3).
 
   - id: REM-058
     section: "security-review-2026-10"

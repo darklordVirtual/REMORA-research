@@ -186,13 +186,23 @@ function parseVerdictFromLLM(raw: string): Pick<RemoraVerdict, 'answer' | 'claim
   }
 }
 
+/** Constant-time string comparison so the bearer check leaks no prefix timing. */
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 function authorBearer(request: Request, env: Env): boolean {
   // Fail-closed: if ORACLE_SECRET is unset the worker is misconfigured and
   // should reject ALL requests rather than silently allowing them.
   // Set the secret with: wrangler secret put ORACLE_SECRET
-  if (!env.ORACLE_SECRET) return false;
-  const auth = request.headers.get('Authorization') ?? '';
-  return auth === `Bearer ${env.ORACLE_SECRET}`;
+  const secret = (env.ORACLE_SECRET ?? '').trim();
+  if (!secret) return false;
+  const header = request.headers.get('Authorization') ?? '';
+  const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+  return token.length > 0 && timingSafeEqual(token, secret);
 }
 
 function requireBearer(request: Request, env: Env): Response | null {

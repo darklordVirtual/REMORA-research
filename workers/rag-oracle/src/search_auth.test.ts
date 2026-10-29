@@ -97,6 +97,24 @@ describe("/search authentication (SR-02)", () => {
     expect(res.status).toBe(401);
   });
 
+  it("returns 401 for a token that only shares a prefix", async () => {
+    const { env } = makeEnv({ secret: SECRET });
+    const req = new Request("https://oracle.test/search?q=x", {
+      headers: { Authorization: `Bearer ${SECRET.slice(0, -1)}` },
+    });
+    const res = await worker.fetch(req, env as never);
+    expect(res.status).toBe(401);
+  });
+
+  it("returns 401 for a non-Bearer scheme carrying the secret", async () => {
+    const { env } = makeEnv({ secret: SECRET });
+    const req = new Request("https://oracle.test/search?q=x", {
+      headers: { Authorization: `Basic ${SECRET}` },
+    });
+    const res = await worker.fetch(req, env as never);
+    expect(res.status).toBe(401);
+  });
+
   it("/status stays unauthenticated", async () => {
     const { env } = makeEnv({ secret: SECRET });
     const statusEnv = {
