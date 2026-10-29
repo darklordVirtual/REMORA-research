@@ -85,3 +85,62 @@ kind that carries weight, and REMORA's capability register claims neither
 - Effect verification uses an in-suite reader. A system of record would be the
   stronger evidence producer, and the suite is built so that swapping it in
   changes the adapter and not the vectors.
+
+## Public GitHub Actions self-test badge (external projects)
+
+An external project can test **its own implementation** against these vectors.
+This is a self-run workflow, not a REMORA certification or independently
+verified result. It requires a single-file Python adapter that invokes the
+actual system under test and implements the methods in `adapter_skeleton.py`.
+Never derive an outcome from a vector's expected answer. Run against a
+non-production test target; the suite includes synthetic `transfer_funds` calls.
+
+1. Copy `adapter_skeleton.py` into the external repository, for example as
+   `remora_adapter.py`. Implement it against that repository's real code;
+   return `Unsupported` for missing mechanisms.
+2. After the reusable workflow has merged, replace both `FULL_REMORA_COMMIT_SHA`
+   placeholders below with the **same 40-character SHA** of the REMORA revision
+   containing the workflow and suite. Create the file
+   `.github/workflows/remora-selftest.yml` in the external repository:
+
+   ```yaml
+   name: REMORA D2E self-test
+   on: [push, pull_request, workflow_dispatch]
+   permissions:
+     contents: read
+   jobs:
+     vectors:
+       uses: darklordVirtual/REMORA-research/.github/workflows/remora-d2e-selftest-reusable.yml@FULL_REMORA_COMMIT_SHA
+       with:
+         suite_sha: FULL_REMORA_COMMIT_SHA
+         adapter_file: remora_adapter.py
+   ```
+
+3. Put a **GitHub workflow status** badge into the external project's README,
+   replacing `OWNER/REPO` and `main` with its own repository/default branch:
+
+   ```markdown
+   [![REMORA D2E self-test (self-reported)](https://github.com/OWNER/REPO/actions/workflows/remora-selftest.yml/badge.svg?branch=main)](https://github.com/OWNER/REPO/actions/workflows/remora-selftest.yml)
+   ```
+
+The caller's badge goes green only if every pinned vector reports `MATCH`.
+The dedicated `scripts/check_external_conformance.py` gate also checks the
+suite/runner/adapter digests, exact case identities and counts, and the suite
+commit. Any divergent, unsupported, missing or crashed vector makes the
+workflow red. The original runner still exits zero to retain its full
+per-vector report; the badge gate adds the stricter CI outcome.
+
+GitHub stores the raw `conformance-run.json` as a workflow artifact even
+on a red run. This report uses the current runner's conservative
+`run_kind: author-run` value; it does not assert independent operation.
+The workflow runs caller-controlled adapter code with read-only permissions
+and no inherited secrets. It does not grant production-use rights beyond
+[the REMORA license](../../LICENSE).
+
+**Trust boundary:** A repository owner can write an adapter that only returns
+the expected labels. A green self-test therefore proves neither real
+runtime enforcement nor a complete interception surface. For a separate
+independent-verification claim, require externally operated tests,
+independently validated inputs and provenance under the
+[Federation result rules](../../docs/interop/FEDERATION.md).
+Do not call this self-test badge 'Certified', 'Audited' or 'Verified'.
