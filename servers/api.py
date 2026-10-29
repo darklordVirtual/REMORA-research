@@ -1483,9 +1483,12 @@ def _sign_envelope_audit_hash(audit_hash: str) -> str | None:
 # call sites and tests.
 from remora.governance.envelope_verify import (
     canonical_envelope_for_hash,
-    compute_envelope_chain_hash as _compute_envelope_chain_hash,
     verify_stored_envelope,
 )
+from remora.governance.envelope_verify import (
+    compute_envelope_chain_hash as _compute_envelope_chain_hash,
+)
+
 _canonical_envelope_for_hash = canonical_envelope_for_hash
 
 
@@ -1535,7 +1538,7 @@ class _SealedAuditDict(dict):
         self._require_unsealed()
         return super().setdefault(*args)
 
-    def __ior__(self, other: Any) -> Any:
+    def __ior__(self, other: Any) -> Any:  # type: ignore[misc]  # dict.__or__ stays inherited
         # ``audit |= {...}`` bypasses update(); guard it too.
         self._require_unsealed()
         return super().__ior__(other)
