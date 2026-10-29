@@ -32,9 +32,33 @@ from typing import Any
 from uuid import uuid4
 
 BASE = os.environ.get("REMORA_PILOT_URL", "http://127.0.0.1:8080")
-AGENT = "ot-agent"
-APPROVER = "ot-approver"
-VIEWER = "ot-viewer"
+# SR-06: no fixed literal tokens. The battery acts as agent, approver and
+# viewer, so the caller presents them per run; the compose stack reads them
+# from the .env that deploy/ot-pilot/init_tokens.py generated at first start.
+AGENT = os.environ.get("OT_TOKEN_AGENT", "")
+APPROVER = os.environ.get("OT_TOKEN_APPROVER", "")
+VIEWER = os.environ.get("OT_TOKEN_VIEWER", "")
+
+
+def _require_tokens() -> str | None:
+    """Fail fast with guidance when the pilot credentials are not presented."""
+    missing = [
+        name
+        for name, value in (
+            ("OT_TOKEN_AGENT", AGENT),
+            ("OT_TOKEN_APPROVER", APPROVER),
+            ("OT_TOKEN_VIEWER", VIEWER),
+        )
+        if not value
+    ]
+    if not missing:
+        return None
+    return (
+        "missing pilot credentials: "
+        + ", ".join(missing)
+        + ". Generate them with `python deploy/ot-pilot/init_tokens.py` "
+        "(writes deploy/ot-pilot/.env) and re-run with that environment."
+    )
 
 
 def call(method: str, path: str, token: str, body: dict | None = None
@@ -387,6 +411,11 @@ def main() -> int:
     parser.add_argument("--json-out", help="write the raw result records here")
     parser.add_argument("--evidence-root", default=os.environ.get("REMORA_EVIDENCE_ROOT", "/tmp/remora-evidence"), help="directory for immutable run evidence")
     args = parser.parse_args()
+
+    token_error = _require_tokens()
+    if token_error is not None:
+        print(f"FAILED: {token_error}", file=sys.stderr)
+        return 2
 
     print("Waiting for the API ...", flush=True)
     if not wait_for_api():
