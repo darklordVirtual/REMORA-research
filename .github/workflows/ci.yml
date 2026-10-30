@@ -418,6 +418,9 @@ jobs:
           python scripts/check_code_provenance.py --check-snapshot provenance/manifests/code-snapshot-2026-10-30.json
           python scripts/build_provenance_manifest.py --check --out provenance/manifests/provenance-manifest-2026-10-30.json
 
+      - name: Federation outbound contribution provenance (scope and licence boundary)
+        run: python scripts/check_outbound_provenance.py --check
+
       - name: Provenance signature gate (reports until POLICY.yaml arms it)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
