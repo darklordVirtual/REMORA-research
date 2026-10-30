@@ -135,9 +135,9 @@
     },
     ".github/workflows/ci.yml": {
       "concepts": [],
-      "git_blob": "d43ed6edff823d528acb38de3defdd3110cd4768",
+      "git_blob": "a5f487b7a91f9aa4193049b05b3c01f40cd0747d",
       "mode": "100644",
-      "sha256": "bfe3e5c5a8aeed5559ea2be7c546384402ab9774d001ee5a165aeae11b75295a"
+      "sha256": "2b698b9e2e6078a9dbdac912276370ece798e89aeaf3e6695400706e78da6515"
     },
     ".github/workflows/codegraph-index.yml": {
       "concepts": [],
@@ -9847,6 +9847,12 @@
       "mode": "100644",
       "sha256": "8113e334f4a9564fbafb8df7439dd8d8e796bdf7ad190b45e13b9a8f2b218aac"
     },
+    "provenance/OUTBOUND_CONTRIBUTIONS.yaml": {
+      "concepts": [],
+      "git_blob": "67e0dd6398575bf64dc9f9c358a1fce0e8ca24de",
+      "mode": "100644",
+      "sha256": "1c54096305ef0694dbb013855cbc4a0750fcbf5c1ccdd819461b98606e0d3152"
+    },
     "provenance/POLICY.yaml": {
       "concepts": [],
       "git_blob": "bc94661e6e8e2ab830bc341a609729749c792cac",
@@ -9861,9 +9867,9 @@
     },
     "provenance/README.md": {
       "concepts": [],
-      "git_blob": "4317f74131718ad5f00f039ae186b3d48d1757a3",
+      "git_blob": "9cf5f6105fe670d8a333c577ad5e63ea9eafe928",
       "mode": "100644",
-      "sha256": "333180171ec5ac779d26b3d0188c96f254a6b269c0c083e6ff5e92c4d175ba1f"
+      "sha256": "8d521f8a04aaf4a2c349723a8813b78155513b594e6a7a881d1f0a76b66c34ec"
     },
     "provenance/concepts/PROV-01.yaml": {
       "concepts": [],
@@ -10002,6 +10008,12 @@
       "git_blob": "e9a91dafe3fb1f08ab4d1acc3596ff2b9fa8d8bc",
       "mode": "100644",
       "sha256": "0e19629a1c7ae01f502ac93f7c37e59b3156a74bf760c3ed410bbdf9c0113f7e"
+    },
+    "provenance/schemas/outbound-contributions-v1.schema.json": {
+      "concepts": [],
+      "git_blob": "4aa828b08c067c857fa21462bf2c2b5414888c0f",
+      "mode": "100644",
+      "sha256": "05236a5b5548792a8a9138213d6bac0384e0b48ca9061e2aaa4e73baebcd726d"
     },
     "provenance/schemas/prior-art-v1.schema.json": {
       "concepts": [],
@@ -14805,6 +14817,12 @@
       "mode": "100644",
       "sha256": "fc929d1aca4f4cb54931dfba61b2678169c463c2731ce237676b167d91c8f5d1"
     },
+    "scripts/check_outbound_provenance.py": {
+      "concepts": [],
+      "git_blob": "875166193ce0cb3dab7713dd310fb70514c2a52b",
+      "mode": "100644",
+      "sha256": "921e51549e407cc36c4f2fb9f9ef87862e524881f03109b24a05cd20644d1fcd"
+    },
     "scripts/check_paper_overflow.py": {
       "concepts": [],
       "git_blob": "4afd7b6b8d914f0f23a7cad1d127b805da933a6d",
@@ -19346,6 +19364,12 @@
       "mode": "100644",
       "sha256": "a9f18229b883ecb43b4c20493d255fbb53e79b40cdd9ee599c90dd25fdda3928"
     },
+    "tests/test_outbound_provenance.py": {
+      "concepts": [],
+      "git_blob": "6a7dc14e17ecb63e0754dce272fcf9c6dc8b8acc",
+      "mode": "100644",
+      "sha256": "5fa2b615bd7de765ff19bf5f460593ef4dd7624c2d065fd73caa6c86e29494f0"
+    },
     "tests/test_outbox_reconciler_cli.py": {
       "concepts": [],
       "git_blob": "5371834d1856ee2c69d3242dff4db8fe472d8451",
@@ -21561,7 +21585,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "4375eb6199c6b1f1cce46a3a1560acf2678a9a92e8095d1a25c4c6224096d5e8",
+  "register_sha256": "7eda3d2b1aecc46936cffc7d2c62dbad777832606bd52c7be56010970221cf32",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
