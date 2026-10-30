@@ -8,6 +8,10 @@ This is the canonical contribution guide for results, runtime changes, integrati
 2. Keep the branch short-lived.
 3. Add or update tests for behavioral changes.
 4. Run the relevant focused checks and required repository gates.
+   Stage intended paths and regenerate `provenance/code-register-v1.json` with
+   `python scripts/check_code_provenance.py --write` after the final edit.
+   Include the register in the same PR; `--check` refuses uncovered or stale
+   files across the entire tracked repository. See `provenance/README.md`.
 5. Open a pull request with scope, rationale, validation and known limitations.
 6. Delete the branch after merge.
 

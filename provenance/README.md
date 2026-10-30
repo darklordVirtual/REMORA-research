@@ -28,6 +28,53 @@ concept record (PROV-xx)
 | `POLICY.yaml` | protected paths, the signature gate, the classification vocabulary, the manifest rule |
 | `schemas/` | JSON Schemas for the records and the two registers |
 | `manifests/provenance-manifest-v1.json` | digests of every expressing file, record and register, taken from one snapshot commit |
+| `code-register-v1.json` | live coverage of every Git-tracked file: exact-byte SHA-256, Git blob id, mode and explicit concept links |
+| `manifests/code-snapshot-2026-10-30.json` | complete file inventory frozen at `1684a2d83e0711fdb947b1a3a43f1c012a84a4e8` |
+| `manifests/provenance-manifest-2026-10-30.json` | refreshed concept-file digests at the same commit; the earlier v1 manifest remains intact |
+
+## Current code coverage
+
+`code-register-v1.json` complements the historical concept register. It covers
+all tracked files, including frontend, workers, scripts, tests, workflows,
+fixtures and extensionless files. It excludes only itself to avoid a self-hash.
+No directory, language or file-extension allowlist can silently omit new code.
+Untracked local files are not evidence: new files must be added to Git first.
+Submodules and unresolved index entries fail; external submodule code cannot be
+claimed as locally covered. Symlinks record their target text, without following it.
+
+After staging every intended addition, deletion, rename and mode change:
+
+```bash
+python scripts/check_code_provenance.py --write
+git add provenance/code-register-v1.json
+python scripts/check_code_provenance.py --check
+```
+
+Run this after the final edit and include the register in the same PR. The
+check reads tracked working-tree bytes and index modes; CI uses a clean checkout.
+It refuses added, changed, removed, renamed or mode-changed entries, changed
+concept links, a changed root digest, or a missing register. It never writes or
+commits from CI. The check runs in `documentation-governance`, which feeds
+the required `deterministic-suite-required` status.
+
+Each entry's `git_blob` identifies its exact Git payload. The commit containing
+the register binds that inventory to a repository revision; use
+`git log --follow -- <path>` for the path's contributor/history record. The live
+register has `snapshot: null` to avoid referring to its own containing commit.
+Frozen inventories instead carry a full commit SHA and can be reproduced with
+`--check-snapshot PATH`, including the concept records from that commit's tree.
+To append another inventory, use `--write --snapshot REV --out PATH`; do not
+overwrite an earlier snapshot.
+
+Concept links come only from explicit `canonical_spec`, `implementation` and
+`tests` paths in `concepts/PROV-xx.yaml`. An empty `concepts` list means the file
+is covered by the inventory but has no reviewed concept mapping. In particular,
+the new Federation files are covered without inventing a new PROV concept or
+extending a prior-art classification. New conceptual claims still require a
+record and prior-art review; existing first-recorded dates and classifications
+are unchanged. Inventory coverage is not proof of authorship, independent
+creation, copyright ownership, or absence of third-party material. Preserve
+source acknowledgements and licenses when recording derived work.
 
 ## What a record claims
 
@@ -74,8 +121,9 @@ These cannot be done from a commit and are not done yet.
    release, publish the release, then put the concept DOI into
    `CITATION.cff` and the version DOI into the release notes. The ORCID goes
    into `CITATION.cff`, `.zenodo.json` and `AUTHORS.yaml` together.
-4. Prior-art review. Record the first `PA-REV-xxx` entries, starting from
-   the sources listed in `PRIOR_ART.yaml`.
+4. Prior-art review. Maintain dated `PA-REV-xxx` entries in `PRIOR_ART.yaml`
+   when a new concept or expanded contribution is claimed. The existing 17
+   concepts already have reviews; file inventory does not extend those reviews.
 5. Legal review. Have the BUSL Additional Use Grant, the licensor identity,
    contributor ownership and the handling of Federation contributions
    checked by counsel before commercial use grows (`legal/LICENSING.md`).
