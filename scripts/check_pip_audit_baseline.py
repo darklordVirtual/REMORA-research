@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -42,19 +43,35 @@ BASELINE_REL = ".github/pip_audit_baseline.json"
 BASELINE_PATH = ROOT / BASELINE_REL
 
 
-def run_audit() -> dict[str, list[str]]:
+def audit_command(audit_python: str | None) -> tuple[list[str], dict[str, str]]:
+    """The pip-audit invocation and its environment.
+
+    With ``audit_python`` set, pip-audit runs from that interpreter (a separate
+    tooling venv) while ``PIPAPI_PYTHON_LOCATION`` points pip-audit's package
+    enumeration at THIS interpreter, so the project environment is audited
+    without the tooling being installed into it (SR-11: a hashed tooling
+    install followed by an unhashed project install in one env would let the
+    second overwrite the first's pins).
+    """
+    env = dict(os.environ)
+    python = sys.executable
+    if audit_python:
+        env["PIPAPI_PYTHON_LOCATION"] = sys.executable
+        env.pop("VIRTUAL_ENV", None)
+        python = audit_python
+    cmd = [python, "-m", "pip_audit", "--local", "--skip-editable", "-f", "json"]
+    return cmd, env
+
+
+def run_audit(audit_python: str | None = None) -> dict[str, list[str]]:
     # --skip-editable: CI installs this project editable (pip install -e .),
     # and pip-audit then asked PyPI for remora-assurance, which is not
     # published there. PyPI answers that lookup intermittently with 503, which
     # failed the job on availability rather than on a vulnerability. The
     # project's own code has no PyPI advisory record to check; every third-party
     # dependency is still audited.
-    proc = subprocess.run(
-        [sys.executable, "-m", "pip_audit", "--local", "--skip-editable", "-f", "json"],
-        capture_output=True,
-        text=True,
-        cwd=ROOT,
-    )
+    cmd, env = audit_command(audit_python)
+    proc = subprocess.run(cmd, capture_output=True, text=True, cwd=ROOT, env=env)
     # pip-audit exits 1 when vulnerabilities exist; that is data, not failure.
     if not proc.stdout.strip():
         print(proc.stderr[-2000:], file=sys.stderr)
@@ -78,6 +95,11 @@ def main(argv: list[str] | None = None) -> int:
         "--skip-audit", action="store_true",
         help="do not run pip-audit; check baseline hygiene only",
     )
+    parser.add_argument(
+        "--audit-python", default=None,
+        help="interpreter that has pip-audit installed (a separate tooling "
+             "venv); the environment audited is still this interpreter's",
+    )
     args = parser.parse_args(argv)
 
     global ROOT, BASELINE_PATH
@@ -85,7 +107,7 @@ def main(argv: list[str] | None = None) -> int:
         ROOT = args.root.resolve()
         BASELINE_PATH = ROOT / BASELINE_REL
 
-    found: dict[str, list[str]] = {} if args.skip_audit else run_audit()
+    found: dict[str, list[str]] = {} if args.skip_audit else run_audit(args.audit_python)
 
     if not BASELINE_PATH.exists():
         print("[FAIL] missing .github/pip_audit_baseline.json - generated baseline:")

@@ -21,9 +21,21 @@
     "measured_with_python": "3.13.7 (macOS arm64, venv with the dev extras)",
     "requirements_lock": {
       "path": "requirements-lock.txt",
-      "sha256_lf": "ef6fa65e14783b3405a75bfe7d95646ef0371881b3757ca67bf8676809f91657"
+      "sha256_lf": "dd3fdfe124c7fd3dce9bc475a0a7c5751aa2b3da376827217ce5bda34e03dcd0"
     },
     "requirements_lock_history": [
+      {
+        "path": "requirements-lock.txt",
+        "git_revision": "3a84e349cf0faf0fd185e077d6589149a32368ea",
+        "sha256_lf": "5c4486d303a250a2dddb2bd0c4637aae7d612833587eb2e5fe4da0e7be53645f",
+        "reason": "filelock 4.2.4 (CVE-2026-112909, CVE-2026-112910; fixed in 4.2.1), SR-11 follow-up"
+      },
+      {
+        "path": "requirements-lock.txt",
+        "git_revision": "faa3ffbdf6a14faec4225e6883624df1efb63ce5",
+        "sha256_lf": "ef6fa65e14783b3405a75bfe7d95646ef0371881b3757ca67bf8676809f91657",
+        "reason": "SR-11/SR-23: add sys_platform marker to pywin32 pin"
+      },
       {
         "path": "requirements-lock.txt",
         "git_revision": "e5b4144bd81c5e6f0fbd3240424bf4b2ae078989",

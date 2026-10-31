@@ -90,8 +90,9 @@ auth mode, and the two modes are not equivalent, see section 3.3.
   pinned to `operator`, so approval-role gating cannot be satisfied by
   self-assertion; production role separation requires the token-table mode
   (external review 2026-07-28, N4).
-- No credentials configured: allowed only under `REMORA_ENV=development`.
-  Production startup fails closed.
+- No credentials configured: refused (500) unless `REMORA_ENV=development`
+  and `REMORA_ALLOW_UNAUTHENTICATED_DEV=1`, in which case the request is
+  read-only `default`/`viewer` (SR-03). Production always fails closed.
 - Implemented in: `servers/api.py:_authenticate()`, `servers/api.py:_load_token_table()`
 - Revocation: Remove the token from `REMORA_API_TOKENS` and restart the server. No hot revocation mechanism in v1.
 - Gap (acknowledged): No token expiry enforcement in the bearer layer.
