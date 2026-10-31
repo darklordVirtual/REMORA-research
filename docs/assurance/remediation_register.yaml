@@ -1136,34 +1136,25 @@ items:
       scheduled call. Verified on SQLite; the Postgres branch shares the code
       path but was not exercised against a live server here.
 
-  - id: REM-055
+  - id: REM-049
     section: "security-review-2026-10"
-    title: "SR-10: audit-trail verifier accepted any first record and exposed no head anchor"
+    title: "SR-05: Prometheus /metrics skipped the multi-tenant admin check"
     gate: P1
     status: DONE
     completed: "2026-10-28"
     artifacts:
-      - remora/adapters/storage/control_plane.py
       - servers/api.py
-      - scripts/verify_envelope_chain.py
-      - tests/security/test_sr10_chain_genesis.py
-      - tests/test_envelope_persistence.py
+      - tests/security/test_sr05_metrics_access.py
     notes: >
-      Security review 2026-10 (SR-10, Medium; widens REM-025): the verifier
-      accepted any first record (index == 0 continued unconditionally), so
-      deleting the oldest N records still returned chain_valid, and it
-      returned no head hash or count, so tail truncation was invisible to an
-      external anchor. Fixed per SEC-02: verify_audit_record_chain returns
-      ChainVerifyResult(valid, breaks, head_hash, count, genesis_ok); the
-      first record must be genesis (no predecessor) unless the caller passes
-      allow_genesis_predecessor from a signed retention checkpoint it verified
-      (no retention-trim producer exists yet; the parameter is the documented
-      wiring point, not a live trust path). Breaks are ChainBreak strings with
-      a kind field (link_mismatch, genesis_missing, missing_hash); the result
-      unpacks as (valid, breaks) so older callers keep working. The REST
-      endpoint and scripts/verify_envelope_chain.py report genesis_ok and
-      head_hash. Tests: tests/security/test_sr10_chain_genesis.py
-      (failing-first, then green).
+      Security review 2026-10 (SR-05, Medium): /metrics called only
+      _authenticate while /v1/metrics additionally refused non-admins when the
+      token table held more than one tenant; both serve the same
+      process-global counters, so any tenant's viewer token could read
+      cross-tenant decision and refusal volumes. Fixed by factoring the check
+      into _require_metrics_access, used by both endpoints. The explicit
+      REMORA_PROMETHEUS_PUBLIC opt-out still opens the text surface only.
+      Tests: tests/security/test_sr05_metrics_access.py (failing-first, then
+      green; single-tenant read access and the public opt-out pinned).
 
   - id: REM-058
     section: "security-review-2026-10"
@@ -1208,6 +1199,35 @@ items:
       errors-as-votes now document errors-as-errors. Tests:
       tests/security/test_sr22_rag_oracle.py (failing-first, then green).
 
+  - id: REM-055
+    section: "security-review-2026-10"
+    title: "SR-10: audit-trail verifier accepted any first record and exposed no head anchor"
+    gate: P1
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - remora/adapters/storage/control_plane.py
+      - servers/api.py
+      - scripts/verify_envelope_chain.py
+      - tests/security/test_sr10_chain_genesis.py
+      - tests/test_envelope_persistence.py
+    notes: >
+      Security review 2026-10 (SR-10, Medium; widens REM-025): the verifier
+      accepted any first record (index == 0 continued unconditionally), so
+      deleting the oldest N records still returned chain_valid, and it
+      returned no head hash or count, so tail truncation was invisible to an
+      external anchor. Fixed per SEC-02: verify_audit_record_chain returns
+      ChainVerifyResult(valid, breaks, head_hash, count, genesis_ok); the
+      first record must be genesis (no predecessor) unless the caller passes
+      allow_genesis_predecessor from a signed retention checkpoint it verified
+      (no retention-trim producer exists yet; the parameter is the documented
+      wiring point, not a live trust path). Breaks are ChainBreak strings with
+      a kind field (link_mismatch, genesis_missing, missing_hash); the result
+      unpacks as (valid, breaks) so older callers keep working. The REST
+      endpoint and scripts/verify_envelope_chain.py report genesis_ok and
+      head_hash. Tests: tests/security/test_sr10_chain_genesis.py
+      (failing-first, then green).
+
   - id: REM-054
     section: "security-review-2026-10"
     title: "SR-09/SR-16: effect observer tamperable from the observed code; child inherited full parent environment"
@@ -1248,3 +1268,284 @@ items:
       sandbox: Python frame/closure introspection and mutation of serializer
       internals are outside these checks. The nonce closes stdout forgery,
       not introspection of the harness.
+
+  - id: REM-050
+    section: "security-review-2026-10"
+    title: "SR-03: unauthenticated operator fallback shipped in the reference compose"
+    gate: P0
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - servers/api.py
+      - deploy/reference/docker-compose.yml
+      - deploy/reference/.env.example
+      - SECURITY.md
+      - tests/security/test_sr03_dev_fallback.py
+    notes: >
+      Security review 2026-10 (SR-03, Medium): a development server with no
+      configured credentials authenticated every request as
+      ("default", "operator") — execute included — without reading any
+      header, and the reference compose published port 8000 on all interfaces
+      with no token set. Fixed by gating the fallback behind
+      REMORA_ALLOW_UNAUTHENTICATED_DEV=1 (otherwise 500 on governed routes),
+      demoting the fallback identity to ("default", "viewer"), binding the
+      reference compose to 127.0.0.1 and sourcing credentials from .env
+      (deploy/reference/.env.example). SECURITY.md documents the new
+      known-by-design fallback. Tests updated where they relied on the open
+      fallback (test_api_server, test_api_control_plane_selection,
+      test_api_hardening_review, test_api_version_and_env, test_api_security,
+      test_proposal_id_header, test_idempotency_store); credential-topology
+      register line sites re-based. New tests:
+      tests/security/test_sr03_dev_fallback.py (failing-first, then green).
+
+  - id: REM-051
+    section: "security-review-2026-10"
+    title: "SR-06: OT-pilot console let any network caller pick the approver role; tokens served unauthenticated"
+    gate: P1
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - deploy/ot-pilot/console/app.py
+      - deploy/ot-pilot/docker-compose.yml
+      - deploy/ot-pilot/init_tokens.py
+      - deploy/ot-pilot/run_ot_battery.py
+      - deploy/ot-pilot/run_fault_injection.py
+      - servers/api.py
+      - schemas/openapi.json
+      - tests/test_execution_openapi_contract.py
+      - frontend/src/pilot/api.ts
+      - frontend/src/pilot/PilotApp.tsx
+      - docs/deployment/execution-quickstart.md
+      - tests/security/test_sr06_ot_console.py
+    notes: >
+      Security review 2026-10 (SR-06, Medium): the console read the role from
+      the request body and picked the matching pilot token, so any network
+      caller could both propose and approve; GET /api/tokens served all three
+      tokens unauthenticated; both compose services published on all
+      interfaces with fixed literal tokens. Fixed: the console holds only the
+      viewer token; /api/call requires and forwards the caller's own
+      credential (role derives from the credential, SEC-06); /api/tokens is
+      removed; the battery requires agent and approver tokens per request
+      (subprocess env only) and runs single-flight (409 on overlap); tokens
+      are generated at first start by deploy/ot-pilot/init_tokens.py into a
+      mode-600 .env that compose requires; both services bind 127.0.0.1. The
+      pilot UI replaces the role selector with a per-request token field.
+      Review follow-up: run_fault_injection.py no longer hard-codes the old
+      literal tokens; it reads OT_TOKEN_AGENT/APPROVER/SUPERVISOR/VIEWER and
+      refuses to start (exit 2, before contacting the stack) if any is empty,
+      and revoke-principal now names the actor id (ot-approver /
+      ot-supervisor) rather than the bearer token. The API description
+      (servers/api.py, schemas/openapi.json) and the compose header no longer
+      publish literal tokens; they point to init_tokens.py.
+      Tests: tests/security/test_sr06_ot_console.py (failing-first, then
+      green, 10 cases: 8 console/battery/token-generation cases plus 2
+      fault-runner cases) and
+      tests/test_execution_openapi_contract.py::test_pilot_tokens_are_generated_not_published
+      (failing-first). The fault-injection runner itself still needs a live
+      Docker stack; its end-to-end run with generated tokens is not part of
+      this evidence.
+
+  - id: REM-053
+    section: "security-review-2026-10"
+    title: "SR-08: result-scanner hook shipped local Read/Bash output unredacted to a hard-coded public worker"
+    gate: P1
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - remora/agent_hook/result_scanner.py
+      - scripts/aromer_result_scanner_hook.py
+      - workers/aromer/src/index.ts
+      - remora/observability/redaction.py
+      - docs/assurance/credential_topology.yaml
+      - tests/security/test_sr08_result_scanner.py
+      - tests/test_result_scanner.py
+    notes: >
+      Security review 2026-10 (SR-08, Medium): AROMER_WORKER_URL defaulted to
+      a hard-coded public worker and the hook sent the first 600 chars of any
+      firing tool result — Read and Bash included — unredacted and
+      unauthenticated; a trigger string planted next to secrets exfiltrated
+      them. Fixed per SEC-08: no default destination (oracle
+      fires only when AROMER_WORKER_URL and AROMER_WORKER_TOKEN are both
+      configured), redact_text runs before any send, the request carries a
+      bearer, ToolResultScanner defaults oracle_enabled=False, the hook scans
+      Read/Bash only under AROMER_SCAN_LOCAL=1. Review follow-up
+      (2026-10-29): /scan-result was already behind the worker's global POST
+      write guard on master, so the client token had to equal
+      AROMER_WRITE_SECRET, which authorises every AROMER write (episodes,
+      outcomes, adapt, replay reports) — an agent-reachable credential
+      granting governance writes. /scan-result now checks a separate
+      AROMER_SCAN_SECRET (fail-closed 503 when unset, constant-time, POST
+      only) and is excluded from the write guard; operators must set the new
+      secret on the worker. Redaction (remora/observability/redaction.py)
+      missed affixed environment-variable keys (AWS_SECRET_ACCESS_KEY=,
+      DB_PASSWORD=) and PEM private-key blocks; both are now redacted. The
+      worker has no TypeScript test harness, so the route is pinned by a
+      source-level test. Out of scope and still open:
+      scripts/aromer_recorder_hook.py defaults to the public worker and sends
+      the first 200 chars of tool input unauthenticated unless
+      AROMER_RECORDER=0. Tests: tests/security/test_sr08_result_scanner.py
+      (failing-first, then green; +7 redaction and route cases).
+
+  - id: REM-057
+    section: "security-review-2026-10"
+    title: "SR-14: Merkle construction lacked domain separation; root did not commit to leaf count"
+    gate: P1
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - remora/audit/merkle.py
+      - remora/audit/checkpoint.py
+      - docs/enterprise/audit-anchoring-guide.md
+      - artifacts/audit_anchoring/sample_checkpoints.jsonl
+      - tests/security/test_sr14_merkle.py
+      - tests/test_audit_anchoring.py
+      - tests/test_review_fixes_merkle_ambiguity.py
+    notes: >
+      Security review 2026-10 (SR-14, Low-Med): both Merkle builders hashed
+      hex-string pairs with no leaf/node domain separation and duplicated the
+      last node on odd levels (the CVE-2012-2459 pattern), so [a,b,c] and
+      [a,b,c,c] shared a root and an interior node could pass as a leaf;
+      export_daily_root's n_entries was optional and outside the HMAC input.
+      Fixed per SEC-03 with a versioned construction: v2 (default) applies
+      RFC 6962 prefixes (0x00 leaf, 0x01 node over raw digest bytes) and
+      promotes odd nodes unchanged; v1 remains selectable so anchors recorded
+      before 2026-10-28 still verify (the previously documented ambiguity is
+      pinned under version=1). v2 exports carry "v": 2 and a mandatory
+      n_entries, and the HMAC preimage binds the count. Checkpoints carry a v
+      field and a remora-ckpt-v2 signing prefix; records without the field
+      parse as v1 and verify under v1. The committed sample checkpoint
+      artifact was regenerated with the sanctioned generator (the drift test
+      passes). Tests: tests/security/test_sr14_merkle.py (failing-first, then
+      green).
+      Review follow-up (2026-10-29): Checkpoint.from_dict accepted any
+      int-coercible v, and signing_payload used the v1 prefix for every v
+      other than 2, so a v=3 record parsed, signed and verified under v1
+      while verify_span raised. from_dict now admits only int 1 or 2 (absent
+      = 1; bool, float, string and null refused); signing_payload uses an
+      explicit {1, 2} prefix map and raises otherwise; verify_span,
+      verify_checkpoint_signature and verify_signed_root return False for an
+      unsupported version, and verify_checkpoint_chain reports
+      unsupported_version_at. v2 leaves must match lowercase 64-hex
+      (bytes.fromhex accepted upper case and whitespace, giving distinct
+      leaf strings one root); the hex check now anchors with \A...\Z, since
+      ^...$ also admitted a trailing newline in make_checkpoint and the leaf
+      adapters. New verify_root_record(record, key) verifies an exported
+      root record's HMAC, dispatching on v and requiring an integer
+      n_entries for v2; it does not recompute the root. Tests: 17 new cases
+      in tests/security/test_sr14_merkle.py, 16 failing on the PR head
+      before the fix. Open: scripts/verify_audit_anchor.py verifies
+      AuditAnchor records, not audit-root-*.jsonl, so no shipped CLI calls
+      verify_root_record yet.
+
+  - id: REM-048
+    section: "security-review-2026-10"
+    title: "SR-02/SR-04: rag-oracle /search unauthenticated across tenants; worker failed open when ORACLE_SECRET unset"
+    gate: P0
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - workers/rag-oracle/src/index.ts
+      - workers/rag-oracle/src/search_auth.test.ts
+      - workers/rag-oracle/README.md
+      - remora/oracles/cloudflare_rag.py
+      - tests/security/test_sr02_rag_client_auth.py
+    notes: >
+      Security review 2026-10 (SR-02, High; widens issue #55): GET /search had
+      no bearer check and no tenant or clearance filter, returning chunk
+      previews across tenants to any Internet caller, with k unbounded.
+      SR-04 (Medium): /query, /rerank and /translate allowed all requests when
+      ORACLE_SECRET was unset. Fixed by routing every endpoint except /status
+      through requireBearer (503 when the secret is unset, 401 on a missing
+      or wrong token; the allow-all optionalBearer is removed), clamping k to
+      [1, 20] with a 400 on NaN, and adding caller-asserted tenant_id and
+      clearance metadata filters matching /query. Caller-asserted scoping
+      remains a convenience, not an enforced boundary (issue #55): the bearer
+      is a single shared secret, so tenant identity cannot be derived from it
+      inside this worker; that boundary requires an authenticating proxy.
+      Review follow-up (2026-10-29): the bearer comparison is constant-time
+      and takes only the Bearer scheme; the Python client's rerank() and
+      translate() now send the bearer (they sent none, so they would have
+      failed closed against every deployment); the worker README no longer
+      says the secret gates /ingest only. Tests:
+      workers/rag-oracle/src/search_auth.test.ts (18 vitest cases; the
+      worker suite runs 24 in total) and
+      tests/security/test_sr02_rag_client_auth.py (3).
+
+  - id: REM-052
+    section: "security-review-2026-10"
+    title: "SR-07: unsigned proposals file relaxed the conformal ACCEPT threshold"
+    gate: P1
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - remora/crypto/domain_signing.py
+      - remora/aromer/integration/bridge.py
+      - tests/security/test_sr07_signed_thresholds.py
+      - tests/test_aromer_core.py
+      - tests/test_aromer_store_integrity.py
+    notes: >
+      Security review 2026-10 (SR-07, Medium): the AROMER bridge honoured
+      approved:true in a plain JSON proposals file, lowering
+      trust_critical_min every adapt cycle with no signature, no author, no
+      holdout evidence binding and no audit entry. Fixed per SEC-07: new
+      SignatureDomain.THRESHOLD_PROPOSAL; the bridge verifies an Ed25519
+      domain signature over the canonical payload (adjustments, holdout
+      evidence hash, issued_at, window_id) against keys from
+      REMORA_THRESHOLD_PROPOSAL_KEYS or the constructor; unsigned,
+      wrongly-domained or untrusted-key files are refused and left in place;
+      relaxation is capped at 0.05 per rolling 7-day window, persisted across
+      restarts; every applied change emits a threshold_changed event to the
+      optional audit_sink and the persisted state (bounded). The audit_sink
+      is the wiring point for a tenant audit chain; no production caller
+      wires one today, which the chain-side coverage of threshold changes
+      still needs. Review follow-up (2026-10-29): issued_at and the
+      signature were signed but not enforced, so a consumed file restored
+      after the window rolled re-applied the same relaxation down to the
+      floor. A signature is now single-use (a bounded ledger of applied
+      signature hashes persisted in bridge state), a proposal is valid only
+      from issued_at minus 300 s to one window after, and the audit_sink is
+      called before the threshold moves or the file is consumed, so a
+      failing sink applies nothing. Caveat: the replay ledger lives in the
+      bridge state file; write access to that file still defeats it. The
+      friction optimiser signs nothing and the repository ships no signing
+      tool, so in practice no proposal is applied today (fail-closed by
+      design). Tests: tests/security/test_sr07_signed_thresholds.py
+      (failing-first, then green; +6 replay, validity and audit-order
+      cases); the three pre-existing proposal tests now sign their fixtures
+      with a current issued_at.
+
+  - id: REM-056
+    section: "security-review-2026-10"
+    title: "SR-13: meta-judge scores unclamped, degraded ignored, prompt fields unfenced, endpoint unauthenticated"
+    gate: P1
+    status: DONE
+    completed: "2026-10-28"
+    artifacts:
+      - remora/aromer/meta_judge/judge.py
+      - remora/aromer/meta_judge/rubric.py
+      - remora/aromer/experience/promotion_gate.py
+      - tests/security/test_sr13_meta_judge.py
+    notes: >
+      Security review 2026-10 (SR-13, Low-Med; widens REM-043): the judge
+      parsed rubric scores with a bare float() (a worker returning 50.0
+      scored perfect-plus and drove memory promotion), degraded was read but
+      never gated, and episode fields were interpolated into the judge prompt
+      unfenced, so episode-controlled text could instruct the judge. Fixed
+      per SEC-11/SEC-12: scores are clamped to [0, 1] and any out-of-range or
+      non-finite value marks the response degraded with promotion refused;
+      RubricCritique carries source_authenticated (False for live calls
+      without REMORA_METAJUDGE_WORKER_TOKEN; the offline heuristic is local
+      and authenticated by construction); the promotion gate refuses degraded
+      or unauthenticated critiques; episode fields reach the judge as
+      length-capped JSON inside a fenced <episode-data> block. Review
+      follow-up (2026-10-29): a missing, boolean, string or list score, a
+      non-object claim, and the offline fallback taken after a failed live
+      call are all marked degraded, so none of them passes the gate (before
+      this, the fallback returned degraded=False and a malformed response
+      promoted). Caveat: source_authenticated=True records only that the
+      client presented the bearer; the judge Worker is external to this
+      repository and nothing here shows it verifies the token. The legacy
+      critique() path still interpolates episode fields unfenced; its score
+      is clamped to [-1, 1] and does not feed the promotion gate. Tests:
+      tests/security/test_sr13_meta_judge.py (failing-first, then green;
+      +6 malformed-output and fallback cases).

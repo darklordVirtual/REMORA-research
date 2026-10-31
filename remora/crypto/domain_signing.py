@@ -91,6 +91,11 @@ class SignatureDomain(str, Enum):
     #: A cumulative-limit policy (remora.enforcement.cumulative_limits), signed
     #: by the authority that sets the budgets; REMORA holds only the public key.
     LIMIT_POLICY = "REMORA/LIMIT-POLICY/v1"
+
+    #: Friction-optimizer threshold proposals (SEC-07, SR-07): a signed
+    #: proposal names its adjustments and the hash of the holdout evidence it
+    #: rests on; unsigned files must never move a governance threshold.
+    THRESHOLD_PROPOSAL = "REMORA/THRESHOLD-PROPOSAL/v1"
     #: A Capability Activation Manifest (remora.governance.activation_manifest),
     #: signed by the deployment's policy owner; REMORA holds only the public key.
     CAPABILITY_MANIFEST = "REMORA/CAPABILITY-MANIFEST/v1"

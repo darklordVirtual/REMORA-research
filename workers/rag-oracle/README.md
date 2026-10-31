@@ -23,8 +23,10 @@ POST /query
 |--------|------|-------------|
 | `POST` | `/query` | Full RAG pipeline: retrieve → rerank → synthesise |
 | `GET` | `/search` | Raw vector search only (no synthesis) |
-| `POST` | `/ingest` | Add document chunks to the knowledge base (requires `ORACLE_SECRET`) |
-| `GET` | `/status` | Health check and index statistics |
+| `POST` | `/ingest` | Add document chunks to the knowledge base |
+| `GET` | `/status` | Health check and index statistics (unauthenticated) |
+
+Every route except `GET /status` requires `Authorization: Bearer <ORACLE_SECRET>`. With the secret unset the worker refuses them with 503 rather than serving them unauthenticated (SR-02/SR-04).
 
 ### POST /query
 
@@ -85,5 +87,5 @@ Key environment variables (set in `wrangler.toml`):
 ## Secret
 
 ```bash
-npx wrangler secret put ORACLE_SECRET   # Bearer token for /ingest endpoint
+npx wrangler secret put ORACLE_SECRET   # Bearer token for every route except GET /status
 ```

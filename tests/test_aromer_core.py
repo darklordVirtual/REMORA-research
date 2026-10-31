@@ -5,6 +5,7 @@ Workers AI (MetaJudge) is stubbed by disabling run_meta_judge=False.
 """
 from __future__ import annotations
 
+import datetime as _dt
 import os
 import tempfile
 from pathlib import Path
@@ -443,27 +444,54 @@ def test_bridge_adapt_friction_optimizer_no_proposals(tmp_path):
     assert report["friction_optimizer"]["applied"] == 0
 
 
+def _signed_proposals_file(path, adjustments):
+    """SEC-07: threshold proposals must be signed; this builds a valid one."""
+    import json as _json
+
+    from remora.aromer.integration.bridge import (
+        canonical_threshold_proposal_payload,
+    )
+    from remora.crypto.domain_signing import (
+        SignatureDomain,
+        SigningKey,
+        sign,
+    )
+
+    key = SigningKey.generate({SignatureDomain.THRESHOLD_PROPOSAL})
+    payload = {
+        "adjustments": adjustments,
+        "holdout_evidence_sha256": "ab" * 32,
+        "issued_at": _dt.datetime.now(_dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "window_id": "2026-W24",
+    }
+    sig = sign(
+        SignatureDomain.THRESHOLD_PROPOSAL,
+        canonical_threshold_proposal_payload(**payload),
+        key,
+    )
+    path.write_text(_json.dumps({**payload, "generated_at": payload["issued_at"],
+                                 "signature": sig.to_dict()}), encoding="utf-8")
+    return key
+
+
 def test_bridge_adapt_applies_approved_friction_proposals(tmp_path):
     """adapt() lowers trust_critical_min when approved proposals exist."""
-    import json as _json
     proposals_path = tmp_path / "candidate_threshold_adjustments.json"
-    proposals_path.write_text(_json.dumps({
-        "generated_at": "2026-06-08T00:00:00Z",
-        "adjustments": [
-            {
-                "scope": "system/execution/low",
-                "adjustment_type": "reduce_review_friction",
-                "max_delta": 0.04,
-                "approved": True,
-                "holdout_false_accept_rate": 0.0,
-                "holdout_cases": 12,
-            }
-        ],
-    }), encoding="utf-8")
+    key = _signed_proposals_file(proposals_path, [
+        {
+            "scope": "system/execution/low",
+            "adjustment_type": "reduce_review_friction",
+            "max_delta": 0.04,
+            "approved": True,
+            "holdout_false_accept_rate": 0.0,
+            "holdout_cases": 12,
+        }
+    ])
 
     bridge = AromerAdapterBridge(
         state_path=str(tmp_path / "bridge.json"),
         proposals_path=str(proposals_path),
+        proposal_verification_keys=[key.verification_key()],
     )
     before = bridge.get_threshold("trust_critical_min")
     report = bridge.adapt()
@@ -475,25 +503,22 @@ def test_bridge_adapt_applies_approved_friction_proposals(tmp_path):
 
 def test_bridge_adapt_skips_unapproved_proposals(tmp_path):
     """adapt() does not apply proposals with holdout FA > 0."""
-    import json as _json
     proposals_path = tmp_path / "candidate_threshold_adjustments.json"
-    proposals_path.write_text(_json.dumps({
-        "generated_at": "2026-06-08T00:00:00Z",
-        "adjustments": [
-            {
-                "scope": "database/write/high",
-                "adjustment_type": "reduce_review_friction",
-                "max_delta": 0.05,
-                "approved": False,
-                "holdout_false_accept_rate": 0.08,
-                "holdout_cases": 25,
-            }
-        ],
-    }), encoding="utf-8")
+    key = _signed_proposals_file(proposals_path, [
+        {
+            "scope": "database/write/high",
+            "adjustment_type": "reduce_review_friction",
+            "max_delta": 0.05,
+            "approved": False,
+            "holdout_false_accept_rate": 0.08,
+            "holdout_cases": 25,
+        }
+    ])
 
     bridge = AromerAdapterBridge(
         state_path=str(tmp_path / "bridge.json"),
         proposals_path=str(proposals_path),
+        proposal_verification_keys=[key.verification_key()],
     )
     before = bridge.get_threshold("trust_critical_min")
     report = bridge.adapt()

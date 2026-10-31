@@ -79,6 +79,10 @@ def test_a_dead_injection_oracle_is_distinguishable_from_a_disabled_one(
     def boom(*_a, **_k):
         raise OSError("connection refused")
 
+    # A dead oracle has a configured destination and credential; otherwise
+    # SR-08 intentionally stops before attempting the transport.
+    monkeypatch.setenv("AROMER_WORKER_URL", "https://oracle.test")
+    monkeypatch.setenv("AROMER_WORKER_TOKEN", "test-scan-token")
     monkeypatch.setattr(urllib.request, "urlopen", boom)
     scanner = ToolResultScanner(oracle_enabled=True)
     with caplog.at_level(logging.WARNING, logger=LOGGER):
