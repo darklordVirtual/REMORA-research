@@ -14819,9 +14819,9 @@
     },
     "scripts/check_outbound_provenance.py": {
       "concepts": [],
-      "git_blob": "875166193ce0cb3dab7713dd310fb70514c2a52b",
+      "git_blob": "5604c2182acfc95de99c80ad99e51968c71c53d0",
       "mode": "100644",
-      "sha256": "921e51549e407cc36c4f2fb9f9ef87862e524881f03109b24a05cd20644d1fcd"
+      "sha256": "d5ea052e948fa0efa92ab41e04f83d8e11e6779dddf0080ca312cd9dca512c3c"
     },
     "scripts/check_paper_overflow.py": {
       "concepts": [],
@@ -21585,7 +21585,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "7eda3d2b1aecc46936cffc7d2c62dbad777832606bd52c7be56010970221cf32",
+  "register_sha256": "23663e4ce947ec2bbe8ad848c72c6292b20efdab486d4738731ef068e155a4a8",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
