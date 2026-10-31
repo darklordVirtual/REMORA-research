@@ -73,7 +73,7 @@ def validate(data: object, schema: dict, root: Path) -> list[str]:
 def main(argv: list[str] | None = None, *, root: Path = ROOT) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="validate the committed ledger")
-    args = parser.parse_args(argv)
+    _unused_args = parser.parse_args(argv)
     try:
         schema = json.loads((root / SCHEMA).read_text(encoding="utf-8"))
         data = yaml.safe_load((root / REGISTER).read_text(encoding="utf-8"))
