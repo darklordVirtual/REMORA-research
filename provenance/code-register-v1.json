@@ -147,9 +147,9 @@
     },
     ".github/workflows/codeql.yml": {
       "concepts": [],
-      "git_blob": "9feac6cda930ebce761331fee688823f8076b9cf",
+      "git_blob": "ee4aa66463e583786618dbf35f5b0159d322ebfa",
       "mode": "100644",
-      "sha256": "b99df5cbcf791b4a725e8ceee7fa39ef93c36a643831efaf89b483f4bc7db15e"
+      "sha256": "551fac7b412137553a5a320fb5f54e6066a56769377340177353c2b93ff73671"
     },
     ".github/workflows/compile-paper.yml": {
       "concepts": [],
@@ -21585,7 +21585,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "23663e4ce947ec2bbe8ad848c72c6292b20efdab486d4738731ef068e155a4a8",
+  "register_sha256": "4960e0439e7669d71adae66de183d024b92b881baba95b94973987cd149ed337",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
