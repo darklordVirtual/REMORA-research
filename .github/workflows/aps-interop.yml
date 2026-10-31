@@ -75,7 +75,6 @@ jobs:
 
       - name: Install REMORA interop dependencies
         run: |
-          python -m pip install --upgrade pip
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
           pip install -e . pytest jsonschema cryptography -c /tmp/constraints.txt
 

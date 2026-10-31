@@ -1,17 +1,19 @@
 # REMORA OT pilot — the whole thing, locally, in production mode.
 #
-# One command, nothing to configure:
+# Generate the pilot credentials once, then one command:
 #
+#   python deploy/ot-pilot/init_tokens.py      # writes deploy/ot-pilot/.env
 #   docker compose -f deploy/ot-pilot/docker-compose.yml up --build -d
 #
 # Then open http://localhost:8081 — operator console with live metrics, the
 # scenario buttons and a one-click run of the 16-case OT battery.
-# Swagger is at http://localhost:8080/docs (press Authorize, paste `ot-agent`).
+# Swagger is at http://localhost:8080/docs (press Authorize, paste the
+# OT_TOKEN_AGENT value from deploy/ot-pilot/.env, made by init_tokens.py).
 #
 #   docker compose -f deploy/ot-pilot/docker-compose.yml down -v   # tear down
 #
-# Every credential, database, registry and work order below is preset. There
-# is nothing to fill in before it runs.
+# Every database, registry and work order below is preset. The bearer tokens
+# are not: compose refuses to start until init_tokens.py has generated them.
 #
 # Production mode is not decoration here. REMORA_ENV=production makes the
 # fail-closed prerequisites binding for the surfaces this deployment serves:
@@ -56,8 +58,10 @@ services:
       postgres:
         condition: service_healthy
     # Host 8080 to stay clear of anything already on 8000.
+    # SR-06 / SEC-05: loopback only — a pilot on 0.0.0.0 hands the network
+    # both the propose and the approve path.
     ports:
-      - "8080:8000"
+      - "127.0.0.1:8080:8000"
     environment:
       REMORA_ENV: production
 
@@ -72,12 +76,15 @@ services:
       # admin, the supervisor, can withdraw the approver's authority: a
       # principal cannot revoke themself, so revocation needs two. Each token
       # names its actor, so the audit chain records who acted, not a hash.
+      # SR-06: tokens are generated at first start by
+      # `python deploy/ot-pilot/init_tokens.py` (writes .env, mode 600);
+      # compose refuses to start without them. No fixed literal tokens.
       REMORA_API_TOKENS: >-
-        {"ot-agent":{"tenant":"ot-pilot","role":"operator","actor_id":"ot-agent"},
-         "ot-approver":{"tenant":"ot-pilot","role":"admin","actor_id":"ot-approver"},
-         "ot-supervisor":{"tenant":"ot-pilot","role":"admin","actor_id":"ot-supervisor"},
-         "ot-viewer":{"tenant":"ot-pilot","role":"viewer","actor_id":"ot-viewer"}}
-      REMORA_API_BEARER_TOKEN: ot-agent
+        {"${OT_TOKEN_AGENT:?run python deploy/ot-pilot/init_tokens.py first}":{"tenant":"ot-pilot","role":"operator","actor_id":"ot-agent"},
+         "${OT_TOKEN_APPROVER:?run python deploy/ot-pilot/init_tokens.py first}":{"tenant":"ot-pilot","role":"admin","actor_id":"ot-approver"},
+         "${OT_TOKEN_SUPERVISOR:?run python deploy/ot-pilot/init_tokens.py first}":{"tenant":"ot-pilot","role":"admin","actor_id":"ot-supervisor"},
+         "${OT_TOKEN_VIEWER:?run python deploy/ot-pilot/init_tokens.py first}":{"tenant":"ot-pilot","role":"viewer","actor_id":"ot-viewer"}}
+      REMORA_API_BEARER_TOKEN: ${OT_TOKEN_AGENT:?run python deploy/ot-pilot/init_tokens.py first}
 
       # --- Surfaces -------------------------------------------------------
       # Execution only: no oracle, no retrieval store, no network egress.
@@ -135,8 +142,8 @@ services:
       - remora-state:/var/lib/remora
 
   # Operator console: live metrics, scenario buttons, one-click OT battery.
-  # Holds the demo tokens because this is a local pilot — a real deployment
-  # puts an identity provider here instead, and the page says so.
+  # Holds the viewer token only (SR-06) — a real deployment puts an identity
+  # provider here instead, and the page says so.
   console:
     build:
       context: ../..
@@ -151,13 +158,15 @@ services:
       timeout: 5s
       start_period: 15s
       retries: 5
+    # SR-06 / SEC-05: loopback only.
     ports:
-      - "8081:8090"
+      - "127.0.0.1:8081:8090"
     environment:
       REMORA_API_URL: http://api:8000
-      PILOT_TOKEN_OPERATOR: ot-agent
-      PILOT_TOKEN_APPROVER: ot-approver
-      PILOT_TOKEN_VIEWER: ot-viewer
+      # The console holds the viewer token only. Operator and approver
+      # credentials are entered per request in the UI and forwarded to the
+      # API; they are never stored here (SR-06).
+      PILOT_TOKEN_VIEWER: ${OT_TOKEN_VIEWER:?run python deploy/ot-pilot/init_tokens.py first}
       REMORA_EVIDENCE_ROOT: /var/lib/remora/evidence
       # Retention: keep the newest N battery runs on the evidence volume.
       # Pruned directories are named in the battery output — never silent.

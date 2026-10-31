@@ -33,7 +33,6 @@ jobs:
           cache: pip
       - name: Install test surface
         run: |
-          python -m pip install --upgrade pip
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
           pip install -e ".[dev,causal,api,security]" -c /tmp/constraints.txt
       - name: Run adversarial probes
