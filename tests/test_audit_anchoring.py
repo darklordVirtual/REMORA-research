@@ -81,26 +81,29 @@ def _make_chain(n: int = 4) -> AuditHashChain:
 class TestComputeMerkleRoot:
 
     def test_single_entry_merkle_root_uses_canonical_json_leaf(self):
-        """Single-entry root = SHA-256 of canonical JSON of that entry."""
+        """v2: single-entry root = SHA-256(0x00 || canonical JSON) (RFC 6962)."""
         import dataclasses
         chain = _make_chain(1)
         entry = chain.entries()[0]
         canonical = json.dumps(dataclasses.asdict(entry), sort_keys=True, separators=(",", ":"))
-        expected = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        expected = hashlib.sha256(b"\x00" + canonical.encode("utf-8")).hexdigest()
         assert compute_merkle_root(chain.entries()) == expected
+        # v1 stays available for anchors recorded before 2026-10-28 (SR-14).
+        legacy = hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+        assert compute_merkle_root(chain.entries(), version=1) == legacy
 
     def test_two_entry_merkle_root_is_sha256_of_leaf_pair(self):
-        """Two-entry root = SHA-256(leaf0 + leaf1) where leaf = SHA-256(canonical_json)."""
+        """v2: root = SHA-256(0x01 || leaf0 || leaf1) over raw digest bytes."""
         import dataclasses
         chain = _make_chain(2)
         entries = chain.entries()
 
         def _leaf(e):
             c = json.dumps(dataclasses.asdict(e), sort_keys=True, separators=(",", ":"))
-            return hashlib.sha256(c.encode("utf-8")).hexdigest()
+            return hashlib.sha256(b"\x00" + c.encode("utf-8")).digest()
 
         l0, l1 = _leaf(entries[0]), _leaf(entries[1])
-        expected = hashlib.sha256((l0 + l1).encode("utf-8")).hexdigest()
+        expected = hashlib.sha256(b"\x01" + l0 + l1).hexdigest()
         assert compute_merkle_root(entries) == expected
 
     def test_merkle_root_is_deterministic(self):
@@ -199,27 +202,28 @@ class TestExportDailyRoot:
     def test_creates_dated_file_in_directory(self, tmp_path):
         chain = _make_chain(3)
         root = compute_merkle_root(chain.entries())
-        export_daily_root(root, directory=tmp_path)
+        export_daily_root(root, directory=tmp_path, n_entries=3)
         dated_file = tmp_path / f"audit-root-{date.today().isoformat()}.jsonl"
         assert dated_file.exists()
 
     def test_file_contains_json_with_root_hash(self, tmp_path):
         chain = _make_chain(3)
         root = compute_merkle_root(chain.entries())
-        export_daily_root(root, directory=tmp_path)
+        export_daily_root(root, directory=tmp_path, n_entries=3)
         dated_file = tmp_path / f"audit-root-{date.today().isoformat()}.jsonl"
         lines = dated_file.read_text(encoding="utf-8").strip().splitlines()
         assert len(lines) >= 1
         record = json.loads(lines[-1])
         assert record["merkle_root"] == root
+        assert record["v"] == 2
 
     def test_appends_when_file_exists(self, tmp_path):
         chain1 = _make_chain(2)
         chain2 = _make_chain(3)
         root1 = compute_merkle_root(chain1.entries())
         root2 = compute_merkle_root(chain2.entries())
-        export_daily_root(root1, directory=tmp_path)
-        export_daily_root(root2, directory=tmp_path)
+        export_daily_root(root1, directory=tmp_path, n_entries=2)
+        export_daily_root(root2, directory=tmp_path, n_entries=3)
         dated_file = tmp_path / f"audit-root-{date.today().isoformat()}.jsonl"
         lines = dated_file.read_text(encoding="utf-8").strip().splitlines()
         assert len(lines) == 2
@@ -227,11 +231,14 @@ class TestExportDailyRoot:
     def test_signed_root_exported_when_key_provided(self, tmp_path):
         chain = _make_chain(2)
         root = compute_merkle_root(chain.entries())
-        export_daily_root(root, directory=tmp_path, signing_key="test-key")
+        export_daily_root(root, directory=tmp_path, signing_key="test-key", n_entries=2)
         dated_file = tmp_path / f"audit-root-{date.today().isoformat()}.jsonl"
         record = json.loads(dated_file.read_text(encoding="utf-8").strip())
         assert "signature" in record
-        assert verify_signed_root(root, record["signature"], key="test-key")
+        # v2 signatures bind the entry count (SR-14 / SEC-03).
+        assert verify_signed_root(
+            root, record["signature"], key="test-key", n_entries=2, version=2,
+        )
 
     def test_record_contains_n_entries(self, tmp_path):
         chain = _make_chain(5)
@@ -386,26 +393,34 @@ class TestCheckpointSpans:
             make_checkpoint(_fake_leaves(4), 5, first)  # gap: expected seq_start=4
 
     def test_root_matches_hex_leaf_merkle_overload(self):
-        """Checkpoint root is the hex-leaf Merkle root (same pairing rule as merkle.py)."""
+        """Checkpoint root is the hex-leaf Merkle root (same construction as merkle.py)."""
         leaves = _fake_leaves(3)
         checkpoint = make_checkpoint(leaves, 0)
         assert checkpoint.root == merkle_root_from_hex_leaves(leaves)
-        # Odd tree duplicates the last node, exactly like compute_merkle_root.
+        # v2 (SR-14): RFC 6962 prefixes over raw bytes; the odd node is
+        # promoted unchanged rather than duplicated.
         l0, l1, l2 = leaves
-        p01 = hashlib.sha256((l0 + l1).encode("utf-8")).hexdigest()
-        p22 = hashlib.sha256((l2 + l2).encode("utf-8")).hexdigest()
-        expected = hashlib.sha256((p01 + p22).encode("utf-8")).hexdigest()
+        h0 = hashlib.sha256(b"\x00" + bytes.fromhex(l0)).digest()
+        h1 = hashlib.sha256(b"\x00" + bytes.fromhex(l1)).digest()
+        h2 = hashlib.sha256(b"\x00" + bytes.fromhex(l2)).digest()
+        p01 = hashlib.sha256(b"\x01" + h0 + h1).digest()
+        expected = hashlib.sha256(b"\x01" + p01 + h2).hexdigest()
         assert checkpoint.root == expected
 
     def test_signing_payload_format(self):
         leaves = _fake_leaves(2)
         first = make_checkpoint(leaves, 0)
         assert first.signing_payload() == (
-            f"remora-ckpt-v1|0|1|{first.root}|".encode()
+            f"remora-ckpt-v2|0|1|{first.root}|".encode()
         )
         second = make_checkpoint(_fake_leaves(2), 2, first)
         assert second.signing_payload() == (
-            f"remora-ckpt-v1|2|3|{second.root}|{first.root}".encode()
+            f"remora-ckpt-v2|2|3|{second.root}|{first.root}".encode()
+        )
+        # v1 checkpoints keep the v1 prefix and remain verifiable.
+        legacy = make_checkpoint(leaves, 0, version=1)
+        assert legacy.signing_payload() == (
+            f"remora-ckpt-v1|0|1|{legacy.root}|".encode()
         )
 
     def test_sign_and_verify_checkpoint_signature(self):
