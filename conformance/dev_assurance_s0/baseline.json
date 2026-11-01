@@ -1,0 +1,142 @@
+{
+  "schema": "remora-dev-assurance-s0-v1",
+  "baseline": {
+    "branch": "dev",
+    "commit": "15f8bdfcfa7900a0f3c359f7e81e234569f398c6",
+    "recorded_date": "2026-11-01",
+    "reproducibility": "pinned-source-tree",
+    "git_history_required": true
+  },
+  "evidence_level": "REFERENCE_TEST_INVENTORY_ONLY",
+  "execution_result": "NOT_RUN_BY_THIS_MANIFEST",
+  "implementation_progress": "NOT_ASSESSED",
+  "claim_ceiling": "This mapping records related pre-existing test modules and explicit gaps. It does not assert they passed, execute a protected effect, or prove deploy-time enforcement.",
+  "invariants": [
+    {
+      "id": "INV-01",
+      "reference_tests": [
+        "tests/conformance/test_execution_boundary.py",
+        "tests/test_api_execution_surface_binding.py"
+      ],
+      "open_gap": "Protected-path completeness in a configured deployment remains unverified.",
+      "coverage": "NOT_ESTABLISHED_IN_DEPLOYMENT"
+    },
+    {
+      "id": "INV-02",
+      "reference_tests": [
+        "tests/conformance/test_execution_boundary_process_split.py",
+        "tests/test_check_credential_topology.py"
+      ],
+      "open_gap": "Downstream credential custody must be verified against the actual executor topology.",
+      "coverage": "NOT_ESTABLISHED_IN_DEPLOYMENT"
+    },
+    {
+      "id": "INV-03",
+      "reference_tests": [
+        "tests/test_binding_policy.py",
+        "tests/test_cross_tenant_argument_boundary.py"
+      ],
+      "open_gap": "Metadata authority and contradictory input handling are not established end to end.",
+      "coverage": "NOT_ESTABLISHED_IN_DEPLOYMENT"
+    },
+    {
+      "id": "INV-04",
+      "reference_tests": [
+        "tests/test_execution_lease.py",
+        "tests/test_envelope_execution_binding.py"
+      ],
+      "open_gap": "Binding tests do not by themselves establish all real adapter dispatch paths.",
+      "coverage": "NOT_ESTABLISHED_IN_DEPLOYMENT"
+    },
+    {
+      "id": "INV-05",
+      "reference_tests": [
+        "tests/test_lease_nonce_durability.py",
+        "tests/capabilities/test_capability_revocation.py"
+      ],
+      "open_gap": "Cross-process revocation latency and grant redemption require field-context tests.",
+      "coverage": "NOT_ESTABLISHED_IN_DEPLOYMENT"
+    },
+    {
+      "id": "INV-06",
+      "reference_tests": [
+        "tests/test_audit_outbox_atomicity.py",
+        "tests/test_execution_outbox.py"
+      ],
+      "open_gap": "Credential-bearing dispatch and evidence durability need integrated fault injection.",
+      "coverage": "NOT_ESTABLISHED_IN_DEPLOYMENT"
+    },
+    {
+      "id": "INV-07",
+      "reference_tests": [
+        "tests/test_execution_outbox_reconciler.py",
+        "tests/test_execution_fault_injection.py"
+      ],
+      "open_gap": "Ambiguous external effects cannot be resolved by unit-level result assertions.",
+      "coverage": "NOT_ESTABLISHED_IN_DEPLOYMENT"
+    },
+    {
+      "id": "INV-08",
+      "reference_tests": [
+        "tests/test_effect_verification.py",
+        "tests/test_effect_verification_attribution_limit.py"
+      ],
+      "open_gap": "Independent target postcondition and causal attribution remain bounded.",
+      "coverage": "NOT_ESTABLISHED_IN_DEPLOYMENT"
+    },
+    {
+      "id": "INV-09",
+      "reference_tests": [
+        "tests/test_evidence_admission_coverage_trust.py",
+        "tests/test_effect_vantage_scope.py"
+      ],
+      "open_gap": "Coverage and observer blindness must be proven for the deployed sensor surface.",
+      "coverage": "NOT_ESTABLISHED_IN_DEPLOYMENT"
+    },
+    {
+      "id": "INV-10",
+      "reference_tests": [
+        "tests/test_decision_execution_correlation.py",
+        "tests/test_effect_receipt_lineage.py"
+      ],
+      "open_gap": "External trace consumers need a reproducible end-to-end closure record.",
+      "coverage": "NOT_ESTABLISHED_IN_DEPLOYMENT"
+    },
+    {
+      "id": "INV-11",
+      "reference_tests": [
+        "tests/test_api_execution_surface_binding.py",
+        "tests/test_capability_hooks.py"
+      ],
+      "open_gap": "Real client and adapter variants may retain unobserved tool paths.",
+      "coverage": "NOT_ESTABLISHED_IN_DEPLOYMENT"
+    },
+    {
+      "id": "INV-12",
+      "reference_tests": [
+        "tests/test_audit_verify_signature_status.py",
+        "tests/security/test_sr14_merkle.py"
+      ],
+      "open_gap": "Local verification does not establish independent trust root or external anchoring.",
+      "coverage": "NOT_ESTABLISHED_IN_DEPLOYMENT"
+    },
+    {
+      "id": "INV-13",
+      "reference_tests": [
+        "tests/test_execution_stop.py",
+        "tests/test_capability_freshness.py"
+      ],
+      "open_gap": "Multi-replica emergency-stop propagation requires deployment-level validation.",
+      "coverage": "NOT_ESTABLISHED_IN_DEPLOYMENT"
+    },
+    {
+      "id": "INV-14",
+      "reference_tests": [
+        "tests/test_code_provenance.py",
+        "tests/test_claim_consistency_audit.py"
+      ],
+      "open_gap": "Passing register checks does not constitute independent assurance or certification.",
+      "coverage": "NOT_ESTABLISHED_IN_DEPLOYMENT"
+    }
+  ]
+}
