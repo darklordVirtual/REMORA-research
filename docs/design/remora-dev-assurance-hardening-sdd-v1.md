@@ -1,12 +1,14 @@
 # REMORA DEV Assurance and Execution Hardening - SDD v1
 
-**Document ID:** SDD-RMR-DEV-2026-11-01
-**Status:** PROPOSED / design only; not a shipped-capability claim
-**Date:** 2026-11-01
-**Target:** topic branches -> dev -> reviewed dev-to-master promotion
-**Baseline:** dev 15f8bdfcfa7900a0f3c359f7e81e234569f398c6
-**Change class:** security architecture, conformance, runtime reliability and controlled-pilot readiness
-**Rule:** no deployment activation, customer writes or production policy relaxation from this SDD
+| Metadata | Value |
+| --- | --- |
+| Document ID | SDD-RMR-DEV-2026-11-01 |
+| Status | PROPOSED; design only, not a shipped-capability claim |
+| Date | 2026-11-01 |
+| Target | Topic branches to dev, then reviewed dev-to-master promotion |
+| Baseline | dev `15f8bdfcfa7900a0f3c359f7e81e234569f398c6` |
+| Change class | Security architecture, conformance, reliability and controlled-pilot readiness |
+| Execution boundary | No deployment activation, customer writes or production policy relaxation |
 
 ## 1. Decision and intended outcome
 
@@ -49,7 +51,9 @@ Existing mechanisms to preserve and extend, not reimplement:
 
 Do not reset, weaken or duplicate these mechanisms. Existing design documents with unimplemented slices are the source of implementation detail; this document coordinates and adds explicit cross-component acceptance criteria.
 
-Explicit non-goals: training a new decision model; autonomous modification of security policy; a general-purpose multi-agent scheduler; unreviewed live OT writes; claiming all filesystem, network or subprocess effects are mediated by library-level Python hooks; claiming third-party certification; claiming a portable receipt is trustworthy merely because its verifying key is embedded.
+Non-goals include training a new decision model, autonomous policy modification, a general-purpose agent scheduler and unreviewed OT writes.
+
+We also exclude universal mediation claims for Python hooks, unsupported certification statements and treating an embedded verifying key as proof of origin.
 
 ## 3. Protected invariants
 
@@ -87,10 +91,10 @@ Each implementation PR identifies the INV identifiers it establishes, the actual
 
 Suggested internal, nonauthoritative design records:
 
-- **Authority Route Map:** a generated inventory of all effect entry points, process boundaries, credentials and enforcement checkpoints.
-- **Effect Boundary Record:** the protected runtime's declared and observed effect reachability for a specific version and environment.
-- **Evidence Closure Vector:** per-invocation status of request binding, authorization, dispatch, effect observation and external anchoring. Values are ESTABLISHED, NOT_ESTABLISHED or FAILED, with explicit reasons and provenance.
-- **Recovery State Vector:** durable reconciliation facts about whether an effect was refused, pending, dispatched, observed, committed or left unknown.
+- Authority Route Map: a generated inventory of all effect entry points, process boundaries, credentials and enforcement checkpoints.
+- Effect Boundary Record: the protected runtime's declared and observed effect reachability for a specific version and environment.
+- Evidence Closure Vector: per-invocation status of request binding, authorization, dispatch, effect observation and external anchoring. Values are ESTABLISHED, NOT_ESTABLISHED or FAILED, with explicit reasons and provenance.
+- Recovery State Vector: durable reconciliation facts about whether an effect was refused, pending, dispatched, observed, committed or left unknown.
 
 These are proposed views over existing data. They must not introduce competing sources of truth, parallel authorizers or new grants.
 
@@ -146,7 +150,7 @@ These are proposed views over existing data. They must not introduce competing s
 
 **Problem:** Application-level hooks can observe some operations but do not prove that native code, raw sockets, subprocesses or inherited credentials are unreachable.
 
-**Implementation:** Complete the existing effect-contract-verification design in bounded slices. Use a separate effect executor with least-privilege filesystem, process and egress controls. A deployment-owned effect profile defines reachable network destinations, writable paths, permitted subprocess behavior and target adapters. The existing in-process observer is advisory coverage evidence; the isolated runtime boundary is authoritative. Instrument both declared and undeclared effects where technically observable.
+**Implementation:** Complete the existing effect-contract-verification design in bounded slices. Use a separate effect executor with least-privilege filesystem, process and egress controls. A deployment-owned effect profile defines reachable network destinations, writable paths, permitted subprocess behavior and target adapters. The in-process observer supplies coverage evidence. The isolated runtime must block unauthorized effects even if observation is unavailable. Instrument both declared and undeclared effects where technically observable.
 
 **Acceptance:**
 - Each attempted prohibited file, process, network or direct target effect is denied by the protected runtime or accurately labeled outside its coverage.
@@ -405,17 +409,17 @@ D13 and D17 test/documentation updates are required inside every relevant PR, no
 
 Each implementation PR must include:
 
-- **Requirement IDs:** specific D and INV identifiers; no unbounded implementation brief.
-- **Precondition:** relevant code path and exact baseline commit inspected.
-- **Existing mechanism reused:** filename/function and reason no duplicate is needed.
-- **Threat/failure model:** actor, authority held, attempted bypass, protected effect.
-- **Proposed delta:** narrow changed interfaces and the one source of truth.
-- **Negative test first:** which failure or bypass should be observable before the fix.
-- **Positive and compatibility tests:** valid behavior preserved; legacy receipts verified where required.
-- **Evidence:** exact commands, fixture and artifact digests, runtime topology, status.
-- **Rollout:** feature flag/default, migration, downgrade and rollback conditions.
-- **Claim ceiling:** what the test does not establish; capabilities and defect register updated.
-- **Provenance:** changed files registered, original authorship history retained, dependencies and externally standardized inputs properly identified in the appropriate existing registers.
+- Requirement IDs: specific D and INV identifiers; no unbounded implementation brief.
+- Precondition: relevant code path and exact baseline commit inspected.
+- Existing mechanism reused: filename/function and reason no duplicate is needed.
+- Threat/failure model: actor, authority held, attempted bypass, protected effect.
+- Proposed delta: narrow changed interfaces and the one source of truth.
+- Negative test first: which failure or bypass should be observable before the fix.
+- Positive and compatibility tests: valid behavior preserved; legacy receipts verified where required.
+- Evidence: exact commands, fixture and artifact digests, runtime topology, status.
+- Rollout: feature flag/default, migration, downgrade and rollback conditions.
+- Claim ceiling: what the test does not establish; capabilities and defect register updated.
+- Provenance: changed files registered, original authorship history retained, dependencies and externally standardized inputs properly identified in the appropriate existing registers.
 
 Any change to an authoritative policy, grant, lease, dispatcher, effect adapter or audit verifier requires an explicit security-review section; normal code review alone is insufficient.
 
@@ -484,7 +488,9 @@ No open decision may be silently replaced by a default inferred from an agent pr
 
 ## 12. Definition of done
 
-The SDD is implemented only when every P0 slice is closed by traceable evidence, required P1 slices for the chosen protected pilot are closed, the actual protected runtime passes attempted bypass and recovery tests, and the integrated dev branch retains clean provenance and required CI. P2 improvements are optional for the pilot and must be scheduled explicitly.
+Implementation requires traceable evidence for every P0 slice and all P1 slices required by the selected pilot.
+
+The protected runtime must pass attempted bypass and recovery tests. The integrated dev branch must retain clean provenance and required CI. P2 improvements are optional for the pilot and must be scheduled explicitly.
 
 The final assurance statement must distinguish: code implemented, reference path wired, API path wired, durable state established, protected production path observed, and independently validated. No status follows automatically from a passing unit test.
 
