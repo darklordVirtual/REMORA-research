@@ -167,7 +167,7 @@ propcache==0.4.1
 protobuf==6.33.6
 psutil==7.1.2
 pyarrow==25.0.1
-pyasn1==0.6.4
+pyasn1==0.6.5
 pyasn1_modules==0.4.2
 pycparser==2.23
 pycryptodome==4.1.0
@@ -183,7 +183,7 @@ pymdown-extensions==11.0.1
 PyMuPDF==2.0
 PyNaCl==1.6.2
 pyparsing==3.3.3
-pypdf==6.21.2
+pypdf==6.21.4
 PySocks==1.7.1
 pytest==9.1.1
 pytest-asyncio==1.4.0
