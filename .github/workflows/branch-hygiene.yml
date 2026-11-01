@@ -47,7 +47,8 @@ jobs:
           kept_unverified=0
 
           while IFS= read -r branch; do
-            [[ -z "$branch" || "$branch" == "$default" ]] && continue
+            # Never prune long-lived integration or default branches, even after a closed dev -> master PR.
+            [[ -z "$branch" || "$branch" == "$default" || "$branch" == "dev" ]] && continue
 
             if [[ -n "${open_heads[$branch]:-}" ]]; then
               echo "KEEP open PR: $branch"

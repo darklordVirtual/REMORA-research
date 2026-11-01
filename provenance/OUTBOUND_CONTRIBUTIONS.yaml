@@ -1,0 +1,73 @@
+# A record of REMORA-associated contributions submitted to external projects.
+# A GitHub PR is evidence of a submission, NOT proof of independent authorship,
+# ownership of every modified byte, licensing of REMORA Core, or third-party adoption.
+# Keep merge status as observed at the stated date; update it in a reviewed PR.
+schema_version: remora-outbound-contributions-v1
+records:
+  - id: OUT-0001
+    observed_at: '2026-10-30'
+    target_repo: Agent-Authority-Conformance/aps-conformance-suite
+    pull_request: https://github.com/Agent-Authority-Conformance/aps-conformance-suite/pull/41
+    status: merged
+    merge_commit: 6912fe44d86c67da2d3f413c65f9f5d84fd8bcb9
+    kind: interoperability_adapter_and_author_run
+    target_paths:
+      - interop/remora-edd8a4e/SOURCE.md
+      - interop/remora-edd8a4e/remora_aps_mode_b.py
+      - interop/remora-edd8a4e/results.json
+    remora_source_revision: edd8a4ece60129ff1d15b03ff9d78af0fd1e1d9d
+    declared_target_license:
+      spdx: Apache-2.0
+      evidence_url: https://github.com/Agent-Authority-Conformance/aps-conformance-suite/blob/6912fe44d86c67da2d3f413c65f9f5d84fd8bcb9/LICENSE
+    boundary:
+      remora_core_files_included: false
+      note: Adapter imports the separately licensed REMORA runtime for a local author-run. Its Apache licensing does not relicense REMORA Core. The run is not independent verification.
+    concepts: []
+    research_sources:
+      - kind: external_test_vectors
+        reference: https://github.com/Agent-Authority-Conformance/aps-conformance-suite/tree/2c3bdef91a70b40d7e9f1a30230be07a3645894b
+        relationship: Compared REMORA's canonical-byte output with pinned APS conformance fixtures; vectors are test inputs, not evidence that APS implementation code was copied.
+    evidence_url: https://github.com/Agent-Authority-Conformance/aps-conformance-suite/blob/6912fe44d86c67da2d3f413c65f9f5d84fd8bcb9/interop/remora-edd8a4e/SOURCE.md
+
+  - id: OUT-0002
+    observed_at: '2026-10-30'
+    target_repo: darklordVirtual/agent-authority-conformance
+    pull_request: https://github.com/darklordVirtual/agent-authority-conformance/pull/15
+    status: merged
+    merge_commit: 28ce126827fd30426d602a2c4ef30a77ca75c304
+    kind: portable_adversarial_profile
+    target_paths:
+      - .github/workflows/validate-assessments.yml
+      - aacp/adversarial.py
+      - aacp/cli.py
+      - docs/ADVERSARIAL-SELF-SERVICE.md
+      - schema/aacp-adversarial-run-v1.schema.json
+      - templates/adapters/portable-cfg-adapter.py
+      - tests/test_portable_adversarial.py
+    declared_target_license:
+      spdx: Apache-2.0
+      evidence_url: https://github.com/darklordVirtual/agent-authority-conformance/blob/28ce126827fd30426d602a2c4ef30a77ca75c304/LICENSE
+    boundary:
+      remora_core_files_included: false
+      note: Paths are the files changed in PR #15, including pre-existing files. The list does not assert exclusive authorship of every byte. Vendor-neutral tests and adapter template are distinct from REMORA Core.
+    concepts: []
+    research_sources: []
+    evidence_url: https://github.com/darklordVirtual/agent-authority-conformance/pull/15/files
+
+  - id: OUT-0003
+    observed_at: '2026-10-30'
+    target_repo: aeoess/agent-governance-vocabulary
+    pull_request: https://github.com/aeoess/agent-governance-vocabulary/pull/232
+    status: open
+    kind: governance_crosswalk
+    target_paths:
+      - crosswalk/remora.yaml
+    declared_target_license:
+      spdx: Apache-2.0
+      evidence_url: https://github.com/aeoess/agent-governance-vocabulary/blob/main/LICENSE
+    boundary:
+      remora_core_files_included: false
+      note: Proposed crosswalk, not yet merged as of the observed date; no REMORA Core source-file licence is altered. Acceptance, endorsement and downstream use are not established.
+    concepts: []
+    research_sources: []
+    evidence_url: https://github.com/aeoess/agent-governance-vocabulary/pull/232/files
