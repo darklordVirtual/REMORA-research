@@ -21,7 +21,7 @@ hand-maintained records and the registers they point at:
   snapshot is written, and ``--check`` refuses a manifest that no longer does.
 
     --write [--snapshot REV]   validate, then write the manifest at REV (default HEAD)
-    --check                    validate, then rebuild from the recorded snapshot and compare
+    --check [--out PATH]       validate, then rebuild the selected manifest's snapshot and compare
     --release TAG --out PATH   validate, then write a release manifest for TAG at HEAD
 
 Nothing here establishes that a concept is original. The ledger records
@@ -271,13 +271,15 @@ def main(argv: list[str] | None = None) -> int:
     mode.add_argument("--check", action="store_true")
     mode.add_argument("--release", metavar="TAG")
     parser.add_argument("--snapshot", default=None, help="revision to digest (default HEAD for --write and --release)")
-    parser.add_argument("--out", default=None, help="output path for --release")
+    parser.add_argument("--out", default=None, help="manifest path to write or check (default: POLICY.yaml manifest.path)")
     args = parser.parse_args(argv)
-    out_path = ROOT / _yaml(POLICY)["manifest"]["path"]
+    out_path = Path(args.out) if args.out else ROOT / _yaml(POLICY)["manifest"]["path"]
+    if not out_path.is_absolute():
+        out_path = ROOT / out_path
     try:
         if args.check:
             if not out_path.is_file():
-                raise LedgerError(f"{out_path.relative_to(ROOT)} is missing; run --write")
+                raise LedgerError(f"{out_path} is missing; run --write")
             committed = _json(out_path)
             snapshot = committed["snapshot"]
         else:
@@ -292,13 +294,13 @@ def main(argv: list[str] | None = None) -> int:
             if _stable(rebuilt) != _stable(committed):
                 for line in _differences(_stable(committed), _stable(rebuilt)):
                     print(f"[DIFF] {line}")
-                print(f"[FAIL] {out_path.relative_to(ROOT)} does not reproduce from snapshot {snapshot[:12]}; run --write to record a new snapshot")
+                print(f"[FAIL] {out_path} does not reproduce from snapshot {snapshot[:12]}; run --write to record a new snapshot")
                 return 1
             print(f"[PASS] provenance ledger: {len(records)} records valid; manifest reproduces from snapshot {snapshot[:12]} (ledger_sha256 {committed['ledger_sha256'][:16]})")
             return 0
         manifest = build(snapshot, records, release=args.release)
         manifest["generated_at"] = dt.datetime.now(dt.UTC).isoformat(timespec="seconds")
-        target = Path(args.out) if args.out else out_path
+        target = out_path
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         print(f"[WRITE] {target}: snapshot {snapshot[:12]}, {len(records)} concepts, ledger_sha256 {manifest['ledger_sha256']}")
