@@ -5050,9 +5050,9 @@
     },
     "docs/README.md": {
       "concepts": [],
-      "git_blob": "5af5e2f8f509bd2e5932fdfcf70f597436c82cdc",
+      "git_blob": "28e83d739b926397b6518f6876916a09913cec38",
       "mode": "100644",
-      "sha256": "bbf45a5103d8eca9f3efb1a6b1266563328f626b87163de25e3b21ed4153923c"
+      "sha256": "2d8c3b282fbf2d0205375e7a384d55508c2206fcddc1aa9a03906c842ef8ffc9"
     },
     "docs/architecture/ADR-UE-03-capability-manifest-hook-and-mode.md": {
       "concepts": [],
@@ -21765,7 +21765,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "bf289b5a1831a34c435ac0193120acbbf91f5e1fa10cdbf87bf9e3235b663557",
+  "register_sha256": "7d771509e231643e08a568b7655c981e5d76e02c015215ed465287cc8462c3f5",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
