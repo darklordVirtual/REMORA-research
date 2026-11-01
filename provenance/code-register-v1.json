@@ -3311,9 +3311,9 @@
     },
     "artifacts/replication-pack/replication_pack_v1.json": {
       "concepts": [],
-      "git_blob": "6851810c06fd20ae93e95e1e21c11c311085dd00",
+      "git_blob": "17e55a5584f8318ecd5419add6698f29b19c4fd4",
       "mode": "100644",
-      "sha256": "e42cd28d1cf2d504dd851f5def95e14bc73f32554b9ef629b509ba56d58a998c"
+      "sha256": "0f68ac0e41b455819be6af1d2e6da37c9d4f144b577b44afb689e29b017f3e93"
     },
     "artifacts/reproduce.sh": {
       "concepts": [],
@@ -5050,9 +5050,9 @@
     },
     "docs/README.md": {
       "concepts": [],
-      "git_blob": "5af5e2f8f509bd2e5932fdfcf70f597436c82cdc",
+      "git_blob": "28e83d739b926397b6518f6876916a09913cec38",
       "mode": "100644",
-      "sha256": "bbf45a5103d8eca9f3efb1a6b1266563328f626b87163de25e3b21ed4153923c"
+      "sha256": "2d8c3b282fbf2d0205375e7a384d55508c2206fcddc1aa9a03906c842ef8ffc9"
     },
     "docs/architecture/ADR-UE-03-capability-manifest-hook-and-mode.md": {
       "concepts": [],
@@ -5713,9 +5713,9 @@
     },
     "docs/assurance/document_register_v1.yaml": {
       "concepts": [],
-      "git_blob": "54b0bd9dbea5a3165857a6f591166e1fa8ebac45",
+      "git_blob": "688ab3ad145bbb497665d99969ac29ab9b53a27a",
       "mode": "100644",
-      "sha256": "bc1f85bafbea367508902029240ffd24a693b83d18e9b4b411979f0039a1e0ae"
+      "sha256": "e767beaba52fe60f9203110c1b2c264e6c010e2167e4f02b38d628e1c3701daf"
     },
     "docs/assurance/documentation_governance_v1.md": {
       "concepts": [],
@@ -6268,6 +6268,12 @@
       "git_blob": "e4956d8c0b7ea4614e1800176b110d447e37b030",
       "mode": "100644",
       "sha256": "92e49c7df3fb88784fb92742fd192c72e10371caf3d9e6406b5f7e8f96958c44"
+    },
+    "docs/design/remora-dev-assurance-hardening-sdd-v1.md": {
+      "concepts": [],
+      "git_blob": "de6ea9149ce7edd515e96d0e968cafbe3a0c8586",
+      "mode": "100644",
+      "sha256": "fd7752d40d41ad9c58a0c082cdf03454fa12a3ea11e95240ee964d45ed58e207"
     },
     "docs/design/remora-quality-program-v1.md": {
       "concepts": [],
@@ -21759,7 +21765,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "5ce0aacd921ea1d729a766f2e618c81999c926b28f62d1a341f045c324031e30",
+  "register_sha256": "7d771509e231643e08a568b7655c981e5d76e02c015215ed465287cc8462c3f5",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
