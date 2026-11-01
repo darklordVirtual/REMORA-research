@@ -10,7 +10,7 @@ on:
       - "artifacts/interop/**"
       - ".github/workflows/aps-interop.yml"
   push:
-    branches: [master]
+    branches: [dev, master]
     paths:
       - "remora/interop/**"
       - "remora/governance/a2a_envelope.py"

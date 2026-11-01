@@ -2,7 +2,7 @@ name: Shadow Replay Smoke
 
 "on":
   push:
-    branches: [master]
+    branches: [dev, master]
   pull_request:
 
 # CI-economics review 2026-08-05: supersede outdated PR runs; never cancel master.

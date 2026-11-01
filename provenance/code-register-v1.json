@@ -111,9 +111,9 @@
     },
     ".github/workflows/aps-interop.yml": {
       "concepts": [],
-      "git_blob": "807575466db4f7354bb13086b095894dbfcd97a9",
+      "git_blob": "93b5127088385cf7776bc5a05688afc8a5ea9e1c",
       "mode": "100644",
-      "sha256": "d0fc33e06df45f7a5f70a2caf13fae73cf2493d30efe44fa6e084ae01299effa"
+      "sha256": "fb0a8ce38412786f1262b4f205a90e6639a4ab3abb6a31945f094b3ab1c23ba1"
     },
     ".github/workflows/aromer-replay-publish.yml": {
       "concepts": [],
@@ -129,15 +129,15 @@
     },
     ".github/workflows/branch-hygiene.yml": {
       "concepts": [],
-      "git_blob": "e4db88bdba7fa99238204d40f8a419aafe321d4a",
+      "git_blob": "d4bf7431db07f2f5da00079bb44e83116f08a518",
       "mode": "100644",
-      "sha256": "c223a0283189b6f17723481d071b50b13f9114de52802ee02c58789b7224429a"
+      "sha256": "97e392ff2b8e395617857e003e90da827711fad4529c7effa60e07cd34977ac4"
     },
     ".github/workflows/ci.yml": {
       "concepts": [],
-      "git_blob": "a5f487b7a91f9aa4193049b05b3c01f40cd0747d",
+      "git_blob": "88d59280c6025b613ef53a1228d124307643749d",
       "mode": "100644",
-      "sha256": "2b698b9e2e6078a9dbdac912276370ece798e89aeaf3e6695400706e78da6515"
+      "sha256": "5a444e95f16871f30410d32f79ee1d5b55ea90a8baff2e9b53d8d172127216bf"
     },
     ".github/workflows/codegraph-index.yml": {
       "concepts": [],
@@ -147,9 +147,9 @@
     },
     ".github/workflows/codeql.yml": {
       "concepts": [],
-      "git_blob": "ee4aa66463e583786618dbf35f5b0159d322ebfa",
+      "git_blob": "afc35335ad742021ffff92e28d00897d9bb50895",
       "mode": "100644",
-      "sha256": "551fac7b412137553a5a320fb5f54e6066a56769377340177353c2b93ff73671"
+      "sha256": "83c1cfc69e5e8b711a4c409d32a7bc88737a3ddb66c7fe567d3e798e71ead555"
     },
     ".github/workflows/compile-paper.yml": {
       "concepts": [],
@@ -171,9 +171,9 @@
     },
     ".github/workflows/docs-site.yml": {
       "concepts": [],
-      "git_blob": "25a002d24d3ed2e24ff93be0a3bb2d1263f6243a",
+      "git_blob": "adfe858cc6fdec0ef749db0770f514329fa50675",
       "mode": "100644",
-      "sha256": "3386eb2b7f6b57c414cc5b8cfb120dc445d3fe1a7fe3d4e9c1ccae009566391f"
+      "sha256": "487c341478358f9febe1ca3e5a7cb1799325a66fe398198954a33e267b0c9279"
     },
     ".github/workflows/external-interop-admission.yml": {
       "concepts": [],
@@ -183,9 +183,9 @@
     },
     ".github/workflows/federation-interop.yml": {
       "concepts": [],
-      "git_blob": "94f90a35a3a7673add7edea5f19ccbdd22b58b91",
+      "git_blob": "cc15fd42157a3beb786c9be21128cb8ca4535a2d",
       "mode": "100644",
-      "sha256": "dbccf196a4d97dbf479b84f1add2af778178be300809b0d6d113e8656d62fc6c"
+      "sha256": "3a468e2e4186d300bcb362abd98994c43cb96d65e589135644853a8a02063801"
     },
     ".github/workflows/mutation.yml": {
       "concepts": [],
@@ -207,33 +207,33 @@
     },
     ".github/workflows/pre-federation-redteam.yml": {
       "concepts": [],
-      "git_blob": "3038a66ee0379c0406b1d2e14be9c97da8ad5eab",
+      "git_blob": "1aea5bc3756cc952ffa2662840425f1010a80c6f",
       "mode": "100644",
-      "sha256": "aba65b0133cabcab274b960e5a7972751ed47443cb2cad3f4d1e646e91abf483"
+      "sha256": "19e3343533f313b33a9d9ea1bf0cfce86596a5e0f76004a41eaf77026173f9c3"
     },
     ".github/workflows/probity-boundary-reproduction.yml": {
       "concepts": [],
-      "git_blob": "a1f710d106fe3b5ed9444d59f87a6654c20b7d7e",
+      "git_blob": "fc1b0c93422b55684e9d371f1f4a5c6a6b4f7832",
       "mode": "100644",
-      "sha256": "9d14c0dabf6ee19582d92df9fc77b9b7f499cada017ea3a06efdccfd2f051f6e"
+      "sha256": "1c99c4449bf4e6f82053d07979a72d93620102bfca4668db41db6781b455b5c9"
     },
     ".github/workflows/probity-e7-reproduction.yml": {
       "concepts": [],
-      "git_blob": "db75a32000301e29a5f4b68130bd2325c42f9379",
+      "git_blob": "0c2c7b0fa36eb89e52dab1895fe59cdd5ae9731f",
       "mode": "100644",
-      "sha256": "026095de4bf81634a356f4e46490d5d4f21504a187117b83ea656ef0f9b353d0"
+      "sha256": "e416066e32fdc06feb4a41f76fa296364de618661ebd6e3ff5107ec63502669f"
     },
     ".github/workflows/probity-invocation-axes-reproduction.yml": {
       "concepts": [],
-      "git_blob": "3ce5c18f20b9a127307be9d49fd12c5c61036e9e",
+      "git_blob": "c913d2f99c9b146a32e779d7213eeea406a02954",
       "mode": "100644",
-      "sha256": "c7f964b3775ef6eb488e4e358f4ae5a683eb563346c93dc649c2b91de5821e80"
+      "sha256": "1ffa655885eb235056287377bbf2a5ac07aca0bf366d1ff9002432cf898cf5e9"
     },
     ".github/workflows/quality-gates.yml": {
       "concepts": [],
-      "git_blob": "ac9ddf3f2081543e3cd2f81d05d05b286371ee5e",
+      "git_blob": "9b9fe947c44eb53edb68a3752df349d2a92d6c9e",
       "mode": "100644",
-      "sha256": "f1bbe9a03ee986fabadee3d679e55319a344054e1cf1aa4e6becbbe060eed379"
+      "sha256": "e5c81d9bc164cbb7f649ce717acdaeee1e020f320aa7e3640ff620b32f047a40"
     },
     ".github/workflows/release.yml": {
       "concepts": [],
@@ -243,15 +243,15 @@
     },
     ".github/workflows/shadow-replay-smoke.yml": {
       "concepts": [],
-      "git_blob": "b1f7f9ea6daae264aabb1aecdcaa2650dc3aee8c",
+      "git_blob": "7ba8189a6465fdcb2297ccf9a18e1c95f60579eb",
       "mode": "100644",
-      "sha256": "a82e28aba4efa19c1af62d03c5ca1afa5515cdd3da662f914c1e40edb5fd3e33"
+      "sha256": "568a55dd71f2badbd6c6cf68aa9043dbc9b8b57d326a5ae3e6b8deadc4b7536b"
     },
     ".github/workflows/supply-chain.yml": {
       "concepts": [],
-      "git_blob": "21ff7b5e62e92d0c578cdf570696f59e92b20ead",
+      "git_blob": "fb3fb19e90e2f7cebaa75eda1c73c0e8642b6a41",
       "mode": "100644",
-      "sha256": "ab3015add9f1d32c9e04610072ad0f6fbdc7065504dfcce07e180e016a657015"
+      "sha256": "60a6deb54f3a336c4f35b994687b97b2856594e4eaa18cdab1f1dbb9bd400ca7"
     },
     ".github/workflows/sync-papers-to-r2.yml": {
       "concepts": [],
@@ -5644,6 +5644,12 @@
       "git_blob": "1d39736f05056a391bdeb25c7dd0997de1ed21e4",
       "mode": "100644",
       "sha256": "611704403753deb78d66616e288e972bd6e888179489a84699384f6da11424ff"
+    },
+    "docs/assurance/branch_promotion_policy.md": {
+      "concepts": [],
+      "git_blob": "97a948ec3e60487fe626ba3f8853fcd0c1812f06",
+      "mode": "100644",
+      "sha256": "de3e7a9f5c6cc5cd194adcc61cdcbac257a21b8891a5b8c1cdf6f7c1643cf4c2"
     },
     "docs/assurance/capability_register_v1.yaml": {
       "concepts": [],
@@ -17763,6 +17769,12 @@
       "mode": "100644",
       "sha256": "2866cc930f9c39aa819af3171157d7fedd45a9eb53e386380d082e3bb92e278e"
     },
+    "tests/test_dev_branch_ci.py": {
+      "concepts": [],
+      "git_blob": "6c9d32cc2dacb13af7e97c72e77696ff9c1acd98",
+      "mode": "100644",
+      "sha256": "521f31629c4a080d9dad9d9286160a59564b396ec9bce7314230fa53e7c0a26d"
+    },
     "tests/test_direct_accept_authority_binding.py": {
       "concepts": [
         "PROV-03"
@@ -21585,7 +21597,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "aca53f554944996ea291de73ca395b37fc4879650a5b1e1a9f78dbc76e01e43e",
+  "register_sha256": "e70b37f568ede2e2b6069f9c68c4aa73d3f8509ca34635085b21915fdc4bca8f",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

@@ -19,7 +19,7 @@ on:
     paths:
       - ".github/workflows/probity-boundary-reproduction.yml"
   push:
-    branches: [master]
+    branches: [dev, master]
     paths:
       - ".github/workflows/probity-boundary-reproduction.yml"
       - "artifacts/interop/exact-call-binding-v1/**"
