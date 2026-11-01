@@ -10,7 +10,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
   push:
-    branches: [master]
+    branches: [dev, master]
   schedule:
     - cron: "23 5 * * *" # daily: CVEs land without commits
 
@@ -35,7 +35,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.0.0
         with:
           python-version: "3.12"
 
@@ -49,7 +49,14 @@ jobs:
         # them, not what caused them. Keep this list identical to the install
         # in quality-gates.yml; a narrower one silently un-audits a dependency.
         run: |
-          python -m pip install --upgrade pip pip-audit
+          # SEC-19 (SR-11): the auditing tool is hash-pinned from the release
+          # lock into its OWN venv. Installing it into the audited env and
+          # then the project with -c constraints would let the second install
+          # overwrite the first's hashed pins (and audit the tool, not the
+          # project). check_pip_audit_baseline.py --audit-python runs it from
+          # there against this interpreter's environment.
+          python -m venv "$RUNNER_TEMP/audit-tools"
+          "$RUNNER_TEMP/audit-tools/bin/python" -m pip install --require-hashes "--only-binary=:all:" -r requirements-release.lock
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
           pip install -e ".[dev,causal,api,security,postgres]" -c /tmp/constraints.txt
 
@@ -58,7 +65,7 @@ jobs:
         # (.github/pip_audit_baseline.json) records the currently-known set
         # explicitly so the backlog is visible and burn-down-able instead of
         # silently accepted.
-        run: python scripts/check_pip_audit_baseline.py
+        run: python scripts/check_pip_audit_baseline.py --audit-python "$RUNNER_TEMP/audit-tools/bin/python"
 
   npm-audit:
     name: npm dependency audit (frontend + workers)
@@ -126,13 +133,14 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
 
       - name: Setup Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.0.0
         with:
           python-version: "3.12"
 
       - name: Generate Python SBOM from the lockfile
         run: |
-          python -m pip install --upgrade pip cyclonedx-bom
+          # SEC-19 (SR-11): hash-pinned SBOM tooling from the release lock.
+          python -m pip install --require-hashes "--only-binary=:all:" -r requirements-release.lock
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/sbom-reqs.txt
           cyclonedx-py requirements /tmp/sbom-reqs.txt --of JSON -o sbom-python.cdx.json
           python -c "import json; d=json.load(open('sbom-python.cdx.json')); print('components:', len(d.get('components', [])))"
@@ -203,7 +211,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
 
       - name: Setup Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.0.0
         with:
           python-version: "3.12"
 
@@ -218,7 +226,6 @@ jobs:
         # contradictions in the same file. This job resolves instead of
         # reading. --dry-run runs the full resolver and downloads no wheels.
         run: |
-          python -m pip install --upgrade pip
           python scripts/check_lock_resolvable.py
 
       - name: The measurement-env-N Dependabot groups list exactly the unused lock entries

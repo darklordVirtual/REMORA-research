@@ -271,13 +271,20 @@ production policy. Your Signed ToolSpec is the authority for the strict path.
 uvicorn servers.api:app --host 0.0.0.0 --port 8000
 ```
 
-For a deployment-shaped example, use the OT pilot stack:
+For a deployment-shaped example, use the OT pilot stack. Credentials are
+generated at first start (security review 2026-10, SR-06: no fixed literal
+tokens); both services bind loopback only.
 
 ```bash
+python deploy/ot-pilot/init_tokens.py
 docker compose -f deploy/ot-pilot/docker-compose.yml up --build -d
+set -a && . deploy/ot-pilot/.env && set +a
 python deploy/ot-pilot/run_ot_battery.py
 docker compose -f deploy/ot-pilot/docker-compose.yml down -v
 ```
+
+The console (127.0.0.1:8081) holds only the viewer token: operator and
+approver credentials are entered per request in the UI.
 
 A useful negative test is to remove one strict prerequisite and confirm that
 startup/policy identity construction or the first execution-path lookup fails

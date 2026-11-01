@@ -86,12 +86,13 @@ def test_authenticated_admin_token_has_wildcard(
 
 
 def test_assess_returns_envelope(monkeypatch: pytest.MonkeyPatch) -> None:
-    api = _load_api_module(monkeypatch, token=None)
+    api = _load_api_module(monkeypatch, token="test-token")
     client = TestClient(api.app)
 
     resp = client.post(
         "/v1/assess",
         json={"question": "Should we patch this service?", "risk_tier": "medium"},
+        headers={"Authorization": "Bearer test-token"},
     )
     assert resp.status_code == 200
     payload = resp.json()
@@ -105,12 +106,13 @@ def test_assess_returns_envelope(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_assess_envelope_conforms_to_schema_contract(monkeypatch: pytest.MonkeyPatch) -> None:
-    api = _load_api_module(monkeypatch, token=None)
+    api = _load_api_module(monkeypatch, token="test-token")
     client = TestClient(api.app)
 
     resp = client.post(
         "/v1/assess",
         json={"question": "Should we patch this service?", "risk_tier": "medium"},
+        headers={"Authorization": "Bearer test-token"},
     )
     assert resp.status_code == 200
     payload = resp.json()
@@ -120,7 +122,7 @@ def test_assess_envelope_conforms_to_schema_contract(monkeypatch: pytest.MonkeyP
 
 
 def test_readme_destructive_prod_payload_escalates_before_oracles(monkeypatch: pytest.MonkeyPatch) -> None:
-    api = _load_api_module(monkeypatch, token=None)
+    api = _load_api_module(monkeypatch, token="test-token")
     client = TestClient(api.app)
 
     resp = client.post(
@@ -131,6 +133,7 @@ def test_readme_destructive_prod_payload_escalates_before_oracles(monkeypatch: p
             "action_type": "destructive_write",
             "target_environment": "prod",
         },
+        headers={"Authorization": "Bearer test-token"},
     )
 
     assert resp.status_code == 200
@@ -930,7 +933,9 @@ def test_assess_populates_enterprise_audit_fields(monkeypatch: pytest.MonkeyPatc
     assert resp.status_code == 200
     audit = resp.json()["envelope"]["audit"]
 
-    assert audit["schema_version"] == "2"
+    # v3 (SR-01 / SEC-01): all fields below are populated before the seal, so
+    # the audit hash and HMAC bind them. v2 sealed before populating them.
+    assert audit["schema_version"] == "3"
     assert audit["timestamp_utc"] is not None and "T" in audit["timestamp_utc"]
     assert audit["tenant_id"] == "tenant-ent"
     # Identity is credential-derived; the self-reported header is recorded

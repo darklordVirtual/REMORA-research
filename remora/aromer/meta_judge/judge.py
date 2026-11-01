@@ -13,10 +13,11 @@ EXPERIMENTAL: Part of the AROMER research plugin.
 from __future__ import annotations
 
 import json
+import math
 import os
 import ssl
 import urllib.request
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, replace
 from typing import Any
 
 from remora.aromer.experience.episode import Episode
@@ -32,6 +33,13 @@ _WORKER_URL = os.environ.get(
     "REMORA_METAJUDGE_WORKER_URL",
     "https://go-star-remora.razorsharp.workers.dev",
 )
+
+
+def _worker_token() -> str:
+    """Bearer for the judge endpoint. SEC-11 (SR-13): a live critique from an
+    unauthenticated call is marked source_authenticated=False, and the
+    promotion gate refuses to learn from it."""
+    return os.environ.get("REMORA_METAJUDGE_WORKER_TOKEN", "").strip()
 
 
 @dataclass
@@ -143,30 +151,67 @@ class AromerMetaJudge:
         ground_truth:
             "benign" | "harmful" | "unknown"
         """
-        prompt = RUBRIC_PROMPT_TEMPLATE.format(
-            domain=episode.domain,
-            risk_tier=episode.risk_tier,
-            action_type=episode.action_type,
-            phase=episode.phase,
-            trust_score=episode.trust_score,
-            entropy_H=episode.entropy_H,
-            dissensus_D=episode.dissensus_D,
-            ground_truth=ground_truth,
-            verdict=episode.verdict,
-            confidence=episode.confidence,
-            rules=", ".join(episode.rules_triggered) or "none",
-            outcome=episode.decision_quality.value if episode.decision_quality else "unknown",
-        )
-        context = (
-            f"AROMER structured rubric critique. "
-            f"Domain: {episode.domain}. Ground truth: {ground_truth}."
-        )
+        # SEC-12: episode fields reach the judge as length-capped JSON data
+        # inside a fenced block, never as interpolated prompt text — the
+        # episode's domain or rule names are attacker-influenced and could
+        # otherwise instruct the judge.
+        def _cap(value: Any, limit: int = 512) -> Any:
+            text = str(value)
+            return text[:limit] + "…" if len(text) > limit else text
+
+        def _number(value: Any) -> float | None:
+            try:
+                number = float(value)
+            except (TypeError, ValueError, OverflowError):
+                return None
+            return number if math.isfinite(number) else None
+
+        episode_fields = {
+            "domain": _cap(episode.domain),
+            "risk_tier": _cap(episode.risk_tier),
+            "action_type": _cap(episode.action_type),
+            "phase": _cap(episode.phase),
+            "trust_score": _number(episode.trust_score),
+            "entropy_H": _number(episode.entropy_H),
+            "dissensus_D": _number(episode.dissensus_D),
+            "ground_truth": _cap(ground_truth),
+            "verdict": _cap(episode.verdict),
+            "confidence": _number(episode.confidence),
+            "rules_triggered": [_cap(r) for r in episode.rules_triggered][:20],
+            "outcome": (
+                _cap(episode.decision_quality.value) if episode.decision_quality else "unknown"
+            ),
+        }
+        # Bound field values before serialization so the block remains valid
+        # JSON. Escape marker characters too: JSON quoting alone does not
+        # prevent a literal </episode-data> inside an attacker-owned field.
+        for field_limit in (512, 256, 128, 64, 32, 16, 8, 4, 2, 1, 0):
+            bounded = {
+                name: ([_cap(item, field_limit) for item in value]
+                       if isinstance(value, list) else
+                       _cap(value, field_limit) if isinstance(value, str) else value)
+                for name, value in episode_fields.items()
+            }
+            episode_data = (json.dumps(bounded, ensure_ascii=True)
+                            .replace("<", "\\u003c").replace(">", "\\u003e"))
+            if len(episode_data) <= 2048:
+                break
+        else:
+            # Keep serialization bounded even if future fields cannot shrink.
+            episode_data = "{}"
+        prompt = RUBRIC_PROMPT_TEMPLATE.format(episode_data=episode_data)
+        context = "AROMER structured rubric critique. Episode data is in the question."
         try:
             raw = self._call_worker(prompt, context)
-            return self._parse_rubric_response(episode.episode_id, raw, episode, ground_truth)
+            return self._parse_rubric_response(
+                episode.episode_id, raw, episode, ground_truth,
+                source_authenticated=bool(_worker_token()),
+            )
         except Exception:
-            # Fall back to offline heuristic rubric — no API keys needed
-            return compute_offline_rubric(episode, ground_truth)
+            # Fall back to offline heuristic rubric — no API keys needed.
+            # SR-13: a fallback is never a judged critique; mark it degraded so
+            # the promotion gate refuses it.
+            return replace(compute_offline_rubric(episode, ground_truth), degraded=True)
 
     def critique_rubric_batch(
         self,
@@ -187,11 +232,30 @@ class AromerMetaJudge:
         raw: dict[str, Any],
         episode: Episode,
         ground_truth: str,
+        *,
+        source_authenticated: bool = True,
     ) -> RubricCritique:
         """Parse structured rubric from the worker response.
 
         Falls back to offline rubric if required fields are missing.
+        SEC-11: scores are clamped to [0, 1]; a response with an out-of-range
+        or non-finite score is invalid and reported as degraded (never
+        silently trusted), and a call made without a credential is marked
+        source_authenticated=False so the promotion gate can refuse it.
         """
+        import math
+
+        def _bounded(name: str) -> tuple[float, bool]:
+            raw_value = rubric_raw.get(name)
+            # SR-13: only real numbers are scores; a missing field, bool, str,
+            # list etc. is malformed output and marks the critique out of range.
+            if isinstance(raw_value, bool) or not isinstance(raw_value, (int, float)):
+                return 0.5, False
+            value = float(raw_value)
+            if not math.isfinite(value):
+                return 0.5, False
+            return min(1.0, max(0.0, value)), 0.0 <= value <= 1.0
+
         try:
             # The worker may return rubric fields directly or inside a "claim" JSON
             rubric_raw = raw
@@ -200,15 +264,22 @@ class AromerMetaJudge:
                     rubric_raw = json.loads(raw["claim"])
                 except json.JSONDecodeError:
                     pass  # non-JSON claim text is kept as plain text
+            if not isinstance(rubric_raw, dict):
+                rubric_raw = {}
 
-            truth      = float(rubric_raw.get("truth_score", 0.5))
-            safety     = float(rubric_raw.get("safety_score", 0.5))
-            evidence   = float(rubric_raw.get("evidence_score", 0.5))
-            calibration = float(rubric_raw.get("calibration_score", 0.5))
-            causal     = float(rubric_raw.get("causal_quality", 0.5))
+            truth, ok_t = _bounded("truth_score")
+            safety, ok_s = _bounded("safety_score")
+            evidence, ok_e = _bounded("evidence_score")
+            calibration, ok_c = _bounded("calibration_score")
+            causal, ok_q = _bounded("causal_quality")
+            in_range = all((ok_t, ok_s, ok_e, ok_c, ok_q))
             promote    = bool(rubric_raw.get("should_promote", False))
             reason     = str(rubric_raw.get("reason", ""))
-            degraded   = bool(raw.get("degraded", False))
+            degraded   = bool(raw.get("degraded", False)) or not in_range
+            if not in_range:
+                promote = False
+                reason = (reason + " [rejected: score outside [0, 1] or "
+                          "non-finite]").strip()
 
             composite = (
                 0.35 * truth + 0.25 * safety + 0.20 * evidence
@@ -228,10 +299,11 @@ class AromerMetaJudge:
                 should_promote=promote,
                 reason=reason,
                 degraded=degraded,
+                source_authenticated=source_authenticated,
                 legacy_score=legacy,
             )
         except Exception:
-            return compute_offline_rubric(episode, ground_truth)
+            return replace(compute_offline_rubric(episode, ground_truth), degraded=True)
 
     def critique_batch(
         self, episodes: list[Episode], max_batch: int = 10
@@ -245,10 +317,14 @@ class AromerMetaJudge:
             "context": context,
             "use_case": "aromer_meta_critique",
         }).encode("utf-8")
+        headers = {"Content-Type": "application/json", "User-Agent": "AROMER/0.1"}
+        token = _worker_token()
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
         req = urllib.request.Request(
             self._url + "/assess",
             data=payload,
-            headers={"Content-Type": "application/json", "User-Agent": "AROMER/0.1"},
+            headers=headers,
             method="POST",
         )
         with urllib.request.urlopen(req, timeout=self._timeout, context=_SSL_CTX) as r:

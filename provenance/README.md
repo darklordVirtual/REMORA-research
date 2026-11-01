@@ -76,6 +76,40 @@ are unchanged. Inventory coverage is not proof of authorship, independent
 creation, copyright ownership, or absence of third-party material. Preserve
 source acknowledgements and licenses when recording derived work.
 
+
+## Outbound contributions and attribution boundaries
+
+`OUTBOUND_CONTRIBUTIONS.yaml` records the exact *PR-changed path scope* of
+REMORA-associated submissions to other repositories, the observed PR status,
+the target's declared licence and the boundary with REMORA Core. This is
+different from `EXTERNAL_ADOPTION.yaml`, which records what *external sources*
+say about their use of REMORA artifacts. An open PR is not a merged release.
+
+For each contribution, pin the PR URL, changed paths, merge commit if merged,
+licence evidence, source revision if actually recorded and relevant research
+or external test-vector references. Run
+`python scripts/check_outbound_provenance.py --check` in the PR. The offline
+gate validates record shape, duplicate IDs/PRs, paths, local concept references
+and whether the merge-commit claim matches the status. It **cannot** establish
+current remote state, copyright title, independent authorship or whether a
+downstream project uses the submission. Verify the remote PR diff and licence
+notice manually when recording it. Record later remote status changes as new
+reviewed revisions of this ledger, preserving Git history.
+
+External test vectors can reveal an implementation defect without transferring
+copyright in independently written REMORA fixes. Credit the test source and its
+licence separately from any implemented code. Apache-2.0 in a target repository
+does not relicense BUSL-1.1 REMORA Core; historical permissive releases retain
+their grants under their own published terms. Empty `concepts` or
+`research_sources` means there is *no reviewed direct mapping*, not that
+there was no influence or research.
+
+To investigate a specific copying claim: identify the exact files and versions,
+compare their bytes/structure, inspect the first recorded commits and earlier
+publications, and document the comparison's limitations. Exact hashes prove
+content identity, not who authored it. Similarity or shared test outcomes alone
+do not establish copying.
+
 ## What a record claims
 
 Every record starts with `origin.status: claimed_original_contribution` and

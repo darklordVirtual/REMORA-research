@@ -38,6 +38,8 @@ jobs:
         run: |
           # Pinned to the exact version resolved from
           # https://pypi.org/pypi/pymupdf/json on 2026-07-20.
+          # pinned: paper PDF overflow check tooling (layout check only; the
+          # job's PDF commit happens through a pull request, not this install)
           python -m pip install --quiet pymupdf==1.28.0
           python scripts/check_paper_overflow.py paper/remora_paper.pdf
 
