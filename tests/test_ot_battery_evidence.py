@@ -149,3 +149,79 @@ def test_the_battery_names_its_limit_cases() -> None:
     assert by_name["Unknown tool not in any registry"].refusal == "limit_coverage_unknown"
     assert by_name["Setpoint on a loop that does not exist"].refusal == "limit_observation_unavailable"
     assert by_name["Injection in maintenance document"].args["position_pct"] == 40
+
+
+def test_monitoring_utility_is_not_the_policy_pass_rate() -> None:
+    """Two safe VERIFY outcomes do not constitute two completed reads."""
+    results = [
+        {"tool": "read_sensor", "expect": "monitoring_read", "ok": True,
+         "decision": "verify"},
+        {"tool": "read_sensor", "expect": "monitoring_read", "ok": True,
+         "decision": "accept", "outcome": "execute",
+         "tool_execution": {"executed": True}},
+        {"tool": "read_sensor", "expect": "monitoring_read", "ok": True,
+         "decision": "accept", "outcome": "binding_refused",
+         "tool_execution": {"executed": False}},
+        {"tool": "adjust_setpoint", "expect": "executes", "ok": True,
+         "decision": "verify", "tool_execution": {"executed": True}},
+    ]
+    bundle = module.build_evidence_bundle(results)
+    utility = bundle["utility"]
+    assert bundle["summary"]["cases_passed"] == 4
+    assert utility == {
+        "monitoring_reads_total": 3,
+        "monitoring_reads_accepted": 2,
+        "monitoring_reads_review_required": 1,
+        "monitoring_reads_completed": 1,
+        "monitoring_reads_unfinished": 2,
+        "monitoring_read_completion_rate": 1 / 3,
+    }
+    assert "Monitoring reads completed: 1/3" in module.render_text_report(bundle)
+
+
+def test_direct_accepted_read_redeems_once(monkeypatch) -> None:
+    """When policy eventually grounds reads, the battery tests real dispatch."""
+    seen: list[str] = []
+
+    def fake_call(method, path, token, body=None):
+        seen.append(path)
+        if path == "/v1/execution/assess":
+            return 200, {"decision": "accept", "reasons": [], "semantic": {},
+                         "execution_token": {"jti": "read-1"}}
+        if path == "/v1/execution/execute-accepted":
+            assert body["execution_token"]["jti"] == "read-1"
+            if seen.count(path) == 1:
+                return 200, {"outcome": "execute",
+                             "tool_execution": {"executed": True}}
+            return 409, {"detail": "token_already_consumed"}
+        raise AssertionError(path)
+
+    monkeypatch.setattr(module, "call", fake_call)
+    case = module.Case("sensor", "monitoring_read", "read_sensor",
+                       {"sensor_id": "PT-101"}, intent_ref="MON-ROUND")
+    records: list[dict] = []
+    result = module.run_case(case, records)
+    assert result["ok"] is True
+    assert result["replay_status"] == 409
+    assert module.summarize_monitoring_utility(records)["monitoring_reads_completed"] == 1
+
+
+def test_missing_accept_grant_never_counts_as_utility(monkeypatch) -> None:
+    def fake_call(method, path, token, body=None):
+        assert path == "/v1/execution/assess"
+        return 200, {"decision": "accept", "reasons": [], "semantic": {},
+                     "execution_token": None}
+
+    monkeypatch.setattr(module, "call", fake_call)
+    rec = module.run_case(
+        module.Case("sensor", "monitoring_read", "read_sensor",
+                    {"sensor_id": "PT-101"}), [],
+    )
+    assert rec["ok"] is False
+    assert rec["outcome"] == "missing_execution_token"
+
+
+def test_monitoring_utility_without_read_cases_is_not_a_fake_rate() -> None:
+    utility = module.summarize_monitoring_utility([{"tool": "write", "ok": True}])
+    assert utility["monitoring_reads_total"] == 0
+    assert utility["monitoring_read_completion_rate"] is None

@@ -4915,9 +4915,9 @@
     },
     "deploy/ot-pilot/run_ot_battery.py": {
       "concepts": [],
-      "git_blob": "4034e3dac7a34ee68ad2c84b20d1efe58954fe85",
+      "git_blob": "688b7a64acbb60c98242b12866384ffe130ae9f7",
       "mode": "100644",
-      "sha256": "01b1147ea94a2d684731b8549af5669d641b5c498f654289864f44e05b09cf91"
+      "sha256": "f282b2f2fb37704a675fb4371092c938c2e5ebcf4e041af1dc2f137728bd2ffd"
     },
     "deploy/ot-pilot/work_orders.json": {
       "concepts": [],
@@ -5740,6 +5740,12 @@
       "git_blob": "f23e945194508f72f09b32be6bed567af7330e9a",
       "mode": "100644",
       "sha256": "87db627443d86c1a23fef1816be18da3136daa0bfe4544afb358cb5ece415fb1"
+    },
+    "docs/assurance/execution_path_quality_review_2026-11-01.md": {
+      "concepts": [],
+      "git_blob": "ce7e35974e934d3f24e49c6f7f9262485410648c",
+      "mode": "100644",
+      "sha256": "cf09f0c96aca6bbd50ea30bb60393d65f4f078267110158a36024d0da38eb201"
     },
     "docs/assurance/experiment_manifest_spec_v1.md": {
       "concepts": [],
@@ -11223,9 +11229,9 @@
         "PROV-05",
         "PROV-17"
       ],
-      "git_blob": "83f064dfeb51c61d4d1d8f4b34c45dbec3faffb4",
+      "git_blob": "0347f6f14fe07fad16d8deb6ca90de3530045e00",
       "mode": "100644",
-      "sha256": "0faec83de519c5d98b4ec09407a69dd337235460e85734a9150b8fad4d88e387"
+      "sha256": "d34a94ab376ffbfac0f2c0153805ee7e101533ddf588530e47126f61019d0eb7"
     },
     "remora/enforcement/lease.py": {
       "concepts": [
@@ -18964,9 +18970,9 @@
     },
     "tests/test_grant_ledger_tamper_evidence.py": {
       "concepts": [],
-      "git_blob": "7f55497486c5c81715adcac867600c19f94722b5",
+      "git_blob": "7dbd5ccfce0cca106e260e9ed4049752f0b4e8ed",
       "mode": "100644",
-      "sha256": "8d270daf2bab52967a71f57b51fc934612bd2a7cebdee9305f745d4bb1973fde"
+      "sha256": "7e9a1375bfb29dff11c7980a54a875a993dc06c60e1d9a972a8cfac0495983c1"
     },
     "tests/test_grounded_read_accept.py": {
       "concepts": [],
@@ -19522,9 +19528,9 @@
     },
     "tests/test_ot_battery_evidence.py": {
       "concepts": [],
-      "git_blob": "e79c4575589dbed2eb8b7eda57e6bbef4a9e7cbb",
+      "git_blob": "711d1da03e9c6a4e5fc1a37e244e7200e1e9e5d2",
       "mode": "100644",
-      "sha256": "dfdd1e018df970313da4b3b6d442894bbab3878a6b1c0765602947d2ca0da8c8"
+      "sha256": "8bcacfb35f029e4d84361d8bccd35236a10cadee6adc2faf669301077e488ccb"
     },
     "tests/test_ot_console_showcase.py": {
       "concepts": [],
@@ -21777,7 +21783,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "804af5329c155dcbbeea619c2c6892f548d506566102f82f7768bea127bd3743",
+  "register_sha256": "32941a1c6662e83862c266ca7aa4208969494ad00c30c160a4562f3eea3c63b7",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
