@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "REMORA outbound contribution ledger v1",
+  "description": "Externally submitted file scopes, observed PR state, declared target licence and the boundary with REMORA Core. No claim of original authorship or external adoption.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "records"],
+  "properties": {
+    "schema_version": {"const": "remora-outbound-contributions-v1"},
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "observed_at", "target_repo", "pull_request", "status", "kind", "target_paths", "declared_target_license", "boundary", "concepts", "research_sources", "evidence_url"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^OUT-[0-9]{4}$"},
+          "observed_at": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"},
+          "target_repo": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"},
+          "pull_request": {"type": "string", "pattern": "^https://github\\.com/"},
+          "status": {"enum": ["open", "merged", "closed_unmerged"]},
+          "merge_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+          "kind": {"type": "string", "minLength": 1},
+          "target_paths": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "remora_source_revision": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+          "declared_target_license": {
+            "type": "object", "additionalProperties": false,
+            "required": ["spdx", "evidence_url"],
+            "properties": {
+              "spdx": {"type": "string", "minLength": 1},
+              "evidence_url": {"type": "string", "pattern": "^https://"}
+            }
+          },
+          "boundary": {
+            "type": "object", "additionalProperties": false,
+            "required": ["remora_core_files_included", "note"],
+            "properties": {
+              "remora_core_files_included": {"type": "boolean"},
+              "note": {"type": "string", "minLength": 1}
+            }
+          },
+          "concepts": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^PROV-[0-9]{2}$"}},
+          "research_sources": {
+            "type": "array", "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["kind", "reference", "relationship"],
+              "properties": {
+                "kind": {"enum": ["publication", "external_specification", "external_test_vectors", "internal_document"]},
+                "reference": {"type": "string", "minLength": 1},
+                "relationship": {"type": "string", "minLength": 1}
+              }
+            }
+          },
+          "evidence_url": {"type": "string", "pattern": "^https://"}
+        }
+      }
+    }
+  }
+}

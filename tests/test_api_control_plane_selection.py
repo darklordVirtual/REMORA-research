@@ -24,6 +24,10 @@ def _load_api(monkeypatch: pytest.MonkeyPatch, **env: str):
     monkeypatch.delenv("REMORA_API_TOKENS", raising=False)
     monkeypatch.delenv("REMORA_CONTROL_PLANE_DSN", raising=False)
     monkeypatch.delenv("REMORA_CONTROL_PLANE_DB", raising=False)
+    # SR-03: the credential-free fallback is opt-in and read-only. Tests that
+    # only read (metrics, policy version) use it; tests that assess pass a
+    # bearer token via env kwargs and send the header.
+    monkeypatch.setenv("REMORA_ALLOW_UNAUTHENTICATED_DEV", "1")
     for key, value in env.items():
         monkeypatch.setenv(key, value)
     import servers.api as module
@@ -214,21 +218,28 @@ def test_assessed_decisions_persist_and_the_chain_verifies(
 ) -> None:
     """End to end: assess, then fetch the envelope back and prove the chain."""
     db = tmp_path / "cp.db"
-    module = _load_api(monkeypatch, REMORA_CONTROL_PLANE_DB=str(db))
+    module = _load_api(
+        monkeypatch,
+        REMORA_CONTROL_PLANE_DB=str(db),
+        REMORA_API_BEARER_TOKEN="test-token",
+    )
     client = TestClient(module.app)
+    auth = {"Authorization": "Bearer test-token"}
 
     request_ids = []
     for question in ("Delete the staging bucket?", "Read the changelog?"):
-        response = client.post("/v1/assess", json={"question": question, "risk_tier": "high"})
+        response = client.post(
+            "/v1/assess", json={"question": question, "risk_tier": "high"}, headers=auth,
+        )
         assert response.status_code == 200, response.text
         request_ids.append(response.json()["request_id"])
 
     for request_id in request_ids:
-        stored = client.get(f"/v1/envelope/{request_id}")
+        stored = client.get(f"/v1/envelope/{request_id}", headers=auth)
         assert stored.status_code == 200
         assert stored.json()["envelope"]["request"]["request_id"] == request_id
 
-    verify = client.get("/v1/audit/chain/verify").json()
+    verify = client.get("/v1/audit/chain/verify", headers=auth).json()
     assert verify["records_checked"] == 2
     assert verify["chain_valid"] is True
     assert verify["durable"] is True

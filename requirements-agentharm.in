@@ -1,0 +1,9 @@
+# AgentHarm experiment dependencies (dispatch-only workflow), hash-locked in
+# requirements-agentharm.lock. inspect-ai 0.3.248 / inspect-evals 0.15.0 were
+# moved to 0.3.266 / 0.21.0 on 2026-10-29: 0.3.248 caps fsspec at <=2025.9.0,
+# which carries PYSEC-2026-4217 / CVE-2026-104851 (fixed in 2026.6.0).
+# These are the versions requirements-lock.txt already pins.
+inspect-ai==0.3.266
+inspect-evals==0.21.0
+pyyaml==6.0.3
+openai==2.46.0

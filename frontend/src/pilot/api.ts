@@ -4,8 +4,6 @@
 // OpenAPI contract is still largely untyped (`response_model=dict`); when that
 // contract is typed, this file should be replaced by a generated client.
 
-export type PilotRole = "operator" | "approver" | "viewer";
-
 export type PilotHealth = { status?: string; version?: string; error?: string };
 
 export type PilotPolicy = {
@@ -44,7 +42,6 @@ export type Scenario = {
 
 export type GovernedCallResult = {
   status: number;
-  role: string;
   path: string;
   body: { decision?: string } & Record<string, unknown>;
 };
@@ -86,14 +83,14 @@ export const pilotApi = {
   state: () => getJson<PilotState>("/api/state"),
   scenarios: () => getJson<Scenario[]>("/api/scenarios"),
 
-  async governedCall(
-    role: PilotRole,
-    payload: Record<string, unknown>,
-  ): Promise<GovernedCallResult> {
+  // SR-06: the caller presents their own credential; the console holds no
+  // write-capable token and the role comes from the credential, never from
+  // a selector.
+  async governedCall(token: string, payload: Record<string, unknown>): Promise<GovernedCallResult> {
     const res = await fetch("/api/call", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ role, path: "/v1/execution/assess", payload }),
+      body: JSON.stringify({ token, path: "/v1/execution/assess", payload }),
     });
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     return (await res.json()) as GovernedCallResult;
@@ -101,8 +98,14 @@ export const pilotApi = {
 
   // Verbatim on purpose: a console that summarised the battery output could
   // hide a failing case. The text is shown exactly as the runner printed it.
-  async runBattery(): Promise<string> {
-    const res = await fetch("/api/battery", { method: "POST" });
+  // The battery acts as agent and approver, so both tokens are presented per
+  // run (SR-06) and live only in the subprocess environment of that run.
+  async runBattery(agentToken: string, approverToken: string): Promise<string> {
+    const res = await fetch("/api/battery", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ agent_token: agentToken, approver_token: approverToken }),
+    });
     return await res.text();
   },
 

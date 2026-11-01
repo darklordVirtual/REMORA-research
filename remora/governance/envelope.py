@@ -116,7 +116,14 @@ class AuditBlock:
                          Verifiers must key the recompute on the producer.
     previous_hash:       Prior envelope hash for this tenant (hash-chain linkage).
     signature:           HMAC-SHA256 of hash when REMORA_ENVELOPE_SIGNING_KEY is set.
-    schema_version:      Envelope schema version (always "2" for v2 envelopes).
+    schema_version:      Envelope schema version. "2" for records sealed before
+                         2026-10-28, where the chain hash was computed BEFORE
+                         tenant/actor/policy/argument fields were written
+                         (SR-01: those fields are not bound; v2 records verify
+                         by chain links only). "3" for records sealed by
+                         servers/api.py after the SR-01 remediation: every
+                         populated audit field is inside the hash preimage and
+                         the hash can be recomputed from the stored envelope.
     timestamp_utc:       UTC ISO-8601 decision timestamp (server clock; not RFC 3161).
     tenant_id:           Tenant the decision belongs to.
     actor_identity:      Credential-derived caller principal (REM-039): the API
