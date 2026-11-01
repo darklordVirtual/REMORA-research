@@ -21,9 +21,15 @@
     "measured_with_python": "3.13.7 (macOS arm64, venv with the dev extras)",
     "requirements_lock": {
       "path": "requirements-lock.txt",
-      "sha256_lf": "dd3fdfe124c7fd3dce9bc475a0a7c5751aa2b3da376827217ce5bda34e03dcd0"
+      "sha256_lf": "313b58b57784ea64c806488d8f492129471fc18f334686e2ff6a2f1991662223"
     },
     "requirements_lock_history": [
+      {
+        "path": "requirements-lock.txt",
+        "git_revision": "66d94dff6391bc164554ad2d1f964412dceb6a32",
+        "sha256_lf": "dd3fdfe124c7fd3dce9bc475a0a7c5751aa2b3da376827217ce5bda34e03dcd0",
+        "reason": "DEV dependency integration 2026-11-01 (#1119, #1122, #1125, #1133); re-pin current environment without changing historical measurements or claim artifacts."
+      },
       {
         "path": "requirements-lock.txt",
         "git_revision": "3a84e349cf0faf0fd185e077d6589149a32368ea",
@@ -213,7 +219,7 @@
       "metrics": [
         {
           "name": "wrong_call_accept_pct",
-          "expected": 0.0,
+          "expected": 0,
           "source": "register",
           "binding": {
             "path": "results/routing_bench_bfcl_v4_cext3_results.json#targets.known_wrong_call_accept.value",
@@ -244,7 +250,7 @@
         },
         {
           "name": "irrelevance_abstain_pct",
-          "expected": 100.0,
+          "expected": 100,
           "source": "register",
           "binding": {
             "path": "results/routing_bench_bfcl_v4_cext3_results.json#targets.irrelevance_abstain_recall.value",
@@ -253,7 +259,7 @@
         },
         {
           "name": "required_unknown_accept_pct",
-          "expected": 0.0,
+          "expected": 0,
           "source": "register",
           "binding": {
             "path": "results/routing_bench_bfcl_v4_cext3_results.json#targets.required_unknown_auto_accept.value",
@@ -333,7 +339,7 @@
       "metrics": [
         {
           "name": "far_pct",
-          "expected": 0.0,
+          "expected": 0,
           "source": "register",
           "binding": {
             "path": "results/external_benchmark_agentharm_v1.json#false_accept_rate",
@@ -353,7 +359,7 @@
         },
         {
           "name": "fbr_pct",
-          "expected": 100.0,
+          "expected": 100,
           "source": "register",
           "binding": {
             "path": "results/external_benchmark_agentharm_v1.json#false_block_rate",
@@ -404,7 +410,7 @@
       "metrics": [
         {
           "name": "far_pct",
-          "expected": 0.0,
+          "expected": 0,
           "source": "register",
           "binding": {
             "path": "results/toolcall_benchmark_v2_results.json#baselines.remora_full_policy_gate.false_accept_rate",
@@ -513,7 +519,7 @@
       "metrics": [
         {
           "name": "far_pct",
-          "expected": 0.0,
+          "expected": 0,
           "source": "register",
           "binding": {
             "path": "results/false_accept_regression_v1.json#false_accept_rate",
@@ -571,7 +577,7 @@
       "metrics": [
         {
           "name": "false_accept_rate",
-          "expected": 0.0,
+          "expected": 0,
           "source": "statement",
           "binding": {
             "path": "results/toolcall_blind_v3_results.json#false_accept_rate"
@@ -691,7 +697,7 @@
       "metrics": [
         {
           "name": "false_accept_rate_full",
-          "expected": 0.0,
+          "expected": 0,
           "source": "register",
           "binding": {
             "path": "results/toolcall_benchmark_v2_ablation.json#ablations.remora_full.false_accept_rate"
@@ -699,7 +705,7 @@
         },
         {
           "name": "false_accept_rate_without_hard_blocks",
-          "expected": 0.0,
+          "expected": 0,
           "source": "register",
           "binding": {
             "path": "results/toolcall_benchmark_v2_ablation.json#ablations.remora_without_hard_blocks.false_accept_rate"
@@ -781,7 +787,7 @@
         },
         {
           "name": "read_utility_without_validators",
-          "expected": 0.0,
+          "expected": 0,
           "source": "register",
           "binding": {
             "path": "results/system_demonstration_v1.json#validator_study.read_utility_without_validators"
@@ -789,7 +795,7 @@
         },
         {
           "name": "read_utility_with_validators",
-          "expected": 1.0,
+          "expected": 1,
           "source": "register",
           "binding": {
             "path": "results/system_demonstration_v1.json#validator_study.read_utility_with_validators"
@@ -797,7 +803,7 @@
         },
         {
           "name": "corrupt_accept_rate",
-          "expected": 0.0,
+          "expected": 0,
           "source": "register",
           "binding": {
             "path": "results/system_demonstration_v1.json#validator_study.targets.corrupt_id_accept_after_resolver.value"
@@ -805,7 +811,7 @@
         },
         {
           "name": "valid_id_completion_read",
-          "expected": 1.0,
+          "expected": 1,
           "source": "register",
           "binding": {
             "path": "results/system_demonstration_v1.json#validator_study.targets.valid_id_completion_read.value"
@@ -942,7 +948,7 @@
         },
         {
           "name": "obtainable_verify_pct",
-          "expected": 84.0,
+          "expected": 84,
           "source": "register",
           "binding": {
             "path": "results/routing_bench_bfcl_v4_cext4_results.json#targets.obtainable_verify_recall.value",
@@ -952,7 +958,7 @@
         },
         {
           "name": "wrong_call_accept_pct",
-          "expected": 0.0,
+          "expected": 0,
           "source": "register",
           "binding": {
             "path": "results/routing_bench_bfcl_v4_cext4_results.json#targets.known_wrong_call_accept.value",
@@ -970,7 +976,7 @@
         },
         {
           "name": "irrelevance_abstain_pct",
-          "expected": 100.0,
+          "expected": 100,
           "source": "register",
           "binding": {
             "path": "results/routing_bench_bfcl_v4_cext4_results.json#targets.irrelevance_abstain_recall.value",
