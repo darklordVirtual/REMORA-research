@@ -8271,9 +8271,9 @@
     },
     "frontend/package-lock.json": {
       "concepts": [],
-      "git_blob": "b734566ef745dd953cc3a72bbf8268a47252bf74",
+      "git_blob": "7443f4a87764becd5c9f402029ed86ceeec855b0",
       "mode": "100644",
-      "sha256": "f1e5b6be13bb587aca5ac63eaf2e8be77fd47c66fd4049519f74218ce96ccd4a"
+      "sha256": "f4eacb162122ce6d5d34d1bc3a5f4dbb4638acda0c35b094a031c1fe771e4618"
     },
     "frontend/package.json": {
       "concepts": [],
@@ -21243,9 +21243,9 @@
     },
     "workers/agent-control/package-lock.json": {
       "concepts": [],
-      "git_blob": "da4db95a36c9970afbd19c015e2100be73986ff4",
+      "git_blob": "8d336c283786d21b7b9c27a381a6614bc924831f",
       "mode": "100644",
-      "sha256": "1b187aba60999924b1bf03f164968bbbf461b2cb039e07bfb6f6ddf276e387fd"
+      "sha256": "0d0cb6e02cc25bcb1a408d0e2df0d2cc48e6715a9b92df43ffa7dc36fb562e59"
     },
     "workers/agent-control/package.json": {
       "concepts": [],
@@ -21333,9 +21333,9 @@
     },
     "workers/aromer/package-lock.json": {
       "concepts": [],
-      "git_blob": "1becdebd79cd76fdcb721ba5b8696c29ec437612",
+      "git_blob": "4055aca95ebc86e21cb590a69bed656690727df0",
       "mode": "100644",
-      "sha256": "e3e2c94c3ac4462907f7f6e5faaa873d386cea15917e8d7e50361ec98d74db71"
+      "sha256": "eae526015a7e4672966a317a8ba032a8a9f57e494da0edc1ecd35b73856546e5"
     },
     "workers/aromer/package.json": {
       "concepts": [],
@@ -21381,9 +21381,9 @@
     },
     "workers/law-search/package-lock.json": {
       "concepts": [],
-      "git_blob": "63158d114a6fa499167416c80623105ce017b196",
+      "git_blob": "12333ba0b314061576e366f308778c1e283216d9",
       "mode": "100644",
-      "sha256": "e56d81c67f90a8458a7b913951b52f2748df78bc1dc441e0de4aa700ae118937"
+      "sha256": "01db31cd624b5b7c876e199b24d60a956c9ac1af41321c5052c1e02c73d223d7"
     },
     "workers/law-search/package.json": {
       "concepts": [],
@@ -21417,9 +21417,9 @@
     },
     "workers/mcp-gateway/package-lock.json": {
       "concepts": [],
-      "git_blob": "d68e4e5218882ca994976f8fe216984c5070540e",
+      "git_blob": "72b13607926030f53a28acf54d71d878f7de9fa3",
       "mode": "100644",
-      "sha256": "84b62dc2f19e58b51f35bade21c504f0f38158687100fa2897b5479b6893852c"
+      "sha256": "f97ceab8eeadcee71aa19a277ddf6d285b0c0a720b266e4eaf8ca2e32b8c117b"
     },
     "workers/mcp-gateway/package.json": {
       "concepts": [],
@@ -21555,15 +21555,15 @@
     },
     "workers/rag-oracle/package-lock.json": {
       "concepts": [],
-      "git_blob": "74f3f0ec84ed4a7691cf497f9f8b8774991e7dc9",
+      "git_blob": "760ccb04bcbef6806a23718973d76c4543d2a448",
       "mode": "100644",
-      "sha256": "f92d72ce470b20d4f7c4902a9e36d2b2f88c26fa3b382e935be37f1b19009cb4"
+      "sha256": "85c70ec966767fa853a1fb6ab632d6aa224887afbe7dea319809f4dcf86f5b3b"
     },
     "workers/rag-oracle/package.json": {
       "concepts": [],
-      "git_blob": "ea2e28679cacf5b6386105a43be6df0e5238eeb6",
+      "git_blob": "1fd8cab8b9719177afe10338a498a832e6d0e16f",
       "mode": "100644",
-      "sha256": "ca2b1a49c17e12ff22c6a1c57be034d739a0e1f0bccf91cf28a0cc2991dd7d21"
+      "sha256": "9b663fa3c1074b0497e4224df92e441769ccf095ea6f066b87d7c8f734bed857"
     },
     "workers/rag-oracle/src/auth.test.ts": {
       "concepts": [],
@@ -21597,7 +21597,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "260c5504a7ddab2585311c49e277f3cf2c0de8c82f0bd9b6db9780c848785ead",
+  "register_sha256": "e70b37f568ede2e2b6069f9c68c4aa73d3f8509ca34635085b21915fdc4bca8f",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
