@@ -1,5 +1,5 @@
 schema_version: '1'
-updated: '2026-10-18'
+updated: '2026-11-01'
 documents:
 - id: DOC-001
   code_synced: verified
@@ -3350,6 +3350,31 @@ documents:
   - maintainers
   - evaluators
   last_reviewed: '2026-10-26'
+  validates_against: []
+  claims: []
+- id: DOC-415
+  path: docs/assurance/branch_promotion_policy.md
+  status: supporting
+  topic: docs_assurance_branch_promotion_policy_md
+  code_synced: unreviewed
+  verdict: pending
+  owner: darklordVirtual
+  audience:
+  - maintainers
+  last_reviewed: null
+  validates_against: []
+  claims: []
+- id: DOC-416
+  path: docs/design/remora-dev-assurance-hardening-sdd-v1.md
+  status: proposal
+  topic: docs_design_remora-dev-assurance-hardening-sdd-v1_md
+  code_synced: unreviewed
+  verdict: pending
+  owner: darklordVirtual
+  audience:
+  - maintainers
+  - evaluators
+  last_reviewed: null
   validates_against: []
   claims: []
 topics:
