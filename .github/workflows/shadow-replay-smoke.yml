@@ -2,7 +2,7 @@ name: Shadow Replay Smoke
 
 "on":
   push:
-    branches: [master]
+    branches: [dev, master]
   pull_request:
 
 # CI-economics review 2026-08-05: supersede outdated PR runs; never cancel master.
@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
 
       - name: Setup Python
-        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.0.0
         with:
           python-version: "3.12"
           cache: "pip"
