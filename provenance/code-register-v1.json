@@ -3311,9 +3311,9 @@
     },
     "artifacts/replication-pack/replication_pack_v1.json": {
       "concepts": [],
-      "git_blob": "6851810c06fd20ae93e95e1e21c11c311085dd00",
+      "git_blob": "17e55a5584f8318ecd5419add6698f29b19c4fd4",
       "mode": "100644",
-      "sha256": "e42cd28d1cf2d504dd851f5def95e14bc73f32554b9ef629b509ba56d58a998c"
+      "sha256": "0f68ac0e41b455819be6af1d2e6da37c9d4f144b577b44afb689e29b017f3e93"
     },
     "artifacts/reproduce.sh": {
       "concepts": [],
@@ -21765,7 +21765,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "46c79f88faca8dfc5bb7a1b8f76edca4d4f37a7970bdcde5320877a22281181b",
+  "register_sha256": "3cdeda21f5204f6c051c609a7894503b592be3c07e4c0d5d18f2afaacd683aab",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
