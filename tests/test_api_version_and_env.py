@@ -117,8 +117,11 @@ class TestRemoteEnvModeConsistency:
         monkeypatch.delenv("REMORA_API_TOKENS", raising=False)
         monkeypatch.setattr(api_module, "_TOKEN_TABLE", {})
 
-        # With no env and no credentials, auth must NOT raise 500 — it should
-        # use the dev fallback and return ("default", "operator").
+        # With no env and no credentials, auth must NOT raise 500 when the
+        # explicit unauthenticated-dev opt-in is set: it uses the dev
+        # fallback and returns ("default", "viewer") (SR-03: previously the
+        # fallback was unconditional and carried the operator role).
+        monkeypatch.setenv("REMORA_ALLOW_UNAUTHENTICATED_DEV", "1")
         scope = {
             "type": "http",
             "method": "GET",
@@ -129,7 +132,7 @@ class TestRemoteEnvModeConsistency:
         mock_request = Request(scope=scope)
         tenant, role = api_module._authenticate(mock_request)
         assert tenant == "default"
-        assert role == "operator"
+        assert role == "viewer"
 
     def test_single_env_mode_helper_used_everywhere(self):
         """servers/api.py must define a single canonical env-mode helper."""

@@ -36,11 +36,23 @@ from remora.agent_hook.result_scanner import ScanVerdict, ToolResultScanner
 
 # Tools that always get scanned (network-origin or attacker-reachable content)
 _SCAN_TOOLS = {
-    "WebFetch", "WebSearch", "Bash", "Read",
+    "WebFetch", "WebSearch",
     "mcp__brave_search", "mcp__fetch",
 }
+# SR-08 / SEC-08: local tool output (Read/Bash) is scanned only on explicit
+# opt-in — scanning it with the oracle armed would ship local file and
+# command output off-host.
+if os.environ.get("AROMER_SCAN_LOCAL") == "1":
+    _SCAN_TOOLS |= {"Bash", "Read"}
 
-_scanner = ToolResultScanner(oracle_enabled=True)
+# The oracle requires an explicitly configured destination and credential;
+# there is no default public worker (SR-08).
+_scanner = ToolResultScanner(
+    oracle_enabled=bool(
+        os.environ.get("AROMER_WORKER_URL", "").strip()
+        and os.environ.get("AROMER_WORKER_TOKEN", "").strip()
+    )
+)
 
 
 def _extract_result_text(hook_input: dict) -> str:
