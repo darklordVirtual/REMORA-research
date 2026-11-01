@@ -9,6 +9,16 @@ on:
       - "servers/**"
       - "artifacts/interop/**"
       - "docs/interop/**"
+      - ".github/workflows/pre-federation-redteam.yml"
+  push:
+    branches: [dev, master]
+    paths:
+      - "tests/test_pre_federation_*.py"
+      - "remora/**"
+      - "servers/**"
+      - "artifacts/interop/**"
+      - "docs/interop/**"
+      - ".github/workflows/pre-federation-redteam.yml"
   workflow_dispatch:
 
 permissions:

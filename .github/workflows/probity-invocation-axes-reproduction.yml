@@ -32,7 +32,7 @@ on:
       - "ci/agent-evidence-vectors/**"
       - "artifacts/interop/effect-evidence-v2/**"
   push:
-    branches: [master]
+    branches: [dev, master]
     paths:
       - ".github/workflows/probity-invocation-axes-reproduction.yml"
       - "ci/agent-evidence-vectors/**"

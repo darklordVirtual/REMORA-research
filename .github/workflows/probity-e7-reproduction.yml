@@ -20,7 +20,7 @@ on:
     paths:
       - ".github/workflows/probity-e7-reproduction.yml"
   push:
-    branches: [master]
+    branches: [dev, master]
     paths:
       - ".github/workflows/probity-e7-reproduction.yml"
       - "artifacts/interop/runtime-surface-e7-v0.1/**"
