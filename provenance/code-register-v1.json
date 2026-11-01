@@ -5677,9 +5677,9 @@
     },
     "docs/assurance/capability_register_v1.yaml": {
       "concepts": [],
-      "git_blob": "465ab5eb95ab2512f9be471e107f5147ffe76ee5",
+      "git_blob": "b67e6cabab46b1931865e65c8d594c5b42d1a1dd",
       "mode": "100644",
-      "sha256": "d3860efc4bf470adf70c1dbd77bd5db5e6b0262e21bb298909f6bfd323c15712"
+      "sha256": "e64d67a18b3ebdd5bcb4de797335bf91075815b7a2bdecbe7717a7b6bb11f834"
     },
     "docs/assurance/claim_metric_binding_baseline.json": {
       "concepts": [],
@@ -21783,7 +21783,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "32941a1c6662e83862c266ca7aa4208969494ad00c30c160a4562f3eea3c63b7",
+  "register_sha256": "c1e707fa10ff86d9c4a8613e08dca545cf281d4321a328e583540d0de2e3a6b4",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
