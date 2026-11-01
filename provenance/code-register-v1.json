@@ -3735,6 +3735,12 @@
       "mode": "100644",
       "sha256": "f281a56de348444f94824c48b6eb19b9edfdeea093f8387927163b3a6b65ba2c"
     },
+    "conformance/dev_assurance_s0/baseline.json": {
+      "concepts": [],
+      "git_blob": "f1615c920ec81e688a7036c35c2308985ebd7191",
+      "mode": "100644",
+      "sha256": "0df66d8efb8964755f5215635e3477540a91bbc8aede0a6a4ecf8ed7d2bfc176"
+    },
     "conformance/evidence-sufficiency-v1.1/README.md": {
       "concepts": [],
       "git_blob": "91c69f1761d7670f78b5c14e9373836e53930990",
@@ -16537,6 +16543,12 @@
       "mode": "100644",
       "sha256": "8b566946d734ce2be326d3219a4f0cb9313bde23a621cff6631540d8bdedb3bd"
     },
+    "tests/meta/test_dev_assurance_baseline.py": {
+      "concepts": [],
+      "git_blob": "8ce2f356970e1fedb4ce56f0aa51b6743f200a9f",
+      "mode": "100644",
+      "sha256": "7777b7466a8fa6af83a6e1cb419f72e4774b1dc058115849d48b9629101c1a52"
+    },
     "tests/meta/test_divergence.py": {
       "concepts": [],
       "git_blob": "64043c684b01c9bc16027ba3f6089485a8d4af6d",
@@ -21759,7 +21771,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "5ce0aacd921ea1d729a766f2e618c81999c926b28f62d1a341f045c324031e30",
+  "register_sha256": "561e83b2c4d5543088ba02421359bcad789dee262395fe64e98d8dc837055edc",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
