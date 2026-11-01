@@ -280,7 +280,8 @@ _authenticate(request) → (tenant_id, role)
          │    NO:  REMORA_API_BEARER_TOKEN set?
          │         YES: token validated; tenant from X-Remora-Tenant header;
          │              role from X-Remora-Role header (gap: self-promotion)
-         │         NO:  REMORA_ENV=development? allow dev fallback; else 500
+         │         NO:  development AND REMORA_ALLOW_UNAUTHENTICATED_DEV=1?
+         │              (default, viewer) read-only; else 500 (SR-03)
          │
          ▼
 _require_tenant_capability(request, tenant_id, capability)

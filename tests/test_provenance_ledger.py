@@ -39,6 +39,14 @@ def _snapshot() -> str:
     return json.loads((LEDGER / "manifests" / "provenance-manifest-v1.json").read_text(encoding="utf-8"))["snapshot"]
 
 
+def test_check_uses_explicit_manifest_instead_of_legacy_default() -> None:
+    module = _module("build_provenance_manifest")
+    # An explicitly selected missing manifest must fail before any Git work.
+    missing = LEDGER / "manifests" / "__test_missing_manifest__.json"
+    assert not missing.exists()
+    assert module.main(["--check", "--out", str(missing)]) == 1
+
+
 #: The reproduction test reads the snapshot commit's tree, which a shallow CI
 #: checkout does not hold. The documentation-governance job checks out full
 #: history and runs scripts/build_provenance_manifest.py --check, so the gate

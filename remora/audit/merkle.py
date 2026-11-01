@@ -31,17 +31,26 @@ if TYPE_CHECKING:
     from remora.audit.hash_chain import HashChainEntry
 
 
-def compute_merkle_root(entries: list["HashChainEntry"]) -> str:
+def compute_merkle_root(entries: list["HashChainEntry"], *, version: int = 2) -> str:
     """Compute a deterministic Merkle root over a list of hash-chain entries.
 
-    The leaf hash for each entry is SHA-256 of its canonical JSON representation
-    (all fields, sorted keys).  Pairs are combined as SHA-256(left + right);
-    odd trees are completed by duplicating the last leaf.
+    Version 2 (default since 2026-10-28, SR-14 / SEC-03) uses RFC 6962
+    domain separation: leaves hash as SHA-256(0x00 || canonical JSON), nodes
+    as SHA-256(0x01 || left || right) over raw digest bytes, and an odd node
+    is promoted unchanged rather than duplicated — so [a,b,c] and [a,b,c,c]
+    no longer share a root, and an interior node can never pass as a leaf.
+
+    Version 1 is the legacy construction (SHA-256 of canonical JSON leaves;
+    SHA-256 over concatenated hex pairs; last node duplicated on odd levels).
+    It is retained so anchors recorded before 2026-10-28 still verify, and is
+    documented as ambiguous: it does not commit to the entry count.
 
     Parameters
     ----------
     entries:
         Ordered list of audit chain entries.
+    version:
+        2 (default) or 1 (legacy, for verifying pre-v2 anchors).
 
     Returns
     -------
@@ -54,27 +63,50 @@ def compute_merkle_root(entries: list["HashChainEntry"]) -> str:
     modification to a single entry changes the root, making the root suitable
     as a tamper-detection digest over the entire audit window.
     """
+    if version not in (1, 2):
+        raise ValueError(f"unsupported merkle version {version!r}")
     if not entries:
         return ""
 
     import dataclasses
 
-    def _leaf(entry: "HashChainEntry") -> str:
-        canonical = json.dumps(dataclasses.asdict(entry), sort_keys=True, separators=(",", ":"))
-        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+    def _canonical(entry: "HashChainEntry") -> bytes:
+        return json.dumps(
+            dataclasses.asdict(entry), sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
 
-    def _combine(left: str, right: str) -> str:
-        return hashlib.sha256((left + right).encode("utf-8")).hexdigest()
+    if version == 1:
+        def _leaf_v1(entry: "HashChainEntry") -> str:
+            return hashlib.sha256(_canonical(entry)).hexdigest()
 
-    hashes = [_leaf(e) for e in entries]
-    while len(hashes) > 1:
-        if len(hashes) % 2 != 0:
-            hashes.append(hashes[-1])  # duplicate last leaf for odd trees
-        hashes = [_combine(hashes[i], hashes[i + 1]) for i in range(0, len(hashes), 2)]
-    return hashes[0]
+        def _combine_v1(left: str, right: str) -> str:
+            return hashlib.sha256((left + right).encode("utf-8")).hexdigest()
+
+        hashes_v1 = [_leaf_v1(e) for e in entries]
+        while len(hashes_v1) > 1:
+            if len(hashes_v1) % 2 != 0:
+                hashes_v1.append(hashes_v1[-1])  # legacy: duplicate last leaf
+            hashes_v1 = [_combine_v1(hashes_v1[i], hashes_v1[i + 1])
+                         for i in range(0, len(hashes_v1), 2)]
+        return hashes_v1[0]
+
+    def _leaf_v2(entry: "HashChainEntry") -> bytes:
+        return hashlib.sha256(b"\x00" + _canonical(entry)).digest()
+
+    def _combine_v2(left: bytes, right: bytes) -> bytes:
+        return hashlib.sha256(b"\x01" + left + right).digest()
+
+    level = [_leaf_v2(e) for e in entries]
+    while len(level) > 1:
+        paired = [_combine_v2(level[i], level[i + 1]) for i in range(0, len(level) - 1, 2)]
+        if len(level) % 2:
+            paired.append(level[-1])  # RFC 6962: promote the odd node unchanged
+        level = paired
+    return level[0].hex()
 
 
-def sign_root(root_hash: str, *, key: str) -> str:
+def sign_root(root_hash: str, *, key: str, n_entries: int | None = None,
+              version: int = 1) -> str:
     """Produce an HMAC-SHA256 signature of a Merkle root hash.
 
     Parameters
@@ -83,6 +115,11 @@ def sign_root(root_hash: str, *, key: str) -> str:
         The 64-char hex Merkle root to sign.
     key:
         The signing key (e.g. from ``REMORA_ENVELOPE_SIGNING_KEY``).
+    n_entries:
+        Version 2 only: the leaf count the root commits to (required; SR-14).
+    version:
+        2 signs ``v2:<n_entries>:<root>`` so the signature binds the count;
+        1 (legacy) signs the bare root.
 
     Returns
     -------
@@ -95,25 +132,73 @@ def sign_root(root_hash: str, *, key: str) -> str:
     or public auditability, replace with an asymmetric scheme (Ed25519, ECDSA).
     The key must be kept secret; anyone who holds it can forge a valid signature.
     """
+    if type(version) is not int or version not in (1, 2):
+        raise ValueError(f"unsupported root signature version {version!r}")
+    if version == 2:
+        if type(n_entries) is not int or n_entries < 0:
+            raise ValueError("version-2 root signatures require n_entries (SEC-03)")
+        preimage = f"v2:{n_entries}:{root_hash}"
+    else:
+        preimage = root_hash
     return hmac.new(
         key.encode("utf-8"),
-        root_hash.encode("utf-8"),
+        preimage.encode("utf-8"),
         hashlib.sha256,
     ).hexdigest()
 
 
-def verify_signed_root(root_hash: str, signature: str, *, key: str) -> bool:
+def verify_signed_root(root_hash: str, signature: str, *, key: str,
+                       n_entries: int | None = None, version: int = 1) -> bool:
     """Verify an HMAC-SHA256 signature against a Merkle root hash.
 
-    Uses ``hmac.compare_digest`` to prevent timing-oracle attacks.
+    Uses ``hmac.compare_digest`` to prevent timing-oracle attacks. With
+    ``version=2`` the count is part of the preimage, so a record whose
+    ``n_entries`` was edited after signing fails.
 
     Returns
     -------
     bool
-        ``True`` if the signature is valid for the given root and key.
+        ``True`` if the signature is valid for the given root and key;
+        ``False`` for an unsupported version or a v2 call without a valid
+        ``n_entries`` (never a fallback to another construction).
     """
-    expected = sign_root(root_hash, key=key)
+    try:
+        expected = sign_root(root_hash, key=key, n_entries=n_entries, version=version)
+    except ValueError:
+        return False
+    if not isinstance(signature, str):
+        return False
     return hmac.compare_digest(expected, signature)
+
+
+def verify_root_record(record: dict, *, key: str) -> bool:
+    """Verify one exported root record (a line of ``audit-root-*.jsonl``).
+
+    Dispatches on the record's ``"v"`` field: a record without it is a legacy
+    v1 record (bare-root HMAC); ``"v": 2`` requires an integer ``n_entries``,
+    which the signature binds. Any other version, a missing or non-string
+    root or signature, or a v2 record without a valid count returns
+    ``False``. A v2 record stripped of its ``"v"`` field is checked as v1 and
+    fails, because its signature covers the count-bound v2 preimage.
+
+    This checks the HMAC only. It does not recompute the root from the chain;
+    pair it with ``compute_merkle_root`` over the entries the record covers.
+    """
+    if not isinstance(record, dict):
+        return False
+    version = record.get("v", 1)
+    if type(version) is not int or version not in (1, 2):
+        return False
+    root = record.get("merkle_root")
+    signature = record.get("signature")
+    if not isinstance(root, str) or not isinstance(signature, str):
+        return False
+    n_entries = record.get("n_entries")
+    if version == 2 and (type(n_entries) is not int or n_entries < 0):
+        return False
+    return verify_signed_root(root, signature, key=key,
+                              n_entries=n_entries if version == 2 else None,
+                              version=version)
 
 
 def export_daily_root(
@@ -123,6 +208,7 @@ def export_daily_root(
     signing_key: str | None = None,
     n_entries: int | None = None,
     timestamp: str | None = None,
+    version: int = 2,
 ) -> Path:
     """Append a Merkle root record to the daily audit-root JSONL file.
 
@@ -139,7 +225,8 @@ def export_daily_root(
     signing_key:
         If provided, an HMAC-SHA256 ``signature`` field is added to the record.
     n_entries:
-        Optional: number of audit chain entries the root covers.
+        Number of audit chain entries the root covers. Required for
+        version 2 (the default) and bound into its signature; optional for v1.
     timestamp:
         ISO-8601 UTC timestamp (default: ``datetime.now(tz=timezone.utc).isoformat()``).
 
@@ -158,15 +245,24 @@ def export_daily_root(
     directory = Path(directory)
     directory.mkdir(parents=True, exist_ok=True)
 
+    if version == 2 and n_entries is None:
+        # SEC-03 (SR-14): a root that does not commit to its leaf count cannot
+        # tell [a,b,c] from a truncated or padded list.
+        raise ValueError("version-2 exports require n_entries")
+
     today = date.today().isoformat()
     record: dict = {
         "ts": timestamp or datetime.now(tz=timezone.utc).isoformat(),
         "merkle_root": root_hash,
     }
+    if version == 2:
+        record["v"] = 2
     if n_entries is not None:
         record["n_entries"] = n_entries
     if signing_key is not None:
-        record["signature"] = sign_root(root_hash, key=signing_key)
+        record["signature"] = sign_root(
+            root_hash, key=signing_key, n_entries=n_entries, version=version,
+        )
 
     path = directory / f"audit-root-{today}.jsonl"
     with path.open("a", encoding="utf-8") as fh:

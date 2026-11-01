@@ -2,22 +2,22 @@ name: CI — Deterministic Test Suite
 
 # Runs the deterministic test suite: on a pull request, the test files the
 # change can affect (scripts/select_tests_for_change.py; the label ci:full
-# runs everything) on Python 3.12; on a push to master, the whole suite on
-# every supported interpreter. Nothing merges on a subset alone.
+# runs everything) on Python 3.12 for dev PRs; pushes to dev/master and
+# promotion PRs to master run the full suite on all supported interpreters.
 # No API keys, no network access, no cloud resources required.
 # For the full quality-gates pipeline (lint, coverage, frontend, replay), see quality-gates.yml.
 #
 # CI-economics review 2026-08-05: the former push-to-every-branch trigger
 # double-ran the identical SHA (push + pull_request) — the PR event is the
-# single verification path for feature branches; master keeps its own run.
+# single verification path for feature branches; dev/master keep full push runs.
 
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
   push:
-    branches: [master]
+    branches: [dev, master]
 
-# A new push to a PR supersedes the previous SHA's run; master runs are never
+# A new push to a PR supersedes the previous SHA's run; dev/master runs are never
 # cancelled.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -39,12 +39,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # A pull request runs the full suite on one version; a push to master
-        # runs all four, so every merged commit is still verified on every
-        # supported interpreter, including 3.14, the environment pinned in
+        # Dev PRs use Python 3.12; pushes to dev/master and promotion PRs to
+        # master run all four, including 3.14, the environment pinned in
         # paper/remora_paper.md §16 (2026-07-02 review finding). 3.12 is the
         # version the other jobs use and the inventory job downloads.
-        python-version: ${{ fromJSON(github.event_name == 'pull_request' && '["3.12"]' || '["3.11", "3.12", "3.13", "3.14"]') }}
+        python-version: ${{ fromJSON(github.event_name == 'pull_request' && github.base_ref != 'master' && '["3.12"]' || '["3.11", "3.12", "3.13", "3.14"]') }}
 
     steps:
       - name: Checkout
@@ -54,34 +53,30 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip"
 
       - name: Install package and test dependencies
+        # SR-23 / SEC-19: hash-pinned install. requirements-ci.lock is compiled
+        # from pyproject.toml extras (dev, causal, api, security, identity,
+        # otel) with `pip-compile --generate-hashes`, version-constrained by
+        # requirements-lock.txt (zero drift on shared packages, verified
+        # 2026-10-28). The repository itself installs with --no-deps: its
+        # dependencies all come from the hashed lock.
         run: |
-          python -m pip install --upgrade pip
-          # causal extra: tests/test_causal.py imports remora.causal.domains,
-          # whose loader needs pyyaml — without it, test collection fails.
-          # Constraints (-c) pin every resolved dependency to the exact versions
-          # in the committed requirements-lock.txt, while the extras still drive
-          # WHAT gets installed. The lock file contains editable (-e) and comment
-          # lines that pip rejects in a constraints file, so filter them out.
-          grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
-          # identity: PyJWT for the identity-adapter tests; otel: the SDK for the
-          # structural tracing tests. Both otherwise skip, and
-          # docs/assurance/skip_reason_allowlist_v1.yaml lists no reason for it.
-          pip install -e ".[dev,causal,api,security,identity,otel]" -c /tmp/constraints.txt
+          pip install --require-hashes -r requirements-ci.lock
+          pip install --no-deps --no-build-isolation -e ".[dev,causal,api,security,identity,otel]"
 
       - name: Select the test files this change can affect (pull requests only)
         # scripts/select_tests_for_change.py: the import graph (static imports and
         # string-named modules), the text mentions and the conservative ALL rules.
-        # A push to master never selects: every merged commit runs the whole
-        # suite on every interpreter, so nothing merges on a subset alone.
+        # Pushes to dev/master and PRs promoting dev to master never select:
+        # every promotion is checked against the entire suite.
         # The label ci:full on the pull request skips the selection and runs
         # the whole suite on this leg.
-        if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'ci:full')
+        if: github.event_name == 'pull_request' && github.base_ref != 'master' && !contains(github.event.pull_request.labels.*.name, 'ci:full')
         run: >-
           python scripts/select_tests_for_change.py
           --base ${{ github.event.pull_request.base.sha }} --head ${{ github.sha }}
@@ -191,7 +186,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.0.0
         with:
           python-version: "3.12"
           cache: "pip"
@@ -199,7 +194,6 @@ jobs:
       - name: Install package and test dependencies
         # Same install as the pytest job, so the same modules import.
         run: |
-          python -m pip install --upgrade pip
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
           pip install -e ".[dev,causal,api,security,identity,otel]" -c /tmp/constraints.txt
 
@@ -243,14 +237,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
 
       - name: Setup Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.0.0
         with:
           python-version: "3.12"
           cache: "pip"
 
       - name: Install package
         run: |
-          python -m pip install --upgrade pip
           # Constraints (-c) = version pinning from requirements-lock.txt; the
           # extras drive what gets installed. Filter out -e/comment lines that
           # pip rejects in a constraints file.
@@ -329,14 +322,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
 
       - name: Setup Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.0.0
         with:
           python-version: "3.12"
           cache: "pip"
 
       - name: Install package and Postgres driver
         run: |
-          python -m pip install --upgrade pip
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
           # DB drivers come from the declared `postgres` extra (REM-045) —
           # the CI environment installs exactly what the packaging promises.
@@ -391,7 +383,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.0.0
         with:
           python-version: "3.12"
 
@@ -409,6 +401,17 @@ jobs:
         # Rebuilds the manifest from its recorded snapshot commit, which is why
         # this job checks out full history.
         run: python scripts/build_provenance_manifest.py --check
+
+      - name: Current code provenance (every tracked file; no stale or missing entries)
+        # documentation-governance feeds deterministic-suite-required, already
+        # required by master branch protection. No path filters or auto-write.
+        run: |
+          python scripts/check_code_provenance.py --check
+          python scripts/check_code_provenance.py --check-snapshot provenance/manifests/code-snapshot-2026-10-30.json
+          python scripts/build_provenance_manifest.py --check --out provenance/manifests/provenance-manifest-2026-10-30.json
+
+      - name: Federation outbound contribution provenance (scope and licence boundary)
+        run: python scripts/check_outbound_provenance.py --check
 
       - name: Provenance signature gate (reports until POLICY.yaml arms it)
         env:
@@ -482,6 +485,11 @@ jobs:
         # tests/conformance/test_execution_boundary.py; property E is reported
         # as both together, never this gate alone.
         run: python scripts/check_credential_topology.py
+
+      # SR-11/SR-23 (SEC-19): no unpinned or unhashed pip installs anywhere in
+      # CI, and the hashed locks carry a sha256 on every package.
+      - name: Hash-pinning gate
+        run: python scripts/check_require_hashes.py
 
       - name: Authority-state durability
         # docs/assurance/authority_state_topology.yaml enumerates every
@@ -586,7 +594,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
 
       - name: Setup Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.0.0
         with:
           python-version: "3.12"
 
@@ -624,14 +632,16 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
 
       - name: Setup Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.0.0
         with:
           python-version: "3.12"
 
       - name: Build wheel
         run: |
-          python -m pip install --upgrade pip
-          python -m pip wheel . --no-deps -w dist/
+          # --no-build-isolation: the build backend (hatchling, editables) comes
+          # from the hashed lock, never a freshly resolved isolated env.
+          python -m pip install --require-hashes --no-deps -r requirements-ci.lock
+          python -m pip wheel . --no-deps --no-build-isolation -w dist/
 
       - name: The runtime wheel carries no benchmark datasets (RMR-CR-014)
         run: |
@@ -652,6 +662,10 @@ jobs:
       - name: Install wheel with [api,sdk] into a clean venv
         run: |
           python -m venv "$RUNNER_TEMP/wheelenv"
+          # hash-exempt: this contract proves the wheel's OWN dependency
+          # metadata resolves for [api,sdk]; installing a hashed superset
+          # first would mask a missing declaration. The job holds no
+          # credentials and publishes nothing.
           "$RUNNER_TEMP/wheelenv/bin/pip" install --quiet "$(ls dist/*.whl)[api,sdk]"
 
       - name: Contract smoke from an empty directory
@@ -746,14 +760,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
 
       - name: Setup Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.0.0
         with:
           python-version: "3.12"
           cache: "pip"
 
       - name: Install package
         run: |
-          python -m pip install --upgrade pip
           grep -vE '^-e|^#|file://' requirements-lock.txt > /tmp/constraints.txt
           pip install -e ".[dev,causal]" -c /tmp/constraints.txt
 
@@ -857,7 +870,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
 
       - name: Setup Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.0.0
         with:
           python-version: "3.12"
 
@@ -955,12 +968,16 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
 
       - name: Setup Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.0.0
         with:
           python-version: "3.12"
 
       - name: The verbatim README command
-        run: python -m pip install -e ".[dev]"
+        run: |
+          # hash-exempt: verbatim README contract job; its purpose is to run the
+          # documented command exactly as written and prove the suite collects.
+          # It publishes no artifacts and holds no credentials.
+          python -m pip install -e ".[dev]"
 
       - name: Full-suite collection succeeds
         run: python -m pytest tests/ -q --collect-only > /dev/null && echo "collection clean"
@@ -980,12 +997,15 @@ jobs:
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.0.0
         with:
           python-version: "3.12"
 
       - name: The documented install
-        run: python -m pip install -e ".[dev]"
+        run: |
+          # hash-exempt: verbatim documentation contract job (same reasoning as
+          # the README contract job; publishes nothing, holds no credentials).
+          python -m pip install -e ".[dev]"
 
       - name: C-ext4 replays at its locked commit
         run: python scripts/replay_sealed_cext4.py
@@ -1074,6 +1094,17 @@ jobs:
       - sealed-replay
     runs-on: ubuntu-latest
     steps:
+      - name: Only the repository dev branch may promote into master
+        if: github.event_name == 'pull_request' && github.base_ref == 'master'
+        env:
+          SOURCE_BRANCH: ${{ github.event.pull_request.head.ref }}
+          SOURCE_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          TARGET_REPO: ${{ github.repository }}
+        run: |
+          if [[ "$SOURCE_BRANCH" != "dev" || "$SOURCE_REPO" != "$TARGET_REPO" ]]; then
+            echo "::error title=Invalid promotion source::Master promotion requires a same-repository dev -> master PR"
+            exit 1
+          fi
       - name: Fail unless every aggregated leg succeeded
         env:
           NEEDS: ${{ toJson(needs) }}

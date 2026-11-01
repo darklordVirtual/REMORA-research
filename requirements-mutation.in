@@ -1,0 +1,3 @@
+# mutmut is pinned exactly: mutant ids are stable only within one version
+# (docs/assurance/mutation_baseline_*.txt record it).
+mutmut==3.8.0
