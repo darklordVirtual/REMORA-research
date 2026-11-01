@@ -6703,9 +6703,9 @@
     },
     "docs/interop/remora-boundaries-v1.yaml": {
       "concepts": [],
-      "git_blob": "5145ffe77014c949656cabab377c450511cdcf2e",
+      "git_blob": "c3c5c31657660b02ebe97cffd2d2f917407f78da",
       "mode": "100644",
-      "sha256": "c5f001b5fbc101fc342c38e958b3cd84f69701cce39ce4bbaf6bf07a3781ca25"
+      "sha256": "f5ae7513f475febeb590cf3fa8117ebb62014a8581de6069654525d6c2a1e5fe"
     },
     "docs/interop/remora-capabilities-v1.schema.json": {
       "concepts": [],
@@ -21783,7 +21783,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "c1e707fa10ff86d9c4a8613e08dca545cf281d4321a328e583540d0de2e3a6b4",
+  "register_sha256": "2c37e0bf82af13e6102532190fae4cd611afa4dafce1e0c601578f0b66098e32",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
