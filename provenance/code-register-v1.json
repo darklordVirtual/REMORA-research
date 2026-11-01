@@ -5713,9 +5713,9 @@
     },
     "docs/assurance/document_register_v1.yaml": {
       "concepts": [],
-      "git_blob": "54b0bd9dbea5a3165857a6f591166e1fa8ebac45",
+      "git_blob": "688ab3ad145bbb497665d99969ac29ab9b53a27a",
       "mode": "100644",
-      "sha256": "bc1f85bafbea367508902029240ffd24a693b83d18e9b4b411979f0039a1e0ae"
+      "sha256": "e767beaba52fe60f9203110c1b2c264e6c010e2167e4f02b38d628e1c3701daf"
     },
     "docs/assurance/documentation_governance_v1.md": {
       "concepts": [],
@@ -6271,9 +6271,9 @@
     },
     "docs/design/remora-dev-assurance-hardening-sdd-v1.md": {
       "concepts": [],
-      "git_blob": "a2661f49460a43fc0e491f442ee5482c425cd110",
+      "git_blob": "de6ea9149ce7edd515e96d0e968cafbe3a0c8586",
       "mode": "100644",
-      "sha256": "31339f3c8c5e3d48a8b738f71a7d7cb6226f6c61a8eeafc9dd5dcec74941d330"
+      "sha256": "fd7752d40d41ad9c58a0c082cdf03454fa12a3ea11e95240ee964d45ed58e207"
     },
     "docs/design/remora-quality-program-v1.md": {
       "concepts": [],
@@ -21765,7 +21765,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "3cdeda21f5204f6c051c609a7894503b592be3c07e4c0d5d18f2afaacd683aab",
+  "register_sha256": "bf289b5a1831a34c435ac0193120acbbf91f5e1fa10cdbf87bf9e3235b663557",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
