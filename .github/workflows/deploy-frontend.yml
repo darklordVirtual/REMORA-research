@@ -51,6 +51,8 @@ jobs:
           # requirements.txt today (the snapshot script is stdlib-only), so the
           # install is guarded on file existence instead of silently swallowed.
           if [ -f requirements.txt ]; then
+            # hash-exempt: dead path today (no requirements.txt in the repo);
+            # if one is introduced it must be a hashed lock.
             pip install --quiet -r requirements.txt
           fi
           python scripts/build_frontend_benchmark_snapshot.py

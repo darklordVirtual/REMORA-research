@@ -39,7 +39,6 @@ jobs:
 
       - name: Install package with the nli extra
         run: |
-          python -m pip install --upgrade pip
           # Constraints (-c) pin every resolved dependency to the exact versions
           # in the committed requirements-lock.txt, while the extras still drive
           # WHAT gets installed. The lock file contains editable (-e) and comment

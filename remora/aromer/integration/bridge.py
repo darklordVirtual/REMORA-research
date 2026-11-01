@@ -14,11 +14,13 @@ EXPERIMENTAL: Part of the AROMER research plugin.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable, Iterable
 
 from remora.adaptation.thermodynamic_adapter import ThermodynamicAdapter
 from remora.adaptation.oracle_bandit import OracleBandit
@@ -47,6 +49,62 @@ _MANAGED_THRESHOLDS = {
 
 # Workers AI oracle pool
 _ORACLE_POOL = ["cf_fast", "cf_strong", "cf_diverse"]
+
+# SEC-07 (SR-07): signed threshold proposals relax ``trust_critical_min`` by
+# at most this much in total per rolling window, however many valid proposals
+# arrive. The per-cycle cap and the window cap share the value on purpose:
+# one proposal may spend the whole window budget, never more.
+_MAX_RELAX_PER_WINDOW = 0.05
+_RELAX_WINDOW_SECONDS = 7 * 24 * 3600
+# A signed proposal is valid from issued_at (minus clock skew) for one window,
+# and each signature is applied at most once (replay ledger kept in state).
+_PROPOSAL_CLOCK_SKEW_SECONDS = 300
+_MAX_SEEN_PROPOSAL_SIGS = 500
+
+
+def canonical_threshold_proposal_payload(
+    *,
+    adjustments: list[dict[str, Any]],
+    holdout_evidence_sha256: str,
+    issued_at: str,
+    window_id: str,
+) -> bytes:
+    """The canonical bytes a THRESHOLD_PROPOSAL signature signs.
+
+    Producers, verifiers and tests share this so a signature means exactly
+    one payload. The signature covers the evidence hash: a proposal cannot be
+    re-pointed at a weaker holdout run after signing.
+    """
+    return json.dumps(
+        {
+            "adjustments": adjustments,
+            "holdout_evidence_sha256": holdout_evidence_sha256,
+            "issued_at": issued_at,
+            "window_id": window_id,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+
+
+def _proposal_keys_from_env() -> list[Any]:
+    """Trusted THRESHOLD_PROPOSAL public keys from REMORA_THRESHOLD_PROPOSAL_KEYS.
+
+    Comma-separated hex/base64 Ed25519 public keys. Absent means "trust
+    nobody": every proposals file is refused. A malformed entry is a
+    configuration error and raises, rather than silently narrowing the
+    trusted set.
+    """
+    from remora.crypto.domain_signing import SignatureDomain, VerificationKey
+
+    raw = os.getenv("REMORA_THRESHOLD_PROPOSAL_KEYS", "").strip()
+    if not raw:
+        return []
+    return [
+        VerificationKey.from_text(entry.strip(), {SignatureDomain.THRESHOLD_PROPOSAL})
+        for entry in raw.split(",")
+        if entry.strip()
+    ]
 
 
 @dataclass
@@ -87,6 +145,9 @@ class AromerAdapterBridge:
         self,
         state_path: str | Path | None = None,
         proposals_path: str | Path | None = None,
+        *,
+        proposal_verification_keys: Iterable[Any] | None = None,
+        audit_sink: Callable[[dict[str, Any]], None] | None = None,
     ) -> None:
         self._thermo   = ThermodynamicAdapter()
         self._threshold = AdaptiveThresholdEngine(
@@ -97,6 +158,19 @@ class AromerAdapterBridge:
         self._bandit   = OracleBandit(_ORACLE_POOL)
         self._state_path = Path(state_path) if state_path else _default_bridge_state()
         self._n_episodes = 0
+        # SEC-07: who may relax a governance threshold, and where the change
+        # is recorded. No keys configured means every proposal is refused.
+        # The sink receives one threshold_changed event per applied change;
+        # wire it to the tenant audit chain where one exists.
+        self._proposal_keys = (
+            list(proposal_verification_keys)
+            if proposal_verification_keys is not None
+            else _proposal_keys_from_env()
+        )
+        self._audit_sink = audit_sink
+        self._relax_log: list[tuple[float, float]] = []
+        self._seen_proposal_sigs: list[str] = []
+        self._threshold_events: list[dict[str, Any]] = []
         # Friction optimizer proposals file; defaults to repo artifacts/ directory
         if proposals_path is not None:
             self._proposals_path = Path(proposals_path)
@@ -216,17 +290,89 @@ class AromerAdapterBridge:
             if not proposals_path.exists():
                 return {"applied": 0, "skipped": 0}
 
-            data = json.loads(proposals_path.read_text(encoding="utf-8"))
+            raw_bytes = proposals_path.read_bytes()
+            data = json.loads(raw_bytes.decode("utf-8"))
             adjustments = data.get("adjustments", [])
+
+            # SEC-07 (SR-07): only a signed proposal may move a governance
+            # threshold. An unsigned or wrongly-domained file is refused and
+            # left in place for inspection — silently consuming it would hide
+            # the attempt.
+            if not self._proposal_keys:
+                return {"applied": 0, "skipped": len(adjustments),
+                        "error": "no threshold-proposal verification keys configured"}
+            sig_raw = data.get("signature")
+            if not isinstance(sig_raw, dict):
+                return {"applied": 0, "skipped": len(adjustments),
+                        "error": "unsigned threshold proposals refused"}
+
+            from remora.crypto.domain_signing import (
+                Signature,
+                SignatureDomain,
+                verify,
+            )
+
+            payload = canonical_threshold_proposal_payload(
+                adjustments=list(adjustments),
+                holdout_evidence_sha256=str(data.get("holdout_evidence_sha256", "")),
+                issued_at=str(data.get("issued_at", "")),
+                window_id=str(data.get("window_id", "")),
+            )
+            result = verify(
+                SignatureDomain.THRESHOLD_PROPOSAL,
+                payload,
+                Signature.from_dict(sig_raw),
+                self._proposal_keys,
+            )
+            if not result.ok:
+                return {"applied": 0, "skipped": len(adjustments),
+                        "error": f"proposal signature invalid: {result.reason}"}
+
+            # SR-07 review follow-up: a valid signature is single-use and
+            # time-bound. Without this, restoring a consumed file after the
+            # rolling window rolled re-applied the same signed relaxation
+            # until the threshold reached its floor.
+            sig_id = hashlib.sha256(
+                str(sig_raw.get("value", "")).encode("utf-8")
+            ).hexdigest()
+            if sig_id in self._seen_proposal_sigs:
+                return {"applied": 0, "skipped": len(adjustments),
+                        "error": "threshold proposal replayed"}
+            try:
+                issued = datetime.fromisoformat(
+                    str(data.get("issued_at", "")).replace("Z", "+00:00")
+                )
+            except ValueError:
+                return {"applied": 0, "skipped": len(adjustments),
+                        "error": "threshold proposal issued_at invalid"}
+            if issued.tzinfo is None:
+                return {"applied": 0, "skipped": len(adjustments),
+                        "error": "threshold proposal issued_at lacks a timezone"}
+            age = time.time() - issued.timestamp()
+            if age < -_PROPOSAL_CLOCK_SKEW_SECONDS or age > _RELAX_WINDOW_SECONDS:
+                return {"applied": 0, "skipped": len(adjustments),
+                        "error": "threshold proposal outside its validity window"}
 
             approved = [a for a in adjustments if a.get("approved") is True]
             if not approved:
                 return {"applied": 0, "skipped": len(adjustments)}
 
-            # Aggregate total delta across approved scopes, cap at 0.05
-            total_delta = min(0.05, sum(a.get("max_delta", 0.0) for a in approved))
+            # Aggregate total delta across approved scopes, capped per cycle
+            # AND per rolling window (SEC-07): write access to the proposals
+            # pipeline alone cannot ratchet the ACCEPT band open over time.
+            requested = min(0.05, sum(a.get("max_delta", 0.0) for a in approved))
+            now = time.time()
+            self._relax_log = [
+                (t, d) for t, d in self._relax_log
+                if now - t < _RELAX_WINDOW_SECONDS
+            ]
+            spent = sum(d for _, d in self._relax_log)
+            budget = max(0.0, _MAX_RELAX_PER_WINDOW - spent)
+            total_delta = min(requested, budget)
             if total_delta <= 0:
-                return {"applied": 0, "skipped": len(adjustments)}
+                return {"applied": 0, "skipped": len(adjustments),
+                        "error": "rolling-window relaxation budget exhausted",
+                        "total_delta": 0.0}
 
             current = self._threshold.get_threshold("trust_critical_min")
             # Relax (lower) the threshold — wider ACCEPT band, same safety floor
@@ -238,16 +384,40 @@ class AromerAdapterBridge:
             # Consume the proposals FIRST (atomic replace, overwrites a stale
             # .consumed file on Windows) so a failed consume can never leave a
             # relaxed threshold with a still-pending proposals file.
+            applied_delta = current - new_val
+            event = {
+                "event": "threshold_changed",
+                "threshold": "trust_critical_min",
+                "before": round(current, 6),
+                "after": round(new_val, 6),
+                "proposal_sha256": hashlib.sha256(raw_bytes).hexdigest(),
+                "signature_kid": result.kid,
+                "window_id": data.get("window_id"),
+                "holdout_evidence_sha256": data.get("holdout_evidence_sha256"),
+                "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            }
+            # SR-07 review follow-up: the audit record is written before the
+            # change. A failing sink leaves the threshold untouched and the
+            # proposals file in place, so no relaxation is ever unaudited.
+            if self._audit_sink is not None:
+                self._audit_sink(event)
+
             consumed_path = proposals_path.with_suffix(".consumed.json")
             os.replace(proposals_path, consumed_path)
             self._threshold._thresholds["trust_critical_min"].current_value = new_val
+            self._relax_log.append((now, applied_delta))
+            self._seen_proposal_sigs = (
+                self._seen_proposal_sigs + [sig_id]
+            )[-_MAX_SEEN_PROPOSAL_SIGS:]
+            self._threshold_events = (self._threshold_events + [event])[-50:]
+            self._save_state()
 
             return {
                 "applied": len(approved),
                 "skipped": len(adjustments) - len(approved),
                 "trust_critical_min_before": round(current, 4),
                 "trust_critical_min_after": round(new_val, 4),
-                "total_delta": round(total_delta, 4),
+                "total_delta": round(applied_delta, 4),
             }
         except Exception:
             return {"applied": 0, "skipped": 0, "error": "proposals file unreadable"}
@@ -302,6 +472,11 @@ class AromerAdapterBridge:
                 name: self._threshold._thresholds[name].current_value
                 for name in _MANAGED_THRESHOLDS
             },
+            # SEC-07: the relaxation budget must survive restarts, or a
+            # process restart would reset the rolling window.
+            "relax_log": [[t, d] for t, d in self._relax_log],
+            "seen_proposal_sigs": list(self._seen_proposal_sigs),
+            "threshold_events": self._threshold_events,
         }
         tmp = self._state_path.with_name(self._state_path.name + ".tmp")
         tmp.write_text(json.dumps(payload, indent=2), encoding="utf-8")
@@ -325,5 +500,16 @@ class AromerAdapterBridge:
                     self._threshold._thresholds[name].current_value = min(
                         hi, max(lo, float(saved))
                     )
+            self._relax_log = [
+                (float(t), float(d))
+                for t, d in payload.get("relax_log", [])
+                if isinstance(t, (int, float)) and isinstance(d, (int, float))
+            ]
+            self._seen_proposal_sigs = [
+                s for s in payload.get("seen_proposal_sigs", [])
+                if isinstance(s, str)
+            ][-_MAX_SEEN_PROPOSAL_SIGS:]
+            events = payload.get("threshold_events", [])
+            self._threshold_events = [e for e in events if isinstance(e, dict)][-50:]
         except Exception:
             pass  # a corrupt checkpoint falls back to the fresh prior

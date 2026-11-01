@@ -8,9 +8,12 @@ proxies governed calls with the token the operator picked, and runs the OT
 battery on request. Keeping it in its own container means the thing being
 demonstrated is never modified to make the demonstration easier.
 
-The console holds the pilot tokens because the pilot is a local demo. A real
-deployment would put an identity provider here instead; this file is not a
-pattern for production credential handling and says so on the page.
+SR-06 (security review 2026-10): the console holds ONLY the viewer token,
+for its read-only dashboard polls. Governed calls forward the credential the
+operator presents per request; the console knows no roles and cannot mint an
+approver call. A real deployment would put an identity provider here instead;
+this file is not a pattern for production credential handling and says so on
+the page.
 """
 from __future__ import annotations
 
@@ -40,12 +43,11 @@ app = FastAPI(title="REMORA OT Pilot Console", docs_url=None, redoc_url=None)
 if (DIST / "assets").is_dir():
     app.mount("/assets", StaticFiles(directory=str(DIST / "assets")), name="assets")
 
-#: Demo tokens, matching docker-compose.yml. The console never mints these.
-TOKENS = {
-    "operator": os.environ.get("PILOT_TOKEN_OPERATOR", "ot-agent"),
-    "approver": os.environ.get("PILOT_TOKEN_APPROVER", "ot-approver"),
-    "viewer": os.environ.get("PILOT_TOKEN_VIEWER", "ot-viewer"),
-}
+#: Viewer token for the dashboard's read-only polls (policy, metrics, chain,
+#: envelope). The console holds no operator or approver token (SR-06): a
+#: caller who could pick a role could approve their own proposal, and the
+#: pilot would demonstrate nothing about separation of duties.
+VIEWER_TOKEN = os.environ.get("PILOT_TOKEN_VIEWER", "")
 
 
 #: Request ids are opaque identifiers minted by the governed API. Constrained
@@ -104,9 +106,9 @@ async def state() -> JSONResponse:
     async with httpx.AsyncClient(timeout=10) as client:
         for name, path, token in (
             ("health", "/v1/health", None),
-            ("policy", "/v1/policy/version", TOKENS["viewer"]),
-            ("metrics", "/v1/metrics", TOKENS["viewer"]),
-            ("chain", "/v1/audit/chain/verify", TOKENS["viewer"]),
+            ("policy", "/v1/policy/version", VIEWER_TOKEN),
+            ("metrics", "/v1/metrics", VIEWER_TOKEN),
+            ("chain", "/v1/audit/chain/verify", VIEWER_TOKEN),
         ):
             headers = {"Authorization": f"Bearer {token}"} if token else {}
             try:
@@ -125,9 +127,9 @@ async def diagnostics() -> JSONResponse:
     async with httpx.AsyncClient(timeout=10) as client:
         for name, path, token in (
             ("health", "/v1/health", None),
-            ("policy", "/v1/policy/version", TOKENS["viewer"]),
-            ("metrics", "/v1/metrics", TOKENS["viewer"]),
-            ("chain", "/v1/audit/chain/verify", TOKENS["viewer"]),
+            ("policy", "/v1/policy/version", VIEWER_TOKEN),
+            ("metrics", "/v1/metrics", VIEWER_TOKEN),
+            ("chain", "/v1/audit/chain/verify", VIEWER_TOKEN),
         ):
             headers = {"Authorization": f"Bearer {token}"} if token else {}
             try:
@@ -162,7 +164,7 @@ async def envelope(request_id: str) -> JSONResponse:
         try:
             r = await client.get(
                 f"{API}/v1/envelope/{request_id}",
-                headers={"Authorization": f"Bearer {TOKENS['viewer']}"},
+                headers={"Authorization": f"Bearer {VIEWER_TOKEN}"},
             )
             if r.status_code == 200:
                 return JSONResponse(r.json())
@@ -173,19 +175,29 @@ async def envelope(request_id: str) -> JSONResponse:
 
 @app.post("/api/call")
 async def call(request: Request) -> JSONResponse:
-    """Proxy one governed call using the role the operator selected.
+    """Proxy one governed call with the credential the operator presents.
 
-    The console does not decide anything: it forwards, and shows whatever the
-    governed API answered, including refusals.
+    SR-06 / SEC-06: the role comes from the credential, never from a `role`
+    field in the body. The console holds no write-capable token, so a caller
+    cannot promote themselves; the human approver enters the approver token
+    per request. The console does not decide anything: it forwards, and shows
+    whatever the governed API answered, including refusals.
     """
     body = await request.json()
-    role = str(body.get("role", "operator"))
-    token = TOKENS.get(role, TOKENS["operator"])
+    token = str(body.get("token") or "").strip()
     path = str(body.get("path", "/v1/execution/assess"))
+    if not token:
+        return JSONResponse(
+            {"status": 0,
+             "body": {"error": "token is required: the console holds no "
+                               "write-capable credential; present your own"},
+             "path": path},
+            status_code=400,
+        )
     if path not in _PROXYABLE_PATHS:
         return JSONResponse(
             {"status": 0, "body": {"error": "path is not proxyable by this console"},
-             "role": role, "path": path},
+             "path": path},
             status_code=400,
         )
     payload = body.get("payload") or {}
@@ -198,31 +210,59 @@ async def call(request: Request) -> JSONResponse:
             except ValueError:
                 data = {"raw": r.text[:400]}
             return JSONResponse({"status": r.status_code, "body": data,
-                                 "role": role, "path": path})
+                                 "path": path})
         except Exception as exc:  # noqa: BLE001
             return JSONResponse({"status": 0, "body": _proxy_failure(exc),
-                                 "role": role, "path": path})
+                                 "path": path})
+
+
+#: SR-06: the battery drives real approvals and side effects, so concurrent
+#: runs would interleave their evidence. One at a time; a second caller gets
+#: 409 instead of a corrupted run.
+_BATTERY_LOCK = asyncio.Lock()
 
 
 @app.post("/api/battery")
-async def battery() -> PlainTextResponse:
+async def battery(request: Request) -> PlainTextResponse:
     """Run the OT battery against the pilot and return its output verbatim.
 
     Verbatim on purpose: a console that summarised the result could hide a
     failing case, and the battery's whole value is that it says when the
     system did not do what the case specified.
+
+    The battery acts as both agent and approver, so the caller presents both
+    tokens per request (SR-06): the console does not hold them. The tokens
+    live only in the subprocess environment of this run.
     """
-    artifact_path = HERE / "artifacts" / "latest-ot-battery.json"
-    artifact_path.parent.mkdir(parents=True, exist_ok=True)
-    evidence_root = os.environ.get("REMORA_EVIDENCE_ROOT", "/var/lib/remora/evidence")
-    proc = await asyncio.create_subprocess_exec(
-        sys.executable, str(HERE.parent / "run_ot_battery.py"),
-        "--json-out", str(artifact_path),
-        "--evidence-root", evidence_root,
-        stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT,
-        env={**os.environ, "REMORA_PILOT_URL": API, "REMORA_EVIDENCE_ROOT": evidence_root},
-    )
-    stdout, _ = await proc.communicate()
+    body = await request.json()
+    agent_token = str(body.get("agent_token") or "").strip()
+    approver_token = str(body.get("approver_token") or "").strip()
+    viewer_token = str(body.get("viewer_token") or "").strip()
+    if not agent_token or not approver_token:
+        return PlainTextResponse(
+            "agent_token and approver_token are required: the console holds "
+            "no write-capable credential (SR-06)",
+            status_code=400,
+        )
+    if _BATTERY_LOCK.locked():
+        return PlainTextResponse("battery already running", status_code=409)
+    async with _BATTERY_LOCK:
+        artifact_path = HERE / "artifacts" / "latest-ot-battery.json"
+        artifact_path.parent.mkdir(parents=True, exist_ok=True)
+        evidence_root = os.environ.get("REMORA_EVIDENCE_ROOT", "/var/lib/remora/evidence")
+        proc = await asyncio.create_subprocess_exec(
+            sys.executable, str(HERE.parent / "run_ot_battery.py"),
+            "--json-out", str(artifact_path),
+            "--evidence-root", evidence_root,
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.STDOUT,
+            env={**os.environ,
+                 "REMORA_PILOT_URL": API,
+                 "REMORA_EVIDENCE_ROOT": evidence_root,
+                 "OT_TOKEN_AGENT": agent_token,
+                 "OT_TOKEN_APPROVER": approver_token,
+                 "OT_TOKEN_VIEWER": viewer_token or VIEWER_TOKEN},
+        )
+        stdout, _ = await proc.communicate()
     text = stdout.decode("utf-8", errors="replace")
     return PlainTextResponse(f"{text}\n[exit code {proc.returncode}]")
 
@@ -353,9 +393,5 @@ async def scenarios() -> JSONResponse:
     ])
 
 
-@app.get("/api/tokens")
-async def tokens() -> JSONResponse:
-    """Which token each role uses — shown on the page so the demo is legible."""
-    return JSONResponse({"tokens": TOKENS, "api": API,
-                         "docs": f"{API}/docs".replace("http://api:8000",
-                                                       "http://localhost:8080")})
+# SR-06: there is no /api/tokens route. Serving the pilot's tokens to any
+# network caller made the separation of duties decorative.
