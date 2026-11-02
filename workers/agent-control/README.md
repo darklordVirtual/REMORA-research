@@ -26,7 +26,7 @@ These are the tools actually in `TOOL_CATALOG` (`src/index.ts`):
 |------|-------------|-------------------|
 | `remora_verify_claim` | Multi-oracle consensus verification | No |
 | `dce_search_law` | Search Norwegian statutes (DCE) | No |
-| `store_artifact` | Write a file to R2 | **Yes** |
+| `store_artifact` | Write a file to R2 | **Canonical service only**: refused (503) unless `EXECUTION_SERVICE` is bound |
 
 `audit_decision` was **removed** (2026-08-19): it let the same shared bearer
 that proposes an action record its own approval, with `approved_by` as
@@ -104,8 +104,14 @@ Add to `claude_desktop_config.json`:
 
 ## Approvals (`POST /approvals`)
 
+Write-effect tools (`store_artifact`) execute only through the canonical
+execution service. Without `EXECUTION_SERVICE` and `EXECUTION_API_TOKEN`
+they answer `503 CANONICAL_EXECUTION_UNBOUND`; there is no in-Worker write
+path, with or without an approval. The local approval flow below applies to
+read-only tools that `APPROVAL_REQUIRED_TOOLS` adds:
+
 ```
-1. Agent proposes:   POST /execute {tool: store_artifact, input: {...}}   → 402 APPROVAL_REQUIRED + audit_id
+1. Agent proposes:   POST /execute {tool: dce_search_law, input: {...}}   → 402 APPROVAL_REQUIRED + audit_id
 2. Human reviews:    POST /approvals {audit_id, approved: true}
                      (Cloudflare Access identity; workload bearer refused)
 3. Agent re-submits: POST /execute {tool, input: {..., audit_id}}
@@ -123,8 +129,7 @@ keys (`canonicalToolCallHash`), without `audit_id` and `review_item_id`.
 The same arguments in another key order hash the same; another tool or tenant
 does not.
 
-With `EXECUTION_SERVICE` bound, the canonical REMORA service owns the review
-instead:
+For write-effect tools, the canonical REMORA service owns the review:
 
 ```
 1. Agent proposes:   POST /execute {tool, input: {...}}
@@ -146,9 +151,10 @@ approved write could not run.
   dynamic, request-controlled destination. (A configurable `EGRESS_ALLOWLIST`
   is roadmap, not implemented; earlier README wording overstated it; issue #55.)
 - Secret injection: API keys live in Worker Secrets, never in Claude's context.
-- Human-in-the-loop, no self-approval: destructive actions (R2 writes via
-  `store_artifact`) are held until an independent human reviewer approves via
-  `POST /approvals`. Reviewer identity comes only from a verified Cloudflare
+- Single write path: destructive actions (R2 writes via `store_artifact`)
+  run only in the canonical execution service, never in this Worker.
+- Human-in-the-loop, no self-approval: config-gated tools are held until an
+  independent human reviewer approves via `POST /approvals`. Reviewer identity comes only from a verified Cloudflare
   Access JWT (`src/auth.ts`; `ACCESS_TEAM_DOMAIN` + `ACCESS_AUD` +
   `REVIEWER_EMAILS`), verified by `workers/shared/access_jwt.ts`, the same
   code the MCP gateway uses, including the issuer check this Worker's own copy

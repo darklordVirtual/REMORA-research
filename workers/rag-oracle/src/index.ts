@@ -216,11 +216,57 @@ function requireBearer(request: Request, env: Env): Response | null {
 
 // ── 1. Embedding ──────────────────────────────────────────────────────────────
 
-async function embedText(text: string, env: Env, multilingual: boolean): Promise<number[]> {
-  const truncated = text.slice(0, 512);
+// Inputs are fitted to the embedding model's token window. A fixed
+// text.slice(0, 512) used to cut every passage to its first 512 characters,
+// so anything later in a chunk could never be retrieved, while the full
+// chunk was still stored and returned as context (W-08 / F-10).
+//
+// Budgets are in estimated tokens (letters in fours, digits and symbols
+// singly). Measured against the real bge-base WordPiece tokenizer on 46,925
+// repository chunks, 380 estimated tokens stayed at or below 480 real
+// tokens, under the 512 window; bge-m3 reads 8192 tokens.
+const EMBED_TOKEN_BUDGET: Record<string, number> = {
+  "@cf/baai/bge-base-en-v1.5": 380,
+  "@cf/baai/bge-small-en-v1.5": 380,
+  "@cf/baai/bge-large-en-v1.5": 380,
+  "@cf/baai/bge-m3": 6000,
+};
+const DEFAULT_EMBED_TOKEN_BUDGET = 380;
+const TOKEN_ESTIMATE = /[A-Za-z]{1,4}|\d|[^\sA-Za-z\d]/g;
+
+export function estimateTokens(text: string): number {
+  return (text.match(TOKEN_ESTIMATE) ?? []).length;
+}
+
+/** The longest prefix of `text` within the model's estimated token budget. */
+export function fitToEmbeddingWindow(text: string, model: string): { text: string; truncated: boolean } {
+  const budget = EMBED_TOKEN_BUDGET[model] ?? DEFAULT_EMBED_TOKEN_BUDGET;
+  if (estimateTokens(text) <= budget) return { text, truncated: false };
+  let seen = 0;
+  let end = 0;
+  for (const match of text.matchAll(TOKEN_ESTIMATE)) {
+    if (seen === budget) break;
+    seen += 1;
+    end = (match.index ?? 0) + match[0].length;
+  }
+  return { text: text.slice(0, end), truncated: true };
+}
+
+interface Embedded { vector: number[]; truncated: boolean; embeddedChars: number }
+
+async function embedWithWindow(text: string, env: Env, multilingual: boolean): Promise<Embedded> {
   const model = multilingual ? env.EMBED_MODEL_MULTI : env.EMBED_MODEL;
-  const result = await env.AI.run(model, { text: [truncated] });
-  return (result as { data: number[][] }).data[0];
+  const fitted = fitToEmbeddingWindow(text, model);
+  const result = await env.AI.run(model, { text: [fitted.text] });
+  return {
+    vector: (result as { data: number[][] }).data[0],
+    truncated: fitted.truncated,
+    embeddedChars: fitted.text.length,
+  };
+}
+
+async function embedText(text: string, env: Env, multilingual: boolean): Promise<number[]> {
+  return (await embedWithWindow(text, env, multilingual)).vector;
 }
 
 // ── 2. Translation (Norwegian → English before English-index embedding) ────────
@@ -530,12 +576,26 @@ async function handleIngest(body: IngestRequest, env: Env): Promise<Response> {
   if (!source?.trim())  return err('source is required');
   if (!domain?.trim())  return err('domain is required');
 
-  const docId = await sha256hex(`${source}::${chunk_index}::${content.slice(0, 64)}`);
-  const embedding = await embedText(content, env, useMulti);
+  // The id is the chunk's slot: tenant, source and chunk_index. It used to
+  // hash source, chunk_index and the first 64 characters of content, without
+  // the tenant, so one tenant could choose values that collide with another
+  // tenant's chunk; with upsert that replaced the victim's vector and its
+  // tenant metadata (RMR-SEC-0006). The tenant is still caller-asserted
+  // (RMR-SEC-0004); this keeps an asserted tenant from reaching another's id.
+  // The same tenant re-ingesting a slot replaces it, as an edit should.
+  const tenantId = body.tenant_id ?? '';
+  const docId = await sha256hex(
+    `v2\u0000${tenantId}\u0000${source}\u0000${chunk_index}`,
+  );
+  const embedded = await embedWithWindow(content, env, useMulti);
+  const embedding = embedded.vector;
   const vectorIndex = useMulti ? env.VECTORIZE_MULTI : env.VECTORIZE;
   const contentSnippet = content.slice(0, 1000);
 
-  await vectorIndex.insert([{
+  // upsert, not insert: the id is stable for an edited chunk (same tenant,
+  // source and chunk_index), and Vectorize ignores an insert whose id
+  // exists, which left the old embedding beside the new D1 text.
+  await vectorIndex.upsert([{
     id: docId,
     values: embedding,
     metadata: {
@@ -550,7 +610,7 @@ async function handleIngest(body: IngestRequest, env: Env): Promise<Response> {
       // Access control fields — default to 'public' / no tenant restriction
       clearance_level: body.clearance_level ?? 'public',
       acl_groups:      JSON.stringify(body.acl_groups ?? []),
-      tenant_id:       body.tenant_id ?? '',
+      tenant_id:       tenantId,
     },
   }]);
 
@@ -567,6 +627,13 @@ async function handleIngest(body: IngestRequest, env: Env): Promise<Response> {
   return json({
     ok: true, vector_id: docId, source, domain, chunk_index,
     multilingual: useMulti,
+    // Retrieval only sees the embedded prefix; a caller that gets
+    // truncated=true should split the chunk.
+    embedding: {
+      truncated: embedded.truncated,
+      embedded_chars: embedded.embeddedChars,
+      content_chars: content.length,
+    },
     index: useMulti ? 'remora-knowledge-multi' : 'remora-knowledge',
   });
 }
