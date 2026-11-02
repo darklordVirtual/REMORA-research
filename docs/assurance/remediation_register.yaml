@@ -1752,3 +1752,28 @@ items:
       is clamped to [-1, 1] and does not feed the promotion gate. Tests:
       tests/security/test_sr13_meta_judge.py (failing-first, then green;
       +6 malformed-output and fallback cases).
+
+  - id: REM-065
+    section: "security-review-2026-11"
+    title: "RMR-SEC-0023: audit-outbox drain deadlocked on SQLite with two or more pending events"
+    gate: P1
+    status: DONE
+    completed: "2026-11-02"
+    artifacts:
+      - remora/governance/audit_outbox.py
+      - tests/test_sec0023_audit_outbox_sqlite_drain.py
+    notes: >
+      Adversarial security review 2026-11-02 (RMR-SEC-0023, P1 for SQLite
+      deployments): drain() committed its UPDATE marks only after the loop,
+      so on SQLite it held the write lock while SQLiteTenantChain.append_once
+      opened BEGIN IMMEDIATE on a second connection to the same file. From the
+      second pending row on, each append waited out the 30 s busy timeout and
+      failed; the API sweep swallowed the error and returned 0, approval and
+      revocation events never reached the chain, other ledgers on the file
+      saw "database is locked", and /audit/verify still reported valid. The
+      wiring tests replaced the chain with the in-memory one, which takes no
+      file lock. Fixed by ending pending()'s read transaction and committing
+      each mark before the next append; replay safety is unchanged because
+      the append is claimed under the row's key. Tests use a real SQLite file
+      for outbox and chain: 3 pending rows drain in under 5 s (failed first
+      with "database is locked" after 96 s).

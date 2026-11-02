@@ -207,16 +207,26 @@ def drain(conn: Any, chain: ChainPort, *, tenant: str | None = None) -> int:
         )
     marker = _placeholder(conn)
     projected = 0
-    for key, row_tenant, payload in pending(conn, tenant=tenant):
+    rows = pending(conn, tenant=tenant)
+    # pending() may have opened a read transaction; end it before the first
+    # append so this connection holds no lock while the chain writes.
+    conn.commit()
+    for key, row_tenant, payload in rows:
         chain.append_once(row_tenant, key, payload)
         conn.execute(
             f"UPDATE audit_outbox SET projected = "
             f"{'TRUE' if marker == '%s' else '1'} WHERE key = {marker}",
             (key,),
         )
-        projected += 1
-    if projected:
+        # Commit each mark before the next append (RMR-SEC-0023). One commit
+        # after the loop held SQLite's write lock across appends; the chain's
+        # BEGIN IMMEDIATE on a second connection to the same file then waited
+        # out its busy timeout from the second row on, the caller's sweep
+        # swallowed the error, and approval and revocation events never
+        # reached the chain. A crash between append and mark still replays
+        # safely: the append is claimed under the row's key.
         conn.commit()
+        projected += 1
     return projected
 
 

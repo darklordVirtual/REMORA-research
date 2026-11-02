@@ -5899,9 +5899,9 @@
     },
     "docs/assurance/remediation_register.yaml": {
       "concepts": [],
-      "git_blob": "ff41519247ca11085e45af0ea7e3f01aebcef4b4",
+      "git_blob": "dba4d809653650e53955ac8f4436bed9ec774f1f",
       "mode": "100644",
-      "sha256": "783eb016e200e3316f76b65b6db03c2b281d562302d9aec8a939cdc201f405fc"
+      "sha256": "a75ab2f3ffcd77de32658bd7ce76b1397a20a427c3a4f563e900da4b4ef4a5d6"
     },
     "docs/assurance/reproducibility_scorecard_v1.md": {
       "concepts": [],
@@ -11699,9 +11699,9 @@
     },
     "remora/governance/audit_outbox.py": {
       "concepts": [],
-      "git_blob": "73552aca8cbaa5fec7e766afd16dfcb17268a99f",
+      "git_blob": "5019447ca7c3120b8fab9d9bc419fabd83bddcbe",
       "mode": "100644",
-      "sha256": "986ea96b01db5236628350a11156174995710fe358578bee0f3733e5a131152f"
+      "sha256": "5368abad33016c39b80f4cfeb4a85d925e0aa54a476177c78617872f776a7846"
     },
     "remora/governance/audit_signing.py": {
       "concepts": [],
@@ -20424,6 +20424,12 @@
       "mode": "100644",
       "sha256": "96cf8455c72fc75db70036f811f6a2bbfd50519a4b1b349d7c0d99dfc4c721d2"
     },
+    "tests/test_sec0023_audit_outbox_sqlite_drain.py": {
+      "concepts": [],
+      "git_blob": "baea2d1964b4db01b4b028aa6c2b48abd283c409",
+      "mode": "100644",
+      "sha256": "ed6f51588e1d1bcc0259498d04d494db26eaf6f647c077a9d21ba3e45471c03b"
+    },
     "tests/test_security_hardening.py": {
       "concepts": [],
       "git_blob": "33e43f98d35ffa0395bb18c765275f0b9d234b44",
@@ -21783,7 +21789,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "42c1bf70184002314f5f2c44acf3cae70168f2136a8616e9f293f19b51c09295",
+  "register_sha256": "13212099a3be21ec9a612048b122a78eae8b11616595b823dc19184dc0709d5c",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
