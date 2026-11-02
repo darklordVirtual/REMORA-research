@@ -231,9 +231,11 @@ default mode. Pass `mode` to the endpoint directly for the other two.
 | `hybrid` | reciprocal-rank fusion of both | `Authorization: Bearer $CONTROL_SECRET` | keyword ranking, with `semantic.status: "unavailable"` |
 
 Semantic results carry `start_line`, `end_line` and a short `snippet` of the
-best-matching chunk per file. Every response states `semantic.status`, so a
-degraded hybrid answer is visible to the caller rather than silently
-keyword-only.
+best-matching chunk per file. Every successful response states
+`semantic.status`, so a degraded hybrid answer is visible to the caller
+rather than silently keyword-only. An index that answers with nothing
+reports `empty` with a reason. Most often `CODEGRAPH_INDEX_VERSION` names a
+version the index does not hold.
 
 The file catalog (`workers/agent-control/src/codegraph.paths.ts`) is
 generated from `git ls-files`, and the semantic index is built offline into
@@ -244,11 +246,22 @@ the `remora-codegraph` Vectorize index (768 dimensions, cosine,
 cd workers/agent-control
 npm run codegraph:paths        # regenerate the catalog, then commit it
 npm run codegraph:index -- --dry-run
-CLOUDFLARE_ACCOUNT_ID=... CLOUDFLARE_API_TOKEN=... npm run codegraph:index \
-  -- --prune-previous ../../.codegraph/semantic-manifest-<previous>.json
-# then set CODEGRAPH_INDEX_VERSION in wrangler.toml to the printed version
-# and deploy the worker
+CLOUDFLARE_ACCOUNT_ID=... CLOUDFLARE_API_TOKEN=... npm run codegraph:index
+# set CODEGRAPH_INDEX_VERSION in wrangler.toml to the printed version and
+# deploy the worker; only then delete the previous version:
+CLOUDFLARE_ACCOUNT_ID=... CLOUDFLARE_API_TOKEN=... npm run codegraph:index -- \
+  --prune-only --prune-previous ../../.codegraph/semantic-manifest-<old>.json \
+  --current ../../.codegraph/semantic-manifest-<new>.json
 ```
+
+Every vector id includes the index version, so an indexing run writes beside
+the version the deployed worker filters on and never overwrites it. The
+worker switches versions on deploy, and pruning comes after that.
+
+The `[[vectorize]]` binding in `wrangler.toml` names the `remora-codegraph`
+index, which must exist before `wrangler deploy` (the commands are in the
+comment above the binding). To deploy without semantic search, remove the
+`[ai]` and `[[vectorize]]` blocks.
 
 The indexer skips lockfiles, `provenance/`, generated code, JSONL and the
 JSON data under `artifacts/`, `results/`, `data/` and `datasets/`. It refuses

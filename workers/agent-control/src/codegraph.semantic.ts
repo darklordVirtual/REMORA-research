@@ -52,6 +52,9 @@ export interface CodegraphSemanticEnv {
 export type SemanticStatus =
   | { status: "not_requested" }
   | { status: "ok"; model: string; index_version: string | null }
+  // The index answered with nothing. Usually CODEGRAPH_INDEX_VERSION names a
+  // version the index does not hold, so it is reported, never shown as "ok".
+  | { status: "empty"; model: string; index_version: string | null; reason: string }
   | { status: "unavailable"; reason: string }
   | { status: "error"; reason: string };
 
@@ -247,10 +250,20 @@ export async function buildCodegraphSearch(
     index_version: env.CODEGRAPH_INDEX_VERSION?.trim() || null,
   };
 
+  const emptyStatus = (): SemanticStatus => ({
+    status: "empty",
+    model: embedModel(env),
+    index_version: env.CODEGRAPH_INDEX_VERSION?.trim() || null,
+    reason: "no indexed chunk matched; check that CODEGRAPH_INDEX_VERSION names an indexed version",
+  });
+
   if (mode === "semantic") {
     try {
       const matches = await semanticSearch(query, limit, env);
-      return { ok: true, body: { ...base, mode, semantic: okStatus, matches } };
+      return {
+        ok: true,
+        body: { ...base, mode, semantic: matches.length ? okStatus : emptyStatus(), matches },
+      };
     } catch (error) {
       if (error instanceof SemanticUnavailableError) {
         return { ok: false, status: 503, error: `semantic search unavailable: ${error.message}` };
@@ -265,6 +278,7 @@ export async function buildCodegraphSearch(
   let status: SemanticStatus = okStatus;
   try {
     semantic = await semanticSearch(query, Math.max(limit, 10), env);
+    if (semantic.length === 0) status = emptyStatus();
   } catch (error) {
     status =
       error instanceof SemanticUnavailableError

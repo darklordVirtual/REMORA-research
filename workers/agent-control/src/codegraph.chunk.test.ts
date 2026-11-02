@@ -89,12 +89,17 @@ describe("chunkText", () => {
 describe("chunkId and metadata", () => {
   const c = { start_line: 1, end_line: 2, text: "a\nb" };
 
-  it("is a 64-hex id, stable for identical content and different otherwise", () => {
-    const id = chunk.chunkId("x.py", c);
+  it("is a 64-hex id, stable for identical content and version, different otherwise", () => {
+    const id = chunk.chunkId("x.py", c, "v1");
     expect(id).toMatch(/^[0-9a-f]{64}$/);
-    expect(chunk.chunkId("x.py", { ...c })).toBe(id);
-    expect(chunk.chunkId("y.py", c)).not.toBe(id);
-    expect(chunk.chunkId("x.py", { ...c, text: "a\nc" })).not.toBe(id);
+    expect(chunk.chunkId("x.py", { ...c }, "v1")).toBe(id);
+    expect(chunk.chunkId("y.py", c, "v1")).not.toBe(id);
+    expect(chunk.chunkId("x.py", { ...c, text: "a\nc" }, "v1")).not.toBe(id);
+  });
+
+  it("gives a new index version new ids, so a re-index never overwrites the served one", () => {
+    expect(chunk.chunkId("x.py", c, "v2")).not.toBe(chunk.chunkId("x.py", c, "v1"));
+    expect(() => chunk.chunkId("x.py", c, "")).toThrow();
   });
 
   it("bounds the snippet", () => {

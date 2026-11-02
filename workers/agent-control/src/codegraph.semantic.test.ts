@@ -153,6 +153,16 @@ describe("buildCodegraphSearch", () => {
     expect((result.body.matches as unknown[]).length).toBeGreaterThan(0);
   });
 
+  it("reports an index that answers with nothing as empty, not ok", async () => {
+    const { env } = fakeEnv([], { CODEGRAPH_INDEX_VERSION: "v-missing" });
+    for (const mode of ["semantic", "hybrid"] as const) {
+      const result = await buildCodegraphSearch("ledger", 3, mode, env);
+      expect(result.ok).toBe(true);
+      if (!result.ok) continue;
+      expect(result.body.semantic).toMatchObject({ status: "empty", index_version: "v-missing" });
+    }
+  });
+
   it("rejects empty and oversized queries for paid modes", async () => {
     const { env, run } = fakeEnv([]);
     expect(await buildCodegraphSearch("", 3, "semantic", env)).toMatchObject({ ok: false, status: 400 });

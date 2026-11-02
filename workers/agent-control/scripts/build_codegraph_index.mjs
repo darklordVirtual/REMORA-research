@@ -7,14 +7,18 @@
 //
 //   node scripts/build_codegraph_index.mjs --dry-run
 //   CLOUDFLARE_ACCOUNT_ID=... CLOUDFLARE_API_TOKEN=... \
-//     node scripts/build_codegraph_index.mjs [--version V] [--prune-previous FILE]
+//     node scripts/build_codegraph_index.mjs [--version V]
+//   # set CODEGRAPH_INDEX_VERSION to the printed version, deploy, then:
+//   CLOUDFLARE_ACCOUNT_ID=... CLOUDFLARE_API_TOKEN=... \
+//     node scripts/build_codegraph_index.mjs --prune-only \
+//       --prune-previous .codegraph/semantic-manifest-OLD.json \
+//       --current .codegraph/semantic-manifest-NEW.json
 //
-// The API token needs Workers AI: Read and Vectorize: Edit. A manifest of
-// the written vector ids goes to <repo>/.codegraph/ (gitignored); pass the
-// previous run's manifest as --prune-previous to delete vectors for chunks
-// that no longer exist. After a run, set CODEGRAPH_INDEX_VERSION in
-// wrangler.toml to the printed version and redeploy, so stale vectors are
-// filtered out even before they are pruned.
+// The API token needs Workers AI: Read and Vectorize: Edit. Each run writes
+// its vector ids to <repo>/.codegraph/ (gitignored). The version is part of
+// every id, so an indexing run never touches the vectors the deployed worker
+// filters on; the old version is deleted by a separate --prune-only run once
+// the worker serves the new one.
 
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
@@ -43,11 +47,54 @@ const { values: args } = parseArgs({
     index: { type: "string", default: "remora-codegraph" },
     model: { type: "string", default: "@cf/baai/bge-base-en-v1.5" },
     "prune-previous": { type: "string" },
+    "prune-only": { type: "boolean", default: false },
+    current: { type: "string" },
   },
 });
 
 function git(repo, ...argv) {
   return execFileSync("git", ["-C", repo, ...argv], { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
+}
+
+const API_EARLY = "https://api.cloudflare.com/client/v4";
+
+// ── Prune-only: delete the previous version after the worker moved on ─────────
+if (args["prune-only"]) {
+  if (!args["prune-previous"] || !args.current) {
+    console.error("--prune-only needs --prune-previous OLD_MANIFEST and --current NEW_MANIFEST.");
+    process.exit(2);
+  }
+  const account = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const token = process.env.CLOUDFLARE_API_TOKEN;
+  if (!account || !token) {
+    console.error("CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN are required.");
+    process.exit(2);
+  }
+  const previous = JSON.parse(readFileSync(args["prune-previous"], "utf8"));
+  const current = JSON.parse(readFileSync(args.current, "utf8"));
+  if (previous.version === current.version) {
+    console.error("Refusing to prune: both manifests name the same version.");
+    process.exit(2);
+  }
+  const keep = new Set(current.ids ?? []);
+  const stale = (previous.ids ?? []).filter((id) => !keep.has(id));
+  for (let i = 0; i < stale.length; i += 1000) {
+    const response = await fetch(
+      `${API_EARLY}/accounts/${account}/vectorize/v2/indexes/${encodeURIComponent(args.index)}/delete_by_ids`,
+      { method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: stale.slice(i, i + 1000) }) },
+    );
+    if (!response.ok) {
+      console.error(`delete_by_ids -> HTTP ${response.status}`);
+      process.exit(1);
+    }
+  }
+  console.log(`pruned ${stale.length} vectors of version ${previous.version}; kept ${current.version}`);
+  process.exit(0);
+}
+if (args["prune-previous"]) {
+  console.error("--prune-previous runs only with --prune-only, after the worker serves the new version.");
+  process.exit(2);
 }
 
 const repo = git(process.cwd(), "rev-parse", "--show-toplevel").trim();
@@ -87,7 +134,7 @@ for (const path of tracked) {
   filesIndexed += 1;
   for (const chunk of chunks) {
     records.push({
-      id: chunkId(path, chunk),
+      id: chunkId(path, chunk, version),
       input: embeddingInput(path, chunk),
       metadata: {
         path,
@@ -184,18 +231,6 @@ const manifestPath = join(repo, ".codegraph", `semantic-manifest-${version}.json
 writeFileSync(manifestPath, JSON.stringify({ ...summary, ids }, null, 2));
 console.log(`manifest: ${manifestPath}`);
 
-if (args["prune-previous"]) {
-  const previous = JSON.parse(readFileSync(args["prune-previous"], "utf8"));
-  const current = new Set(ids);
-  const stale = (previous.ids ?? []).filter((id) => !current.has(id));
-  for (let i = 0; i < stale.length; i += DELETE_BATCH) {
-    await cf(`${indexPath}/delete_by_ids`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids: stale.slice(i, i + DELETE_BATCH) }),
-    });
-  }
-  console.log(`pruned ${stale.length} stale vectors from ${args["prune-previous"]}`);
-}
 
-console.log(`\nNext: set CODEGRAPH_INDEX_VERSION = "${version}" in wrangler.toml and redeploy.`);
+console.log(`\nNext: set CODEGRAPH_INDEX_VERSION = "${version}" in wrangler.toml and redeploy;`);
+console.log(`then prune the previous version with --prune-only --current ${manifestPath}.`);

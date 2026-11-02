@@ -128,12 +128,15 @@ export function snippetOf(text) {
 }
 
 /**
- * Deterministic vector id (64 hex chars, Vectorize's id limit): identical
- * path, line range and content map to the same id across runs, so an
- * unchanged chunk is overwritten in place rather than duplicated.
+ * Deterministic vector id (64 hex chars, Vectorize's id limit). The index
+ * version is part of the id, so a re-index writes beside the vectors the
+ * deployed worker still filters on instead of overwriting them in place;
+ * the previous version is pruned only after the worker is redeployed with
+ * the new CODEGRAPH_INDEX_VERSION.
  */
-export function chunkId(path, chunk) {
+export function chunkId(path, chunk, version) {
+  if (!version) throw new Error("chunkId needs the index version");
   return createHash("sha256")
-    .update(`${path}\u0000${chunk.start_line}\u0000${chunk.end_line}\u0000${chunk.text}`)
+    .update(`${version}\u0000${path}\u0000${chunk.start_line}\u0000${chunk.end_line}\u0000${chunk.text}`)
     .digest("hex");
 }

@@ -6649,9 +6649,9 @@
     },
     "docs/integrations/mcp-integration.md": {
       "concepts": [],
-      "git_blob": "199f3bf4a7236a093d434c0b0204dd5710807c73",
+      "git_blob": "8e74f70c80a8e99f248c4cb718dbffc701c351bc",
       "mode": "100644",
-      "sha256": "7074c9a249018f92ac42d2bf35d9effa24ae78ab482670043ea11fa2372ec3cb"
+      "sha256": "7478169244b674b51ad657b0f5d0e53c4c8be8b5390939168742dd6a1877bbeb"
     },
     "docs/integrations/rag_oracle.md": {
       "concepts": [],
@@ -21447,9 +21447,9 @@
     },
     "workers/agent-control/package-lock.json": {
       "concepts": [],
-      "git_blob": "9eeab77699eab1137dc40b89830d6b1ea7d26dd1",
+      "git_blob": "e543e17816f67e8e3342857920e997a2122366f7",
       "mode": "100644",
-      "sha256": "0a6b502be0142f6b76fd86fb24cdf27f7f4014f5471fcdf297b7472c4bf397b5"
+      "sha256": "5bde628291816a513f7c573da9ec1aac1e73060a75b80024536b157ecbcd1477"
     },
     "workers/agent-control/package.json": {
       "concepts": [],
@@ -21465,15 +21465,15 @@
     },
     "workers/agent-control/scripts/build_codegraph_index.mjs": {
       "concepts": [],
-      "git_blob": "2c37247e30e88f292ade60070fb997da34252dd2",
+      "git_blob": "4245825def70b0f2b263bc6253b300a873944c61",
       "mode": "100644",
-      "sha256": "ca2c63c1099bc04a0f379e0f739fc94d1498c5cb7ccbdc42ec7298a7fb327fbf"
+      "sha256": "6c38669a4ff1e1b1fa913cce4485ce7f951fb087d6827d695e8fc0acc667f842"
     },
     "workers/agent-control/scripts/codegraph_chunk.mjs": {
       "concepts": [],
-      "git_blob": "69111a63bf6b260f198044e3e78d3d9f870c6e6d",
+      "git_blob": "4668d6e45e5d90e42fbc3a4430a506b7c16bc685",
       "mode": "100644",
-      "sha256": "b86630dd70d93b7e7256d3d026496e9314adb9422a8d308ba3d8c291f1d0a4e0"
+      "sha256": "ea9079cf9550784cc920fd5146ad6cc02dcb5659f7feda2e39ae9483e0076775"
     },
     "workers/agent-control/scripts/generate_codegraph_paths.mjs": {
       "concepts": [],
@@ -21495,9 +21495,9 @@
     },
     "workers/agent-control/src/codegraph.chunk.test.ts": {
       "concepts": [],
-      "git_blob": "6e0e3f68995057869482fa0f0548bffadd393e36",
+      "git_blob": "ec7930372ece681373ec4989b49982aa8031dc5e",
       "mode": "100644",
-      "sha256": "c8cb2365618ea0b51f2e01ac2456ec07648b9051e7162d6dd54129253620d89d"
+      "sha256": "97403d3918c26d90f1bc98f72a33013da5af2ad2a3d254dbbd01f9676685f1fb"
     },
     "workers/agent-control/src/codegraph.paths.ts": {
       "concepts": [],
@@ -21507,15 +21507,15 @@
     },
     "workers/agent-control/src/codegraph.semantic.test.ts": {
       "concepts": [],
-      "git_blob": "75705af0165518feca40487bafcd79554d95b2ff",
+      "git_blob": "7955699cfa565bb47dc9426a61f878a30a5787ef",
       "mode": "100644",
-      "sha256": "8865de6c5526efc57d8168d07e9715ca1e7087da47c81178824661186e3b1b90"
+      "sha256": "6c3261781fe95dc8dcf147b64f3b676ca130939e92eb27052bde6eb472556588"
     },
     "workers/agent-control/src/codegraph.semantic.ts": {
       "concepts": [],
-      "git_blob": "7bffc56c7226b4781c257b25bfb99ca3a7fe68b2",
+      "git_blob": "6b9447f4a49d315ea4e034ed3958e8601163f1c8",
       "mode": "100644",
-      "sha256": "8988883f1d2f0d73992494a652447a1c31f4c340e80db006b1323bf5e073092a"
+      "sha256": "a728deb9533998944cb4e4adcd6a620eda33e4b80715281d04906f18e3499e66"
     },
     "workers/agent-control/src/codegraph.ts": {
       "concepts": [],
@@ -21849,7 +21849,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "a118e9ce607756339ff02c4f655bf582ad1343c4cfeaa0483f66caf0382dedc6",
+  "register_sha256": "98f4634f767d9845d0f42f0389ed153e56b1060124120b14e78f5a635c54d4b3",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
