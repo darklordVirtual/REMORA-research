@@ -156,6 +156,8 @@ def executor(monkeypatch, tmp_path):
     monkeypatch.setenv("REMORA_CAPABILITY_POLICY_FILE", str(policy))
     monkeypatch.setenv("REMORA_CAPABILITY_EPOCH_MODULE", "tests.capability_epoch_fixture")
     monkeypatch.setenv("REMORA_ENV", "development")
+    # RMR-SEC-0001: only the execution domain serves /dispatch-leased.
+    monkeypatch.setenv("REMORA_EXECUTION_DOMAIN_ROLE", "executor")
     monkeypatch.setenv("REMORA_TOOL_REGISTRY_MODULE", "tests.dispatcher_registry_fixture")
     monkeypatch.delenv(signing.ENV_HMAC, raising=False)
     monkeypatch.delenv(signing.ENV_HMAC_FALLBACK, raising=False)
@@ -192,7 +194,9 @@ def _mint_and_present(executor, between=lambda s: None):
     lease = issue_execution_lease(
         tenant="acme", principal="employee-1", tool_call=SimpleNamespace(**LEASED),
         semantic={"tool_contract_bundle_hash": "", "intent_authority_hash": ""},
-        now=datetime.now(UTC), policy_bundle_hash=executor.bundle, capability_set=s)
+        now=datetime.now(UTC), policy_bundle_hash=executor.bundle, capability_set=s,
+        # RMR-SEC-0001: the executor refuses a lease linked to no proposal/grant.
+        proposal_id="prop-1", grant_jti="grant-1")
     between(s)
     executor.monkeypatch.delenv(executor.signing.ENV_ED25519_PRIVATE, raising=False)
     return executor.client.post("/v1/execution/dispatch-leased", json={
@@ -223,6 +227,8 @@ class TestTheExecutorReadsEpochsAtDispatch:
 
     def test_assess_refuses_when_the_epoch_store_is_down(self, executor):
         epochs.DOWN["down"] = True
+        # /assess is an authority route; this rig is configured as the executor.
+        executor.monkeypatch.delenv("REMORA_EXECUTION_DOMAIN_ROLE", raising=False)
         body = executor.client.post("/v1/execution/assess", json={
             "tool_name": "read_telemetry", "arguments": {"asset": "P-1"},
             "target_environment": "staging", "task_type": "monitoring"}).json()

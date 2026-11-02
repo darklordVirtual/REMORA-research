@@ -54,6 +54,7 @@ import os
 import threading
 import time
 import uuid
+from collections.abc import Mapping
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Literal
@@ -522,10 +523,21 @@ _ALL_CAPABILITIES: frozenset[str] = frozenset({
     # RMR-AUD-004: recording an observed effect is separate from executing,
     # so the agent that ran a call does not attest to its effect.
     "verify_effect",
+    # RMR-SEC-0001: presenting a lease to the executor's /dispatch-leased is
+    # the authority domain's hop, not an agent action. It used to need only
+    # "execute", which the agent-facing operator role holds, so an agent with
+    # a copy of the lease key could dispatch calls policy had sent to review.
+    "dispatch",
 })
 
+# Capabilities that belong to a service hop, never to a person or an agent.
+# admin holds every capability except these: an administrator who could also
+# present leases to the executor would be the single principal RMR-SEC-0001
+# showed must not exist (in the OT pilot, the approver is an admin).
+_SERVICE_ONLY_CAPABILITIES: frozenset[str] = frozenset({"dispatch"})
+
 _BUILTIN_ROLE_PERMISSIONS: dict[str, set[str]] = {
-    "admin": set(_ALL_CAPABILITIES),
+    "admin": set(_ALL_CAPABILITIES - _SERVICE_ONLY_CAPABILITIES),
     "operator": {"assess", "evidence", "execute", "rerun", "read"},
     "reviewer": {"review", "follow_up", "read"},
     "domain_expert": {"review", "read"},
@@ -534,6 +546,9 @@ _BUILTIN_ROLE_PERMISSIONS: dict[str, set[str]] = {
     "legal_counsel": {"review", "read"},
     "viewer": {"read"},
     "effect_verifier": {"verify_effect", "read"},
+    # The authority -> executor hop credential (REMORA_EXECUTION_TOKEN on the
+    # authority side). It can present leases and nothing else.
+    "dispatch_hop": {"dispatch"},
 }
 
 
@@ -613,6 +628,44 @@ def _normalize_oracle_backend(backend: str) -> str:
         "local_vllm": "ollama",
     }
     return mapping.get(raw, raw)
+
+
+#: Symmetric keys that sign authority. An HMAC key anyone can read signs
+#: anything: the 2026-11-02 review forged a lease with the literal committed in
+#: deploy/ot-pilot/docker-compose.yml and closed a valve (RMR-SEC-0001).
+_SYMMETRIC_SIGNING_KEY_ENVS: tuple[str, ...] = (
+    "REMORA_PDP_SIGNING_KEY",
+    "REMORA_LEASE_SIGNING_KEY",
+    "REMORA_AUDIT_SIGNING_KEY",
+    "REMORA_ENVELOPE_SIGNING_KEY",
+)
+_MIN_SYMMETRIC_KEY_BYTES = 32
+#: Placeholder shapes from documentation, examples and compose files. Matched
+#: case-insensitively anywhere in the value.
+_PLACEHOLDER_KEY_MARKERS: tuple[str, ...] = (
+    "change-me", "changeme", "change_me", "replace-me", "example", "placeholder",
+    "secret", "test-key", "dev-key", "pilot-",
+)
+
+
+def weak_symmetric_signing_keys(environ: Mapping[str, str]) -> list[str]:
+    """Names of set symmetric signing keys that are placeholders or too short.
+
+    Unset keys are not reported here; whether a key is required is the
+    prerequisite check's business. A value counts as weak when it is shorter
+    than 32 bytes or carries a placeholder marker, which covers every literal
+    this repository has shipped (``pilot-*-key-change-me``).
+    """
+    weak: list[str] = []
+    for name in _SYMMETRIC_SIGNING_KEY_ENVS:
+        value = (environ.get(name) or "").strip()
+        if not value:
+            continue
+        lowered = value.lower()
+        if (len(value.encode("utf-8")) < _MIN_SYMMETRIC_KEY_BYTES
+                or any(marker in lowered for marker in _PLACEHOLDER_KEY_MARKERS)):
+            weak.append(name)
+    return weak
 
 
 def _validate_production_prerequisites() -> None:
@@ -736,6 +789,15 @@ def _validate_production_prerequisites() -> None:
         raise RuntimeError(
             "REMORA API production mode fail-closed: missing required env vars: "
             f"{vars_txt}."
+        )
+
+    weak = weak_symmetric_signing_keys(os.environ)
+    if weak:
+        raise RuntimeError(
+            "REMORA API production mode fail-closed: signing key(s) that anyone "
+            f"can know or guess: {', '.join(weak)}. Generate random keys of at "
+            f"least {_MIN_SYMMETRIC_KEY_BYTES} bytes (the OT pilot's "
+            "deploy/ot-pilot/init_tokens.py does this) (RMR-SEC-0001)."
         )
 
     if _env_flag("REMORA_API_ALLOW_MOCK_ORACLES", default=False):

@@ -448,6 +448,8 @@ def test_remote_endpoint_checks_context_digest_and_runtime(client, provider, mon
         issued_at=datetime.now(UTC).isoformat(), proposal_id=context.proposal_id,
         grant_jti=str(uuid4()), execution_context=context)
     request["lease"] = lease.to_dict()
+    # RMR-SEC-0001: only the execution domain serves /dispatch-leased.
+    monkeypatch.setenv("REMORA_EXECUTION_DOMAIN_ROLE", "executor")
     refused = client.post("/v1/execution/dispatch-leased", json={
         **request, "execution_context": changed})
     assert refused.status_code == 200, refused.text

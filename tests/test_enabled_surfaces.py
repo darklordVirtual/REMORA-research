@@ -142,9 +142,9 @@ _PROD_EXECUTION_ENV = {
     "REMORA_ENV": "production",
     "REMORA_API_BEARER_TOKEN": "t",
     "REMORA_API_TOKENS": '{"t":{"tenant":"acme","role":"operator"}}',
-    "REMORA_PDP_SIGNING_KEY": "k",
-    "REMORA_LEASE_SIGNING_KEY": "k",
-    "REMORA_ENVELOPE_SIGNING_KEY": "k",
+    "REMORA_PDP_SIGNING_KEY": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "REMORA_LEASE_SIGNING_KEY": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "REMORA_ENVELOPE_SIGNING_KEY": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
 }
 
 

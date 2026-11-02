@@ -53,6 +53,8 @@ def executor(monkeypatch):
     public = key.public_key().public_bytes_raw().hex()
 
     monkeypatch.setenv("REMORA_ENV", "development")
+    # RMR-SEC-0001: only the execution domain serves /dispatch-leased.
+    monkeypatch.setenv("REMORA_EXECUTION_DOMAIN_ROLE", "executor")
     monkeypatch.setenv("REMORA_TOOL_REGISTRY_MODULE",
                        "tests.dispatcher_registry_fixture")
     monkeypatch.delenv(signing.ENV_HMAC, raising=False)
@@ -91,6 +93,8 @@ def _lease(executor, **over):
         semantic=SEMANTIC,
         now=datetime.now(UTC),
         policy_bundle_hash=over.pop("bundle", executor.bundle),
+        # RMR-SEC-0001: the executor refuses a lease linked to no proposal/grant.
+        proposal_id="prop-1", grant_jti="grant-1",
     )
 
 

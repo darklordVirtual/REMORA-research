@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 from types import SimpleNamespace
+from uuid import uuid4
 
 import pytest
 
@@ -53,8 +54,12 @@ def executor(_executor, monkeypatch, tmp_path):  # noqa: F811
 
 
 def _context(executor) -> str:
-    r = executor.client.post("/v1/contexts",
-                             json={"user_principal": USER, "model_principal": MODEL})
+    # Contexts are opened on the authority side; the shared fixture configures
+    # this process as the executor (RMR-SEC-0001), so step out of that role.
+    with pytest.MonkeyPatch.context() as mp:
+        mp.delenv("REMORA_EXECUTION_DOMAIN_ROLE", raising=False)
+        r = executor.client.post("/v1/contexts",
+                                 json={"user_principal": USER, "model_principal": MODEL})
     assert r.status_code == 200, r.text
     return r.json()["context_id"]
 
@@ -95,7 +100,11 @@ def _lease(executor, call, *, bound: bool = True):
         semantic=SEMANTIC, now=datetime.now(UTC), policy_bundle_hash=executor.bundle,
         task_identity=TaskIdentity.from_fields(
             {"context_id": call["context_id"], "task_id": "task-1"}),
-        flow_binding=_binding(call) if bound else None)
+        flow_binding=_binding(call) if bound else None,
+        # RMR-SEC-0001: the executor refuses a lease linked to no proposal/grant.
+        # One proposal per lease, as the authority mints them: the dispatch
+        # fence is keyed by proposal, so two leases must not share one.
+        proposal_id=f"prop-{uuid4().hex}", grant_jti=f"grant-{uuid4().hex}")
 
 
 def _call(context_id):
@@ -436,7 +445,8 @@ def test_a_mediated_tool_may_send_the_payload_only_to_the_recipients_the_flow_ch
         task_identity=TaskIdentity.from_fields(
             {"context_id": call["context_id"], "task_id": "task-1"}),
         capability_set=capability_set, flow_binding=_binding(call),
-        flow_recipients=frozenset({"ext://partner.example"}))
+        flow_recipients=frozenset({"ext://partner.example"}),
+        proposal_id=f"prop-{uuid4().hex}", grant_jti=f"grant-{uuid4().hex}")
     assert lease.flow_recipients_digest == recipients_digest({"ext://partner.example"})
     executor.registry.EFFECTS.clear()
     body = _post(executor, lease, call=call, capability_set=capability_set.to_dict()).json()

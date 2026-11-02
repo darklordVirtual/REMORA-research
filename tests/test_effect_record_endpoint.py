@@ -62,7 +62,7 @@ def _record(**overrides) -> dict:
 
 
 def _make_client(monkeypatch, tmp_path, *, tenant="acme"):
-    monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "rec-pdp-key")
+    monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1")
     # The deployment declares which authenticated principal may submit
     # receipts under which verifier identity. Without it the identity must
     # equal the principal, which is fail-closed: before this binding existed
@@ -74,7 +74,7 @@ def _make_client(monkeypatch, tmp_path, *, tenant="acme"):
     # executor is a self-attestation and never settles the proposal.
     monkeypatch.setenv("REMORA_EFFECT_VERIFIER_BINDINGS",
                        "reader-svc=acme.reader/v1")
-    monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "rec-lease-key")
+    monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2")
     monkeypatch.setenv("REMORA_ENV", "development")
     monkeypatch.setenv("REMORA_TOOL_REGISTRY_MODULE",
                        "servers.tool_registry_research")

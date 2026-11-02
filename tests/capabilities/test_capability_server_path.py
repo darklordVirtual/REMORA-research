@@ -162,6 +162,8 @@ def executor(monkeypatch, tmp_path):
     key = ed25519.Ed25519PrivateKey.generate()
     monkeypatch.setenv("REMORA_CAPABILITY_POLICY_FILE", str(policy))
     monkeypatch.setenv("REMORA_ENV", "development")
+    # RMR-SEC-0001: only the execution domain serves /dispatch-leased.
+    monkeypatch.setenv("REMORA_EXECUTION_DOMAIN_ROLE", "executor")
     monkeypatch.setenv("REMORA_TOOL_REGISTRY_MODULE", "tests.dispatcher_registry_fixture")
     monkeypatch.delenv(signing.ENV_HMAC, raising=False)
     monkeypatch.delenv(signing.ENV_HMAC_FALLBACK, raising=False)
@@ -198,7 +200,9 @@ def _leased(executor, *, present):
     lease = issue_execution_lease(
         tenant="acme", principal="employee-1", tool_call=SimpleNamespace(**LEASED),
         semantic={"tool_contract_bundle_hash": "", "intent_authority_hash": ""},
-        now=datetime.now(UTC), policy_bundle_hash=executor.bundle, capability_set=capability_set)
+        now=datetime.now(UTC), policy_bundle_hash=executor.bundle, capability_set=capability_set,
+        # RMR-SEC-0001: the executor refuses a lease linked to no proposal/grant.
+        proposal_id="prop-1", grant_jti="grant-1")
     executor.monkeypatch.delenv(executor.signing.ENV_ED25519_PRIVATE, raising=False)
     body: dict[str, Any] = {"lease": lease.to_dict(), "tool_call": LEASED, "tenant_id": "acme"}
     if present == "set":
