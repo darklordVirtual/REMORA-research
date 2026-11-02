@@ -12229,9 +12229,9 @@
     },
     "remora/oracles/cloudflare_rag.py": {
       "concepts": [],
-      "git_blob": "121fd4dcf16414f8b92fcf1afccfec6dafcc282b",
+      "git_blob": "de3df743d3b139f95124eb480f2d4cc10c33155e",
       "mode": "100644",
-      "sha256": "109c1dc49610efe7a10427e22f068c53fdf82127220fbdccb2e65a1fca3df49f"
+      "sha256": "c8994db8856e66a088e436393a715c86ca267495fc8b654906c1bab138dcc108"
     },
     "remora/oracles/diversity.py": {
       "concepts": [],
@@ -15917,9 +15917,9 @@
     },
     "servers/mcp_remora.py": {
       "concepts": [],
-      "git_blob": "59bf989204fab517888c7b853cfb480abfbfc545",
+      "git_blob": "c2c732786b4f311d7e5f7a96603ba010a4cbbd18",
       "mode": "100644",
-      "sha256": "4277ec808febb816109dfbe926f78e9ea012593f763c704d1e9468425e141079"
+      "sha256": "4fe46076b5850cce09191cdf9b31938903665c5a79d8c6e6333cb7648b9b833f"
     },
     "servers/semantic_bundle_research.py": {
       "concepts": [],
@@ -16707,9 +16707,9 @@
     },
     "tests/security/test_sr22_rag_oracle.py": {
       "concepts": [],
-      "git_blob": "01f32ef300cc93608dfff5830ab779e5963caca0",
+      "git_blob": "124e8b61520eddf84c488f3ea45b69f1fc2294eb",
       "mode": "100644",
-      "sha256": "93fee5568738e66ab7bce3d76e72f065c823bd79f290934e5dfed597e8cfa402"
+      "sha256": "09a66f9ac81904a8affbe1afe650078906beecef9c8b56451c6c965a9e35fcc0"
     },
     "tests/test_a2a_declared_operation.py": {
       "concepts": [],
@@ -17228,6 +17228,12 @@
       "git_blob": "0c3e34930d90ad39ee889982072204642b3a9712",
       "mode": "100644",
       "sha256": "c6d47b03984318f5c176997de68189488f79e21d3c111369b4d289eb98ef9313"
+    },
+    "tests/test_bearer_not_forwarded_on_redirect.py": {
+      "concepts": [],
+      "git_blob": "5265a4406ec97796cfafc7abfcfbe8bbd2801e28",
+      "mode": "100644",
+      "sha256": "0a57a03820beb96050c6b949512c071abd386afd783262cf3c4d117fcd45b35c"
     },
     "tests/test_benchmark.py": {
       "concepts": [],
@@ -21495,9 +21501,9 @@
     },
     "workers/agent-control/src/codegraph.paths.ts": {
       "concepts": [],
-      "git_blob": "9c427c8b908db66b3b607bc341213385225fb211",
+      "git_blob": "421b13b359e2d821601ef2a6c8ff46401ea1e7cd",
       "mode": "100644",
-      "sha256": "c0c752185a32750256849af6b2087cf216f83857807cdfbe8defae14fb52a088"
+      "sha256": "ec3d5736f0cc78bbc9de3bafa746b52622e2c03198aa22d0fd7ff4e8ceddcf4a"
     },
     "workers/agent-control/src/codegraph.semantic.test.ts": {
       "concepts": [],
@@ -21783,9 +21789,9 @@
     },
     "workers/rag-oracle/README.md": {
       "concepts": [],
-      "git_blob": "0d2ef88b3972163e9dfa900981fbdfc6986e9898",
+      "git_blob": "d0f39be0095badfacba85a1cf54ad36b6c88f14f",
       "mode": "100644",
-      "sha256": "b853b6512c1b80de7cecccf9bbc261d5cd9c2ca6515459e6ba52c04970ff3fb4"
+      "sha256": "4b5ecba6b769484d774024f60fb13aaf90f599a66cfe6931bca9794ab2266719"
     },
     "workers/rag-oracle/package-lock.json": {
       "concepts": [],
@@ -21807,15 +21813,15 @@
     },
     "workers/rag-oracle/src/embedding_window.test.ts": {
       "concepts": [],
-      "git_blob": "c84f7b89f93447678c1a5487f1d6a11f66f22eb3",
+      "git_blob": "0678bc324cb778a2c5f458c22ad790bb98b10b42",
       "mode": "100644",
-      "sha256": "f834e9f87eb96498d48894135de3d1a9c523adb36f1ed30923fbe948102716a8"
+      "sha256": "d60cdc0d280e4ff2fe000b32c11d300e6ae985bdee46ce2be43429e7ce5289e1"
     },
     "workers/rag-oracle/src/index.ts": {
       "concepts": [],
-      "git_blob": "f8e40a48a7ded15b9ea9d556230bc1b0aeb1d34d",
+      "git_blob": "e8f64d2e53af5a36126a5bf6490d1eef12f83b73",
       "mode": "100644",
-      "sha256": "ba008c1e363966840ccf0128f92b1b3fd10f7a0a2af7ec84b8a57861effcacf9"
+      "sha256": "499c383d087f5d6752dbb18f8fb8980a9c9d56dc956cf9ff7df023105220fb31"
     },
     "workers/rag-oracle/src/search_auth.test.ts": {
       "concepts": [],
@@ -21843,7 +21849,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "5ff95342da1f6e7deca01944c5ffce623832b2ff86118849f8cecd8e7e4ecd5c",
+  "register_sha256": "a118e9ce607756339ff02c4f655bf582ad1343c4cfeaa0483f66caf0382dedc6",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

@@ -2855,6 +2855,7 @@ export const CODEGRAPH_PATHS = [
   "tests/test_authorization_extraction.py",
   "tests/test_autoreview_to_effect.py",
   "tests/test_balanced_validation.py",
+  "tests/test_bearer_not_forwarded_on_redirect.py",
   "tests/test_benchmark.py",
   "tests/test_benchmarks_standard.py",
   "tests/test_bfcl_cext4_harness.py",

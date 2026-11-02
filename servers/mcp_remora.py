@@ -320,6 +320,20 @@ def _http_only(url: str) -> bool:
     return urllib.parse.urlparse(url).scheme.lower() in ("http", "https")
 
 
+def _bearer_not_redirected(req: urllib.request.Request) -> urllib.request.Request:
+    """Move Authorization to an unredirected header (RMR-SEC-0008).
+
+    urllib's redirect handler copies ordinary headers to the redirected
+    request, so a 302 from the configured endpoint handed the bearer to
+    whatever host its Location named. Unredirected headers stay with the
+    request they were set on.
+    """
+    value = req.headers.pop("Authorization", None)
+    if value is not None:
+        req.add_unredirected_header("Authorization", value)
+    return req
+
+
 def _origin(url: str) -> tuple[str, str, int | None]:
     parsed = urllib.parse.urlparse(url)
     port = parsed.port or {"https": 443, "http": 80}.get(parsed.scheme.lower())
@@ -353,7 +367,7 @@ def _post(url: str, payload: dict, timeout: int = 90) -> dict:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, context=SSL_CTX, timeout=timeout) as r:
+        with urllib.request.urlopen(_bearer_not_redirected(req), context=SSL_CTX, timeout=timeout) as r:
             return json.loads(r.read())
     except urllib.error.HTTPError as e:
         return {"error": f"HTTP {e.code}: {e.read().decode('utf-8','replace')[:200]}"}
@@ -368,7 +382,7 @@ def _get(url: str, timeout: int = 15) -> dict:
         return {"error": "endpoint must be an http or https URL"}
     req = urllib.request.Request(url, headers={"User-Agent": UA, **_auth_headers(url)}, method="GET")
     try:
-        with urllib.request.urlopen(req, context=SSL_CTX, timeout=timeout) as r:
+        with urllib.request.urlopen(_bearer_not_redirected(req), context=SSL_CTX, timeout=timeout) as r:
             return json.loads(r.read())
     except Exception as e:
         return {"error": str(e)}
@@ -1449,7 +1463,7 @@ def _agent_post(path: str, payload: dict, timeout: int = 60) -> dict:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, context=SSL_CTX, timeout=timeout) as r:
+        with urllib.request.urlopen(_bearer_not_redirected(req), context=SSL_CTX, timeout=timeout) as r:
             return json.loads(r.read())
     except urllib.error.HTTPError as e:
         return {"error": f"HTTP {e.code}: {e.read().decode('utf-8', errors='replace')[:200]}"}
@@ -1544,7 +1558,7 @@ def handle_agent_audit_log(args: dict) -> str:
         return "⚠️ AGENT_CONTROL_URL must be an http or https URL."
     req  = urllib.request.Request(url, headers={"User-Agent": UA}, method="GET")
     try:
-        with urllib.request.urlopen(req, context=SSL_CTX, timeout=15) as r:
+        with urllib.request.urlopen(_bearer_not_redirected(req), context=SSL_CTX, timeout=15) as r:
             data = json.loads(r.read())
     except Exception as e:
         return f"⚠️ Feil: {e}"

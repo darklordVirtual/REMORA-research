@@ -121,4 +121,28 @@ describe("embedding window (W-08)", () => {
     const ids = upserted.map((v) => (v as { id: string }).id);
     expect(ids[0]).toBe(ids[1]);
   });
+
+  it("never lets one tenant's ingest replace another tenant's chunk (RMR-SEC-0006)", async () => {
+    // The id hashed source, chunk_index and the first 64 characters only, so
+    // tenant B could pick values that collide with tenant A's chunk; with
+    // upsert that replaced A's vector and its tenant metadata.
+    const { env, upserted } = makeEnv();
+    const shared = { source: "board-minutes.md", chunk_index: 3 };
+    const head = "Q3 board minutes: ".padEnd(64, ".");
+    await worker.fetch(ingest({ ...shared, tenant_id: "acme", content: `${head} acme secret` }), env as never);
+    await worker.fetch(ingest({ ...shared, tenant_id: "globex", content: `${head} globex text` }), env as never);
+    const [a, b] = upserted as Array<{ id: string; metadata: { tenant_id: string } }>;
+    expect(a.id).not.toBe(b.id);
+    expect(a.metadata.tenant_id).toBe("acme");
+    expect(b.metadata.tenant_id).toBe("globex");
+  });
+
+  it("re-ingesting the same tenant's chunk slot still replaces it", async () => {
+    const { env, upserted } = makeEnv();
+    const slot = { source: "doc.md", chunk_index: 0, tenant_id: "acme" };
+    await worker.fetch(ingest({ ...slot, content: "first version of the chunk" }), env as never);
+    await worker.fetch(ingest({ ...slot, content: "a completely different second version" }), env as never);
+    const ids = (upserted as Array<{ id: string }>).map((v) => v.id);
+    expect(ids[0]).toBe(ids[1]);
+  });
 });

@@ -576,15 +576,25 @@ async function handleIngest(body: IngestRequest, env: Env): Promise<Response> {
   if (!source?.trim())  return err('source is required');
   if (!domain?.trim())  return err('domain is required');
 
-  const docId = await sha256hex(`${source}::${chunk_index}::${content.slice(0, 64)}`);
+  // The id is the chunk's slot: tenant, source and chunk_index. It used to
+  // hash source, chunk_index and the first 64 characters of content, without
+  // the tenant, so one tenant could choose values that collide with another
+  // tenant's chunk; with upsert that replaced the victim's vector and its
+  // tenant metadata (RMR-SEC-0006). The tenant is still caller-asserted
+  // (RMR-SEC-0004); this keeps an asserted tenant from reaching another's id.
+  // The same tenant re-ingesting a slot replaces it, as an edit should.
+  const tenantId = body.tenant_id ?? '';
+  const docId = await sha256hex(
+    `v2\u0000${tenantId}\u0000${source}\u0000${chunk_index}`,
+  );
   const embedded = await embedWithWindow(content, env, useMulti);
   const embedding = embedded.vector;
   const vectorIndex = useMulti ? env.VECTORIZE_MULTI : env.VECTORIZE;
   const contentSnippet = content.slice(0, 1000);
 
-  // upsert, not insert: the id is stable for an edited chunk (same source,
-  // chunk_index and first 64 characters), and Vectorize ignores an insert
-  // whose id exists, which left the old embedding beside the new D1 text.
+  // upsert, not insert: the id is stable for an edited chunk (same tenant,
+  // source and chunk_index), and Vectorize ignores an insert whose id
+  // exists, which left the old embedding beside the new D1 text.
   await vectorIndex.upsert([{
     id: docId,
     values: embedding,
@@ -600,7 +610,7 @@ async function handleIngest(body: IngestRequest, env: Env): Promise<Response> {
       // Access control fields — default to 'public' / no tenant restriction
       clearance_level: body.clearance_level ?? 'public',
       acl_groups:      JSON.stringify(body.acl_groups ?? []),
-      tenant_id:       body.tenant_id ?? '',
+      tenant_id:       tenantId,
     },
   }]);
 
