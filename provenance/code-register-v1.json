@@ -12496,9 +12496,9 @@
     },
     "remora/research_attic/codegraph.py": {
       "concepts": [],
-      "git_blob": "65112439f4a620045acca3991048e3c5269be352",
+      "git_blob": "4d7ad45982b8323c8672cb06367ca4300a684cd1",
       "mode": "100644",
-      "sha256": "7d43cd57ae333d2cb4caf256989e3878ecf822539fd60bb1022b8edba227af9d"
+      "sha256": "7abeb4c80861f81eb83974ac54d7f4a5a7d2d72e04a84ec3d47c466b38c241a7"
     },
     "remora/research_attic/correlation_error.py": {
       "concepts": [],
@@ -19992,6 +19992,12 @@
       "mode": "100644",
       "sha256": "841d73e065462fa06d11b7cc494f5aa1e1a6ad7fe3d35c169f7dbcbcb7fde909"
     },
+    "tests/test_research_attic_codegraph_root.py": {
+      "concepts": [],
+      "git_blob": "46d0e64df5e9c5a56c38e4e779e97b7a89aeedff",
+      "mode": "100644",
+      "sha256": "e5bb9753612c72db161e11fac53c33ee41cc3b83a7e49b99f4fc94c9841f019e"
+    },
     "tests/test_research_attic_isolation.py": {
       "concepts": [],
       "git_blob": "a274b59a0fbbff862f5ab30b9c9eac64a48eb599",
@@ -21729,9 +21735,9 @@
     },
     "workers/rag-oracle/README.md": {
       "concepts": [],
-      "git_blob": "64c8edea27d58e237df9b2ac98339978c74dc48c",
+      "git_blob": "0d2ef88b3972163e9dfa900981fbdfc6986e9898",
       "mode": "100644",
-      "sha256": "590ed14319fdf8651927100d7430b2bb77c055dd72a34768b82b595fbbaa8a9c"
+      "sha256": "b853b6512c1b80de7cecccf9bbc261d5cd9c2ca6515459e6ba52c04970ff3fb4"
     },
     "workers/rag-oracle/package-lock.json": {
       "concepts": [],
@@ -21751,11 +21757,17 @@
       "mode": "100644",
       "sha256": "f4c6d4420fd209d9593cfa0625fffd2ccb067ec58ff7ce494452fb1d9cc582fe"
     },
+    "workers/rag-oracle/src/embedding_window.test.ts": {
+      "concepts": [],
+      "git_blob": "8a87fe10884628c940b3ea31c454efa77b398b37",
+      "mode": "100644",
+      "sha256": "4222366d031799b0f05eaccf2d986d9a870a2fbfe63a1181922e9e46263888b0"
+    },
     "workers/rag-oracle/src/index.ts": {
       "concepts": [],
-      "git_blob": "3981b90ad95f01cf7fe518fa7d259d9253428aeb",
+      "git_blob": "250089c04df83775470e5b1e6554acef448e3258",
       "mode": "100644",
-      "sha256": "f82807724dcc5990fa6f6b096460cbff9461bfbd800fbdcfd8b3ff3fa1c19684"
+      "sha256": "657485459d371ca05b04ae7b54b04b076f530e1773d74fe2bf3eb8d5a3da890e"
     },
     "workers/rag-oracle/src/search_auth.test.ts": {
       "concepts": [],
@@ -21783,7 +21795,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "9c3f4497e12d3b36013ef4d7eb3691777c2864473bdaeef9cd6c57ab14081bbb",
+  "register_sha256": "ed2f9a13ac01e8a678277e62b17fc21ad69e507b8edb0689f64ac26e2b49a1d1",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
