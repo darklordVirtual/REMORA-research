@@ -71,7 +71,7 @@ DEFAULT_WORKER_URL = os.environ.get(
 )
 
 
-def _bearer_not_redirected(req: "urllib.request.Request") -> "urllib.request.Request":
+def _bearer_not_redirected(req: urllib.request.Request) -> urllib.request.Request:
     """Move Authorization to an unredirected header (RMR-SEC-0008).
 
     urllib's redirect handler copies ordinary headers to the redirected

@@ -12229,9 +12229,9 @@
     },
     "remora/oracles/cloudflare_rag.py": {
       "concepts": [],
-      "git_blob": "46f5ce5815322bdb4d3451aada2a323323b9adec",
+      "git_blob": "de3df743d3b139f95124eb480f2d4cc10c33155e",
       "mode": "100644",
-      "sha256": "00a3a68257399f7d2265fb3bb404f2107be174f280ce7f2f2590d62d37643fa9"
+      "sha256": "c8994db8856e66a088e436393a715c86ca267495fc8b654906c1bab138dcc108"
     },
     "remora/oracles/diversity.py": {
       "concepts": [],
@@ -15917,9 +15917,9 @@
     },
     "servers/mcp_remora.py": {
       "concepts": [],
-      "git_blob": "a092e31cab68750246a398eb556fd7ce04610717",
+      "git_blob": "c2c732786b4f311d7e5f7a96603ba010a4cbbd18",
       "mode": "100644",
-      "sha256": "02338f68493a2348f1b66e7b6b1ad141bca256fcfc2f32ba4edd1c9ec677e8b5"
+      "sha256": "4fe46076b5850cce09191cdf9b31938903665c5a79d8c6e6333cb7648b9b833f"
     },
     "servers/semantic_bundle_research.py": {
       "concepts": [],
@@ -16707,9 +16707,9 @@
     },
     "tests/security/test_sr22_rag_oracle.py": {
       "concepts": [],
-      "git_blob": "01f32ef300cc93608dfff5830ab779e5963caca0",
+      "git_blob": "124e8b61520eddf84c488f3ea45b69f1fc2294eb",
       "mode": "100644",
-      "sha256": "93fee5568738e66ab7bce3d76e72f065c823bd79f290934e5dfed597e8cfa402"
+      "sha256": "09a66f9ac81904a8affbe1afe650078906beecef9c8b56451c6c965a9e35fcc0"
     },
     "tests/test_a2a_declared_operation.py": {
       "concepts": [],
@@ -21813,7 +21813,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "8a63da085d2b18e82be26e3ab4af713025715c296ef1f004a4d39175f067227a",
+  "register_sha256": "7105a8c5c948daff7d45ca2ee70cada2a1b9775f58747d020ff1678fc5644c70",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

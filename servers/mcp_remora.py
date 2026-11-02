@@ -320,7 +320,7 @@ def _http_only(url: str) -> bool:
     return urllib.parse.urlparse(url).scheme.lower() in ("http", "https")
 
 
-def _bearer_not_redirected(req: "urllib.request.Request") -> "urllib.request.Request":
+def _bearer_not_redirected(req: urllib.request.Request) -> urllib.request.Request:
     """Move Authorization to an unredirected header (RMR-SEC-0008).
 
     urllib's redirect handler copies ordinary headers to the redirected
