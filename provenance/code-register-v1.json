@@ -5671,9 +5671,9 @@
     },
     "docs/assurance/branch_promotion_policy.md": {
       "concepts": [],
-      "git_blob": "97a948ec3e60487fe626ba3f8853fcd0c1812f06",
+      "git_blob": "b2f178dae9221207dfe40ad8c1186aeacc3f65de",
       "mode": "100644",
-      "sha256": "de3e7a9f5c6cc5cd194adcc61cdcbac257a21b8891a5b8c1cdf6f7c1643cf4c2"
+      "sha256": "773bda8dfc4c98baf4496277054282880b8bc3b534ba0f2b230c96f0a32584ef"
     },
     "docs/assurance/capability_register_v1.yaml": {
       "concepts": [],
@@ -21807,7 +21807,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "a9862fb0e89824748f0b8a9e41b19e2ddf915ab5273a74aaba2d4c289e52181f",
+  "register_sha256": "b74b9db83a9ef9e93e97df5f28651067d4c8f8c1f3981da76c66c7db04e8bb33",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
