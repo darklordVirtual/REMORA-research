@@ -61,3 +61,39 @@ def test_other_writers_are_not_locked_out_while_draining(tmp_path) -> None:
     other.execute("CREATE TABLE IF NOT EXISTS probe (x INTEGER)")
     other.execute("INSERT INTO probe VALUES (1)")
     other.commit()
+
+
+class _FakePgCursor:
+    def __init__(self, row):
+        self._row = row
+
+    def fetchone(self):
+        return self._row
+
+
+def _fake_pg_connection(has_seq: bool):
+    """A stand-in whose module name makes audit_outbox treat it as psycopg."""
+    executed: list[str] = []
+
+    def execute(self, sql, params=None):
+        executed.append(sql)
+        if "information_schema.columns" in sql:
+            return _FakePgCursor((1,) if has_seq else None)
+        return _FakePgCursor(None)
+
+    cls = type("Connection", (), {"execute": execute, "__module__": "psycopg.connection"})
+    return cls(), executed
+
+
+def test_postgres_ensure_table_does_not_alter_a_table_that_has_seq() -> None:
+    """ALTER ... ADD COLUMN IF NOT EXISTS takes ACCESS EXCLUSIVE even when the
+    column exists; on every enqueue that serialised all state transitions."""
+    conn, executed = _fake_pg_connection(has_seq=True)
+    audit_outbox.ensure_table(conn)
+    assert not any(sql.lstrip().upper().startswith("ALTER") for sql in executed)
+
+
+def test_postgres_ensure_table_still_migrates_an_old_table() -> None:
+    conn, executed = _fake_pg_connection(has_seq=False)
+    audit_outbox.ensure_table(conn)
+    assert any("ADD COLUMN IF NOT EXISTS seq" in sql for sql in executed)

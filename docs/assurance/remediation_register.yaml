@@ -1777,3 +1777,14 @@ items:
       the append is claimed under the row's key. Tests use a real SQLite file
       for outbox and chain: 3 pending rows drain in under 5 s (failed first
       with "database is locked" after 96 s).
+      Review follow-up (2026-11-02): on Postgres, ensure_table ran ALTER TABLE
+      ... ADD COLUMN IF NOT EXISTS on every enqueue and pending(), which takes
+      ACCESS EXCLUSIVE even when the column exists, so every state-transition
+      transaction serialised on audit_outbox and the drain's pending() blocked
+      behind it. It now reads information_schema first and alters only a table
+      that lacks seq. The reviewer also confirmed on a throwaway Postgres 14
+      that the per-row commit removes the same blocking on Postgres (old code:
+      LockNotAvailable on concurrent enqueue; new: success). Tests: two
+      fake-connection cases in tests/test_sec0023_audit_outbox_sqlite_drain.py
+      pin the catalog check; the postgres-contract CI job runs the outbox
+      suites on a real server.

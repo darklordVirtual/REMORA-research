@@ -119,7 +119,19 @@ def ensure_table(conn: Any) -> None:
     marker = _placeholder(conn)
     conn.execute(_CREATE_POSTGRES if marker == "%s" else _CREATE_SQLITE)
     if marker == "%s":
-        conn.execute(_ADD_SEQ_POSTGRES)
+        # ALTER TABLE ... ADD COLUMN IF NOT EXISTS takes ACCESS EXCLUSIVE on
+        # audit_outbox even when the column exists, and ensure_table runs on
+        # every enqueue and pending(): every state-transition transaction
+        # serialised on the table and a drain's pending() blocked behind it
+        # (found in the review of RMR-SEC-0023's fix). Check the catalog, a
+        # plain read, and alter only a table that really lacks the column.
+        has_seq = conn.execute(
+            "SELECT 1 FROM information_schema.columns "
+            "WHERE table_schema = current_schema() AND table_name = 'audit_outbox' "
+            "AND column_name = 'seq'"
+        ).fetchone()
+        if not has_seq:
+            conn.execute(_ADD_SEQ_POSTGRES)
         return
     columns = {row[1] for row in conn.execute("PRAGMA table_info(audit_outbox)")}
     if "seq" not in columns:
