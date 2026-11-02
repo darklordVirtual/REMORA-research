@@ -209,6 +209,13 @@ class EnforcementGate:
                 "authorization, and reset the watermark only if the removal "
                 "was a deliberate, authorized prune."
             )
+        if rows > issued:
+            problems.append(
+                f"ledger holds {rows} consumed grants but its high-water mark "
+                f"records only {issued}: {rows - issued} unaccounted rows. "
+                "Investigate out-of-band inserts, lost counter state or an "
+                "incomplete restore before trusting one-time grant evidence."
+            )
         return {
             "durable": True,
             "intact": not problems,

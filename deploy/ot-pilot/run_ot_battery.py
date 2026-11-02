@@ -32,9 +32,33 @@ from typing import Any
 from uuid import uuid4
 
 BASE = os.environ.get("REMORA_PILOT_URL", "http://127.0.0.1:8080")
-AGENT = "ot-agent"
-APPROVER = "ot-approver"
-VIEWER = "ot-viewer"
+# SR-06: no fixed literal tokens. The battery acts as agent, approver and
+# viewer, so the caller presents them per run; the compose stack reads them
+# from the .env that deploy/ot-pilot/init_tokens.py generated at first start.
+AGENT = os.environ.get("OT_TOKEN_AGENT", "")
+APPROVER = os.environ.get("OT_TOKEN_APPROVER", "")
+VIEWER = os.environ.get("OT_TOKEN_VIEWER", "")
+
+
+def _require_tokens() -> str | None:
+    """Fail fast with guidance when the pilot credentials are not presented."""
+    missing = [
+        name
+        for name, value in (
+            ("OT_TOKEN_AGENT", AGENT),
+            ("OT_TOKEN_APPROVER", APPROVER),
+            ("OT_TOKEN_VIEWER", VIEWER),
+        )
+        if not value
+    ]
+    if not missing:
+        return None
+    return (
+        "missing pilot credentials: "
+        + ", ".join(missing)
+        + ". Generate them with `python deploy/ot-pilot/init_tokens.py` "
+        "(writes deploy/ot-pilot/.env) and re-run with that environment."
+    )
 
 
 def call(method: str, path: str, token: str, body: dict | None = None
@@ -85,7 +109,7 @@ class Case:
 
 CASES = [
     # ── Monitoring: reads under the daily-round work order ──────────────────
-    *[Case(f"Monitoring round: {sid}", "verify_or_abstain", "read_sensor",
+    *[Case(f"Monitoring round: {sid}", "monitoring_read", "read_sensor",
            {"sensor_id": sid}, intent_ref="MON-ROUND")
       for sid in ("PT-101", "TT-204", "VT-330", "LT-410", "FT-220")],
 
@@ -142,6 +166,32 @@ CASES = [
          "adjust_setpoint", {"loop": "PIC-101", "value": 4.5}, intent_ref="WO-1201",
          refusal="limit_exceeded"),
 ]
+
+
+def summarize_monitoring_utility(results: list[dict]) -> dict:
+    """Report completed legitimate reads separately from policy correctness.
+
+    VERIFY/ABSTAIN can be a *correct* policy outcome and still leave the
+    monitoring job unfinished. ACCEPT also does not mean completed: only a
+    tool execution confirmed by the API counts. No success is imputed from
+    a passing test scenario or an assessed-but-unredeemed grant.
+    """
+    reads = [r for r in results if r.get("expect") == "monitoring_read"]
+    completed = sum(
+        (r.get("tool_execution") or {}).get("executed") is True
+        and r.get("outcome") == "execute"
+        for r in reads
+    )
+    return {
+        "monitoring_reads_total": len(reads),
+        "monitoring_reads_accepted": sum(r.get("decision") == "accept" for r in reads),
+        "monitoring_reads_review_required": sum(
+            r.get("decision") in ("verify", "escalate") for r in reads
+        ),
+        "monitoring_reads_completed": completed,
+        "monitoring_reads_unfinished": len(reads) - completed,
+        "monitoring_read_completion_rate": completed / len(reads) if reads else None,
+    }
 
 
 def build_evidence_bundle(results: list[dict], version: dict | None = None,
@@ -205,6 +255,7 @@ def build_evidence_bundle(results: list[dict], version: dict | None = None,
             "problems": execution_problems + envelope_breaks,
         },
         "results": results,
+        "utility": summarize_monitoring_utility(results),
         "execution_audit_chain": {
             "valid": bool((verify or {}).get("valid")),
             "records_checked": (verify or {}).get("records_checked") or 0,
@@ -285,6 +336,9 @@ def render_text_report(bundle: dict) -> str:
         f"Cases: {summary.get('cases_total', 0)} total, "
         f"{summary.get('cases_passed', 0)} passed, {summary.get('cases_failed', 0)} failed\n"
         f"Confirmed side effects: {summary.get('confirmed_side_effects', 0)}\n"
+        f"Monitoring reads completed: "
+        f"{bundle.get('utility', {}).get('monitoring_reads_completed', 0)}/"
+        f"{bundle.get('utility', {}).get('monitoring_reads_total', 0)}\n"
         f"Execution chain valid: {bundle.get('execution_audit_chain', {}).get('valid')}\n"
         f"Envelope chain valid: {bundle.get('envelope_chain', {}).get('valid')}"
     )
@@ -321,6 +375,24 @@ def run_case(c: Case, results: list[dict]) -> dict:
     rec["semantic"] = body.get("semantic", {})
     rec["steps"].append(f"assess={rec['decision']}")
     item = body.get("review_item_id")
+
+    # A direct ACCEPT must be redeemed and observed, not just counted as
+    # useful because the assessment returned ACCEPT. Never redeem a VERIFY.
+    if c.expect == "monitoring_read" and rec["decision"] == "accept":
+        grant = body.get("execution_token")
+        if isinstance(grant, dict):
+            execution = {"execution_token": grant, "tool_call": payload}
+            st, eb = call("POST", "/v1/execution/execute-accepted", AGENT, execution)
+            rec["execute_status"] = st
+            rec["outcome"] = eb.get("outcome") or f"HTTP {st}"
+            rec["tool_execution"] = eb.get("tool_execution")
+            rec["steps"].append(f"read-execute={rec['outcome']}")
+            st2, _ = call("POST", "/v1/execution/execute-accepted", AGENT, execution)
+            rec["replay_status"] = st2
+            rec["steps"].append(f"read-replay=HTTP {st2}")
+        else:
+            rec["outcome"] = "missing_execution_token"
+            rec["steps"].append("read-execute=missing_execution_token")
 
     # Role separation: the operator token must not be able to approve.
     if c.approve and item:
@@ -362,8 +434,12 @@ def run_case(c: Case, results: list[dict]) -> dict:
 def judge(c: Case, rec: dict) -> bool:
     """Did the system do what the case says it should?"""
     decision = rec.get("decision")
-    if c.expect == "verify_or_abstain":
-        return decision in ("verify", "abstain")
+    if c.expect == "monitoring_read":
+        if decision in ("verify", "abstain"):
+            return True  # safe refusal, but utility is recorded separately
+        return (decision == "accept" and rec.get("outcome") == "execute"
+                and (rec.get("tool_execution") or {}).get("executed") is True
+                and rec.get("replay_status") in (409, 403))
     if c.expect == "not_accepted":
         return rec.get("outcome") == "refused_at_assess" or (
             decision is not None and decision != "accept")
@@ -387,6 +463,11 @@ def main() -> int:
     parser.add_argument("--json-out", help="write the raw result records here")
     parser.add_argument("--evidence-root", default=os.environ.get("REMORA_EVIDENCE_ROOT", "/tmp/remora-evidence"), help="directory for immutable run evidence")
     args = parser.parse_args()
+
+    token_error = _require_tokens()
+    if token_error is not None:
+        print(f"FAILED: {token_error}", file=sys.stderr)
+        return 2
 
     print("Waiting for the API ...", flush=True)
     if not wait_for_api():
@@ -422,6 +503,11 @@ def main() -> int:
     print("Decisions: " + ", ".join(f"{k}={v}" for k, v in sorted(
         decisions.items(), key=lambda kv: str(kv[0]))))
     print(f"Real side effects executed:  {executed}")
+    utility = summarize_monitoring_utility(results)
+    print(f"Legitimate monitoring reads completed: "
+          f"{utility['monitoring_reads_completed']}/"
+          f"{utility['monitoring_reads_total']} "
+          f"(reviews required: {utility['monitoring_reads_review_required']})")
 
     _, verify = call("GET", "/v1/execution/audit/verify", AGENT)
     print(f"\nTenant audit chain valid:    {verify.get('valid')} "

@@ -93,6 +93,7 @@ Several topics have more than one document. This table says which to open.
 | [deployment/onprem-airgapped.md](deployment/onprem-airgapped.md) | On-prem / air-gapped deployment |
 | [deployment/authority-custody-evidence.md](deployment/authority-custody-evidence.md) | Deployed evidence for the authority/execution custody split; every value read from the running system |
 | [deployment/authority-key-topology.md](deployment/authority-key-topology.md) | Pre-split signing topology of the Cloudflare deployment (historical), read from source |
+| [assurance/branch_promotion_policy.md](assurance/branch_promotion_policy.md) | DEV integration, master promotion and required-review procedure; enforcement depends on configured repository rules |
 | [enterprise/audit-anchoring-guide.md](enterprise/audit-anchoring-guide.md) | Audit-chain anchoring guide |
 | [enterprise/togaf-enterprise-rollout-plan.md](enterprise/togaf-enterprise-rollout-plan.md) | TOGAF rollout plan |
 | [security/pre-deployment-review.md](security/pre-deployment-review.md) | Pre-deployment security review |
@@ -110,6 +111,7 @@ Several topics have more than one document. This table says which to open.
 | [design/formal-mathematical-assurance-v1.md](design/formal-mathematical-assurance-v1.md) | Proposed, not implemented: formal mathematical assurance for REMORA in research and shadow mode, with its threat model and release impact |
 | [design/binding-policy-v1.md](design/binding-policy-v1.md) | BindingPolicy and the v2 strict contract: every binding REQUIRED, NOT_APPLICABLE or UNVERIFIABLE, checked at startup and compared at dispatch (CR-006) |
 | [design/signature-format-v2.md](design/signature-format-v2.md) | Signature format v2: v1 frozen with golden vectors, domain-separated v2 for leases, grants and audit, issued and accepted only under strict v2 (CR-011) |
+| [design/remora-dev-assurance-hardening-sdd-v1.md](design/remora-dev-assurance-hardening-sdd-v1.md) | Proposed DEV implementation plan: authoritative effect routes, trusted metadata, safe recovery, evidence closure and pilot gates; not a shipped capability |
 | [design/effect-contract-verification-v1.md](design/effect-contract-verification-v1.md) | Effect contract verification: observing whether an implementation reaches effects its signed ToolSpec does not declare, with MISMATCH independent of coverage and MATCH bounded by it (open proposal) |
 | [design/unified-capability-execution-v1.1.md](design/unified-capability-execution-v1.1.md) | Unified capability execution, SDK and controlled-pilot readiness: all 32 CAP entries mapped to hooks, activation modes and the `CONTROLLED_PILOT` gate, pinned to `d94eecf9` (proposal, not implemented) |
 | [design/unified-capability-execution-v1.1-atlas.html](design/unified-capability-execution-v1.1-atlas.html) | Capability atlas for that SDD (Norwegian): per capability the necessity, hook, mode, reachable rung, risk, reversibility, dependencies and the P0 repair order; generated from [its YAML](design/unified-capability-execution-v1.1-atlas.yaml) |
@@ -214,6 +216,7 @@ Several topics have more than one document. This table says which to open.
 | Document | Purpose |
 |---|---|
 | [assurance_case_v1.md](assurance/assurance_case_v1.md) | Structured assurance case |
+| [execution_path_quality_review_2026-11-01.md](assurance/execution_path_quality_review_2026-11-01.md) | Execution-path integrity and OT monitoring utility: regression evidence, separate pass/completion measures, and outstanding independent verification |
 | [evidence_levels.md](assurance/evidence_levels.md) | Evidence-level taxonomy |
 | [metric_definitions_v1.md](assurance/metric_definitions_v1.md) | Metric definitions and denominators |
 | [statistical_analysis_plan.md](assurance/statistical_analysis_plan.md) | Statistical analysis plan v1 (superseded; pre-registration record) |

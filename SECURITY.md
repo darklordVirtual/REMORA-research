@@ -76,6 +76,14 @@ was N4). The strict runtime profiles require the token-table mode
 tenant header naming another tenant is refused. `REMORA_ENV` values other
 than development and production refuse startup.
 
+Known-by-design development fallback (security review 2026-10-28, SR-03):
+when neither `REMORA_API_TOKENS` nor `REMORA_API_BEARER_TOKEN` is set in
+development mode, every governed route is refused with 500 unless the
+operator opts in with `REMORA_ALLOW_UNAUTHENTICATED_DEV=1`. The opt-in
+fallback identity is `("default", "viewer")`: read-only, with no assess or
+execute capability. The reference compose binds the API to loopback and
+takes its token from `.env` (see `deploy/reference/.env.example`).
+
 A report demonstrating that either gap is worse than documented is in scope
 and welcome. A report that only re-derives the gap as documented will be
 answered with a pointer to the register.

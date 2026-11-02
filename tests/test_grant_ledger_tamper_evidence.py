@@ -109,6 +109,30 @@ def test_detection_survives_a_new_gate_instance(ledger_path, monkeypatch) -> Non
     assert report["high_water_mark"] == 2
 
 
+def test_unaccounted_grant_row_is_detected(ledger_path, monkeypatch) -> None:
+    """An extra row without an atomic watermark bump is not an intact ledger."""
+    gate = _gate(ledger_path)
+    assert gate.check(_token("p-0", monkeypatch), "a" * 64, consume=True).allowed
+    with sqlite3.connect(ledger_path) as conn:
+        conn.execute("INSERT INTO pep_consumed (jti) VALUES (?)", ("out-of-band",))
+    report = gate.verify_ledger()
+    assert report["intact"] is False
+    assert report["consumed_rows"] == 2
+    assert report["high_water_mark"] == 1
+    assert any("unaccounted" in problem for problem in report["problems"])
+
+
+def test_missing_watermark_does_not_verify_clean(ledger_path) -> None:
+    """A restored ledger without its watermark is UNKNOWN, not a clean pass."""
+    gate = _gate(ledger_path)
+    with sqlite3.connect(ledger_path) as conn:
+        conn.execute("INSERT INTO pep_consumed (jti) VALUES (?)", ("orphan",))
+    report = gate.verify_ledger()
+    assert report["intact"] is False
+    assert report["consumed_rows"] == 1
+    assert report["high_water_mark"] == 0
+
+
 def test_deliberate_reset_is_possible_and_recorded(ledger_path, monkeypatch) -> None:
     """Legitimate pruning must remain possible — but as an explicit act."""
     gate = _gate(ledger_path)

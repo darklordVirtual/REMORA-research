@@ -29,10 +29,14 @@
  * ─────────
  *   POST /query        Ask a yes/no question; returns REMORA verdict
  *   POST /ingest       Ingest a document chunk into the knowledge base
- *   GET  /status       Health + index statistics
+ *   GET  /status       Health + index statistics (unauthenticated)
  *   GET  /search       Debug: raw vector search without synthesis
  *   POST /rerank       Debug: rerank a list of texts against a query
  *   POST /translate    Translate text to English via m2m100
+ *
+ * All endpoints except /status require `Authorization: Bearer $ORACLE_SECRET`
+ * (fail-closed since 2026-10-28, SR-02/SR-04: an unset secret is a 503
+ * misconfiguration, never an allow-all).
  */
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -182,21 +186,32 @@ function parseVerdictFromLLM(raw: string): Pick<RemoraVerdict, 'answer' | 'claim
   }
 }
 
+/** Constant-time string comparison so the bearer check leaks no prefix timing. */
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 function authorBearer(request: Request, env: Env): boolean {
   // Fail-closed: if ORACLE_SECRET is unset the worker is misconfigured and
   // should reject ALL requests rather than silently allowing them.
   // Set the secret with: wrangler secret put ORACLE_SECRET
-  if (!env.ORACLE_SECRET) return false;
-  const auth = request.headers.get('Authorization') ?? '';
-  return auth === `Bearer ${env.ORACLE_SECRET}`;
+  const secret = (env.ORACLE_SECRET ?? '').trim();
+  if (!secret) return false;
+  const header = request.headers.get('Authorization') ?? '';
+  const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+  return token.length > 0 && timingSafeEqual(token, secret);
 }
 
-function optionalBearer(request: Request, env: Env): boolean {
-  // If ORACLE_SECRET is unset, allow all requests (open/dev deployment).
-  // If ORACLE_SECRET is set, require a valid Bearer token.
-  if (!env.ORACLE_SECRET) return true;
-  const auth = request.headers.get('Authorization') ?? '';
-  return auth === `Bearer ${env.ORACLE_SECRET}`;
+function requireBearer(request: Request, env: Env): Response | null {
+  // SR-04 / SEC-04: no route on this worker fails open. An unset secret is
+  // a misconfiguration (503), a missing or wrong token is unauthorized
+  // (401). There is no open/dev mode; set ORACLE_SECRET for local dev too.
+  if (!env.ORACLE_SECRET) return err('ORACLE_SECRET is not configured', 503);
+  if (!authorBearer(request, env)) return err('Unauthorized', 401);
+  return null;
 }
 
 // ── 1. Embedding ──────────────────────────────────────────────────────────────
@@ -590,16 +605,33 @@ async function handleStatus(env: Env): Promise<Response> {
 async function handleSearch(url: URL, env: Env): Promise<Response> {
   const q       = url.searchParams.get('q');
   const domain  = url.searchParams.get('domain') ?? undefined;
-  const k       = parseInt(url.searchParams.get('k') ?? '5');
   const multi   = url.searchParams.get('multi') === 'true';
   if (!q) return err('q parameter required');
+
+  // SR-02: clamp k. An unbounded k made this debug route a cheap full-index
+  // read, one AI embedding call per request, with no rate limit.
+  const k = Number(url.searchParams.get('k') ?? '5');
+  if (!Number.isInteger(k) || k < 1 || k > 20) {
+    return err('k must be an integer in [1, 20]', 400);
+  }
 
   const embedding = await embedText(q, env, multi);
   const vectorIndex = multi ? env.VECTORIZE_MULTI : env.VECTORIZE;
   const opts: VectorizeQueryOptions = {
     topK: k, returnValues: false, returnMetadata: 'all',
   };
-  if (domain) opts.filter = { domain: { $eq: domain } };
+  // SR-02: the route is behind requireBearer, and scoping matches /query:
+  // tenant_id and clearance narrow the result set. Same caveat as /query
+  // (issue #55): these are caller-asserted conveniences, not an enforced
+  // boundary, until an authenticating proxy derives them from a verified
+  // identity.
+  const filter: VectorizeVectorMetadataFilter = {};
+  const tenantId = url.searchParams.get('tenant_id');
+  if (tenantId) filter['tenant_id'] = { $eq: tenantId };
+  const clearance = url.searchParams.getAll('clearance');
+  if (clearance.length) filter['clearance_level'] = { $in: clearance };
+  if (domain) filter['domain'] = { $eq: domain };
+  if (Object.keys(filter).length) opts.filter = filter;
   const results = await vectorIndex.query(embedding, opts);
 
   return json({
@@ -650,25 +682,36 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === '/status'    && request.method === 'GET')  return handleStatus(env);
-    if (url.pathname === '/search'    && request.method === 'GET')  return handleSearch(url, env);
+    if (url.pathname === '/search'    && request.method === 'GET') {
+      // SR-02: was unauthenticated with no tenant/clearance filter, an open
+      // cross-tenant read of chunk previews. Now behind the same bearer as
+      // every other route.
+      const denied = requireBearer(request, env);
+      if (denied) return denied;
+      return handleSearch(url, env);
+    }
 
     if (url.pathname === '/query'     && request.method === 'POST') {
-      if (!optionalBearer(request, env)) return err('Unauthorized', 401);
+      const denied = requireBearer(request, env);
+      if (denied) return denied;
       const body = await request.json() as QueryRequest;
       return handleQuery(body, env);
     }
     if (url.pathname === '/ingest'    && request.method === 'POST') {
-      if (!authorBearer(request, env)) return err('Unauthorized', 401);
+      const denied = requireBearer(request, env);
+      if (denied) return denied;
       const body = await request.json() as IngestRequest;
       return handleIngest(body, env);
     }
     if (url.pathname === '/rerank'    && request.method === 'POST') {
-      if (!optionalBearer(request, env)) return err('Unauthorized', 401);
+      const denied = requireBearer(request, env);
+      if (denied) return denied;
       const body = await request.json() as { query: string; texts: string[] };
       return handleRerank(body, env);
     }
     if (url.pathname === '/translate' && request.method === 'POST') {
-      if (!optionalBearer(request, env)) return err('Unauthorized', 401);
+      const denied = requireBearer(request, env);
+      if (denied) return denied;
       const body = await request.json() as { text: string; source_lang?: string; target_lang?: string };
       return handleTranslate(body, env);
     }
