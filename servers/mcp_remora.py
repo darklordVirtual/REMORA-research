@@ -131,7 +131,7 @@ def resolve_profile(environ: dict) -> tuple[str, dict[str, str]]:
         # URL variable must not become a silent data path out of the machine.
         return raw, {
             "remora": "", "rag": "", "law": "",
-            "control_url": "", "control_secret": "",
+            "control_url": "", "control_secret": "", "rag_secret": "",
             "codegraph": "", "repo_search": "",
         }
 
@@ -140,7 +140,7 @@ def resolve_profile(environ: dict) -> tuple[str, dict[str, str]]:
         return raw, {
             "remora": _DEMO_REMORA, "rag": _DEMO_RAG, "law": _DEMO_LAW,
             # No public demo control plane: write/agent tools stay disabled.
-            "control_url": "", "control_secret": "",
+            "control_url": "", "control_secret": "", "rag_secret": "",
             "codegraph": "", "repo_search": "",
         }
 
@@ -159,6 +159,9 @@ def resolve_profile(environ: dict) -> tuple[str, dict[str, str]]:
         "law": environ["LAW_SEARCH_WORKER_URL"],
         "control_url": agent_control,
         "control_secret": environ.get("AGENT_CONTROL_SECRET", ""),
+        # Bearer for the RAG oracle (SR-02): the name the Python RAG client
+        # already reads. Enterprise only; local and demo never read secrets.
+        "rag_secret": environ.get("CLOUDFLARE_ORACLE_SECRET", ""),
         "codegraph": environ.get("CODEGRAPH_URL")
         or (f"{agent_control.rstrip('/')}/codegraph" if agent_control else ""),
         "repo_search": environ.get("REPO_SEARCH_URL")
@@ -172,6 +175,7 @@ REMORA_WORKER   = _ENDPOINTS["remora"]
 RAG_WORKER      = _ENDPOINTS["rag"]
 AGENT_CONTROL   = _ENDPOINTS["control_url"]
 AGENT_SECRET    = _ENDPOINTS["control_secret"]
+RAG_SECRET      = _ENDPOINTS["rag_secret"]
 CODEGRAPH_URL   = _ENDPOINTS["codegraph"]
 REPO_SEARCH_URL = _ENDPOINTS["repo_search"]
 SSL_CTX       = ssl.create_default_context()
@@ -316,6 +320,39 @@ def _http_only(url: str) -> bool:
     return urllib.parse.urlparse(url).scheme.lower() in ("http", "https")
 
 
+def _bearer_not_redirected(req: urllib.request.Request) -> urllib.request.Request:
+    """Move Authorization to an unredirected header (RMR-SEC-0008).
+
+    urllib's redirect handler copies ordinary headers to the redirected
+    request, so a 302 from the configured endpoint handed the bearer to
+    whatever host its Location named. Unredirected headers stay with the
+    request they were set on.
+    """
+    value = req.headers.pop("Authorization", None)
+    if value is not None:
+        req.add_unredirected_header("Authorization", value)
+    return req
+
+
+def _origin(url: str) -> tuple[str, str, int | None]:
+    parsed = urllib.parse.urlparse(url)
+    port = parsed.port or {"https": 443, "http": 80}.get(parsed.scheme.lower())
+    return parsed.scheme.lower(), (parsed.hostname or "").lower(), port
+
+
+def _auth_headers(url: str) -> dict[str, str]:
+    """The RAG oracle bearer, for requests to exactly the RAG worker's origin.
+
+    SR-02 put every rag-oracle route except GET /status behind a bearer; the
+    MCP server sent none, so its RAG tools got 401. The credential is scoped
+    by exact scheme, host and port so it never reaches another endpoint or a
+    look-alike host.
+    """
+    if RAG_SECRET and RAG_WORKER and _origin(url) == _origin(RAG_WORKER):
+        return {"Authorization": f"Bearer {RAG_SECRET}"}
+    return {}
+
+
 def _post(url: str, payload: dict, timeout: int = 90) -> dict:
     if not url:
         # Empty endpoint = the active profile provides none. Refuse without
@@ -326,11 +363,11 @@ def _post(url: str, payload: dict, timeout: int = 90) -> dict:
     body = json.dumps(payload).encode()
     req  = urllib.request.Request(
         url, data=body,
-        headers={"Content-Type": "application/json", "User-Agent": UA},
+        headers={"Content-Type": "application/json", "User-Agent": UA, **_auth_headers(url)},
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, context=SSL_CTX, timeout=timeout) as r:
+        with urllib.request.urlopen(_bearer_not_redirected(req), context=SSL_CTX, timeout=timeout) as r:
             return json.loads(r.read())
     except urllib.error.HTTPError as e:
         return {"error": f"HTTP {e.code}: {e.read().decode('utf-8','replace')[:200]}"}
@@ -343,9 +380,9 @@ def _get(url: str, timeout: int = 15) -> dict:
         return {"error": LOCAL_REFUSAL}
     if not _http_only(url):
         return {"error": "endpoint must be an http or https URL"}
-    req = urllib.request.Request(url, headers={"User-Agent": UA}, method="GET")
+    req = urllib.request.Request(url, headers={"User-Agent": UA, **_auth_headers(url)}, method="GET")
     try:
-        with urllib.request.urlopen(req, context=SSL_CTX, timeout=timeout) as r:
+        with urllib.request.urlopen(_bearer_not_redirected(req), context=SSL_CTX, timeout=timeout) as r:
             return json.loads(r.read())
     except Exception as e:
         return {"error": str(e)}
@@ -1426,7 +1463,7 @@ def _agent_post(path: str, payload: dict, timeout: int = 60) -> dict:
         method="POST",
     )
     try:
-        with urllib.request.urlopen(req, context=SSL_CTX, timeout=timeout) as r:
+        with urllib.request.urlopen(_bearer_not_redirected(req), context=SSL_CTX, timeout=timeout) as r:
             return json.loads(r.read())
     except urllib.error.HTTPError as e:
         return {"error": f"HTTP {e.code}: {e.read().decode('utf-8', errors='replace')[:200]}"}
@@ -1521,7 +1558,7 @@ def handle_agent_audit_log(args: dict) -> str:
         return "⚠️ AGENT_CONTROL_URL must be an http or https URL."
     req  = urllib.request.Request(url, headers={"User-Agent": UA}, method="GET")
     try:
-        with urllib.request.urlopen(req, context=SSL_CTX, timeout=15) as r:
+        with urllib.request.urlopen(_bearer_not_redirected(req), context=SSL_CTX, timeout=15) as r:
             data = json.loads(r.read())
     except Exception as e:
         return f"⚠️ Feil: {e}"

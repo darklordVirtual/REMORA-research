@@ -1,6 +1,6 @@
 # DEV integration and master promotion policy
 
-Status: proposed CI enforcement; GitHub branch rulesets must be configured by an authorized repository administrator.
+Status: enforced on both long-lived branches since 2026-11-02, through GitHub classic branch protection rather than rulesets. The settings in force are listed under [Branch protection in force](#branch-protection-in-force).
 
 ## Trust boundaries
 
@@ -10,6 +10,24 @@ Status: proposed CI enforcement; GitHub branch rulesets must be configured by an
 - Promotion: open a same-repository **`dev -> master` PR**, review the aggregate diff, and run the full four-version deterministic suite and other required checks on the proposed merge result. The existing required `deterministic-suite-required` CI aggregator rejects a `master` PR whose head is not the same-repository `dev`.
 
 Do not confuse green CI with independent code review, runtime behavior evidence, security assurance, or deployment authorization. Security-sensitive changes require a documented adversarial review and explicit human promotion approval.
+
+## Branch protection in force
+
+Read back through the GitHub API (`GET /repos/{owner}/{repo}/branches/{branch}/protection`) on 2026-11-02. `dev` was unprotected until that date: any account with push access could push or force-push to it directly, and it is the only branch master accepts promotions from.
+
+| Setting | `master` | `dev` |
+|---|---|---|
+| Pull request required | yes, 0 approvals | yes, 0 approvals |
+| Required status checks | `quality-gates-required`, `deterministic-suite-required`, `supply-chain-required`, `codeql-required`, `shadow-replay` | same five |
+| Branch must be up to date before merge | no | no |
+| Applies to administrators | yes | yes |
+| Force push | blocked | blocked |
+| Deletion | blocked | blocked |
+| Conversation resolution required | no | no |
+
+No rulesets are defined. Protection settings are not version-controlled, so a change made in the GitHub UI does not show up in this file. Read the settings back before relying on this table.
+
+Still open against the target setup below: an independent human reviewer (item 2, approvals are 0 for a single-maintainer repository), up-to-date branches or a merge queue (item 4), and resolved conversations.
 
 ## One-time GitHub ruleset setup (administrator action)
 
@@ -38,5 +56,6 @@ The expensive scheduled/manual mutation sweep, NLI parity run, research publicat
 
 ## Known limitations
 
-- Branch ruleset enforcement cannot be completed with the available managed GitHub connector and requires a repository administrator.
+- The managed GitHub connector cannot change branch protection. The 2026-11-02 settings were applied with an administrator's own `gh` credentials, and any later change needs the same.
+- Zero required approvals means review is a process obligation, not a GitHub-enforced one.
 - A green `dev` build is evidence that the configured tests passed for that revision, not proof of security or correctness.
