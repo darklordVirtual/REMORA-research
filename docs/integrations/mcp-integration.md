@@ -88,6 +88,11 @@ tool refuses without touching the network. To use remote workers, set
 `"REMORA_MCP_PROFILE": "demo"` (public demo workers; content leaves this
 machine; a disclosure is printed) or `"enterprise"` together with
 `REMORA_WORKER_URL`, `RAG_WORKER_URL` and `LAW_SEARCH_WORKER_URL`.
+On `enterprise`, also set `CLOUDFLARE_ORACLE_SECRET` to the RAG Worker's
+`ORACLE_SECRET`. Every RAG route except `GET /status` requires that bearer,
+so without it the RAG tools get 401. The server sends the bearer only to the
+exact origin of `RAG_WORKER_URL`. The `demo` profile reads no secrets, so the
+RAG tools are refused there too.
 
 ### Claude Code / CLI
 
