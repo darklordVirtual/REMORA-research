@@ -216,6 +216,7 @@ Several topics have more than one document. This table says which to open.
 | Document | Purpose |
 |---|---|
 | [assurance_case_v1.md](assurance/assurance_case_v1.md) | Structured assurance case |
+| [execution_path_quality_review_2026-11-01.md](assurance/execution_path_quality_review_2026-11-01.md) | Execution-path integrity and OT monitoring utility: regression evidence, separate pass/completion measures, and outstanding independent verification |
 | [evidence_levels.md](assurance/evidence_levels.md) | Evidence-level taxonomy |
 | [metric_definitions_v1.md](assurance/metric_definitions_v1.md) | Metric definitions and denominators |
 | [statistical_analysis_plan.md](assurance/statistical_analysis_plan.md) | Statistical analysis plan v1 (superseded; pre-registration record) |
