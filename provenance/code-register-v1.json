@@ -2787,9 +2787,9 @@
     },
     "artifacts/interop/remora-boundary-summary-v1.json": {
       "concepts": [],
-      "git_blob": "cbeb922c4cfd1b6978c141bf6dcc6aa8fa292ddd",
+      "git_blob": "7430d609daad39225a2cd24f7f689865cf2573cd",
       "mode": "100644",
-      "sha256": "93695e4e3a313f153cf5335cbdf0996c45cdd650ec72929ca894f133640f2f1c"
+      "sha256": "717d487a87227e7dc07a737467d8ec47d0fdf4343fc558ee477810311daa7ec0"
     },
     "artifacts/interop/runs/README.md": {
       "concepts": [],
@@ -5719,9 +5719,9 @@
     },
     "docs/assurance/document_register_v1.yaml": {
       "concepts": [],
-      "git_blob": "688ab3ad145bbb497665d99969ac29ab9b53a27a",
+      "git_blob": "9c239d2c321823260bcc7e45ad963f8d3c1e62d4",
       "mode": "100644",
-      "sha256": "e767beaba52fe60f9203110c1b2c264e6c010e2167e4f02b38d628e1c3701daf"
+      "sha256": "6aaa70938697b2c17fd980a0b02f10440b651f8cd041f2fb11832f71ed879381"
     },
     "docs/assurance/documentation_governance_v1.md": {
       "concepts": [],
@@ -21783,7 +21783,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "2c37e0bf82af13e6102532190fae4cd611afa4dafce1e0c601578f0b66098e32",
+  "register_sha256": "12f5b7e1503450237a184d201fa392fb2583b1065bbe91c6a7edaae3a43fe12f",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
