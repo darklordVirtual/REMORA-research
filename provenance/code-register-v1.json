@@ -5105,9 +5105,9 @@
       "concepts": [
         "PROV-07"
       ],
-      "git_blob": "9984900651d0d2e73241e259851639cba83dbe12",
+      "git_blob": "c2a402fbfe259f89f478ddaf7a9f87836af60b2a",
       "mode": "100644",
-      "sha256": "69cc19f7f1c4a31569952224546246fb8715794e4e6aa53174c90d745a22fb2e"
+      "sha256": "6ac9dd43d68e4dc5885f68de57433fc17c9d52168418fcf88ce6ba6128db1b48"
     },
     "docs/architecture/ADR-tainted-argument-approval.md": {
       "concepts": [
@@ -16819,6 +16819,12 @@
       "mode": "100644",
       "sha256": "94c837402018886d78d8d4c2e00b806c0e89767b65bb770b5066880e8406e7fc"
     },
+    "tests/test_agent_control_no_local_write.py": {
+      "concepts": [],
+      "git_blob": "4ed65f936a0f8c5a42bbcd7383f57d876a9abb79",
+      "mode": "100644",
+      "sha256": "7bc2cf18674e96cdf5a713ffd583448816f74b839586f485715ed6a62c9d3619"
+    },
     "tests/test_agent_control_single_path.py": {
       "concepts": [],
       "git_blob": "c3359d1de3c025612204f8651debf3e2e55b2c48",
@@ -21417,9 +21423,9 @@
     },
     "workers/agent-control/README.md": {
       "concepts": [],
-      "git_blob": "17de373555fc21749b4eface9bd223f651753841",
+      "git_blob": "73bc29009cf8e250123030189babcdb99dc52ac8",
       "mode": "100644",
-      "sha256": "efb5190f53232c86784395e053319220c6fe88ec343c112cddd2c143371c4288"
+      "sha256": "5d311bc023b922c87131e9cb9a2b7b481a7d9ad3ef19fd9e9f8cd74549ed991a"
     },
     "workers/agent-control/package-lock.json": {
       "concepts": [],
@@ -21477,9 +21483,9 @@
     },
     "workers/agent-control/src/index.ts": {
       "concepts": [],
-      "git_blob": "28a2e62a1193e7b1d00e75377f869bb25eda2d17",
+      "git_blob": "67a343d062495b2af7752307630fed3a6010f47c",
       "mode": "100644",
-      "sha256": "0dfa2a8d18fd348dd5cf4834fef22ec7fa788ff62e41fb30c05b891ef10787a4"
+      "sha256": "41de01a23e356e9b77f8fd1436a4a6942acbbd906501e45e51b2803177811084"
     },
     "workers/agent-control/src/json_numbers.ts": {
       "concepts": [],
@@ -21507,9 +21513,9 @@
     },
     "workers/agent-control/wrangler.toml": {
       "concepts": [],
-      "git_blob": "40262473b5eeac76f9f3857abaf45b55b339b1eb",
+      "git_blob": "9a04191eea1dcd3c3398fa198b1a9138028386a6",
       "mode": "100644",
-      "sha256": "cac7fcff8b53f918f9826ee047436ca1c4bc7df90602f603ff9cd24df95d4629"
+      "sha256": "0f66a41dfd765e1bdd2f220f49abc683f0da77be6307ba2620d37f2baaebd29a"
     },
     "workers/aromer/package-lock.json": {
       "concepts": [],
@@ -21783,7 +21789,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "42c1bf70184002314f5f2c44acf3cae70168f2136a8616e9f293f19b51c09295",
+  "register_sha256": "0a855ec595e78d894fb7cf8faf2e7b0e6104c80a35c19188e5a19018e05b51bb",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
