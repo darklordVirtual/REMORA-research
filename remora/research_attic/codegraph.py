@@ -31,7 +31,10 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
-_REPO_ROOT = Path(__file__).resolve().parents[1]
+# remora/research_attic/codegraph.py -> parents[2] is the repository root.
+# parents[1] (remora/) was correct before the move into the attic (#289) and
+# pointed every lookup below at paths that do not exist (W-08 / F-10).
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 _PATHS_TS  = _REPO_ROOT / "workers" / "agent-control" / "src" / "codegraph.paths.ts"
 _CODEGRAPH_MD = _REPO_ROOT / "CODEGRAPH.md"
 _AGENT_CONTROL_URL = "https://remora-agent-control.razorsharp.workers.dev"

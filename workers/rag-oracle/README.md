@@ -28,6 +28,8 @@ POST /query
 
 Every route except `GET /status` requires `Authorization: Bearer <ORACLE_SECRET>`. With the secret unset the worker refuses them with 503 rather than serving them unauthenticated (SR-02/SR-04).
 
+Retrieval sees only the part of a chunk that fits the embedding model's input window: about 380 estimated tokens for `bge-base-en-v1.5` (512 real tokens), and far more for `bge-m3`. The `/ingest` response reports `embedding.truncated`, `embedded_chars` and `content_chars`. When `truncated` is true, split the chunk, because text past `embedded_chars` is stored and returned as context but cannot be found by search. Before W-08 every input was cut at 512 characters, with no signal.
+
 ### POST /query
 
 ```json
