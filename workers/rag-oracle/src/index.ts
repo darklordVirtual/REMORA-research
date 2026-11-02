@@ -582,7 +582,10 @@ async function handleIngest(body: IngestRequest, env: Env): Promise<Response> {
   const vectorIndex = useMulti ? env.VECTORIZE_MULTI : env.VECTORIZE;
   const contentSnippet = content.slice(0, 1000);
 
-  await vectorIndex.insert([{
+  // upsert, not insert: the id is stable for an edited chunk (same source,
+  // chunk_index and first 64 characters), and Vectorize ignores an insert
+  // whose id exists, which left the old embedding beside the new D1 text.
+  await vectorIndex.upsert([{
     id: docId,
     values: embedding,
     metadata: {

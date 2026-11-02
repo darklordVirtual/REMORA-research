@@ -15,6 +15,7 @@ const TAIL = "zebrafishsentinel";
 function makeEnv(embedModel = "@cf/baai/bge-base-en-v1.5") {
   const embedded: string[] = [];
   const inserted: unknown[] = [];
+  const upserted: unknown[] = [];
   const env = {
     ORACLE_SECRET: SECRET,
     AI: {
@@ -26,10 +27,12 @@ function makeEnv(embedModel = "@cf/baai/bge-base-en-v1.5") {
     VECTORIZE: {
       query: async () => ({ matches: [] }),
       insert: async (vectors: unknown[]) => { inserted.push(...vectors); return {}; },
+      upsert: async (vectors: unknown[]) => { upserted.push(...vectors); return {}; },
     },
     VECTORIZE_MULTI: {
       query: async () => ({ matches: [] }),
       insert: async (vectors: unknown[]) => { inserted.push(...vectors); return {}; },
+      upsert: async (vectors: unknown[]) => { upserted.push(...vectors); return {}; },
     },
     DB: {
       prepare: () => {
@@ -40,7 +43,7 @@ function makeEnv(embedModel = "@cf/baai/bge-base-en-v1.5") {
     EMBED_MODEL: embedModel,
     EMBED_MODEL_MULTI: "@cf/baai/bge-m3",
   };
-  return { env, embedded, inserted };
+  return { env, embedded, inserted, upserted };
 }
 
 function ingest(body: Record<string, unknown>): Request {
@@ -103,5 +106,19 @@ describe("embedding window (W-08)", () => {
       env as never,
     );
     expect(embedded.some((text) => text.includes(TAIL))).toBe(true);
+  });
+
+  it("re-ingesting a changed chunk replaces its vector (upsert, not insert)", async () => {
+    // The vector id hashes source, chunk_index and the first 64 characters.
+    // Vectorize ignores an insert whose id exists, while D1 replaced the
+    // text, so a chunk edited after character 64 kept its old embedding.
+    const { env, inserted, upserted } = makeEnv();
+    const head = "x".repeat(64);
+    await worker.fetch(ingest({ content: `${head} first version` }), env as never);
+    await worker.fetch(ingest({ content: `${head} second version` }), env as never);
+    expect(inserted).toHaveLength(0);
+    expect(upserted).toHaveLength(2);
+    const ids = upserted.map((v) => (v as { id: string }).id);
+    expect(ids[0]).toBe(ids[1]);
   });
 });
