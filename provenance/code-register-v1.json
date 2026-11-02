@@ -231,9 +231,9 @@
     },
     ".github/workflows/quality-gates.yml": {
       "concepts": [],
-      "git_blob": "82eff075f34c7e390fd03de2023381554de384e1",
+      "git_blob": "fa365ec0c779fd9c8a1c65354273e77408cbf841",
       "mode": "100644",
-      "sha256": "9b8740ad612f2728b7742063f5b47a3ebaef3c733a891c1cf1c581a14cc99877"
+      "sha256": "f6c9ca3f93ce5dc5f85f9fbf6372c76b31e1673dad82717ac737efedc4a974f6"
     },
     ".github/workflows/release.yml": {
       "concepts": [],
@@ -21825,7 +21825,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "3acaae72d49222108c3686db6a5a232b63bc95dac2b153274ce91164d02507d2",
+  "register_sha256": "51f000d2b28991814bf4645e99c046363ec1363275d59a73c5cb0cb5f787388d",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
