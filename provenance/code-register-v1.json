@@ -6649,9 +6649,9 @@
     },
     "docs/integrations/mcp-integration.md": {
       "concepts": [],
-      "git_blob": "9c820cd8ac42ef3758b29dd9d0db0896435ede9a",
+      "git_blob": "199f3bf4a7236a093d434c0b0204dd5710807c73",
       "mode": "100644",
-      "sha256": "025b1b580836135c1f2d526d8eabd5917da648daeea45d2b4c799398f3ba97f1"
+      "sha256": "7074c9a249018f92ac42d2bf35d9effa24ae78ab482670043ea11fa2372ec3cb"
     },
     "docs/integrations/rag_oracle.md": {
       "concepts": [],
@@ -21441,21 +21441,39 @@
     },
     "workers/agent-control/package-lock.json": {
       "concepts": [],
-      "git_blob": "df278acd2d65e48f8f09a515f7612fc66ff90692",
+      "git_blob": "9eeab77699eab1137dc40b89830d6b1ea7d26dd1",
       "mode": "100644",
-      "sha256": "55c903fd0603b73442649218d5ee3acb8df0a88017245b4cfcbd6c0bf07fa084"
+      "sha256": "0a6b502be0142f6b76fd86fb24cdf27f7f4014f5471fcdf297b7472c4bf397b5"
     },
     "workers/agent-control/package.json": {
       "concepts": [],
-      "git_blob": "96c44d8ac073386cbe2dbba9ff780b612971e1a1",
+      "git_blob": "8c4808d76b21d6aad99cd6822a71580bd03f327f",
       "mode": "100644",
-      "sha256": "ec000263cf2965baff2588eea7c22f689e5038f14cf952de458759795235b04f"
+      "sha256": "d94e4d06cd73760affd6f9a882a696f7f75754612d5141d1058e00e4e593931a"
     },
     "workers/agent-control/schema.sql": {
       "concepts": [],
       "git_blob": "ec359a7fbb1be087da2b19f881f4830817a6af84",
       "mode": "100644",
       "sha256": "ca1a46ac46b84c9049444803879ff9c8ed3b2174c1be13cd46de919ae5472332"
+    },
+    "workers/agent-control/scripts/build_codegraph_index.mjs": {
+      "concepts": [],
+      "git_blob": "2c37247e30e88f292ade60070fb997da34252dd2",
+      "mode": "100644",
+      "sha256": "ca2c63c1099bc04a0f379e0f739fc94d1498c5cb7ccbdc42ec7298a7fb327fbf"
+    },
+    "workers/agent-control/scripts/codegraph_chunk.mjs": {
+      "concepts": [],
+      "git_blob": "69111a63bf6b260f198044e3e78d3d9f870c6e6d",
+      "mode": "100644",
+      "sha256": "b86630dd70d93b7e7256d3d026496e9314adb9422a8d308ba3d8c291f1d0a4e0"
+    },
+    "workers/agent-control/scripts/generate_codegraph_paths.mjs": {
+      "concepts": [],
+      "git_blob": "9ce2fc50d19141dfe5efd1ed86246d2be47769da",
+      "mode": "100644",
+      "sha256": "7682cdc734f362b0510dd982fc0772290bd459074c592b38da13921e7c9c1ccf"
     },
     "workers/agent-control/src/approval.ts": {
       "concepts": [],
@@ -21469,17 +21487,35 @@
       "mode": "100644",
       "sha256": "38b657a43bb756ed8475c61766741f98298d5b773779d8b1b13b71b34b1caecb"
     },
+    "workers/agent-control/src/codegraph.chunk.test.ts": {
+      "concepts": [],
+      "git_blob": "6e0e3f68995057869482fa0f0548bffadd393e36",
+      "mode": "100644",
+      "sha256": "c8cb2365618ea0b51f2e01ac2456ec07648b9051e7162d6dd54129253620d89d"
+    },
     "workers/agent-control/src/codegraph.paths.ts": {
       "concepts": [],
-      "git_blob": "b049c660918db6b9ef6f55fd0d5131894670a351",
+      "git_blob": "9c427c8b908db66b3b607bc341213385225fb211",
       "mode": "100644",
-      "sha256": "6a37804e153570ef06c0ec785b5a92518628cb39663d9d5014a6bdb6ecb11c52"
+      "sha256": "c0c752185a32750256849af6b2087cf216f83857807cdfbe8defae14fb52a088"
+    },
+    "workers/agent-control/src/codegraph.semantic.test.ts": {
+      "concepts": [],
+      "git_blob": "75705af0165518feca40487bafcd79554d95b2ff",
+      "mode": "100644",
+      "sha256": "8865de6c5526efc57d8168d07e9715ca1e7087da47c81178824661186e3b1b90"
+    },
+    "workers/agent-control/src/codegraph.semantic.ts": {
+      "concepts": [],
+      "git_blob": "7bffc56c7226b4781c257b25bfb99ca3a7fe68b2",
+      "mode": "100644",
+      "sha256": "8988883f1d2f0d73992494a652447a1c31f4c340e80db006b1323bf5e073092a"
     },
     "workers/agent-control/src/codegraph.ts": {
       "concepts": [],
-      "git_blob": "6c4a52927740de6ee1a95682a85521b91ed83c61",
+      "git_blob": "0bb4a7e71dd77f13e404b1f5f34f40adc8919f93",
       "mode": "100644",
-      "sha256": "ecc2da58043091757faad561113393717cf52366feb63e0bc8629680e2a582d9"
+      "sha256": "b81772c81245e046f8a98adc593065ae9b94ccfd1cdeed5a7081c695764856ec"
     },
     "workers/agent-control/src/envelope.ts": {
       "concepts": [],
@@ -21495,9 +21531,9 @@
     },
     "workers/agent-control/src/index.ts": {
       "concepts": [],
-      "git_blob": "67a343d062495b2af7752307630fed3a6010f47c",
+      "git_blob": "6fd186bc4e4a6fd4d64a48db7083ca71819aadda",
       "mode": "100644",
-      "sha256": "41de01a23e356e9b77f8fd1436a4a6942acbbd906501e45e51b2803177811084"
+      "sha256": "65d14979305aa39639805d1d65deb4bbc79985d78c9537c80c9780c97b96ace3"
     },
     "workers/agent-control/src/json_numbers.ts": {
       "concepts": [],
@@ -21525,9 +21561,9 @@
     },
     "workers/agent-control/wrangler.toml": {
       "concepts": [],
-      "git_blob": "9a04191eea1dcd3c3398fa198b1a9138028386a6",
+      "git_blob": "9038d1734da1602ebe4eced8c3524081a38141a3",
       "mode": "100644",
-      "sha256": "0f66a41dfd765e1bdd2f220f49abc683f0da77be6307ba2620d37f2baaebd29a"
+      "sha256": "11843b19f922b4e7e88a840670398c06d2ac564eaff0f4f402a588b292a04010"
     },
     "workers/aromer/package-lock.json": {
       "concepts": [],
@@ -21807,7 +21843,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "b74b9db83a9ef9e93e97df5f28651067d4c8f8c1f3981da76c66c7db04e8bb33",
+  "register_sha256": "5ff95342da1f6e7deca01944c5ffce623832b2ff86118849f8cecd8e7e4ecd5c",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

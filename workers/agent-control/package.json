@@ -8,11 +8,16 @@
     "dev": "wrangler dev --port 8788",
     "db:init": "wrangler d1 execute remora-audit --file=schema.sql",
     "db:init:remote": "wrangler d1 execute remora-audit --remote --file=schema.sql",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "codegraph:paths": "node scripts/generate_codegraph_paths.mjs",
+    "codegraph:check": "node scripts/generate_codegraph_paths.mjs --check",
+    "codegraph:index": "node scripts/build_codegraph_index.mjs"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261026.1",
     "typescript": "^7.0.2",
+    "vitest": "^4.1.12",
     "wrangler": "^4.156.0"
   },
   "overrides": {

@@ -216,9 +216,43 @@ questions because it narrows context to the active graph.
 
 **Backends:**
 - Cloudflare Control Plane endpoint: `GET /codegraph` on `remora-agent-control`
-- Local fallback: `codegraph.yaml` and `.codegraphignore`
+- Local fallback: `codegraph.yaml` and `.codegraphignore`. Neither file is in
+  the repository any longer, so the fallback currently returns an empty scope.
 
 **Returns:** The include/exclude scope, entrypoints, notes, and matching files.
+
+**Search modes on `GET /codegraph` and `GET /search`:** the MCP tool calls the
+default mode. Pass `mode` to the endpoint directly for the other two.
+
+| `mode` | Ranks by | Auth | Without the AI/Vectorize bindings |
+|--------|----------|------|-----------------------------------|
+| `keyword` (default) | file path, generated summary and tags | public | unaffected |
+| `semantic` | file content, via embeddings | `Authorization: Bearer $CONTROL_SECRET` | `503` |
+| `hybrid` | reciprocal-rank fusion of both | `Authorization: Bearer $CONTROL_SECRET` | keyword ranking, with `semantic.status: "unavailable"` |
+
+Semantic results carry `start_line`, `end_line` and a short `snippet` of the
+best-matching chunk per file. Every response states `semantic.status`, so a
+degraded hybrid answer is visible to the caller rather than silently
+keyword-only.
+
+The file catalog (`workers/agent-control/src/codegraph.paths.ts`) is
+generated from `git ls-files`, and the semantic index is built offline into
+the `remora-codegraph` Vectorize index (768 dimensions, cosine,
+`@cf/baai/bge-base-en-v1.5`). To refresh both from a clean checkout:
+
+```bash
+cd workers/agent-control
+npm run codegraph:paths        # regenerate the catalog, then commit it
+npm run codegraph:index -- --dry-run
+CLOUDFLARE_ACCOUNT_ID=... CLOUDFLARE_API_TOKEN=... npm run codegraph:index \
+  -- --prune-previous ../../.codegraph/semantic-manifest-<previous>.json
+# then set CODEGRAPH_INDEX_VERSION in wrangler.toml to the printed version
+# and deploy the worker
+```
+
+The indexer skips lockfiles, `provenance/`, generated code, JSONL and the
+JSON data under `artifacts/`, `results/`, `data/` and `datasets/`. It refuses
+a dirty working tree because every vector is stamped with the HEAD commit.
 
 **Why this matters:** use this first when you want to keep token usage low.
 The tool narrows the context window before you open more files, so the model
