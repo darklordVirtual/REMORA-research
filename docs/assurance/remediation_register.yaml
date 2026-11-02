@@ -1562,6 +1562,22 @@ items:
       the first 200 chars of tool input unauthenticated unless
       AROMER_RECORDER=0. Tests: tests/security/test_sr08_result_scanner.py
       (failing-first, then green; +7 redaction and route cases).
+      Review follow-up (2026-11-02, PR #1140 review): three
+      regressions in this fix. (1) Inserting the "pem" rule first left
+      _JWT = _PATTERNS[1][1] pointing at the bearer rule, so a JWT under an
+      exempt field name (*_id, *_hash, jti) reached logs in clear; the rule is
+      now looked up by name. (2) The new affixed-key assignment rule restarted at
+      every _ or - and backtracked over the tail (46 s for 64 KB of "a_"); the
+      dsn, url and host rules had the same quadratic shape on dashed runs before
+      this change. All four now start only at the beginning of a token, and
+      64 KB hostile inputs take about 10 ms. (3) The hook dropped Read and Bash
+      from scanning entirely, which removed local injection heuristics to fix a
+      leak that only the oracle had; they are scanned locally again, and only the
+      oracle call needs AROMER_SCAN_LOCAL=1. Tests: failing-first cases in
+      tests/security/test_sr08_result_scanner.py (JWT under exempt names, linear
+      time on separator runs, prefixed keys still caught, local output blocked
+      without network); the two hook tests that asserted the removal were
+      replaced.
 
   - id: REM-057
     section: "security-review-2026-10"
@@ -1690,6 +1706,16 @@ items:
       (failing-first, then green; +6 replay, validity and audit-order
       cases); the three pre-existing proposal tests now sign their fixtures
       with a current issued_at.
+      Review follow-up (2026-11-02, PR #1140 review): the
+      single-use guard keyed on sig_raw.get("value"), a key Signature.to_dict()
+      never writes, so every proposal shared the replay id sha256(""). The first
+      applied proposal blocked every later distinct one, and adding an unsigned
+      "value" field to a consumed file let it re-apply. The pre-existing replay
+      test passed only because the id was constant. The replay id is now the
+      SHA-256 of the signed canonical payload, so nothing outside the signature's
+      coverage influences it. Tests: two failing-first cases in
+      tests/security/test_sr07_signed_thresholds.py (distinct proposals both
+      apply; a replay with an injected "value" field is refused).
 
   - id: REM-056
     section: "security-review-2026-10"

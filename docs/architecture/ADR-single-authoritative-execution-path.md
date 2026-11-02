@@ -76,9 +76,17 @@ the guarantees of the other.
    canonical assess, grant, PEP, lease path and never execute in-worker;
    verify/escalate surfaces the canonical review item, and no failure shape
    falls back to local execution
-   (`tests/test_agent_control_canonical_adapter.py`). Unbound deployments
-   keep the structural floor from step 2. The worker is re-classified from
-   `legacy` in the product truth contract only when a deployment actually
-   binds the service.
+   (`tests/test_agent_control_canonical_adapter.py`). The worker is
+   re-classified from `legacy` in the product truth contract only when a
+   deployment actually binds the service.
+   Amended 2026-11-02 (W-01): unbound deployments no longer keep a local
+   write path. Before, step 2's approval floor let `store_artifact` run in
+   the Worker after a human approval, a second write path beside the
+   canonical one. A write-effect tool without the binding is now refused
+   with `503 CANONICAL_EXECUTION_UNBOUND` and a governance envelope, an
+   approval reference does not reopen it, and `runTool()` refuses every
+   write-effect tool. The local approval flow remains only for read-only
+   tools that configuration adds to the approval list
+   (`tests/test_agent_control_no_local_write.py`).
 4. Phase 4/5: durable dispatch intent and outbox move behind the same
    service; the worker never holds the only record of a pending effect.

@@ -59,7 +59,9 @@ def test_bearer_is_sent_when_secret_configured() -> None:
             return False
 
     def _capture(req, **kwargs):
-        captured["auth"] = req.headers.get("Authorization")
+        # get_header covers unredirected headers, where the bearer now lives
+        # so a redirect cannot forward it (RMR-SEC-0008).
+        captured["auth"] = req.get_header("Authorization")
         return _Resp()
 
     with patch("urllib.request.urlopen", side_effect=_capture):
@@ -84,7 +86,9 @@ def test_no_bearer_header_when_no_secret() -> None:
             return False
 
     def _capture(req, **kwargs):
-        captured["auth"] = req.headers.get("Authorization")
+        # get_header covers unredirected headers, where the bearer now lives
+        # so a redirect cannot forward it (RMR-SEC-0008).
+        captured["auth"] = req.get_header("Authorization")
         return _Resp()
 
     with patch("urllib.request.urlopen", side_effect=_capture):

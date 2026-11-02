@@ -398,6 +398,11 @@ async function runTool(
   input: Record<string, unknown>,
   env: Env,
 ): Promise<{ output: unknown; verdict?: string; confidence?: number; upstream_url?: string }> {
+  // W-01: any write-effect tool, including one added to WRITE_IMPACT_TOOLS
+  // later, executes only in the canonical service and never here.
+  if (WRITE_IMPACT_TOOLS.has(name)) {
+    throw new Error("write-effect tools never execute in-worker");
+  }
   switch (name) {
     // ── remora_verify_claim ──────────────────────────────────────────────────
     case "remora_verify_claim": {
@@ -454,20 +459,11 @@ async function runTool(
     }
 
     // ── store_artifact ───────────────────────────────────────────────────────
-    case "store_artifact": {
-      const content_type = String(input.content_type ?? "text/markdown");
-      await env.ARTIFACTS.put(String(input.key), String(input.content), {
-        httpMetadata: { contentType: content_type },
-      });
-      return {
-        output: {
-          status:       "STORED",
-          key:          input.key,
-          size:         typeof input.content === "string" ? input.content.length : 0,
-          content_type,
-        },
-      };
-    }
+    // Executes only in the canonical execution service (W-01). handleExecute
+    // never routes a write-effect tool here; this refusal makes the Worker's
+    // own R2 write unreachable even if a future caller tries.
+    case "store_artifact":
+      throw new Error("write-effect tools never execute in-worker");
 
     default:
       if (name in RETIRED_TOOLS) throw new Error(RETIRED_TOOLS[name]);
@@ -655,6 +651,48 @@ async function handleExecute(req: Request, env: Env): Promise<Response> {
   } catch (e) {
     console.error("proposal principal insert failed:", e instanceof Error ? e.message : String(e));
     return json({ error: "Audit infrastructure failed (principal record)" }, 502);
+  }
+
+  // W-01 / F-02: a write-effect tool has exactly one execution path, the
+  // canonical service. Without that binding the Worker used to run it
+  // locally after a human approval, writing to R2 outside assess -> grant ->
+  // PEP -> lease. It now refuses, with a governance record, before any
+  // approval is consulted: an approval reference cannot reopen the local
+  // path. Read-only tools that config adds to APPROVAL_REQUIRED_TOOLS keep
+  // the local approval flow below, since they have no write effect.
+  if (WRITE_IMPACT_TOOLS.has(body.tool) && !canonicalExecutionConfigured(env)) {
+    try {
+      await recordEnvelope(env, {
+        requestId, tenantId, sessionId: body.session_id, actorIdentity,
+        toolName: body.tool, toolArgs: hashableInput,
+        outcome: "abstain",
+        policyTriggers: ["approval_required", "canonical_execution_unbound"],
+        approvalRequired: true,
+        executed: false,
+        effectOutcome: "refused",
+        auditId: pre_audit_id,
+      });
+    } catch (e) {
+      return envelopeFailureResponse(body.session_id, body.tool, false, e);
+    }
+    return json(
+      {
+        tool: body.tool,
+        success: false,
+        output: {
+          status: "CANONICAL_EXECUTION_UNBOUND",
+          message:
+            "Write-effect tools execute only through the canonical execution service. " +
+            "Bind EXECUTION_SERVICE and set EXECUTION_API_TOKEN on this Worker.",
+        },
+        session_id: body.session_id,
+        audit_id: pre_audit_id,
+        request_id: requestId,
+        approval_required: true,
+        canonical: false,
+      },
+      503,
+    );
   }
 
   // ADR migration step 3: with the canonical execution service bound,
