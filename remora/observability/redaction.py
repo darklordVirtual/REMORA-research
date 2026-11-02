@@ -84,15 +84,24 @@ _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     (
         "assignment",
         re.compile(
-            r"(?i)(?<![A-Za-z0-9])(?:[A-Za-z0-9]+[_-])*(?:" + _CREDENTIAL_KEYS
+            # The second lookbehind admits a match only at the start of an
+            # identifier, never after an inner ``_``/``-``. Without it every
+            # separator was a fresh start that backtracked over the whole
+            # tail: quadratic, 46 s for a 64 KB run of ``a_`` (PR #1140
+            # review). Leftmost matching made those inner starts redundant.
+            r"(?i)(?<![A-Za-z0-9])(?<![A-Za-z0-9][_-])(?:[A-Za-z0-9]+[_-])*(?:"
+            + _CREDENTIAL_KEYS
             + r")\b[\"']?"
             r"\s*[:=]\s*(?:\"[^\"]*\"|'[^']*'|[^\s,;)\]}\"']+)"
         ),
     ),
     # Connection strings: scheme://user:password@host
-    ("dsn", re.compile(r"\b[a-z][a-z0-9+.\-]*://[^\s/@]+:[^\s/@]+@[^\s]+")),
+    # Schemes may only start where a scheme-character run starts: a plain
+    # ``\b`` admitted a start after every ``-`` and went quadratic on long
+    # dashed runs (this rule, ``url`` and ``host``; PR #1140 review).
+    ("dsn", re.compile(r"(?<![A-Za-z0-9+.\-])[a-z][a-z0-9+.\-]*://[^\s/@]+:[^\s/@]+@[^\s]+")),
     # Any remaining URL, which carries host and often a path.
-    ("url", re.compile(r"\b[a-z][a-z0-9+.\-]*://[^\s\"'<>]+")),
+    ("url", re.compile(r"(?<![A-Za-z0-9+.\-])[a-z][a-z0-9+.\-]*://[^\s\"'<>]+")),
     # Absolute POSIX paths, and Windows drive paths.
     ("path", re.compile(r"(?<![\w.])/(?:[\w.\-]+/){1,}[\w.\-]*")),
     ("winpath", re.compile(r"\b[A-Za-z]:\\(?:[^\\\s\"']+\\)*[^\\\s\"']*")),
@@ -103,7 +112,7 @@ _PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     (
         "host",
         re.compile(
-            r"(?<![\w.@/])(?:[a-z0-9](?:[a-z0-9\-]*[a-z0-9])?\.)+"
+            r"(?<![\w.@/\-])(?:[a-z0-9](?:[a-z0-9\-]*[a-z0-9])?\.)+"
             r"(?:local|internal|lan|intranet|corp|svc|cluster)\b"
         ),
     ),
@@ -128,7 +137,9 @@ def redact_text(value: str) -> str:
 
 _EXEMPT_NAMES = frozenset({"jti", "nonce", "kid", "digest", "sha", "commit"})
 _EXEMPT_SUFFIXES = ("_hash", "_id", "_sha")
-_JWT = _PATTERNS[1][1]
+# Looked up by name: an index broke silently when the "pem" rule was
+# inserted first, and exempt-named fields then carried JWTs into logs.
+_JWT = dict(_PATTERNS)["jwt"]
 
 
 def _is_exempt_name(name: str) -> bool:

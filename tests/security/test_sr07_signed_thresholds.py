@@ -261,3 +261,54 @@ def test_audit_failure_leaves_threshold_and_file_untouched(tmp_path) -> None:
     assert bridge.get_threshold("trust_critical_min") == before
     assert proposals.exists()
     assert bridge._relax_log == []
+
+
+# ── Review of PR #1140: the replay guard keyed on a field that does not exist ──
+# ``sig_raw.get("value")`` read a key ``Signature.to_dict()`` never writes, so
+# every proposal shared one replay id: the first applied proposal blocked all
+# later distinct ones, and adding a "value" field let a consumed file re-apply.
+
+
+def _age_relax_log(bridge) -> None:
+    from remora.aromer.integration import bridge as bridge_mod
+
+    bridge._relax_log = [(t - bridge_mod._RELAX_WINDOW_SECONDS - 1, d)
+                         for t, d in bridge._relax_log]
+
+
+def test_distinct_signed_proposals_are_not_mistaken_for_replays(tmp_path) -> None:
+    proposals = tmp_path / "candidate_threshold_adjustments.json"
+    key = _key()
+    bridge = _bridge(tmp_path, proposals, key)
+
+    _write_proposals(proposals, [{"approved": True, "max_delta": 0.01}], key)
+    assert bridge._apply_friction_optimizer_proposals()["applied"] == 1
+    _age_relax_log(bridge)
+
+    _write_proposals(proposals, [{"approved": True, "max_delta": 0.02}], key)
+    second = bridge._apply_friction_optimizer_proposals()
+    assert second["applied"] == 1, second
+
+
+def test_replay_cannot_be_disguised_by_adding_fields_to_the_signature(tmp_path) -> None:
+    import shutil
+
+    proposals = tmp_path / "candidate_threshold_adjustments.json"
+    key = _key()
+    _write_proposals(proposals, [{"approved": True, "max_delta": 0.05}], key)
+    saved = tmp_path / "saved.json"
+    shutil.copy(proposals, saved)
+
+    bridge = _bridge(tmp_path, proposals, key)
+    assert bridge._apply_friction_optimizer_proposals()["applied"] == 1
+    after_first = bridge.get_threshold("trust_critical_min")
+    _age_relax_log(bridge)
+
+    tampered = json.loads(saved.read_text(encoding="utf-8"))
+    tampered["signature"]["value"] = "unsigned-and-attacker-chosen"
+    proposals.write_text(json.dumps(tampered), encoding="utf-8")
+
+    report = bridge._apply_friction_optimizer_proposals()
+    assert report["applied"] == 0
+    assert "replayed" in report["error"]
+    assert bridge.get_threshold("trust_critical_min") == after_first
