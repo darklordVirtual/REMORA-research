@@ -34,16 +34,19 @@ if _REPO not in sys.path:
 
 from remora.agent_hook.result_scanner import ScanVerdict, ToolResultScanner
 
-# Tools that always get scanned (network-origin or attacker-reachable content)
-_SCAN_TOOLS = {
+# Network-origin or otherwise attacker-reachable tool output.
+_REMOTE_TOOLS = {
     "WebFetch", "WebSearch",
     "mcp__brave_search", "mcp__fetch",
 }
-# SR-08 / SEC-08: local tool output (Read/Bash) is scanned only on explicit
-# opt-in — scanning it with the oracle armed would ship local file and
-# command output off-host.
-if os.environ.get("AROMER_SCAN_LOCAL") == "1":
-    _SCAN_TOOLS |= {"Bash", "Read"}
+# Local tool output is attacker-reachable too (``curl`` through Bash, a
+# README in a cloned repository through Read), so it is always scanned by the
+# local heuristics. SR-08 / SEC-08 concerns only the oracle: it sends text
+# off-host, so local output reaches it solely on explicit opt-in. (The SR-08
+# change first dropped local tools from scanning altogether; PR #1140 review.)
+_LOCAL_TOOLS = {"Bash", "Read"}
+_SCAN_TOOLS = _REMOTE_TOOLS | _LOCAL_TOOLS
+_LOCAL_ORACLE_OPT_IN = os.environ.get("AROMER_SCAN_LOCAL") == "1"
 
 # The oracle requires an explicitly configured destination and credential;
 # there is no default public worker (SR-08).
@@ -53,6 +56,13 @@ _scanner = ToolResultScanner(
         and os.environ.get("AROMER_WORKER_TOKEN", "").strip()
     )
 )
+_local_only_scanner = ToolResultScanner(oracle_enabled=False)
+
+
+def _scanner_for(tool_name: str) -> ToolResultScanner:
+    if tool_name in _LOCAL_TOOLS and not _LOCAL_ORACLE_OPT_IN:
+        return _local_only_scanner
+    return _scanner
 
 
 def _extract_result_text(hook_input: dict) -> str:
@@ -89,7 +99,7 @@ def main() -> None:
         sys.exit(0)  # too short to contain an injection
 
     try:
-        envelope = _scanner.scan(tool_name, result_text)
+        envelope = _scanner_for(tool_name).scan(tool_name, result_text)
     except Exception:
         sys.exit(0)  # scanner error — fail open (don't break agent)
 
