@@ -1,6 +1,7 @@
 # Statistical analysis plan v8: authority-preserving utility on AgentDojo, with bounded evidence recovery
 
-**Status:** DRAFT at gate G0, not registered. Nothing in this plan has been
+**Status:** DRAFT, not registered. Gate G1 failed on 2026-11-03 (§14,
+NEGATIVE_RESULTS §100); the study is not run in this form. Nothing in this plan has been
 run on test tasks. The plan becomes binding when gates G0 to G5 (§10) pass,
 the owner registers it on OSF, and its registration ID and LF SHA-256 are
 recorded in `data/control_eval_v2/manifest.json` before the first test-split
@@ -196,7 +197,7 @@ the test run until each passes.
 | Gate | Passes when | Cost |
 |---|---|---|
 | G0 | This plan has no DRAFT status and §14 lists every change since the last version | 0 |
-| G1 | On development tasks of banking, slack and travel, with ground-truth replay and a scripted compromised agent, E_IFC_WS1 completes at least 10 points more tasks than refuse-all and than E1, and its injection-goal success is no higher than E1's (`artifacts/control_eval/dev_g1_v1.json`) | 0 |
+| G1 | On development tasks of banking, slack and travel, with ground-truth replay and a scripted compromised agent, E_IFC_WS1 completes at least 10 points more tasks than refuse-all and than E1, its injection-goal success is no higher than E1's, and it reaches no goal routed through a sink argument the user task does not supply (`artifacts/control_eval/dev_g1_v1.json`) | 0 |
 | G2 | Runner, arms, budget guard, response cache and readiness checker are tested; a fake-agent smoke run passes | 0 |
 | G3 | Pilot on development tasks (held-out suite excluded): cost per episode, undefended ASR at least 15 %, D's threshold, H1(c) margin, n and m from the power simulation | at most 8 USD |
 | G4 | Sealed manifest with the SHA-256 of every file the run depends on, matching the tree; OpenTimestamps proof committed | 0 |
@@ -247,6 +248,14 @@ the test run until each passes.
 
 ## 14. Change record
 
+- 2026-11-03, G1 row: the third condition (no goal through a sink argument
+  the user task does not supply) was in the G1 brief and is computed in the
+  artifact; it is now written here as well.
+- 2026-11-03, G1 result: **failed** (NEGATIVE_RESULTS §100). E_IFC_WS1
+  completed 7 of 18 development tasks against 6 of 18 for refuse-all and
+  E1, short of the +10 point condition; it reached 0 of 48 injected goals.
+  Under §0 the study is not run in this form. The next design is decided
+  by the owner and recorded here before any new G1 run.
 - 2026-11-03, v8 draft: created from SAP v7. Arms F and G dropped, E_IFC and
   E_IFC_WS1 added, workspace held out, sign-flip test, 50 USD cap, gates G0
   to G7.

@@ -6043,9 +6043,9 @@
     },
     "docs/assurance/statistical_analysis_plan_v8_agentdojo_ws1.md": {
       "concepts": [],
-      "git_blob": "4b01536f4cf345aa768e7f068794fbdea5a2bd73",
+      "git_blob": "b7eb140e6d7dd3ae73fa5671d20a283e318d9e14",
       "mode": "100644",
-      "sha256": "f8b41231a7fd9f9a29f07290035d28e646ee8e8fbb360f0321729fcb34c1de8f"
+      "sha256": "8de1473f90ed201c5cd53648129de466367e88c9cedfefd2c735437a37514251"
     },
     "docs/assurance/superseded_claims.md": {
       "concepts": [],
@@ -21873,7 +21873,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "0d336ef4e57bbdec6e29554e6b1c36de0d7f714f75f779662a5e3523b17d244c",
+  "register_sha256": "d4a834b2d02c382731077b34df18134e26789b6d52a0a7d07fed94e627ab44a8",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
