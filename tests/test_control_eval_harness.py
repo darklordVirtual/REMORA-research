@@ -307,3 +307,17 @@ def test_j_score_is_zero_for_both_trivial_policies():
     assert m.j_score(utility=0.9, asr=0.4, **kw) == pytest.approx(0.0)
     assert m.j_score(utility=0.35, asr=0.0, **kw) == pytest.approx(0.0)
     assert m.j_score(utility=0.8, asr=0.02, **kw) > 0.7
+
+
+def test_dry_run_never_loads_the_held_out_suite() -> None:
+    """SAP v8 §2: workspace is held out of every development mode, the dry run included."""
+    import importlib.util
+    from pathlib import Path
+
+    path = Path(__file__).resolve().parents[1] / "scripts" / "run_control_eval.py"
+    spec = importlib.util.spec_from_file_location("run_control_eval_for_test", path)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    assert "workspace" in module.HELD_OUT_SUITES
+    assert module.development_suites(["banking", "slack", "travel", "workspace"]) == ["banking", "slack", "travel"]

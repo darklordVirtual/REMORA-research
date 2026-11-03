@@ -102,14 +102,25 @@ def _pipeline(task: Any, defence: Any, suite: str, task_id: str, log: list[dict[
     return pipe
 
 
+#: Suites kept out of all development as a transfer test (SAP v8 §2). The
+#: dry run never loads them.
+HELD_OUT_SUITES = frozenset({"workspace"})
+
+
+def development_suites(names: Sequence[str]) -> list[str]:
+    """The suites a development mode may load: every suite not held out."""
+    return [name for name in names if name not in HELD_OUT_SUITES]
+
+
 def dry_run() -> dict[str, Any]:
     from experiments.control_eval.agentdojo_glue import tool_specs
     from experiments.control_eval.policies import NoGate, RefuseAll, TaskAllowlist
     from experiments.control_eval.remora_adapter import OBSERVED, STRICT, RemoraGate
 
-    suites = _suites()
-    dev = {name: parts["dev"] for name, parts in split().items()}
-    report: dict[str, Any] = {"status": "development_dry_run", "benchmark_version": BENCHMARK_VERSION,
+    allowed = development_suites(SUITES)
+    suites = {name: s for name, s in _suites().items() if name in allowed}
+    dev = {name: parts["dev"] for name, parts in split().items() if name in allowed}
+    report: dict[str, Any] = {"status": "development_dry_run", "held_out_suites": sorted(HELD_OUT_SUITES), "benchmark_version": BENCHMARK_VERSION,
                               "agent": "scripted ground truth, non-adaptive, no model call",
                               "dev_tasks": dev, "arms": {}}
     log: list[dict[str, Any]] = []
