@@ -1,0 +1,697 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="6" skipped="0" tests="179" time="29.365" timestamp="2026-11-03T20:33:07.384386+01:00" hostname="Stians-MacBook-Air.local"><testcase classname="tests.test_atomic_admission" name="test_fresh_evidence_spends_the_grant_and_records_one_intent[sqlite]" time="1.246" /><testcase classname="tests.test_atomic_admission" name="test_fresh_evidence_spends_the_grant_and_records_one_intent[postgres]" time="0.289" /><testcase classname="tests.test_atomic_admission" name="test_m4_t01_evidence_expired_before_commit_refuses_unspent[sqlite]" time="0.011" /><testcase classname="tests.test_atomic_admission" name="test_m4_t01_evidence_expired_before_commit_refuses_unspent[postgres]" time="0.181" /><testcase classname="tests.test_atomic_admission" name="test_m4_t10_the_declared_skew_is_subtracted_at_the_database_instant[sqlite]" time="0.014" /><testcase classname="tests.test_atomic_admission" name="test_m4_t10_the_declared_skew_is_subtracted_at_the_database_instant[postgres]" time="0.146" /><testcase classname="tests.test_atomic_admission" name="test_the_grant_expires_the_declared_skew_early[sqlite]" time="0.013" /><testcase classname="tests.test_atomic_admission" name="test_the_grant_expires_the_declared_skew_early[postgres]" time="0.189" /><testcase classname="tests.test_atomic_admission" name="test_m4_t02_evidence_lapsing_after_the_regate_refuses[sqlite]" time="0.011" /><testcase classname="tests.test_atomic_admission" name="test_m4_t02_evidence_lapsing_after_the_regate_refuses[postgres]" time="0.197" /><testcase classname="tests.test_atomic_admission" name="test_m4_t04_an_epoch_advanced_after_the_lookups_refuses[sqlite]" time="0.023" /><testcase classname="tests.test_atomic_admission" name="test_m4_t04_an_epoch_advanced_after_the_lookups_refuses[postgres]" time="0.255" /><testcase classname="tests.test_atomic_admission" name="test_m4_t03_a_revoked_subject_refuses[sqlite]" time="0.014" /><testcase classname="tests.test_atomic_admission" name="test_m4_t03_a_revoked_subject_refuses[postgres]" time="0.183" /><testcase classname="tests.test_atomic_admission" name="test_m4_t11_a_failed_intent_rolls_the_spend_back[sqlite]" time="0.020" /><testcase classname="tests.test_atomic_admission" name="test_m4_t11_a_failed_intent_rolls_the_spend_back[postgres]" time="0.212" /><testcase classname="tests.test_atomic_admission" name="test_a_spent_grant_refuses_and_records_nothing[sqlite]" time="0.017" /><testcase classname="tests.test_atomic_admission" name="test_a_spent_grant_refuses_and_records_nothing[postgres]" time="0.231" /><testcase classname="tests.test_atomic_admission" name="test_m4_t13_an_unreachable_epoch_store_refuses_unspent[sqlite]" time="0.011" /><testcase classname="tests.test_atomic_admission" name="test_m4_t13_an_unreachable_epoch_store_refuses_unspent[postgres]" time="0.214" /><testcase classname="tests.test_atomic_admission" name="test_an_outcome_without_receipts_is_not_admitted[sqlite]" time="0.012" /><testcase classname="tests.test_atomic_admission" name="test_an_outcome_without_receipts_is_not_admitted[postgres]" time="0.180" /><testcase classname="tests.test_atomic_admission" name="test_without_ws1_the_spend_and_the_intent_still_share_one_transaction[sqlite]" time="0.010" /><testcase classname="tests.test_atomic_admission" name="test_without_ws1_the_spend_and_the_intent_still_share_one_transaction[postgres]" time="0.251" /><testcase classname="tests.test_atomic_admission" name="test_m4_t06_one_grant_redeemed_by_eight_admitters_spends_once[sqlite]" time="0.082" /><testcase classname="tests.test_atomic_admission" name="test_m4_t06_one_grant_redeemed_by_eight_admitters_spends_once[postgres]" time="0.293" /><testcase classname="tests.test_atomic_admission" name="test_m4_t05_a_revocation_committed_first_is_seen_by_admission[sqlite]" time="0.015" /><testcase classname="tests.test_atomic_admission" name="test_m4_t05_a_revocation_committed_first_is_seen_by_admission[postgres]" time="0.287" /><testcase classname="tests.test_atomic_admission" name="test_m4_t05_an_admission_committed_first_stands[sqlite]" time="0.020" /><testcase classname="tests.test_atomic_admission" name="test_m4_t05_an_admission_committed_first_stands[postgres]" time="0.176" /><testcase classname="tests.test_atomic_admission" name="test_an_in_process_transaction_is_refused" time="0.006" /><testcase classname="tests.test_atomic_admission" name="test_admission_needs_a_transactional_dialect_and_a_bounded_skew[d1-0]" time="0.004" /><testcase classname="tests.test_atomic_admission" name="test_admission_needs_a_transactional_dialect_and_a_bounded_skew[memory-0]" time="0.002" /><testcase classname="tests.test_atomic_admission" name="test_admission_needs_a_transactional_dialect_and_a_bounded_skew[sqlite--1]" time="0.002" /><testcase classname="tests.test_atomic_admission" name="test_admission_needs_a_transactional_dialect_and_a_bounded_skew[sqlite-5001]" time="0.001" /><testcase classname="tests.test_atomic_admission" name="test_admission_needs_a_transactional_dialect_and_a_bounded_skew[sqlite-True]" time="0.001" /><testcase classname="tests.test_atomic_admission" name="test_admission_needs_a_transactional_dialect_and_a_bounded_skew[sqlite-1.0]" time="0.001" /><testcase classname="tests.test_atomic_admission" name="test_an_in_process_gate_cannot_join_a_transaction" time="0.001" /><testcase classname="tests.test_atomic_admission" name="test_the_core_and_ws1_skew_bounds_agree" time="0.001" /><testcase classname="tests.test_atomic_admission" name="test_a_claim_admission_claims_and_spends_together[sqlite]" time="0.008" /><testcase classname="tests.test_atomic_admission" name="test_a_claim_admission_claims_and_spends_together[postgres]" time="0.163" /><testcase classname="tests.test_atomic_admission" name="test_a_lost_claim_spends_nothing[sqlite]" time="0.013" /><testcase classname="tests.test_atomic_admission" name="test_a_lost_claim_spends_nothing[postgres]" time="0.284" /><testcase classname="tests.test_atomic_admission" name="test_a_refused_spend_releases_the_claim[sqlite]" time="0.017" /><testcase classname="tests.test_atomic_admission" name="test_a_refused_spend_releases_the_claim[postgres]" time="0.198" /><testcase classname="tests.test_atomic_admission" name="test_eight_workers_on_one_row_claim_and_spend_once[sqlite]" time="0.058" /><testcase classname="tests.test_atomic_admission" name="test_eight_workers_on_one_row_claim_and_spend_once[postgres]" time="0.362" /><testcase classname="tests.test_atomic_admission" name="test_m4_t03_a_revoked_principal_refuses_unspent[sqlite]" time="0.006" /><testcase classname="tests.test_atomic_admission" name="test_m4_t03_a_revoked_principal_refuses_unspent[postgres]" time="0.304" /><testcase classname="tests.test_atomic_admission" name="test_principals_unrevoked_in_this_tenant_admit[sqlite]" time="0.019" /><testcase classname="tests.test_atomic_admission" name="test_principals_unrevoked_in_this_tenant_admit[postgres]" time="0.260" /><testcase classname="tests.test_atomic_admission" name="test_an_unreadable_revocation_store_refuses[sqlite]" time="0.013" /><testcase classname="tests.test_atomic_admission" name="test_an_unreadable_revocation_store_refuses[postgres]" time="0.170" /><testcase classname="tests.test_atomic_admission" name="test_principals_without_a_revocation_store_refuse[sqlite]" time="0.009" /><testcase classname="tests.test_atomic_admission" name="test_principals_without_a_revocation_store_refuse[postgres]" time="0.172" /><testcase classname="tests.test_atomic_admission" name="test_an_epoch_change_and_its_record_commit_together[sqlite]" time="0.013" /><testcase classname="tests.test_atomic_admission" name="test_an_epoch_change_and_its_record_commit_together[postgres]" time="0.234" /><testcase classname="tests.test_atomic_admission" name="test_m4_t12_the_admission_enqueues_its_audit_row_before_commit[sqlite]" time="0.014" /><testcase classname="tests.test_atomic_admission" name="test_m4_t12_the_admission_enqueues_its_audit_row_before_commit[postgres]" time="0.186" /><testcase classname="tests.test_atomic_admission" name="test_m4_t12_an_audit_outbox_failure_rolls_the_whole_admission_back[sqlite]" time="0.021" /><testcase classname="tests.test_atomic_admission" name="test_m4_t12_an_audit_outbox_failure_rolls_the_whole_admission_back[postgres]" time="0.289" /><testcase classname="tests.test_atomic_admission" name="test_m4_t12_an_audit_failure_on_a_claim_releases_the_claim[sqlite]" time="0.016" /><testcase classname="tests.test_atomic_admission" name="test_m4_t12_an_audit_failure_on_a_claim_releases_the_claim[postgres]" time="0.194" /><testcase classname="tests.test_atomic_admission" name="test_an_unkeyed_audit_record_refuses_unspent[sqlite]" time="0.011" /><testcase classname="tests.test_atomic_admission" name="test_an_unkeyed_audit_record_refuses_unspent[postgres]" time="0.186" /><testcase classname="tests.test_atomic_admission" name="test_a_failed_drain_leaves_the_committed_row_for_the_next_one[sqlite]" time="0.029" /><testcase classname="tests.test_atomic_admission" name="test_a_failed_drain_leaves_the_committed_row_for_the_next_one[postgres]" time="0.414" /><testcase classname="tests.test_atomic_admission" name="test_a_permit_after_admission_bounds_the_lease_by_the_evidence[sqlite]" time="0.015" /><testcase classname="tests.test_atomic_admission" name="test_a_permit_after_admission_bounds_the_lease_by_the_evidence[postgres]" time="0.332" /><testcase classname="tests.test_atomic_admission" name="test_m4_t14_evidence_lapsing_after_commit_refuses_the_permit[sqlite]" time="0.016" /><testcase classname="tests.test_atomic_admission" name="test_m4_t14_evidence_lapsing_after_commit_refuses_the_permit[postgres]" time="0.216" /><testcase classname="tests.test_atomic_admission" name="test_m4_t14_evidence_too_close_to_expiry_for_the_executor_refuses[sqlite]" time="0.013" /><testcase classname="tests.test_atomic_admission" name="test_m4_t14_evidence_too_close_to_expiry_for_the_executor_refuses[postgres]" time="0.164" /><testcase classname="tests.test_atomic_admission" name="test_m4_t16_a_source_revoked_after_commit_refuses_the_permit[sqlite]" time="0.020" /><testcase classname="tests.test_atomic_admission" name="test_m4_t16_a_source_revoked_after_commit_refuses_the_permit[postgres]" time="0.197" /><testcase classname="tests.test_atomic_admission" name="test_m4_t16_a_principal_revoked_after_commit_refuses_the_permit[sqlite]" time="0.017" /><testcase classname="tests.test_atomic_admission" name="test_m4_t16_a_principal_revoked_after_commit_refuses_the_permit[postgres]" time="0.192" /><testcase classname="tests.test_atomic_admission" name="test_an_unreachable_epoch_store_refuses_the_permit[sqlite]" time="0.011" /><testcase classname="tests.test_atomic_admission" name="test_an_unreachable_epoch_store_refuses_the_permit[postgres]" time="0.144" /><testcase classname="tests.test_atomic_admission" name="test_a_permit_writes_nothing[sqlite]" time="0.006" /><testcase classname="tests.test_atomic_admission" name="test_a_permit_writes_nothing[postgres]" time="0.194" /><testcase classname="tests.test_atomic_admission" name="test_m4_t16_a_revocation_racing_the_permit_has_one_order[sqlite]" time="0.016" /><testcase classname="tests.test_atomic_admission" name="test_m4_t16_a_revocation_racing_the_permit_has_one_order[postgres]" time="0.145" /><testcase classname="tests.test_atomic_admission" name="test_m4_t14_a_permit_past_its_bound_mints_no_lease" time="0.001" /><testcase classname="tests.test_ws1_m4_fault_matrix" name="test_m4_t15_a_dropped_response_is_unknown_and_never_retried" time="0.103" /><testcase classname="tests.test_ws1_m4_fault_matrix" name="test_m4_t15_the_worker_settles_a_dropped_response_unknown" time="0.044" /><testcase classname="tests.test_ws1_m4_fault_matrix" name="test_m4_t17_a_required_monitor_that_is_down_refuses_unspent" time="0.020" /><testcase classname="tests.test_ws1_m4_fault_matrix" name="test_m4_t17_a_poisoned_monitor_supplies_no_missing_authority[poison0]" time="0.019" /><testcase classname="tests.test_ws1_m4_fault_matrix" name="test_m4_t17_a_poisoned_monitor_supplies_no_missing_authority[poison1]" time="0.019" /><testcase classname="tests.test_ws1_m4_fault_matrix" name="test_m4_t17_a_poisoned_monitor_supplies_no_missing_authority[poison2]" time="0.025" /><testcase classname="tests.test_ws1_m4_fault_matrix" name="test_m4_t18_a_source_revision_mid_lookup_refuses_the_stale_receipt" time="0.032" /><testcase classname="tests.test_ws1_m4_fault_matrix" name="test_m4_t18_a_policy_revision_mid_lookup_refuses" time="0.019" /><testcase classname="tests.test_ws1_m4_fault_matrix" name="test_m4_t19_a_refused_admission_leaves_no_lease_to_use" time="0.020" /><testcase classname="tests.test_ws1_m4_fault_matrix" name="test_m4_t19_an_altered_lease_is_refused_by_the_executor[tool_args_hash-0000000000000000000000000000000000000000000000000000000000000000]" time="0.027" /><testcase classname="tests.test_ws1_m4_fault_matrix" name="test_m4_t19_an_altered_lease_is_refused_by_the_executor[actor_identity-someone-else]" time="0.027" /><testcase classname="tests.test_ws1_m4_fault_matrix" name="test_m4_t19_an_altered_lease_is_refused_by_the_executor[expires_at-2999-01-01T00:00:00+00:00]" time="0.030" /><testcase classname="tests.test_ws1_m4_fault_matrix" name="test_m4_t19_a_lease_for_another_call_is_refused" time="0.032" /><testcase classname="tests.test_ws1_m4_fault_matrix" name="test_m4_t20_a_grant_replayed_after_a_restart_is_refused" time="0.037" /><testcase classname="tests.test_ws1_m4_fault_matrix" name="test_m4_t07_t08_a_swapped_binding_refuses_unspent[arguments-binding_refused]" time="0.018" /><testcase classname="tests.test_ws1_m4_fault_matrix" name="test_m4_t07_t08_a_swapped_binding_refuses_unspent[target-binding_refused]" time="0.018" /><testcase classname="tests.test_ws1_m4_fault_matrix" name="test_m4_t07_t08_a_swapped_binding_refuses_unspent[actor-context_mismatch]" time="0.018" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_an_atomic_redemption_executes_and_records_its_admission" time="0.023" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_m4_t02_evidence_lapsing_after_the_regate_refuses_unspent" time="0.029" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_m4_t03_a_revoked_evidence_source_refuses_unspent" time="0.084" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_m4_t04_a_source_revision_during_the_lookups_refuses" time="0.030" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_atomic_admission_refuses_to_start_without_its_prerequisites[env0-unset0]" time="0.032" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_atomic_admission_refuses_to_start_without_its_prerequisites[env1-unset1]" time="0.022" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_atomic_admission_refuses_to_start_without_its_prerequisites[env2-unset2]" time="0.014" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_atomic_admission_refuses_to_start_without_its_prerequisites[env3-unset3]" time="0.017" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_atomic_admission_refuses_to_start_without_its_prerequisites[env4-unset4]" time="0.066" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_atomic_admission_refuses_to_start_without_its_prerequisites[env5-unset5]" time="0.022" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_legacy_admission_is_the_default" time="0.016" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_an_approved_review_is_admitted_atomically" time="0.039" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_review_admission_refuses_and_settles_without_dispatch[lapse]" time="0.041" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_review_admission_refuses_and_settles_without_dispatch[revocation]" time="0.034" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_the_worker_admits_atomically" time="0.039" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_the_worker_refuses_a_revoked_source_and_settles_the_row" time="0.037" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_m4_t03_a_principal_revoked_after_the_grant_refuses_unspent" time="0.027" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_the_authority_route_revokes_and_reinstates_a_source" time="0.042" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_the_authority_route_names_sources_only[principal:x]" time="0.015" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_the_authority_route_names_sources_only[source:]" time="0.015" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_the_authority_route_names_sources_only[sourcex:y]" time="0.016" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_the_authority_route_refuses_without_atomic_admission" time="0.014" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_m4_t12_each_path_commits_its_admission_record_with_the_spend" time="0.029" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_m4_t12_the_review_path_commits_its_admission_record" time="0.036" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_m4_t12_the_worker_commits_its_admission_record" time="0.045" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_m4_t12_an_audit_outbox_failure_refuses_unspent" time="0.037" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_m4_t14_the_lease_ends_when_the_evidence_does" time="0.025" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_m4_t14_t16_a_change_after_commit_refuses_before_the_send[lapse-evidence_expired_at_admission]" time="0.022" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_m4_t14_t16_a_change_after_commit_refuses_before_the_send[revocation-authority_revoked]" time="0.022" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_m4_t16_a_revocation_during_the_send_is_not_called_safe_at_effect" time="0.027" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_m4_t16_the_review_path_refuses_a_revocation_before_the_send" time="0.032" /><testcase classname="tests.test_ws1_atomic_admission_route" name="test_m4_t16_the_worker_refuses_a_revocation_before_the_send" time="0.043" /><testcase classname="tests.test_ws1_gate_controls" name="test_control_1_monitor_outage_refuses_before_consumption" time="0.222" /><testcase classname="tests.test_ws1_gate_controls" name="test_control_2a_evidence_already_lapsed_at_the_regate_refuses" time="0.211"><failure message="ValueError: outbox row 2984534a-44a3-4ba5-ac66-19e9c0c9b5c6 is terminal (SUCCEEDED); a settled dispatch is never re-claimed">tests/test_ws1_gate_controls.py:125: in test_control_2a_evidence_already_lapsed_at_the_regate_refuses
+    after = _try(client, token)
+            ^^^^^^^^^^^^^^^^^^^
+tests/test_ws1_gate_controls.py:83: in _try
+    r = _redeem(client, token)
+        ^^^^^^^^^^^^^^^^^^^^^^
+tests/test_ws1_execution_binding.py:111: in _redeem
+    return client.post("/v1/execution/execute-accepted",
+.venv/lib/python3.13/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+.venv/lib/python3.13/site-packages/starlette/testclient.py:463: in request
+    return super().request(
+.venv/lib/python3.13/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+.venv/lib/python3.13/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+.venv/lib/python3.13/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/testclient.py:360: in handle_request
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/testclient.py:357: in handle_request
+    portal.call(self.app, scope, receive, send)
+.venv/lib/python3.13/site-packages/anyio/from_thread.py:340: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.13/3.13.7/Frameworks/Python.framework/Versions/3.13/lib/python3.13/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.13/3.13.7/Frameworks/Python.framework/Versions/3.13/lib/python3.13/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+.venv/lib/python3.13/site-packages/anyio/from_thread.py:265: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/fastapi/applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+servers/api.py:3628: in __call__
+    await self.app(scope, limited_receive, tracking_send)
+servers/strict_json_ingress.py:285: in __call__
+    await self.app(scope, replay, send)
+servers/api.py:3547: in __call__
+    await self.app(scope, receive, send_with_header)
+.venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/routing.py:676: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:2734: in app
+    await route.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:1279: in handle
+    await app(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/fastapi/routing.py:706: in app
+    raw_response = await run_endpoint_function(
+.venv/lib/python3.13/site-packages/fastapi/routing.py:354: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/concurrency.py:34: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/anyio/to_thread.py:65: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py:2706: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py:1100: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+servers/execution_api.py:3859: in execute_accepted
+    response = _with_flow_principal(flow_principal, lambda: _redeem_accept_token(
+servers/execution_api.py:1555: in _with_flow_principal
+    return run()
+           ^^^^^
+servers/execution_api.py:3859: in &lt;lambda&gt;
+    response = _with_flow_principal(flow_principal, lambda: _redeem_accept_token(
+remora/execution/service.py:2507: in redeem_accept_token
+    if not _claim_or_none(outbox, intent, worker_id=worker_id):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+remora/execution/service.py:128: in _claim_or_none
+    return outbox_factory().claim(intent.outbox_id, worker_id=worker_id) is not None
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+remora/enforcement/outbox.py:1266: in claim
+    _check_claimable(row)
+remora/enforcement/outbox.py:221: in _check_claimable
+    raise ValueError(
+E   ValueError: outbox row 2984534a-44a3-4ba5-ac66-19e9c0c9b5c6 is terminal (SUCCEEDED); a settled dispatch is never re-claimed</failure></testcase><testcase classname="tests.test_ws1_gate_controls" name="test_control_2b_evidence_lapsing_after_the_regate_is_the_documented_residual" time="0.099"><failure message="ValueError: outbox row 2984534a-44a3-4ba5-ac66-19e9c0c9b5c6 is terminal (SUCCEEDED); a settled dispatch is never re-claimed">tests/test_ws1_gate_controls.py:153: in test_control_2b_evidence_lapsing_after_the_regate_is_the_documented_residual
+    ran = _try(client, token)
+          ^^^^^^^^^^^^^^^^^^^
+tests/test_ws1_gate_controls.py:83: in _try
+    r = _redeem(client, token)
+        ^^^^^^^^^^^^^^^^^^^^^^
+tests/test_ws1_execution_binding.py:111: in _redeem
+    return client.post("/v1/execution/execute-accepted",
+.venv/lib/python3.13/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+.venv/lib/python3.13/site-packages/starlette/testclient.py:463: in request
+    return super().request(
+.venv/lib/python3.13/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+.venv/lib/python3.13/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+.venv/lib/python3.13/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/testclient.py:360: in handle_request
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/testclient.py:357: in handle_request
+    portal.call(self.app, scope, receive, send)
+.venv/lib/python3.13/site-packages/anyio/from_thread.py:340: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.13/3.13.7/Frameworks/Python.framework/Versions/3.13/lib/python3.13/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.13/3.13.7/Frameworks/Python.framework/Versions/3.13/lib/python3.13/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+.venv/lib/python3.13/site-packages/anyio/from_thread.py:265: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/fastapi/applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+servers/api.py:3628: in __call__
+    await self.app(scope, limited_receive, tracking_send)
+servers/strict_json_ingress.py:285: in __call__
+    await self.app(scope, replay, send)
+servers/api.py:3547: in __call__
+    await self.app(scope, receive, send_with_header)
+.venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/routing.py:676: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:2734: in app
+    await route.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:1279: in handle
+    await app(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/fastapi/routing.py:706: in app
+    raw_response = await run_endpoint_function(
+.venv/lib/python3.13/site-packages/fastapi/routing.py:354: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/concurrency.py:34: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/anyio/to_thread.py:65: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py:2706: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py:1100: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+servers/execution_api.py:3859: in execute_accepted
+    response = _with_flow_principal(flow_principal, lambda: _redeem_accept_token(
+servers/execution_api.py:1555: in _with_flow_principal
+    return run()
+           ^^^^^
+servers/execution_api.py:3859: in &lt;lambda&gt;
+    response = _with_flow_principal(flow_principal, lambda: _redeem_accept_token(
+remora/execution/service.py:2507: in redeem_accept_token
+    if not _claim_or_none(outbox, intent, worker_id=worker_id):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+remora/execution/service.py:128: in _claim_or_none
+    return outbox_factory().claim(intent.outbox_id, worker_id=worker_id) is not None
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+remora/enforcement/outbox.py:1266: in claim
+    _check_claimable(row)
+remora/enforcement/outbox.py:221: in _check_claimable
+    raise ValueError(
+E   ValueError: outbox row 2984534a-44a3-4ba5-ac66-19e9c0c9b5c6 is terminal (SUCCEEDED); a settled dispatch is never re-claimed</failure></testcase><testcase classname="tests.test_ws1_gate_controls" name="test_control_3a_another_tenants_record_refuses" time="0.317"><failure message="ValueError: outbox row 2984534a-44a3-4ba5-ac66-19e9c0c9b5c6 is terminal (SUCCEEDED); a settled dispatch is never re-claimed">tests/test_ws1_gate_controls.py:174: in test_control_3a_another_tenants_record_refuses
+    after = _try(client, token)
+            ^^^^^^^^^^^^^^^^^^^
+tests/test_ws1_gate_controls.py:83: in _try
+    r = _redeem(client, token)
+        ^^^^^^^^^^^^^^^^^^^^^^
+tests/test_ws1_execution_binding.py:111: in _redeem
+    return client.post("/v1/execution/execute-accepted",
+.venv/lib/python3.13/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+.venv/lib/python3.13/site-packages/starlette/testclient.py:463: in request
+    return super().request(
+.venv/lib/python3.13/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+.venv/lib/python3.13/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+.venv/lib/python3.13/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/testclient.py:360: in handle_request
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/testclient.py:357: in handle_request
+    portal.call(self.app, scope, receive, send)
+.venv/lib/python3.13/site-packages/anyio/from_thread.py:340: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.13/3.13.7/Frameworks/Python.framework/Versions/3.13/lib/python3.13/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.13/3.13.7/Frameworks/Python.framework/Versions/3.13/lib/python3.13/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+.venv/lib/python3.13/site-packages/anyio/from_thread.py:265: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/fastapi/applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+servers/api.py:3628: in __call__
+    await self.app(scope, limited_receive, tracking_send)
+servers/strict_json_ingress.py:285: in __call__
+    await self.app(scope, replay, send)
+servers/api.py:3547: in __call__
+    await self.app(scope, receive, send_with_header)
+.venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/routing.py:676: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:2734: in app
+    await route.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:1279: in handle
+    await app(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/fastapi/routing.py:706: in app
+    raw_response = await run_endpoint_function(
+.venv/lib/python3.13/site-packages/fastapi/routing.py:354: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/concurrency.py:34: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/anyio/to_thread.py:65: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py:2706: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py:1100: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+servers/execution_api.py:3859: in execute_accepted
+    response = _with_flow_principal(flow_principal, lambda: _redeem_accept_token(
+servers/execution_api.py:1555: in _with_flow_principal
+    return run()
+           ^^^^^
+servers/execution_api.py:3859: in &lt;lambda&gt;
+    response = _with_flow_principal(flow_principal, lambda: _redeem_accept_token(
+remora/execution/service.py:2507: in redeem_accept_token
+    if not _claim_or_none(outbox, intent, worker_id=worker_id):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+remora/execution/service.py:128: in _claim_or_none
+    return outbox_factory().claim(intent.outbox_id, worker_id=worker_id) is not None
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+remora/enforcement/outbox.py:1266: in claim
+    _check_claimable(row)
+remora/enforcement/outbox.py:221: in _check_claimable
+    raise ValueError(
+E   ValueError: outbox row 2984534a-44a3-4ba5-ac66-19e9c0c9b5c6 is terminal (SUCCEEDED); a settled dispatch is never re-claimed</failure></testcase><testcase classname="tests.test_ws1_gate_controls" name="test_control_3b_evidence_stamped_for_another_tenant_refuses" time="0.232"><failure message="ValueError: outbox row 2984534a-44a3-4ba5-ac66-19e9c0c9b5c6 is terminal (SUCCEEDED); a settled dispatch is never re-claimed">tests/test_ws1_gate_controls.py:188: in test_control_3b_evidence_stamped_for_another_tenant_refuses
+    after = _try(client, token)
+            ^^^^^^^^^^^^^^^^^^^
+tests/test_ws1_gate_controls.py:83: in _try
+    r = _redeem(client, token)
+        ^^^^^^^^^^^^^^^^^^^^^^
+tests/test_ws1_execution_binding.py:111: in _redeem
+    return client.post("/v1/execution/execute-accepted",
+.venv/lib/python3.13/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+.venv/lib/python3.13/site-packages/starlette/testclient.py:463: in request
+    return super().request(
+.venv/lib/python3.13/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+.venv/lib/python3.13/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+.venv/lib/python3.13/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/testclient.py:360: in handle_request
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/testclient.py:357: in handle_request
+    portal.call(self.app, scope, receive, send)
+.venv/lib/python3.13/site-packages/anyio/from_thread.py:340: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.13/3.13.7/Frameworks/Python.framework/Versions/3.13/lib/python3.13/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.13/3.13.7/Frameworks/Python.framework/Versions/3.13/lib/python3.13/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+.venv/lib/python3.13/site-packages/anyio/from_thread.py:265: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/fastapi/applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+servers/api.py:3628: in __call__
+    await self.app(scope, limited_receive, tracking_send)
+servers/strict_json_ingress.py:285: in __call__
+    await self.app(scope, replay, send)
+servers/api.py:3547: in __call__
+    await self.app(scope, receive, send_with_header)
+.venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/routing.py:676: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:2734: in app
+    await route.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:1279: in handle
+    await app(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/fastapi/routing.py:706: in app
+    raw_response = await run_endpoint_function(
+.venv/lib/python3.13/site-packages/fastapi/routing.py:354: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/concurrency.py:34: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/anyio/to_thread.py:65: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py:2706: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py:1100: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+servers/execution_api.py:3859: in execute_accepted
+    response = _with_flow_principal(flow_principal, lambda: _redeem_accept_token(
+servers/execution_api.py:1555: in _with_flow_principal
+    return run()
+           ^^^^^
+servers/execution_api.py:3859: in &lt;lambda&gt;
+    response = _with_flow_principal(flow_principal, lambda: _redeem_accept_token(
+remora/execution/service.py:2507: in redeem_accept_token
+    if not _claim_or_none(outbox, intent, worker_id=worker_id):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+remora/execution/service.py:128: in _claim_or_none
+    return outbox_factory().claim(intent.outbox_id, worker_id=worker_id) is not None
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+remora/enforcement/outbox.py:1266: in claim
+    _check_claimable(row)
+remora/enforcement/outbox.py:221: in _check_claimable
+    raise ValueError(
+E   ValueError: outbox row 2984534a-44a3-4ba5-ac66-19e9c0c9b5c6 is terminal (SUCCEEDED); a settled dispatch is never re-claimed</failure></testcase><testcase classname="tests.test_ws1_gate_controls" name="test_control_4_a_digest_change_after_accept_refuses[registry]" time="0.249"><failure message="ValueError: outbox row 2984534a-44a3-4ba5-ac66-19e9c0c9b5c6 is terminal (SUCCEEDED); a settled dispatch is never re-claimed">tests/test_ws1_gate_controls.py:213: in test_control_4_a_digest_change_after_accept_refuses
+    after = _try(client, token)
+            ^^^^^^^^^^^^^^^^^^^
+tests/test_ws1_gate_controls.py:83: in _try
+    r = _redeem(client, token)
+        ^^^^^^^^^^^^^^^^^^^^^^
+tests/test_ws1_execution_binding.py:111: in _redeem
+    return client.post("/v1/execution/execute-accepted",
+.venv/lib/python3.13/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+.venv/lib/python3.13/site-packages/starlette/testclient.py:463: in request
+    return super().request(
+.venv/lib/python3.13/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+.venv/lib/python3.13/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+.venv/lib/python3.13/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/testclient.py:360: in handle_request
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/testclient.py:357: in handle_request
+    portal.call(self.app, scope, receive, send)
+.venv/lib/python3.13/site-packages/anyio/from_thread.py:340: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.13/3.13.7/Frameworks/Python.framework/Versions/3.13/lib/python3.13/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.13/3.13.7/Frameworks/Python.framework/Versions/3.13/lib/python3.13/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+.venv/lib/python3.13/site-packages/anyio/from_thread.py:265: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/fastapi/applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+servers/api.py:3628: in __call__
+    await self.app(scope, limited_receive, tracking_send)
+servers/strict_json_ingress.py:285: in __call__
+    await self.app(scope, replay, send)
+servers/api.py:3547: in __call__
+    await self.app(scope, receive, send_with_header)
+.venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/routing.py:676: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:2734: in app
+    await route.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:1279: in handle
+    await app(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/fastapi/routing.py:706: in app
+    raw_response = await run_endpoint_function(
+.venv/lib/python3.13/site-packages/fastapi/routing.py:354: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/concurrency.py:34: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/anyio/to_thread.py:65: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py:2706: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py:1100: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+servers/execution_api.py:3859: in execute_accepted
+    response = _with_flow_principal(flow_principal, lambda: _redeem_accept_token(
+servers/execution_api.py:1555: in _with_flow_principal
+    return run()
+           ^^^^^
+servers/execution_api.py:3859: in &lt;lambda&gt;
+    response = _with_flow_principal(flow_principal, lambda: _redeem_accept_token(
+remora/execution/service.py:2507: in redeem_accept_token
+    if not _claim_or_none(outbox, intent, worker_id=worker_id):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+remora/execution/service.py:128: in _claim_or_none
+    return outbox_factory().claim(intent.outbox_id, worker_id=worker_id) is not None
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+remora/enforcement/outbox.py:1266: in claim
+    _check_claimable(row)
+remora/enforcement/outbox.py:221: in _check_claimable
+    raise ValueError(
+E   ValueError: outbox row 2984534a-44a3-4ba5-ac66-19e9c0c9b5c6 is terminal (SUCCEEDED); a settled dispatch is never re-claimed</failure></testcase><testcase classname="tests.test_ws1_gate_controls" name="test_control_4_a_digest_change_after_accept_refuses[monitor_profile]" time="0.259"><failure message="ValueError: outbox row 2984534a-44a3-4ba5-ac66-19e9c0c9b5c6 is terminal (SUCCEEDED); a settled dispatch is never re-claimed">tests/test_ws1_gate_controls.py:213: in test_control_4_a_digest_change_after_accept_refuses
+    after = _try(client, token)
+            ^^^^^^^^^^^^^^^^^^^
+tests/test_ws1_gate_controls.py:83: in _try
+    r = _redeem(client, token)
+        ^^^^^^^^^^^^^^^^^^^^^^
+tests/test_ws1_execution_binding.py:111: in _redeem
+    return client.post("/v1/execution/execute-accepted",
+.venv/lib/python3.13/site-packages/httpx/_client.py:1144: in post
+    return self.request(
+.venv/lib/python3.13/site-packages/starlette/testclient.py:463: in request
+    return super().request(
+.venv/lib/python3.13/site-packages/httpx/_client.py:825: in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpx/_client.py:914: in send
+    response = self._send_handling_auth(
+.venv/lib/python3.13/site-packages/httpx/_client.py:942: in _send_handling_auth
+    response = self._send_handling_redirects(
+.venv/lib/python3.13/site-packages/httpx/_client.py:979: in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/httpx/_client.py:1014: in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/testclient.py:360: in handle_request
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/testclient.py:357: in handle_request
+    portal.call(self.app, scope, receive, send)
+.venv/lib/python3.13/site-packages/anyio/from_thread.py:340: in call
+    return cast(T_Retval, self.start_task_soon(func, *args).result())
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.13/3.13.7/Frameworks/Python.framework/Versions/3.13/lib/python3.13/concurrent/futures/_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+/opt/homebrew/Cellar/python@3.13/3.13.7/Frameworks/Python.framework/Versions/3.13/lib/python3.13/concurrent/futures/_base.py:401: in __get_result
+    raise self._exception
+.venv/lib/python3.13/site-packages/anyio/from_thread.py:265: in _call_func
+    retval = await retval_or_awaitable
+             ^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/fastapi/applications.py:1163: in __call__
+    await super().__call__(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/applications.py:96: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/middleware/errors.py:186: in __call__
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/middleware/errors.py:164: in __call__
+    await self.app(scope, receive, _send)
+servers/api.py:3628: in __call__
+    await self.app(scope, limited_receive, tracking_send)
+servers/strict_json_ingress.py:285: in __call__
+    await self.app(scope, replay, send)
+servers/api.py:3547: in __call__
+    await self.app(scope, receive, send_with_header)
+.venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py:63: in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py:18: in __call__
+    await self.app(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/routing.py:676: in __call__
+    await self.middleware_stack(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:2734: in app
+    await route.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:1780: in handle
+    await self.original_router.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:2789: in handle
+    await included_router._handle_selected(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:1800: in _handle_selected
+    await original_route.handle(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:1279: in handle
+    await app(scope, receive, send)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:158: in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:53: in wrapped_app
+    raise exc
+.venv/lib/python3.13/site-packages/starlette/_exception_handler.py:42: in wrapped_app
+    await app(scope, receive, sender)
+.venv/lib/python3.13/site-packages/fastapi/routing.py:144: in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/fastapi/routing.py:706: in app
+    raw_response = await run_endpoint_function(
+.venv/lib/python3.13/site-packages/fastapi/routing.py:354: in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/starlette/concurrency.py:34: in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/anyio/to_thread.py:65: in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py:2706: in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+.venv/lib/python3.13/site-packages/anyio/_backends/_asyncio.py:1100: in run
+    result = context.run(func, *args)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+servers/execution_api.py:3859: in execute_accepted
+    response = _with_flow_principal(flow_principal, lambda: _redeem_accept_token(
+servers/execution_api.py:1555: in _with_flow_principal
+    return run()
+           ^^^^^
+servers/execution_api.py:3859: in &lt;lambda&gt;
+    response = _with_flow_principal(flow_principal, lambda: _redeem_accept_token(
+remora/execution/service.py:2507: in redeem_accept_token
+    if not _claim_or_none(outbox, intent, worker_id=worker_id):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+remora/execution/service.py:128: in _claim_or_none
+    return outbox_factory().claim(intent.outbox_id, worker_id=worker_id) is not None
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+remora/enforcement/outbox.py:1266: in claim
+    _check_claimable(row)
+remora/enforcement/outbox.py:221: in _check_claimable
+    raise ValueError(
+E   ValueError: outbox row 2984534a-44a3-4ba5-ac66-19e9c0c9b5c6 is terminal (SUCCEEDED); a settled dispatch is never re-claimed</failure></testcase><testcase classname="tests.test_audit_outbox_atomicity" name="test_a_crash_before_commit_leaves_neither" time="0.003" /><testcase classname="tests.test_audit_outbox_atomicity" name="test_a_crash_after_commit_and_before_projection_recovers" time="0.002" /><testcase classname="tests.test_audit_outbox_atomicity" name="test_replaying_the_drain_does_not_duplicate_the_event" time="0.002" /><testcase classname="tests.test_audit_outbox_atomicity" name="test_a_crash_during_the_drain_replays_rather_than_losing" time="0.002" /><testcase classname="tests.test_audit_outbox_atomicity" name="test_a_second_process_draining_concurrently_appends_once" time="0.002" /><testcase classname="tests.test_audit_outbox_atomicity" name="test_many_transitions_recover_in_order" time="0.004" /><testcase classname="tests.test_audit_outbox_atomicity" name="test_the_key_must_identify_the_event" time="0.000" /><testcase classname="tests.test_audit_outbox_atomicity" name="test_the_chain_verifies_after_recovery" time="0.003" /><testcase classname="tests.test_audit_outbox_atomicity" name="test_pending_is_ordered_by_arrival_not_by_key" time="0.003" /><testcase classname="tests.test_audit_outbox_atomicity" name="test_the_sequence_is_monotonic_and_survives_projection" time="0.002" /><testcase classname="tests.test_audit_outbox_atomicity" name="test_a_table_written_before_the_sequence_existed_is_migrated" time="0.003" /><testcase classname="tests.test_audit_outbox_atomicity" name="test_drain_refuses_a_connection_inside_an_open_transaction" time="0.002" /><testcase classname="tests.test_audit_outbox_atomicity" name="test_postgres_drains_in_arrival_order" time="0.085" /><testcase classname="tests.test_effect_receipt_atomicity" name="test_in_memory_append_once_has_one_winner_under_concurrency" time="0.001" /><testcase classname="tests.test_effect_receipt_atomicity" name="test_sqlite_append_once_has_one_winner_across_connections" time="0.045" /><testcase classname="tests.test_effect_receipt_atomicity" name="test_sqlite_failed_audit_append_rolls_back_the_receipt_claim" time="0.003" /><testcase classname="tests.test_effect_receipt_atomicity" name="test_postgres_contract_places_idempotency_in_the_chain_schema" time="0.000" /><testcase classname="tests.test_admission_gate" name="test_threshold_is_pre_registered_above_the_review_floor" time="0.000" /><testcase classname="tests.test_admission_gate" name="test_an_index_with_no_coverage_is_ineligible" time="0.000" /><testcase classname="tests.test_admission_gate" name="test_a_fully_covered_set_is_eligible" time="0.000" /><testcase classname="tests.test_admission_gate" name="test_a_rare_role_cannot_carry_the_aggregate" time="0.000" /><testcase classname="tests.test_admission_gate" name="test_the_gate_would_have_refused_track_a" time="0.055" /><testcase classname="tests.test_admission_gate" name="test_the_result_is_machine_readable" time="0.000" /><testcase classname="tests.test_admission_gate" name="test_the_gate_reads_no_predictions" time="0.000" /><testcase classname="tests.test_review_admission_grant_withheld" name="test_a_refused_admission_returns_no_grant_and_spends_the_minted_one[sqlite]" time="0.033" /><testcase classname="tests.test_review_admission_grant_withheld" name="test_a_refused_admission_returns_no_grant_and_spends_the_minted_one[postgres]" time="0.634" /><testcase classname="tests.test_review_admission_grant_withheld" name="test_a_transient_admission_fault_also_returns_no_grant[sqlite]" time="0.056" /><testcase classname="tests.test_review_admission_grant_withheld" name="test_a_transient_admission_fault_also_returns_no_grant[postgres]" time="0.554" /><testcase classname="tests.test_review_admission_grant_withheld" name="test_a_ledger_that_cannot_spend_the_grant_still_withholds_it[sqlite]" time="0.053" /><testcase classname="tests.test_review_admission_grant_withheld" name="test_a_ledger_that_cannot_spend_the_grant_still_withholds_it[postgres]" time="0.622" /><testcase classname="tests.test_review_admission_grant_withheld" name="test_a_storage_fault_inside_the_admission_returns_no_grant[sqlite]" time="0.067" /><testcase classname="tests.test_review_admission_grant_withheld" name="test_a_storage_fault_inside_the_admission_returns_no_grant[postgres]" time="1.366" /><testcase classname="tests.test_review_admission_grant_withheld" name="test_an_admitted_execution_still_returns_its_grant[sqlite]" time="0.079" /><testcase classname="tests.test_review_admission_grant_withheld" name="test_an_admitted_execution_still_returns_its_grant[postgres]" time="1.673" /><testcase classname="tests.test_execution_fault_injection" name="test_row1_crash_before_authorize_commit_leaves_nothing_behind" time="2.421" /><testcase classname="tests.test_execution_fault_injection" name="test_row2_authorized_but_never_claimed_is_reconciled_as_failed" time="1.178" /><testcase classname="tests.test_execution_fault_injection" name="test_rows_3_4_6_claimed_then_silent_collapse_to_unknown" time="0.253" /><testcase classname="tests.test_execution_fault_injection" name="test_row5_terminal_row_is_authoritative_and_reconcile_is_idempotent" time="0.910" /><testcase classname="tests.test_execution_fault_injection" name="test_row7_outcome_reported_after_reconciliation_is_recorded_not_lost" time="0.739" /></testsuite></testsuites>

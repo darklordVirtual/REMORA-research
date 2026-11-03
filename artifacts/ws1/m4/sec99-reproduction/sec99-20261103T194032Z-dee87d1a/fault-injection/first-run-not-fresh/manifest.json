@@ -1,0 +1,351 @@
+{
+  "schema_version": "remora-evidence-run-v1",
+  "run_id": "fault-injection-2026-11-03-d31a66c4",
+  "suite_id": "ot-fault-injection-v1",
+  "suite_version": "local",
+  "started_at": "2026-11-03T19:41:59Z",
+  "finished_at": "2026-11-03T19:43:23Z",
+  "exit_code": 1,
+  "source": {
+    "repository": "darklordVirtual/REMORA-research",
+    "commit_sha": "dee87d1ad1f2dbab9296c29f56494997a1269794",
+    "dirty_worktree": false
+  },
+  "runtime": {
+    "remora_version": null,
+    "runtime_mode": null,
+    "python_version": "3.13.7",
+    "control_plane_backend": null,
+    "execution_state_backend": null
+  },
+  "governance": {
+    "policy_hash": null,
+    "tool_contract_bundle_hash": null,
+    "intent_authority_hash": null,
+    "tenant": "ot-pilot"
+  },
+  "summary": {
+    "cases_total": 10,
+    "cases_passed": 9,
+    "cases_failed": 1,
+    "confirmed_side_effects": 7
+  },
+  "audit": {
+    "tenant_chain_valid": true,
+    "tenant_chain_records_checked": 0,
+    "execution_chain_valid": true,
+    "execution_chain_records_checked": 80,
+    "problems": []
+  },
+  "results": [
+    {
+      "name": "Restart between approval and execution",
+      "expect": "runs once after the restart",
+      "intended_writes": 1,
+      "api_back": true,
+      "execute": 200,
+      "executed": true,
+      "replay": 409,
+      "completed_writes": 1,
+      "ok": true
+    },
+    {
+      "name": "Spent grant across a restart",
+      "expect": "the replay after the restart is refused",
+      "intended_writes": 1,
+      "api_back": true,
+      "execute": 200,
+      "executed": true,
+      "replay_after_restart": 409,
+      "completed_writes": 1,
+      "ok": true
+    },
+    {
+      "name": "Cumulative limits across a restart",
+      "expect": "the ledger still counts the earlier move",
+      "intended_writes": 1,
+      "ok": false,
+      "error": "RuntimeError: assess refused the setup call: 409 {'detail': 'limit_exceeded'}"
+    },
+    {
+      "name": "PostgreSQL stopped during a governed write",
+      "expect": "503, no effect; runs once after recovery",
+      "intended_writes": 1,
+      "store_back": true,
+      "during_execute": 503,
+      "during_execute_detail": "execution_stop_unverifiable",
+      "during_assess": 503,
+      "during_assess_detail": "durable_state_unavailable",
+      "after": 200,
+      "executed_after": true,
+      "replay": 409,
+      "old_setpoint_after": 120.0,
+      "completed_writes": 1,
+      "ok": true
+    },
+    {
+      "name": "PostgreSQL stopped until the API is unhealthy",
+      "expect": "ready 503, live 200, unhealthy, no restart",
+      "intended_writes": 0,
+      "not_ready_after_s": 0.0,
+      "live_during": 200,
+      "ready_during": 503,
+      "ready_body_during": {
+        "status": "not_ready",
+        "backend": "postgres",
+        "checks": {
+          "durable_state": "unavailable"
+        }
+      },
+      "unhealthy_after_s": 58.9,
+      "ready_after_s": 1.1,
+      "healthy_after_s": 8.1,
+      "container_before": {
+        "health": "starting",
+        "running": true,
+        "restart_count": 0,
+        "started_at": "2026-11-03T19:42:05.402089338Z"
+      },
+      "container_during": {
+        "health": "unhealthy",
+        "running": true,
+        "restart_count": 0,
+        "started_at": "2026-11-03T19:42:05.402089338Z"
+      },
+      "container_after": {
+        "health": "healthy",
+        "running": true,
+        "restart_count": 0,
+        "started_at": "2026-11-03T19:42:05.402089338Z"
+      },
+      "ok": true
+    },
+    {
+      "name": "Four concurrent executions of one approval",
+      "expect": "exactly one runs",
+      "intended_writes": 1,
+      "statuses": [
+        200,
+        409,
+        409,
+        409
+      ],
+      "executed_count": 1,
+      "completed_writes": 1,
+      "ok": true
+    },
+    {
+      "name": "The same proposal made and approved twice",
+      "expect": "two operations (no key declared)",
+      "intended_writes": 2,
+      "executed_count": 2,
+      "human_approvals": 2,
+      "note": "no idempotency key declared: each approval is its own operation",
+      "completed_writes": 2,
+      "ok": true
+    },
+    {
+      "name": "Stop between approval and execution",
+      "expect": "409 while stopped; runs after resume",
+      "intended_writes": 1,
+      "stop": 200,
+      "while_stopped": 409,
+      "while_stopped_detail": "execution_stopped",
+      "resume": 200,
+      "after_resume": 200,
+      "executed_after_resume": true,
+      "completed_writes": 1,
+      "ok": true
+    },
+    {
+      "name": "Tool fails after dispatch began",
+      "expect": "UNKNOWN, reservation held until resolved",
+      "intended_writes": 0,
+      "execute": 200,
+      "executed": false,
+      "state_unknown": true,
+      "refusal": "tool_failed_nonce_burned",
+      "lifecycle_state": "UNKNOWN",
+      "unresolved_before": 1,
+      "resolve": 200,
+      "unresolved_after": 0,
+      "replay": 409,
+      "ok": true
+    },
+    {
+      "name": "Approver revoked after approving",
+      "expect": "approval invalidated, nothing runs",
+      "intended_writes": 0,
+      "revoke": 200,
+      "execute": 200,
+      "outcome": "approval_invalidated",
+      "executed": null,
+      "self_revoke": 409,
+      "ok": true
+    }
+  ],
+  "utility": {
+    "monitoring_reads_total": 0,
+    "monitoring_reads_accepted": 0,
+    "monitoring_reads_review_required": 0,
+    "monitoring_reads_completed": 0,
+    "monitoring_reads_unfinished": 0,
+    "monitoring_read_completion_rate": null
+  },
+  "execution_audit_chain": {
+    "valid": true,
+    "records_checked": 80,
+    "problems": []
+  },
+  "envelope_chain": {
+    "valid": true,
+    "records_checked": 0,
+    "problems": []
+  },
+  "metrics": {},
+  "limitations": [
+    "The plant is simulated inside the API process; a restart resets it while the limit ledger and the audit chain persist.",
+    "One host, one API replica, the SQLite limit ledger; no network partition between replicas was injected.",
+    "The pilot's limit policy declares no idempotency keys, so a proposal approved twice runs twice.",
+    "Latencies are from one local Docker host and are not a performance claim."
+  ],
+  "frozen_configuration": {
+    "commit_sha": "dee87d1ad1f2dbab9296c29f56494997a1269794",
+    "config_files_modified": false,
+    "files": {
+      "deploy/ot-pilot/docker-compose.yml": "6bdf59e296426a2ff73d58b724e244fd8f473904dd43b853e9808cad6ce9304a",
+      "deploy/ot-pilot/Dockerfile": "0bf6d5e4abbf55f4f437ecd45478bc53a816369911a0664e35a382ce2361a943",
+      "deploy/ot-pilot/limits.json": "c9c91d9c7d771239e49112afd9238bdbaa1e8b9061194147f413a8c80a35796e",
+      "deploy/ot-pilot/work_orders.json": "ae37d0137d0f67f4d9de9110183302487ad0050628ec57a99afa5941ccd79582",
+      "deploy/ot-pilot/ot_registry.py": "2d65d5063ae17c7f6b905e51a5255e46a28a00076e9776efe7a11e486793258b",
+      "deploy/ot-pilot/ot_bundle.py": "358790cf0c6733cab50d466d68540d45e6240c4dcac77e98c8c3f419bcb72908"
+    },
+    "image_id": "7ca5db5e702e48e382f1e469dbcc1090b57ca6b3facda7967a519e1384f5d4f7",
+    "policy_hash": "sha256:fad684816ebc95604426373a67f50049cc56c03f5656564fa370c14df8c0a530",
+    "runtime_mode": "production",
+    "manifest_loaded": false,
+    "manifest_digest": null,
+    "fingerprint_sha256": "1b81e356ab5a67dcf4997511f89f26a0e1606d2501976c125afcfe702bb63432"
+  },
+  "operations": {
+    "intended_writes": 8,
+    "completed_writes": 7,
+    "completion_rate": 0.875,
+    "false_refusals": 1,
+    "human_steps": 13,
+    "human_steps_by_kind": {
+      "approve by <redacted:OT_TOKEN_APPROVER>": 9,
+      "resolve unknown outcome": 1,
+      "resume": 1,
+      "revoke": 1,
+      "stop": 1
+    }
+  },
+  "latency_ms": {
+    "GET /v1/audit/chain/verify": {
+      "calls": 1,
+      "p50_ms": 44.2,
+      "p95_ms": 44.2,
+      "max_ms": 44.2,
+      "mean_ms": 44.2
+    },
+    "GET /v1/execution/audit/verify": {
+      "calls": 1,
+      "p50_ms": 58.0,
+      "p95_ms": 58.0,
+      "max_ms": 58.0,
+      "mean_ms": 58.0
+    },
+    "GET /v1/execution/limits/unresolved": {
+      "calls": 2,
+      "p50_ms": 1.8,
+      "p95_ms": 4.4,
+      "max_ms": 4.4,
+      "mean_ms": 3.1
+    },
+    "GET /v1/execution/proposals/{id}": {
+      "calls": 1,
+      "p50_ms": 21.8,
+      "p95_ms": 21.8,
+      "max_ms": 21.8,
+      "mean_ms": 21.8
+    },
+    "GET /v1/policy/version": {
+      "calls": 1,
+      "p50_ms": 47.4,
+      "p95_ms": 47.4,
+      "max_ms": 47.4,
+      "mean_ms": 47.4
+    },
+    "GET /v1/system/capabilities": {
+      "calls": 1,
+      "p50_ms": 14.1,
+      "p95_ms": 14.1,
+      "max_ms": 14.1,
+      "mean_ms": 14.1
+    },
+    "POST /v1/execution/approve": {
+      "calls": 9,
+      "p50_ms": 68.4,
+      "p95_ms": 183.0,
+      "max_ms": 183.0,
+      "mean_ms": 78.5
+    },
+    "POST /v1/execution/assess": {
+      "calls": 10,
+      "p50_ms": 75.0,
+      "p95_ms": 159.3,
+      "max_ms": 159.3,
+      "mean_ms": 89.9
+    },
+    "POST /v1/execution/execute": {
+      "calls": 17,
+      "p50_ms": 231.3,
+      "p95_ms": 433.0,
+      "max_ms": 433.0,
+      "mean_ms": 242.4
+    },
+    "POST /v1/execution/limits/resolve": {
+      "calls": 1,
+      "p50_ms": 19.0,
+      "p95_ms": 19.0,
+      "max_ms": 19.0,
+      "mean_ms": 19.0
+    },
+    "POST /v1/execution/resume": {
+      "calls": 1,
+      "p50_ms": 49.3,
+      "p95_ms": 49.3,
+      "max_ms": 49.3,
+      "mean_ms": 49.3
+    },
+    "POST /v1/execution/revoke-principal": {
+      "calls": 2,
+      "p50_ms": 32.0,
+      "p95_ms": 70.0,
+      "max_ms": 70.0,
+      "mean_ms": 51.0
+    },
+    "POST /v1/execution/stop": {
+      "calls": 1,
+      "p50_ms": 52.4,
+      "p95_ms": 52.4,
+      "max_ms": 52.4,
+      "mean_ms": 52.4
+    },
+    "[fault window] POST /v1/execution/assess": {
+      "calls": 1,
+      "p50_ms": 23.3,
+      "p95_ms": 23.3,
+      "max_ms": 23.3,
+      "mean_ms": 23.3
+    },
+    "[fault window] POST /v1/execution/execute": {
+      "calls": 1,
+      "p50_ms": 49.4,
+      "p95_ms": 49.4,
+      "max_ms": 49.4,
+      "mean_ms": 49.4
+    }
+  }
+}
