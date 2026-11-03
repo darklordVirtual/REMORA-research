@@ -1,0 +1,46 @@
+# §99 reproduction: a second API process from the SAME image, in the EXECUTOR
+# domain role, on the pilot's network and database. Not part of the shipped
+# pilot. Holds the same HMAC lease key as the authority (the pilot's custody
+# model), so "linked" is a format check here, not authenticated linkage.
+services:
+  executor:
+    image: ot-pilot-api:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8082:8000"
+    environment:
+      REMORA_ENV: production
+      REMORA_EXECUTION_DOMAIN_ROLE: executor
+      REMORA_PG_DSN: postgresql://remora:remora-local-pilot@postgres:5432/remora
+      REMORA_CONTROL_PLANE_DSN: postgresql://remora:remora-local-pilot@postgres:5432/remora
+      REMORA_API_TOKENS: >-
+        {"${OT_TOKEN_AGENT}":{"tenant":"ot-pilot","role":"operator","actor_id":"ot-agent"},
+         "${OT_TOKEN_APPROVER}":{"tenant":"ot-pilot","role":"senior_authority","actor_id":"ot-approver"},
+         "${OT_TOKEN_SUPERVISOR}":{"tenant":"ot-pilot","role":"admin","actor_id":"ot-supervisor"},
+         "${OT_TOKEN_VIEWER}":{"tenant":"ot-pilot","role":"viewer","actor_id":"ot-viewer"},
+         "${OT_TOKEN_HOP}":{"tenant":"ot-pilot","role":"dispatch_hop","actor_id":"ot-dispatch-hop"}}
+      REMORA_API_BEARER_TOKEN: ${OT_TOKEN_AGENT}
+      REMORA_ENABLED_SURFACES: execution
+      REMORA_PDP_SIGNING_KEY: ${OT_PDP_SIGNING_KEY}
+      REMORA_LEASE_SIGNING_KEY: ${OT_LEASE_SIGNING_KEY}
+      REMORA_AUDIT_SIGNING_KEY: ${OT_AUDIT_SIGNING_KEY}
+      REMORA_ENVELOPE_SIGNING_KEY: ${OT_ENVELOPE_SIGNING_KEY}
+      REMORA_TOOL_REGISTRY_MODULE: ot_registry
+      REMORA_SEMANTIC_BUNDLE_MODULE: ot_bundle
+      REMORA_INTENT_SOURCE_FILE: /app/work_orders.json
+      REMORA_EXECUTION_ARTIFACT_DIR: /var/lib/remora/artifacts
+      REMORA_LIMITS_FILE: /app/limits.json
+      REMORA_LIMITS_LEDGER: /var/lib/remora/limits-ledger.db
+      REMORA_LIMITS_LEDGER_SCOPE: single_host
+      REMORA_LIMITS_OBSERVER_MODULE: ot_registry
+      REMORA_LIMITS_EVIDENCE_MODULE: ot_registry
+      REMORA_REQUIRE_LIMITS: "1"
+      REMORA_LIMITS_TRUSTED_KEYS: ${OT_LIMITS_TRUSTED_KEYS}  # the pilot's limit-authority public key, same value as deploy/ot-pilot/docker-compose.yml
+      REMORA_PROMETHEUS_PUBLIC: "1"
+      PYTHONPATH: /app
+    volumes:
+      - remora-executor-state:/var/lib/remora
+volumes:
+  remora-executor-state:
