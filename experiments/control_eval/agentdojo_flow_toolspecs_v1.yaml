@@ -1,0 +1,713 @@
+# SPDX-License-Identifier: BUSL-1.1
+#
+# Deployment ToolSpec flow declarations for the AgentDojo v1.2.2 tool
+# catalogues, used by the REMORA-IFC arms of SAP v7 (E_IFC, E_IFC_WS1;
+# experiments/control_eval/remora_ifc.py). Frozen data: a change is a new
+# version file, not an edit.
+#
+# Written blind to tasks, 2026-11-03. Every suite (banking, slack, travel,
+# workspace) was declared from the tool names, parameter signatures and
+# docstrings only. No user task, injection task or ground truth was read
+# before this file was written. For banking, slack and travel the author had
+# also printed the environment schema and the field paths that hold injection
+# vectors (not their text); that informed the resolvers in
+# experiments/control_eval/ifc_resolvers.py, not this file. Workspace was
+# declared from signatures and the environment schema alone: it is the suite
+# held out from development (artifacts/control_eval/dev_g1_v1.json).
+#
+# Who writes this: in a deployment, the owner of each tool writes its flow
+# block, as a ToolSpec v4 `flow` block (schemas/tool_spec_v4.yaml). REMORA
+# does not infer it. This file is that owner's declaration for AgentDojo.
+#
+# Per tool:
+#   action_type, effect_mode, risk_tier   ToolSpec fields the flow lint and
+#                                         the decision engine read
+#   argument_schema                       from the tool signature
+#   flow                                  ToolSpec v4 flow block, parsed by
+#                                         remora.flow.spec.parse_flow and
+#                                         linted clean by lint_flow
+#   endorse                               WS1 only: sink argument -> the one
+#                                         declared resolver that may prove it
+#                                         (E_IFC ignores this key)
+#
+# Declaration rules applied uniformly:
+#   - Every tool output is UNTRUSTED, except outputs that are the user's own
+#     account record (own IBAN, balance, own profile, the clock). Catalogue,
+#     message, file, review, web and calendar content is UNTRUSTED.
+#   - A write's integrity_required covers every argument that names its
+#     target or recipient and every argument that carries payload text or an
+#     amount. Dates, times and boolean flags are not integrity-required.
+#   - Readers are PUBLIC throughout: AgentDojo declares no ACLs, so this
+#     declaration does not exercise confidentiality (P-CONF). Recipients are
+#     still declared, so an argument that names no principal is unresolved.
+
+version: agentdojo-flow-toolspecs/v1
+benchmark_version: v1.2.2
+written: "2026-11-03"
+written_blind_to_tasks: true
+
+suites:
+
+  banking:
+    get_iban:
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {}}
+      flow:
+        provider: tcb
+        arguments: {}
+        sources: {default_integrity: TRUSTED}
+        sink: {recipients: none}
+    get_balance:
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {}}
+      flow:
+        provider: tcb
+        arguments: {}
+        sources: {default_integrity: TRUSTED}
+        sink: {recipients: none}
+    get_user_info:
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {}}
+      flow:
+        provider: tcb
+        arguments: {}
+        sources: {default_integrity: TRUSTED}
+        sink: {recipients: none}
+    get_most_recent_transactions:
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {n: {type: integer}}}
+      flow:
+        provider: tcb
+        arguments: {n: {kind: scalar}}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
+    get_scheduled_transactions:
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {}}
+      flow:
+        provider: tcb
+        arguments: {}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
+    read_file:
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {file_path: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {file_path: {kind: text}}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
+    send_money:
+      action_type: transfer
+      effect_mode: MEDIATED
+      risk_tier: critical
+      argument_schema:
+        type: object
+        properties: {recipient: {type: string}, amount: {type: number},
+                     subject: {type: string}, date: {type: string}}
+      flow:
+        provider: tcb
+        arguments: {recipient: {kind: iban}, amount: {kind: scalar},
+                    subject: {kind: text}, date: {kind: scalar}}
+        sink:
+          recipients: {iban_of: recipient}
+          payload_args: [amount, subject]
+          integrity_required: [recipient, amount, subject]
+      endorse: {recipient: bank.outgoing_counterparty}
+    schedule_transaction:
+      action_type: transfer
+      effect_mode: MEDIATED
+      risk_tier: critical
+      argument_schema:
+        type: object
+        properties: {recipient: {type: string}, amount: {type: number},
+                     subject: {type: string}, date: {type: string},
+                     recurring: {type: boolean}}
+      flow:
+        provider: tcb
+        arguments: {recipient: {kind: iban}, amount: {kind: scalar},
+                    subject: {kind: text}, date: {kind: scalar},
+                    recurring: {kind: scalar}}
+        sink:
+          recipients: {iban_of: recipient}
+          payload_args: [amount, subject]
+          integrity_required: [recipient, amount, subject]
+      endorse: {recipient: bank.outgoing_counterparty}
+    update_scheduled_transaction:
+      action_type: transfer
+      effect_mode: MEDIATED
+      risk_tier: critical
+      argument_schema:
+        type: object
+        properties: {id: {type: integer}, recipient: {type: string},
+                     amount: {type: number}, subject: {type: string},
+                     date: {type: string}, recurring: {type: boolean}}
+      flow:
+        provider: tcb
+        arguments: {id: {kind: scalar}, recipient: {kind: iban},
+                    amount: {kind: scalar}, subject: {kind: text},
+                    date: {kind: scalar}, recurring: {kind: scalar}}
+        sink:
+          recipients: {iban_of: recipient}
+          payload_args: [amount, subject]
+          integrity_required: [id, recipient, amount, subject]
+      # A null recipient keeps the stored one; the adapter resolves it from
+      # the scheduled transaction the id names before the check.
+      keeps_stored: {recipient: scheduled_transaction_recipient}
+      endorse:
+        id: bank.own_scheduled_transaction
+        recipient: bank.outgoing_counterparty
+    update_password:
+      action_type: write
+      effect_mode: MEDIATED
+      risk_tier: critical
+      argument_schema: {type: object, properties: {password: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {password: {kind: text}}
+        sink:
+          recipients: {static: ["ext://bank.agentdojo"]}
+          payload_args: [password]
+          integrity_required: [password]
+    update_user_info:
+      action_type: write
+      effect_mode: MEDIATED
+      risk_tier: high
+      argument_schema:
+        type: object
+        properties: {first_name: {type: string}, last_name: {type: string},
+                     street: {type: string}, city: {type: string}}
+      flow:
+        provider: tcb
+        arguments: {first_name: {kind: text}, last_name: {kind: text},
+                    street: {kind: text}, city: {kind: text}}
+        sink:
+          recipients: {static: ["ext://bank.agentdojo"]}
+          payload_args: [first_name, last_name, street, city]
+          integrity_required: [first_name, last_name, street, city]
+
+  slack:
+    get_channels:
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {}}
+      flow:
+        provider: tcb
+        arguments: {}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
+    read_channel_messages:
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {channel: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {channel: {kind: text}}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
+    read_inbox:
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {user: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {user: {kind: text}}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
+    get_users_in_channel:
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {channel: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {channel: {kind: text}}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
+    get_webpage:
+      # A fetch reaches the URL's host, and the URL itself can carry data.
+      action_type: read
+      effect_mode: MEDIATED
+      risk_tier: low
+      argument_schema: {type: object, properties: {url: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {url: {kind: url}}
+        sources: {default_integrity: UNTRUSTED}
+        sink:
+          recipients: {url_host_of: url}
+          payload_args: [url]
+          integrity_required: [url]
+    post_webpage:
+      action_type: write
+      effect_mode: MEDIATED
+      risk_tier: high
+      argument_schema: {type: object, properties: {url: {type: string}, content: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {url: {kind: url}, content: {kind: text}}
+        sink:
+          recipients: {url_host_of: url}
+          payload_args: [url, content]
+          integrity_required: [url, content]
+    send_direct_message:
+      action_type: send
+      effect_mode: MEDIATED
+      risk_tier: high
+      argument_schema: {type: object, properties: {recipient: {type: string}, body: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {recipient: {kind: text}, body: {kind: text}}
+        sink:
+          recipients: {static: ["ext://slack.agentdojo"]}
+          payload_args: [body]
+          integrity_required: [recipient, body]
+      endorse: {recipient: slack.dm_counterparty}
+    send_channel_message:
+      action_type: send
+      effect_mode: MEDIATED
+      risk_tier: high
+      argument_schema: {type: object, properties: {channel: {type: string}, body: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {channel: {kind: text}, body: {kind: text}}
+        sink:
+          recipients: {static: ["ext://slack.agentdojo"]}
+          payload_args: [body]
+          integrity_required: [channel, body]
+    add_user_to_channel:
+      action_type: write
+      effect_mode: MEDIATED
+      risk_tier: high
+      argument_schema: {type: object, properties: {user: {type: string}, channel: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {user: {kind: text}, channel: {kind: text}}
+        sink:
+          recipients: {static: ["ext://slack.agentdojo"]}
+          payload_args: []
+          integrity_required: [user, channel]
+    invite_user_to_slack:
+      action_type: write
+      effect_mode: MEDIATED
+      risk_tier: high
+      argument_schema: {type: object, properties: {user: {type: string}, user_email: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {user: {kind: text}, user_email: {kind: email}}
+        sink:
+          recipients: {from_args: {user_email: email}}
+          payload_args: [user]
+          integrity_required: [user, user_email]
+    remove_user_from_slack:
+      action_type: delete
+      effect_mode: MEDIATED
+      risk_tier: high
+      argument_schema: {type: object, properties: {user: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {user: {kind: text}}
+        sink:
+          recipients: {static: ["ext://slack.agentdojo"]}
+          payload_args: []
+          integrity_required: [user]
+
+  travel:
+    get_user_information:
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {}}
+      flow:
+        provider: tcb
+        arguments: {}
+        sources: {default_integrity: TRUSTED}
+        sink: {recipients: none}
+    get_all_hotels_in_city: &travel_city_read
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {city: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {city: {kind: text}}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
+    get_all_restaurants_in_city: *travel_city_read
+    get_all_car_rental_companies_in_city: *travel_city_read
+    get_hotels_prices: &travel_hotels_read
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {hotel_names: {type: array}}}
+      flow:
+        provider: tcb
+        arguments: {hotel_names: {kind: text}}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
+    get_rating_reviews_for_hotels: *travel_hotels_read
+    get_hotels_address:
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {hotel_name: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {hotel_name: {kind: text}}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
+    get_cuisine_type_for_restaurants: &travel_restaurants_read
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {restaurant_names: {type: array}}}
+      flow:
+        provider: tcb
+        arguments: {restaurant_names: {kind: text}}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
+    get_restaurants_address: *travel_restaurants_read
+    get_rating_reviews_for_restaurants: *travel_restaurants_read
+    get_dietary_restrictions_for_all_restaurants: *travel_restaurants_read
+    get_contact_information_for_restaurants: *travel_restaurants_read
+    get_price_for_restaurants: *travel_restaurants_read
+    check_restaurant_opening_hours: *travel_restaurants_read
+    get_car_types_available: &travel_cars_read
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {company_name: {type: array}}}
+      flow:
+        provider: tcb
+        arguments: {company_name: {kind: text}}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
+    get_rating_reviews_for_car_rental: *travel_cars_read
+    get_car_fuel_options: *travel_cars_read
+    get_car_rental_address: *travel_cars_read
+    get_car_price_per_day: *travel_cars_read
+    get_flight_information:
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema:
+        type: object
+        properties: {departure_city: {type: string}, arrival_city: {type: string}}
+      flow:
+        provider: tcb
+        arguments: {departure_city: {kind: text}, arrival_city: {kind: text}}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
+    search_calendar_events: &calendar_search
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {query: {type: string}, date: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {query: {kind: text}, date: {kind: scalar}}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
+    get_day_calendar_events: &calendar_day
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {day: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {day: {kind: scalar}}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
+    create_calendar_event: &calendar_create
+      action_type: write
+      effect_mode: MEDIATED
+      risk_tier: high
+      argument_schema:
+        type: object
+        properties: {title: {type: string}, start_time: {type: string},
+                     end_time: {type: string}, description: {type: string},
+                     participants: {type: array}, location: {type: string}}
+      flow:
+        provider: tcb
+        arguments: {title: {kind: text}, start_time: {kind: scalar},
+                    end_time: {kind: scalar}, description: {kind: text},
+                    participants: {kind: email}, location: {kind: text}}
+        sink:
+          recipients: {from_args: {participants: email}}
+          payload_args: [title, description, location]
+          integrity_required: [participants, title, description, location]
+      # The calendar owner always receives the event, so the owner joins the
+      # participants the check sees.
+      owner_receives: participants
+      endorse: {participants: mail.sent_counterparty}
+    cancel_calendar_event: &calendar_cancel
+      action_type: delete
+      effect_mode: MEDIATED
+      risk_tier: high
+      argument_schema: {type: object, properties: {event_id: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {event_id: {kind: text}}
+        sink:
+          recipients: {static: ["ext://calendar.agentdojo"]}
+          payload_args: []
+          integrity_required: [event_id]
+    reserve_hotel:
+      action_type: write
+      effect_mode: MEDIATED
+      risk_tier: high
+      argument_schema:
+        type: object
+        properties: {hotel: {type: string}, start_day: {type: string}, end_day: {type: string}}
+      flow:
+        provider: tcb
+        arguments: {hotel: {kind: text}, start_day: {kind: scalar}, end_day: {kind: scalar}}
+        sink:
+          recipients: {static: ["ext://booking.agentdojo"]}
+          payload_args: []
+          integrity_required: [hotel]
+    reserve_car_rental:
+      action_type: write
+      effect_mode: MEDIATED
+      risk_tier: high
+      argument_schema:
+        type: object
+        properties: {company: {type: string}, start_time: {type: string}, end_time: {type: string}}
+      flow:
+        provider: tcb
+        arguments: {company: {kind: text}, start_time: {kind: scalar}, end_time: {kind: scalar}}
+        sink:
+          recipients: {static: ["ext://booking.agentdojo"]}
+          payload_args: []
+          integrity_required: [company]
+    reserve_restaurant:
+      action_type: write
+      effect_mode: MEDIATED
+      risk_tier: high
+      argument_schema:
+        type: object
+        properties: {restaurant: {type: string}, start_time: {type: string}}
+      flow:
+        provider: tcb
+        arguments: {restaurant: {kind: text}, start_time: {kind: scalar}}
+        sink:
+          recipients: {static: ["ext://booking.agentdojo"]}
+          payload_args: []
+          integrity_required: [restaurant]
+    send_email: &send_email
+      action_type: send
+      effect_mode: MEDIATED
+      risk_tier: high
+      argument_schema:
+        type: object
+        properties: {recipients: {type: array}, subject: {type: string},
+                     body: {type: string}, attachments: {type: array},
+                     cc: {type: array}, bcc: {type: array}}
+      flow:
+        provider: tcb
+        arguments: {recipients: {kind: email}, subject: {kind: text},
+                    body: {kind: text}, attachments: {kind: text},
+                    cc: {kind: email}, bcc: {kind: email}}
+        sink:
+          recipients: {from_args: {recipients: email, cc: email, bcc: email}}
+          payload_args: [subject, body, attachments]
+          integrity_required: [recipients, cc, bcc, subject, body, attachments]
+      endorse:
+        recipients: mail.sent_counterparty
+        cc: mail.sent_counterparty
+        bcc: mail.sent_counterparty
+
+  workspace:
+    send_email: *send_email
+    delete_email:
+      action_type: delete
+      effect_mode: MEDIATED
+      risk_tier: high
+      argument_schema: {type: object, properties: {email_id: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {email_id: {kind: text}}
+        sink:
+          recipients: {static: ["ext://mail.agentdojo"]}
+          payload_args: []
+          integrity_required: [email_id]
+    get_unread_emails: &mail_list
+      # Marks the emails read: a local state change with no recipient.
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {}}
+      flow:
+        provider: tcb
+        arguments: {}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
+    get_sent_emails: *mail_list
+    get_received_emails: *mail_list
+    get_draft_emails: *mail_list
+    search_emails:
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {query: {type: string}, sender: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {query: {kind: text}, sender: {kind: text}}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
+    search_contacts_by_name: &contacts_search
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {query: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {query: {kind: text}}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
+    search_contacts_by_email: *contacts_search
+    get_current_day:
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {}}
+      flow:
+        provider: tcb
+        arguments: {}
+        sources: {default_integrity: TRUSTED}
+        sink: {recipients: none}
+    search_calendar_events: *calendar_search
+    get_day_calendar_events: *calendar_day
+    create_calendar_event: *calendar_create
+    cancel_calendar_event: *calendar_cancel
+    reschedule_calendar_event:
+      action_type: write
+      effect_mode: MEDIATED
+      risk_tier: high
+      argument_schema:
+        type: object
+        properties: {event_id: {type: string}, new_start_time: {type: string},
+                     new_end_time: {type: string}}
+      flow:
+        provider: tcb
+        arguments: {event_id: {kind: text}, new_start_time: {kind: scalar},
+                    new_end_time: {kind: scalar}}
+        sink:
+          recipients: {static: ["ext://calendar.agentdojo"]}
+          payload_args: []
+          integrity_required: [event_id]
+    add_calendar_event_participants:
+      action_type: write
+      effect_mode: MEDIATED
+      risk_tier: high
+      argument_schema:
+        type: object
+        properties: {event_id: {type: string}, participants: {type: array}}
+      flow:
+        provider: tcb
+        arguments: {event_id: {kind: text}, participants: {kind: email}}
+        sink:
+          recipients: {from_args: {participants: email}}
+          payload_args: []
+          integrity_required: [event_id, participants]
+      endorse: {participants: mail.sent_counterparty}
+    append_to_file:
+      action_type: write
+      effect_mode: MEDIATED
+      risk_tier: high
+      argument_schema: {type: object, properties: {file_id: {type: string}, content: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {file_id: {kind: text}, content: {kind: text}}
+        sink:
+          recipients: {static: ["ext://drive.agentdojo"]}
+          payload_args: [content]
+          integrity_required: [file_id, content]
+      endorse: {file_id: drive.own_file}
+    search_files_by_filename:
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {filename: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {filename: {kind: text}}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
+    create_file:
+      action_type: write
+      effect_mode: MEDIATED
+      risk_tier: high
+      argument_schema: {type: object, properties: {filename: {type: string}, content: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {filename: {kind: text}, content: {kind: text}}
+        sink:
+          recipients: {static: ["ext://drive.agentdojo"]}
+          payload_args: [content]
+          integrity_required: [filename, content]
+    delete_file:
+      action_type: delete
+      effect_mode: MEDIATED
+      risk_tier: high
+      argument_schema: {type: object, properties: {file_id: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {file_id: {kind: text}}
+        sink:
+          recipients: {static: ["ext://drive.agentdojo"]}
+          payload_args: []
+          integrity_required: [file_id]
+    get_file_by_id:
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {file_id: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {file_id: {kind: text}}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
+    list_files: *mail_list
+    share_file:
+      action_type: write
+      effect_mode: MEDIATED
+      risk_tier: high
+      argument_schema:
+        type: object
+        properties: {file_id: {type: string}, email: {type: string}, permission: {type: string}}
+      flow:
+        provider: tcb
+        arguments: {file_id: {kind: text}, email: {kind: email}, permission: {kind: scalar}}
+        sink:
+          recipients: {from_args: {email: email}}
+          payload_args: [file_id]
+          integrity_required: [file_id, email, permission]
+      endorse:
+        file_id: drive.own_file
+        email: mail.sent_counterparty
+    search_files:
+      action_type: read
+      effect_mode: NONE
+      risk_tier: low
+      argument_schema: {type: object, properties: {query: {type: string}}}
+      flow:
+        provider: tcb
+        arguments: {query: {kind: text}}
+        sources: {default_integrity: UNTRUSTED}
+        sink: {recipients: none}
