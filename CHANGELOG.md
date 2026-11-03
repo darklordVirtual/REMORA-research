@@ -12,6 +12,12 @@ Library only. No runtime path, server or worker imports the module, and the lega
 - Two new signature domains in `remora/crypto/domain_signing.py`: `REMORA/MONITOR-DISCHARGE-CONTRACT/v1` and `REMORA/MONITOR-DISCHARGE-RECEIPT/v1`. No key, role or credential topology entry is added, because nothing holds these keys yet.
 - `compose.py`, `execution_gate.py`, the ToolSpec schema, `MONITOR_SYSTEM`, hard guards, dispatch, thresholds and holdouts are untouched. The capability register is unchanged: nothing is wired, and no capability, claim or result is upgraded.
 - Tests: `tests/verification/test_monitor_discharge.py` (34), one per row of SDD §6 B-01 to B-12, B-14 and B-17. Passing tests are not H3 evidence and register or authorize no study.
+### Evidence tooling: the fault-injection manifest named the approver's token, and the gate-control suite was not isolated under Postgres
+
+Both found while reproducing NEGATIVE_RESULTS §99 on a rebuilt OT pilot (2026-11-03).
+
+- `deploy/ot-pilot/run_fault_injection.py` recorded each approval as `approve by <bearer token>`, so `human_steps_by_kind` in every evidence `manifest.json` carried the approver credential. It now records the role (`approver`, `supervisor`, `agent`, `viewer`, or `unknown-token`). Earlier evidence directories written by the runner should be treated as containing that credential. Test: `tests/test_ot_fault_injection.py` (+1).
+- `tests/test_ws1_gate_controls.py` minted every grant for proposal `p-ws1-1`. With `REMORA_PG_DSN` set the outbox persists across tests, and the settled row from the first control made the other six fail with "a settled dispatch is never re-claimed", which is the outbox's exclusivity rule, not a defect. Each control now mints its own proposal id; the suite passes 7/7 on SQLite and on a reused Postgres database. `artifacts/ws1/gate_controls_v1.json` is unchanged.
 
 ### Paper (revision 2026-11-03: status and negative results brought current)
 

@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "6ed1e0abf19c078adf3978eefc6aeb58a32f29dd",
+      "git_blob": "c248a0fffd244e02a3899f63e9ee7109d1372dad",
       "mode": "100644",
-      "sha256": "90e1b49f4f55c1386ed05f811535e87dbbcae863010c9b7ae3cf5d302910221c"
+      "sha256": "69c8aa4718e9fdd51b4de8ab980ce7f1ffebea4029bef137815ab7a6662c01ec"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -4921,9 +4921,9 @@
     },
     "deploy/ot-pilot/run_fault_injection.py": {
       "concepts": [],
-      "git_blob": "d2c62248408c630b90c32be63ee694c925f9beeb",
+      "git_blob": "00f827b4eaa5dc6c3cd9d6fa3f66fc7fc3347724",
       "mode": "100644",
-      "sha256": "c4e77cf0bee34251e2bea9b08adebb325d74ac186626111795f88c4765e774c7"
+      "sha256": "086db2e0cd09fc3938fbe80fd6cb592b58ee527ab8309a51975bc03c68b18795"
     },
     "deploy/ot-pilot/run_ot_battery.py": {
       "concepts": [],
@@ -19738,9 +19738,9 @@
     },
     "tests/test_ot_fault_injection.py": {
       "concepts": [],
-      "git_blob": "3640679718133e4b30965196e64b3cb55183e824",
+      "git_blob": "c10245cf7a466a9b2dfd5ba2fd3f9ccdfbe3b74c",
       "mode": "100644",
-      "sha256": "bf7c5b0bc999090bb881a00af898b69c0bacf33118f2c98b3983157502007bd6"
+      "sha256": "2caf59b776b414e13ce526de6ae383d53670891a14d20fb6ad674863cb90f2b1"
     },
     "tests/test_otel.py": {
       "concepts": [],
@@ -21405,9 +21405,9 @@
     },
     "tests/test_ws1_gate_controls.py": {
       "concepts": [],
-      "git_blob": "f4c1598b68485d44f029ae6690ea1db4b4e2b198",
+      "git_blob": "1aec916063c5ef2a73a7b443129fc49b496c6af7",
       "mode": "100644",
-      "sha256": "277f44956d7120422b9271a48b15295279e1458c6a561f445f683cf10008fe79"
+      "sha256": "a00c5c96fafb2d03e8f7ef2887630d1f5304e49df6d643787867a574c9a6371a"
     },
     "tests/test_ws1_grounding.py": {
       "concepts": [],
@@ -22053,7 +22053,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "543711fb6812098f7dcb1ce617ff72b9e403d5465063efdfbb551208fc6f007b",
+  "register_sha256": "d85961241f2f876471c7af16e5363f571f7ec5e8b6318f6722317ca2d4a6402a",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
