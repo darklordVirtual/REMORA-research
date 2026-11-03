@@ -19,7 +19,7 @@
 schema: provenance_concepts_v1
 # Fingerprints and first-introduction searches are taken from this commit's history,
 # so the register reproduces byte for byte and does not drift with later edits.
-snapshot: ddd13bea06fd55e6f3485a93a9dbfa82eb0084ef
+snapshot: b9865d320ae68119a806a73d332c60792a66aaa8
 
 concepts:
   - id: PROV-01

@@ -31,7 +31,7 @@ concept record (PROV-xx)
 | `code-register-v1.json` | live coverage of every Git-tracked file: exact-byte SHA-256, Git blob id, mode and explicit concept links |
 | `manifests/code-snapshot-2026-10-30.json` | complete file inventory frozen at `1684a2d83e0711fdb947b1a3a43f1c012a84a4e8` |
 | `manifests/provenance-manifest-2026-10-30.json` | refreshed concept-file digests at the same commit; the earlier v1 manifest remains intact |
-| `manifests/code-snapshot-2026-11-04.json` | complete file inventory frozen at `ddd13bea06fd55e6f3485a93a9dbfa82eb0084ef`, the commit that added PROV-18 |
+| `manifests/code-snapshot-2026-11-04.json` | complete file inventory frozen at `b9865d320ae68119a806a73d332c60792a66aaa8`, the commit that added PROV-18 to PROV-20 |
 | `manifests/provenance-manifest-2026-11-04.json` | concept-file digests for the twenty records at the same commit; the v1 manifest was rewritten to this snapshot and the 2026-10-30 manifests remain intact |
 
 ## Current code coverage

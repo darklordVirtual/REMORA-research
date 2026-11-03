@@ -6251,15 +6251,15 @@
     },
     "docs/assurance/provenance_concepts_v1.yaml": {
       "concepts": [],
-      "git_blob": "5fe13c3018d046f2b8c19d57e133086ab06bda94",
+      "git_blob": "9c09397b8707f248989a9e74fa6adce36518908c",
       "mode": "100644",
-      "sha256": "1d1e43a68adcf02a253f3775e87d0ce50f417d9008e173273caf4c2438f3eabf"
+      "sha256": "a5eef68d69f3e64d872c12926d7c14f189f27977ae47f75ee5071331b74258ab"
     },
     "docs/assurance/provenance_register_v1.json": {
       "concepts": [],
-      "git_blob": "f8dff8b19a048a20cfb5dd477fdd452875d63a78",
+      "git_blob": "a7eb6a8715eea2e069a4b80fc9a69592f10979db",
       "mode": "100644",
-      "sha256": "1170f67bb708f196d6835f8504a3337c9476acfd53efe306d9189e8934a49b91"
+      "sha256": "4aed962e4fd07a930552c674d2bb8777e816df0a393161dd39191c90ce3fbcfd"
     },
     "docs/assurance/rbac_design_v1.md": {
       "concepts": [],
@@ -10448,9 +10448,9 @@
     },
     "provenance/README.md": {
       "concepts": [],
-      "git_blob": "5d0a6a53bc4b3e2dbc3cbb0e9ce043bfffbdf077",
+      "git_blob": "55517e1b151a983440de1f73e9d09b5a28ddc26c",
       "mode": "100644",
-      "sha256": "ba22ae6eff4a1cf4af9c410473fcfdc5edc919bc7fe7dab31eba608bf8a72da2"
+      "sha256": "46cfd914fbeb41aa380e5f31674d9bce774dc0d1ef7f1f1766643a493b1e7248"
     },
     "provenance/concepts/PROV-01.yaml": {
       "concepts": [],
@@ -10578,17 +10578,29 @@
       "mode": "100644",
       "sha256": "68dee80a32e607baba76a90ad76bbd20b9194930a9b6af3fba893373dfff3cbf"
     },
+    "provenance/manifests/code-snapshot-2026-11-04.json": {
+      "concepts": [],
+      "git_blob": "cd0c5751f588d2a3d86b874c7d1a5e592de00d39",
+      "mode": "100644",
+      "sha256": "365609aceae7ea5ae4702a61af4873de7a13ab5c3d1f233ca44593a2c282dd86"
+    },
     "provenance/manifests/provenance-manifest-2026-10-30.json": {
       "concepts": [],
       "git_blob": "a31dfc8fb4c8f4d9f9ee21ef5dac79ef6486c376",
       "mode": "100644",
       "sha256": "99efef7b2161007e48c9a03c15869eec3ce0138f240b1a937b9e7a26e9ea0a1e"
     },
+    "provenance/manifests/provenance-manifest-2026-11-04.json": {
+      "concepts": [],
+      "git_blob": "65ee3f906755dddca6c8509431d9e066feec71f0",
+      "mode": "100644",
+      "sha256": "803963f97c6fab174be19bcf06028e0ec1fdf72bf7244c4922ab50cf828cb39a"
+    },
     "provenance/manifests/provenance-manifest-v1.json": {
       "concepts": [],
-      "git_blob": "0aaf2f2a9780b8fac0f03b675dc5016cd868c512",
+      "git_blob": "888cb82d96fd656cfcd5b69bd87acb9faef79033",
       "mode": "100644",
-      "sha256": "32b752b457a2a758b73ca8337170e0579e34f8be788dde80478d7038e13542ba"
+      "sha256": "3afd3b718abb11a187bc89f00a7ac8487e06da40e6c85b78e55e2869185c3c8e"
     },
     "provenance/prior-art-review-2026-10-04.md": {
       "concepts": [],
@@ -22543,7 +22555,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "7cb1003936fa3a686379cd47dcbe47ee9cf9dbd0d44cd3487987b452ed748f6b",
+  "register_sha256": "d0157dba6c9b2272db204ae8a9ef01142b91ca1fd147531503649f3733d74cb1",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
