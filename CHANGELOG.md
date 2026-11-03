@@ -4,6 +4,10 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### AgentDojo development replay: reads already pass, the pilot's grounded-read path has nothing to fire on (§102)
+
+- `scripts/run_control_eval_reads_replay.py` and `artifacts/control_eval/dev_reads_replay_v1.json`: every development user task's ground-truth calls through the G1 arms, no model call, with per-call grounding facts. 52 of 66 benign calls are declared reads; `E_IFC` and `E_IFC_WS1` execute 50 of them, and 6 of 18 tasks are reads-only and complete. The lexical intent extractor resolves 0 of 18 tasks, so the grounded-read path that completed the OT pilot's reads has no intent to match on AgentDojo; 18 reads carry list-valued names from prior outputs that value provenance does not ground. The utility gap on AgentDojo is the 14 writes (§100), not reads. Tests: `tests/test_control_eval_reads_replay.py` (2).
+
 ### AROMER: what the archived D1 export shows, and the part of it that is usable
 
 - `scripts/check_negative_results_status.py` read section numbers with two digits, so §100 and §101 were invisible to it: §100 was open without a backlog theme or summary row and the gate did not say so. It now reads up to three digits; §100 joins the backlog and the summary table, and the counts line reads 38 open.
