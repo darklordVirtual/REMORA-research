@@ -46,8 +46,11 @@ access_defaults:
     viewer: ["read"]
     # RMR-AUD-004: records observed effects (POST .../effect); never executes.
     effect_verifier: ["verify_effect", "read"]
+    # RMR-SEC-0001: the authority -> executor hop. Presents leases to
+    # /dispatch-leased and nothing else; no person or agent role holds it.
+    dispatch_hop: ["dispatch"]
   tenant_defaults:
-    allowed_roles: ["admin", "operator", "reviewer", "domain_expert", "senior_authority", "soc_analyst", "legal_counsel", "viewer", "effect_verifier"]
+    allowed_roles: ["admin", "operator", "reviewer", "domain_expert", "senior_authority", "soc_analyst", "legal_counsel", "viewer", "effect_verifier", "dispatch_hop"]
     reviewer_roles: ["admin", "reviewer", "domain_expert", "senior_authority", "soc_analyst", "legal_counsel"]
 
 # ── Risk profiles ──────────────────────────────────────────────────────────────

@@ -15,10 +15,9 @@ const STOPWORDS = new Set([
 
 const ROOT_SUMMARIES: Record<string, string> = {
   "README.md": "Top-level project overview and navigation",
-  "CODEGRAPH.md": "Canonical codegraph scope and usage contract",
-  "codegraph.yaml": "Machine-readable repository codegraph manifest",
-  ".codegraphignore": "Codegraph ignore rules for non-indexed paths",
-  "AGENTS.md": "Agent instructions and operating guidance",
+  "CLAUDE.md": "Agent instructions: which policy documents to follow, in order",
+  "CONTRIBUTING.md": "Contribution rules, evidence and review requirements",
+  "DEVELOPER_OVERVIEW.md": "Developer orientation to the codebase",
   "ARCHITECTURE.md": "High-level system architecture",
   "CHANGELOG.md": "Project change history",
   "NEGATIVE_RESULTS.md": "Documented negative results and failure modes",
@@ -39,10 +38,9 @@ export const CODEGRAPH_SCOPE = {
   ],
   entrypoints: [
     "README.md",
-    "CODEGRAPH.md",
-    "codegraph.yaml",
-    ".codegraphignore",
-    "AGENTS.md",
+    "CLAUDE.md",
+    "CONTRIBUTING.md",
+    "DEVELOPER_OVERVIEW.md",
     "ARCHITECTURE.md",
     "CHANGELOG.md",
     "NEGATIVE_RESULTS.md",
@@ -85,7 +83,7 @@ function humanizeStem(path: string): string {
     .trim();
 }
 
-function inferKind(path: string): CodegraphEntry["kind"] {
+export function inferKind(path: string): CodegraphEntry["kind"] {
   const lower = path.toLowerCase();
   const base = lower.split("/").pop() ?? lower;
 

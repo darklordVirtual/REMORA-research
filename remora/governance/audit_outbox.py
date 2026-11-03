@@ -119,7 +119,19 @@ def ensure_table(conn: Any) -> None:
     marker = _placeholder(conn)
     conn.execute(_CREATE_POSTGRES if marker == "%s" else _CREATE_SQLITE)
     if marker == "%s":
-        conn.execute(_ADD_SEQ_POSTGRES)
+        # ALTER TABLE ... ADD COLUMN IF NOT EXISTS takes ACCESS EXCLUSIVE on
+        # audit_outbox even when the column exists, and ensure_table runs on
+        # every enqueue and pending(): every state-transition transaction
+        # serialised on the table and a drain's pending() blocked behind it
+        # (found in the review of RMR-SEC-0023's fix). Check the catalog, a
+        # plain read, and alter only a table that really lacks the column.
+        has_seq = conn.execute(
+            "SELECT 1 FROM information_schema.columns "
+            "WHERE table_schema = current_schema() AND table_name = 'audit_outbox' "
+            "AND column_name = 'seq'"
+        ).fetchone()
+        if not has_seq:
+            conn.execute(_ADD_SEQ_POSTGRES)
         return
     columns = {row[1] for row in conn.execute("PRAGMA table_info(audit_outbox)")}
     if "seq" not in columns:
@@ -207,16 +219,26 @@ def drain(conn: Any, chain: ChainPort, *, tenant: str | None = None) -> int:
         )
     marker = _placeholder(conn)
     projected = 0
-    for key, row_tenant, payload in pending(conn, tenant=tenant):
+    rows = pending(conn, tenant=tenant)
+    # pending() may have opened a read transaction; end it before the first
+    # append so this connection holds no lock while the chain writes.
+    conn.commit()
+    for key, row_tenant, payload in rows:
         chain.append_once(row_tenant, key, payload)
         conn.execute(
             f"UPDATE audit_outbox SET projected = "
             f"{'TRUE' if marker == '%s' else '1'} WHERE key = {marker}",
             (key,),
         )
-        projected += 1
-    if projected:
+        # Commit each mark before the next append (RMR-SEC-0023). One commit
+        # after the loop held SQLite's write lock across appends; the chain's
+        # BEGIN IMMEDIATE on a second connection to the same file then waited
+        # out its busy timeout from the second row on, the caller's sweep
+        # swallowed the error, and approval and revocation events never
+        # reached the chain. A crash between append and mark still replays
+        # safely: the append is claimed under the row's key.
         conn.commit()
+        projected += 1
     return projected
 
 

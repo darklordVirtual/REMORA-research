@@ -232,8 +232,12 @@ def test_m4_t18_a_policy_revision_mid_lookup_refuses(client, monkeypatch):
 
 
 def _leased(client, token: dict, lease: dict, call: dict = CALL):
-    return client.post("/v1/execution/dispatch-leased",
-                       json={"lease": lease, "tool_call": call, "tenant_id": "acme"})
+    # RMR-SEC-0001: only the execution domain serves /dispatch-leased; the
+    # rest of this matrix drives authority routes in the same process.
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setenv("REMORA_EXECUTION_DOMAIN_ROLE", "executor")
+        return client.post("/v1/execution/dispatch-leased",
+                           json={"lease": lease, "tool_call": call, "tenant_id": "acme"})
 
 
 def _spent_lease(client, monkeypatch) -> tuple[dict, dict]:
@@ -263,11 +267,15 @@ def test_m4_t19_an_altered_lease_is_refused_by_the_executor(client, monkeypatch,
     sent = [e for e in _events("execution_result") if e.get("tool_executed")]
     body = _leased(client, token, {**lease, field: value})
     assert body.status_code == 200
+    # RMR-SEC-0001: the executor now checks authenticity at the route, before
+    # the dispatcher and before any chain write, so the refusal no longer
+    # carries the dispatcher's dispatch_began/nested_effects fields.
     assert body.json()["tool_execution"] == {
-        "executed": False, "dispatch_began": False, "proposal_id": "p-ws1-1",
-        "nested_effects": {"mediated": False, "count": 0, "settled": True},
+        "executed": False, "proposal_id": "p-ws1-1",
         "refusal_reason": "signature_invalid"}
     assert [e for e in _events("execution_result") if e.get("tool_executed")] == sent
+    assert _events("lease_dispatch_admitted") == [], (
+        "an inauthentic lease must not reach the executor's audit record")
 
 
 def test_m4_t19_a_lease_for_another_call_is_refused(client, monkeypatch):

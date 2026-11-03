@@ -126,9 +126,9 @@ def test_production_refuses_to_start_without_a_signing_key(
     monkeypatch.setenv("REMORA_CHAIN_DB", str(tmp_path / "chain.db"))
     monkeypatch.setenv("REMORA_ORACLE_BACKEND", "groq")
     monkeypatch.setenv("REMORA_API_TOKENS", '{"t":{"tenant":"t","role":"operator"}}')
-    monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", "envelope-key")
-    monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "pdp-key")
-    monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "lease-key")
+    monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4")
+    monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1")
+    monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2")
     monkeypatch.delenv(omitted, raising=False)
 
     with pytest.raises(RuntimeError, match=omitted):
@@ -151,9 +151,9 @@ def test_production_starts_when_every_signing_key_is_present(
     monkeypatch.setenv("REMORA_CHAIN_DB", str(tmp_path / "chain.db"))
     monkeypatch.setenv("REMORA_ORACLE_BACKEND", "groq")
     monkeypatch.setenv("REMORA_API_TOKENS", '{"t":{"tenant":"t","role":"operator"}}')
-    monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", "envelope-key")
-    monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "pdp-key")
-    monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "lease-key")
+    monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4")
+    monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1")
+    monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2")
     monkeypatch.delenv("REMORA_API_ALLOW_MOCK_ORACLES", raising=False)
 
     api._validate_production_prerequisites()
