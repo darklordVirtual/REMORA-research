@@ -285,9 +285,17 @@ def simulate_power(cluster_rates: Sequence[float], effect: float, n_clusters: in
 # v7 §2). They never enter test: an inspected user task joins development on
 # top of the seeded share, and pairs with an inspected injection task are
 # dropped from the test sample. Add each new exposure before sealing.
+# The injection tasks beyond banking injection_task_0 are the G1 development
+# draw (scripts/run_control_eval_g1.py --draw, 2026-11-03): the seeded 30 %
+# split over each suite's injection task IDs. G1 runs their ground truth.
 INSPECTED_DURING_DEVELOPMENT: Mapping[str, Mapping[str, frozenset[str]]] = {
     "banking": {"user": frozenset({"user_task_0"}),
-                "injection": frozenset({"injection_task_0"})},
+                "injection": frozenset({"injection_task_0", "injection_task_1",
+                                        "injection_task_3", "injection_task_7"})},
+    "slack": {"user": frozenset(),
+              "injection": frozenset({"injection_task_1", "injection_task_4"})},
+    "travel": {"user": frozenset(),
+               "injection": frozenset({"injection_task_0", "injection_task_1"})},
 }
 
 

@@ -460,6 +460,16 @@ design, it needs:
 - the human-load metric (VERIFY count per task) reported beside utility;
 - the link field of section 5 recorded per attack outcome.
 
+**Status of the arm, 2026-11-03.** A first REMORA-IFC arm exists for
+AgentDojo (`experiments/control_eval/remora_ifc.py`, arms E_IFC and
+E_IFC_WS1). It labels values by provenance, because the agent reads by
+value, and it runs no handles and no CAPR-04 endorsement source; WS1
+resolvers stand in for L3a. On the development replay it failed study gate
+G1. It reached no injected goal, but completed 7 of 18 tasks against
+refuse-all's 6 (NEGATIVE_RESULTS §100). CAPR-03's premise, that flow labels
+lift utility above refuse-all without raising attack success, is not
+supported on these tasks.
+
 ## 8. Owner decisions
 
 Decided by the owner on 2026-10-18, who adopted each recommendation below.

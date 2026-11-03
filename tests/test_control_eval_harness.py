@@ -274,10 +274,14 @@ def test_runner_split_uses_the_inspected_list():
 
 
 def test_pairs_with_an_inspected_task_are_not_test_pairs():
-    assert not m.is_test_pair_allowed("banking", "user_task_0", "injection_task_3")
+    assert not m.is_test_pair_allowed("banking", "user_task_0", "injection_task_2")
     assert not m.is_test_pair_allowed("banking", "user_task_5", "injection_task_0")
-    assert m.is_test_pair_allowed("banking", "user_task_5", "injection_task_3")
+    assert m.is_test_pair_allowed("banking", "user_task_5", "injection_task_2")
     assert m.is_test_pair_allowed("slack", "user_task_0", "injection_task_0")
+    # The G1 development draw (2026-11-03) never enters a test pair.
+    assert not m.is_test_pair_allowed("banking", "user_task_5", "injection_task_3")
+    assert not m.is_test_pair_allowed("slack", "user_task_0", "injection_task_4")
+    assert not m.is_test_pair_allowed("travel", "user_task_0", "injection_task_1")
 
 
 def test_partial_auroc_bounds_and_ties():
