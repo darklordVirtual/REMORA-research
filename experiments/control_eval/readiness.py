@@ -7,7 +7,7 @@ to start otherwise. Each gate reports PASS, FAIL (something exists and is
 wrong) or PENDING (the step has not been done yet), with a reason.
 
 G0  plan file exists and is not marked DRAFT
-G1  development futility artifact exists and its verdict is ``pass``
+G1  development G1 artifact exists and records ``g1.passed`` true
 G2  harness files present, and a test marker shows the harness tests passed
     on exactly these files
 G3  pilot artifact: measured cost per episode, undefended attack success on
@@ -15,10 +15,14 @@ G3  pilot artifact: measured cost per episode, undefended attack success on
     cannot discriminate; WS1 Study B had 3/60), thresholds frozen, and no
     held-out suite in the pilot
 G4  sealed manifest: status ``locked_never_run``, LF SHA-256 of every listed
-    file matches the working tree, the plan and harness files are listed, an
-    OpenTimestamps proof path exists and ``scripts/ots_seal.py`` exists
+    file matches the working tree, every file the run depends on is listed
+    (:func:`sealed_dependencies`: the run config, monitor prompt, plan, G1
+    artifact, harness files and every file matched by :data:`SEALED_GLOBS`),
+    an OpenTimestamps proof path exists and ``scripts/ots_seal.py`` exists
 G5  OSF registration id recorded in the manifest and verified on the public
-    OSF API (200, not withdrawn, protocol hash matching when retrievable)
+    OSF API: HTTP 200, ``data.id`` the recorded id, ``data.type``
+    ``registrations``, not withdrawn, not pending approval, embargo,
+    withdrawal or archiving, and a protocol hash, when one appears, matching
 G6  remaining test budget in the ledger covers the cost projected from the
     pilot for the manifest's planned sample
 
@@ -38,6 +42,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from experiments.control_eval.run_config import holdout_floor
 from experiments.control_eval.sealed_run import LOCKED, changed_files
 from experiments.sap_v7_addenda.seal import lf_sha256
 
@@ -45,6 +50,22 @@ PASS, FAIL, PENDING = "PASS", "FAIL", "PENDING"
 OSF_API = "https://api.osf.io/v2/registrations/{id}/"
 Fetch = Callable[[str], tuple[int, Any]]
 _HEX64 = re.compile(r"\b[0-9a-f]{64}\b")
+
+#: Files every sealed run depends on, as globs relative to the repository
+#: root, so a new harness or REMORA module is covered without a list edit.
+SEALED_GLOBS: tuple[str, ...] = (
+    "experiments/control_eval/*.py",
+    "experiments/control_eval/*.yaml",
+    "experiments/control_eval/requirements.txt",
+    "scripts/run_control_eval.py",
+    "remora/policy/**/*.py",
+    "remora/flow/**/*.py",
+    "remora/toolcall/**/*.py",
+    "remora/verification/**/*.py",
+)
+#: OSF registration states in which the registration is not (or no longer) public.
+_OSF_NOT_LIVE = ("pending_registration_approval", "pending_embargo_approval",
+                 "pending_withdrawal", "archiving")
 
 
 @dataclass(frozen=True)
@@ -78,17 +99,39 @@ def g0_plan(cfg: Mapping[str, Any], root: Path) -> GateResult:
 
 
 def g1_futility(cfg: Mapping[str, Any], root: Path) -> GateResult:
+    """The G1 artifact (``scripts/run_control_eval_g1.py``) records ``g1.passed``."""
     title = "dev futility check passed"
     rel = _r(cfg).get("futility_artifact")
     if not rel or not (root / rel).is_file():
         return GateResult("G1", title, PENDING, f"futility artifact {rel!r} not present")
     try:
-        verdict = _json(root / rel).get("verdict")
+        g1 = _json(root / rel).get("g1")
     except (ValueError, AttributeError):
         return GateResult("G1", title, FAIL, f"{rel} is not a JSON object")
-    if verdict == "pass":
-        return GateResult("G1", title, PASS, f"{rel}: verdict pass")
-    return GateResult("G1", title, FAIL, f"{rel}: verdict {verdict!r}")
+    if not isinstance(g1, Mapping):
+        return GateResult("G1", title, FAIL, f"{rel} has no g1 object")
+    if g1.get("passed") is True:
+        return GateResult("G1", title, PASS, f"{rel}: g1.passed true")
+    return GateResult("G1", title, FAIL, f"{rel}: g1.passed {g1.get('passed')!r} "
+                      f"({g1.get('verdict')!r})")
+
+
+def sealed_dependencies(cfg: Mapping[str, Any], root: Path,
+                        config_path: str | None = None) -> list[str]:
+    """Every file a sealed run depends on, relative to *root*, sorted.
+
+    The run config itself (*config_path*), the monitor prompt, the plan, the
+    G1 artifact and the declared harness files, plus every file matched by
+    :data:`SEALED_GLOBS` under *root*.
+    """
+    r = _r(cfg)
+    named = [config_path, (cfg.get("monitor") or {}).get("prompt"), r.get("plan"),
+             r.get("futility_artifact"), *(r.get("harness_files") or ())]
+    out = {str(f) for f in named if f}
+    for pattern in SEALED_GLOBS:
+        out.update(p.relative_to(root).as_posix() for p in Path(root).glob(pattern)
+                   if p.is_file() and "__pycache__" not in p.parts)
+    return sorted(out)
 
 
 def harness_digest(root: Path, files: Sequence[str]) -> dict[str, str]:
@@ -145,7 +188,8 @@ def g3_pilot(cfg: Mapping[str, Any], root: Path) -> GateResult:
     pilot, rel = _pilot(cfg, root)
     if pilot is None:
         return GateResult("G3", title, PENDING, rel)
-    held = sorted(set(pilot.get("suites") or ()) & set(cfg.get("holdout_suites") or ()))
+    held = sorted(set(pilot.get("suites") or ())
+                  & set(holdout_floor(cfg.get("holdout_suites") or ())))
     if held:
         return GateResult("G3", title, FAIL, f"pilot ran held-out suites {held}")
     per_episode = (pilot.get("cost") or {}).get("per_episode_usd")
@@ -182,17 +226,21 @@ def _manifest(cfg: Mapping[str, Any], root: Path) -> tuple[Mapping[str, Any] | N
         return {}, str(rel)
 
 
-def g4_seal(cfg: Mapping[str, Any], root: Path) -> GateResult:
+def g4_seal(cfg: Mapping[str, Any], root: Path, config_path: str | None = None) -> GateResult:
     title = "sealed manifest, hashes, timestamp proof"
     body, rel = _manifest(cfg, root)
     if body is None:
         return GateResult("G4", title, PENDING, rel)
     if body.get("status") != LOCKED:
         return GateResult("G4", title, FAIL, f"{rel}: status {body.get('status')!r}, not {LOCKED!r}")
-    needed = [*(_r(cfg).get("harness_files") or ()), _r(cfg).get("plan")]
-    unlisted = sorted(f for f in needed if f and f not in (body.get("files") or {}))
+    if not config_path:
+        return GateResult("G4", title, FAIL, "the run config's path under the repository is "
+                          "unknown, so it cannot be checked as sealed")
+    needed = sealed_dependencies(cfg, root, config_path)
+    unlisted = sorted(f for f in needed if f not in (body.get("files") or {}))
     if unlisted:
-        return GateResult("G4", title, FAIL, f"not sealed: {unlisted}")
+        shown = unlisted[:10] + ([f"... {len(unlisted) - 10} more"] if len(unlisted) > 10 else [])
+        return GateResult("G4", title, FAIL, f"not sealed: {shown}")
     changed = changed_files(body, root)
     if changed:
         return GateResult("G4", title, FAIL, f"changed after sealing: {changed}")
@@ -229,9 +277,22 @@ def g5_osf(cfg: Mapping[str, Any], root: Path, fetch: Fetch | None = None) -> Ga
         return GateResult("G5", title, FAIL, f"OSF API unreachable: {exc}")
     if status != 200 or not isinstance(doc, Mapping):
         return GateResult("G5", title, FAIL, f"OSF API returned {status} for {reg}")
-    attrs = (doc.get("data") or {}).get("attributes") or {}
-    if attrs.get("withdrawn") or attrs.get("pending_withdrawal"):
-        return GateResult("G5", title, FAIL, f"registration {reg} is withdrawn")
+    data = doc.get("data")
+    if not isinstance(data, Mapping):
+        return GateResult("G5", title, FAIL, f"OSF API returned no data object for {reg}")
+    if str(data.get("id", "")).lower() != str(reg).lower():
+        return GateResult("G5", title, FAIL, f"OSF API returned id {data.get('id')!r}, not {reg}")
+    if data.get("type") != "registrations":
+        return GateResult("G5", title, FAIL, f"{reg} is a {data.get('type')!r}, not a registration")
+    attrs = data.get("attributes")
+    if not isinstance(attrs, Mapping):
+        return GateResult("G5", title, FAIL, f"OSF API returned no attributes for {reg}")
+    if attrs.get("withdrawn") is not False:
+        return GateResult("G5", title, FAIL, f"registration {reg} is withdrawn or does not say "
+                          f"(withdrawn = {attrs.get('withdrawn')!r})")
+    pending = [k for k in _OSF_NOT_LIVE if attrs.get(k)]
+    if pending:
+        return GateResult("G5", title, FAIL, f"registration {reg} is not live: {pending}")
     plan = _r(cfg).get("plan")
     expected = (body.get("files") or {}).get(plan) if plan else None
     if expected is None and plan and (root / plan).is_file():
@@ -280,10 +341,11 @@ def g6_budget(cfg: Mapping[str, Any], root: Path) -> GateResult:
                       f"{remaining:.2f} USD")
 
 
-def check_readiness(cfg: Mapping[str, Any], root: Path, fetch: Fetch | None = None
-                    ) -> list[GateResult]:
+def check_readiness(cfg: Mapping[str, Any], root: Path, fetch: Fetch | None = None,
+                    config_path: str | None = None) -> list[GateResult]:
+    """*config_path* is the run config's path relative to *root*; G4 needs it sealed."""
     return [g0_plan(cfg, root), g1_futility(cfg, root), g2_harness(cfg, root),
-            g3_pilot(cfg, root), g4_seal(cfg, root), g5_osf(cfg, root, fetch),
+            g3_pilot(cfg, root), g4_seal(cfg, root, config_path), g5_osf(cfg, root, fetch),
             g6_budget(cfg, root)]
 
 

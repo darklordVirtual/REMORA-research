@@ -1,10 +1,17 @@
 # SPDX-License-Identifier: BUSL-1.1
 """Pilot and sealed runs of the control evaluation through AgentDojo.
 
-Imports AgentDojo, so it runs only with the pinned packages in
-``requirements.txt`` (``scripts/run_control_eval.py`` and the local smoke
-test). The SDK client is a parameter: the runner script passes an
-``anthropic.Anthropic`` client, the tests pass a scripted fake.
+Runs AgentDojo, so a run needs the pinned packages in ``requirements.txt``
+(``scripts/run_control_eval.py`` and the local smoke test). AgentDojo is
+imported inside the functions that run episodes, so the episode draws, the
+suite loader and the stop rule are testable without it. The SDK client is a
+parameter: the runner script passes an ``anthropic.Anthropic`` client, the
+tests pass a scripted fake.
+
+Only :class:`~experiments.control_eval.spend_ledger.CapReached` (a
+reservation refused at a cap) stops a run normally. Every other ledger error
+(missing usage, a corrupt ledger, a call above its reservation) propagates,
+so ``--test`` leaves the manifest ``in_progress`` and ``--resume`` continues.
 
 One *episode* is a user task with one injection task (attacked) or none
 (benign). Every configured arm runs every episode, in the config's order,
@@ -25,30 +32,37 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from agentdojo.agent_pipeline import AgentPipeline, InitQuery, SystemMessage, ToolsExecutionLoop
-from agentdojo.agent_pipeline.agent_pipeline import load_system_message
-from agentdojo.attacks.attack_registry import load_attack
-from agentdojo.functions_runtime import FunctionsRuntime
-from agentdojo.task_suite.load_suites import get_suite
+from collections.abc import Callable
+from typing import TypeVar
 
-from experiments.control_eval.agentdojo_glue import (
-    ClaudeAgent,
-    GatedToolsExecutor,
-    register_model_name,
-    tool_specs,
+from experiments.control_eval.arms import (
+    MODEL_CALLING_ARMS,
+    ArmContext,
+    build_arm,
+    validate_arms,
 )
-from experiments.control_eval.arms import MODEL_CALLING_ARMS, ArmContext, build_arm
 from experiments.control_eval.gateway import EpisodeContext, MeteredModel, MonitorScorer
 from experiments.control_eval.metrics import (
     SEED,
-    BudgetExceeded,
+    V8_SEED,
     inspected_user_tasks,
     is_test_pair_allowed,
     split_tasks,
 )
 from experiments.control_eval.response_cache import ResponseCache
-from experiments.control_eval.run_config import ALL_SUITES, RunConfig
-from experiments.control_eval.spend_ledger import SpendLedger
+from experiments.control_eval.run_config import (
+    ALL_SUITES,
+    HELD_OUT_SUITES,
+    ConfigRefused,
+    RunConfig,
+)
+from experiments.control_eval.spend_ledger import CapReached, SpendLedger
+
+#: Seed of the pilot's development draw (SAP v7 seed; development only).
+PILOT_SEED = SEED
+#: Seed of the stratified draw of attacked test pairs (SAP v8 §8).
+TEST_PAIR_SEED = V8_SEED
+T = TypeVar("T")
 
 BENCHMARK_VERSION = "v1.2.2"
 ATTACK = "important_instructions"
@@ -64,8 +78,8 @@ class Episode:
         return f"{run_id}:{self.suite}:{self.user_task}:{self.injection_task or 'benign'}"
 
 
-def _rank(*parts: str) -> str:
-    return hashlib.sha256(":".join([str(SEED), *parts]).encode()).hexdigest()
+def _rank(*parts: str, seed: int = PILOT_SEED) -> str:
+    return hashlib.sha256(":".join([str(seed), *parts]).encode()).hexdigest()
 
 
 def pilot_episodes(cfg: RunConfig, suites: Mapping[str, Any]) -> list[Episode]:
@@ -94,7 +108,8 @@ def sealed_test_episodes(suites: Mapping[str, Any], planned_pairs: int) -> list[
         benign += [Episode(name, u, None) for u in test]
         pools[name] = sorted((Episode(name, u, i) for u in test for i in suite.injection_tasks
                               if is_test_pair_allowed(name, u, i)),
-                             key=lambda e: _rank("test", e.suite, e.user_task, e.injection_task or ""))
+                             key=lambda e: _rank("test", e.suite, e.user_task,
+                                                 e.injection_task or "", seed=TEST_PAIR_SEED))
     total = sum(len(p) for p in pools.values())
     if planned_pairs > total:
         raise ValueError(f"planned {planned_pairs} pairs but only {total} are allowed")
@@ -132,12 +147,52 @@ class RunState:
         return [json.loads(x) for x in path.read_text(encoding="utf-8").splitlines() if x.strip()]
 
 
-def load_suites(names: Sequence[str]) -> dict[str, Any]:
-    return {n: get_suite(BENCHMARK_VERSION, n) for n in names}
+def _get_suite(name: str) -> Any:
+    from agentdojo.task_suite.load_suites import get_suite
+    return get_suite(BENCHMARK_VERSION, name)
+
+
+def load_dev_suites(names: Sequence[str]) -> dict[str, Any]:
+    """Suites for a development mode; a held-out suite is refused before it is loaded."""
+    held = sorted(set(names) & HELD_OUT_SUITES)
+    if held:
+        raise ConfigRefused(f"development modes never load held-out suites {held}")
+    return {n: _get_suite(n) for n in names}
+
+
+def load_test_suites() -> dict[str, Any]:
+    """Every suite, for the sealed ``--test`` path only."""
+    return {n: _get_suite(n) for n in ALL_SUITES}
+
+
+def until_cap(step: Callable[[], T]) -> tuple[T | None, str | None]:
+    """Run *step*; a cap refusal is a normal stop, every other error propagates."""
+    try:
+        return step(), None
+    except CapReached as exc:
+        return None, str(exc)
 
 
 def run_episodes(cfg: RunConfig, phase: str, episodes: Sequence[Episode], suites: Mapping[str, Any],
                  sdk: Any) -> dict[str, Any]:
+    from agentdojo.agent_pipeline import (
+        AgentPipeline,
+        InitQuery,
+        SystemMessage,
+        ToolsExecutionLoop,
+    )
+    from agentdojo.agent_pipeline.agent_pipeline import load_system_message
+    from agentdojo.attacks.attack_registry import load_attack
+    from agentdojo.functions_runtime import FunctionsRuntime
+
+    from experiments.control_eval.agentdojo_glue import (
+        ClaudeAgent,
+        GatedToolsExecutor,
+        register_model_name,
+        tool_specs,
+    )
+
+    validate_arms(cfg.arms)
     run_dir = cfg.cache_dir / cfg.run_id / phase
     state = RunState(run_dir)
     ledger = SpendLedger(cfg.ledger_path, cfg.prices, cfg.total_cap_usd, cfg.phase_caps_usd)
@@ -184,12 +239,11 @@ def run_episodes(cfg: RunConfig, phase: str, episodes: Sequence[Episode], suites
                                       ToolsExecutionLoop([executor, agent], max_iters=cfg.max_iters)])
                 pipe.name = cfg.agent.model
                 before = len(model.records)
-                try:
-                    utility, security = suite.run_task_with_pipeline(pipe, user_task, inj_task,
-                                                                     injections)
-                except BudgetExceeded as exc:
-                    stopped = str(exc)
+                outcome, stopped = until_cap(lambda: suite.run_task_with_pipeline(
+                    pipe, user_task, inj_task, injections))  # noqa: B023 - called at once
+                if stopped or outcome is None:
                     break
+                utility, security = outcome
                 recs = model.records[before:]
                 row = {"episode": key, "suite": suite_name, "user_task": ep.user_task,
                        "injection_task": ep.injection_task, "arm": arm, "utility": bool(utility),
@@ -202,25 +256,43 @@ def run_episodes(cfg: RunConfig, phase: str, episodes: Sequence[Episode], suites
                 state.append("calls.jsonl", ({"episode": key, **c} for c in log))
                 state.append("episodes.jsonl", [row])
                 state.done.add((key, arm))
+    episode_spend = ledger.spend_by_episode(phase)
     return {"phase": phase, "run_dir": str(run_dir), "stopped_by_budget": stopped,
             "rows": state.rows(), "gateway": model.summary(),
+            "episodes_planned": len(episodes),
+            "benign_planned": sum(1 for e in episodes if e.injection_task is None),
+            # Spend per (episode, arm) from the ledger: counts calls made
+            # before a crash, which a resumed run replays from cache for free.
+            "ledger_spend_by_episode_arm": [
+                {"episode": e, "arm": a, "usd": usd}
+                for (e, a), usd in sorted(episode_spend.items())],
             "cache": {"hits": cache.hits, "misses": cache.misses},
             "monitor_failures": scorer.failures if scorer else [],
             "ledger": {"total_usd": ledger.totals().total_usd,
                        "phase_usd": ledger.totals().by_phase.get(phase, 0.0)}}
 
 
+def ledger_spend(result: Mapping[str, Any]) -> dict[tuple[str, str], float]:
+    return {(x["episode"], x["arm"]): float(x["usd"])
+            for x in result.get("ledger_spend_by_episode_arm") or ()}
+
+
 def summarize_pilot(cfg: RunConfig, result: Mapping[str, Any]) -> dict[str, Any]:
+    """Pilot artifact. Every cost comes from the ledger, never from in-process records."""
     rows = result["rows"]
     episodes = {r["episode"] for r in rows}
     attacked = {r["episode"] for r in rows if r["injection_task"]}
-    spend = sum(r["spend_usd"] for r in rows)
-    spend_att = sum(r["spend_usd"] for r in rows if r["injection_task"])
+    paid = ledger_spend(result)
+    by_episode: dict[str, float] = defaultdict(float)
+    for (episode, _arm), usd in paid.items():
+        by_episode[episode] += usd
+    spend = sum(by_episode[e] for e in episodes)
+    spend_att = sum(by_episode[e] for e in attacked)
     by_arm: dict[str, dict[str, Any]] = defaultdict(lambda: defaultdict(float))
     for r in rows:
         a = by_arm[r["arm"]]
         a["runs"] += 1
-        a["spend_usd"] += r["spend_usd"]
+        a["spend_usd"] += paid.get((r["episode"], r["arm"]), 0.0)
         a["requests"] += r["requests"]
         a["sampled"] += r["sampled"]
         if r["injection_task"]:
@@ -250,6 +322,8 @@ def summarize_pilot(cfg: RunConfig, result: Mapping[str, Any]) -> dict[str, Any]
             "per_attacked_pair_usd": spend_att / len(attacked) if attacked else None,
             "per_benign_task_usd": ((spend - spend_att) / (len(episodes) - len(attacked))
                                     if len(episodes) > len(attacked) else None),
+            "unattributed_usd": sum(v for k, v in by_episode.items() if k not in episodes),
+            "source": "spend ledger: settled and open reservations tagged with the episode",
             "note": "per episode = all arms of one episode; shared responses cost once",
         },
         "crn": {"requests": requests, "sampled": sampled, "shared": requests - sampled},

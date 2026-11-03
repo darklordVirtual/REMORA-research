@@ -47,7 +47,11 @@ def main(argv: Sequence[str] | None = None) -> int:
                                             args.root / r["harness_marker"])
         print(f"harness tests {'passed' if ok else 'FAILED'}; marker {r['harness_marker']}")
     fetch = (lambda url: (_ for _ in ()).throw(OSError("offline"))) if args.offline else None
-    results = readiness.check_readiness(cfg, args.root, fetch)
+    try:
+        config_rel = args.config.resolve().relative_to(args.root.resolve()).as_posix()
+    except ValueError:
+        config_rel = None  # outside the root: G4 cannot check it as sealed
+    results = readiness.check_readiness(cfg, args.root, fetch, config_path=config_rel)
     if args.offline:
         results = [readiness.GateResult(g.gate, g.title, readiness.PENDING, "offline: not checked")
                    if g.gate == "G5" and g.status == readiness.FAIL else g for g in results]

@@ -21,6 +21,11 @@ a new process. This ledger closes both gaps:
   reservation without a settlement (the process died mid-call) counts at its
   full amount forever. A resumed run therefore can neither forget spend nor
   spend past the cap twice.
+* **Crash-safe tail.** On open, and before every append, a partial
+  trailing line (the process died mid-write) is truncated under the lock
+  and the truncation fsynced. A sidecar ``<ledger>.head`` records the
+  sequence number and hash of the last line after every append; on open the
+  head must lie on the chain, so deleting whole trailing lines is refused.
 * **One cap across phases.** ``total_cap_usd`` (default 50) binds pilot and
   test together; ``phase_caps_usd`` binds each phase. Writers take an
   exclusive ``flock`` on the ledger, so two processes cannot both reserve the
@@ -51,12 +56,20 @@ FRAMING_OVERHEAD_TOKENS = 2048
 GENESIS = "0" * 64
 
 
+class CapReached(BudgetExceeded):
+    """A reservation would pass a cap. The only budget error that is a normal stop."""
+
+
 class LedgerCorrupt(BudgetExceeded):
     """The ledger's hash chain is broken or a line is not valid JSON; nothing may spend."""
 
 
 class UsageMissing(BudgetExceeded):
     """A response carried no usable usage fields; an uncounted call is not free."""
+
+
+class ReservationExceeded(BudgetExceeded):
+    """A settled call cost more than its reservation: the upper bound failed."""
 
 
 @dataclass(frozen=True)
@@ -185,12 +198,71 @@ class SpendLedger:
         self.phase_caps_usd = {k: float(v) for k, v in (phase_caps_usd or {}).items()}
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.touch(exist_ok=True)
+        self.head_path = self.path.with_name(self.path.name + ".head")
         self._offset = 0
         self._line = 0
         self._last = GENESIS
+        self._chain: list[str] = []
         self._reserved: dict[str, dict[str, Any]] = {}
         self._settled: dict[str, float] = {}
-        self._refresh()  # refuse a corrupt ledger at construction
+        with self.path.open("a", encoding="utf-8") as fh:
+            fcntl.flock(fh, fcntl.LOCK_EX)
+            try:
+                self._repair_tail(fh)
+                self._refresh()  # refuse a corrupt ledger at construction
+                self._verify_head()
+            finally:
+                fcntl.flock(fh, fcntl.LOCK_UN)
+
+    # ── tail and head ─────────────────────────────────────────────────────
+
+    def _repair_tail(self, fh: Any) -> None:
+        """Under the lock: cut a partial trailing line left by a crash mid-write."""
+        size = os.fstat(fh.fileno()).st_size
+        if size == 0:
+            return
+        with self.path.open("rb") as rf:
+            data = rf.read()
+        keep = data.rfind(b"\n") + 1
+        if keep < len(data):
+            os.ftruncate(fh.fileno(), keep)
+            os.fsync(fh.fileno())
+
+    def _read_head(self) -> dict[str, Any] | None:
+        if not self.head_path.is_file():
+            return None
+        try:
+            head = json.loads(self.head_path.read_text(encoding="utf-8"))
+            return {"seq": int(head["seq"]), "hash": str(head["hash"])}
+        except (ValueError, KeyError, TypeError) as exc:
+            raise LedgerCorrupt(f"{self.head_path} is unreadable") from exc
+
+    def _write_head(self) -> None:
+        tmp = self.head_path.with_name(self.head_path.name + ".tmp")
+        with tmp.open("w", encoding="utf-8") as fh:
+            fh.write(json.dumps({"seq": len(self._chain), "hash": self._last}, sort_keys=True))
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(tmp, self.head_path)
+
+    def _verify_head(self) -> None:
+        """The recorded head must lie on the chain; a ledger may only be longer than its head
+        (a crash between the append and the head write), never shorter."""
+        head = self._read_head()
+        if head is None:
+            if self._chain:
+                raise LedgerCorrupt(f"{self.head_path} is missing for a non-empty ledger; "
+                                    "truncation of whole lines cannot be ruled out")
+            self._write_head()
+            return
+        seq = head["seq"]
+        on_chain = (seq == 0 and head["hash"] == GENESIS) or (
+            0 < seq <= len(self._chain) and self._chain[seq - 1] == head["hash"])
+        if not on_chain:
+            raise LedgerCorrupt(f"{self.path} has {len(self._chain)} lines but its head records "
+                                f"line {seq}; whole lines were removed or replaced")
+        if seq != len(self._chain):
+            self._write_head()
 
     # ── reading ───────────────────────────────────────────────────────────
 
@@ -216,6 +288,7 @@ class SpendLedger:
                 raise LedgerCorrupt(f"{self.path}:{self._line} breaks the hash chain; "
                                     "the ledger was edited or truncated")
             self._last = recorded
+            self._chain.append(recorded)
             if entry["kind"] == "reserve":
                 self._reserved[entry["id"]] = entry
             elif entry["kind"] == "settle":
@@ -228,6 +301,22 @@ class SpendLedger:
         """Every reservation, with its settled cost or ``None`` while open."""
         self._refresh()
         return [{**r, "settled_usd": self._settled.get(rid)} for rid, r in self._reserved.items()]
+
+    def spend_by_episode(self, phase: str) -> dict[tuple[str, str], float]:
+        """Committed spend per (episode, arm) of *phase*, from the ledger itself.
+
+        Settled reservations count at their settled cost, open ones at their
+        full amount, so spend made before a crash and a resume is counted.
+        """
+        self._refresh()
+        out: dict[tuple[str, str], float] = {}
+        for rid, r in self._reserved.items():
+            if r.get("phase") != phase:
+                continue
+            meta = r.get("meta") or {}
+            key = (str(meta.get("episode", "")), str(meta.get("arm", "")))
+            out[key] = out.get(key, 0.0) + self._settled.get(rid, float(r["usd"]))
+        return out
 
     def totals(self) -> LedgerTotals:
         self._refresh()
@@ -254,6 +343,7 @@ class SpendLedger:
         with self.path.open("a", encoding="utf-8") as fh:
             fcntl.flock(fh, fcntl.LOCK_EX)
             try:
+                self._repair_tail(fh)
                 self._refresh()
                 yield fh
             finally:
@@ -266,6 +356,7 @@ class SpendLedger:
         fh.flush()
         os.fsync(fh.fileno())
         self._refresh()
+        self._write_head()
 
     def reserve(self, phase: str, model: str, input_tokens: int, max_output_tokens: int,
                 meta: Mapping[str, Any] | None = None) -> str:
@@ -277,11 +368,11 @@ class SpendLedger:
             t = self.totals()
             phase_spent = t.by_phase.get(phase, 0.0)
             if t.total_usd + usd > self.total_cap_usd:
-                raise BudgetExceeded(
+                raise CapReached(
                     f"reserving {usd:.4f} USD would pass the total cap {self.total_cap_usd} "
                     f"(committed {t.total_usd:.4f})")
             if phase_spent + usd > self.phase_caps_usd[phase]:
-                raise BudgetExceeded(
+                raise CapReached(
                     f"reserving {usd:.4f} USD would pass the {phase} cap "
                     f"{self.phase_caps_usd[phase]} (committed {phase_spent:.4f})")
             rid = uuid.uuid4().hex
@@ -306,5 +397,5 @@ class SpendLedger:
             self._append(fh, {"kind": "settle", "id": rid, "usd": usd, "note": note,
                               "usage": usage.as_dict() if usage else None})
         if note == "actual_exceeded_reservation":
-            raise BudgetExceeded(f"call {rid} cost {usd:.6f} USD, above its reservation")
+            raise ReservationExceeded(f"call {rid} cost {usd:.6f} USD, above its reservation")
         return usd

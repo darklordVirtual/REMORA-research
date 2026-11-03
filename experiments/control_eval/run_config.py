@@ -7,8 +7,10 @@ the budget caps and ledger, the arms, and the suites held out from
 development. ``owner_approved`` must be true: the committed example is not.
 
 ``holdout_suites`` lists suites kept out of all development as a transfer
-test (lead decision 2026-11-03: ``workspace``). ``--pilot`` refuses to run a
-held-out suite; ``--test`` still runs every suite's test pairs.
+test (lead decision 2026-11-03: ``workspace``). :data:`HELD_OUT_SUITES` is a
+floor the config cannot lower: a config may hold out more suites, never
+fewer. ``--pilot`` refuses to run a held-out suite; ``--test`` still runs
+every suite's test pairs.
 """
 from __future__ import annotations
 
@@ -22,6 +24,13 @@ from experiments.control_eval.spend_ledger import DEFAULT_TOTAL_CAP_USD, PriceTa
 
 ALL_SUITES = ("banking", "slack", "travel", "workspace")
 PHASES = ("pilot", "test")
+#: Suites held out of all development (SAP v8 §2), whatever the config says.
+HELD_OUT_SUITES = frozenset({"workspace"})
+
+
+def holdout_floor(configured: Sequence[str] = ()) -> tuple[str, ...]:
+    """The configured hold-out suites plus the fixed floor."""
+    return tuple(sorted(set(configured) | HELD_OUT_SUITES))
 
 
 class ConfigRefused(ValueError):
@@ -64,7 +73,7 @@ class RunConfig:
         return self.monitor_prompt_path.read_text(encoding="utf-8")
 
     def require_pilot_suites(self, suites: Sequence[str]) -> None:
-        held = sorted(set(suites) & set(self.holdout_suites))
+        held = sorted(set(suites) & set(holdout_floor(self.holdout_suites)))
         if held:
             raise ConfigRefused(f"--pilot refuses held-out suites {held}; "
                                 f"holdout_suites = {list(self.holdout_suites)}")
@@ -118,10 +127,11 @@ def load_run_config(path: Path | None, root: Path) -> RunConfig:
         raise ConfigRefused(f"total_cap_usd {total} exceeds the owner's {DEFAULT_TOTAL_CAP_USD} USD")
     if sum(caps.values()) > total + 1e-9:
         raise ConfigRefused("phase sub-caps add up to more than the total cap")
-    holdout = tuple(raw.get("holdout_suites", ()))
-    unknown = sorted(set(holdout) - set(ALL_SUITES))
+    configured = tuple(raw.get("holdout_suites", ()))
+    unknown = sorted(set(configured) - set(ALL_SUITES))
     if unknown:
         raise ConfigRefused(f"unknown holdout suites {unknown}")
+    holdout = holdout_floor(configured)
     pilot = raw.get("pilot", {})
     pilot_suites = tuple(pilot.get("suites") or [s for s in ALL_SUITES if s not in holdout])
     cfg = RunConfig(

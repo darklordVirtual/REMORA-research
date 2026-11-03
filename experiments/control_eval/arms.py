@@ -5,7 +5,9 @@ The runner builds every arm named in the run config from this registry, per
 suite and episode. An arm is a factory ``(ArmContext) -> Defence``. New arms
 register with :func:`register_arm` from their own module and are listed in
 :data:`ARM_MODULES` so the runner imports them; the REMORA IFC arms
-(``E_IFC``, ``E_IFC_WS1``) plug in this way from their own branch.
+(``E_IFC``, ``E_IFC_WS1``) register this way from ``remora_ifc.py``.
+:func:`validate_arms` loads those modules and refuses an unknown arm name;
+the runner calls it before it builds an SDK client.
 
 Factories that need REMORA import it inside the factory, so this module and
 the non-REMORA arms import nothing beyond the policies.
@@ -43,7 +45,7 @@ class ArmContext:
 ArmFactory = Callable[[ArmContext], Defence]
 ARM_REGISTRY: dict[str, ArmFactory] = {}
 #: Modules imported by :func:`load_arm_modules` so their arms register.
-ARM_MODULES: list[str] = []
+ARM_MODULES: list[str] = ["experiments.control_eval.remora_ifc"]
 #: Arms that call a model when they decide; their cost is metered per arm.
 MODEL_CALLING_ARMS: set[str] = set()
 
@@ -66,6 +68,16 @@ def register_arm(name: str, *, calls_model: bool = False) -> Callable[[ArmFactor
 def load_arm_modules(modules: Sequence[str] = ()) -> None:
     for module in [*ARM_MODULES, *modules]:
         importlib.import_module(module)
+
+
+def validate_arms(names: Sequence[str]) -> None:
+    """Load every arm module, then refuse any name that is not registered."""
+    load_arm_modules()
+    unknown = [n for n in names if n not in ARM_REGISTRY]
+    if unknown:
+        raise UnknownArm(f"arms {unknown} are not registered; known: {sorted(ARM_REGISTRY)}")
+    if len(set(names)) != len(names):
+        raise UnknownArm(f"arms are listed twice: {list(names)}")
 
 
 def build_arm(name: str, ctx: ArmContext) -> Defence:

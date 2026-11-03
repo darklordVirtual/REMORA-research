@@ -55,8 +55,9 @@ def _write(path: Path, body: Mapping[str, Any]) -> None:
     Path(path).write_text(json.dumps(body, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
-def start_test_run(path: Path, root: Path, required: Iterable[str], run_id: str,
-                   resume: bool = False) -> dict[str, Any]:
+def check_test_start(path: Path, root: Path, required: Iterable[str], run_id: str,
+                     resume: bool = False) -> dict[str, Any]:
+    """Every check of :func:`start_test_run`, without writing the manifest."""
     body = read_manifest(path)
     status = body.get("status")
     if status == EVALUATED:
@@ -75,7 +76,13 @@ def start_test_run(path: Path, root: Path, required: Iterable[str], run_id: str,
     changed = changed_files(body, root)
     if changed:
         raise SealRefused(f"changed after sealing: {changed}")
-    if status == LOCKED:
+    return body
+
+
+def start_test_run(path: Path, root: Path, required: Iterable[str], run_id: str,
+                   resume: bool = False) -> dict[str, Any]:
+    body = check_test_start(path, root, required, run_id, resume)
+    if body.get("status") == LOCKED:
         body = {**body, "status": IN_PROGRESS, "run_id": run_id,
                 "started_utc": datetime.now(UTC).isoformat(timespec="seconds")}
         _write(path, body)

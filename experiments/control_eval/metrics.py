@@ -11,7 +11,13 @@ from dataclasses import dataclass, field
 from typing import Any
 
 Z95 = 1.959963984540054
+#: SAP v7 §2 seed. The development/test split of user tasks stays on it in v8.
 SEED = 20261017
+#: SAP v8 §7 and §8: seed of the Monte Carlo sign-flip test and of the
+#: stratified draw of attacked test pairs.
+V8_SEED = 20261103
+#: SAP v8 §7: Monte Carlo draws of the sign-flip test above 20 clusters.
+V8_SIGNFLIP_DRAWS = 100_000
 
 
 # ── labels ───────────────────────────────────────────────────────────────
@@ -183,7 +189,7 @@ EXACT_MAX_CLUSTERS = 20
 
 
 def cluster_sign_flip_test(diffs: Sequence[tuple[str, float]], alternative: str = "greater",
-                           n_draws: int = 20_000, seed: int = SEED,
+                           n_draws: int = V8_SIGNFLIP_DRAWS, seed: int = V8_SEED,
                            exact_max_clusters: int = EXACT_MAX_CLUSTERS) -> dict[str, Any]:
     """Null-calibrated cluster sign-flip permutation test for paired differences.
 

@@ -11,7 +11,13 @@
    the reservation is settled from the response's usage fields.
 
 The SDK client is injected. Tests pass fakes; only the runner builds an
-``anthropic.Anthropic`` client, and only for ``--pilot`` or ``--test``.
+``anthropic.Anthropic`` client, and only for ``--pilot`` or ``--test``. The
+runner builds it with ``max_retries=0``: retries inside the SDK would send
+attempts the ledger never saw. Retries happen here instead: a bounded number
+of attempts with exponential backoff, only for retryable errors (429, 408,
+5xx, connection errors and timeouts). Every attempt takes its own
+reservation and is settled; a failed attempt is charged its full
+reservation, because whether the provider billed it is unknown.
 
 :class:`MonitorScorer` is arm D's scorer: one call per proposed tool call,
 structured output ``{"score": 0..100}``, prompt from the owner's file. A
@@ -21,7 +27,8 @@ recorded as such; a monitor failure never lets a call through.
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
+import time
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -43,6 +50,27 @@ def response_to_dict(response: Any) -> dict[str, Any]:
     raise TypeError(f"cannot serialise response of type {type(response).__name__}")
 
 
+#: Attempts per model call, the first included.
+MAX_ATTEMPTS = 3
+#: Seconds before the second attempt; doubled for each later one.
+BACKOFF_SECONDS = 2.0
+_RETRYABLE_NAMES = frozenset({"APIConnectionError", "APITimeoutError", "RateLimitError",
+                              "InternalServerError", "OverloadedError"})
+
+
+def is_retryable(exc: BaseException) -> bool:
+    """429, 408 and 5xx responses, connection errors and timeouts; nothing else.
+
+    Classified by status code and class name, so this module imports no SDK.
+    """
+    status = getattr(exc, "status_code", None)
+    if isinstance(status, int) and not isinstance(status, bool):
+        return status in (408, 429) or 500 <= status <= 599
+    if isinstance(exc, TimeoutError | ConnectionError):
+        return True
+    return any(cls.__name__ in _RETRYABLE_NAMES for cls in type(exc).__mro__)
+
+
 @dataclass
 class CallRecord:
     episode: str
@@ -62,6 +90,15 @@ class MeteredModel:
     cache: ResponseCache
     phase: str
     records: list[CallRecord] = field(default_factory=list)
+    max_attempts: int = MAX_ATTEMPTS
+    backoff_seconds: float = BACKOFF_SECONDS
+    sleep: Callable[[float], None] = time.sleep
+    #: Requests sent to the SDK, retries included.
+    attempts: int = 0
+
+    def __post_init__(self) -> None:
+        if self.max_attempts < 1:
+            raise ValueError("max_attempts must be at least 1")
 
     def create(self, request: Mapping[str, Any], *, episode: str, arm: str,
                purpose: str = "agent") -> dict[str, Any]:
@@ -72,17 +109,31 @@ class MeteredModel:
             self.records.append(CallRecord(episode, arm, purpose, model, True, 0.0, None,
                                            cached.get("stop_reason")))
             return cached
-        rid = self.ledger.reserve(self.phase, model, input_token_upper_bound(request),
-                                  int(request["max_tokens"]),
-                                  meta={"episode": episode, "arm": arm, "purpose": purpose,
-                                        "request_sha256": sha})
-        try:
-            raw = self.sdk.messages.create(**request)
-            response = response_to_dict(raw)
-            usage = usage_from_response(response)
-        except BaseException:
-            self.ledger.settle(rid, model, None)
-            raise
+        bound = input_token_upper_bound(request)
+        attempt = 0
+        while True:
+            attempt += 1
+            # Every attempt is reserved before it is sent; a cap refusal here
+            # stops the run before a retry leaves the process.
+            rid = self.ledger.reserve(self.phase, model, bound, int(request["max_tokens"]),
+                                      meta={"episode": episode, "arm": arm, "purpose": purpose,
+                                            "request_sha256": sha, "attempt": attempt})
+            self.attempts += 1
+            try:
+                raw = self.sdk.messages.create(**request)
+            except BaseException as exc:
+                self.ledger.settle(rid, model, None)
+                if attempt >= self.max_attempts or not is_retryable(exc):
+                    raise
+                self.sleep(self.backoff_seconds * 2 ** (attempt - 1))
+                continue
+            try:
+                response = response_to_dict(raw)
+                usage = usage_from_response(response)
+            except BaseException:
+                self.ledger.settle(rid, model, None)
+                raise
+            break
         # Cache before settling: a crash between the two replays the paid
         # response on resume, and the open reservation stays counted in full.
         self.cache.store(episode, sha, occurrence, response)

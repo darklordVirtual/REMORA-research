@@ -60,6 +60,7 @@ from experiments.control_eval.ifc_resolvers import (
     normalise_iban,
     own_identifiers,
 )
+from experiments.control_eval.arms import ArmContext, register_arm
 from experiments.control_eval.policies import ProposedCall, Verdict
 from remora.flow.check import FlowVerdict, flow_check
 from remora.flow.label import PUBLIC, Integrity, Label
@@ -340,3 +341,16 @@ def _stored_recipient(env: Any, tx_id: Any) -> str | None:
         if str(getattr(t, "id", None)) == str(tx_id):
             return getattr(t, "recipient", None)
     return None
+
+
+# ── arm registry (experiments/control_eval/arms.py lists this module) ────
+
+
+@register_arm("E_IFC")
+def _arm_e_ifc(ctx: ArmContext) -> RemoraIfcGate:
+    return RemoraIfcGate(ctx.suite)
+
+
+@register_arm("E_IFC_WS1")
+def _arm_e_ifc_ws1(ctx: ArmContext) -> RemoraIfcGate:
+    return RemoraIfcGate(ctx.suite, ws1=True)

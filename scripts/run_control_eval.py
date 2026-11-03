@@ -8,7 +8,9 @@ Needs the pinned packages in experiments/control_eval/requirements.txt.
 Modes:
 
 ``--split``
-    Print the per-suite development/test split of user tasks (seed 20261017).
+    Print the development/test split of user tasks (seed 20261017) of the
+    suites that are not held out. A held-out suite is never loaded here; its
+    test tasks are drawn only inside the sealed ``--test`` path.
 ``--dry-run``
     Development tasks only, no model call. A scripted agent proposes each
     user task's ground-truth calls in order and never adapts. Arms A, B, C,
@@ -50,15 +52,37 @@ sys.path.insert(0, str(REPO_ROOT))
 BENCHMARK_VERSION = "v1.2.2"
 SUITES = ("banking", "slack", "travel", "workspace")
 
+from experiments.control_eval.run_config import HELD_OUT_SUITES  # noqa: E402
 
-def _suites() -> dict[str, Any]:
+
+class RunRefused(RuntimeError):
+    pass
+
+
+def development_suites(names: Sequence[str]) -> list[str]:
+    """The suites a development mode may load: every suite not held out."""
+    return [name for name in names if name not in HELD_OUT_SUITES]
+
+
+def _load_suite(name: str) -> Any:
     from agentdojo.task_suite.load_suites import get_suite
-    return {name: get_suite(BENCHMARK_VERSION, name) for name in SUITES}
+    return get_suite(BENCHMARK_VERSION, name)
 
 
-def split() -> dict[str, dict[str, list[str]]]:
+def _suites(names: Sequence[str] | None = None) -> dict[str, Any]:
+    """Load development suites. A held-out suite is refused before it is loaded
+    (as in scripts/run_control_eval_g1.py)."""
+    names = development_suites(SUITES) if names is None else list(names)
+    held = sorted(set(names) & HELD_OUT_SUITES)
+    if held:
+        raise RunRefused(f"{held} held out of all development; not loaded")
+    return {name: _load_suite(name) for name in names}
+
+
+def split(suites: dict[str, Any] | None = None) -> dict[str, dict[str, list[str]]]:
     from experiments.control_eval.metrics import inspected_user_tasks, split_tasks
-    return split_tasks({name: list(s.user_tasks) for name, s in _suites().items()},
+    suites = _suites() if suites is None else suites
+    return split_tasks({name: list(s.user_tasks) for name, s in suites.items()},
                        forced_dev=inspected_user_tasks())
 
 
@@ -102,50 +126,45 @@ def _pipeline(task: Any, defence: Any, suite: str, task_id: str, log: list[dict[
     return pipe
 
 
-#: Suites kept out of all development as a transfer test (SAP v8 §2). The
-#: dry run never loads them.
-HELD_OUT_SUITES = frozenset({"workspace"})
+def _dry_run_suite(suite_name: str, suite: Any, dev_ids: Sequence[str], report: dict[str, Any],
+                   log: list[dict[str, Any]]) -> None:
+    from agentdojo.functions_runtime import FunctionsRuntime
 
-
-def development_suites(names: Sequence[str]) -> list[str]:
-    """The suites a development mode may load: every suite not held out."""
-    return [name for name in names if name not in HELD_OUT_SUITES]
-
-
-def dry_run() -> dict[str, Any]:
     from experiments.control_eval.agentdojo_glue import tool_specs
     from experiments.control_eval.policies import NoGate, RefuseAll, TaskAllowlist
     from experiments.control_eval.remora_adapter import OBSERVED, STRICT, RemoraGate
 
-    allowed = development_suites(SUITES)
-    suites = {name: s for name, s in _suites().items() if name in allowed}
-    dev = {name: parts["dev"] for name, parts in split().items() if name in allowed}
-    report: dict[str, Any] = {"status": "development_dry_run", "held_out_suites": sorted(HELD_OUT_SUITES), "benchmark_version": BENCHMARK_VERSION,
+    env0 = suite.load_and_inject_default_environment({})
+    tools = tool_specs(FunctionsRuntime(suite.tools))
+    allowed = {tid: [c.function for c in suite.get_user_task_by_id(tid).ground_truth(env0)]
+               for tid in dev_ids}
+    arms = [NoGate(), RefuseAll(), TaskAllowlist(allowed), RemoraGate(tools, STRICT, suite_name),
+            RemoraGate(tools, OBSERVED, suite_name)]
+    for defence in arms:
+        for tid in dev_ids:
+            task = suite.get_user_task_by_id(tid)
+            before = len(log)
+            utility, _ = suite.run_task_with_pipeline(
+                _pipeline(task, defence, suite_name, tid, log), task, None, {})
+            calls = log[before:]
+            arm = report["arms"].setdefault(defence.name, defaultdict(int))
+            arm["tasks"] += 1
+            arm["utility"] += int(utility)
+            arm["calls"] += len(calls)
+            arm["blocked"] += sum(1 for c in calls if not c["execute"])
+
+
+def dry_run() -> dict[str, Any]:
+    suites = _suites()
+    dev = {name: parts["dev"] for name, parts in split(suites).items()}
+    report: dict[str, Any] = {"status": "development_dry_run",
+                              "held_out_suites": sorted(HELD_OUT_SUITES),
+                              "benchmark_version": BENCHMARK_VERSION,
                               "agent": "scripted ground truth, non-adaptive, no model call",
                               "dev_tasks": dev, "arms": {}}
     log: list[dict[str, Any]] = []
     for suite_name, suite in suites.items():
-        env0 = suite.load_and_inject_default_environment({})
-        from agentdojo.functions_runtime import FunctionsRuntime
-        tools = tool_specs(FunctionsRuntime(suite.tools))
-        allowed = {tid: [c.function for c in suite.get_user_task_by_id(tid).ground_truth(env0)]
-                   for tid in dev[suite_name]}
-        arms = [NoGate(), RefuseAll(), TaskAllowlist(allowed), RemoraGate(tools, STRICT, suite_name),
-                RemoraGate(tools, OBSERVED, suite_name)]
-        for defence in arms:
-            for tid in dev[suite_name]:
-                task = suite.get_user_task_by_id(tid)
-                before = len(log)
-                utility, _ = suite.run_task_with_pipeline(
-                    _pipeline(task, defence, suite_name, tid, log), task, None, {})
-                calls = log[before:]
-                arm = report["arms"].setdefault(defence.name, defaultdict(int))
-                arm["tasks"] += 1
-                arm["utility"] += int(utility)
-                arm["calls"] += len(calls)
-                arm["blocked"] += sum(1 for c in calls if not c["execute"])
-    for arm in report["arms"].values():
-        arm.update(dict(arm))
+        _dry_run_suite(suite_name, suite, dev[suite_name], report, log)
     report["arms"] = {k: dict(v) for k, v in report["arms"].items()}
     report["block_reasons"] = {
         name: dict(Counter(c["reason"] for c in log if c["defence"] == name and not c["execute"]))
@@ -153,11 +172,9 @@ def dry_run() -> dict[str, Any]:
     return report
 
 
-class RunRefused(RuntimeError):
-    pass
-
-
 def _armed_config(config: Path | None, phase: str, root: Path):
+    """Load the config, check the phase cap and every arm name, before any client exists."""
+    from experiments.control_eval.arms import UnknownArm, validate_arms
     from experiments.control_eval.run_config import ConfigRefused, load_run_config
     try:
         cfg = load_run_config(config, root)
@@ -165,12 +182,18 @@ def _armed_config(config: Path | None, phase: str, root: Path):
         raise RunRefused(str(exc)) from exc
     if cfg.phase_caps_usd.get(phase, 0.0) <= 0:
         raise RunRefused(f"budget guard not armed: no positive sub-cap for phase {phase!r}")
+    try:
+        validate_arms(cfg.arms)
+    except UnknownArm as exc:
+        raise RunRefused(str(exc.args[0] if exc.args else exc)) from exc
     return cfg
 
 
-def _anthropic_client() -> Any:  # pragma: no cover - real API, never in tests
+def _anthropic_client() -> Any:
+    """The only real client. ``max_retries=0``: the metered gateway retries, so
+    every attempt is reserved and settled in the ledger."""
     import anthropic
-    return anthropic.Anthropic()
+    return anthropic.Anthropic(max_retries=0)
 
 
 def pilot(config: Path | None, sdk: Any = None, root: Path = REPO_ROOT) -> dict[str, Any]:
@@ -181,7 +204,10 @@ def pilot(config: Path | None, sdk: Any = None, root: Path = REPO_ROOT) -> dict[
         if earlier.get("run_id") != cfg.run_id:
             raise RunRefused(f"{cfg.pilot_out} holds pilot {earlier.get('run_id')!r}; "
                              "a pilot never overwrites another")
-    suites = sr.load_suites(cfg.pilot_suites)
+    try:
+        suites = sr.load_dev_suites(cfg.pilot_suites)
+    except sr.ConfigRefused as exc:
+        raise RunRefused(str(exc)) from exc
     episodes = sr.pilot_episodes(cfg, suites)
     result = sr.run_episodes(cfg, "pilot", episodes, suites, sdk or _anthropic_client())
     report = sr.summarize_pilot(cfg, result)
@@ -194,21 +220,32 @@ def sealed_test(config: Path | None, sdk: Any = None, root: Path = REPO_ROOT,
                 resume: bool = False, fetch: Any = None) -> dict[str, Any]:
     cfg = _armed_config(config, "test", root)
     from experiments.control_eval import readiness, sealed_run
-    gates = readiness.check_readiness(cfg.raw, root, fetch)
+    try:
+        config_rel = Path(cfg.path).resolve().relative_to(Path(root).resolve()).as_posix()
+    except ValueError as exc:
+        raise RunRefused(f"run config {cfg.path} is outside {root}; it must be sealed") from exc
+    gates = readiness.check_readiness(cfg.raw, root, fetch, config_path=config_rel)
     if not resume and not readiness.all_pass(gates):
         raise RunRefused("readiness gates do not all pass:\n" + readiness.render(gates))
     r = cfg.readiness
     manifest = root / r["manifest"]
+    required = readiness.sealed_dependencies(cfg.raw, root, config_rel)
     try:
-        body = sealed_run.start_test_run(manifest, root,
-                                         [*r.get("harness_files", []), r["plan"]],
-                                         cfg.run_id, resume=resume)
+        body = sealed_run.check_test_start(manifest, root, required, cfg.run_id, resume=resume)
     except sealed_run.SealRefused as exc:
         raise RunRefused(str(exc)) from exc
     from experiments.control_eval import study_runner as sr
-    from experiments.control_eval.run_config import ALL_SUITES
-    suites = sr.load_suites(ALL_SUITES)
+    suites = sr.load_test_suites()
     episodes = sr.sealed_test_episodes(suites, int(body["planned_pairs"]))
+    benign = sum(1 for e in episodes if e.injection_task is None)
+    if body.get("planned_benign_tasks") != benign:
+        # G6 projected the cost with the manifest's count; the run must use the same.
+        raise RunRefused(f"manifest planned_benign_tasks {body.get('planned_benign_tasks')!r} "
+                         f"differs from the {benign} benign test tasks the run would use")
+    try:
+        body = sealed_run.start_test_run(manifest, root, required, cfg.run_id, resume=resume)
+    except sealed_run.SealRefused as exc:
+        raise RunRefused(str(exc)) from exc
     result = sr.run_episodes(cfg, "test", episodes, suites, sdk or _anthropic_client())
     out = root / r.get("result", "artifacts/control_eval/test_result_v1.json")
     out.parent.mkdir(parents=True, exist_ok=True)

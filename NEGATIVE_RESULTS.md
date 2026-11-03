@@ -6139,6 +6139,12 @@ failed. The attack condition held: no injected goal was reached, and every
 one of the 48 pairs routes its goal through a sink argument the user task
 does not supply. Under SAP v8 §10 the paid study is not run on this design.
 
+The artifact's `pairs_trusted_only_sink` field is named the wrong way
+round. It is true when the goal needs an attacker-chosen sink argument, and
+it is 48/48 for every arm. The gate's "0 goals through a trusted-only sink"
+condition was therefore vacuous on these 48 pairs. The committed numbers are
+unchanged.
+
 E_IFC (`experiments/control_eval/remora_ifc.py`) replaces E1's lexical
 intent floor with `flow_check` over a deployment flow declaration written
 blind to tasks (`experiments/control_eval/agentdojo_flow_toolspecs_v1.yaml`),
