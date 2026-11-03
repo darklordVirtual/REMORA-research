@@ -1482,6 +1482,7 @@ behavior, no lowered coverage floors, no weakened hard guards.
 | QV2-10 independent review | frozen snapshot reviewed by R1/R2/R3 per the existing protocol | REM-021, REM-023, REM-030 | recruitment may start now; final sign-off on a frozen candidate | after load-bearing changes freeze |
 | QV2-11 core surface reduction | machine-readable TCB map; core must not import experimental | Q5.1 import contract | not started | P2, opportunistic |
 | QV2-12 continuous quality governance | single operational board, six-question intake rule | issue #707 | active | continuous |
+| QV2-13 deployed read autonomy and WS1 shadow (OT pilot) | deployment-declared tools, grounded reads with the production opt-in (PROV-18), signed ToolSpec, WS1 through the real routes in shadow | ADR grounded reads in production; NEGATIVE_RESULTS §94, §102; Experiment 10 | shipped 2026-11-03/04 on the pilot: reads 5 of 5 with the opt-in, 0 of 5 without, writes unchanged; WS1 shadow records caps and grounding on a deployed stack | enforce on the pilot needs per-order intent binding, flow blocks for the six tools and IFC-13 evidence; then the first enforce-changed decision closes §94 |
 
 **Boundary with this document.** The proposal's stop-the-line conditions and
 Controlled Pilot exit contract bind release profiles and the remediation

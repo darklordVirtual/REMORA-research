@@ -10,6 +10,13 @@ Seven documents cover most questions. Everything else in `docs/` is listed furth
 - [Study D WS2-B H3 annex v1.3](assurance/ws1_study_d_ws2_monitor_composition_prereg_draft_v1.3.md): draft, not preregistered; FOLLOW_ON recommended.
 - [Owner invariant interpretation and Study D decision](https://github.com/darklordVirtual/REMORA-research/issues/953): pending; no runtime authorization.
 
+## WS1 utility milestone (2026-11-03/04)
+
+- [ADR: grounded reads in production](architecture/ADR-grounded-reads-in-production.md): the owner's opt-in and its bounds.
+- [Experiment 10](03-experiments.md#experiment-10-ot-pilot-read-autonomy-with-a-control-2026-11-0304): OT pilot read autonomy with a control, signed ToolSpec and WS1 shadow; evidence in `artifacts/ot-pilot/grounded-reads-2026-11-03/`.
+- [Concept record PROV-18](../provenance/concepts/PROV-18.yaml): declared-tool grounded read autonomy; classification UNKNOWN until a prior-art review names it.
+- NEGATIVE_RESULTS §94 (WS1 on a deployed stack, shadow) and §102 (the mechanism does not reach AgentDojo).
+
 ## Start here
 
 1. [Project front page](../README.md): what REMORA is, the evidence summary and current limitations.
