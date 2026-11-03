@@ -3416,6 +3416,39 @@ documents:
   - remora/enforcement/gate.py
   - deploy/ot-pilot/run_ot_battery.py
   claims: []
+- id: DOC-420
+  path: docs/assurance/ws2_monitor_question_verifier_coverage_dev_v1.2.md
+  status: proposal
+  topic: docs_assurance_ws2_monitor_question_verifier_coverage_dev_v1_2_md
+  owner: darklordVirtual
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+  - evaluators
+  last_reviewed:
+- id: DOC-421
+  path: docs/assurance/ws1_study_d_ws2_monitor_composition_prereg_draft_v1.3.md
+  status: proposal
+  topic: docs_assurance_ws1_study_d_ws2_monitor_composition_prereg_draft_v1_3_md
+  owner: darklordVirtual
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+  - evaluators
+  last_reviewed:
+- id: DOC-422
+  path: docs/design/ws2-minimal-intervention-governance-sdd-v1.4.md
+  status: proposal
+  topic: docs_design_ws2-minimal-intervention-governance-sdd-v1_4_md
+  owner: darklordVirtual
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+  - integrators
+  last_reviewed:
 topics:
 - docs_assurance_execution_path_quality_review_2026-11-01_md
 - provenance_README_md
