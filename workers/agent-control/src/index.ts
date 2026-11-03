@@ -78,7 +78,11 @@ import {
   canonicalExecutionConfigured,
   runViaCanonicalService,
 } from "./execution_adapter";
-import { buildCodegraphPayload } from "./codegraph";
+import {
+  buildCodegraphSearch,
+  parseSearchMode,
+  type EmbeddingRunner,
+} from "./codegraph.semantic";
 import { DuplicateMemberError, parseJsonStrict, UnsafeNumberError } from "./json_numbers";
 import {
   appendEnvelope,
@@ -103,6 +107,13 @@ interface Env {
   // execution; without it the structural write floor stays in force.
   EXECUTION_SERVICE?: Fetcher;
   EXECUTION_API_TOKEN?: string;
+  // CodeGraph semantic search (optional). Without both bindings,
+  // mode=semantic answers 503 and mode=hybrid degrades to keyword ranking
+  // with an explicit `semantic.status` of "unavailable".
+  AI?: EmbeddingRunner;
+  CODEGRAPH_VECTORS?: VectorizeIndex;
+  CODEGRAPH_EMBED_MODEL?: string;
+  CODEGRAPH_INDEX_VERSION?: string;
 
   // Vars (display URLs in /status; approval routing list)
   REMORA_WORKER_URL:        string;
@@ -1157,10 +1168,20 @@ export default {
       return handleApprovals(request, env);
     }
 
+    // CodeGraph keyword search stays public. Semantic and hybrid modes run a
+    // paid embedding inference per call and return file content snippets,
+    // so they require the same bearer as other sensitive reads.
+    const isCodegraphRoute = path === "/codegraph" || path === "/search";
+    const codegraphMode = isCodegraphRoute ? parseSearchMode(url.searchParams.get("mode")) : null;
+    if (isCodegraphRoute && request.method === "GET" && codegraphMode === null) {
+      return err("Invalid mode: expected keyword, semantic or hybrid", 400);
+    }
+
     const needsAuth =
       ["POST", "DELETE", "PATCH"].includes(request.method) ||
       (request.method === "GET" &&
-        (path === "/audit" ||
+        ((isCodegraphRoute && codegraphMode !== "keyword") ||
+          path === "/audit" ||
           path === "/test-bindings" ||
           // Envelopes carry full request context and decision rationale;
           // they are strictly more sensitive than /audit and are never public.
@@ -1186,21 +1207,20 @@ export default {
       return json({ tools: TOOL_CATALOG, count: TOOL_CATALOG.length });
     }
 
-    // GET /codegraph — codegraph scope and lightweight repository entrypoint index
-    if (path === "/codegraph" && request.method === "GET") {
-      const query = url.searchParams.get("q") ?? "";
-      const limit = Math.min(Math.max(Number(url.searchParams.get("limit") ?? 8), 1), 25);
-      return json(buildCodegraphPayload(query, limit));
-    }
-
-    // GET /search — repo search alias for Claude Code and MCP clients
-    if (path === "/search" && request.method === "GET") {
-      const query = url.searchParams.get("q") ?? "";
-      const limit = Math.min(Math.max(Number(url.searchParams.get("limit") ?? 8), 1), 25);
-      return json({
-        ...buildCodegraphPayload(query, limit),
-        mode: "repo_search",
-      });
+    // GET /codegraph — codegraph scope plus file ranking.
+    // ?mode=keyword (default, public) | semantic | hybrid (bearer required).
+    // GET /search is the repo-search alias for Claude Code and MCP clients.
+    if (isCodegraphRoute && request.method === "GET" && codegraphMode !== null) {
+      const query = (url.searchParams.get("q") ?? "").trim();
+      const rawLimit = Number(url.searchParams.get("limit") ?? 8);
+      const limit = Math.min(Math.max(Number.isFinite(rawLimit) ? Math.trunc(rawLimit) : 8, 1), 25);
+      const result = await buildCodegraphSearch(query, limit, codegraphMode, env);
+      if (!result.ok) return err(result.error, result.status);
+      // /search kept its historical mode label for keyword requests.
+      if (path === "/search" && codegraphMode === "keyword") {
+        return json({ ...result.body, mode: "repo_search" });
+      }
+      return json(result.body);
     }
 
     // POST /execute — run a tool
