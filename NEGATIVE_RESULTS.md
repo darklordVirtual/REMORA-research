@@ -6065,7 +6065,10 @@ The repair:
 - Production refuses symmetric signing keys shorter than 32 bytes or shaped
   like a placeholder.
 - The OT pilot generates its keys in `init_tokens.py`, and its approver is a
-  `reviewer`, not an `admin` that also holds `execute`.
+  `senior_authority` (review and read only), not an `admin` that also
+  holds `execute`. Every OT tool resolves to the critical tier, whose
+  approvals require that role. A first version made the approver a plain
+  `reviewer`, which could approve nothing, and the PR review caught it.
 
 The same review found that production without a strict profile let one
 admin credential approve its own production write (RMR-SEC-0002). Production
@@ -6077,8 +6080,13 @@ before and after, audit failure refuses),
 `tests/test_sec0001_weak_signing_keys.py`, and production cases in
 `tests/test_separation_of_duties.py`. Thirteen existing test files that
 posted to `/dispatch-leased` on the authority domain or with unlinked leases
-were moved to the executor role and given linked leases; none of their
-security assertions was relaxed.
+were moved to the executor role and given linked leases. One exact-dict
+check in `tests/test_ws1_m4_fault_matrix.py` now expects the earlier
+`signature_invalid` refusal, without the dispatcher's `dispatch_began` and
+`nested_effects` fields, so that response shape changed for clients. A
+stronger check that nothing reaches the chain replaced it. No other
+assertion changed. The domain check uses the matched route's path, so an
+ASGI `root_path` does not move a route out of it.
 
 Limits:
 
@@ -6089,4 +6097,8 @@ Limits:
 - An executor that holds an HMAC key can still sign a lease itself. Only the
   strict profiles' Ed25519 custody split removes that.
 - The lease HMAC key still falls back to the PDP key (RMR-SEC-0020).
+- "Linked" means only that `proposal_id` and `grant_jti` are non-empty.
+  The executor does not look either up, so anyone holding the key can fill
+  in made-up identifiers. The custody split, not this check, keeps the key
+  away from agents.
 

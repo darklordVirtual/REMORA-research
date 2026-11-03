@@ -72,8 +72,10 @@ services:
       # Durable DecisionEnvelope store.
       REMORA_CONTROL_PLANE_DSN: postgresql://remora:remora-local-pilot@postgres:5432/remora
       # Token table — the only mode with real role separation. The operator
-      # token cannot approve; the approver token (role reviewer) cannot
-      # execute. It was admin until 2026-11-02, which holds execute, so the
+      # token cannot approve; the approver token (role senior_authority:
+      # review and read only) cannot execute. Every OT tool resolves to the
+      # critical tier, whose approvals require senior_authority, so plain
+      # "reviewer" could approve nothing here. It was admin until 2026-11-02, which holds execute, so the
       # comment here promised a separation the roles did not give
       # (RMR-SEC-0002). Production also refuses an approver who proposed the
       # call. The supervisor (admin) can withdraw the approver's authority: a
@@ -84,7 +86,7 @@ services:
       # compose refuses to start without them. No fixed literal tokens.
       REMORA_API_TOKENS: >-
         {"${OT_TOKEN_AGENT:?run python deploy/ot-pilot/init_tokens.py first}":{"tenant":"ot-pilot","role":"operator","actor_id":"ot-agent"},
-         "${OT_TOKEN_APPROVER:?run python deploy/ot-pilot/init_tokens.py first}":{"tenant":"ot-pilot","role":"reviewer","actor_id":"ot-approver"},
+         "${OT_TOKEN_APPROVER:?run python deploy/ot-pilot/init_tokens.py first}":{"tenant":"ot-pilot","role":"senior_authority","actor_id":"ot-approver"},
          "${OT_TOKEN_SUPERVISOR:?run python deploy/ot-pilot/init_tokens.py first}":{"tenant":"ot-pilot","role":"admin","actor_id":"ot-supervisor"},
          "${OT_TOKEN_VIEWER:?run python deploy/ot-pilot/init_tokens.py first}":{"tenant":"ot-pilot","role":"viewer","actor_id":"ot-viewer"}}
       REMORA_API_BEARER_TOKEN: ${OT_TOKEN_AGENT:?run python deploy/ot-pilot/init_tokens.py first}

@@ -1884,6 +1884,32 @@ def _role_permissions_map() -> dict[str, set[str]]:
     return out or _BUILTIN_ROLE_PERMISSIONS
 
 
+def _validate_service_only_capabilities() -> None:
+    """Refuse a role configuration that hands a service hop's capability out.
+
+    Only dispatch_hop may present leases to the executor (RMR-SEC-0001); the
+    built-in map keeps it so, and this keeps a risk-profile config from
+    granting ``dispatch`` to operator or admin unnoticed. Production only, at
+    import, once the role configuration has been loaded.
+    """
+    misgranted = sorted(
+        f"{role}:{cap}"
+        for role, caps in _role_permissions_map().items()
+        if role != "dispatch_hop"
+        for cap in caps & _SERVICE_ONLY_CAPABILITIES
+    )
+    if misgranted:
+        raise RuntimeError(
+            "REMORA API production mode fail-closed: service-only capabilities "
+            f"granted to other roles in the role configuration: {', '.join(misgranted)}. "
+            "Only dispatch_hop may present leases to the executor (RMR-SEC-0001)."
+        )
+
+
+if _is_production_mode():
+    _validate_service_only_capabilities()
+
+
 def _tenant_access_policy(tenant_id: str) -> dict[str, Any]:
     access_defaults = _RISK_PROFILE_CONFIG.get("access_defaults", {})
     tenant_defaults = access_defaults.get("tenant_defaults", {}) if isinstance(access_defaults, dict) else {}

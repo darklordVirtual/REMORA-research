@@ -1786,7 +1786,13 @@ items:
       audit_unavailable if it cannot) and lease_dispatch_result after;
       production refuses symmetric signing keys under 32 bytes or
       placeholder-shaped; the OT pilot generates its keys and its approver
-      is a reviewer. NEGATIVE_RESULTS §99 keeps the finding open until the
+      is senior_authority (review and read; every OT tool is critical-tier, so
+      a plain reviewer could approve nothing, which the PR review caught). The
+      domain check uses the matched route path, so an ASGI root_path cannot
+      move a route out of it, and production refuses a role configuration that
+      grants dispatch to any role but dispatch_hop. "Linked" only means
+      non-empty ids; the executor does not look them up.
+      NEGATIVE_RESULTS §99 keeps the finding open until the
       OT reproduction is re-run against a rebuilt pilot. Caveats: executor
       chain events land in the executor's store; an executor holding an HMAC
       key can still self-sign (only the strict Ed25519 split removes that);
@@ -1810,6 +1816,7 @@ items:
       chain recorded a human approval. Production now always requires a
       distinct approver, whatever the profile or flag. The OT pilot's
       approver was admin (which holds execute) beside a comment saying it
-      could not execute; it is now a reviewer. Tests: production cases in
+      could not execute; it is now senior_authority, the critical-tier
+      approval role, which cannot execute. Tests: production cases in
       tests/test_separation_of_duties.py, including an end-to-end self-approval
       refused with approver_is_proposer.

@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "fdf4dd1a2a7d32ae54406e7e5c20a3b44b59335b",
+      "git_blob": "f13cd4e2bbef5c7804290a1d3f10a5ce370fa8e1",
       "mode": "100644",
-      "sha256": "a094b6c72a1ac07642f417a3b9198bd7bf20d08d817cd83f2dd14cf610ed9aef"
+      "sha256": "91efe9dedc2549edf029f90d671a2a3a2c7bdce4f8e54ec993a25dfc6bae181a"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -369,9 +369,9 @@
     },
     "NEGATIVE_RESULTS.md": {
       "concepts": [],
-      "git_blob": "d972a8824d90be1d28e6e2481c9bfd64c062cf47",
+      "git_blob": "0da70b3495a6f4b90772b00f3d6dfcc82be1cf5c",
       "mode": "100644",
-      "sha256": "9ab53347dff30852d6e5fa315147ca843026a1a9c21988bbca4a00296f30fe27"
+      "sha256": "5794ca618e3cfb8afc11a7a44fa4bcb33669f9714ba631e6a05b0e251afbabc0"
     },
     "NOTICE": {
       "concepts": [],
@@ -4879,9 +4879,9 @@
     },
     "deploy/ot-pilot/docker-compose.yml": {
       "concepts": [],
-      "git_blob": "1adbe5e883128a7ed6b7cb5227979764eaa46c24",
+      "git_blob": "777389c65a0727adfb7fe47e7bdc1cb43555d952",
       "mode": "100644",
-      "sha256": "b7f2f220b66f20a50105a310a67403861117eab2611f6c0793178c516136170f"
+      "sha256": "6bdf59e296426a2ff73d58b724e244fd8f473904dd43b853e9808cad6ce9304a"
     },
     "deploy/ot-pilot/init_tokens.py": {
       "concepts": [],
@@ -5899,9 +5899,9 @@
     },
     "docs/assurance/remediation_register.yaml": {
       "concepts": [],
-      "git_blob": "4d6f68fda361a7ac16aae6b3cece0b26c67ef135",
+      "git_blob": "6c5e5243217e1bf126f2b34e0baed30a068a15f6",
       "mode": "100644",
-      "sha256": "1631196d79ff6672698afe64b280ed7fcb892298a1eae8e2468aca669728ec7f"
+      "sha256": "b53371bef4c9a4607d06f2d9ab0a89ee4cccb6324bdb4fcf135f9637e6f82cb8"
     },
     "docs/assurance/reproducibility_scorecard_v1.md": {
       "concepts": [],
@@ -15893,15 +15893,15 @@
     },
     "servers/api.py": {
       "concepts": [],
-      "git_blob": "38b5c7b8575ce49ab4caf434158e624dc0ef1eea",
+      "git_blob": "87d52e980e26d94ee0ac557ec5a907c213dd92fc",
       "mode": "100644",
-      "sha256": "2349a011d1d940a4e7b0fdbce22f7a33607c409a5efb46bcb1cf14a9cd1380b9"
+      "sha256": "c8c126c799370a6313f4aff7d86cfd9490f427899a8f17ca5248cd534fea7500"
     },
     "servers/execution_api.py": {
       "concepts": [],
-      "git_blob": "ecc1e9b93962ae05731999caf258f7294c786466",
+      "git_blob": "835a59a74f4b62a401a8e2620185ba877d285278",
       "mode": "100644",
-      "sha256": "4de31cb5c79f5ae1cbbf9fcf5d5329be7116f5e981983e168cfdca4f7b0c4ab1"
+      "sha256": "cd1fe752487147fa736ff3e6b11f6db5253b6e5f09d256bcb6b6a06bf6ff8391"
     },
     "servers/execution_contracts.py": {
       "concepts": [],
@@ -20450,9 +20450,9 @@
     },
     "tests/test_sec0001_dispatch_leased_boundary.py": {
       "concepts": [],
-      "git_blob": "aca18d8bf94971865526bf9e3cda97225c13bc8a",
+      "git_blob": "4f80c9d1bf7418255f308905b5088064a8bb90f4",
       "mode": "100644",
-      "sha256": "ac93e6b1bbd32eea152288755b83b373e5151778f61e226e20665efabc2994c9"
+      "sha256": "a6ca395fb58da0d9dca36d61a312f2f26912b273c7bc5f2b8e20d0da859d5ead"
     },
     "tests/test_sec0001_weak_signing_keys.py": {
       "concepts": [],
@@ -21825,7 +21825,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "312b85074d76d7c1aad67cee193ce5341ffda87d163530da5f214836f745d47b",
+  "register_sha256": "897e5f7b4c537a28fe7e04ca8eb96436fba0441d137a126756506f586fd9c310",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

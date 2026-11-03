@@ -236,7 +236,12 @@ def _enforce_execution_domain(request: Request) -> None:
     an authority route quietly reachable from the execution domain.
     """
     role = _execution_domain()
-    path = request.url.path
+    # The matched route's own path, not request.url.path: the URL path carries
+    # the ASGI root_path, so behind a proxy mounted at a prefix every set
+    # lookup below missed and the domain split did not apply
+    # (review of RMR-SEC-0001's fix).
+    route = request.scope.get("route")
+    path = getattr(route, "path", None) or request.url.path
     if role == _DOMAIN_EFFECT:
         if path in _EFFECT_PATHS:
             return

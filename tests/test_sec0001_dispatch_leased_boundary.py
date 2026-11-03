@@ -164,3 +164,56 @@ def test_agent_facing_roles_do_not_hold_dispatch() -> None:
     for role in ("operator", "reviewer", "viewer", "effect_verifier"):
         assert "dispatch" not in api_mod._BUILTIN_ROLE_PERMISSIONS[role], role
     assert api_mod._BUILTIN_ROLE_PERMISSIONS["dispatch_hop"] == {"dispatch"}
+
+
+def test_a_root_path_does_not_move_the_route_out_of_the_domain_check(server) -> None:
+    """Review of the fix: request.url.path carries the ASGI root_path, so a
+    proxy prefix made every domain lookup miss."""
+    import servers.api as api_mod
+
+    server.monkeypatch.delenv("REMORA_EXECUTION_DOMAIN_ROLE", raising=False)
+    client = TestClient(api_mod.app, root_path="/remora")
+    response = client.post(
+        "/remora/v1/execution/dispatch-leased",
+        json={"lease": _lease(server).to_dict(), "tool_call": CALL, "tenant_id": "acme"},
+        headers={"Authorization": "Bearer hop"},
+    )
+    assert response.status_code == 404, response.text
+    assert server.registry.CALLS == []
+
+
+def test_production_refuses_a_config_that_grants_dispatch_to_another_role(monkeypatch) -> None:
+    import servers.api as api
+
+    api._validate_service_only_capabilities()  # the shipped config passes
+    tampered = {**api._role_permissions_map(), "operator": {"assess", "execute", "dispatch"}}
+    monkeypatch.setattr(api, "_role_permissions_map", lambda: tampered)
+    with pytest.raises(RuntimeError, match="operator:dispatch"):
+        api._validate_service_only_capabilities()
+    source = Path(api.__file__).read_text(encoding="utf-8")
+    assert "if _is_production_mode():\n    _validate_service_only_capabilities()" in source
+
+
+def test_the_ot_pilot_approver_can_approve_critical_tools_and_cannot_execute() -> None:
+    """Review of the fix: moving the approver from admin to reviewer left it
+    unable to approve any OT write, because every OT tool is critical and a
+    critical approval requires senior_authority."""
+    import json
+    import re
+
+    import servers.api as api
+
+    compose = (Path(__file__).resolve().parents[1] / "deploy" / "ot-pilot"
+               / "docker-compose.yml").read_text(encoding="utf-8")
+    table = compose.split("REMORA_API_TOKENS: >-", 1)[1].split("REMORA_API_BEARER_TOKEN", 1)[0]
+    roles = {entry["actor_id"]: entry["role"] for entry in (
+        json.loads(match) for match in re.findall(r'(\{"tenant":[^}]*\})', table))}
+    approver = roles["ot-approver"]
+
+    critical = api._RISK_PROFILE_CONFIG["profiles"]["critical"]["action"]["approval_role"]
+    defaults = api._RISK_PROFILE_CONFIG["access_defaults"]["tenant_defaults"]
+    assert approver in {critical, "admin"}
+    assert approver in defaults["reviewer_roles"]
+    permissions = api._role_permissions_map()[approver]
+    assert "execute" not in permissions and "dispatch" not in permissions
+    assert roles["ot-agent"] == "operator"
