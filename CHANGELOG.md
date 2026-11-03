@@ -4,6 +4,10 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Security review 2026-11: §99 reproduced on a rebuilt OT pilot, and M4.1 closed
+
+- NEGATIVE_RESULTS §99 moves from open to accepted. A rebuilt pilot, with a second process from the same image in the executor domain, answered 404 on `/v1/execution/dispatch-leased` in the authority domain under every pilot credential, refused the agent token and unlinked leases on the executor, recorded `lease_dispatch_admitted` before and `lease_dispatch_result` after the admitted lease in the shared tenant chain, and refused a tampered call and a replay. The 16-case OT battery passed 16/16; the fault-injection runner's result is in the capsule README. Evidence: `artifacts/ws1/m4/sec99-reproduction/sec99-20261103T194032Z-dee87d1a/`, with tokens and keys redacted.
+- `docs/assurance/ws1_m4_1_closure_record_v1.md` records the M4.1 gate: 179 tests across the admission, fault-matrix, route, outbox, receipt and fault-injection suites at the Postgres reference backend, 173 passed, 70 M4-T-labelled cases passed, 6 failures confined to the legacy gate-control suite's test isolation under Postgres (not a product defect; SQLite 7/7). The owner closed M4.1 at the recorded ceilings, subject to second-author review. Study D stays unregistered and unrun.
 ### Evidence tooling: the fault-injection manifest named the approver's token, and the gate-control suite was not isolated under Postgres
 
 Both found while reproducing NEGATIVE_RESULTS §99 on a rebuilt OT pilot (2026-11-03).

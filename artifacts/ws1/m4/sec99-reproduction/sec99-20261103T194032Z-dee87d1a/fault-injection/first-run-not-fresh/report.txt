@@ -1,0 +1,6 @@
+Run fault-injection-2026-11-03-d31a66c4
+Cases: 10 total, 9 passed, 1 failed
+Confirmed side effects: 7
+Monitoring reads completed: 0/0
+Execution chain valid: True
+Envelope chain valid: True

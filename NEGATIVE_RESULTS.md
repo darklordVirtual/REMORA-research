@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-11-02: **37 `open`**, **31 `accepted`**, **31 `superseded`**.
+Counts as of 2026-11-03: **36 `open`**, **32 `accepted`**, **31 `superseded`**.
 
 ## The actual backlog
 
@@ -186,13 +186,6 @@ cites only `open` sections and that no `open` section is missing a theme.
    ACCEPT grant when the admission transaction refused, redeemable at
    `/execute-accepted` without the review path's checks. Repaired with route
    tests; open until the mode runs outside the author's own tests.
-
-21. **The executor's door was open to agent credentials** (§99): a
-   2026-11-02 review ran self-signed leases through `/dispatch-leased` on the
-   authority process with the agent's token and the OT pilot's committed
-   lease key, closing a valve with nothing in the audit chain. Repaired with
-   route tests; open until the OT reproduction is re-run against a rebuilt
-   pilot.
 
 <!-- backlog-end -->
 
@@ -2704,7 +2697,6 @@ sections again.
 | Study C holdout: utility recovered and authority held under defence-aware search; the monitor threshold decided how much (§96) | H_DET and H_COST 20/33 reads, H_EDV 32/33, H0 0/33; every loss a monitor veto at the threshold. No WS1 arm executed an attack goal, an out-of-scope call or a leak in 121 attack episodes each; arm A did | **High** |
 | REMORA did not stop a payment past its budget, and had nothing that could (§97) | Replayed through /assess, /approve and /execute, all three 7000 payments ran (21000 of 20000). Opt-in cumulative limits reserved at dispatch (CAP-031) now refuse the third, and cap setpoint movement, starts and runtime per unit; author's replays only, false refusals unmeasured | **High** |
 | The review path handed back an unspent grant when the admission refused (§98) | Under `REMORA_WS1_ADMISSION=atomic` the ACCEPT grant was minted before the admission; a refusal rolled the spend back and the response still carried the grant, which `/execute-accepted` accepted and spent. Now spent in place and withheld; route tests pin it. Author's tests only | **High** |
-| An agent token executed self-signed leases on the authority process, unaudited (§99) | `/dispatch-leased` took any `execute` credential on the default domain, ran a lease linked to no proposal or grant, and wrote nothing to the chain; with the OT compose's committed lease key the 2026-11-02 review closed a valve that policy had sent to review, and `/audit/verify` said INTACT. Repaired with route tests (executor-only, `dispatch` capability, unlinked leases refused, chain record before dispatch, placeholder keys refused in production). Author's tests; the OT reproduction has not been re-run against a rebuilt pilot | **High** |
 | Study B holdout: the monitor-directed arm lost utility, and the attack search was barely adaptive (§95) | H_EDV 15/45 reads against H_DET 28/45; it vetoed all 43 benign port reads. 55 of 60 final injections were the fixed template. No unauthorized dispatch in any WS1 arm | **High** |
 | WS1 evidence could not make a call executable on the execution API (§94) | WS1 caps only; the grounding that turned PROVED preconditions into an engine ACCEPT lived in Study B's harness. Grounding from proofs is now opt-in on the assess path, tested through the route, and not yet measured in a study | **High** |
 | No blocked development call is recoverable by a bounded lookup alone (§93) | After schema validation, 0 of 92 E1-blocked AgentDojo development calls reach ACCEPT. Causes: no extracted intent (71), undeclared risk tier on a write (16), ground-truth call refused as the wrong tool (5). WS1 recovery needs intent and contract coverage first | **High** |
@@ -2714,6 +2706,7 @@ sections again.
 
 | Finding | Why it is closed to further tuning | Severity |
 |---------|------------------------------------|----------|
+| An agent token executed self-signed leases on the authority process, unaudited (§99) | Repaired and reproduced 2026-11-03 on a rebuilt pilot with authority and executor processes: 404 on the authority under every credential, `lease_unlinked` and 403 on the executor, `lease_dispatch_admitted` before `lease_dispatch_result` in the shared chain, tampered call and replay refused (11/11); OT battery 16/16. "Linked" is still a non-empty check, and the HMAC key custody limits stand (`artifacts/ws1/m4/sec99-reproduction/`) | **High** |
 | A component ablation attributed the safety result to nothing (§57) | Withdrawn, not repaired. Its numbers were absent from the file it cited, its reproduce command never wrote the artifact it named, and its own output contradicts it. All six conditions record FAR=0.000, including hard-blocks-removed, which reaches zero by refusing nearly everything. | **High: falsifies the published component attribution.** |
 | Three self-review complexity findings were wrong (§41) | Verified and refuted: the toolcall generations are already documented, the env-var census was miscounted by excluding experiments/ and scripts/, and an AuditAdapter ABC already existed. An audit finding is a hypothesis | Low (methodological) |
 | Invariants and the decision ladder had diverged (§40) | The invariant set was never evaluated at runtime, so a conformal ACCEPT in the disordered phase contradicted a stated invariant unnoticed. Enforcement is now wired into the build choke point and the stricter invariant wins. A property asserted only in tests is a description, not a guarantee | Medium (methodological) |
@@ -6020,11 +6013,24 @@ that is unreachable now that the grant is withheld, and remains open as a
 hygiene item.
 
 ## §99 An agent token executed self-signed leases on the authority process, and nothing was audited (2026-11-02)
-<!-- finding-status: open -->
+<!-- finding-status: accepted -->
 
-**Status:** repaired with route tests on the branch that carries this
-section. The OT pilot reproduction has not been re-run against a rebuilt
-pilot, so the section stays open.
+**Status:** repaired with route tests, and reproduced on 2026-11-03 against
+a rebuilt OT pilot (`artifacts/ws1/m4/sec99-reproduction/sec99-20261103T194032Z-dee87d1a/`).
+Two processes from the same image, one in the authority domain and one in
+the executor domain, on the pilot's Postgres. Eleven cases behaved as the
+repair specifies. The authority answered 404 to self-signed leases under the
+agent, approver and supervisor tokens, linked and unlinked. The executor
+refused the agent token (403) and an unlinked lease (`lease_unlinked`). It
+recorded `lease_dispatch_admitted` before and `lease_dispatch_result` after
+the one admitted lease (chain sequence 35 and 36, read back from the
+database), and refused a tampered call (`tool_args_hash_mismatch`) and a
+replay (`nonce_already_consumed`). The 16-case OT battery passed 16/16 on
+the same build. The admitted lease carried fabricated `proposal_id` and
+`grant_jti`, and ran: "linked" is still a non-empty check, as the limits
+below say. The reproduction was a read (`read_sensor`), not the valve move
+of the original review. The limits below stand; the section is closed as a
+recorded, reproduced finding.
 
 The 2026-11-02 adversarial security review (RMR-SEC-0001, P0 for the OT
 pilot topology) posted a lease it had signed itself to
