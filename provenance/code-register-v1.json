@@ -369,9 +369,9 @@
     },
     "NEGATIVE_RESULTS.md": {
       "concepts": [],
-      "git_blob": "df8bf7bdb7b3432d895a062356ea4fbd60ebadf9",
+      "git_blob": "50add9871b9b04904fde2d781a63c51dde71cb68",
       "mode": "100644",
-      "sha256": "2179349f16accef262cf8896434bf999e28a1fafca981620a4352913b41037ba"
+      "sha256": "039ae0e2959dc90c87f90c743f6e363c477745ab64dc15cd52037c2ef47bf7eb"
     },
     "NOTICE": {
       "concepts": [],
@@ -22041,7 +22041,11 @@
     }
   },
   "git_object_format": "sha1",
+<<<<<<< HEAD
   "register_sha256": "c93b8f89c57466d5db59ca84ae5fcaa82e2506d68443b2a26ad40b5362a86e1f",
+=======
+  "register_sha256": "bcca7dbb11cb1a6a5ee3c8f1331fe0fa8030270e97d3add075e1e391eddcfc89",
+>>>>>>> origin/dev
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
