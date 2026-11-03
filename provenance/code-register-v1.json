@@ -17781,9 +17781,9 @@
     },
     "tests/test_control_eval_g2.py": {
       "concepts": [],
-      "git_blob": "a149ae976d75c2314443c395774e314e7590cbd1",
+      "git_blob": "ed378c53e16e4c08357944e226305312f2248735",
       "mode": "100644",
-      "sha256": "f2e7728d8f4f590e5fd377dabc9a9d78d5c5f76004c146e8fa6ff401466bcef0"
+      "sha256": "33487949e013b2e3eaec8591421d0c5d34d49918cf05251d17824bfe9af5b019"
     },
     "tests/test_control_eval_harness.py": {
       "concepts": [],
@@ -21963,7 +21963,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "4406c2ee71a2344ce88340f02632344f1200d507e8a6920768b1f333b71b7d9e",
+  "register_sha256": "5ba2d10756662ae5a18c36f0fad1a0e7eb2124f668cfdac68cb22d2d6882d372",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

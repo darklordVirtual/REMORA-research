@@ -572,8 +572,9 @@ def test_all_gates_pass_on_a_ready_study(tmp_path: Path) -> None:
 def test_every_gate_is_pending_on_an_empty_tree(tmp_path: Path) -> None:
     results = rd.check_readiness(_ready_cfg(), tmp_path, _osf())
     status = {r.gate: r.status for r in results}
-    assert status.pop("G2") == rd.FAIL  # declared harness files are absent: an error, not a step
-    assert set(status.values()) == {rd.PENDING}
+    # Declared harness files are absent: an error, not a step still to do.
+    assert status["G2"] == rd.FAIL
+    assert {v for k, v in status.items() if k != "G2"} == {rd.PENDING}
     assert not rd.all_pass(results)
 
 
@@ -723,10 +724,9 @@ def test_runner_test_mode_refuses_an_evaluated_manifest(tmp_path: Path, repo_roo
 
 
 def test_harness_does_not_import_the_sdk_or_agentdojo() -> None:
-    import experiments.control_eval.gateway as g
-    import experiments.control_eval.spend_ledger as s
-    for mod in (g, s, arms_mod, rd):
-        src = Path(mod.__file__).read_text()
+    for rel in ("gateway.py", "spend_ledger.py", "arms.py", "readiness.py", "response_cache.py",
+                "claude_messages.py", "run_config.py", "sealed_run.py"):
+        src = (Path(rd.__file__).parent / rel).read_text()
         assert "import anthropic" not in src and "from agentdojo" not in src
         assert "ANTHROPIC_API_KEY" not in src
 
