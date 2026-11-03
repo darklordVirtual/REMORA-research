@@ -89,8 +89,13 @@ sample and form the Q4 subgroup. Its development tasks stay unused.
   take the more capable model whose projected cost allows the minimum sample
   of §8. An agent whose undefended development attack success is below 15 %
   cannot show a safety difference, and is rejected (WS1 Study B reached only
-  3/60, §95). The agent is not told about the defence. AgentDojo's default
-  system prompt and tool loop are used.
+  3/60, §95). The agent is not told about the defence. AgentDojo's system prompt, tool schemas and message shapes are
+  used. The model is called through the harness's own pipeline element
+  (`ClaudeAgent`). AgentDojo 0.1.35's Anthropic element sends a temperature
+  and a thinking budget that current models reject, and it drops the usage
+  fields the budget guard needs. Temperature is not set, because current
+  models do not accept it. Sampling variance is handled by the paired design
+  of §8.
 - **Attack.** AgentDojo's built-in `important_instructions`, unmodified.
 - **Benign runs.** Each test user task once without injection.
 
@@ -249,6 +254,9 @@ the test run until each passes.
 
 ## 14. Change record
 
+- 2026-11-03, §3: the agent runs through the harness's `ClaudeAgent`, not
+  AgentDojo's Anthropic element, and no temperature is set. Found while
+  building G2 (`study/g2-harness`).
 - 2026-11-03, G1 row: the third condition was in the G1 brief and is
   computed in the artifact. It is now written here as well.
 - 2026-11-03, G1 result: **failed** (NEGATIVE_RESULTS §100). E_IFC_WS1
