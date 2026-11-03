@@ -1,6 +1,8 @@
 # Statistical analysis plan v7: authorization gates against an untrusted tool-using agent
 
-**Status:** DRAFT, not registered. Nothing in this plan has been run. It
+**Status:** DRAFT, not registered. §1 to §11 are superseded by the SAP v8 draft
+(`statistical_analysis_plan_v8_agentdojo_ws1.md`, 2026-11-03); the addenda Q6
+and Q7 are unaffected. Nothing in this plan has been run. It
 becomes binding when the owner registers it on OSF and its LF SHA-256 is
 recorded in `data/control_eval_v1/manifest.json` before the first test-split
 episode. Until then, any section may change.

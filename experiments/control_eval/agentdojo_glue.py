@@ -57,13 +57,19 @@ class GatedToolsExecutor(ToolsExecutor):
             return query, runtime, env, messages, extra_args
         tools = tool_specs(runtime)
         prior = tuple(_text(m) for m in messages if m["role"] == "tool")
+        prior_calls = tuple(
+            {"name": m["tool_call"].function, "args": dict(m["tool_call"].args), "output": _text(m)}
+            for m in messages
+            if m["role"] == "tool" and m.get("tool_call") is not None and _text(m) != BLOCKED_MESSAGE
+        )
         user_task = next((_text(m) for m in messages if m["role"] == "user"), query)
         results: list[ChatMessage] = []
         for tool_call in messages[-1]["tool_calls"]:
             call = ProposedCall(user_task=user_task, name=tool_call.function,
                                 args=dict(tool_call.args), tools=tools, prior_outputs=prior,
                                 suite=self.suite, user_task_id=self.user_task_id,
-                                injection_task_id=self.injection_task_id)
+                                injection_task_id=self.injection_task_id,
+                                prior_calls=prior_calls, env=env.model_copy(deep=True))
             verdict = self.defence.decide(call)
             self.log.append({"suite": self.suite, "user_task": self.user_task_id,
                              "injection_task": self.injection_task_id, "defence": self.defence.name,

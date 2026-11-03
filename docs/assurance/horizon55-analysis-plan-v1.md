@@ -10,7 +10,7 @@ The Horizon Shield #51 set-2 records, including the A, B and C occurrences
 and C's `budget_exceeded` outcome in the producer's settlement, were public
 before this plan was written. The author read them while designing the claims.
 Nothing in this row is blind, and freezing this document now cannot make it
-so. The existing embargoed OSF registration `pxzj7` covers a different
+so. The embargoed OSF registration `pxzj7` (HTTP 410 from the public OSF API on 2026-11-03, status unverified) covers a different
 snapshot and is not a preregistration of this row.
 
 ## Questions

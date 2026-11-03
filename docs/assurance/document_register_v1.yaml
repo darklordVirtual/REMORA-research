@@ -1,5 +1,5 @@
 schema_version: '1'
-updated: '2026-11-02'
+updated: '2026-11-03'
 documents:
 - id: DOC-001
   code_synced: verified
@@ -162,6 +162,18 @@ documents:
   last_reviewed: '2026-07-26'
   audience:
   - researchers
+- id: DOC-419
+  path: docs/assurance/statistical_analysis_plan_v8_agentdojo_ws1.md
+  status: canonical
+  topic: docs_assurance_statistical_analysis_plan_v8_agentdojo_ws1_md
+  code_synced: verified
+  verdict: current
+  owner: darklordVirtual
+  audience:
+  - researchers
+  - evaluators
+  last_audited: '2026-11-03'
+  last_reviewed: '2026-11-03'
 - id: DOC-033
   path: docs/03-experiments.md
   status: canonical
@@ -3709,6 +3721,7 @@ topics:
 - docs_architecture_adr_sdd_as_v1_owner_decisions_md
 - docs_review_PEER_REVIEW_FINDINGS_md
 - docs_assurance_statistical_analysis_plan_v7_control_eval_md
+- docs_assurance_statistical_analysis_plan_v8_agentdojo_ws1_md
 - docs_design_derived-information-flow-control-v1_md
 - docs_design_derived-information-flow-control-v1-status_md
 - docs_assurance_skip_reason_allowlist_v1_yaml
