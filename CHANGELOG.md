@@ -4,6 +4,15 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### WS2-B: an unwired prototype of typed monitor-veto discharge (owner exception on #953)
+
+Library only. No runtime path, server or worker imports the module, and the legacy composition is unchanged. Not merged before the WS2 SDD v1.4 gates D1 (§99 rebuilt-OT reproduction) and D2 (M4.1 closure) pass and the INV-M4-04 ruling is recorded on #953.
+
+- `remora/verification/monitor_discharge.py` composes the legacy record with `compose_authorized_decision` unchanged, records threshold crossings as typed events per attempt family, and lifts only the monitor's crossed-threshold cap, and only when a deployment-signed contract covers the question and tool and a signed, current, exactly bound verifier receipt proves the named obligation. Any uncovered question, untyped historical veto, unverifiable contract or receipt, binding mismatch, expiry or contradicting receipt leaves the veto in place. Every other cap is the legacy one; a view that differs anywhere else is refused.
+- Two new signature domains in `remora/crypto/domain_signing.py`: `REMORA/MONITOR-DISCHARGE-CONTRACT/v1` and `REMORA/MONITOR-DISCHARGE-RECEIPT/v1`. No key, role or credential topology entry is added, because nothing holds these keys yet.
+- `compose.py`, `execution_gate.py`, the ToolSpec schema, `MONITOR_SYSTEM`, hard guards, dispatch, thresholds and holdouts are untouched. The capability register is unchanged: nothing is wired, and no capability, claim or result is upgraded.
+- Tests: `tests/verification/test_monitor_discharge.py` (34), one per row of SDD §6 B-01 to B-12, B-14 and B-17. Passing tests are not H3 evidence and register or authorize no study.
+
 ### Paper (revision 2026-11-03: status and negative results brought current)
 
 No new numbers; every figure added comes from NEGATIVE_RESULTS.md or the registers.
