@@ -22053,11 +22053,7 @@
     }
   },
   "git_object_format": "sha1",
-<<<<<<< HEAD
-  "register_sha256": "af59c79a60247a86daeef5d50f02a19e818bd872878c3fd90f92f30c9d8d95a2",
-=======
-  "register_sha256": "e34679513a2dc5af99518706abb9180e62bcff032c10497d965278491fdc2a4c",
->>>>>>> origin/dev
+  "register_sha256": "543711fb6812098f7dcb1ce617ff72b9e403d5465063efdfbb551208fc6f007b",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
