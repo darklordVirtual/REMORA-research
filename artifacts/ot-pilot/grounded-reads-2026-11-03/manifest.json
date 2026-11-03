@@ -1,0 +1,70 @@
+{
+  "run_id": "grounded-reads-2026-11-03",
+  "source": {
+    "code_commit": "d4039894c321db2b7540682a44414bff397bae14",
+    "base": "dev cbd444a7 (after #1163 and #1164)",
+    "branch": "feat/ot-pilot-grounded-reads"
+  },
+  "image": {
+    "api_image_id": "sha256:57b099f96b75c3cce8c701d98140a19959e65864434503a44f1e35e33537d1f7",
+    "docker_server": "28.4.0"
+  },
+  "policy_hash_with_opt_in": "sha256:ed484f2a76592c424089455202967489049296172625c5e177ffa4f46c9f7afe",
+  "deployment_files": [
+    {
+      "path": "deploy/ot-pilot/docker-compose.yml",
+      "sha256": "a093240c0b69ad65ccdc758c37470cc8940f7050a3bf0f0f9574fe35ff16f029"
+    },
+    {
+      "path": "deploy/ot-pilot/Dockerfile",
+      "sha256": "e65610358a2219e5deb74ed32fafc62376845fa42f06dd3158fd751ffb48d20e"
+    },
+    {
+      "path": "deploy/ot-pilot/tool_metadata.json",
+      "sha256": "802b4e76ba1928a65bf34954df632c2ec29edd78bbbcd4d122aad69342f1ef8c"
+    },
+    {
+      "path": "deploy/ot-pilot/ot_registry.py",
+      "sha256": "2d65d5063ae17c7f6b905e51a5255e46a28a00076e9776efe7a11e486793258b"
+    },
+    {
+      "path": "deploy/ot-pilot/ot_bundle.py",
+      "sha256": "358790cf0c6733cab50d466d68540d45e6240c4dcac77e98c8c3f419bcb72908"
+    },
+    {
+      "path": "deploy/ot-pilot/work_orders.json",
+      "sha256": "ae37d0137d0f67f4d9de9110183302487ad0050628ec57a99afa5941ccd79582"
+    },
+    {
+      "path": "deploy/ot-pilot/limits.json",
+      "sha256": "c9c91d9c7d771239e49112afd9238bdbaa1e8b9061194147f413a8c80a35796e"
+    },
+    {
+      "path": "deploy/ot-pilot/run_ot_battery.py",
+      "sha256": "ff69a73a598640a456875d947928f24b10f57b72234da4635923178eda398ba8"
+    },
+    {
+      "path": "deploy/ot-pilot/run_fault_injection.py",
+      "sha256": "086db2e0cd09fc3938fbe80fd6cb592b58ee527ab8309a51975bc03c68b18795"
+    },
+    {
+      "path": "remora/policy/decision_engine.py",
+      "sha256": "2c76c43af8ad5a2f478cb0bc108ac9431d3790668a85844a7d22c4ad8db1e028"
+    },
+    {
+      "path": "servers/execution_api.py",
+      "sha256": "c7b679ef6848eb302b178f0fb4a70ba044aea208f324829f4fd37a8209ef1ccc"
+    },
+    {
+      "path": "servers/api.py",
+      "sha256": "cb1c8987c588f9ebbe75a0192ab1c5e8b9c623cdb9bd46a8cb384bd590ea8808"
+    }
+  ],
+  "runs": {
+    "battery-prod": "OT battery, target_environment prod, REMORA_GROUNDED_READ_IN_PRODUCTION=1, fresh stack",
+    "fault-injection": "deploy/ot-pilot/run_fault_injection.py on a fresh stack with the opt-in on",
+    "sec99-cases": "the \u00a799 reproduction script (artifacts/ws1/m4/sec99-reproduction/.../tooling/sec99_repro.py) against this build with a second executor-domain process",
+    "battery-control": "OT battery on a fresh stack with REMORA_GROUNDED_READ_IN_PRODUCTION=0, same image and declaration"
+  },
+  "baseline": "artifacts/ws1/m4/sec99-reproduction/sec99-20261103T194032Z-dee87d1a/battery/ (dev before this branch): 16/16 cases, 0 of 5 monitoring reads completed"
+}

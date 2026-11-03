@@ -4,6 +4,13 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### OT pilot: the daily-round reads complete without a person (owner decision 2026-11-03)
+
+- `remora/policy/decision_engine.py`: new opt-in `grounded_read_in_production` (`REMORA_GROUNDED_READ_IN_PRODUCTION` on the execution surface, off by default, part of `ENGINE_IDENTITY_FLAGS`). It lifts exactly one clause of the grounded-read path, the production exclusion; read-only semantics, low tier, a resolved work order, all four grounding signals and nothing missing still hold, and the low-consequence path keeps excluding production. Recorded in `docs/architecture/ADR-grounded-reads-in-production.md` (DOC-424). Tests: `tests/test_grounded_read_in_production.py` (34).
+- `deploy/ot-pilot/tool_metadata.json`: the pilot declares its six tools (`read_sensor` low and read-only, every write critical, domain `ot_plant`). Without it every tool was critical/unknown and the state index never applied, so no read could be grounded. Shipped in the image and compose file; the battery can name another target environment with `REMORA_PILOT_TARGET_ENVIRONMENT`.
+- Measured on a rebuilt stack (`artifacts/ot-pilot/grounded-reads-2026-11-03/`): monitoring reads completed 5 of 5 with the opt-in on, 0 of 5 with it off and 0 of 5 on the previous `dev`; the battery 16 of 16 in all three; fault injection 10 of 10; the §99 cases 11 of 11 against the same build. Writes, the wrong-tool case and the injection case decide exactly as before.
+- Nineteen capabilities bound to `servers/execution_api.py`, `servers/api.py` or `remora/policy/decision_engine.py` are re-audited at the code commit; the boundary declaration's audited revision and register pin move with them. Status, scope and caveats unchanged.
+
 ### Security review 2026-11: §99 reproduced on a rebuilt OT pilot, and M4.1 closed
 
 - NEGATIVE_RESULTS §99 moves from open to accepted. A rebuilt pilot, with a second process from the same image in the executor domain, answered 404 on `/v1/execution/dispatch-leased` in the authority domain under every pilot credential, refused the agent token and unlinked leases on the executor, recorded `lease_dispatch_admitted` before and `lease_dispatch_result` after the admitted lease in the shared tenant chain, and refused a tampered call and a replay. The 16-case OT battery passed 16/16; the fault-injection runner's result is in the capsule README. Evidence: `artifacts/ws1/m4/sec99-reproduction/sec99-20261103T194032Z-dee87d1a/`, with tokens and keys redacted.

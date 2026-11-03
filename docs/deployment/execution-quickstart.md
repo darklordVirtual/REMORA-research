@@ -305,7 +305,7 @@ write is critical. The declaration is hashed into the policy bundle. With
 `REMORA_GROUNDED_READ_IN_PRODUCTION=1`
 ([ADR](../architecture/ADR-grounded-reads-in-production.md)), a read of a sensor
 the plant inventory lists, made under the daily-round work order, completes
-without a person; the battery reports those reads under "Legitimate monitoring
+without a person. The battery reports those reads under "Legitimate monitoring
 reads completed". Remove the second variable to restore the production
 exclusion, and the same reads go to review again. Writes are unaffected either
 way. `REMORA_PILOT_TARGET_ENVIRONMENT` lets the battery name another

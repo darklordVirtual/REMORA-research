@@ -1,0 +1,42 @@
+# OT pilot: the daily-round reads complete without a person (2026-11-03)
+
+Evidence for the WS1 utility milestone. On the OT pilot stack, the five legitimate monitoring reads under the signed daily-round work order complete autonomously. Every write still waits for a `senior_authority` approver, and every negative case in the battery still refuses. Author's runs on one host against a simulated plant; not an independent reproduction and not OT deployment validation.
+
+## What changed between the two batteries
+
+| | Baseline (`dev` before this branch) | This branch, opt-in on | This branch, opt-in off (control) |
+|---|---|---|---|
+| Tool declaration | none: every tool critical/unknown | `deploy/ot-pilot/tool_metadata.json`: `read_sensor` low and read-only, writes critical, domain `ot_plant` | same |
+| `REMORA_GROUNDED_READ_ACCEPT` | unset | `1` | `1` |
+| `REMORA_GROUNDED_READ_IN_PRODUCTION` | unset (flag did not exist) | `1` | `0` |
+| Monitoring reads completed | 0 of 5 (reviews required: 5) | **5 of 5** (reviews required: 0) | 0 of 5 (reviews required: 5) |
+| Battery cases as specified | 16 of 16 | 16 of 16 | 16 of 16 |
+| Decision on each read | `verify`, reason `evidence_insufficient` | `accept`, reason `grounded_read_accept`; executed; replay refused with 409 | `verify` |
+| Wrong tool under the read-round intent | escalate | escalate | escalate |
+| Injection in a maintenance document | escalate | escalate | escalate |
+| Writes | review, senior approver, execute, replay 409 | same | same |
+
+The baseline row is `artifacts/ws1/m4/sec99-reproduction/sec99-20261103T194032Z-dee87d1a/battery/`. The other two are `battery-prod/` and `battery-control/` here, each run on a freshly created stack from the same image.
+
+Why the reads were ungrounded before: the pilot declared no tool metadata, so the policy engine saw domain `unknown`. The state index in `ot_bundle.py` (coverage scope `ot_plant`, which lists the five sensors) therefore never applied, and `argument_values_grounded` was false. With the declaration the semantic bundle grounds `sensor_id`, and the one clause left was the production exclusion, which the owner's opt-in lifts (`docs/architecture/ADR-grounded-reads-in-production.md`). The control run shows the opt-in, not the declaration alone, is what completes the reads.
+
+## Same build, the rest of the battery
+
+- `fault-injection/`: `deploy/ot-pilot/run_fault_injection.py` on a fresh stack with the opt-in on, 10 of 10 faults as specified. The faults: restart between approval and execution; spent grant across a restart; cumulative limits across a restart; Postgres stopped during a governed write, and until the API is unhealthy; four concurrent executions of one approval; the same proposal approved twice; stop between approval and execution; a tool failing after dispatch began; approver revoked after approving.
+- `sec99-cases/`: the §99 reproduction script against this build with a second process in the executor domain, 11 of 11 cases as the repair specifies. The authority answers 404 to every self-signed lease; the executor answers 403 to the agent token, refuses `lease_unlinked`, records the admitted lease, and refuses `tool_args_hash_mismatch` and `nonce_already_consumed`.
+
+## What this does and does not show
+
+- It shows that, on this stack, grounding from declared data plus the opt-in turns five routine reads from review into completed work without changing any write's path or any negative case's outcome. The policy hash moved (`manifest.json`), as it must when the declaration and the identity flag change.
+- It does not show that the reads are correct or free; `_is_grounded_read` asserts only that the call is the declared call for a declared authority over declared data. It does not show anything about WS1 (no WS1 deployment ran here; §94 stays open) or about a real plant.
+- The disclosure a production deployment accepts with the opt-in is bounded by the work order, the state index and the declared read-only semantics; it is not zero. The ADR records that.
+
+## Reproduce
+
+```
+python deploy/ot-pilot/init_tokens.py
+docker compose -f deploy/ot-pilot/docker-compose.yml up --build -d
+set -a; . deploy/ot-pilot/.env; set +a
+python deploy/ot-pilot/run_ot_battery.py
+# control: same stack with REMORA_GROUNDED_READ_IN_PRODUCTION set to "0" in an override file
+```

@@ -1,12 +1,12 @@
 # ADR: grounded reads may complete in production, opt-in
 
-- Status: **accepted** (owner decision 2026-11-03, recorded in the WS1 utility milestone PR)
-- Scope: `remora/policy/decision_engine.py` flag `grounded_read_in_production`; `REMORA_GROUNDED_READ_IN_PRODUCTION` on the execution API; the OT pilot's compose file
-- Related: NEGATIVE_RESULTS §94, `docs/07-api-reference.md` (intent authority), `deploy/gateway/tool_metadata.json` `_reads`
+- Status: **accepted**. Owner decision 2026-11-03, recorded in the WS1 utility milestone PR.
+- Scope: `remora/policy/decision_engine.py` flag `grounded_read_in_production`; `REMORA_GROUNDED_READ_IN_PRODUCTION` on the execution API; the OT pilot's compose file.
+- Related: NEGATIVE_RESULTS §94; `docs/07-api-reference.md` (intent authority); `deploy/gateway/tool_metadata.json` `_reads`.
 
 ## Context
 
-The grounded-read path (`GROUNDED_READ_ACCEPT`, opt-in since 2026-08-06) lets a read execute without a person when every question the engine can answer from declared data is answered positively: read-only semantics, low tier, a server-resolved work order, and all four grounding signals. It excluded production targets, because the blast radius of a read in production includes disclosure of live data to the agent.
+The grounded-read path (`GROUNDED_READ_ACCEPT`, opt-in since 2026-08-06) lets a read execute without a person when every question the engine can answer from declared data is answered positively. Those questions are read-only semantics, low tier, a server-resolved work order, and all four grounding signals. It excluded production targets, because the blast radius of a read in production includes disclosure of live data to the agent.
 
 The OT pilot runs in production mode against a simulated plant. Its five daily-round sensor reads all went to review (OT battery 2026-11-03: 0 of 5 monitoring reads completed, 16 of 16 cases as specified). Two things caused that. The pilot declared no tool metadata, so every tool was critical/unknown and the state index never applied; that is a declaration gap, fixed by `deploy/ot-pilot/tool_metadata.json`. And the production exclusion stood, which is policy.
 
