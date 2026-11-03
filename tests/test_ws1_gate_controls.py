@@ -37,12 +37,22 @@ from remora.verification.resolvers import InMemorySource  # noqa: E402
 from tests.test_ws1_execution_binding import (  # noqa: E402
     _events,
     _install,
-    _mint,
     _mod,
     _redeem,
 )
+from tests.test_ws1_execution_binding import _mint as _mint_for  # noqa: E402
 from tests.test_ws1_execution_binding import client as _route_client  # noqa: E402,F401
 from tests.verification import ws1_deployment_fixture as fixture  # noqa: E402
+
+
+def _mint(gate):
+    """One proposal per test. With ``REMORA_PG_DSN`` set the outbox persists
+    across tests, and a settled row for a shared proposal id made every
+    later control fail with "a settled dispatch is never re-claimed"
+    (M4.1 closure record §3). On SQLite each test had a fresh store."""
+    from uuid import uuid4
+
+    return _mint_for(gate, proposal_id=f"p-ws1-{uuid4().hex[:12]}")
 from tests.verification._ws1 import response  # noqa: E402
 
 OUTCOMES: list[dict] = []
