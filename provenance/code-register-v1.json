@@ -17733,9 +17733,9 @@
     },
     "tests/test_control_eval_ifc.py": {
       "concepts": [],
-      "git_blob": "35591242be290f12a8b60439ddb8cd58390c91bc",
+      "git_blob": "1772e6a59cc62a679e18a93ab3645718ece87948",
       "mode": "100644",
-      "sha256": "8daeb0b87f3b3674b4af9b9cb2543175aef97eb13942734b5283df0a00891b1c"
+      "sha256": "b1469e5f710aaaa54b472aa44ab880ddc3b73d93f4982922476672677b57bd10"
     },
     "tests/test_control_plane_store.py": {
       "concepts": [],
@@ -21903,7 +21903,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "054d1f0223aa40c0b394a7d41cceaac1f0ed799931df83a17e79dfe4a18743d4",
+  "register_sha256": "8cc1abb828d1738a2a55d2cbfeb1749ac9dff45a1f15646ba89437758dad1721",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

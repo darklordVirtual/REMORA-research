@@ -10,7 +10,6 @@ from __future__ import annotations
 from pathlib import Path
 from types import SimpleNamespace as NS
 
-import pytest
 import yaml
 
 from experiments.control_eval.ifc_resolvers import (
@@ -451,8 +450,6 @@ def test_g1_gate_logic():
 
 def test_g1_artifact_records_a_failed_gate():
     path = Path(__file__).resolve().parents[1] / "artifacts" / "control_eval" / "dev_g1_v1.json"
-    if not path.exists():
-        pytest.skip("artifact not generated")
     import json
     body = json.loads(path.read_text(encoding="utf-8"))
     assert body["g1"]["passed"] is False
