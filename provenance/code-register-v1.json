@@ -7425,9 +7425,9 @@
     },
     "experiments/control_eval/agentdojo_glue.py": {
       "concepts": [],
-      "git_blob": "deb3b9775252548911d2939b6e305c36f951ea5a",
+      "git_blob": "8ee3588ac6c8548961acae7a9bf20bb2a17ccb79",
       "mode": "100644",
-      "sha256": "1b5a2a6093d075d524e44a5ac00c3a780f7bf86c30728d44f7547b27f6087794"
+      "sha256": "664c5d6ba4387d4c869b38586f0caf57131eb85b62af7a56995fea4ea7db35f8"
     },
     "experiments/control_eval/metrics.py": {
       "concepts": [],
@@ -7437,9 +7437,9 @@
     },
     "experiments/control_eval/policies.py": {
       "concepts": [],
-      "git_blob": "e266603bc86e1f6ee2f756f015d29aacbeffee98",
+      "git_blob": "994e7972021230c376ea36bcb9a4c111e53e0066",
       "mode": "100644",
-      "sha256": "cde3b973b4d19ad2e6b4234233cd050e09633b39f71fe9ddeac7c89d840b0644"
+      "sha256": "946202200f8c0e59e2b49c8517ec49f0844cb4d5d07e1db524a04254f7590d23"
     },
     "experiments/control_eval/remora_adapter.py": {
       "concepts": [],
@@ -21867,7 +21867,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "f7139253f62a10372e2c5ab793ed4cdb1c05d03f1d1571ded1b3d3d4b362c2be",
+  "register_sha256": "416f6701118d3ab69dca521b02403f838ea74abff5e081cf3cb4e4d6c218c20c",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

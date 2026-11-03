@@ -66,6 +66,13 @@ class ProposedCall:
     suite: str = ""
     user_task_id: str = ""
     injection_task_id: str | None = None
+    #: Earlier calls that executed in this trajectory, oldest first, each a
+    #: mapping with ``name``, ``args`` and ``output`` (the tool result text).
+    #: Flow-labelling defences derive provenance from these.
+    prior_calls: tuple[Mapping[str, Any], ...] = ()
+    #: Read-only view of the environment for bounded evidence lookups
+    #: (WS1). ``None`` outside an AgentDojo run. A defence must not mutate it.
+    env: Any = None
 
 
 @dataclass(frozen=True)
