@@ -19,7 +19,7 @@
 schema: provenance_concepts_v1
 # Fingerprints and first-introduction searches are taken from this commit's history,
 # so the register reproduces byte for byte and does not drift with later edits.
-snapshot: 0b595b8c9da97cb919613fd8c74009ac19ea05fd
+snapshot: ddd13bea06fd55e6f3485a93a9dbfa82eb0084ef
 
 concepts:
   - id: PROV-01
@@ -94,6 +94,14 @@ concepts:
     name: Declared-tool grounded read autonomy, with the production exclusion lifted only by deployment opt-in
     invariant: A read executes without a person only when the deployment's declaration, state index and resolved intent answer every question positively; production is excluded unless the deployment opts in with a flag that is part of the policy identity and lifts only that clause.
     terms: ["grounded_read_in_production", "REMORA_GROUNDED_READ_IN_PRODUCTION"]
+  - id: PROV-19
+    name: WS1, a deterministic floor with bounded evidence lookups and grounding from proofs
+    invariant: Authority comes from deterministic composition over proved preconditions; a bounded, tenant-scoped lookup can settle a precondition from a system of record, and a PROVED precondition can supply the engine's grounding signals; a learned monitor may veto or order lookups and can never raise a decision, prove a premise or mint a grant.
+    terms: ["Ws1Gate", "Ws1Deployment", "grounding_facts", "compose_authorized_decision"]
+  - id: PROV-20
+    name: Typed monitor-veto discharge under a deployment-signed contract
+    invariant: A learned monitor's threshold crossing is a typed, durable event per attempt family; it is discharged only by an exact, deployment-signed contract and an independent, signed, bound verifier receipt, never by the monitor, and the result is the legacy composition minus that one cap, bounded above by every deterministic cap.
+    terms: ["MonitorVetoLedger", "DischargeContract", "compose_with_monitor_discharge"]
 
 # Coined identifiers. A comparison flags two or more of these in another tree.
 # Generic words (ToolSpec, evidence-sufficiency, non-transitivity) are concepts,
@@ -112,8 +120,22 @@ markers:
   - authority_effect_separation
   - runtime_capability_surface_completeness
   - grounded_read_in_production
+  - Ws1Gate
+  - Ws1Deployment
+  - grounding_facts
+  - MonitorVetoLedger
+  - compose_with_monitor_discharge
+  - sensor_on_round
+  - target_named_by_work_order
 
 fingerprint_modules:
+  - remora/policy/decision_engine.py
+  - remora/toolcall/deployment_registry.py
+  - remora/verification/execution_gate.py
+  - remora/verification/compose.py
+  - remora/verification/monitor_discharge.py
+  - deploy/ot-pilot/ot_ws1.py
+  - deploy/ot-pilot/build_toolspec.py
   - remora/enforcement/lease.py
   - remora/enforcement/gate.py
   - remora/enforcement/resolved_effect.py

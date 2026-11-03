@@ -76,5 +76,10 @@
     "schema_version": 4,
     "tools": 6,
     "note": "pinned digest and public key differ per deployment; the seed never enters the image. The bundle file is not committed."
-  }
+  },
+  "copyright": "2026 Stian Skogbrott",
+  "license": "BUSL-1.1",
+  "concept_records": [
+    "PROV-18"
+  ]
 }

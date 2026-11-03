@@ -53,3 +53,5 @@ set -a; . deploy/ot-pilot/.env; set +a
 python deploy/ot-pilot/run_ot_battery.py
 # control: same stack with REMORA_GROUNDED_READ_IN_PRODUCTION set to "0" in an override file
 ```
+
+Copyright 2026 Stian Skogbrott. Licensed under BUSL-1.1 (`legal/LICENSING.md`); rights ownership in `legal/COPYRIGHT.md`. Concept record: `provenance/concepts/PROV-18.yaml`.

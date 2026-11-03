@@ -16,7 +16,7 @@ It complements [COPYRIGHT.md](COPYRIGHT.md), [LICENSING.md](LICENSING.md) and [T
 
 | Part | What it records |
 |---|---|
-| Concepts | eighteen concepts, each with the invariant it stands for and the first commit that introduced each identifying term as its own token, with author date, committer date, signature status and up to eight paths |
+| Concepts | twenty concepts, each with the invariant it stands for and the first commit that introduced each identifying term as its own token, with author date, committer date, signature status and up to eight paths |
 | Markers | twelve coined identifiers (`PolicyDecisionToken`, `ExecutionLease`, `GovernedToolDispatcher`, `canonical_tool_call_hash`, `NonceLedger`, `CustodyViolation`, `assert_custody_split`, `REMORA_EXECUTION_DOMAIN_ROLE`, `toolspec_changed_between_assess_and_dispatch`, `task_identity_required`, `authority_effect_separation`, `runtime_capability_surface_completeness`) |
 | Fingerprints | twelve modules, winnowing fingerprints of the normalised token stream at one pinned commit (Schleimer, Wilkerson and Aiken, 2003, the method behind MOSS) |
 | Digest | `register_sha256`, a digest of the whole register |
