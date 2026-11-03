@@ -1792,8 +1792,10 @@ items:
       move a route out of it, and production refuses a role configuration that
       grants dispatch to any role but dispatch_hop. "Linked" only means
       non-empty ids; the executor does not look them up.
-      NEGATIVE_RESULTS §99 keeps the finding open until the
-      OT reproduction is re-run against a rebuilt pilot. Caveats: executor
+      Reproduced 2026-11-03 against a rebuilt pilot (authority and executor
+      processes, artifacts/ws1/m4/sec99-reproduction/sec99-20261103T194032Z-dee87d1a/):
+      11/11 cases as specified, OT battery 16/16; NEGATIVE_RESULTS §99 is
+      closed as accepted. Caveats: executor
       chain events land in the executor's store; an executor holding an HMAC
       key can still self-sign (only the strict Ed25519 split removes that);
       the lease key still falls back to the PDP key (RMR-SEC-0020).
