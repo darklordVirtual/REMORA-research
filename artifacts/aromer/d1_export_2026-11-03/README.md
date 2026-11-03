@@ -68,11 +68,12 @@ the upstream licences.
 
 Removed before publication: `critique_text`, the raw tool input
 (`meta.input_preview`, first 200 chars of each tool call, recorded before the
-redaction added on 2026-10-29), `session_id`, paths, commands and any meta
-string longer than 80 characters or matching secret, path or e-mail patterns.
+redaction added on 2026-10-29) and `session_id`. Also removed: paths, commands
+and any meta string longer than 80 characters or matching secret, path or
+e-mail patterns.
 A residual scan found 0 hits. A leak test of 145,050 unique 20-character windows
-from the raw previews found 60 overlaps in the public file; all were reviewed and
-are tool names, dataset names, seed-script names, one generic git command and two
+from the raw previews found 60 overlaps in the public file. All were reviewed:
+tool names, dataset names, seed-script names, one generic git command and two
 deliberate prompt-injection test strings. The unsanitized export is retained
 privately and is not part of this repository.
 

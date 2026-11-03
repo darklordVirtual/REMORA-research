@@ -429,9 +429,9 @@
     },
     "artifacts/aromer/d1_export_2026-11-03/README.md": {
       "concepts": [],
-      "git_blob": "f28fbe41c7be5ccf3a6efb7d95e16a5907b07659",
+      "git_blob": "43fe6bd6d4b52e93268ae5cd0f7f12299213e27f",
       "mode": "100644",
-      "sha256": "3b0d8be45f3d032e7824b53b6c37a30a6fe49180234d8bb9b294b928afc382e8"
+      "sha256": "974c91117cb8f26673296a28fb9437fdb1a361aa27e97830354a6d34f4176b64"
     },
     "artifacts/aromer/d1_export_2026-11-03/aromer_d1_export_2026-11-03.json": {
       "concepts": [],
@@ -22209,7 +22209,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "c0baefde21f6693529318b1e62947855527f1b07a5bafd1755f7f909f6d68eb5",
+  "register_sha256": "2921c74b7b3160880647dddae5ca5dcd55535c1460a52d85ee2fce4ef834c98e",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
