@@ -109,6 +109,20 @@ services:
       REMORA_TOOL_REGISTRY_MODULE: ot_registry
       REMORA_SEMANTIC_BUNDLE_MODULE: ot_bundle
       REMORA_INTENT_SOURCE_FILE: /app/work_orders.json
+      # The pilot's own risk declaration for its six tools (domain ot_plant, so
+      # the state index in ot_bundle.py applies; read_sensor low, every write
+      # critical). Hashed into the policy bundle. Without it every tool was
+      # critical/unknown and no monitoring read could be grounded.
+      REMORA_TOOL_METADATA_FILE: /app/tool_metadata.json
+      # Grounded reads (opt-in, 2026-08-06): a read-only, low-tier call under a
+      # resolved work order with all four grounding signals true may ACCEPT.
+      REMORA_GROUNDED_READ_ACCEPT: "1"
+      # Owner decision 2026-11-03 (docs/architecture/ADR-grounded-reads-in-production.md):
+      # the same path may fire for this pilot's production target. The five
+      # daily-round sensor reads then complete without a person; every write
+      # still goes to a senior_authority approver. Remove this line to restore
+      # the production exclusion.
+      REMORA_GROUNDED_READ_IN_PRODUCTION: "1"
       REMORA_EXECUTION_ARTIFACT_DIR: /var/lib/remora/artifacts
 
       # --- Cumulative limits -------------------------------------------------

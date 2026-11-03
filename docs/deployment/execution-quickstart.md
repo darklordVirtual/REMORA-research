@@ -298,6 +298,19 @@ docker compose -f deploy/ot-pilot/docker-compose.yml down -v
 The console (127.0.0.1:8081) holds only the viewer token: operator and
 approver credentials are entered per request in the UI.
 
+The pilot declares its six tools in `deploy/ot-pilot/tool_metadata.json`
+(`REMORA_TOOL_METADATA_FILE`): `read_sensor` is low tier and read-only, every
+write is critical. The declaration is hashed into the policy bundle. With
+`REMORA_GROUNDED_READ_ACCEPT=1` and the owner's opt-in
+`REMORA_GROUNDED_READ_IN_PRODUCTION=1`
+([ADR](../architecture/ADR-grounded-reads-in-production.md)), a read of a sensor
+the plant inventory lists, made under the daily-round work order, completes
+without a person; the battery reports those reads under "Legitimate monitoring
+reads completed". Remove the second variable to restore the production
+exclusion, and the same reads go to review again. Writes are unaffected either
+way. `REMORA_PILOT_TARGET_ENVIRONMENT` lets the battery name another
+environment than `prod`; the report says which one ran.
+
 A useful negative test is to remove one strict prerequisite and confirm that
 startup/policy identity construction or the first execution-path lookup fails
 closed instead of falling back to the legacy path.

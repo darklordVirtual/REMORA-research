@@ -3460,7 +3460,19 @@ documents:
   - researchers
   - maintainers
   last_reviewed: '2026-11-03'
+- id: DOC-424
+  path: docs/architecture/ADR-grounded-reads-in-production.md
+  status: canonical
+  topic: docs_architecture_ADR-grounded-reads-in-production_md
+  code_synced: unreviewed
+  verdict: pending
+  owner: darklordVirtual
+  audience:
+  - maintainers
+  - operators
+  last_reviewed: '2026-11-03'
 topics:
+- docs_architecture_ADR-grounded-reads-in-production_md
 - docs_assurance_ws1_m4_1_closure_record_v1_md
 - docs_assurance_execution_path_quality_review_2026-11-01_md
 - provenance_README_md

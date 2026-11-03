@@ -294,6 +294,11 @@ def _engine_from_env() -> RemoraDecisionEngine:
     return RemoraDecisionEngine(
         low_consequence_accept=_on(_env.environ.get("REMORA_LOW_CONSEQUENCE_ACCEPT", "")),
         grounded_read_accept=_on(_env.environ.get("REMORA_GROUNDED_READ_ACCEPT", "")),
+        # Opt-in, owner decision 2026-11-03 (docs/architecture/ADR-grounded-reads-in-production.md):
+        # a grounded read may ACCEPT for a production target. Off by default, and
+        # without REMORA_GROUNDED_READ_ACCEPT it changes nothing.
+        grounded_read_in_production=_on(
+            _env.environ.get("REMORA_GROUNDED_READ_IN_PRODUCTION", "")),
         # ON by default on the enforcing surface, stricter only: no risk
         # signal and no higher production-write tier makes a call more
         # approvable (RMR-AUD-001/003; NEGATIVE_RESULTS §90). The library

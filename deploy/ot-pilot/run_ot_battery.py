@@ -32,6 +32,10 @@ from typing import Any
 from uuid import uuid4
 
 BASE = os.environ.get("REMORA_PILOT_URL", "http://127.0.0.1:8080")
+# The target environment every case names. "prod" is the pilot's declared
+# footing; a run against another value measures the policy for that
+# environment, not the pilot, and the report says which was used.
+TARGET_ENV = os.environ.get("REMORA_PILOT_TARGET_ENVIRONMENT", "prod")
 # SR-06: no fixed literal tokens. The battery acts as agent, approver and
 # viewer, so the caller presents them per run; the compose stack reads them
 # from the .env that deploy/ot-pilot/init_tokens.py generated at first start.
@@ -346,7 +350,7 @@ def render_text_report(bundle: dict) -> str:
 
 def run_case(c: Case, results: list[dict]) -> dict:
     payload: dict[str, Any] = {"tool_name": c.tool, "arguments": c.args,
-                               "target_environment": "prod"}
+                               "target_environment": TARGET_ENV}
     if c.intent_ref:
         payload["intent_ref"] = c.intent_ref
     if c.untrusted:
@@ -408,7 +412,7 @@ def run_case(c: Case, results: list[dict]) -> dict:
         st, tb = call("POST", "/v1/execution/execute", AGENT,
                       {"item_id": item,
                        "tool_call": {"tool_name": c.tool, "arguments": c.tamper,
-                                     "target_environment": "prod",
+                                     "target_environment": TARGET_ENV,
                                      **({"intent_ref": c.intent_ref} if c.intent_ref else {})}})
         rec["tamper_outcome"] = tb.get("outcome") or f"HTTP {st}"
         rec["steps"].append(f"tamper={rec['tamper_outcome']}")
