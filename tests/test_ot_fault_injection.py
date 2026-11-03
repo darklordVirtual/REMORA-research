@@ -85,6 +85,18 @@ def test_operations_summary_counts_false_refusals_and_human_steps():
     assert summary["human_steps_by_kind"] == {"approve by a": 2, "stop": 1}
 
 
+def test_human_steps_name_the_role_and_never_the_bearer_token(monkeypatch):
+    """The evidence manifest keyed human steps by the approver's bearer token
+    until the §99 reproduction of 2026-11-03 found the credential in every
+    fault-injection manifest."""
+    monkeypatch.setattr(runner, "APPROVER", "approver-secret-token")
+    monkeypatch.setattr(runner, "SUPERVISOR", "supervisor-secret-token")
+    assert runner._actor("approver-secret-token") == "approver"
+    assert runner._actor("supervisor-secret-token") == "supervisor"
+    assert runner._actor("some-other-token") == "unknown-token"
+    assert "secret" not in runner._actor("approver-secret-token")
+
+
 def test_an_extra_write_does_not_raise_the_completion_rate():
     summary = runner.operations_summary([{"intended_writes": 1, "completed_writes": 3}], [])
     assert (summary["completed_writes"], summary["completion_rate"]) == (1, 1.0)
