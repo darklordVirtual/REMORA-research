@@ -144,6 +144,7 @@ Several topics have more than one document. This table says which to open.
 | Document | Purpose |
 |---|---|
 | [Paper](../paper/remora_paper.md) | Scientific paper |
+| [Experiments explained](../paper/experiments_explained.html) ([PDF](../paper/experiments_explained.pdf)) | Plain-language walk through each experiment: question, setup, result and what it means |
 | [claim_register.md](claim_register.md) | Human-readable claim overview |
 | [EVIDENCE_OF_CAPABILITY.md](EVIDENCE_OF_CAPABILITY.md) | Capability evidence summary for reviewers |
 | [CONTRIBUTORS.md](CONTRIBUTORS.md) | Contributors and contribution record |

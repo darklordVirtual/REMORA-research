@@ -4963,9 +4963,9 @@
     },
     "docs/03-experiments.md": {
       "concepts": [],
-      "git_blob": "0563a3fb6bc3d721c33f395859162dcebe6965ad",
+      "git_blob": "c95ac600c14784ef9cff466feebcb3fc36286fbd",
       "mode": "100644",
-      "sha256": "38558b5d59556aa4d0d5751de1f1b06ab33d0d092aaeaeb072bd29db725ad365"
+      "sha256": "c5c327eed547c46940e39081f2d62cdb3a3437419bcdf58c20c4307ccc450724"
     },
     "docs/04-negative-results-detail.md": {
       "concepts": [],
@@ -5056,9 +5056,9 @@
     },
     "docs/README.md": {
       "concepts": [],
-      "git_blob": "df1d0e7db51406ae64d86735f2458ce4e5c8740a",
+      "git_blob": "f4f6b4d348f15e139b8b07e1436f66936a910a36",
       "mode": "100644",
-      "sha256": "5d02df74a621c78d9f7e8cd58f27fdec9c899cf18465c77b9556c6454c14710d"
+      "sha256": "444eca386c95e46c7dbf9852febcb1c4fbea96725d0ab149283b234e95d4a99f"
     },
     "docs/architecture/ADR-UE-03-capability-manifest-hook-and-mode.md": {
       "concepts": [],
@@ -5719,9 +5719,9 @@
     },
     "docs/assurance/document_register_v1.yaml": {
       "concepts": [],
-      "git_blob": "9c239d2c321823260bcc7e45ad963f8d3c1e62d4",
+      "git_blob": "2898c95e5c2b277959d9c1fcb0b7ee76bc4934da",
       "mode": "100644",
-      "sha256": "6aaa70938697b2c17fd980a0b02f10440b651f8cd041f2fb11832f71ed879381"
+      "sha256": "43d1cc6e19f3f6e7720d8eb36c075f302d84889f7221d76eac7fcf928790f8a6"
     },
     "docs/assurance/documentation_governance_v1.md": {
       "concepts": [],
@@ -9834,6 +9834,18 @@
       "git_blob": "9c4fa8dac588adbcd12cfbd31ae2cb6951f9e243",
       "mode": "100644",
       "sha256": "a8d4b5446c62d452d9ae213972ffb0296d5980c23d7eb58d0a9eb730d497286e"
+    },
+    "paper/experiments_explained.html": {
+      "concepts": [],
+      "git_blob": "5003cdac988e56e31ccf1cdfac5beb6ab2b6f486",
+      "mode": "100644",
+      "sha256": "8f588b89bbdc60c98136cc2007a3bd02e0e83d983674e89f71679435f5866cce"
+    },
+    "paper/experiments_explained.pdf": {
+      "concepts": [],
+      "git_blob": "3e5e87dac3a5b68bef3f413243ed8ddf5ab6a45e",
+      "mode": "100644",
+      "sha256": "f9e89836774c55c03835e2c3425f202148836848d7dbc2a8b52b62cee53e56f0"
     },
     "paper/figures.md": {
       "concepts": [],
@@ -15542,6 +15554,12 @@
       "git_blob": "4739e25448a75eccf5670039e3bdc1d64a07dae4",
       "mode": "100644",
       "sha256": "f0a6d0b4fb7956de3c7906be6f7ff8e9143784860153af88f2f323a26fe99550"
+    },
+    "scripts/render_experiments_explained.sh": {
+      "concepts": [],
+      "git_blob": "489a44291674f0d31aa370191a21f16f0a9b1f07",
+      "mode": "100755",
+      "sha256": "42d93db20c08ff19a4aa0a90545fde9d0443c71e4db3e6dee5ca8ec0c71f429e"
     },
     "scripts/replay_sealed_cext4.py": {
       "concepts": [],
@@ -21867,7 +21885,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "f7139253f62a10372e2c5ab793ed4cdb1c05d03f1d1571ded1b3d3d4b362c2be",
+  "register_sha256": "5ac94a2e8c71e3479123cf4c8604a40aa64d1124c3b8571c88016ee64620491a",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>REMORA Experiments Explained</title>
+<!--
+  Plain-language companion to paper/remora_paper.tex. Every number is copied
+  unchanged from the paper, docs/assurance/claim_register_v1.yaml or
+  NEGATIVE_RESULTS.md; update this file when one of those changes.
+  Render the PDF with: bash scripts/render_experiments_explained.sh
+-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column; each experiment is a lab sheet with question, setup, measurements and reading */
+:root{
+  --bg:#f5f6f8; --paper:#ffffff; --ink:#18202b; --muted:#5a6575; --rule:#dde1e7;
+  --accent:#2b4fa8; --good:#1f7a55; --bad:#b4372f; --block:#8b94a3; --track:#e9ecf1;
+  --display:"Instrument Serif", Georgia, "Times New Roman", serif;
+  --body:"Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono:"IBM Plex Mono", Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.58}
+.wrap{max-width:760px;margin:0 auto;padding:48px 16px 72px;display:grid;gap:32px}
+h1,h2{font-family:var(--display);font-weight:400;text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:2.9rem}
+h2{font-size:1.65rem}
+h3{font-size:.74rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0;font-weight:600}
+p{margin:0}
+.lede{font-size:1.08rem;color:var(--muted);max-width:62ch}
+header{display:grid;gap:14px}
+.eyebrow{font-family:var(--mono);font-size:.78rem;color:var(--accent)}
+.card{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:24px;display:grid;gap:14px}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-family:var(--mono);font-size:.78rem}
+.flow span{border:1px solid var(--rule);border-radius:4px;padding:4px 8px;background:var(--bg)}
+.flow b{color:var(--muted);font-weight:400}
+.terms{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.term{display:grid;gap:4px}
+.term strong{display:flex;align-items:center;gap:8px}
+.dot{width:10px;height:10px;border-radius:2px;display:inline-block;flex:none}
+.toc ol{margin:0;padding-left:1.3em;columns:2;column-gap:32px}
+.toc a{color:var(--accent);text-decoration:none}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:.8rem;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:6px}
+.exp{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:26px 24px;display:grid;gap:18px;break-inside:avoid;page-break-inside:avoid}
+.exp header{gap:6px}
+.tag{font-family:var(--mono);font-size:.74rem;color:var(--muted)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.cols > div{display:grid;gap:6px;align-content:start;min-width:0}
+.bars{display:grid;gap:9px}
+.bar{display:grid;grid-template-columns:15rem minmax(0,1fr) 5.2rem;gap:12px;align-items:center;font-size:.87rem}
+.track{height:11px;background:var(--track);border-radius:2px;overflow:hidden}
+.fill{height:100%;border-radius:2px}
+.val{font-family:var(--mono);font-size:.8rem;text-align:right;font-variant-numeric:tabular-nums}
+.g{background:var(--good)} .r{background:var(--bad)} .k{background:var(--block)}
+.reading{border-left:3px solid var(--accent);padding:3px 0 3px 16px;font-size:1rem}
+.caveat{font-size:.86rem;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.next{border-color:var(--accent)}
+.next ol{margin:0;padding-left:1.3em;display:grid;gap:8px}
+footer{font-size:.8rem;color:var(--muted);display:grid;gap:6px}
+code{font-family:var(--mono);font-size:.85em}
+@media (max-width:620px){
+  .terms,.cols{grid-template-columns:1fr}
+  .toc ol{columns:1}
+  .bar{grid-template-columns:1fr 4.5rem}.bar .track{grid-column:1 / -1;grid-row:2}
+  h1{font-size:2.2rem}
+}
+@page{size:A4;margin:14mm 13mm}
+@media print{
+  body{background:#fff;font-size:13.5px}
+  .wrap{max-width:none;padding:0;gap:20px}
+  .exp,.card{padding:20px 22px;break-inside:avoid;page-break-inside:avoid}
+  .flow span{background:var(--bg)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">REMORA · companion to the paper · revision 2026-11-03</div>
+  <h1>What the experiments show, and what they do not</h1>
+  <p class="lede">A walk through the REMORA experiments for readers who do not know the code base. Each experiment is described the same way: the question it asked, how it was tested, what was measured and what the result means.</p>
+</header>
+
+<section class="card">
+  <h2>The idea being tested</h2>
+  <p>A tool-using AI agent can act in the world: read customer records, send an email, pay an invoice. REMORA lets the agent <em>propose</em> an action but never lets it grant itself the authority to carry it out. Authority comes from signed rules the deploying organisation owns, and a fixed, rule-based gate checks each call before it runs.</p>
+  <div class="flow" aria-label="Execution chain">
+    <span>agent proposes</span><b>→</b><span>gate decides</span><b>→</b><span>approval for this exact call</span><b>→</b><span>executed</span><b>→</b><span>effect checked</span>
+  </div>
+  <p>Every experiment measures two quantities that pull against each other.</p>
+  <div class="terms">
+    <div class="term"><strong><i class="dot r"></i>Harm let through</strong><span class="caveat">A harmful or wrong call that was executed. This should be as close to zero as possible.</span></div>
+    <div class="term"><strong><i class="dot g"></i>Useful work let through</strong><span class="caveat">A legitimate call that was allowed to run. When this is low, the system is safe only because it refuses almost everything.</span></div>
+  </div>
+  <p class="caveat">A gate that refuses everything scores zero on both. Several experiments therefore compare REMORA with a refuse-all control.</p>
+</section>
+
+<section class="toc">
+  <h3>Experiments</h3>
+  <ol>
+    <li><a href="#synthetic">Synthetic tool-call benchmark</a></li>
+    <li><a href="#agentharm">AgentHarm</a></li>
+    <li><a href="#cext3">BFCL C-ext3: valid call, wrong task</a></li>
+    <li><a href="#cext4">BFCL C-ext4: a revised rule bundle</a></li>
+    <li><a href="#ws1">WS1: bounded lookups when the gate is unsure</a></li>
+    <li><a href="#chain">Attacks on the execution chain</a></li>
+    <li><a href="#agentdojo">AgentDojo: first run on unseen tools</a></li>
+  </ol>
+</section>
+
+<div class="legend" aria-hidden="true">
+  <span><i class="dot g"></i>useful work let through</span>
+  <span><i class="dot r"></i>harmful or wrong call let through</span>
+  <span><i class="dot k"></i>target or reference</span>
+</div>
+
+<article class="exp" id="synthetic">
+  <header><span class="tag">700 rows, effectively 70 independent cases · CLAIM-001, CLAIM-020</span><h2>1. Synthetic tool-call benchmark</h2></header>
+  <div class="cols">
+    <div><h3>Question</h3><p>Does the gate let harmful tool calls through?</p></div>
+    <div><h3>How it was tested</h3><p>Constructed tool calls, harmful and benign. Many rows are variants of one template, so the number of independent cases is 70.</p></div>
+  </div>
+  <div class="bars">
+    <div class="bar"><span>REMORA, harmful templates accepted</span><div class="track"><div class="fill r" style="width:0%"></div></div><span class="val">0 of 56</span></div>
+    <div class="bar"><span>Keyword baselines, unsafe accepted</span><div class="track"><div class="fill r" style="width:1.4%"></div></div><span class="val">1.4%</span></div>
+  </div>
+  <p class="reading">The gate works, but it is not shown to beat a simple keyword rule. The difference is not significant, and an ablation attributes the result to no single component.</p>
+  <p class="caveat">Zero of 56 still allows a true failure rate of up to 6.4% (Wilson 95% upper bound).</p>
+</article>
+
+<article class="exp" id="agentharm">
+  <header><span class="tag">208 harmful scenarios with benign counterparts · CLAIM-002</span><h2>2. AgentHarm</h2></header>
+  <div class="cols">
+    <div><h3>Question</h3><p>Can the gate tell a harmful task from a near-identical benign one?</p></div>
+    <div><h3>How it was tested</h3><p>A public benchmark of harmful agent tasks built by external researchers. Each harmful task has a benign counterpart that looks alike.</p></div>
+  </div>
+  <div class="bars">
+    <div class="bar"><span>Harmful tasks authorised</span><div class="track"><div class="fill r" style="width:0%"></div></div><span class="val">0%</span></div>
+    <div class="bar"><span>Benign counterparts authorised</span><div class="track"><div class="fill g" style="width:0%"></div></div><span class="val">0%</span></div>
+  </div>
+  <p class="reading">The run authorised none of the harmful tasks and none of the benign ones. It does not discriminate; it refuses.</p>
+  <p class="caveat">The paper also reports a separate tri-mode AgentHarm run on 88 tasks through a different decision path. The two are different experiments, not one benchmark at two sample sizes.</p>
+</article>
+
+<article class="exp" id="cext3">
+  <header><span class="tag">sealed, pre-registered · BFCL v4 · CLAIM-019</span><h2>3. BFCL C-ext3: valid call, wrong task</h2></header>
+  <div class="cols">
+    <div><h3>Question</h3><p>A call can be well-formed and still wrong for the task. Does the gate notice?</p></div>
+    <div><h3>How it was tested</h3><p>A correct call from one task was substituted into another. The gate received declared tool contracts and a task intent derived from the task text. The plan and its targets were fixed before the data was opened, and the track was run once.</p></div>
+  </div>
+  <div class="bars">
+    <div class="bar"><span>Wrong calls accepted</span><div class="track"><div class="fill r" style="width:0%"></div></div><span class="val">0 of 500</span></div>
+    <div class="bar"><span>Legitimate reads accepted</span><div class="track"><div class="fill g" style="width:26.6%"></div></div><span class="val">26.6%</span></div>
+    <div class="bar"><span>Pre-registered target</span><div class="track"><div class="fill k" style="width:75%"></div></div><span class="val">75%</span></div>
+  </div>
+  <p class="reading">Very safe and too strict. The joint hypothesis of high safety and high utility was not supported: four of seven pre-registered targets were missed.</p>
+  <p class="caveat">One missed target is a safety target: 2 of 199 constructed wrong-tool calls were accepted (1.005% against a bar of at most 1%). The wrong calls were substituted by the researchers, not produced by an agent.</p>
+</article>
+
+<article class="exp" id="cext4">
+  <header><span class="tag">sealed · 1,562 episodes · CLAIM-021</span><h2>4. BFCL C-ext4: a revised rule bundle</h2></header>
+  <div class="cols">
+    <div><h3>Question</h3><p>Can better rules let more correct calls through without letting wrong ones through?</p></div>
+    <div><h3>How it was tested</h3><p>The last unspent BFCL v4 reserve. The C-ext3 bundle and the revised bundle ran on the same episodes, next to a refuse-all control.</p></div>
+  </div>
+  <div class="bars">
+    <div class="bar"><span>Correct accepted, C-ext3 bundle</span><div class="track"><div class="fill g" style="width:6.9%"></div></div><span class="val">6.9%</span></div>
+    <div class="bar"><span>Correct accepted, revised bundle</span><div class="track"><div class="fill g" style="width:29.9%"></div></div><span class="val">29.9%</span></div>
+    <div class="bar"><span>Wrong accepted, revised bundle</span><div class="track"><div class="fill r" style="width:0%"></div></div><span class="val">0</span></div>
+  </div>
+  <p class="reading">A measurable gain with no wrong call accepted. Seven in ten correct calls are still refused.</p>
+  <p class="caveat">The gain sits on tools seen during development. Transfer to new tool families is untested.</p>
+</article>
+
+<article class="exp" id="ws1">
+  <header><span class="tag">sealed · 825 episodes, 11 synthetic ISP customers · NEGATIVE_RESULTS §95, §96</span><h2>5. WS1: bounded lookups when the gate is unsure</h2></header>
+  <div class="cols">
+    <div><h3>Question</h3><p>When the gate is unsure, can the agent fetch a small, authorised fact, such as the customer's work order, and get the call approved without the model deciding?</p></div>
+    <div><h3>How it was tested</h3><p>After the lookup, the same gate decides again from scratch. Five arms were compared: no lookups, fixed-order lookups, cost-ordered lookups, lookups prioritised by a learned monitor, and no gate at all. Attacks ran in the same study.</p></div>
+  </div>
+  <div class="bars">
+    <div class="bar"><span>No lookups</span><div class="track"><div class="fill g" style="width:0%"></div></div><span class="val">0 / 33</span></div>
+    <div class="bar"><span>Fixed order</span><div class="track"><div class="fill g" style="width:60.6%"></div></div><span class="val">20 / 33</span></div>
+    <div class="bar"><span>Cost order</span><div class="track"><div class="fill g" style="width:60.6%"></div></div><span class="val">20 / 33</span></div>
+    <div class="bar"><span>Learned monitor</span><div class="track"><div class="fill g" style="width:97%"></div></div><span class="val">32 / 33</span></div>
+    <div class="bar"><span>No gate</span><div class="track"><div class="fill g" style="width:100%"></div></div><span class="val">33 / 33</span></div>
+  </div>
+  <p class="caveat">Bars show benign reads completed safely. Without a gate all 33 completed, but five attack goals executed, with seven leak episodes and seven out-of-work-order episodes. No gated arm showed any of these in 121 attack episodes each.</p>
+  <p class="reading">Verification recovers much of the utility without letting the model define its own authority. The learned monitor looked better, but it ran at a looser veto threshold (0.4 against 0.3). That explains the difference; better prioritisation is not shown.</p>
+  <p class="caveat">The earlier Study B showed the same pattern: fixed-order lookups 28 of 45, no lookups 0 of 45, the monitor 15 of 45. Neither holdout attributes a gain to the learned monitor. The customers are synthetic and the author built every part.</p>
+</article>
+
+<article class="exp" id="chain">
+  <header><span class="tag">post hoc, on the author's own tool catalogue · paper, Negative Results</span><h2>6. Attacks on the execution chain</h2></header>
+  <div class="cols">
+    <div><h3>Question</h3><p>Does the chain from approval to effect hold under attack, and what still gets through?</p></div>
+    <div><h3>How it was tested</h3><p>Defined attacks on the chain, run against REMORA and against a gateway that only checks policy. A separate group tried to move a secret out through a sequence of calls that are each allowed.</p></div>
+  </div>
+  <div class="bars">
+    <div class="bar"><span>Chain attacks executed, REMORA</span><div class="track"><div class="fill r" style="width:0%"></div></div><span class="val">0 of 43</span></div>
+    <div class="bar"><span>Chain attacks executed, policy-only</span><div class="track"><div class="fill r" style="width:76.7%"></div></div><span class="val">33 of 43</span></div>
+    <div class="bar"><span>Exfiltration via allowed calls, both</span><div class="track"><div class="fill r" style="width:100%"></div></div><span class="val">11 of 11</span></div>
+  </div>
+  <p class="reading">Checking each call on its own does not stop a leak assembled from individually allowed calls. This is the most important boundary the experiments found.</p>
+  <p class="caveat">With an opt-in flow check, REMORA ran none of the 10 exfiltrations it was tested on, but only 2 of 4 benign controls. The context labels were assigned by the harness, not by a real deployment.</p>
+</article>
+
+<article class="exp" id="agentdojo">
+  <header><span class="tag">development dry run, not confirmatory · 29 tasks, 91 calls · NEGATIVE_RESULTS §92, §93</span><h2>7. AgentDojo: first run on unseen tools</h2></header>
+  <div class="cols">
+    <div><h3>Question</h3><p>Do the rules work outside the tool catalogue they were developed on?</p></div>
+    <div><h3>How it was tested</h3><p>The ground-truth calls of 29 AgentDojo development tasks were replayed through each arm by a scripted agent, with no model and no attacks. Every call was legitimate, so every block cost useful work.</p></div>
+  </div>
+  <div class="bars">
+    <div class="bar"><span>No gate</span><div class="track"><div class="fill g" style="width:100%"></div></div><span class="val">29 / 29</span></div>
+    <div class="bar"><span>Per-task allowlist</span><div class="track"><div class="fill g" style="width:100%"></div></div><span class="val">29 / 29</span></div>
+    <div class="bar"><span>REMORA</span><div class="track"><div class="fill g" style="width:37.9%"></div></div><span class="val">11 / 29</span></div>
+    <div class="bar"><span>Refuse all</span><div class="track"><div class="fill g" style="width:34.5%"></div></div><span class="val">10 / 29</span></div>
+  </div>
+  <p class="caveat">Bars show tasks completed. REMORA blocked 90 of 91 legitimate calls. The allowlist is built from each task's ground truth, which a deployment would not have.</p>
+  <p class="reading">The semantic part of the gate did not transfer to unseen tools. Here REMORA completed one task more than refusing everything, and a bounded lookup could not have recovered any blocked call (§93).</p>
+</article>
+
+<section class="card">
+  <h2>The overall picture</h2>
+  <table>
+    <thead><tr><th>Shown</th><th>Not shown</th></tr></thead>
+    <tbody>
+      <tr><td>Binding approval to one exact call stops the defined attacks on the execution chain.</td><td>That REMORA is safer than existing defences on the same tasks.</td></tr>
+      <tr><td>The gate can refuse calls that are valid but wrong for the task, on tools it was developed on.</td><td>That this transfers to new tools. The AgentDojo dry run points the other way.</td></tr>
+      <tr><td>Bounded, authorised lookups recover utility without the model deciding.</td><td>Any gain from a learned monitor.</td></tr>
+      <tr><td>Negative results are published and tied to stored artifacts.</td><td>Independent replication, which is still open (REM-021).</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="card next">
+  <h2>The next experiment</h2>
+  <p><strong>Can labels that follow the data flow replace lexical matching of task intent, so that the gate keeps its utility on unseen tools while injected attacks still fail?</strong></p>
+  <ol>
+    <li><strong>Development:</strong> let reads run under information-flow labels, and show on the 30 AgentDojo development tasks that REMORA clearly beats refuse-all.</li>
+    <li><strong>Pre-registration:</strong> fix the plan, agent model, monitor prompt and success criteria on OSF before the test split is opened.</li>
+    <li><strong>Sealed run:</strong> a real language-model agent, AgentDojo's built-in injection attack, and seven defences side by side: no gate, refuse-all, per-task allowlist, an LLM monitor, REMORA and two compositions. The result is reported as a safety–utility frontier.</li>
+  </ol>
+  <p class="caveat">Either outcome is publishable. A pass is preserved utility at equal safety on an external benchmark where other defences have published numbers. A fail confines the contribution to exact-call binding.</p>
+</section>
+
+<footer>
+  <p>Sources: <code>paper/remora_paper.tex</code>, <code>docs/assurance/claim_register_v1.yaml</code> and <code>NEGATIVE_RESULTS.md</code> in REMORA-research. Numbers are copied from them unchanged.</p>
+  <p>All results are the author's own, and most use synthetic or constructed data. They are not a production-security guarantee.</p>
+</footer>
+
+</div>
+</body>
+</html>

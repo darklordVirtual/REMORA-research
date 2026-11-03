@@ -1,5 +1,5 @@
 schema_version: '1'
-updated: '2026-11-02'
+updated: '2026-11-03'
 documents:
 - id: DOC-001
   code_synced: verified
@@ -162,6 +162,18 @@ documents:
   last_reviewed: '2026-07-26'
   audience:
   - researchers
+- id: DOC-418
+  path: paper/experiments_explained.html
+  status: canonical
+  topic: paper_experiments_explained_html
+  owner: darklordVirtual
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-11-03'
+  last_reviewed: '2026-11-03'
+  audience:
+  - researchers
+  - evaluators
 - id: DOC-033
   path: docs/03-experiments.md
   status: canonical
@@ -3453,6 +3465,7 @@ topics:
 - CLAUDE_md
 - remora_README_md
 - paper_hf_dataset_card_md
+- paper_experiments_explained_html
 - paper_figures_md
 - paper_future_state_md
 - paper_claim_ledger_md
