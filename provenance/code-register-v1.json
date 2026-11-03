@@ -369,9 +369,9 @@
     },
     "NEGATIVE_RESULTS.md": {
       "concepts": [],
-      "git_blob": "0da70b3495a6f4b90772b00f3d6dfcc82be1cf5c",
+      "git_blob": "4bf4bf549878039c0ee39a0ba3471ea2e79af016",
       "mode": "100644",
-      "sha256": "5794ca618e3cfb8afc11a7a44fa4bcb33669f9714ba631e6a05b0e251afbabc0"
+      "sha256": "e7575282fe050ca9c9128f0d2551730f732d7c2ae211de135146c239faa0ff9f"
     },
     "NOTICE": {
       "concepts": [],
@@ -564,6 +564,12 @@
       "git_blob": "88e18df8c3afbe0d45f12ff69346601ee0e584dd",
       "mode": "100644",
       "sha256": "f09e0d92d1610c5bfaf796479fcc384811173357e3ec55fadb6264f1f2a06af4"
+    },
+    "artifacts/control_eval/dev_g1_v1.json": {
+      "concepts": [],
+      "git_blob": "ef507f72c66405ede4d07dbfae92b8e24cce6566",
+      "mode": "100644",
+      "sha256": "eddc26197e7db1109778349b3aca468b0f6054b9692ea9cea3cd71d0fbc9e0a7"
     },
     "artifacts/credibility-pack/ATTESTATION.md": {
       "concepts": [],
@@ -6037,9 +6043,9 @@
     },
     "docs/assurance/statistical_analysis_plan_v7_control_eval.md": {
       "concepts": [],
-      "git_blob": "fa6872dbadc4d712a31000b1dcd5cd2d56aa6168",
+      "git_blob": "2418fd47dae106d4e5ff227941e6ef0dc3923265",
       "mode": "100644",
-      "sha256": "77368eddea128fe675d0521911b64306ae762d916ffb14b05deaf028c0a50c50"
+      "sha256": "9858bb565167ed510f75db9252e2bab644a0ded6ffda46fed0fe6d2d193f959d"
     },
     "docs/assurance/superseded_claims.md": {
       "concepts": [],
@@ -6213,9 +6219,9 @@
     },
     "docs/design/compositional-authority-preservation-v1.md": {
       "concepts": [],
-      "git_blob": "6bdbf53cf33d7b2623f354fa2cf05f31c94150d8",
+      "git_blob": "c2dc334b76e5d311b6e48e107cc536f847457ea6",
       "mode": "100644",
-      "sha256": "987f1e4159a2c5f413c2eed4a73ff581f71e91d94690d2a90d5c98e88a7702e2"
+      "sha256": "4762c2ccdc7bfd584f8cb1828e01c5c8761ce2bb7bbad3bdcce3639a6fa689a2"
     },
     "docs/design/derived-information-flow-control-v1-status.md": {
       "concepts": [],
@@ -7423,17 +7429,29 @@
       "mode": "100644",
       "sha256": "f02ab348079f2eb2466dca164735b2343c7c35044ce228e9aa8ca90d7afe4473"
     },
+    "experiments/control_eval/agentdojo_flow_toolspecs_v1.yaml": {
+      "concepts": [],
+      "git_blob": "a0478732d3f4fecf0b70726c9cca2f4971812b05",
+      "mode": "100644",
+      "sha256": "24b76ecaa5ec262078a9e6081e0c8a1bb5a2b1001f011a54482d7f5042aee6be"
+    },
     "experiments/control_eval/agentdojo_glue.py": {
       "concepts": [],
       "git_blob": "8ee3588ac6c8548961acae7a9bf20bb2a17ccb79",
       "mode": "100644",
       "sha256": "664c5d6ba4387d4c869b38586f0caf57131eb85b62af7a56995fea4ea7db35f8"
     },
+    "experiments/control_eval/ifc_resolvers.py": {
+      "concepts": [],
+      "git_blob": "139a5dd5677e7ffe70b822a9716cb0a46866ea29",
+      "mode": "100644",
+      "sha256": "eeb2be71e769156005b6c7383c39bb31a99f6f48bf7f5f119f53f989aaf1fb3a"
+    },
     "experiments/control_eval/metrics.py": {
       "concepts": [],
-      "git_blob": "2680dd39cf192d1d9c9db46f12a8027cda19c1f5",
+      "git_blob": "90d0dd9436a6723d1f4a78990ea16552d9287ce5",
       "mode": "100644",
-      "sha256": "580efb69e0ee5f4a9e8a8766e5e4c167db627a116e43a1b7c340d965ae1af462"
+      "sha256": "a24362947df79d9105cdfd81e909ec06312d7ff5bbefa47b80838deb209f311f"
     },
     "experiments/control_eval/policies.py": {
       "concepts": [],
@@ -7446,6 +7464,12 @@
       "git_blob": "7fed5766d7a0adb4f535a07316f85ce71e022eb3",
       "mode": "100644",
       "sha256": "9cb49e41c7872ff0958fac2e4265d9958e981bebf638e682faf9496fda2c635e"
+    },
+    "experiments/control_eval/remora_ifc.py": {
+      "concepts": [],
+      "git_blob": "6b8cf0b3cb31066387049a7a1855d67a71a8a68f",
+      "mode": "100644",
+      "sha256": "5fb71cab1a6568cb6e6dcfe35e8458d066d7a37f2f7fdfea0e7b23b77454f304"
     },
     "experiments/control_eval/requirements.txt": {
       "concepts": [],
@@ -15621,6 +15645,12 @@
       "mode": "100644",
       "sha256": "b12d06e08ee6f48b464a317ea2a1090b1301cb821f0f1246acd9678d95fc80bb"
     },
+    "scripts/run_control_eval_g1.py": {
+      "concepts": [],
+      "git_blob": "70acb3e8719f6184253f22d1f1ef0daaf297d2c0",
+      "mode": "100644",
+      "sha256": "a95cd0d37f6e445ce8fb4982bd5307d5150f85512319ae525d59dc7e8da7b202"
+    },
     "scripts/run_cross_domain_transfer.py": {
       "concepts": [],
       "git_blob": "3a0e536846244acaf9b9a5db05a4d4e61600b02d",
@@ -17697,9 +17727,15 @@
     },
     "tests/test_control_eval_harness.py": {
       "concepts": [],
-      "git_blob": "0a5ab32a7ac81185eea1ba779f9847464832b7ae",
+      "git_blob": "b3bd04f6d76d4e3c389d5d67af797be49d5cd7b4",
       "mode": "100644",
-      "sha256": "ada952b5554e4edbe96d6ecbce9b8f57f11dfd786324a15c186357b6cae14fb9"
+      "sha256": "2611e4db1b1b9f899ac34b6ce4680564b9ea3adfcf2a242d27a7b5d25ea836df"
+    },
+    "tests/test_control_eval_ifc.py": {
+      "concepts": [],
+      "git_blob": "35591242be290f12a8b60439ddb8cd58390c91bc",
+      "mode": "100644",
+      "sha256": "8daeb0b87f3b3674b4af9b9cb2543175aef97eb13942734b5283df0a00891b1c"
     },
     "tests/test_control_plane_store.py": {
       "concepts": [],
@@ -21867,7 +21903,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "416f6701118d3ab69dca521b02403f838ea74abff5e081cf3cb4e4d6c218c20c",
+  "register_sha256": "054d1f0223aa40c0b394a7d41cceaac1f0ed799931df83a17e79dfe4a18743d4",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
