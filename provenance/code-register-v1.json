@@ -5995,9 +5995,9 @@
     },
     "docs/assurance/skip_reason_allowlist_v1.yaml": {
       "concepts": [],
-      "git_blob": "b4029fe3c917dd7db27f787b1620f7b08b446497",
+      "git_blob": "24241896cde7f6671c5d397add839bb5319c0964",
       "mode": "100644",
-      "sha256": "87d6ffe44592f6acebd4a673f43326f2d49ffb0bd0c7205bc58c8904a5a2572e"
+      "sha256": "e2cfe827b907872823a6a8f4ffd3542bae55e10ee4de9abe1c4684607acc96a3"
     },
     "docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt": {
       "concepts": [],
@@ -21963,7 +21963,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "5ba2d10756662ae5a18c36f0fad1a0e7eb2124f668cfdac68cb22d2d6882d372",
+  "register_sha256": "90d25b9de23f68440630e117c555756ada86a495af0869edcb78b126b9249966",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
