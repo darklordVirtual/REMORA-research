@@ -71,6 +71,20 @@ DEFAULT_WORKER_URL = os.environ.get(
 )
 
 
+def _bearer_not_redirected(req: urllib.request.Request) -> urllib.request.Request:
+    """Move Authorization to an unredirected header (RMR-SEC-0008).
+
+    urllib's redirect handler copies ordinary headers to the redirected
+    request, so a 302 from the configured endpoint handed the bearer to
+    whatever host its Location named. Unredirected headers stay with the
+    request they were set on.
+    """
+    value = req.headers.pop("Authorization", None)
+    if value is not None:
+        req.add_unredirected_header("Authorization", value)
+    return req
+
+
 class CloudflareRAGOracle(Oracle):
     """
     Evidence-grounded oracle node that retrieves authoritative documents
@@ -233,7 +247,7 @@ class CloudflareRAGOracle(Oracle):
         )
         t0 = time.perf_counter()
         try:
-            with urllib.request.urlopen(req, context=self._ssl_ctx, timeout=self._timeout) as r:
+            with urllib.request.urlopen(_bearer_not_redirected(req), context=self._ssl_ctx, timeout=self._timeout) as r:
                 data: dict = json.loads(r.read())
         except urllib.error.HTTPError as exc:
             # SR-22 / SEC-11: raise so Oracle.ask sets ``error`` and the
@@ -328,7 +342,7 @@ class CloudflareRAGOracle(Oracle):
             },
             method="POST",
         )
-        with urllib.request.urlopen(req, context=self._ssl_ctx, timeout=60) as r:
+        with urllib.request.urlopen(_bearer_not_redirected(req), context=self._ssl_ctx, timeout=60) as r:
             return json.loads(r.read())
 
     def _get(self, path: str, timeout: int = 15) -> dict:
@@ -337,7 +351,7 @@ class CloudflareRAGOracle(Oracle):
         if self._secret:
             headers["Authorization"] = f"Bearer {self._secret}"
         req = urllib.request.Request(f"{self._worker_url}{path}", headers=headers, method="GET")
-        with urllib.request.urlopen(req, context=self._ssl_ctx, timeout=timeout) as r:
+        with urllib.request.urlopen(_bearer_not_redirected(req), context=self._ssl_ctx, timeout=timeout) as r:
             return json.loads(r.read())
 
     def status(self) -> dict:
@@ -379,7 +393,7 @@ class CloudflareRAGOracle(Oracle):
             headers=self._json_post_headers(),
             method="POST",
         )
-        with urllib.request.urlopen(req, context=self._ssl_ctx, timeout=self._timeout) as r:
+        with urllib.request.urlopen(_bearer_not_redirected(req), context=self._ssl_ctx, timeout=self._timeout) as r:
             return json.loads(r.read()).get("results", [])
 
     def translate(self, text: str, source_lang: str = "no", target_lang: str = "en") -> str:
@@ -398,5 +412,5 @@ class CloudflareRAGOracle(Oracle):
             headers=self._json_post_headers(),
             method="POST",
         )
-        with urllib.request.urlopen(req, context=self._ssl_ctx, timeout=self._timeout) as r:
+        with urllib.request.urlopen(_bearer_not_redirected(req), context=self._ssl_ctx, timeout=self._timeout) as r:
             return json.loads(r.read()).get("translated_text", text)

@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-10-24: **36 `open`**, **31 `accepted`**, **31 `superseded`**.
+Counts as of 2026-11-02: **37 `open`**, **31 `accepted`**, **31 `superseded`**.
 
 ## The actual backlog
 
@@ -186,6 +186,13 @@ cites only `open` sections and that no `open` section is missing a theme.
    ACCEPT grant when the admission transaction refused, redeemable at
    `/execute-accepted` without the review path's checks. Repaired with route
    tests; open until the mode runs outside the author's own tests.
+
+21. **The executor's door was open to agent credentials** (§99): a
+   2026-11-02 review ran self-signed leases through `/dispatch-leased` on the
+   authority process with the agent's token and the OT pilot's committed
+   lease key, closing a valve with nothing in the audit chain. Repaired with
+   route tests; open until the OT reproduction is re-run against a rebuilt
+   pilot.
 
 <!-- backlog-end -->
 
@@ -2697,6 +2704,7 @@ sections again.
 | Study C holdout: utility recovered and authority held under defence-aware search; the monitor threshold decided how much (§96) | H_DET and H_COST 20/33 reads, H_EDV 32/33, H0 0/33; every loss a monitor veto at the threshold. No WS1 arm executed an attack goal, an out-of-scope call or a leak in 121 attack episodes each; arm A did | **High** |
 | REMORA did not stop a payment past its budget, and had nothing that could (§97) | Replayed through /assess, /approve and /execute, all three 7000 payments ran (21000 of 20000). Opt-in cumulative limits reserved at dispatch (CAP-031) now refuse the third, and cap setpoint movement, starts and runtime per unit; author's replays only, false refusals unmeasured | **High** |
 | The review path handed back an unspent grant when the admission refused (§98) | Under `REMORA_WS1_ADMISSION=atomic` the ACCEPT grant was minted before the admission; a refusal rolled the spend back and the response still carried the grant, which `/execute-accepted` accepted and spent. Now spent in place and withheld; route tests pin it. Author's tests only | **High** |
+| An agent token executed self-signed leases on the authority process, unaudited (§99) | `/dispatch-leased` took any `execute` credential on the default domain, ran a lease linked to no proposal or grant, and wrote nothing to the chain; with the OT compose's committed lease key the 2026-11-02 review closed a valve that policy had sent to review, and `/audit/verify` said INTACT. Repaired with route tests (executor-only, `dispatch` capability, unlinked leases refused, chain record before dispatch, placeholder keys refused in production). Author's tests; the OT reproduction has not been re-run against a rebuilt pilot | **High** |
 | Study B holdout: the monitor-directed arm lost utility, and the attack search was barely adaptive (§95) | H_EDV 15/45 reads against H_DET 28/45; it vetoed all 43 benign port reads. 55 of 60 final injections were the fixed template. No unauthorized dispatch in any WS1 arm | **High** |
 | WS1 evidence could not make a call executable on the execution API (§94) | WS1 caps only; the grounding that turned PROVED preconditions into an engine ACCEPT lived in Study B's harness. Grounding from proofs is now opt-in on the assess path, tested through the route, and not yet measured in a study | **High** |
 | No blocked development call is recoverable by a bounded lookup alone (§93) | After schema validation, 0 of 92 E1-blocked AgentDojo development calls reach ACCEPT. Causes: no extracted intent (71), undeclared risk tier on a write (16), ground-truth call refused as the wrong tool (5). WS1 recovery needs intent and contract coverage first | **High** |
@@ -6010,3 +6018,87 @@ Limits: the probe scenarios are the author's. The direct-ACCEPT redemption
 still raises an unhandled error when its proposal has a terminal outbox row;
 that is unreachable now that the grant is withheld, and remains open as a
 hygiene item.
+
+## §99 An agent token executed self-signed leases on the authority process, and nothing was audited (2026-11-02)
+<!-- finding-status: open -->
+
+**Status:** repaired with route tests on the branch that carries this
+section. The OT pilot reproduction has not been re-run against a rebuilt
+pilot, so the section stays open.
+
+The 2026-11-02 adversarial security review (RMR-SEC-0001, P0 for the OT
+pilot topology) posted a lease it had signed itself to
+`/v1/execution/dispatch-leased` and the tool ran. Four things made that
+possible:
+
+- The authority domain, which is the default role, served the route. Only
+  the executor needs it.
+- The route required only the `execute` capability, which the agent-facing
+  `operator` role holds.
+- The dispatcher checked the lease's signature, binding and nonce, but not
+  that it named an assessed proposal or a consumed grant. A lease with
+  `proposal_id=""` and `grant_jti=""` was accepted.
+- The route wrote no dispatch intent and no chain event.
+
+The lease key came from `deploy/ot-pilot/docker-compose.yml`, which committed
+`REMORA_LEASE_SIGNING_KEY: pilot-lease-key-change-me`. Production startup
+accepted that value. Over HTTP against the real OT registry, a process
+holding only the agent token and that key set valve V-18 from 35 % to 0 %,
+moved setpoint PIC-101 and acknowledged an HH alarm. Policy had routed all
+three to review. Afterwards `/v1/execution/audit/verify` reported `INTACT`,
+because the chain held only the honest `assessed` events.
+
+The canonical review and accept paths held in the same review. They refused
+mutated arguments, a replayed grant, cross-tenant items, tenant-header
+spoofing and forged ACCEPT tokens. The cumulative limits also refused an
+out-of-limit setpoint move under the forged lease.
+
+The repair:
+
+- The authority domain answers 404 on `/dispatch-leased`.
+- The route requires a new `dispatch` capability. Only the new `dispatch_hop`
+  role holds it, and `admin` does not.
+- A lease without `proposal_id` or `grant_jti` is refused as `lease_unlinked`.
+- The executor checks a lease's signature and then appends
+  `lease_dispatch_admitted` to its tenant chain before the tool runs, and
+  `lease_dispatch_result` after. If the first append fails, nothing runs.
+- Production refuses symmetric signing keys shorter than 32 bytes or shaped
+  like a placeholder.
+- The OT pilot generates its keys in `init_tokens.py`, and its approver is a
+  `senior_authority` (review and read only), not an `admin` that also
+  holds `execute`. Every OT tool resolves to the critical tier, whose
+  approvals require that role. A first version made the approver a plain
+  `reviewer`, which could approve nothing, and the PR review caught it.
+
+The same review found that production without a strict profile let one
+admin credential approve its own production write (RMR-SEC-0002). Production
+now always requires a distinct approver.
+
+Tests: `tests/test_sec0001_dispatch_leased_boundary.py` (agent token refused
+on both domains, unlinked lease refused with a valid signature, chain record
+before and after, audit failure refuses),
+`tests/test_sec0001_weak_signing_keys.py`, and production cases in
+`tests/test_separation_of_duties.py`. Thirteen existing test files that
+posted to `/dispatch-leased` on the authority domain or with unlinked leases
+were moved to the executor role and given linked leases. One exact-dict
+check in `tests/test_ws1_m4_fault_matrix.py` now expects the earlier
+`signature_invalid` refusal, without the dispatcher's `dispatch_began` and
+`nested_effects` fields, so that response shape changed for clients. A
+stronger check that nothing reaches the chain replaced it. No other
+assertion changed. The domain check uses the matched route's path, so an
+ASGI `root_path` does not move a route out of it.
+
+Limits:
+
+- These are the author's tests.
+- The executor's chain events land in the executor's own store. In a
+  three-domain deployment with separate stores, the authority's
+  `/audit/verify` still does not show them.
+- An executor that holds an HMAC key can still sign a lease itself. Only the
+  strict profiles' Ed25519 custody split removes that.
+- The lease HMAC key still falls back to the PDP key (RMR-SEC-0020).
+- "Linked" means only that `proposal_id` and `grant_jti` are non-empty.
+  The executor does not look either up, so anyone holding the key can fill
+  in made-up identifiers. The custody split, not this check, keeps the key
+  away from agents.
+

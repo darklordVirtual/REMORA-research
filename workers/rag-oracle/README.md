@@ -28,6 +28,10 @@ POST /query
 
 Every route except `GET /status` requires `Authorization: Bearer <ORACLE_SECRET>`. With the secret unset the worker refuses them with 503 rather than serving them unauthenticated (SR-02/SR-04).
 
+Retrieval sees only the part of a chunk that fits the embedding model's input window: about 380 estimated tokens for `bge-base-en-v1.5` (512 real tokens), and far more for `bge-m3`. The `/ingest` response reports `embedding.truncated`, `embedded_chars` and `content_chars`. When `truncated` is true, split the chunk, because text past `embedded_chars` is stored and returned as context but cannot be found by search. Before W-08 every input was cut at 512 characters, with no signal.
+
+A chunk's vector id is its slot: `tenant_id`, `source` and `chunk_index`. Re-ingesting the same slot replaces it, and an ingest that names its own tenant cannot reach another tenant's slot (RMR-SEC-0006). Because `tenant_id` is whatever the caller sends, any holder of `ORACLE_SECRET` can name another tenant, or the shared empty tenant, and replace that slot's vector and D1 row, including its clearance and ACL fields. Only binding the tenant to the credential closes that (RMR-SEC-0004, open). Vectors ingested before 2026-11-02 carry ids in the old format (source, chunk index and the first 64 characters of content), so re-ingesting them adds a new vector next to the old one. Delete the old ids, or rebuild the index, when you re-ingest a corpus. `tenant_id` and clearance are still asserted by the caller, not bound to the credential (RMR-SEC-0004), so this index is not a multi-tenant boundary.
+
 ### POST /query
 
 ```json

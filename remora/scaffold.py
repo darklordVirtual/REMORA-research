@@ -334,7 +334,9 @@ def init_review(
                          "actor_id": "local-reviewer"},
     }, sort_keys=True)
     executor_api_tokens = json.dumps({
-        execution_token: {"tenant": "default", "role": "operator",
+        # dispatch_hop: presents leases to /dispatch-leased and nothing
+        # else. operator also holds assess and execute (RMR-SEC-0001).
+        execution_token: {"tenant": "default", "role": "dispatch_hop",
                           "actor_id": "authority-dispatch-hop"},
     }, sort_keys=True)
     effect_api_tokens = json.dumps({

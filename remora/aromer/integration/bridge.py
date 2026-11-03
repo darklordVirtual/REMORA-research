@@ -332,9 +332,14 @@ class AromerAdapterBridge:
             # time-bound. Without this, restoring a consumed file after the
             # rolling window rolled re-applied the same signed relaxation
             # until the threshold reached its floor.
-            sig_id = hashlib.sha256(
-                str(sig_raw.get("value", "")).encode("utf-8")
-            ).hexdigest()
+            #
+            # The replay id is the digest of the signed payload, the bytes
+            # the signature actually covers. It used to read a "value" key
+            # that Signature.to_dict() never writes, so every proposal shared
+            # one id (PR #1140 review): distinct proposals were refused as
+            # replays, and an unsigned "value" field let a consumed file
+            # re-apply. Nothing outside the signed payload may influence it.
+            sig_id = hashlib.sha256(payload).hexdigest()
             if sig_id in self._seen_proposal_sigs:
                 return {"applied": 0, "skipped": len(adjustments),
                         "error": "threshold proposal replayed"}

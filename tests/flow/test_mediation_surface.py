@@ -297,6 +297,8 @@ def test_the_sdk_cannot_address_a_flow_context_so_nothing_runs_under_flow_contro
     client of the classified routes, not a way around them."""
     from remora.sdk import DecisionAction, RemoraClient, ToolCall
 
+    # /assess is an authority route; the shared rig is the executor (RMR-SEC-0001).
+    executor.monkeypatch.delenv("REMORA_EXECUTION_DOMAIN_ROLE", raising=False)
     client = RemoraClient(base_url="http://testserver", token="t", http_client=executor.client)
     result = client.assess(ToolCall(tool_name="update_work_order",
                                     arguments={"work_order_id": "WO-1", "status": "closed"},

@@ -259,7 +259,7 @@ def _surface_runtime(monkeypatch):
     from remora.toolcall.runtime_surface import RuntimeTool
     from remora.toolcall.surface_runtime import SurfaceRuntime
 
-    monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "surface-test-key")
+    monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2")
     rt = SurfaceRuntime(GovernedToolDispatcher("policy"), {"write": "a" * 64},
                         mode="enforce")
     rt.register(RuntimeTool("write", "native", True, True, "a" * 64),
@@ -462,8 +462,8 @@ def _token_client(monkeypatch, tmp_path):
     monkeypatch.delenv("REMORA_CONTROL_PLANE_DSN", raising=False)
     monkeypatch.delenv("REMORA_EFFECT_VERIFIER_BINDINGS", raising=False)
     monkeypatch.setenv("REMORA_API_TOKENS", json.dumps(tokens))
-    monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "p0-4a-pdp-key")
-    monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "p0-4a-lease-key")
+    monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1")
+    monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2")
     monkeypatch.setenv("REMORA_TOOL_REGISTRY_MODULE", "servers.tool_registry_research")
     # The tool fails before it writes anything: its sandbox path is a file,
     # so the directory cannot be created. The dispatcher cannot tell that

@@ -33,6 +33,21 @@ bucket_name = "remora-artifacts"
 binding = "SESSIONS"
 id      = "c085347bc8be49f3afc38a0e263e5d87"
 
+# ── CodeGraph semantic search ─────────────────────────────────────────────────
+# Workers AI embeds the query; Vectorize holds the content chunks written by
+# scripts/build_codegraph_index.mjs. Create the index once before deploying:
+#   npx wrangler vectorize create remora-codegraph --dimensions=768 --metric=cosine
+#   npx wrangler vectorize create-metadata-index remora-codegraph \
+#     --property-name=index_version --type=string
+# Remove both blocks to deploy without semantic search: mode=keyword keeps
+# working, mode=semantic answers 503 and mode=hybrid reports "unavailable".
+[ai]
+binding = "AI"
+
+[[vectorize]]
+binding    = "CODEGRAPH_VECTORS"
+index_name = "remora-codegraph"
+
 # ── Environment variables (non-secret) ────────────────────────────────────────
 [vars]
 # Upstream Workers — surfaced via /status for diagnostics. Outbound traffic
@@ -47,10 +62,11 @@ LAW_SEARCH_URL      = "https://remora-law-search.razorsharp.workers.dev"  # repl
 # Human-in-the-loop: tools that require approval before executing
 APPROVAL_REQUIRED_TOOLS = "store_artifact"
 
-# Canonical execution service (ADR migration step 3, optional). Bind a
-# service (or route) to the deployed canonical REMORA execution API and set
-# EXECUTION_API_TOKEN (wrangler secret) to make write-effect tools run the
-# canonical assess->grant->PEP->lease path instead of in-worker execution.
+# Canonical execution service (ADR migration step 3). Bind a service (or
+# route) to the deployed canonical REMORA execution API and set
+# EXECUTION_API_TOKEN (wrangler secret). Write-effect tools run only on the
+# canonical assess->grant->PEP->lease path; without this binding they answer
+# 503 CANONICAL_EXECUTION_UNBOUND (W-01). Read-only tools are unaffected.
 # [[services]]
 # binding = "EXECUTION_SERVICE"
 # service = "remora-execution-api"
@@ -73,6 +89,13 @@ APPROVAL_REQUIRED_TOOLS = "store_artifact"
 # recorded verbatim in each envelope and in the tool-call binding hash.
 TENANT_ID          = "default"
 TARGET_ENVIRONMENT = "cloudflare_worker"
+
+# CodeGraph semantic search. CODEGRAPH_EMBED_MODEL must equal the model the
+# indexer used (768d). CODEGRAPH_INDEX_VERSION restricts results to vectors
+# from one indexer run; set it to the --version printed by the indexer and
+# redeploy after each re-index. Empty = no version filter.
+CODEGRAPH_EMBED_MODEL   = "@cf/baai/bge-base-en-v1.5"
+CODEGRAPH_INDEX_VERSION = "68760dee8fcd-20261102"
 
 # Secrets (set with: wrangler secret put <NAME>)
 # CONTROL_SECRET — shared bearer token clients must present. Required;

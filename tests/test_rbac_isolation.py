@@ -105,7 +105,11 @@ def test_header_tenant_cannot_override_token_tenant(monkeypatch) -> None:
 def test_admin_has_explicit_capability_set_not_wildcard(monkeypatch) -> None:
     api = _api(monkeypatch, TOKENS)
     assert "*" not in api._BUILTIN_ROLE_PERMISSIONS["admin"], "admin must not hold a wildcard"
-    assert api._BUILTIN_ROLE_PERMISSIONS["admin"] == set(api._ALL_CAPABILITIES)
+    # Every capability except the service-only ones (RMR-SEC-0001): admin is
+    # a person, and the lease-presenting hop must not be one.
+    assert api._BUILTIN_ROLE_PERMISSIONS["admin"] == set(
+        api._ALL_CAPABILITIES - api._SERVICE_ONLY_CAPABILITIES)
+    assert api._SERVICE_ONLY_CAPABILITIES <= api._ALL_CAPABILITIES
 
 
 def test_all_capabilities_are_covered_by_admin(monkeypatch) -> None:
@@ -125,9 +129,20 @@ def test_all_capabilities_are_covered_by_admin(monkeypatch) -> None:
 
 def test_admin_can_perform_every_capability(monkeypatch) -> None:
     api = _api(monkeypatch, TOKENS)
-    for cap in api._ALL_CAPABILITIES:
+    for cap in api._ALL_CAPABILITIES - api._SERVICE_ONLY_CAPABILITIES:
         # should not raise
         assert api._require_tenant_capability("admin", "acme", cap) == "admin"
+
+
+def test_admin_cannot_use_service_only_capabilities(monkeypatch) -> None:
+    """RMR-SEC-0001: presenting leases to the executor is the hop's alone."""
+    api = _api(monkeypatch, TOKENS)
+    from fastapi import HTTPException
+
+    for cap in api._SERVICE_ONLY_CAPABILITIES:
+        with pytest.raises(HTTPException) as exc:
+            api._require_tenant_capability("admin", "acme", cap)
+        assert exc.value.status_code == 403
 
 
 def test_injected_star_capability_grants_nothing(monkeypatch) -> None:

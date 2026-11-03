@@ -129,17 +129,51 @@ def _load_hook(monkeypatch: pytest.MonkeyPatch, *, scan_local: bool):
     return module
 
 
-def test_hook_excludes_local_tools_by_default(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_hook_scans_local_tools_without_the_oracle_by_default(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Local output is still scanned locally; only the off-host oracle is opt-in.
+
+    Replaces the original SR-08 assertion that Read/Bash were not scanned at
+    all, which removed local injection detection to fix an oracle-only leak.
+    """
+    monkeypatch.setenv("AROMER_WORKER_URL", "https://scanner.example")
+    monkeypatch.setenv("AROMER_WORKER_TOKEN", "t" * 32)
     module = _load_hook(monkeypatch, scan_local=False)
-    assert "Read" not in module._SCAN_TOOLS
-    assert "Bash" not in module._SCAN_TOOLS
-    assert "WebFetch" in module._SCAN_TOOLS
+    assert {"Read", "Bash", "WebFetch"} <= module._SCAN_TOOLS
+    for tool in ("Read", "Bash"):
+        assert module._scanner_for(tool)._oracle_enabled is False
+    assert module._scanner_for("WebFetch")._oracle_enabled is True
 
 
-def test_hook_local_tools_are_opt_in(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_hook_local_tools_reach_the_oracle_only_on_opt_in(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("AROMER_WORKER_URL", "https://scanner.example")
+    monkeypatch.setenv("AROMER_WORKER_TOKEN", "t" * 32)
     module = _load_hook(monkeypatch, scan_local=True)
-    assert "Read" in module._SCAN_TOOLS
-    assert "Bash" in module._SCAN_TOOLS
+    assert module._scanner_for("Read")._oracle_enabled is True
+    assert module._scanner_for("Bash")._oracle_enabled is True
+
+
+def test_hook_blocks_injection_in_local_output_without_network(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str],
+) -> None:
+    import io
+
+    monkeypatch.setenv("AROMER_WORKER_URL", "https://scanner.example")
+    monkeypatch.setenv("AROMER_WORKER_TOKEN", "t" * 32)
+    module = _load_hook(monkeypatch, scan_local=False)
+    hook_input = {
+        "tool_name": "Bash",
+        "tool_response": {"content": _PAYLOAD},
+    }
+    monkeypatch.setattr("sys.stdin", io.StringIO(json.dumps(hook_input)))
+    with patch("urllib.request.urlopen") as mock_open:
+        with pytest.raises(SystemExit):
+            module.main()
+    assert not mock_open.called
+    assert capsys.readouterr().out.strip(), "a flagged local result must produce a hook decision"
 
 
 def test_hook_oracle_requires_explicit_configuration(
@@ -201,3 +235,72 @@ def test_scan_endpoint_does_not_accept_the_write_secret() -> None:
     route = route[: route.index("return handleScanResult")]
     assert "requireScanAuth(request, env)" in route
     assert "requireWriteAuth" not in route
+
+
+# ── Review of PR #1140: regressions introduced by the SR-08 redaction change ──
+
+_JWT_VALUE = (
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+    ".eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4ifQ"
+    ".SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+)
+
+
+@pytest.mark.parametrize("name", ["session_id", "jti", "request_hash", "token_sha"])
+def test_jwt_under_an_exempt_field_name_is_redacted(name: str) -> None:
+    """Inserting the "pem" rule at index 0 left ``_JWT = _PATTERNS[1][1]``
+    pointing at the bearer rule, so identifier-named fields leaked JWTs."""
+    from remora.observability.redaction import MARKER, redact_field
+
+    assert redact_field(name, _JWT_VALUE) == MARKER
+
+
+def test_exempt_identifiers_still_pass_through() -> None:
+    from remora.observability.redaction import redact_field
+
+    assert redact_field("request_id", "req-01HZX3") == "req-01HZX3"
+    assert redact_field("payload_hash", "ab" * 32) == "ab" * 32
+
+
+@pytest.mark.parametrize(
+    "hostile",
+    ["a_" * 32000, "aaaaaaaaaa-" * 6000, "x-" * 30000 + "y"],
+    ids=["underscores", "dashes", "dash-tail"],
+)
+def test_assignment_rule_is_linear_on_separator_runs(hostile: str) -> None:
+    """The key-prefix group restarted at every ``_``/``-`` boundary and
+    backtracked over the whole tail: 46 s for 64 KB on the reviewed head."""
+    import time
+
+    from remora.observability.redaction import redact_text
+
+    started = time.perf_counter()
+    redact_text(hostile)
+    assert time.perf_counter() - started < 1.0
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "--password=hunter2",
+        "-password=hunter2",
+        "AWS_SECRET_ACCESS_KEY=abc123",
+        "client-secret: abc123",
+        "db_password = abc123",
+        '"api_key": "abc123"',
+        "config.token=abc123",
+    ],
+)
+def test_assignment_rule_still_catches_prefixed_keys(text: str) -> None:
+    from remora.observability.redaction import MARKER, redact_text
+
+    out = redact_text(text)
+    assert "abc123" not in out and "hunter2" not in out
+    assert MARKER in out
+
+
+def test_assignment_rule_ignores_reason_codes() -> None:
+    from remora.observability.redaction import redact_text
+
+    reason = "token_verification_failed:expired"
+    assert redact_text(reason) == reason

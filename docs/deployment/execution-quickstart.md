@@ -195,6 +195,18 @@ export REMORA_PG_DSN='postgresql://remora:...@postgres/remora'
 # export REMORA_CHAIN_DB=/var/lib/remora/execution.db
 ```
 
+Production refuses a symmetric signing key shorter than 32 bytes or shaped
+like a placeholder (`replace-me`, `change-me`, `example`, and so on). Generate
+each key with `python -c "import secrets; print(secrets.token_hex(32))"`.
+
+`/v1/execution/dispatch-leased` is served only by the executor process, and
+only to the `dispatch` capability. In the executor's `REMORA_API_TOKENS`, give
+the authority's `REMORA_EXECUTION_TOKEN` the role `dispatch_hop`, which holds
+nothing else. No agent-facing role, and not `admin`, can present a lease
+(RMR-SEC-0001). Every lease the executor admits is recorded in its tenant
+chain before the tool runs. A lease that names no proposal or grant is
+refused.
+
 Key generation:
 
 ```bash

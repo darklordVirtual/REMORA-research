@@ -32,7 +32,7 @@ PROD_WRITE = {
 @pytest.fixture()
 def caller(monkeypatch):
     """A client whose authenticated principal the test can switch."""
-    monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "sod-test-key")
+    monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1")
     monkeypatch.setenv("REMORA_ENV", "development")
     monkeypatch.setenv("REMORA_REQUIRE_DISTINCT_APPROVER", "1")
     import servers.api as api_mod
@@ -129,6 +129,35 @@ def test_strict_profiles_always_require_a_distinct_approver(
 ) -> None:
     import servers.execution_api as exec_mod
 
+    monkeypatch.setenv("REMORA_ENV", "development")
     monkeypatch.setenv("REMORA_RUNTIME_PROFILE", profile)
     monkeypatch.setenv("REMORA_REQUIRE_DISTINCT_APPROVER", flag)
     assert exec_mod._distinct_approver_required() is expected
+
+
+@pytest.mark.parametrize("profile", ["", "research", "development"])
+def test_production_always_requires_a_distinct_approver(monkeypatch, profile) -> None:
+    """RMR-SEC-0002: REMORA_ENV=production without a strict profile resolved
+    to "research", where one admin credential could approve its own
+    production write. Production now implies the distinct-approver rule
+    whatever the profile, and the flag cannot switch it off."""
+    import servers.execution_api as exec_mod
+
+    monkeypatch.setenv("REMORA_ENV", "production")
+    if profile:
+        monkeypatch.setenv("REMORA_RUNTIME_PROFILE", profile)
+    else:
+        monkeypatch.delenv("REMORA_RUNTIME_PROFILE", raising=False)
+    monkeypatch.setenv("REMORA_REQUIRE_DISTINCT_APPROVER", "0")
+    assert exec_mod._distinct_approver_required() is True
+
+
+def test_production_refuses_self_approval_end_to_end(caller, monkeypatch) -> None:
+    client, _who = caller
+    item_id, _ = _queue(client)
+    monkeypatch.setenv("REMORA_REQUIRE_DISTINCT_APPROVER", "0")
+    monkeypatch.setenv("REMORA_ENV", "production")
+    monkeypatch.delenv("REMORA_RUNTIME_PROFILE", raising=False)
+    r = _approve(client, item_id)
+    assert r.status_code == 403, r.text
+    assert r.json()["detail"] == "approver_is_proposer"

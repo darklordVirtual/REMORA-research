@@ -1562,6 +1562,22 @@ items:
       the first 200 chars of tool input unauthenticated unless
       AROMER_RECORDER=0. Tests: tests/security/test_sr08_result_scanner.py
       (failing-first, then green; +7 redaction and route cases).
+      Review follow-up (2026-11-02, PR #1140 review): three
+      regressions in this fix. (1) Inserting the "pem" rule first left
+      _JWT = _PATTERNS[1][1] pointing at the bearer rule, so a JWT under an
+      exempt field name (*_id, *_hash, jti) reached logs in clear; the rule is
+      now looked up by name. (2) The new affixed-key assignment rule restarted at
+      every _ or - and backtracked over the tail (46 s for 64 KB of "a_"); the
+      dsn, url and host rules had the same quadratic shape on dashed runs before
+      this change. All four now start only at the beginning of a token, and
+      64 KB hostile inputs take about 10 ms. (3) The hook dropped Read and Bash
+      from scanning entirely, which removed local injection heuristics to fix a
+      leak that only the oracle had; they are scanned locally again, and only the
+      oracle call needs AROMER_SCAN_LOCAL=1. Tests: failing-first cases in
+      tests/security/test_sr08_result_scanner.py (JWT under exempt names, linear
+      time on separator runs, prefixed keys still caught, local output blocked
+      without network); the two hook tests that asserted the removal were
+      replaced.
 
   - id: REM-057
     section: "security-review-2026-10"
@@ -1690,6 +1706,16 @@ items:
       (failing-first, then green; +6 replay, validity and audit-order
       cases); the three pre-existing proposal tests now sign their fixtures
       with a current issued_at.
+      Review follow-up (2026-11-02, PR #1140 review): the
+      single-use guard keyed on sig_raw.get("value"), a key Signature.to_dict()
+      never writes, so every proposal shared the replay id sha256(""). The first
+      applied proposal blocked every later distinct one, and adding an unsigned
+      "value" field to a consumed file let it re-apply. The pre-existing replay
+      test passed only because the id was constant. The replay id is now the
+      SHA-256 of the signed canonical payload, so nothing outside the signature's
+      coverage influences it. Tests: two failing-first cases in
+      tests/security/test_sr07_signed_thresholds.py (distinct proposals both
+      apply; a replay with an injected "value" field is refused).
 
   - id: REM-056
     section: "security-review-2026-10"
@@ -1726,3 +1752,107 @@ items:
       is clamped to [-1, 1] and does not feed the promotion gate. Tests:
       tests/security/test_sr13_meta_judge.py (failing-first, then green;
       +6 malformed-output and fallback cases).
+
+  - id: REM-063
+    section: "security-review-2026-11"
+    title: "RMR-SEC-0001: /dispatch-leased executed self-signed, unlinked leases for agent credentials on the authority domain, with no audit record"
+    gate: P0
+    status: DONE
+    completed: "2026-11-02"
+    artifacts:
+      - servers/execution_api.py
+      - servers/api.py
+      - schemas/risk-profiles.yaml
+      - remora/scaffold.py
+      - deploy/ot-pilot/docker-compose.yml
+      - deploy/ot-pilot/init_tokens.py
+      - docs/deployment/execution-quickstart.md
+      - tests/test_sec0001_dispatch_leased_boundary.py
+      - tests/test_sec0001_weak_signing_keys.py
+      - tests/test_rbac_isolation.py
+    notes: >
+      Adversarial security review 2026-11-02 (RMR-SEC-0001, P0 for the OT
+      pilot topology, P1 generically): the default authority domain served
+      /v1/execution/dispatch-leased to any credential with "execute" (the
+      agent-facing operator role holds it); the route accepted a lease with
+      empty proposal_id and grant_jti and appended nothing to the tenant
+      chain. With the lease key committed in the OT compose, the reviewer
+      closed a valve that policy had routed to review, and /audit/verify
+      still reported INTACT. Fixed: the authority domain answers 404 on the
+      route; a new "dispatch" capability held only by the new dispatch_hop
+      role (not admin) is required; leases without proposal_id or grant_jti
+      are refused as lease_unlinked; the executor verifies the signature,
+      appends lease_dispatch_admitted before the tool runs (refusing with
+      audit_unavailable if it cannot) and lease_dispatch_result after;
+      production refuses symmetric signing keys under 32 bytes or
+      placeholder-shaped; the OT pilot generates its keys and its approver
+      is senior_authority (review and read; every OT tool is critical-tier, so
+      a plain reviewer could approve nothing, which the PR review caught). The
+      domain check uses the matched route path, so an ASGI root_path cannot
+      move a route out of it, and production refuses a role configuration that
+      grants dispatch to any role but dispatch_hop. "Linked" only means
+      non-empty ids; the executor does not look them up.
+      NEGATIVE_RESULTS §99 keeps the finding open until the
+      OT reproduction is re-run against a rebuilt pilot. Caveats: executor
+      chain events land in the executor's store; an executor holding an HMAC
+      key can still self-sign (only the strict Ed25519 split removes that);
+      the lease key still falls back to the PDP key (RMR-SEC-0020).
+
+  - id: REM-064
+    section: "security-review-2026-11"
+    title: "RMR-SEC-0002: production without a strict profile let one credential approve its own write"
+    gate: P1
+    status: DONE
+    completed: "2026-11-02"
+    artifacts:
+      - servers/execution_api.py
+      - deploy/ot-pilot/docker-compose.yml
+      - tests/test_separation_of_duties.py
+    notes: >
+      Adversarial security review 2026-11-02 (RMR-SEC-0002, P1):
+      REMORA_ENV=production without REMORA_RUNTIME_PROFILE resolves to
+      "research", where the distinct-approver rule was opt-in, so one admin
+      credential could assess, approve and execute a production write and the
+      chain recorded a human approval. Production now always requires a
+      distinct approver, whatever the profile or flag. The OT pilot's
+      approver was admin (which holds execute) beside a comment saying it
+      could not execute; it is now senior_authority, the critical-tier
+      approval role, which cannot execute. Tests: production cases in
+      tests/test_separation_of_duties.py, including an end-to-end self-approval
+      refused with approver_is_proposer.
+
+  - id: REM-065
+    section: "security-review-2026-11"
+    title: "RMR-SEC-0023: audit-outbox drain deadlocked on SQLite with two or more pending events"
+    gate: P1
+    status: DONE
+    completed: "2026-11-02"
+    artifacts:
+      - remora/governance/audit_outbox.py
+      - tests/test_sec0023_audit_outbox_sqlite_drain.py
+    notes: >
+      Adversarial security review 2026-11-02 (RMR-SEC-0023, P1 for SQLite
+      deployments): drain() committed its UPDATE marks only after the loop,
+      so on SQLite it held the write lock while SQLiteTenantChain.append_once
+      opened BEGIN IMMEDIATE on a second connection to the same file. From the
+      second pending row on, each append waited out the 30 s busy timeout and
+      failed; the API sweep swallowed the error and returned 0, approval and
+      revocation events never reached the chain, other ledgers on the file
+      saw "database is locked", and /audit/verify still reported valid. The
+      wiring tests replaced the chain with the in-memory one, which takes no
+      file lock. Fixed by ending pending()'s read transaction and committing
+      each mark before the next append; replay safety is unchanged because
+      the append is claimed under the row's key. Tests use a real SQLite file
+      for outbox and chain: 3 pending rows drain in under 5 s (failed first
+      with "database is locked" after 96 s).
+      Review follow-up (2026-11-02): on Postgres, ensure_table ran ALTER TABLE
+      ... ADD COLUMN IF NOT EXISTS on every enqueue and pending(), which takes
+      ACCESS EXCLUSIVE even when the column exists, so every state-transition
+      transaction serialised on audit_outbox and the drain's pending() blocked
+      behind it. It now reads information_schema first and alters only a table
+      that lacks seq. The reviewer also confirmed on a throwaway Postgres 14
+      that the per-row commit removes the same blocking on Postgres (old code:
+      LockNotAvailable on concurrent enqueue; new: success). Tests: two
+      fake-connection cases in tests/test_sec0023_audit_outbox_sqlite_drain.py
+      pin the catalog check; the postgres-contract CI job runs the outbox
+      suites on a real server.

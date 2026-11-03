@@ -236,7 +236,12 @@ def _enforce_execution_domain(request: Request) -> None:
     an authority route quietly reachable from the execution domain.
     """
     role = _execution_domain()
-    path = request.url.path
+    # The matched route's own path, not request.url.path: the URL path carries
+    # the ASGI root_path, so behind a proxy mounted at a prefix every set
+    # lookup below missed and the domain split did not apply
+    # (review of RMR-SEC-0001's fix).
+    route = request.scope.get("route")
+    path = getattr(route, "path", None) or request.url.path
     if role == _DOMAIN_EFFECT:
         if path in _EFFECT_PATHS:
             return
@@ -245,6 +250,14 @@ def _enforce_execution_domain(request: Request) -> None:
         # Effects run only where the effect credentials are.
         raise HTTPException(status_code=404, detail="served only by the effect domain")
     if role != _DOMAIN_EXECUTOR:
+        if path in _EXECUTOR_PATHS:
+            # RMR-SEC-0001: the authority domain mints leases; it does not
+            # take them over the wire. Serving /dispatch-leased here let any
+            # execute-capable credential run a self-signed lease in the
+            # process that holds the tool registry, with no grant, intent or
+            # chain record. Only a process configured as the executor serves it.
+            raise HTTPException(
+                status_code=404, detail="served only by the execution domain")
         return
     if path in _EXECUTOR_PATHS:
         return
@@ -1803,12 +1816,18 @@ _ENV_REQUIRE_DISTINCT_APPROVER = "REMORA_REQUIRE_DISTINCT_APPROVER"
 def _distinct_approver_required() -> bool:
     """Whether an approver must differ from the proposer (RMR-CR-004).
 
-    Always under a strict profile; opt-in elsewhere, because a development
-    deployment often has one principal doing everything on purpose.
+    Always under a strict profile and always in production; opt-in elsewhere,
+    because a development deployment often has one principal doing
+    everything on purpose. Production used to need the strict profile too,
+    and REMORA_ENV=production without REMORA_RUNTIME_PROFILE resolves to
+    "research": one admin credential could propose, approve and execute a
+    production write, and the record still read "human-approved"
+    (RMR-SEC-0002).
     """
     from remora.profiles import STRICT_PROFILES, current_runtime_profile
+    from servers import api as api_mod
 
-    if current_runtime_profile() in STRICT_PROFILES:
+    if current_runtime_profile() in STRICT_PROFILES or api_mod._is_production_mode():
         return True
     return _os.environ.get(_ENV_REQUIRE_DISTINCT_APPROVER, "").strip().lower() in {
         "1", "true", "yes", "on"}
@@ -3894,10 +3913,11 @@ def dispatch_leased(req: DispatchLeasedRequest, request: Request) -> dict[str, A
     durable tenant-scoped state before the tool runs. An authority-signed lease
     presented for a different call is refused here.
     """
-    tenant, role, _principal = _auth(request)
+    tenant, role, hop_principal = _auth(request)
     from servers import api as api_mod
 
-    api_mod._require_tenant_capability(role, tenant, "execute")
+    # RMR-SEC-0001: the hop's own capability, which no agent-facing role holds.
+    api_mod._require_tenant_capability(role, tenant, "dispatch")
     task = _task_or_refuse(req.tool_call)
 
     try:
@@ -3922,6 +3942,16 @@ def dispatch_leased(req: DispatchLeasedRequest, request: Request) -> dict[str, A
             status_code=503,
             detail="no tool dispatcher on this domain: the execution surface "
                    "needs a policy bundle and a tool registry")
+
+    # RMR-SEC-0001: every lease the authority mints for a dispatch carries the
+    # proposal it decided and the grant it consumed. A lease without them was
+    # minted outside the canonical path, by whoever holds a signing key, and
+    # is refused however valid its signature.
+    if not lease.proposal_id or not lease.grant_jti:
+        api_mod.record_execution_execute(executed=False, refusal="lease_unlinked")
+        return {"outcome": "refused",
+                "tool_execution": {"executed": False, "refusal_reason": "lease_unlinked",
+                                   "proposal_id": lease.proposal_id}}
 
     now = _dt.datetime.now(_dt.UTC)
     semantic = {"tool_contract_bundle_hash": lease.tool_contract_bundle_hash,
@@ -3968,6 +3998,35 @@ def dispatch_leased(req: DispatchLeasedRequest, request: Request) -> dict[str, A
                     "tool_execution": {"executed": False, "refusal_reason": refusal,
                                        "proposal_id": lease.proposal_id}}
         flow_expected = (int(lease.flow_epoch), str(lease.flow_digest))
+    # RMR-SEC-0001: the executor's own audit record, before the tool runs.
+    # This route wrote nothing to the chain, so a dispatch here was invisible
+    # to /audit/verify. A lease is recorded only once its signature verifies,
+    # so a forged one cannot fill the chain; if the record cannot be written,
+    # nothing runs.
+    authentic = lease.verify_authenticity(now=now.isoformat())
+    if not authentic.verified:
+        api_mod.record_execution_execute(executed=False, refusal=authentic.reason)
+        return {"outcome": "refused",
+                "tool_execution": {"executed": False, "refusal_reason": authentic.reason,
+                                   "proposal_id": lease.proposal_id}}
+    lease_record = {
+        "actor": lease.actor_identity,
+        "hop_principal": hop_principal,
+        "proposal_id": lease.proposal_id,
+        "grant_jti": lease.grant_jti,
+        "lease_nonce": lease.nonce,
+        "tool_name": lease.tool_name,
+        "tool_args_hash": lease.tool_args_hash,
+        "target_environment": lease.target_environment,
+        "policy_bundle_hash": lease.policy_bundle_hash,
+    }
+    try:
+        _CHAIN.append(tenant, {"event": "lease_dispatch_admitted", **lease_record})
+    except Exception:
+        api_mod.record_execution_execute(executed=False, refusal="audit_unavailable")
+        return {"outcome": "refused",
+                "tool_execution": {"executed": False, "refusal_reason": "audit_unavailable",
+                                   "proposal_id": lease.proposal_id}}
     tool_execution = _with_flow_principal(lease.actor_identity, lambda: _dispatch_under_lease(
         tenant=tenant,
         # From the SIGNED lease, never the request body and never the hop's
@@ -3991,6 +4050,16 @@ def dispatch_leased(req: DispatchLeasedRequest, request: Request) -> dict[str, A
         capability_set=_presented_capability_set(req.capability_set),
         flow_expected=flow_expected,
     ))
+    try:
+        _CHAIN.append(tenant, {
+            "event": "lease_dispatch_result", **lease_record,
+            "executed": bool(tool_execution["executed"]),
+            "refusal_reason": tool_execution.get("refusal_reason"),
+        })
+    except Exception:
+        # The effect, if any, already happened; the admitted record stands.
+        # Report the gap rather than a clean result.
+        tool_execution = {**tool_execution, "audit_result_recorded": False}
     api_mod.record_execution_execute(
         executed=bool(tool_execution["executed"]),
         refusal=tool_execution.get("refusal_reason"),
