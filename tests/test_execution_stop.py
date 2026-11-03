@@ -71,12 +71,18 @@ def rig(monkeypatch, tmp_path):
 def _lease(rig, tenant: str = "acme"):
     return issue_execution_lease(
         tenant=tenant, principal="employee-1", tool_call=SimpleNamespace(**CALL),
-        semantic=SEMANTIC, now=datetime.now(UTC), policy_bundle_hash=rig.bundle)
+        semantic=SEMANTIC, now=datetime.now(UTC), policy_bundle_hash=rig.bundle,
+        # RMR-SEC-0001: the executor refuses a lease linked to no proposal/grant.
+        proposal_id="p-1", grant_jti="g-1")
 
 
 def _dispatch(rig, lease, tenant_id: str = "acme") -> dict:
-    r = rig.client.post("/v1/execution/dispatch-leased",
-                        json={"lease": lease.to_dict(), "tool_call": CALL, "tenant_id": tenant_id})
+    # RMR-SEC-0001: only the execution domain serves /dispatch-leased; this
+    # rig drives authority routes (/stop, /resume) in the same process.
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setenv("REMORA_EXECUTION_DOMAIN_ROLE", "executor")
+        r = rig.client.post("/v1/execution/dispatch-leased",
+                            json={"lease": lease.to_dict(), "tool_call": CALL, "tenant_id": tenant_id})
     assert r.status_code == 200, r.text
     return r.json()["tool_execution"]
 

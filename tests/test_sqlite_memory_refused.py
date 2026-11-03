@@ -70,9 +70,9 @@ def _production_env(monkeypatch, tmp_path, chain_db: str) -> None:
     monkeypatch.delenv("REMORA_PG_DSN", raising=False)
     monkeypatch.delenv("REMORA_STATE_ENDPOINT", raising=False)
     monkeypatch.setenv("REMORA_ENABLED_SURFACES", "execution")
-    monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "k")
-    monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "k")
-    monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", "k")
+    monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1")
+    monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2")
+    monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4")
 
 
 def test_production_startup_refuses_a_memory_chain_db(monkeypatch, tmp_path) -> None:

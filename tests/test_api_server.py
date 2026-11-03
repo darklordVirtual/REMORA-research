@@ -781,7 +781,7 @@ def test_tool_registry_module_source_moves_the_policy_hash(
 
 
 def test_assess_populates_envelope_audit_chain_and_signature(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", "signing-key")
+    monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4")
     api = _load_api_module(monkeypatch, token="test-token")
     client = TestClient(api.app)
 
@@ -905,9 +905,9 @@ def test_production_mode_rejects_mock_oracle_flag(
     monkeypatch.setenv("REMORA_API_TOKENS", '{"tok":{"tenant":"t","role":"operator"}}')
     # Signing keys are production prerequisites too; set them so this test
     # reaches the mock-oracle check it is actually about.
-    monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", "envelope-key")
-    monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "pdp-key")
-    monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "lease-key")
+    monkeypatch.setenv("REMORA_ENVELOPE_SIGNING_KEY", "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4")
+    monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1")
+    monkeypatch.setenv("REMORA_LEASE_SIGNING_KEY", "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2")
     monkeypatch.setenv("REMORA_API_ALLOW_MOCK_ORACLES", "true")
 
     with pytest.raises(RuntimeError, match="mock oracles are disabled"):

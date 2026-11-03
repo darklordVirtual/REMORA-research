@@ -339,8 +339,13 @@ jobs:
       - name: Cross-language envelope parity (must run, not skip)
         # -rs prints skip reasons; the grep turns a silent skip into a red leg,
         # because a skipped parity test looks identical to a passing one.
+        # The agent-control security suites bundle the real worker with
+        # esbuild too, and skipped in every other job: no-self-approval,
+        # canonical adapter, single write path and the canonical-JSON golden
+        # vectors never ran in CI (RMR-SEC-0009, 2026-11-02 review), and
+        # neither would the W-01 no-local-write test.
         run: |
-          python -m pytest tests/test_worker_envelope_chain.py tests/test_worker_unsafe_numbers.py tests/test_mcp_gateway_effect_receipt_contract.py tests/test_agent_control_canonical_redeem.py -q -rs | tee /tmp/parity.txt
+          python -m pytest tests/test_worker_envelope_chain.py tests/test_worker_unsafe_numbers.py tests/test_mcp_gateway_effect_receipt_contract.py tests/test_agent_control_canonical_redeem.py tests/test_agent_control_approvals.py tests/test_agent_control_canonical_adapter.py tests/test_agent_control_single_path.py tests/test_canonical_json_golden_vectors.py tests/test_agent_control_no_local_write.py -q -rs | tee /tmp/parity.txt
           if grep -qi "skipped" /tmp/parity.txt; then
             echo "FAIL: envelope parity test skipped — the JS toolchain is missing in a job that must have it"
             exit 1

@@ -400,6 +400,19 @@ class World:
 
     # REMORA endpoints --------------------------------------------------------
 
+    @contextlib.contextmanager
+    def executor_domain(self):
+        """Serve the next request as the execution domain (RMR-SEC-0001)."""
+        previous = os.environ.get("REMORA_EXECUTION_DOMAIN_ROLE")
+        os.environ["REMORA_EXECUTION_DOMAIN_ROLE"] = "executor"
+        try:
+            yield
+        finally:
+            if previous is None:
+                os.environ.pop("REMORA_EXECUTION_DOMAIN_ROLE", None)
+            else:
+                os.environ["REMORA_EXECUTION_DOMAIN_ROLE"] = previous
+
     def post(self, path: str, payload: dict[str, Any]) -> Result:
         before = len(EFFECTS)
         error = ""
@@ -551,8 +564,12 @@ def present_remora(world: World, grant: Grant, call: dict[str, Any], *,
                               {"item_id": item_id or grant.ref, "tool_call": call})
         presented_lease = lease if lease is not None else grant.lease
         lease_dict = presented_lease if isinstance(presented_lease, dict) else presented_lease.to_dict()
-        return world.post("/v1/execution/dispatch-leased",
-                          {"lease": lease_dict, "tool_call": call, "tenant_id": tenant})
+        # /dispatch-leased is served only by the executor domain (RMR-SEC-0001).
+        # This harness runs both halves in one process, so it presents the
+        # lease as the executor would receive it.
+        with world.executor_domain():
+            return world.post("/v1/execution/dispatch-leased",
+                              {"lease": lease_dict, "tool_call": call, "tenant_id": tenant})
 
 
 class PolicyOnlyGateway:
