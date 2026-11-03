@@ -21471,9 +21471,9 @@
     },
     "workers/agent-control/scripts/codegraph_chunk.mjs": {
       "concepts": [],
-      "git_blob": "4668d6e45e5d90e42fbc3a4430a506b7c16bc685",
+      "git_blob": "d1aca688128548c0809bed590de419c34fe0e24a",
       "mode": "100644",
-      "sha256": "ea9079cf9550784cc920fd5146ad6cc02dcb5659f7feda2e39ae9483e0076775"
+      "sha256": "95953810847f08c5ee6dfbb780ab89f4782ab44ae2ccce62553d34fcade1e66e"
     },
     "workers/agent-control/scripts/generate_codegraph_paths.mjs": {
       "concepts": [],
@@ -21849,7 +21849,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "98f4634f767d9845d0f42f0389ed153e56b1060124120b14e78f5a635c54d4b3",
+  "register_sha256": "f799c45c5e95bceb3b3ff21a82567813dff41df3532e962c159b8c0557c7c77e",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

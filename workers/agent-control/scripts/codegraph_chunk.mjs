@@ -9,9 +9,10 @@ export const MAX_FILE_BYTES = 200_000;
 // bge-base-en-v1.5 reads at most 512 tokens and silently drops the rest.
 // A character cap alone does not hold for dense JSON, hex or markup, so a
 // window also closes at an estimated token budget. Norwegian prose splits
-// into more WordPieces than English and needs the extra headroom. Measured
-// against the real tokenizer on all 46,925 chunks of this repository at
-// 2026-11-02: median 325, p99 399, max 480 tokens including the path header.
+// into more WordPieces than English and needs the extra headroom. The budget
+// was chosen from a one-off development measurement against the real
+// tokenizer on this repository's chunks; that measurement is not committed
+// evidence, so the margin under 512 is unverified.
 export const MODEL_MAX_TOKENS = 512;
 export const DEFAULT_CHUNK_OPTIONS = Object.freeze({ maxLines: 40, overlap: 8, maxChars: 1600, maxTokens: 380 });
 
