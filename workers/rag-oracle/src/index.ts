@@ -222,9 +222,10 @@ function requireBearer(request: Request, env: Env): Response | null {
 // chunk was still stored and returned as context (W-08 / F-10).
 //
 // Budgets are in estimated tokens (letters in fours, digits and symbols
-// singly). Measured against the real bge-base WordPiece tokenizer on 46,925
-// repository chunks, 380 estimated tokens stayed at or below 480 real
-// tokens, under the 512 window; bge-m3 reads 8192 tokens.
+// singly). 380 was chosen from a one-off development measurement against the
+// bge-base WordPiece tokenizer on this repository's own chunks; that
+// measurement is not committed evidence, so treat the margin under the 512
+// window as unverified. bge-m3 reads 8192 tokens.
 const EMBED_TOKEN_BUDGET: Record<string, number> = {
   "@cf/baai/bge-base-en-v1.5": 380,
   "@cf/baai/bge-small-en-v1.5": 380,

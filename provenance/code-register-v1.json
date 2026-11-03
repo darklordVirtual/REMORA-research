@@ -21765,9 +21765,9 @@
     },
     "workers/rag-oracle/README.md": {
       "concepts": [],
-      "git_blob": "d0f39be0095badfacba85a1cf54ad36b6c88f14f",
+      "git_blob": "ef0dcd8b6b32539b15d65d250954ba730517e7d9",
       "mode": "100644",
-      "sha256": "4b5ecba6b769484d774024f60fb13aaf90f599a66cfe6931bca9794ab2266719"
+      "sha256": "2899bf62232cf14d710c413bb575ddc11e5ebe97aa6c0f1e903d5737e8024083"
     },
     "workers/rag-oracle/package-lock.json": {
       "concepts": [],
@@ -21795,9 +21795,9 @@
     },
     "workers/rag-oracle/src/index.ts": {
       "concepts": [],
-      "git_blob": "e8f64d2e53af5a36126a5bf6490d1eef12f83b73",
+      "git_blob": "3840a1bf46e312e135f010954f1f5376d9e5eecf",
       "mode": "100644",
-      "sha256": "499c383d087f5d6752dbb18f8fb8980a9c9d56dc956cf9ff7df023105220fb31"
+      "sha256": "6f296ed8f1d2f31766fc2e59bdff769246f0570607f8ec2ea9fbde6b93b40c55"
     },
     "workers/rag-oracle/src/search_auth.test.ts": {
       "concepts": [],
@@ -21825,7 +21825,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "51f000d2b28991814bf4645e99c046363ec1363275d59a73c5cb0cb5f787388d",
+  "register_sha256": "312b85074d76d7c1aad67cee193ce5341ffda87d163530da5f214836f745d47b",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
