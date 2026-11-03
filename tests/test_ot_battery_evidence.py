@@ -146,7 +146,10 @@ def test_the_battery_names_its_limit_cases() -> None:
     by_name = {c.name: c for c in module.CASES}
     assert len(module.CASES) == 16
     assert by_name["Limit: PIC-101 move past its hourly movement cap"].refusal == "limit_exceeded"
-    assert by_name["Unknown tool not in any registry"].refusal == "limit_coverage_unknown"
+    # With a signed ToolSpec the spec check refuses first; without one the
+    # limit coverage check does. The case accepts either named refusal.
+    assert by_name["Unknown tool not in any registry"].refusal == (
+        "toolspec_unknown_tool", "limit_coverage_unknown")
     assert by_name["Setpoint on a loop that does not exist"].refusal == "limit_observation_unavailable"
     assert by_name["Injection in maintenance document"].args["position_pct"] == 40
 

@@ -64,7 +64,17 @@
     "battery-prod": "OT battery, target_environment prod, REMORA_GROUNDED_READ_IN_PRODUCTION=1, fresh stack",
     "fault-injection": "deploy/ot-pilot/run_fault_injection.py on a fresh stack with the opt-in on",
     "sec99-cases": "the \u00a799 reproduction script (artifacts/ws1/m4/sec99-reproduction/.../tooling/sec99_repro.py) against this build with a second executor-domain process",
-    "battery-control": "OT battery on a fresh stack with REMORA_GROUNDED_READ_IN_PRODUCTION=0, same image and declaration"
+    "battery-control": "OT battery on a fresh stack with REMORA_GROUNDED_READ_IN_PRODUCTION=0, same image and declaration",
+    "ws1-shadow": "assessed events read back from Postgres after the first battery on the bundle-enforced, WS1-shadow stack: toolspec_hash and a WS1 shadow block on every call",
+    "battery-toolspec-ws1": "OT battery on a fresh stack with the signed ToolSpec bundle enforced and WS1 in shadow (REMORA_WS1_MODE=shadow)",
+    "fault-injection-toolspec-ws1": "fault-injection battery on a fresh stack, same configuration",
+    "sec99-cases-toolspec-ws1": "the \u00a799 cases against the same configuration; the executor process also loads the bundle"
   },
-  "baseline": "artifacts/ws1/m4/sec99-reproduction/sec99-20261103T194032Z-dee87d1a/battery/ (dev before this branch): 16/16 cases, 0 of 5 monitoring reads completed"
+  "baseline": "artifacts/ws1/m4/sec99-reproduction/sec99-20261103T194032Z-dee87d1a/battery/ (dev before this branch): 16/16 cases, 0 of 5 monitoring reads completed",
+  "toolspec": {
+    "authored_by": "deploy/ot-pilot/build_toolspec.py",
+    "schema_version": 4,
+    "tools": 6,
+    "note": "pinned digest and public key differ per deployment; the seed never enters the image. The bundle file is not committed."
+  }
 }

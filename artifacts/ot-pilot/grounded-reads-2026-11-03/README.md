@@ -31,10 +31,23 @@ Why the reads were ungrounded before: the pilot declared no tool metadata, so th
 - It does not show that the reads are correct or free; `_is_grounded_read` asserts only that the call is the declared call for a declared authority over declared data. It does not show anything about WS1 (no WS1 deployment ran here; §94 stays open) or about a real plant.
 - The disclosure a production deployment accepts with the opt-in is bounded by the work order, the state index and the declared read-only semantics; it is not zero. The ADR records that.
 
+## Signed ToolSpec and WS1 shadow (2026-11-04)
+
+The pilot was then given a signed ToolSpec bundle
+(`deploy/ot-pilot/build_toolspec.py`; the seed stays on the host, the API
+holds the public key and the pinned digest). It also got a WS1 deployment in
+shadow (`deploy/ot-pilot/ot_ws1.py`, facts in `ot_ws1_facts.json`). `ws1-shadow/assessed.json` is the read-back of the 13 assessed battery calls
+from Postgres. Every call carries a ToolSpec hash and a WS1 block. The 5 reads
+proved `sensor_on_round` with one lookup each and recorded `grounded_action:
+accept`. Of the 8 writes, 6 proved `target_named_by_work_order`; the 2 whose
+target no work order names recorded a cap to `abstain` that shadow did not
+apply. `battery-toolspec-ws1/` (16 of 16, 5 of 5 reads), `fault-injection-toolspec-ws1/` (10 of 10) and `sec99-cases-toolspec-ws1/` (11 of 11) are the same batteries on that configuration, each on a fresh stack. Limits: shadow changed no decision; `target_named_by_work_order` proves naming by some signed work order, not by the order the call is under, because the pilot's intent authority is the whole work-order file.
+
 ## Reproduce
 
 ```
 python deploy/ot-pilot/init_tokens.py
+python deploy/ot-pilot/build_toolspec.py
 docker compose -f deploy/ot-pilot/docker-compose.yml up --build -d
 set -a; . deploy/ot-pilot/.env; set +a
 python deploy/ot-pilot/run_ot_battery.py

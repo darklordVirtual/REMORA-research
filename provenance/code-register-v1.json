@@ -273,9 +273,9 @@
     },
     ".gitignore": {
       "concepts": [],
-      "git_blob": "4e53cb2fbab9ebf2f6a7fe368e813878610e7f25",
+      "git_blob": "8602d2e5e986915855ec797300641d9578bae06c",
       "mode": "100644",
-      "sha256": "8a992446bf88db0c4f892126218c72d7394dcf2243fa741ff6c36b3c824f8888"
+      "sha256": "8e8b0a593cc45dc2069889928458b75a014a73db5b7453ba22d0650cfa4914fc"
     },
     ".gitleaks.toml": {
       "concepts": [],
@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "2748201c695e8fdd0bc492df5d36a88d34d0993d",
+      "git_blob": "d61101ee608c001e48623469be99af47df0dd7aa",
       "mode": "100644",
-      "sha256": "c8d3f8f78e49f2226c68ba5d467819320399d1e137d98edd2579973b6a54475f"
+      "sha256": "e26612685fba4f2b5c94dd188e9422b4a9a138d1c9839f0804dba6784e726b77"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -369,9 +369,9 @@
     },
     "NEGATIVE_RESULTS.md": {
       "concepts": [],
-      "git_blob": "f4a548ae1f52270b46dd80ac8169187dcad30ef4",
+      "git_blob": "e6c588bb896bf3dd3172077dcd7e0623bbd9e5df",
       "mode": "100644",
-      "sha256": "e5738cba51e9c6413ce3648d6f9ce09efe5a2b5d669bc08ed766a555af7cfe47"
+      "sha256": "a91f036c3b3bc47813b9add7ddd19239645f37c083e094d8b93c362f40896212"
     },
     "NOTICE": {
       "concepts": [],
@@ -3089,9 +3089,9 @@
     },
     "artifacts/ot-pilot/grounded-reads-2026-11-03/README.md": {
       "concepts": [],
-      "git_blob": "0cc9476d3015a358eaaf05f2e5263c8f159b0fbc",
+      "git_blob": "2b4355515221d7bead95c896f761f364c2a6d961",
       "mode": "100644",
-      "sha256": "0a70a03ff14dc5435cdbae87e4f14ab198b5d33b41cf7c232c165ee7b0d1b07c"
+      "sha256": "05c2e88a2d1c32956d8853ce9e84a24690afe4f813c293588f8494fccb5f93f0"
     },
     "artifacts/ot-pilot/grounded-reads-2026-11-03/battery-control/chain-verification.json": {
       "concepts": [],
@@ -3153,6 +3153,66 @@
       "mode": "100644",
       "sha256": "7539b9c64a3b413926dbed0d112e4f609d8e174c478a150c2d90ec0e5d0c351f"
     },
+    "artifacts/ot-pilot/grounded-reads-2026-11-03/battery-toolspec-ws1/chain-verification.json": {
+      "concepts": [],
+      "git_blob": "ecb99af4c3d1873cac57a750b199ce5f2fcf04e1",
+      "mode": "100644",
+      "sha256": "567256a1f9b95f615e712ac6f3aaaf7911df6a9e3758fcd1279263f60d02378d"
+    },
+    "artifacts/ot-pilot/grounded-reads-2026-11-03/battery-toolspec-ws1/manifest.json": {
+      "concepts": [],
+      "git_blob": "3cb9adcacf756a04d7e71a7134c342e611df3d1f",
+      "mode": "100644",
+      "sha256": "714f1dc3bed152ae3dd357e2dfbe42f10377e40d96154b328afacc36792c2402"
+    },
+    "artifacts/ot-pilot/grounded-reads-2026-11-03/battery-toolspec-ws1/metrics.json": {
+      "concepts": [],
+      "git_blob": "d1609fb630b631cbb5295cfd1333d7efe9eff632",
+      "mode": "100644",
+      "sha256": "0d3670ad1d12d690a34862a43e883f9804927049cf7a3dcd03882212bea33b29"
+    },
+    "artifacts/ot-pilot/grounded-reads-2026-11-03/battery-toolspec-ws1/report.txt": {
+      "concepts": [],
+      "git_blob": "05a785a5e65ad771ecc92c227480734ed1c8cdab",
+      "mode": "100644",
+      "sha256": "48b5ef9e386c4cd0d93da3ff62fe47c9279a66a7c7e0b58b5a214c9a24e35801"
+    },
+    "artifacts/ot-pilot/grounded-reads-2026-11-03/battery-toolspec-ws1/results.json": {
+      "concepts": [],
+      "git_blob": "d6a8c6951622aec3f31fce62698856ae82bd6648",
+      "mode": "100644",
+      "sha256": "0dcf6b7274975b5d58849d56a0d360e834a19d103e8eba9bf8f3da152971224b"
+    },
+    "artifacts/ot-pilot/grounded-reads-2026-11-03/fault-injection-toolspec-ws1/chain-verification.json": {
+      "concepts": [],
+      "git_blob": "d434dbbe268bb520e9f9d862fb2579175fbe0ccd",
+      "mode": "100644",
+      "sha256": "67f0a4d5475e25b668d6a3932c856f7dc051609c6838b78fc4685d6f18f8f81f"
+    },
+    "artifacts/ot-pilot/grounded-reads-2026-11-03/fault-injection-toolspec-ws1/manifest.json": {
+      "concepts": [],
+      "git_blob": "b4117b64ccbdf0ed15c6afe26e65ea88648bc2ac",
+      "mode": "100644",
+      "sha256": "9c96e57f8d620bb5ee697acae0a83790d0b1e63906cd6cdb366e261ecc1b595b"
+    },
+    "artifacts/ot-pilot/grounded-reads-2026-11-03/fault-injection-toolspec-ws1/metrics.json": {
+      "concepts": [],
+      "git_blob": "9e26dfeeb6e641a33dae4961196235bdb965b21b",
+      "mode": "100644",
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    "artifacts/ot-pilot/grounded-reads-2026-11-03/fault-injection-toolspec-ws1/report.txt": {
+      "concepts": [],
+      "git_blob": "11f02dd0d2cd5780551e85c61dad251c12c39ea6",
+      "mode": "100644",
+      "sha256": "b7c05af75a02f7cdcb8796af7ea579f76bac4a4b4b2fcd385a7e54a56a725f1f"
+    },
+    "artifacts/ot-pilot/grounded-reads-2026-11-03/fault-injection-toolspec-ws1/results.json": {
+      "concepts": [],
+      "git_blob": "f2ab5becee6d4c2301b2c3d758b2cf449dcad569",
+      "mode": "100644",
+      "sha256": "7eddf48a48c315481d4e1a17d8ddc19e9aebdc4fdf6f4725a8bd2f72aa1b8064"
+    },
     "artifacts/ot-pilot/grounded-reads-2026-11-03/fault-injection/chain-verification.json": {
       "concepts": [],
       "git_blob": "d434dbbe268bb520e9f9d862fb2579175fbe0ccd",
@@ -3185,9 +3245,21 @@
     },
     "artifacts/ot-pilot/grounded-reads-2026-11-03/manifest.json": {
       "concepts": [],
-      "git_blob": "0af5fe52abc5b05fa06e8451fa0e3feacabb9a04",
+      "git_blob": "6fcabc7a99771734151492ecab4b2fffcf9d337c",
       "mode": "100644",
-      "sha256": "9f80f03e74587053787f05439055f2ba87294e614efb512bd1e6cbbdefbc152a"
+      "sha256": "9620e21bb5c8b91b893cc29a2bdab8112148bdcbf9d2263a0049d60cc43a7dee"
+    },
+    "artifacts/ot-pilot/grounded-reads-2026-11-03/sec99-cases-toolspec-ws1/cases.json": {
+      "concepts": [],
+      "git_blob": "ac79325eb9b21c6083d3192c29f64fc18b1404bc",
+      "mode": "100644",
+      "sha256": "7f332939eac9505b5538ae9f3c27db104d136a476d478a79cc8a1f7070506fa5"
+    },
+    "artifacts/ot-pilot/grounded-reads-2026-11-03/sec99-cases-toolspec-ws1/run.json": {
+      "concepts": [],
+      "git_blob": "ef790285ab309ffdfe47c3c5c2017edad442cb6f",
+      "mode": "100644",
+      "sha256": "4a5030127cb7a7d112df478e1b494e526d9668e4307dcbde9e87fc45dcd95e1c"
     },
     "artifacts/ot-pilot/grounded-reads-2026-11-03/sec99-cases/cases.json": {
       "concepts": [],
@@ -3200,6 +3272,24 @@
       "git_blob": "6ad7ca6ca1b4e4c71f8d53a79d288e17fbe78ec7",
       "mode": "100644",
       "sha256": "3c34b5ea715bc9a644e0896acb3069774ceb476155d9b97676e7555b6b0efdac"
+    },
+    "artifacts/ot-pilot/grounded-reads-2026-11-03/ws1-shadow/assessed.json": {
+      "concepts": [],
+      "git_blob": "e8fe07f0e5b1d2fc3b15d452cf39c0bf6727e02b",
+      "mode": "100644",
+      "sha256": "fdbb84546f866ce45588ff293e6ab32bf25a65182fb875beb0def8f5a4fe5436"
+    },
+    "artifacts/ot-pilot/grounded-reads-2026-11-03/ws1-shadow/manifest.json": {
+      "concepts": [],
+      "git_blob": "3446ab818b581860d5ec2fb67ebf90173d62ded4",
+      "mode": "100644",
+      "sha256": "51d52d46c4ba7d808b907bb5a7576ab1efa03b92aa7fbe01c71f936328391bb5"
+    },
+    "artifacts/ot-pilot/grounded-reads-2026-11-03/ws1-shadow/results.json": {
+      "concepts": [],
+      "git_blob": "2f254e8da9fab47fe8827e072a3b36443f8c557c",
+      "mode": "100644",
+      "sha256": "3ad25de2066b71eab45c2f127383eed8d8e8d71c09894cb0df54953eed98eb50"
     },
     "artifacts/pilot-pack/README.md": {
       "concepts": [],
@@ -5131,9 +5221,15 @@
     },
     "deploy/ot-pilot/Dockerfile": {
       "concepts": [],
-      "git_blob": "4a83c54e5e79148932475b72ad18d3b0777de287",
+      "git_blob": "e8251aa6519b5d3155cc0e6b8aed3105ce47198a",
       "mode": "100644",
-      "sha256": "e65610358a2219e5deb74ed32fafc62376845fa42f06dd3158fd751ffb48d20e"
+      "sha256": "7dde5364acb9e9edf4457504c9e0d4ea98a7a0e0b302c65bd25f1230627f5a2a"
+    },
+    "deploy/ot-pilot/build_toolspec.py": {
+      "concepts": [],
+      "git_blob": "fb30dc25544857db0c4e9692ed7ddb1ecab78e2f",
+      "mode": "100644",
+      "sha256": "4d346c232326ed37165e92a50f4bbb663bca3ab253975cf1f26af9bef41fa790"
     },
     "deploy/ot-pilot/console/Dockerfile": {
       "concepts": [],
@@ -5149,9 +5245,9 @@
     },
     "deploy/ot-pilot/docker-compose.yml": {
       "concepts": [],
-      "git_blob": "4fa35df8bf9046dff79980ae454a2dc793ccae34",
+      "git_blob": "ce941cd36b68bd4b10931ce9c866e4e6bb16498c",
       "mode": "100644",
-      "sha256": "a093240c0b69ad65ccdc758c37470cc8940f7050a3bf0f0f9574fe35ff16f029"
+      "sha256": "71d5c4d088daee91c5a756effd8d712560af2d05f859486e3ed6c0fcdc728397"
     },
     "deploy/ot-pilot/init_tokens.py": {
       "concepts": [],
@@ -5177,6 +5273,18 @@
       "mode": "100644",
       "sha256": "2d65d5063ae17c7f6b905e51a5255e46a28a00076e9776efe7a11e486793258b"
     },
+    "deploy/ot-pilot/ot_ws1.py": {
+      "concepts": [],
+      "git_blob": "44f9b2dca841d7373b5b756fe2f768893fa8ea5e",
+      "mode": "100644",
+      "sha256": "b05963b09e7759dbec295e7e55b00d42cc0fd166401008b98dbe4cb65158c6ed"
+    },
+    "deploy/ot-pilot/ot_ws1_facts.json": {
+      "concepts": [],
+      "git_blob": "9debac99d138097329d6b828b6ecaa86189bd121",
+      "mode": "100644",
+      "sha256": "b815c44f285ccd7a03665d441690a158e2f5865d3004cbc0c502d75cb86b3cc0"
+    },
     "deploy/ot-pilot/run_fault_injection.py": {
       "concepts": [],
       "git_blob": "00f827b4eaa5dc6c3cd9d6fa3f66fc7fc3347724",
@@ -5185,9 +5293,9 @@
     },
     "deploy/ot-pilot/run_ot_battery.py": {
       "concepts": [],
-      "git_blob": "ea084723e3d9268ad4d23fea45f90d2b99684b96",
+      "git_blob": "9cf9f52ec699cbcdacfa6f0ade9a3e5feceeb1da",
       "mode": "100644",
-      "sha256": "ff69a73a598640a456875d947928f24b10f57b72234da4635923178eda398ba8"
+      "sha256": "62b7d5cb1ca190900886997cd6ceb0c3c9df4c3dbccd6fbabc5d3efca25043b8"
     },
     "deploy/ot-pilot/tool_metadata.json": {
       "concepts": [],
@@ -6477,9 +6585,9 @@
       "concepts": [
         "PROV-03"
       ],
-      "git_blob": "e3a5f648c532e447e58c64210f62f3aa810802d3",
+      "git_blob": "4f8827fbde3665e18c2419061f91f15510eb6fee",
       "mode": "100644",
-      "sha256": "ddf22104ae8cfa39a96ab18291bfc113ba349e6c9e9870915fc77ad5927bd9af"
+      "sha256": "e49a3af34eb46f62efeb50b3f1ce1c97dc6bc933d8a351134d8a5758473e52ac"
     },
     "docs/deployment/onprem-airgapped.md": {
       "concepts": [],
@@ -20008,9 +20116,9 @@
     },
     "tests/test_ot_battery_evidence.py": {
       "concepts": [],
-      "git_blob": "711d1da03e9c6a4e5fc1a37e244e7200e1e9e5d2",
+      "git_blob": "9e98d4a8bd837c1035731c9ea12ba150c13a844c",
       "mode": "100644",
-      "sha256": "8bcacfb35f029e4d84361d8bccd35236a10cadee6adc2faf669301077e488ccb"
+      "sha256": "2b75b3c293203590a98ac19e76da461ce75739d51dc1a9c74210df834ff0353e"
     },
     "tests/test_ot_console_showcase.py": {
       "concepts": [],
@@ -20029,6 +20137,12 @@
       "git_blob": "f810561f3555452e3469b79a0c958582e354b24e",
       "mode": "100644",
       "sha256": "33602dd30399f3df2610f4ab8cb50b7d63f270c84dcc25cd23062ed0d70f3044"
+    },
+    "tests/test_ot_pilot_toolspec.py": {
+      "concepts": [],
+      "git_blob": "a650f3fd8ae07095b03179221ba6a9fddf4b4328",
+      "mode": "100644",
+      "sha256": "0415d04083bd5ead53667de8f8f2205a7e0708cc1d64509b15de607cca5eb3bc"
     },
     "tests/test_otel.py": {
       "concepts": [],
@@ -22341,7 +22455,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "5a440eee9e38c92436f582d943dbed987f9c19891fa02f0bb3479d2029c63b01",
+  "register_sha256": "4b0585c2b1dc0a5a21e58ea47d26345ae12cbe294cd9f2b040cabe452476b3e6",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

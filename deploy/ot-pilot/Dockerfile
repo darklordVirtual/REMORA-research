@@ -41,6 +41,8 @@ COPY deploy/ot-pilot/ot_registry.py /app/ot_registry.py
 COPY deploy/ot-pilot/ot_bundle.py /app/ot_bundle.py
 COPY deploy/ot-pilot/work_orders.json /app/work_orders.json
 COPY deploy/ot-pilot/tool_metadata.json /app/tool_metadata.json
+COPY deploy/ot-pilot/ot_ws1.py /app/ot_ws1.py
+COPY deploy/ot-pilot/ot_ws1_facts.json /app/ot_ws1_facts.json
 COPY deploy/ot-pilot/limits.json /app/limits.json
 
 # The governed GitHub tool set for the MCP gateway. Same principle as the OT

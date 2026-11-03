@@ -1,0 +1,19 @@
+{
+  "_comment": [
+    "Systems of record the OT pilot's WS1 deployment (ot_ws1.py) resolves against.",
+    "monitoring_rounds: the sensors each daily round names (work_orders.json MON-ROUND",
+    "names them in prose only). work_order_targets: the loop, valve, alarm or work",
+    "order each signed work order names. Deployment-owned data for a simulated",
+    "plant; a real site reads these from its CMMS and historian."
+  ],
+  "monitoring_rounds": {
+    "MON-ROUND": ["PT-101", "TT-204", "VT-330", "LT-410", "FT-220"]
+  },
+  "work_order_targets": {
+    "WO-1201": ["PIC-101"],
+    "WO-1202": ["LT-410-HI"],
+    "WO-1203": ["WO-1201"],
+    "WO-1204": ["V-12"],
+    "WO-1205": ["WO-1310"]
+  }
+}

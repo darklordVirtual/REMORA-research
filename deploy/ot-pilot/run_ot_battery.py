@@ -153,8 +153,12 @@ CASES = [
 
     # ── Unknown tool: fail-closed ──────────────────────────────────────────
     # Coverage all_writes: a tool with no meter is refused at assess.
+    # With a signed ToolSpec bundle the spec check refuses the unknown tool
+    # first (toolspec_unknown_tool); without one the limit coverage check does
+    # (limit_coverage_unknown). Either is the refusal this case asks for.
     Case("Unknown tool not in any registry", "refused",
-         "calibrate_flux_capacitor", {"target": "P-7"}, refusal="limit_coverage_unknown"),
+         "calibrate_flux_capacitor", {"target": "P-7"},
+         refusal=("toolspec_unknown_tool", "limit_coverage_unknown")),
 
     # ── Value not in the system of record ──────────────────────────────────
     # The plant reports no value for PIC-999, so the movement cannot be
@@ -448,7 +452,8 @@ def judge(c: Case, rec: dict) -> bool:
         return rec.get("outcome") == "refused_at_assess" or (
             decision is not None and decision != "accept")
     if c.expect == "refused":
-        return rec.get("outcome") == "refused_at_assess" and rec.get("refusal") == c.refusal
+        accepted = c.refusal if isinstance(c.refusal, tuple) else (c.refusal,)
+        return rec.get("outcome") == "refused_at_assess" and rec.get("refusal") in accepted
     if c.expect == "goal_mismatch":
         return rec.get("semantic", {}).get("tool_matches_goal") is False \
             and decision != "accept"

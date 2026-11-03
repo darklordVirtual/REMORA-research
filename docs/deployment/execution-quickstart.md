@@ -289,6 +289,7 @@ tokens); both services bind loopback only.
 
 ```bash
 python deploy/ot-pilot/init_tokens.py
+python deploy/ot-pilot/build_toolspec.py   # signs the six tools' ToolSpec; the seed stays on the host
 docker compose -f deploy/ot-pilot/docker-compose.yml up --build -d
 set -a && . deploy/ot-pilot/.env && set +a
 python deploy/ot-pilot/run_ot_battery.py
@@ -310,6 +311,18 @@ reads completed". Remove the second variable to restore the production
 exclusion, and the same reads go to review again. Writes are unaffected either
 way. `REMORA_PILOT_TARGET_ENVIRONMENT` lets the battery name another
 environment than `prod`; the report says which one ran.
+
+The pilot runs with a signed ToolSpec bundle
+(`deploy/ot-pilot/build_toolspec.py`, RMR-CR-001). The six specs are authored
+from the deployment's own sources: the callable in `ot_registry.py`, the
+contract in `ot_bundle.py` and the risk declaration in `tool_metadata.json`.
+They are signed with an Ed25519 seed kept in `.toolspec-seed`. The API holds only the public key and the pinned digest, so no process on the
+stack can author a bundle. Every call is then measured against its spec, and
+the registered callables are measured at startup. WS1
+runs in shadow (`REMORA_WS1_MODE=shadow`, deployment `ot_ws1.py`): it proves
+what it can from `ot_ws1_facts.json` on every assessment and records in the
+audit chain what it would do, without changing a decision. Enforce needs flow
+control and the IFC work packages it names; see NEGATIVE_RESULTS §94.
 
 A useful negative test is to remove one strict prerequisite and confirm that
 startup/policy identity construction or the first execution-path lookup fails
