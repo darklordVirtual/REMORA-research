@@ -496,6 +496,8 @@ M4.4 completion requires a third party reproducing results from locked public/ap
 
 **Status at SDD v0.2 (reconciled 2026-10-21):** the OSF mirror is **IMPLEMENTED** and verified at `265abfbe`. Release registration `pxzj7` was submitted and is pending embargo approval. Study D OSF preregistration is **NOT CREATED / NOT VERIFIED**. M4.1 is OPEN. Study D, the verified execution benchmark and the independent reproduction have NOT RUN.
 
+**OSF check 2026-11-03:** the public OSF API returned HTTP 410 ("no longer available") for registration `pxzj7`. It is not known whether the registration was withdrawn, rejected in embargo approval or removed; the owner checks this on OSF. Until then nothing in this repository may cite `pxzj7` as an existing registration.
+
 ## 11. References
 
 1. REMORA [WS1 research #953](https://github.com/darklordVirtual/REMORA-research/issues/953), [control board #707](https://github.com/darklordVirtual/REMORA-research/issues/707), [gate controls PR #982](https://github.com/darklordVirtual/REMORA-research/pull/982), [Study C PR #981](https://github.com/darklordVirtual/REMORA-research/pull/981).

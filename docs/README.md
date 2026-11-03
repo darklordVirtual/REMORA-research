@@ -144,6 +144,7 @@ Several topics have more than one document. This table says which to open.
 | Document | Purpose |
 |---|---|
 | [Paper](../paper/remora_paper.md) | Scientific paper |
+| [Experiments explained](../paper/experiments_explained.html) ([PDF](../paper/experiments_explained.pdf)) | Plain-language walk through each experiment: question, setup, result and what it means |
 | [claim_register.md](claim_register.md) | Human-readable claim overview |
 | [EVIDENCE_OF_CAPABILITY.md](EVIDENCE_OF_CAPABILITY.md) | Capability evidence summary for reviewers |
 | [CONTRIBUTORS.md](CONTRIBUTORS.md) | Contributors and contribution record |
@@ -226,6 +227,7 @@ Several topics have more than one document. This table says which to open.
 | [statistical_analysis_plan_v5_bfcl_semantic.md](assurance/statistical_analysis_plan_v5_bfcl_semantic.md) | Pre-registered BFCL semantic-authority confirmation (C-ext3; executed 2026-08-19, 3 of 7 targets met, CLAIM-019) |
 | [statistical_analysis_plan_v6_bfcl_utility.md](assurance/statistical_analysis_plan_v6_bfcl_utility.md) | Pre-registered BFCL utility track (C-ext4; executed 2026-10-17, 8 of 8 targets met, CLAIM-021) |
 | [statistical_analysis_plan_v7_control_eval.md](assurance/statistical_analysis_plan_v7_control_eval.md) | Draft pre-registration: defences against an untrusted Claude agent on AgentDojo, plus addenda for InjecAgent (PRF-042) and external routing baselines on BFCL multi-turn (PRF-011) (not registered, not run) |
+| [statistical_analysis_plan_v8_agentdojo_ws1.md](assurance/statistical_analysis_plan_v8_agentdojo_ws1.md) | Draft pre-registration at gate G0: AgentDojo with flow control and WS1 evidence recovery, workspace suite held out, 50 USD cap (not registered, not run) |
 | [ws1_composition_study_v1.md](assurance/ws1_composition_study_v1.md) | Sealed preregistration of WS1 Study B (#953): evidence-directed verification against H0 and H-DET; evaluated once 2026-10-20 (600 episodes, NEGATIVE_RESULTS §95) |
 | [ws1_composition_study_v2.md](assurance/ws1_composition_study_v2.md) | Sealed preregistration of WS1 Study C (#953): the runtime gate with grounding from proofs, an independent safe-utility grader and injections searched against the defence; evaluated once 2026-10-21 (825 episodes, NEGATIVE_RESULTS §96) |
 | [horizon55-analysis-plan-v1.md](assurance/horizon55-analysis-plan-v1.md) | Retrospective, author-operated plan for the REMORA row over Horizon Shield #51 set 2 (#55); records prior exposure, not a preregistration |

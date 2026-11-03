@@ -214,9 +214,6 @@
     "docs/enterprise/audit-anchoring-guide.md": {
       "long_sentence": 1
     },
-    "docs/enterprise/no/REMORA_TOGAF_Enterprise_Architecture_v1.0.md": {
-      "long_sentence": 7
-    },
     "docs/enterprise/togaf-enterprise-rollout-plan.md": {
       "long_sentence": 2
     },
@@ -322,7 +319,7 @@
       "long_sentence": 13
     },
     "paper/remora_paper.md": {
-      "long_sentence": 67,
+      "long_sentence": 66,
       "meta_governance": 1
     },
     "workers/agent-control/README.md": {
