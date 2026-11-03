@@ -9867,9 +9867,9 @@
     },
     "paper/remora_paper.pdf": {
       "concepts": [],
-      "git_blob": "d400aca65ba5f09423c9d60c798c996c789ddd57",
+      "git_blob": "db2cfc5f24b5cdf8d8f639c75ec1ecfef124b450",
       "mode": "100644",
-      "sha256": "0e96f5f51cc0c11470b25ccc4739f7a647d8937ee87ad486eaa5044e7a09dc37"
+      "sha256": "3daf2b8893a038a0144c41c2caaca798ccd44a47c45014950f248d158d6b9eca"
     },
     "paper/remora_paper.tex": {
       "concepts": [],
@@ -21867,7 +21867,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "58d8a70b3ffddabd8ad794d7ac6aa310dc645269d82766dbafa0caf0c2eaad5b",
+  "register_sha256": "f7139253f62a10372e2c5ab793ed4cdb1c05d03f1d1571ded1b3d3d4b362c2be",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
