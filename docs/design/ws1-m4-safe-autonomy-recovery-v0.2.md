@@ -496,6 +496,10 @@ M4.4 completion requires a third party reproducing results from locked public/ap
 
 **Status at SDD v0.2 (reconciled 2026-10-21):** the OSF mirror is **IMPLEMENTED** and verified at `265abfbe`. Release registration `pxzj7` was submitted and is pending embargo approval. Study D OSF preregistration is **NOT CREATED / NOT VERIFIED**. M4.1 is OPEN. Study D, the verified execution benchmark and the independent reproduction have NOT RUN.
 
+**Status 2026-11-03:** §99 is reproduced against a rebuilt OT pilot (NEGATIVE_RESULTS §99, `artifacts/ws1/m4/sec99-reproduction/`). The T01 to T20 matrix passed at the Postgres reference backend, and M4.1 is **closed by owner decision** at the ceilings recorded in [`docs/assurance/ws1_m4_1_closure_record_v1.md`](../assurance/ws1_m4_1_closure_record_v1.md), subject to the second-author review requested there. The #953 owner ruling of 2026-11-03 reads INV-M4-04's "denial" as deterministic authority. A conditional monitor cap may therefore be discharged only by a deployment-signed contract and an independent verifier receipt, never by the monitor, and never above the deterministic ceiling. The invariant's text is unchanged. Study D remains NOT RUN and NOT REGISTERED.
+
+**OSF check 2026-11-03:** the public OSF API returned HTTP 410 ("no longer available") for registration `pxzj7`. It is not known whether the registration was withdrawn, rejected in embargo approval or removed; the owner checks this on OSF. Until then nothing in this repository may cite `pxzj7` as an existing registration.
+
 ## 11. References
 
 1. REMORA [WS1 research #953](https://github.com/darklordVirtual/REMORA-research/issues/953), [control board #707](https://github.com/darklordVirtual/REMORA-research/issues/707), [gate controls PR #982](https://github.com/darklordVirtual/REMORA-research/pull/982), [Study C PR #981](https://github.com/darklordVirtual/REMORA-research/pull/981).

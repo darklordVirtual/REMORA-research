@@ -67,6 +67,8 @@ _CLAIM_ID_RE = re.compile(r"CLAIM-\d{3}")
 # Anchors that must appear in BOTH files (case-sensitive substring).
 REQUIRED_IN_BOTH = (
     "SHADOW_ONLY",
+    # The declared release profile since OD-2026-10-25-controlled-pilot.
+    "CONTROLLED_PILOT",
     "GovernedToolDispatcher",
 )
 

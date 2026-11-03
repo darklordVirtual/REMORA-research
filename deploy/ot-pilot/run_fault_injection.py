@@ -258,8 +258,20 @@ def propose(tc: dict) -> tuple[int, Any]:
     return call("POST", "/v1/execution/assess", AGENT, tc)
 
 
+def _actor(token: str) -> str:
+    """The role behind a pilot bearer token, for the evidence record.
+
+    The manifest once keyed human steps by the token itself, which put the
+    approver's credential into every evidence directory (§99 reproduction,
+    2026-11-03). Only the role is recorded now; an unknown token is named
+    as such rather than written out.
+    """
+    return {APPROVER: "approver", SUPERVISOR: "supervisor", AGENT: "agent",
+            VIEWER: "viewer"}.get(token, "unknown-token")
+
+
 def approve(item: str, token: str = APPROVER) -> int:
-    HUMAN_STEPS.append(f"approve by {token}")
+    HUMAN_STEPS.append(f"approve by {_actor(token)}")
     return call("POST", "/v1/execution/approve", token,
                 {"item_id": item, "approval_ttl_seconds": 900})[0]
 

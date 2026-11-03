@@ -4,6 +4,25 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Security review 2026-11: §99 reproduced on a rebuilt OT pilot, and M4.1 closed
+
+- NEGATIVE_RESULTS §99 moves from open to accepted. A rebuilt pilot, with a second process from the same image in the executor domain, answered 404 on `/v1/execution/dispatch-leased` in the authority domain under every pilot credential, refused the agent token and unlinked leases on the executor, recorded `lease_dispatch_admitted` before and `lease_dispatch_result` after the admitted lease in the shared tenant chain, and refused a tampered call and a replay. The 16-case OT battery passed 16/16; the fault-injection runner's result is in the capsule README. Evidence: `artifacts/ws1/m4/sec99-reproduction/sec99-20261103T194032Z-dee87d1a/`, with tokens and keys redacted.
+- `docs/assurance/ws1_m4_1_closure_record_v1.md` records the M4.1 gate: 179 tests across the admission, fault-matrix, route, outbox, receipt and fault-injection suites at the Postgres reference backend, 173 passed, 70 M4-T-labelled cases passed, 6 failures confined to the legacy gate-control suite's test isolation under Postgres (not a product defect; SQLite 7/7). The owner closed M4.1 at the recorded ceilings, subject to second-author review. Study D stays unregistered and unrun.
+### Evidence tooling: the fault-injection manifest named the approver's token, and the gate-control suite was not isolated under Postgres
+
+Both found while reproducing NEGATIVE_RESULTS §99 on a rebuilt OT pilot (2026-11-03).
+
+- `deploy/ot-pilot/run_fault_injection.py` recorded each approval as `approve by <bearer token>`, so `human_steps_by_kind` in every evidence `manifest.json` carried the approver credential. It now records the role (`approver`, `supervisor`, `agent`, `viewer`, or `unknown-token`). Earlier evidence directories written by the runner should be treated as containing that credential. Test: `tests/test_ot_fault_injection.py` (+1).
+- `tests/test_ws1_gate_controls.py` minted every grant for proposal `p-ws1-1`. With `REMORA_PG_DSN` set the outbox persists across tests, and the settled row from the first control made the other six fail with "a settled dispatch is never re-claimed", which is the outbox's exclusivity rule, not a defect. Each control now mints its own proposal id; the suite passes 7/7 on SQLite and on a reused Postgres database. `artifacts/ws1/gate_controls_v1.json` is unchanged.
+
+### Paper (revision 2026-11-03: status and negative results brought current)
+
+No new numbers; every figure added comes from NEGATIVE_RESULTS.md or the registers.
+
+- The declared release profile is `CONTROLLED_PILOT` (OD-2026-10-25-controlled-pilot) in the abstract, the identifier list and the conclusion. The paper says that no pilot is claimed to run and that REM-021 is still open. `SHADOW_ONLY` is kept as the earlier status. `scripts/check_paper_sync.py` now requires `CONTROLLED_PILOT` in both sources.
+- New negative-result entries for NEGATIVE_RESULTS §92 and §93 (AgentDojo development dry run), §97 (no cumulative limit, opt-in CAP-031 repair), §98 (unspent grant on the review path) and §99 (self-signed leases). The abstract and the external-validity threats mention the AgentDojo transfer failure.
+- The two AgentHarm runs have distinct names: the false-authorization run (CLAIM-002, 208 harmful scenarios) and the tri-mode pilot (N=88).
+
 ### Security review 2026-11: the executor's door and production approval
 
 Recorded as REM-063 and REM-064, with the finding kept in NEGATIVE_RESULTS §99.

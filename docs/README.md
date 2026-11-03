@@ -2,6 +2,14 @@
 
 Seven documents cover most questions. Everything else in `docs/` is listed further down, grouped by the question it answers, so the full registered set stays reachable from this page.
 
+## Active research proposals: WS-2 (not implemented)
+
+- [WS-2 research workstream and evidence ledger](https://github.com/darklordVirtual/REMORA-research/issues/1159): open questions, dependencies, owner decisions and falsifiers.
+- [WS-2 question-to-verifier coverage audit v1.2](assurance/ws2_monitor_question_verifier_coverage_dev_v1.2.md): development-only static inventory; 0/2 independently informative signed discharge contracts; crossing incidence NOT_MEASURED.
+- [WS-2 minimal-intervention governance SDD v1.4](design/ws2-minimal-intervention-governance-sdd-v1.4.md): proposal subject to M4.1/§99 and explicit owner review.
+- [Study D WS2-B H3 annex v1.3](assurance/ws1_study_d_ws2_monitor_composition_prereg_draft_v1.3.md): draft, not preregistered; FOLLOW_ON recommended.
+- [Owner invariant interpretation and Study D decision](https://github.com/darklordVirtual/REMORA-research/issues/953): pending; no runtime authorization.
+
 ## Start here
 
 1. [Project front page](../README.md): what REMORA is, the evidence summary and current limitations.
@@ -103,6 +111,7 @@ Several topics have more than one document. This table says which to open.
 | [design/derived-information-flow-control-v1-status.md](design/derived-information-flow-control-v1-status.md) | Work-package status for the flow-control SDD, in its release order |
 | [design/compositional-authority-preservation-v1.md](design/compositional-authority-preservation-v1.md) | One invariant per link of the authority chain, entity and obligation binding (ABER), independent effect observation, and work packages CAPR-01 to CAPR-10 (proposal) |
 | [design/ws1-deterministic-authorization-learned-monitoring-v1.md](design/ws1-deterministic-authorization-learned-monitoring-v1.md) | WS1 (#953, Norwegian): a learned monitor may cap a decision or prioritise a registered lookup, never supply authority; WP0-WP5, with WP5 on `/v1/execution` behind `REMORA_WS1_MODE` (off by default); Studies B and C evaluated (NEGATIVE_RESULTS §95, §96) |
+| [assurance/ws1_m4_1_closure_record_v1.md](assurance/ws1_m4_1_closure_record_v1.md) | WS1-M4.1 closure record (2026-11-03): T01 to T20 at the Postgres reference backend, §99 reproduced on a rebuilt pilot, owner decision and its ceilings; second-author review pending |
 | [design/ws1-m4-safe-autonomy-recovery-v0.2.md](design/ws1-m4-safe-autonomy-recovery-v0.2.md) | WS1-M4 proposal (#953): one atomic admission transaction for evidence, authority, grant and dispatch intent (M4.1, closing the #982 re-gate/consume interval), then an OSF-preregistered Study D, an instrumented execution benchmark and an external reproduction; not implemented |
 | [design/authority-preserving-capability-mediation-v1.md](design/authority-preserving-capability-mediation-v1.md) | Authority-Preserving Capability Mediation (NTA-2): proposed design, phase 1 implemented |
 | [design/evidence-sufficiency-v1.1.md](design/evidence-sufficiency-v1.1.md) | Evidence-sufficiency v1.1: closing the gaps found by external seeded-fault testing; decisions, requirements, rerun protocol |
@@ -144,6 +153,7 @@ Several topics have more than one document. This table says which to open.
 | Document | Purpose |
 |---|---|
 | [Paper](../paper/remora_paper.md) | Scientific paper |
+| [Experiments explained](../paper/experiments_explained.html) ([PDF](../paper/experiments_explained.pdf)) | Plain-language walk through each experiment: question, setup, result and what it means |
 | [claim_register.md](claim_register.md) | Human-readable claim overview |
 | [EVIDENCE_OF_CAPABILITY.md](EVIDENCE_OF_CAPABILITY.md) | Capability evidence summary for reviewers |
 | [CONTRIBUTORS.md](CONTRIBUTORS.md) | Contributors and contribution record |
@@ -226,6 +236,7 @@ Several topics have more than one document. This table says which to open.
 | [statistical_analysis_plan_v5_bfcl_semantic.md](assurance/statistical_analysis_plan_v5_bfcl_semantic.md) | Pre-registered BFCL semantic-authority confirmation (C-ext3; executed 2026-08-19, 3 of 7 targets met, CLAIM-019) |
 | [statistical_analysis_plan_v6_bfcl_utility.md](assurance/statistical_analysis_plan_v6_bfcl_utility.md) | Pre-registered BFCL utility track (C-ext4; executed 2026-10-17, 8 of 8 targets met, CLAIM-021) |
 | [statistical_analysis_plan_v7_control_eval.md](assurance/statistical_analysis_plan_v7_control_eval.md) | Draft pre-registration: defences against an untrusted Claude agent on AgentDojo, plus addenda for InjecAgent (PRF-042) and external routing baselines on BFCL multi-turn (PRF-011) (not registered, not run) |
+| [statistical_analysis_plan_v8_agentdojo_ws1.md](assurance/statistical_analysis_plan_v8_agentdojo_ws1.md) | Draft pre-registration at gate G0: AgentDojo with flow control and WS1 evidence recovery, workspace suite held out, 50 USD cap (not registered, not run) |
 | [ws1_composition_study_v1.md](assurance/ws1_composition_study_v1.md) | Sealed preregistration of WS1 Study B (#953): evidence-directed verification against H0 and H-DET; evaluated once 2026-10-20 (600 episodes, NEGATIVE_RESULTS §95) |
 | [ws1_composition_study_v2.md](assurance/ws1_composition_study_v2.md) | Sealed preregistration of WS1 Study C (#953): the runtime gate with grounding from proofs, an independent safe-utility grader and injections searched against the defence; evaluated once 2026-10-21 (825 episodes, NEGATIVE_RESULTS §96) |
 | [horizon55-analysis-plan-v1.md](assurance/horizon55-analysis-plan-v1.md) | Retrospective, author-operated plan for the REMORA row over Horizon Shield #51 set 2 (#55); records prior exposure, not a preregistration |

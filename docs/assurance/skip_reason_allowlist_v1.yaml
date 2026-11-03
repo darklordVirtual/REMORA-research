@@ -66,6 +66,9 @@ entries:
   - pattern: "could not import 'sentry_sdk'.*"
     class: optional_dependency
     note: "The sentry extra is opt-in error reporting and not in the job's install set. The test that skips checks only that the real SDK accepts REMORA's options; every other Sentry test runs against a stand-in module."
+  - pattern: "could not import 'agentdojo'.*"
+    class: optional_dependency
+    note: "The control-evaluation run environment (experiments/control_eval/requirements.txt: agentdojo, pinned anthropic) is kept out of the job's install set. Only the end-to-end AgentDojo smoke test skips; every harness part it drives is unit-tested without AgentDojo in tests/test_control_eval_g2.py."
   - pattern: "Hugging Face datasets is not installed"
     class: optional_dependency
     note: "Standard benchmarks need the datasets extra."

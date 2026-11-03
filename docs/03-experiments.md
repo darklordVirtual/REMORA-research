@@ -8,6 +8,7 @@ these experiments support.
 → [06-reproducibility.md](06-reproducibility.md) for exact reproduce commands.
 → [04-negative-results-detail.md](04-negative-results-detail.md) for what did not
 replicate cleanly.
+→ [Experiments explained](../paper/experiments_explained.pdf) in plain language.
 
 ---
 

@@ -1,5 +1,5 @@
 schema_version: '1'
-updated: '2026-11-02'
+updated: '2026-11-03'
 documents:
 - id: DOC-001
   code_synced: verified
@@ -162,6 +162,30 @@ documents:
   last_reviewed: '2026-07-26'
   audience:
   - researchers
+- id: DOC-419
+  path: docs/assurance/statistical_analysis_plan_v8_agentdojo_ws1.md
+  status: canonical
+  topic: docs_assurance_statistical_analysis_plan_v8_agentdojo_ws1_md
+  code_synced: verified
+  verdict: current
+  owner: darklordVirtual
+  audience:
+  - researchers
+  - evaluators
+  last_audited: '2026-11-03'
+  last_reviewed: '2026-11-03'
+- id: DOC-418
+  path: paper/experiments_explained.html
+  status: canonical
+  topic: paper_experiments_explained_html
+  owner: darklordVirtual
+  code_synced: verified
+  verdict: current
+  last_audited: '2026-11-03'
+  last_reviewed: '2026-11-03'
+  audience:
+  - researchers
+  - evaluators
 - id: DOC-033
   path: docs/03-experiments.md
   status: canonical
@@ -3392,7 +3416,52 @@ documents:
   - remora/enforcement/gate.py
   - deploy/ot-pilot/run_ot_battery.py
   claims: []
+- id: DOC-420
+  path: docs/assurance/ws2_monitor_question_verifier_coverage_dev_v1.2.md
+  status: proposal
+  topic: docs_assurance_ws2_monitor_question_verifier_coverage_dev_v1_2_md
+  owner: darklordVirtual
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+  - evaluators
+  last_reviewed:
+- id: DOC-421
+  path: docs/assurance/ws1_study_d_ws2_monitor_composition_prereg_draft_v1.3.md
+  status: proposal
+  topic: docs_assurance_ws1_study_d_ws2_monitor_composition_prereg_draft_v1_3_md
+  owner: darklordVirtual
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+  - evaluators
+  last_reviewed:
+- id: DOC-422
+  path: docs/design/ws2-minimal-intervention-governance-sdd-v1.4.md
+  status: proposal
+  topic: docs_design_ws2-minimal-intervention-governance-sdd-v1_4_md
+  owner: darklordVirtual
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+  - integrators
+  last_reviewed:
+- id: DOC-423
+  path: docs/assurance/ws1_m4_1_closure_record_v1.md
+  status: supporting
+  topic: docs_assurance_ws1_m4_1_closure_record_v1_md
+  owner: darklordVirtual
+  code_synced: unreviewed
+  verdict: pending
+  audience:
+  - researchers
+  - maintainers
+  last_reviewed: '2026-11-03'
 topics:
+- docs_assurance_ws1_m4_1_closure_record_v1_md
 - docs_assurance_execution_path_quality_review_2026-11-01_md
 - provenance_README_md
 - provenance_prior-art-review-2026-10-04_md
@@ -3453,6 +3522,7 @@ topics:
 - CLAUDE_md
 - remora_README_md
 - paper_hf_dataset_card_md
+- paper_experiments_explained_html
 - paper_figures_md
 - paper_future_state_md
 - paper_claim_ledger_md
@@ -3709,6 +3779,7 @@ topics:
 - docs_architecture_adr_sdd_as_v1_owner_decisions_md
 - docs_review_PEER_REVIEW_FINDINGS_md
 - docs_assurance_statistical_analysis_plan_v7_control_eval_md
+- docs_assurance_statistical_analysis_plan_v8_agentdojo_ws1_md
 - docs_design_derived-information-flow-control-v1_md
 - docs_design_derived-information-flow-control-v1-status_md
 - docs_assurance_skip_reason_allowlist_v1_yaml
