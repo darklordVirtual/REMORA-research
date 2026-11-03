@@ -99,6 +99,11 @@ class SignatureDomain(str, Enum):
     #: A Capability Activation Manifest (remora.governance.activation_manifest),
     #: signed by the deployment's policy owner; REMORA holds only the public key.
     CAPABILITY_MANIFEST = "REMORA/CAPABILITY-MANIFEST/v1"
+    #: WS2-B prototype (remora.verification.monitor_discharge, library_only):
+    #: a deployment-signed map from a monitor question to the risk obligation
+    #: and verifier that may discharge it, and the verifier's receipt.
+    MONITOR_DISCHARGE_CONTRACT = "REMORA/MONITOR-DISCHARGE-CONTRACT/v1"
+    MONITOR_DISCHARGE_RECEIPT = "REMORA/MONITOR-DISCHARGE-RECEIPT/v1"
 
 
 class SigningUnavailable(RemoraError, RuntimeError):
