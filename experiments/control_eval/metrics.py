@@ -179,6 +179,105 @@ def clustered_auroc_difference(rows: Sequence[tuple[str, bool, float, float]],
     return {"difference": point, "p_one_sided": (not_above + 1) / (valid + 1), "resamples": valid}
 
 
+EXACT_MAX_CLUSTERS = 20
+
+
+def cluster_sign_flip_test(diffs: Sequence[tuple[str, float]], alternative: str = "greater",
+                           n_draws: int = 20_000, seed: int = SEED,
+                           exact_max_clusters: int = EXACT_MAX_CLUSTERS) -> dict[str, Any]:
+    """Null-calibrated cluster sign-flip permutation test for paired differences.
+
+    *diffs* are (cluster, d) per pair, with d the paired difference of an
+    outcome between two arms (for example ASR_A - ASR_E on one attacked
+    pair). Under the null of no arm effect, with arms exchangeable within a
+    pair, the sum of d within each cluster (user task) is symmetric about
+    zero, so flipping the sign of whole clusters gives the null distribution
+    of the statistic T = sum of all d. Pairs within a cluster keep their
+    dependence because they are flipped together.
+
+    The reference set is all 2^G sign vectors when G <= *exact_max_clusters*
+    (exact p, including the observed vector), otherwise *n_draws* uniform
+    random sign vectors with a fixed seed, and p = (1 + #{T* >= T}) /
+    (1 + draws). ``alternative`` is ``greater`` (mean d > 0), ``less`` or
+    ``two-sided`` (|T*| >= |T|). This replaces the percentile bootstrap p
+    for confirmatory tests: with few clusters the bootstrap understates p
+    (NEGATIVE_RESULTS.md §96).
+    """
+    if alternative not in ("greater", "less", "two-sided"):
+        raise ValueError(f"unknown alternative {alternative!r}")
+    sums: dict[str, float] = defaultdict(float)
+    n_pairs = 0
+    for cluster, d in diffs:
+        sums[cluster] += float(d)
+        n_pairs += 1
+    if not sums:
+        raise ValueError("no differences")
+    s = [sums[k] for k in sorted(sums)]
+    observed = sum(s)
+    eps = 1e-9 * max(1.0, sum(abs(v) for v in s))
+
+    def as_stat(t: float) -> float:
+        return {"greater": t, "less": -t, "two-sided": abs(t)}[alternative]
+
+    t_obs = as_stat(observed)
+    if len(s) <= exact_max_clusters:
+        totals = [0.0]
+        for v in s:
+            totals = [t + v for t in totals] + [t - v for t in totals]
+        extreme = sum(1 for t in totals if as_stat(t) >= t_obs - eps)
+        p, method, draws = extreme / len(totals), "exact", len(totals)
+    else:
+        rng = random.Random(seed)
+        extreme = 0
+        for _ in range(n_draws):
+            t = sum(v if rng.random() < 0.5 else -v for v in s)
+            extreme += as_stat(t) >= t_obs - eps
+        p, method, draws = (1 + extreme) / (1 + n_draws), "monte_carlo", n_draws
+    return {"mean_difference": observed / n_pairs, "statistic": observed, "p": p,
+            "alternative": alternative, "method": method, "clusters": len(s),
+            "pairs": n_pairs, "reference_size": draws}
+
+
+def simulate_power(cluster_rates: Sequence[float], effect: float, n_clusters: int,
+                   pairs_per_cluster: int, alpha: float = 0.05, n_sims: int = 500,
+                   seed: int = SEED, n_draws: int = 999, exact_max_clusters: int = 12,
+                   ) -> dict[str, Any]:
+    """Power of :func:`cluster_sign_flip_test` (one-sided) for a paired rate reduction.
+
+    *cluster_rates* are pilot per-cluster outcome rates for the reference
+    arm (for example the undefended ASR per user task). Each simulated study
+    draws *n_clusters* clusters with replacement from them, gives every
+    cluster *pairs_per_cluster* pairs, draws the reference outcome with the
+    cluster's rate and the compared arm's outcome with rate - *effect*
+    (floored at 0), independently within a pair. Independence ignores the
+    positive coupling that shared responses create, so the estimate is
+    conservative for a CRN run. Returns the rejection share at *alpha* and
+    its Monte Carlo standard error.
+    """
+    if not cluster_rates or not all(0.0 <= r <= 1.0 for r in cluster_rates):
+        raise ValueError("cluster rates must be in [0, 1]")
+    if n_clusters < 1 or pairs_per_cluster < 1 or n_sims < 1:
+        raise ValueError("n_clusters, pairs_per_cluster and n_sims must be positive")
+    rng = random.Random(seed)
+    rejections = 0
+    for sim in range(n_sims):
+        rows: list[tuple[str, float]] = []
+        for c in range(n_clusters):
+            rate = cluster_rates[rng.randrange(len(cluster_rates))]
+            lower = max(0.0, rate - effect)
+            for _ in range(pairs_per_cluster):
+                a = rng.random() < rate
+                b = rng.random() < lower
+                rows.append((f"c{c}", float(a) - float(b)))
+        result = cluster_sign_flip_test(rows, "greater", n_draws=n_draws, seed=seed + sim,
+                                        exact_max_clusters=exact_max_clusters)
+        rejections += result["p"] <= alpha
+    power = rejections / n_sims
+    return {"power": power, "se": math.sqrt(power * (1 - power) / n_sims), "n_sims": n_sims,
+            "n_clusters": n_clusters, "pairs_per_cluster": pairs_per_cluster,
+            "effect": effect, "alpha": alpha}
+
+
 # ── split ────────────────────────────────────────────────────────────────
 
 

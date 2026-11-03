@@ -16,9 +16,23 @@ Modes:
     blocks legitimate calls and what that costs in AgentDojo utility, which
     is what adapter development needs. It touches no test task.
 
-The pilot and the sealed test run need the owner's decisions in SAP v7 §9
-(model IDs, prices, monitor prompt, OSF registration). They are refused
-until then.
+``--pilot --config <run config>``
+    Development tasks of the non-held-out suites only (``holdout_suites``
+    in the config; workspace is held out as a transfer test). Every arm in
+    the config runs every episode with the real agent. Writes the pilot
+    artifact: cost per episode, undefended attack success, per-arm counts.
+``--test --config <run config> [--resume]``
+    The sealed run, all four suites' test pairs. Refused unless the
+    readiness gates G0-G6 pass (``scripts/check_study_readiness.py``) and
+    the manifest status is ``locked_never_run``; sets ``evaluated`` after
+    the run and refuses a second one. ``--resume`` continues a crashed run
+    with the same run id from its response cache and ledger.
+
+Both refuse to start without an owner-approved run config (model IDs,
+prices per token, effort, max_tokens, monitor prompt) and an armed budget
+ledger with a sub-cap for the phase. Every model call is reserved against
+the ledger before it is sent (``experiments/control_eval/spend_ledger.py``).
+The arms come from ``experiments/control_eval/arms.py``.
 """
 from __future__ import annotations
 
@@ -128,6 +142,72 @@ def dry_run() -> dict[str, Any]:
     return report
 
 
+class RunRefused(RuntimeError):
+    pass
+
+
+def _armed_config(config: Path | None, phase: str, root: Path):
+    from experiments.control_eval.run_config import ConfigRefused, load_run_config
+    try:
+        cfg = load_run_config(config, root)
+    except ConfigRefused as exc:
+        raise RunRefused(str(exc)) from exc
+    if cfg.phase_caps_usd.get(phase, 0.0) <= 0:
+        raise RunRefused(f"budget guard not armed: no positive sub-cap for phase {phase!r}")
+    return cfg
+
+
+def _anthropic_client() -> Any:  # pragma: no cover - real API, never in tests
+    import anthropic
+    return anthropic.Anthropic()
+
+
+def pilot(config: Path | None, sdk: Any = None, root: Path = REPO_ROOT) -> dict[str, Any]:
+    cfg = _armed_config(config, "pilot", root)
+    from experiments.control_eval import study_runner as sr
+    if cfg.pilot_out.exists():
+        earlier = json.loads(cfg.pilot_out.read_text(encoding="utf-8"))
+        if earlier.get("run_id") != cfg.run_id:
+            raise RunRefused(f"{cfg.pilot_out} holds pilot {earlier.get('run_id')!r}; "
+                             "a pilot never overwrites another")
+    suites = sr.load_suites(cfg.pilot_suites)
+    episodes = sr.pilot_episodes(cfg, suites)
+    result = sr.run_episodes(cfg, "pilot", episodes, suites, sdk or _anthropic_client())
+    report = sr.summarize_pilot(cfg, result)
+    cfg.pilot_out.parent.mkdir(parents=True, exist_ok=True)
+    cfg.pilot_out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    return report
+
+
+def sealed_test(config: Path | None, sdk: Any = None, root: Path = REPO_ROOT,
+                resume: bool = False, fetch: Any = None) -> dict[str, Any]:
+    cfg = _armed_config(config, "test", root)
+    from experiments.control_eval import readiness, sealed_run
+    gates = readiness.check_readiness(cfg.raw, root, fetch)
+    if not resume and not readiness.all_pass(gates):
+        raise RunRefused("readiness gates do not all pass:\n" + readiness.render(gates))
+    r = cfg.readiness
+    manifest = root / r["manifest"]
+    try:
+        body = sealed_run.start_test_run(manifest, root,
+                                         [*r.get("harness_files", []), r["plan"]],
+                                         cfg.run_id, resume=resume)
+    except sealed_run.SealRefused as exc:
+        raise RunRefused(str(exc)) from exc
+    from experiments.control_eval import study_runner as sr
+    from experiments.control_eval.run_config import ALL_SUITES
+    suites = sr.load_suites(ALL_SUITES)
+    episodes = sr.sealed_test_episodes(suites, int(body["planned_pairs"]))
+    result = sr.run_episodes(cfg, "test", episodes, suites, sdk or _anthropic_client())
+    out = root / r.get("result", "artifacts/control_eval/test_result_v1.json")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps({k: v for k, v in result.items()}, indent=2, sort_keys=True,
+                              default=str) + "\n", encoding="utf-8")
+    sealed_run.finish_test_run(manifest, cfg.run_id, result_file=str(out.relative_to(root)),
+                               stopped_by_budget=result["stopped_by_budget"])
+    return result
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -136,15 +216,21 @@ def main(argv: Sequence[str] | None = None) -> int:
     mode.add_argument("--dry-run", action="store_true")
     mode.add_argument("--pilot", action="store_true")
     mode.add_argument("--test", action="store_true")
+    parser.add_argument("--config", type=Path, help="owner-approved run config (JSON)")
+    parser.add_argument("--resume", action="store_true", help="--test: continue a crashed run")
     parser.add_argument("--out", type=Path, help="write the JSON report here")
     args = parser.parse_args(argv)
-    if args.pilot or args.test:
-        print("REFUSING: the pilot and the test run need the owner's decisions in SAP v7 §9 "
-              "(model IDs, prices, monitor prompt) and, for --test, a locked manifest "
-              "registered on OSF.", file=sys.stderr)
+    try:
+        if args.pilot:
+            body = pilot(args.config)
+        elif args.test:
+            body = sealed_test(args.config, resume=args.resume)
+        else:
+            body = split() if args.split else dry_run()
+    except RunRefused as exc:
+        print(f"REFUSING: {exc}", file=sys.stderr)
         return 2
-    body = split() if args.split else dry_run()
-    text = json.dumps(body, indent=2, sort_keys=True) + "\n"
+    text = json.dumps(body, indent=2, sort_keys=True, default=str) + "\n"
     if args.out:
         args.out.write_text(text, encoding="utf-8")
         print(f"wrote {args.out}")

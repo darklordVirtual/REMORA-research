@@ -559,6 +559,12 @@
       "mode": "100644",
       "sha256": "c3ca96abe1592d9115852a6e4cd7e7c124a0eb290dd4716e2245b2cbdcc548f1"
     },
+    "artifacts/control_eval/cost_model_v1.json": {
+      "concepts": [],
+      "git_blob": "68c9b6d4cd83910f7903192329efed54cb1e0b9b",
+      "mode": "100644",
+      "sha256": "071bdff9dc83ebc6654d8b15f2d4890eeab7d5842764246b6c76ae254e29a2a9"
+    },
     "artifacts/control_eval/dev_dry_run_v1.json": {
       "concepts": [],
       "git_blob": "88e18df8c3afbe0d45f12ff69346601ee0e584dd",
@@ -7419,27 +7425,63 @@
     },
     "experiments/control_eval/__init__.py": {
       "concepts": [],
-      "git_blob": "2ac4250465110a0a373bb8d3a793ecdbe515cdf8",
+      "git_blob": "2cf4da2cc4f5aadd1183ce9f85ad1c958cf2cc88",
       "mode": "100644",
-      "sha256": "f02ab348079f2eb2466dca164735b2343c7c35044ce228e9aa8ca90d7afe4473"
+      "sha256": "cc00e07d1327ada60683f8f9d788b1260ebcf17183316c93a572dec7f7ff81a9"
     },
     "experiments/control_eval/agentdojo_glue.py": {
       "concepts": [],
-      "git_blob": "8ee3588ac6c8548961acae7a9bf20bb2a17ccb79",
+      "git_blob": "ddf5f42abdb029793afd215051141f273de17b99",
       "mode": "100644",
-      "sha256": "664c5d6ba4387d4c869b38586f0caf57131eb85b62af7a56995fea4ea7db35f8"
+      "sha256": "5ecfdd068cea225ec0b5df633851a9d37d725b5fc028cd23fa6b3c055c2f0a4c"
+    },
+    "experiments/control_eval/arms.py": {
+      "concepts": [],
+      "git_blob": "79e7666bdbd54058c34e10c36a0bb51b454a9145",
+      "mode": "100644",
+      "sha256": "164683420ff1c4505ea2774a5c68fbb93bba024593986ee45c17db4690a4c74a"
+    },
+    "experiments/control_eval/claude_messages.py": {
+      "concepts": [],
+      "git_blob": "9dfd839b2390fe6fb1399783a0f0d3163c9c628e",
+      "mode": "100644",
+      "sha256": "370921696b9f14741f1f2b1d3ddc48271f926f706ccd782720ff6a1dec58ee4c"
+    },
+    "experiments/control_eval/configs/run_config.example.json": {
+      "concepts": [],
+      "git_blob": "2c64989ff25949defd724a93cbdb4587f693abbc",
+      "mode": "100644",
+      "sha256": "e7bb77b09ae04a8e2fa0665bb7538c7da9f066161b9914ec08305e9ac165ad33"
+    },
+    "experiments/control_eval/gateway.py": {
+      "concepts": [],
+      "git_blob": "05d57716185bb68b88239c855630057d00dc75a3",
+      "mode": "100644",
+      "sha256": "01408a87cdfda1d649a04f809dbd809418af5e7a5e972f7663f5a6514dfbad02"
     },
     "experiments/control_eval/metrics.py": {
       "concepts": [],
-      "git_blob": "2680dd39cf192d1d9c9db46f12a8027cda19c1f5",
+      "git_blob": "e594bea993b95006dc98f0922481901b4b52b59d",
       "mode": "100644",
-      "sha256": "580efb69e0ee5f4a9e8a8766e5e4c167db627a116e43a1b7c340d965ae1af462"
+      "sha256": "f83c3936de415fc26ef7119fafd764ab788bbac4a2f1fdfac96917c8076ed357"
     },
     "experiments/control_eval/policies.py": {
       "concepts": [],
       "git_blob": "994e7972021230c376ea36bcb9a4c111e53e0066",
       "mode": "100644",
       "sha256": "946202200f8c0e59e2b49c8517ec49f0844cb4d5d07e1db524a04254f7590d23"
+    },
+    "experiments/control_eval/prompts/monitor_v1_draft.txt": {
+      "concepts": [],
+      "git_blob": "891f6a3b8828c521a3f9804704142f747acd1662",
+      "mode": "100644",
+      "sha256": "24a9338e6ba4b294568ae4b40163ec9c8d9f86d5054115e31f63f97e34658c95"
+    },
+    "experiments/control_eval/readiness.py": {
+      "concepts": [],
+      "git_blob": "1085d781b12532e505a669b942b97632da0629aa",
+      "mode": "100644",
+      "sha256": "c39ed4aa2711d967d71ae47da6e70503f73d305ddb9d46ebfad92081280e0756"
     },
     "experiments/control_eval/remora_adapter.py": {
       "concepts": [],
@@ -7452,6 +7494,36 @@
       "git_blob": "52299f156dde41fb31cb31591a155d8a64a22bb3",
       "mode": "100644",
       "sha256": "35dd830a7300f3b3791e2d9dc3f258922b95903902c2369abe7318747a6f296a"
+    },
+    "experiments/control_eval/response_cache.py": {
+      "concepts": [],
+      "git_blob": "d416a0ae4e96681425e6bbd07d1acf853d5059e4",
+      "mode": "100644",
+      "sha256": "12b14567bc4181d4ec9ee44f29691484910f34c564fd02d509785f2b55a76304"
+    },
+    "experiments/control_eval/run_config.py": {
+      "concepts": [],
+      "git_blob": "76ec3035059b16bb66f5caf636a90585203f099e",
+      "mode": "100644",
+      "sha256": "d9c2fb46e59c13929bf6b31c567b018ba2eb11e911d0cb1ea30dec585cc537dd"
+    },
+    "experiments/control_eval/sealed_run.py": {
+      "concepts": [],
+      "git_blob": "172b80e5b81701e9d365f59c944b3eb7e1d62ac0",
+      "mode": "100644",
+      "sha256": "81db7c89950b9ed64fe82729e6401e5fedbddaf9459206c63b6be0800c30e2a0"
+    },
+    "experiments/control_eval/spend_ledger.py": {
+      "concepts": [],
+      "git_blob": "7d67e4651ee1c5e3835e5f6cb245e099e7e36ced",
+      "mode": "100644",
+      "sha256": "8e19878e62d14c6584d713ab0d34ceb84568e81beecbaa63c6f7eced0ff4d0c7"
+    },
+    "experiments/control_eval/study_runner.py": {
+      "concepts": [],
+      "git_blob": "63c2eda55f9f0103980ee28f8e68d0b6cfab62be",
+      "mode": "100644",
+      "sha256": "9a474e5179c1ed66809f99ece70fa40810874c41e59038614bef5ad3893e0f9b"
     },
     "experiments/empirical_susceptibility.py": {
       "concepts": [],
@@ -15021,6 +15093,12 @@
       "mode": "100644",
       "sha256": "36a4aafb25abaeb9b90f6d9ca117d97ffa170a043ef2f58db9df7a6d3ac314fa"
     },
+    "scripts/check_study_readiness.py": {
+      "concepts": [],
+      "git_blob": "5ea1f504229fb7ef2dcdbe6965c9924594413e38",
+      "mode": "100644",
+      "sha256": "e83bd82940ab779211bc938991bbd966f719a72691f29379f89a30d38e843eae"
+    },
     "scripts/check_test_accounting.py": {
       "concepts": [],
       "git_blob": "5b661ebde09d1674b21c299f665606ea8ff55638",
@@ -15110,6 +15188,12 @@
       "git_blob": "67624505eecbde2ad5f034f347e775f71dfe2024",
       "mode": "100644",
       "sha256": "2fbc656590460c3e9ec0b58950d0e86ac2122d89f3e0fb80cca73496bbafc98c"
+    },
+    "scripts/estimate_control_eval_cost.py": {
+      "concepts": [],
+      "git_blob": "3c6540451221c2f9340fd563ac77e0e053a46dc4",
+      "mode": "100644",
+      "sha256": "b025aab5f4513c05562db6a42b210133e8bb2da3e08db16c5bd41e4cefe1d399"
     },
     "scripts/evaluate_runtime_surface.py": {
       "concepts": [],
@@ -15617,9 +15701,9 @@
     },
     "scripts/run_control_eval.py": {
       "concepts": [],
-      "git_blob": "202ef51fe90f21509aa25bf39cfcec5c75d84561",
+      "git_blob": "6481a38dbe5aa96d51d836bbf235a134c6da92a1",
       "mode": "100644",
-      "sha256": "b12d06e08ee6f48b464a317ea2a1090b1301cb821f0f1246acd9678d95fc80bb"
+      "sha256": "d11dbcedf4c5ac96168cd63f74e6369b6934521bf174b450ffe7c75bee0cb0b9"
     },
     "scripts/run_cross_domain_transfer.py": {
       "concepts": [],
@@ -17695,11 +17779,23 @@
       "mode": "100644",
       "sha256": "ba8bcb5ee2bbdf5eea895e5727a0b5ea381b0f6a43d3f8c482db082194dccd6c"
     },
+    "tests/test_control_eval_g2.py": {
+      "concepts": [],
+      "git_blob": "a149ae976d75c2314443c395774e314e7590cbd1",
+      "mode": "100644",
+      "sha256": "f2e7728d8f4f590e5fd377dabc9a9d78d5c5f76004c146e8fa6ff401466bcef0"
+    },
     "tests/test_control_eval_harness.py": {
       "concepts": [],
       "git_blob": "0a5ab32a7ac81185eea1ba779f9847464832b7ae",
       "mode": "100644",
       "sha256": "ada952b5554e4edbe96d6ecbce9b8f57f11dfd786324a15c186357b6cae14fb9"
+    },
+    "tests/test_control_eval_smoke_agentdojo.py": {
+      "concepts": [],
+      "git_blob": "a47dcbfa880400880786416b23e02a14fbec092e",
+      "mode": "100644",
+      "sha256": "9d7d62c4d17a6dd5e3b8db612f876c9daefbe374243296b673aceefeeb237286"
     },
     "tests/test_control_plane_store.py": {
       "concepts": [],
@@ -21867,7 +21963,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "416f6701118d3ab69dca521b02403f838ea74abff5e081cf3cb4e4d6c218c20c",
+  "register_sha256": "4406c2ee71a2344ce88340f02632344f1200d507e8a6920768b1f333b71b7d9e",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

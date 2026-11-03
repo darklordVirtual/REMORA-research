@@ -1,0 +1,303 @@
+{
+  "arm_A_episode": {
+    "claude-haiku-5-5": {
+      "banking": {
+        "attacked": {
+          "calls": 5,
+          "input_tokens": 9054.375,
+          "output_tokens": 1500,
+          "usd": 0.001088009375
+        },
+        "attacked_no_prompt_cache": {
+          "calls": 5,
+          "input_tokens": 9054.375,
+          "output_tokens": 1500,
+          "usd": 0.0016554375
+        },
+        "benign": {
+          "calls": 3,
+          "input_tokens": 4606.125,
+          "output_tokens": 900,
+          "usd": 0.000690511875
+        }
+      },
+      "slack": {
+        "attacked": {
+          "calls": 6,
+          "input_tokens": 8940.333333333334,
+          "output_tokens": 1800,
+          "usd": 0.0011915142361111112
+        },
+        "attacked_no_prompt_cache": {
+          "calls": 6,
+          "input_tokens": 8940.333333333334,
+          "output_tokens": 1800,
+          "usd": 0.0017940333333333334
+        },
+        "benign": {
+          "calls": 4,
+          "input_tokens": 5072.333333333333,
+          "output_tokens": 1200,
+          "usd": 0.000813280625
+        }
+      },
+      "travel": {
+        "attacked": {
+          "calls": 9,
+          "input_tokens": 42593.93382352941,
+          "output_tokens": 2700,
+          "usd": 0.002393655355392157
+        },
+        "attacked_no_prompt_cache": {
+          "calls": 9,
+          "input_tokens": 42593.93382352941,
+          "output_tokens": 2700,
+          "usd": 0.005609393382352942
+        },
+        "benign": {
+          "calls": 7,
+          "input_tokens": 31106.575980392157,
+          "output_tokens": 2100,
+          "usd": 0.001925760012254902
+        }
+      },
+      "workspace": {
+        "attacked": {
+          "calls": 7,
+          "input_tokens": 26979.58088235294,
+          "output_tokens": 2100,
+          "usd": 0.0018124162540849673
+        },
+        "attacked_no_prompt_cache": {
+          "calls": 7,
+          "input_tokens": 26979.58088235294,
+          "output_tokens": 2100,
+          "usd": 0.0037479580882352945
+        },
+        "benign": {
+          "calls": 5,
+          "input_tokens": 17948.269335511985,
+          "output_tokens": 1500,
+          "usd": 0.0013735730133442267
+        }
+      }
+    },
+    "claude-sonnet-5-5": {
+      "banking": {
+        "attacked": {
+          "calls": 5,
+          "input_tokens": 9054.375,
+          "output_tokens": 1500,
+          "usd": 0.0217601875
+        },
+        "attacked_no_prompt_cache": {
+          "calls": 5,
+          "input_tokens": 9054.375,
+          "output_tokens": 1500,
+          "usd": 0.03310875
+        },
+        "benign": {
+          "calls": 3,
+          "input_tokens": 4606.125,
+          "output_tokens": 900,
+          "usd": 0.0138102375
+        }
+      },
+      "slack": {
+        "attacked": {
+          "calls": 6,
+          "input_tokens": 8940.333333333334,
+          "output_tokens": 1800,
+          "usd": 0.02383028472222222
+        },
+        "attacked_no_prompt_cache": {
+          "calls": 6,
+          "input_tokens": 8940.333333333334,
+          "output_tokens": 1800,
+          "usd": 0.03588066666666667
+        },
+        "benign": {
+          "calls": 4,
+          "input_tokens": 5072.333333333333,
+          "output_tokens": 1200,
+          "usd": 0.0162656125
+        }
+      },
+      "travel": {
+        "attacked": {
+          "calls": 9,
+          "input_tokens": 42593.93382352941,
+          "output_tokens": 2700,
+          "usd": 0.04787310710784314
+        },
+        "attacked_no_prompt_cache": {
+          "calls": 9,
+          "input_tokens": 42593.93382352941,
+          "output_tokens": 2700,
+          "usd": 0.11218786764705882
+        },
+        "benign": {
+          "calls": 7,
+          "input_tokens": 31106.575980392157,
+          "output_tokens": 2100,
+          "usd": 0.03851520024509804
+        }
+      },
+      "workspace": {
+        "attacked": {
+          "calls": 7,
+          "input_tokens": 26979.58088235294,
+          "output_tokens": 2100,
+          "usd": 0.03624832508169935
+        },
+        "attacked_no_prompt_cache": {
+          "calls": 7,
+          "input_tokens": 26979.58088235294,
+          "output_tokens": 2100,
+          "usd": 0.07495916176470588
+        },
+        "benign": {
+          "calls": 5,
+          "input_tokens": 17948.269335511985,
+          "output_tokens": 1500,
+          "usd": 0.02747146026688453
+        }
+      }
+    }
+  },
+  "arms": [
+    "A_none",
+    "B_refuse_all",
+    "C_allowlist",
+    "D_monitor",
+    "E1_remora_strict",
+    "E_IFC",
+    "E_IFC_WS1"
+  ],
+  "assumptions": {
+    "B_refuse_all_agent_calls": 2,
+    "crn_share_of_non_reference_agent_requests": 0.5,
+    "extra_turns_when_attack_followed": 2,
+    "injection_text_tokens": 150,
+    "monitor_output_tokens": 120,
+    "monitor_prompt_tokens": 250,
+    "output_tokens_per_agent_turn": 300,
+    "visible_output_tokens_per_turn_in_context": 80
+  },
+  "measured": {
+    "suites": {
+      "banking": {
+        "dev_calls_mean": 2.3333333333333335,
+        "dev_prompt_tokens_mean": 38.125,
+        "dev_tool_output_tokens_mean": 75.5,
+        "dev_user_tasks": 6,
+        "injection_tasks": 9,
+        "source": "measured on development tasks",
+        "test_user_tasks": 10,
+        "tool_schema_tokens": 1224.5,
+        "tools": 11
+      },
+      "slack": {
+        "dev_calls_mean": 3,
+        "dev_prompt_tokens_mean": 27.875,
+        "dev_tool_output_tokens_mean": 16.97222222222222,
+        "dev_user_tasks": 6,
+        "injection_tasks": 5,
+        "source": "measured on development tasks",
+        "test_user_tasks": 15,
+        "tool_schema_tokens": 977.5,
+        "tools": 11
+      },
+      "travel": {
+        "dev_calls_mean": 5.666666666666667,
+        "dev_prompt_tokens_mean": 93.45833333333333,
+        "dev_tool_output_tokens_mean": 75.52941176470588,
+        "dev_user_tasks": 6,
+        "injection_tasks": 7,
+        "source": "measured on development tasks",
+        "test_user_tasks": 14,
+        "tool_schema_tokens": 3766.5,
+        "tools": 28
+      },
+      "workspace": {
+        "dev_calls_mean": 3.666666666666667,
+        "dev_prompt_tokens_mean": 53.15277777777778,
+        "dev_tool_output_tokens_mean": 56.000544662309366,
+        "dev_user_tasks": 12,
+        "injection_tasks": 14,
+        "source": "held out: schemas measured, per-task figures are the other suites' mean",
+        "test_user_tasks": 28,
+        "tool_schema_tokens": 3147.25,
+        "tools": 24
+      }
+    },
+    "system_prompt_tokens": 117.25
+  },
+  "method": "characters / 4 over AgentDojo v1.2.2 prompts, tool schemas and development-task tool outputs; no tokenizer, no API call",
+  "monitor_model": "claude-haiku-5-5",
+  "prices_usd_per_mtok": {
+    "claude-haiku-5-5": {
+      "cache_read": 0.01,
+      "cache_write": 0.125,
+      "input": 0.1,
+      "output": 0.5
+    },
+    "claude-sonnet-5-5": {
+      "cache_read": 0.2,
+      "cache_write": 2.5,
+      "input": 2.0,
+      "output": 10.0
+    }
+  },
+  "projection": {
+    "claude-haiku-5-5": {
+      "crn": {
+        "benign_all_test_tasks_all_arms_usd": 0.36016397674611933,
+        "by_pairs_usd": {
+          "100": 1.0619625162967106,
+          "150": 1.412861786072006,
+          "200": 1.7637610558473018,
+          "300": 2.4655595953978926,
+          "60": 0.781243100476474
+        },
+        "per_attacked_pair_all_arms_usd": 0.007017985395505912
+      },
+      "no_sharing": {
+        "benign_all_test_tasks_all_arms_usd": 0.5883715459146241,
+        "by_pairs_usd": {
+          "100": 1.7470956081909386,
+          "150": 2.326457639329096,
+          "200": 2.905819670467253,
+          "300": 4.064543732743568,
+          "60": 1.2836059832804128
+        },
+        "per_attacked_pair_all_arms_usd": 0.011587240622763144
+      }
+    },
+    "claude-sonnet-5-5": {
+      "crn": {
+        "benign_all_test_tasks_all_arms_usd": 6.3020830316816445,
+        "by_pairs_usd": {
+          "100": 18.97008731979553,
+          "150": 25.304089463852474,
+          "200": 31.63809160790942,
+          "300": 44.30609589602331,
+          "60": 13.902885604549976
+        },
+        "per_attacked_pair_all_arms_usd": 0.12668004288113888
+      },
+      "no_sharing": {
+        "benign_all_test_tasks_all_arms_usd": 10.866234415051741,
+        "by_pairs_usd": {
+          "100": 32.67274915768009,
+          "150": 43.57600652899427,
+          "200": 54.47926390030844,
+          "300": 76.28577864293679,
+          "60": 23.95014326062875
+        },
+        "per_attacked_pair_all_arms_usd": 0.2180651474262835
+      }
+    }
+  },
+  "status": "estimate"
+}

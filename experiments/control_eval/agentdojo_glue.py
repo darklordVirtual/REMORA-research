@@ -15,11 +15,25 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any
 
+from agentdojo.agent_pipeline.base_pipeline_element import BasePipelineElement
 from agentdojo.agent_pipeline.tool_execution import ToolsExecutor, tool_result_to_str
-from agentdojo.functions_runtime import EmptyEnv, Env, FunctionsRuntime
-from agentdojo.types import ChatMessage, ChatToolResultMessage, text_content_block_from_string
+from agentdojo.functions_runtime import EmptyEnv, Env, FunctionCall, FunctionsRuntime
+from agentdojo.types import (
+    ChatAssistantMessage,
+    ChatMessage,
+    ChatToolResultMessage,
+    text_content_block_from_string,
+)
 
+from experiments.control_eval.claude_messages import (
+    build_request,
+    from_response,
+    to_messages_api,
+    tool_param,
+)
+from experiments.control_eval.gateway import EpisodeContext, MeteredModel
 from experiments.control_eval.policies import Defence, ProposedCall, ToolSpec
+from experiments.control_eval.run_config import ModelSpec
 
 BLOCKED_MESSAGE = "Blocked by policy."
 
@@ -87,3 +101,47 @@ class GatedToolsExecutor(ToolsExecutor):
                 query, runtime, env, [*messages[:-1], single], extra_args)  # type: ignore[list-item]
             results.extend(executed[len(messages):])
         return query, runtime, env, [*messages, *results], extra_args
+
+
+class ClaudeAgent(BasePipelineElement):
+    """The untrusted agent: one Claude call per turn through the metered gateway.
+
+    Replaces AgentDojo's ``AnthropicLLM`` (see ``claude_messages`` for why).
+    Every request goes through :class:`~experiments.control_eval.gateway.MeteredModel`,
+    so it is shared across arms when identical (CRN), reserved against the
+    budget before it is sent, and settled from usage after.
+    """
+
+    def __init__(self, model: MeteredModel, spec: ModelSpec, context: EpisodeContext) -> None:
+        self.model, self.spec, self.context = model, spec, context
+        self.name = spec.model
+
+    def query(self, query: str, runtime: FunctionsRuntime, env: Env = EmptyEnv(),
+              messages: Sequence[ChatMessage] = (), extra_args: dict | None = None,
+              ) -> tuple[str, FunctionsRuntime, Env, Sequence[ChatMessage], dict]:
+        extra_args = dict(extra_args or {})
+        system, api_messages = to_messages_api(messages)
+        tools = [tool_param(fn.name, fn.description or "", fn.parameters.model_json_schema())
+                 for fn in runtime.functions.values()]
+        request = build_request(model=self.spec.model, max_tokens=self.spec.max_tokens,
+                                effort=self.spec.effort, system=system,
+                                messages=api_messages, tools=tools)
+        response = self.model.create(request, episode=self.context.episode, arm=self.context.arm)
+        content, calls = from_response(response)
+        output = ChatAssistantMessage(
+            role="assistant", content=content,  # type: ignore[typeddict-item]
+            tool_calls=None if calls is None else [
+                FunctionCall(id=c["id"], function=c["function"], args=c["args"]) for c in calls])
+        return query, runtime, env, [*messages, output], extra_args
+
+
+def register_model_name(model_id: str) -> None:
+    """Let ``important_instructions`` address a current Claude model as "Claude".
+
+    agentdojo 0.1.35's ``MODEL_NAMES`` lists only claude-3.x IDs, and the
+    attack raises for a pipeline whose name matches none. Upstream maps every
+    Claude ID to "Claude"; this adds the run's model with the same name, so
+    the injection text is the one upstream would produce for a Claude model.
+    """
+    from agentdojo.models import MODEL_NAMES
+    MODEL_NAMES.setdefault(model_id, "Claude")
