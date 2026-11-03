@@ -5056,9 +5056,9 @@
     },
     "docs/README.md": {
       "concepts": [],
-      "git_blob": "df1d0e7db51406ae64d86735f2458ce4e5c8740a",
+      "git_blob": "503278eed5dd088d1a23f4dd88af054d95a482cb",
       "mode": "100644",
-      "sha256": "5d02df74a621c78d9f7e8cd58f27fdec9c899cf18465c77b9556c6454c14710d"
+      "sha256": "9dacd067d9abe4f935be93a09f9e046daf25a68f37d2008860356681f458956c"
     },
     "docs/architecture/ADR-UE-03-capability-manifest-hook-and-mode.md": {
       "concepts": [],
@@ -5719,9 +5719,9 @@
     },
     "docs/assurance/document_register_v1.yaml": {
       "concepts": [],
-      "git_blob": "9c239d2c321823260bcc7e45ad963f8d3c1e62d4",
+      "git_blob": "e02dc56cf8135636666f7527c362df0163fc1678",
       "mode": "100644",
-      "sha256": "6aaa70938697b2c17fd980a0b02f10440b651f8cd041f2fb11832f71ed879381"
+      "sha256": "296b324f6a2d4d06127f10d00fac75ce4b8bb4f45b5028975bc31898ac3f0c72"
     },
     "docs/assurance/documentation_governance_v1.md": {
       "concepts": [],
@@ -5785,9 +5785,9 @@
     },
     "docs/assurance/horizon55-analysis-plan-v1.md": {
       "concepts": [],
-      "git_blob": "c08ddedd80ed91fd0f345d151af56505fabd6554",
+      "git_blob": "bd2c1f377e6d17324b8fc21f8eccad7322d7fb48",
       "mode": "100644",
-      "sha256": "945d71269718515b1ccfe4bc1006e8992237921aefb0063fc34ae0791d928d3e"
+      "sha256": "70d2b2592f4c84dd9c82ffe0a3745ff62ab724553979e7058a4448daaef88e19"
     },
     "docs/assurance/human_oversight_operations_v1.md": {
       "concepts": [],
@@ -6037,9 +6037,15 @@
     },
     "docs/assurance/statistical_analysis_plan_v7_control_eval.md": {
       "concepts": [],
-      "git_blob": "fa6872dbadc4d712a31000b1dcd5cd2d56aa6168",
+      "git_blob": "1ae2403471738e5c76ed57dad8e2ec1cd75786a5",
       "mode": "100644",
-      "sha256": "77368eddea128fe675d0521911b64306ae762d916ffb14b05deaf028c0a50c50"
+      "sha256": "eb418d4a2eb0b61d766e8d646dd08f0af3b1aad6d885a4f4b96b5bc49c844739"
+    },
+    "docs/assurance/statistical_analysis_plan_v8_agentdojo_ws1.md": {
+      "concepts": [],
+      "git_blob": "4b01536f4cf345aa768e7f068794fbdea5a2bd73",
+      "mode": "100644",
+      "sha256": "f8b41231a7fd9f9a29f07290035d28e646ee8e8fbb360f0321729fcb34c1de8f"
     },
     "docs/assurance/superseded_claims.md": {
       "concepts": [],
@@ -6362,9 +6368,9 @@
     },
     "docs/design/ws1-m4-safe-autonomy-recovery-v0.2.md": {
       "concepts": [],
-      "git_blob": "305ec25b171d1b62fa209fa418f904f89f6285b2",
+      "git_blob": "8a79f02bc7af4ace8f29ae76b3ce123fe04e5de3",
       "mode": "100644",
-      "sha256": "3f2849e1559c17e10d965771cd706808fa2649db1d1c22ccc3a45053ae4f1af3"
+      "sha256": "5af550d88c97c46864c778945b502d8518ae7e800eda15e7e7702b7132e56861"
     },
     "docs/enterprise/audit-anchoring-guide.md": {
       "concepts": [],
@@ -21867,7 +21873,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "416f6701118d3ab69dca521b02403f838ea74abff5e081cf3cb4e4d6c218c20c",
+  "register_sha256": "0d336ef4e57bbdec6e29554e6b1c36de0d7f714f75f779662a5e3523b17d244c",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
