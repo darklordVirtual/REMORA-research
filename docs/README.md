@@ -2,6 +2,14 @@
 
 Seven documents cover most questions. Everything else in `docs/` is listed further down, grouped by the question it answers, so the full registered set stays reachable from this page.
 
+## Active research proposals: WS-2 (not implemented)
+
+- [WS-2 research workstream and evidence ledger](https://github.com/darklordVirtual/REMORA-research/issues/1159) — open questions, dependencies, owner decisions and falsifiers.
+- [WS-2 question-to-verifier coverage audit v1.2](assurance/ws2_monitor_question_verifier_coverage_dev_v1.2.md) — development-only static inventory; 0/2 independently informative signed discharge contracts; crossing incidence NOT_MEASURED.
+- [WS-2 minimal-intervention governance SDD v1.4](design/ws2-minimal-intervention-governance-sdd-v1.4.md) — proposal subject to M4.1/§99 and explicit owner review.
+- [Study D WS2-B H3 annex v1.3](assurance/ws1_study_d_ws2_monitor_composition_prereg_draft_v1.3.md) — draft, not preregistered; FOLLOW_ON recommended.
+- [Owner invariant interpretation and Study D decision](https://github.com/darklordVirtual/REMORA-research/issues/953) — pending; no runtime authorization.
+
 ## Start here
 
 1. [Project front page](../README.md): what REMORA is, the evidence summary and current limitations.

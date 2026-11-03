@@ -5068,9 +5068,9 @@
     },
     "docs/README.md": {
       "concepts": [],
-      "git_blob": "2e99f943892b7be36b2cac48431a00f84e7737bd",
+      "git_blob": "63deed2dec385e0938c1bb457518c52a9d494256",
       "mode": "100644",
-      "sha256": "a97f61397260ff017507a81d054486690fe6cd2a1ed84d3e846fdd3a2b755776"
+      "sha256": "2cc8f2bce760826898e630bcf168f462bd38efad8b94a317e8715e769701ae4f"
     },
     "docs/architecture/ADR-UE-03-capability-manifest-hook-and-mode.md": {
       "concepts": [],
@@ -5731,9 +5731,9 @@
     },
     "docs/assurance/document_register_v1.yaml": {
       "concepts": [],
-      "git_blob": "ccdea7eb8d2fdf9199b0ebbb1be76f5d67587d3a",
+      "git_blob": "753b7f0b7ae8c1f0f3cf2ac7855839d9b79a6de5",
       "mode": "100644",
-      "sha256": "7b22a805397c7656ae5255db899935ab4e7c554b52e0eb5d3e274f1245afb96f"
+      "sha256": "437dd3925348daa8d4ba878f18de0085cad7815b4da2e69559ba4928cea379a4"
     },
     "docs/assurance/documentation_governance_v1.md": {
       "concepts": [],
@@ -6083,6 +6083,18 @@
       "mode": "100644",
       "sha256": "48b4df4e7a4cc7b547f6252bc394b43dadbc03094f062855d606731bfc30bb30"
     },
+    "docs/assurance/ws1_study_d_ws2_monitor_composition_prereg_draft_v1.3.md": {
+      "concepts": [],
+      "git_blob": "b3a0e15c992459e0c2d038e6d9609858f01dfdc3",
+      "mode": "100644",
+      "sha256": "b5a0cb435ce2879cda6af97dddad96cf3f20007cbc082461cb3e0ab73675af14"
+    },
+    "docs/assurance/ws2_monitor_question_verifier_coverage_dev_v1.2.md": {
+      "concepts": [],
+      "git_blob": "f004a3842234a588c0680cefb42a8dac321a8def",
+      "mode": "100644",
+      "sha256": "93fa770d485cd73ff56a7c52b3a3ecda7a6aeddc625617c69bbff373756b1740"
+    },
     "docs/benchmarks/README.md": {
       "concepts": [],
       "git_blob": "14580bdc05f331f61cc7a6595559d8cdab2198b3",
@@ -6383,6 +6395,12 @@
       "git_blob": "8a79f02bc7af4ace8f29ae76b3ce123fe04e5de3",
       "mode": "100644",
       "sha256": "5af550d88c97c46864c778945b502d8518ae7e800eda15e7e7702b7132e56861"
+    },
+    "docs/design/ws2-minimal-intervention-governance-sdd-v1.4.md": {
+      "concepts": [],
+      "git_blob": "cc1315ddafc9cc41f7ed8718087e20b606d556c5",
+      "mode": "100644",
+      "sha256": "de75392a1d1f48d9fde89c41fca92ac56aee2f17c79b3868eac9281c71f7fc94"
     },
     "docs/enterprise/audit-anchoring-guide.md": {
       "concepts": [],
@@ -22023,7 +22041,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "421a3f0684be8c0b59031e09794849741f745b3de4501d6cf7e647d8809bbb88",
+  "register_sha256": "e650bb8945d8af8769d256fb6806d0813ca3ee01786e4dfd77f61d36da67f7e6",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
