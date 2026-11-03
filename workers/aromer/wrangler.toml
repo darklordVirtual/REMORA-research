@@ -14,7 +14,12 @@ compatibility_flags = ["nodejs_compat"]
 #   "0 0 * * *"       Daily
 #
 [triggers]
-crons = ["0 */4 * * *"]    # Every 4 hours — stays within CF free-tier Neurons quota
+# Cron disabled 2026-11-03: no new episodes since 2026-07-02; the deployed
+# schedule (*/5) re-scored a frozen 200-episode sample and cost ~$80/month in
+# Workers AI plus ~5B D1 rows read. Data archived in
+# artifacts/aromer/d1_export_2026-11-03/. Re-enable with a guard that skips
+# runs when no new episodes have arrived.
+crons = []
 
 [ai]
 binding = "AI"
