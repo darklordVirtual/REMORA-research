@@ -4,6 +4,14 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Paper (revision 2026-11-03: status and negative results brought current)
+
+No new numbers; every figure added comes from NEGATIVE_RESULTS.md or the registers.
+
+- The declared release profile is `CONTROLLED_PILOT` (OD-2026-10-25-controlled-pilot) in the abstract, the identifier list and the conclusion. The paper says that no pilot is claimed to run and that REM-021 is still open. `SHADOW_ONLY` is kept as the earlier status. `scripts/check_paper_sync.py` now requires `CONTROLLED_PILOT` in both sources.
+- New negative-result entries for NEGATIVE_RESULTS §92 and §93 (AgentDojo development dry run), §97 (no cumulative limit, opt-in CAP-031 repair), §98 (unspent grant on the review path) and §99 (self-signed leases). The abstract and the external-validity threats mention the AgentDojo transfer failure.
+- The two AgentHarm runs have distinct names: the false-authorization run (CLAIM-002, 208 harmful scenarios) and the tri-mode pilot (N=88).
+
 ### Security review 2026-11: the executor's door and production approval
 
 Recorded as REM-063 and REM-064, with the finding kept in NEGATIVE_RESULTS §99.

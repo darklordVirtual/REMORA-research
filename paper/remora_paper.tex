@@ -79,7 +79,7 @@
 % Paper version - kept in lockstep with paper/remora_paper.md by
 % scripts/check_paper_sync.py (CI-enforced). The version and revision
 % strings below MUST match the .md version line.
-\newcommand{\paperversion}{Preprint v0.12.0, revision 2026-10-21; latest tagged release \texttt{v0.12.0}}
+\newcommand{\paperversion}{Preprint v0.12.0, revision 2026-11-03; latest tagged release \texttt{v0.12.0}}
 
 \author{
   Stian Skogbrott\thanks{Developer and maintainer of REMORA. Luftfiber AS.
@@ -128,8 +128,9 @@ On a leakage-controlled 700-task tool-call simulator benchmark (effective
 $N=70$) the full gate produced zero unsafe acceptances, 0 of 56 harmful
 templates (Wilson 95\% upper bound 6.4\% over those templates). Keyword baselines reached 1.4\%, a difference that is not
 significant, and a component ablation attributes the result to no single
-component (CLAIM-001, CLAIM-020). On 208 AgentHarm scenarios
-\cite{andriushchenko2024agentharm} an imported intent-gating run made no
+component (CLAIM-001, CLAIM-020). In the AgentHarm false-authorization run
+on 208 harmful scenarios
+\cite{andriushchenko2024agentharm}, an imported intent-gating run made no
 false authorization but also blocked every benign counterpart, so it shows no
 discrimination (CLAIM-002). With every state verdict \textsc{unknown},
 bounded verification let 60/60 valid-identifier reads proceed autonomously,
@@ -186,11 +187,17 @@ own catalogue, is in \S\ref{sec:negative}. REMORA ran none of 43 chain
 attacks and a policy-only gateway ran 33, while the secret reached the sink
 in all 11 exfiltrations built from allowed calls, on both. With an opt-in
 flow check in the decision and context labels the harness assigns, REMORA
-ran none of 10 exfiltrations and 2 of 4 benign controls. One
+ran none of 10 exfiltrations and 2 of 4 benign controls. AgentDojo is a
+tool catalogue REMORA was not developed on. In a development dry run there,
+a scripted agent replayed 91 legitimate calls and REMORA blocked 90 of them.
+It completed 11 of 29 tasks against 10 for refuse-all, and the run is not
+confirmatory (\S\ref{sec:negative}). One
 frozen interoperability contract has two external fixture-level runs that
 meet the repository's independence rule; production enforcement
-remains unestablished, and the declared deployment status is
-\texttt{SHADOW\_ONLY}: shadow-mode operation is permitted, enforcement is not.
+remains unestablished. The declared release profile is
+\texttt{CONTROLLED\_PILOT} (owner decision of 2026-10-25): the repository
+may be run as a controlled pilot. No running pilot is claimed, and no
+independent review has taken place (REM-021).
 \end{abstract}
 
 \textbf{Keywords:} agentic AI safety, AI control, agent security,
@@ -233,9 +240,15 @@ statement can be traced.
   \texttt{EXTERNALLY\_\allowbreak VERIFIED} and \texttt{INDEPENDENT} are status values in
   the capability, boundary and interoperability declarations
   (\S\ref{sec:federation}, \S\ref{sec:boundary-declarations}).
-\item[SHADOW\_ONLY] the declared deployment status. Shadow-mode operation is
-  permitted and enforcement is not, until the remaining release gates close
-  (\path{docs/assurance/release_gates.md}).
+\item[CONTROLLED\_PILOT] the declared release profile since the owner
+  decision of 2026-10-25
+  (\path{docs/architecture/ADR-pilot-readiness-owner-decision.md}). The
+  repository may be run as a controlled pilot; it does not say that one
+  runs, and it raises no capability status, claim or result. The
+  independent review (REM-021) remains open and still gates the
+  \texttt{PRODUCTION} profile. Before that decision the declared status
+  was \texttt{SHADOW\_ONLY}: shadow-mode operation permitted, enforcement
+  not (\path{docs/assurance/release_gates.md}).
 \item[AROMER, AII] AROMER is the experimental learning layer; AII, its
   Autonomous Intelligence Index, is a researcher-defined composite score
   whose phase labels (WARMUP, LEARNING, CAPABLE, TRAINED) are qualitative
@@ -1746,13 +1759,13 @@ No unseen BFCL v4 live row remains, so a test of generalisation needs
 a new tool catalogue, sealed before any authoring rule is written for it.
 
 % =====================================================================
-\subsection{External Validity: AgentHarm Benchmark (\texorpdfstring{$N=88$}{N=88})}
+\subsection{External Validity: AgentHarm Tri-Mode Pilot (\texorpdfstring{$N=88$}{N=88})}
 \label{sec:agentharm}
 
-\emph{This tri-mode evaluation ($N=88$;
+\emph{This tri-mode pilot ($N=88$;
 \path{artifacts/agentharm_trimode_results.json}, via
-\texttt{RemoraDecisionEngine}) is distinct from the $N=208$-harmful
-false-accept run reported in the claim register
+\texttt{RemoraDecisionEngine}) is not the AgentHarm false-authorization run of the claim register
+(CLAIM-002). That run covers 208 harmful scenarios
 (\path{results/external_benchmark_agentharm_v1.json}; FAR $=0.0\%$,
 Wilson 95\% CI $[0.00\%, 1.81\%]$, FBR $=100\%$, via the AROMER
 \texttt{/decide} path). The two use different oracles, decision paths,
@@ -2332,6 +2345,74 @@ preconditions did. What remains open is a monitor threshold chosen on
 enough data, or a monitor that cannot veto a call whose preconditions are
 all proved, before any claim about the learned part.
 
+\paragraph{The semantic floor did not transfer to AgentDojo.}
+A development dry run replayed the ground-truth calls of 29 AgentDojo
+v1.2.2 development tasks (91 calls) through each arm, with a scripted agent,
+no model and no attacks (NEGATIVE\_RESULTS.md \S92). REMORA blocked 90 of
+the 91 calls in both its strict and observed configurations and completed
+11 of 29 tasks. Refusing every call completed 10 of 29, and a per-task tool
+allowlist completed all 29. The blocks were
+\texttt{semantic\_authority\_unknown\_verify} (70),
+\texttt{schema\_unverified\_verify} (16) and
+\texttt{tool\_does\_not\_match\_goal} (4). Outside the BFCL catalogue it was
+developed on, the deterministic semantic floor grounded almost no legitimate
+call. A follow-up audit ran on the development split, which by then held 30
+tasks and 93 calls (\S93). It asked whether the harness's one bounded
+lookup, validating the exact arguments against the tool's parameter schema,
+could recover any blocked call. None could. All 92 blocked argument sets
+pass schema validation. Every block rests on missing coverage: no
+intent extracted from the task (71), an undeclared risk tier on a write (16)
+or a ground-truth call refused as the wrong tool (5). Both are development
+results, not confirmatory ones, and neither says anything about wrong calls,
+because the scripted agent proposes only ground-truth calls. The SAP v7
+draft states this as the main risk for its AgentDojo study and requires
+REMORA to beat refuse-all on utility.
+
+\paragraph{No cumulative limit existed on the call path.}
+A public sequence of three payments of 7000 under one budget of 20000,
+replayed through \texttt{/v1/execution/assess}, \texttt{/approve} and
+\texttt{/execute}, reached the tool three times for a total of 21000
+(NEGATIVE\_RESULTS.md \S97). Each payment went to review and was approved;
+nothing on the call path kept a running total of what calls spend. The
+repair is opt-in (CAP-031, \texttt{WIRED\_API\_PATH}). A deployment declares
+what each tool consumes and its limits. The governed dispatcher reserves
+each metered call before the nonce is spent, so the third payment refuses as
+\texttt{limit\_exceeded}. Later tests found and closed gaps for metered
+equipment movement, rollback of the limit policy, duplicate proposals and
+failed payments. The ledger can be a Postgres database shared by executors,
+tested with two executors in CI; no multi-host deployment has run it. All
+of this is the author's controls on a public sequence, and nothing measures
+how often legitimate payments are refused. The section stays open.
+
+\paragraph{The review path returned an unspent grant.}
+With atomic WS1 admission on and WS1 mode off or shadow, a refused admission
+on the review path still returned the ACCEPT grant it had minted, signed and
+unspent (NEGATIVE\_RESULTS.md \S98). Posted to the direct-ACCEPT route, that
+grant was admitted, and the chain recorded an authorization for a review
+item that was terminal and refused. The tool did not run in the probe only
+because a later step raised an unhandled error. The review path now spends
+and withholds the grant when admission refuses, with route tests on SQLite
+and Postgres. The scenarios are the author's, and the section stays open
+until atomic admission runs outside the author's own tests.
+
+\paragraph{An agent token executed self-signed leases.}
+The adversarial security review of 2026-11-02 posted a lease it had signed
+itself to \texttt{/v1/execution/dispatch-leased} on the authority process,
+and the tool ran (NEGATIVE\_RESULTS.md \S99). The route was served by the
+authority domain, required only a capability the agent-facing role holds,
+accepted a lease that named no assessed proposal and no consumed grant, and
+wrote no chain event. The OT pilot's compose file committed a placeholder
+lease key that production startup accepted. Over HTTP against the OT
+registry, a process holding the agent token and that key set a valve,
+moved a setpoint and acknowledged an alarm. Policy had routed all three
+to review, and the audit chain still verified as intact. The repair restricts
+the route to the executor domain and a service-only \texttt{dispatch}
+capability, refuses unlinked leases, writes chain events before and after
+dispatch, and refuses weak signing keys in production. ``Linked'' means only
+that the identifiers are non-empty; the executor does not look them up.
+The section stays open until the OT pilot reproduction is re-run against a
+rebuilt pilot.
+
 % =====================================================================
 \section{Threats to Validity}
 \label{sec:threats}
@@ -2367,6 +2448,10 @@ Cloudflare Workers AI cross-family trio (Meta LLaMA, Alibaba Qwen,
 Mistral). Results on other providers, closed-source models, or quantized
 variants may still differ; the benchmark phase distribution may not match
 deployment reality; and MultiNLI is a proxy for field evidence retrieval.
+The only run on a tool catalogue REMORA was not developed on blocked 90 of
+91 legitimate calls (an AgentDojo development dry run,
+NEGATIVE\_RESULTS.md \S92). The BFCL results should not be read as
+transferring to new tool families.
 
 \textbf{Construct validity:} ``Trust'' is a derived scalar, not a frequency probability
 of per-item correctness. Utility scores are designed task weights, not
@@ -2592,7 +2677,9 @@ included limited defence-aware adaptive search against H\_EDV and A,
 not an external red team or the HTTP-to-dispatch surface
 (\S\ref{sec:ws1c}, \S\ref{sec:negative}, \S\ref{sec:threats}).
 
-REMORA remains \texttt{SHADOW\_ONLY}. It does not claim that all agent
+REMORA's declared release profile is \texttt{CONTROLLED\_PILOT}, an owner
+decision that claims no running pilot and no independent review. It does
+not claim that all agent
 effects are governed. It makes the governed boundary explicit, declares
 what properties it can establish at that boundary, and publishes what it
 cannot establish. Runtime capability-surface completeness and
