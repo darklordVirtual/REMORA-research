@@ -38,9 +38,9 @@ ROOT = Path(__file__).resolve().parents[1]
 DOC = ROOT / "NEGATIVE_RESULTS.md"
 
 VALID = ("open", "accepted", "superseded")
-HEADING_RE = re.compile(r"^(#{2,3}) (?:§)?(\d{1,2})[.\s]")
+HEADING_RE = re.compile(r"^(#{2,3}) (?:§)?(\d{1,3})[.\s]")
 MARKER_RE = re.compile(r"^<!--\s*finding-status:\s*(\w+)\s*-->\s*$")
-SECTION_REF_RE = re.compile(r"§(\d{1,2})")
+SECTION_REF_RE = re.compile(r"§(\d{1,3})")
 #: Only the first cell of a table row identifies the finding. Later cells say
 #: what resolved it, and those references must not be read as claims about the
 #: cited section's own status.

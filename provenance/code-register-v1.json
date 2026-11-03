@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "5346113e132cb8f0f009f25a6bb8ef9337b74641",
+      "git_blob": "b5c1d1e439ebcbf2bbfbd8b4875e3c54297a1ffa",
       "mode": "100644",
-      "sha256": "1820cc62be95e84ba0091f3f2a410c83ac9f14e2e2d9c442a62c3fbe9d298290"
+      "sha256": "91b63982acb4518f0c3f2d4daba444ff8015a964f4b8af90a61f096d774aeab9"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -369,9 +369,9 @@
     },
     "NEGATIVE_RESULTS.md": {
       "concepts": [],
-      "git_blob": "f4a548ae1f52270b46dd80ac8169187dcad30ef4",
+      "git_blob": "a8ebbdb48f47c3c9ba77c1b686dd14a05247fda9",
       "mode": "100644",
-      "sha256": "e5738cba51e9c6413ce3648d6f9ce09efe5a2b5d669bc08ed766a555af7cfe47"
+      "sha256": "493577ca55bf0a9549927d2c81a71489a2c89d8bde9e590bb64c441834716db6"
     },
     "NOTICE": {
       "concepts": [],
@@ -429,9 +429,9 @@
     },
     "artifacts/aromer/d1_export_2026-11-03/README.md": {
       "concepts": [],
-      "git_blob": "f28fbe41c7be5ccf3a6efb7d95e16a5907b07659",
+      "git_blob": "90cac80f212480ae88a7c44a5363d89f9146a31f",
       "mode": "100644",
-      "sha256": "3b0d8be45f3d032e7824b53b6c37a30a6fe49180234d8bb9b294b928afc382e8"
+      "sha256": "ba0f3652de7ad63420034bf6b75ca7b880163910971b4c06f8ba2aed9b1ad4ed"
     },
     "artifacts/aromer/d1_export_2026-11-03/aromer_d1_export_2026-11-03.json": {
       "concepts": [],
@@ -6079,9 +6079,9 @@
     },
     "docs/assurance/remediation_register.yaml": {
       "concepts": [],
-      "git_blob": "a8be49a845e641972a8839d0131c731044269412",
+      "git_blob": "f0f8436d4ef45d56cd80a6340821f017a8229eac",
       "mode": "100644",
-      "sha256": "aafb93ccd6ea120b0794ad0528031548392c6273c3000930222dcc317f2dedd7"
+      "sha256": "720919625a54725a055c00c48fa401830eff31e173a065405593f57e13d4a00a"
     },
     "docs/assurance/reproducibility_scorecard_v1.md": {
       "concepts": [],
@@ -15215,9 +15215,9 @@
     },
     "scripts/check_negative_results_status.py": {
       "concepts": [],
-      "git_blob": "8d21d516afeab923c1af1702b7d9a3104d997baa",
+      "git_blob": "2043ff6fce74fea850086e4def2112e7a966683d",
       "mode": "100644",
-      "sha256": "7b45d2035afc2b8b30495b8441eb2456898fa43f7f7986c2d0aca5b96cd932b8"
+      "sha256": "d2fb508917d0fbf31775e4f0b1f9b351c6780463ec5decca9b6c16d9df913dd6"
     },
     "scripts/check_no_evaluation_leakage.py": {
       "concepts": [],
@@ -22233,7 +22233,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "30f06c6edba4275b6193a3487603771171b30a26afb3e3f8f63675f08f6cfe1e",
+  "register_sha256": "64262016a2b0d0ba33531b0760d3e1639d3ffe58dc80db258f9e695b34b1f70f",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

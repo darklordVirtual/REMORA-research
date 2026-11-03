@@ -4,6 +4,14 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### AROMER: what the archived D1 export shows, and the part of it that is usable
+
+- `scripts/check_negative_results_status.py` read section numbers with two digits, so §100 and §101 were invisible to it: §100 was open without a backlog theme or summary row and the gate did not say so. It now reads up to three digits; §100 joins the backlog and the summary table, and the counts line reads 38 open.
+
+- NEGATIVE_RESULTS §101: after the last episode on 2026-07-02 the cron re-scored one 200-episode sample for 124 days (AII 0.9897 to 0.9915, not stability). Nine world-model priors and all three oracle-bandit rows carry observation counts above the 21,864 episodes and are not usable as priors or as a selection policy. The one-day ECE drop from 0.0637 to 0.0065 on 2026-06-29 has no recorded cause. REM-066 records the operational finding; PR #1165 disabled the cron.
+- CLAIM-006 cites the export's daily AII series (0.8440 on 06-27, 0.8441 on 06-28) in its caveat. The artifact is not gate-bound: the export was a shell export without a provenance sidecar, and a sidecar is never written retroactively.
+- `scripts/aromer_hook_friction.py` and `artifacts/aromer/d1_export_2026-11-03/hook_episode_friction_v1.json` (with sidecar): AROMER's shadow verdicts on the 18,249 recorder-hook episodes. Review asked on 3,033 (16.6 %), 2,767 of them medium-tier shell execution; low-tier calls reviewed 30 times in 12,220. Presumed-benign labels and no arguments: review load, not a false-block rate, and not replayable through REMORA. Tests: `tests/test_aromer_hook_friction.py` (4).
+
 ### Security review 2026-11: §99 reproduced on a rebuilt OT pilot, and M4.1 closed
 
 - NEGATIVE_RESULTS §99 moves from open to accepted. A rebuilt pilot, with a second process from the same image in the executor domain, answered 404 on `/v1/execution/dispatch-leased` in the authority domain under every pilot credential, refused the agent token and unlinked leases on the executor, recorded `lease_dispatch_admitted` before and `lease_dispatch_result` after the admitted lease in the shared tenant chain, and refused a tampered call and a replay. The 16-case OT battery passed 16/16; the fault-injection runner's result is in the capsule README. Evidence: `artifacts/ws1/m4/sec99-reproduction/sec99-20261103T194032Z-dee87d1a/`, with tokens and keys redacted.

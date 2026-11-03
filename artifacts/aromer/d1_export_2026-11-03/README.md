@@ -68,13 +68,26 @@ the upstream licences.
 
 Removed before publication: `critique_text`, the raw tool input
 (`meta.input_preview`, first 200 chars of each tool call, recorded before the
-redaction added on 2026-10-29), `session_id`, paths, commands and any meta
-string longer than 80 characters or matching secret, path or e-mail patterns.
+redaction added on 2026-10-29) and `session_id`. Also removed: paths, commands
+and any meta string longer than 80 characters or matching secret, path or
+e-mail patterns.
 A residual scan found 0 hits. A leak test of 145,050 unique 20-character windows
-from the raw previews found 60 overlaps in the public file; all were reviewed and
-are tool names, dataset names, seed-script names, one generic git command and two
+from the raw previews found 60 overlaps in the public file. All were reviewed:
+tool names, dataset names, seed-script names, one generic git command and two
 deliberate prompt-injection test strings. The unsanitized export is retained
 privately and is not part of this repository.
+
+## Follow-up artifacts (2026-11-03)
+
+- `hook_episode_friction_v1.json`: AROMER's shadow-mode verdicts on the 18,249
+  recorder-hook episodes, by tool, action type, risk tier and domain. Produced by
+  `scripts/aromer_hook_friction.py` from `episodes_public.jsonl`; the script
+  refuses any input whose SHA-256 is not the one pinned above. Review was asked
+  on 3,033 of 18,249 calls (16.6 %), 2,767 of them medium-tier shell execution.
+  Review load on presumed-benign traffic, not a false-block rate.
+- NEGATIVE_RESULTS §101 records the idle loop, the inflated priors and bandit
+  rows, and the unexplained AII step of 2026-06-29. CLAIM-006 cites this export
+  for its 2026-06-27 and 06-28 values.
 
 ## Reproduce
 
