@@ -4,6 +4,14 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### WS2-B: an unwired prototype of typed monitor-veto discharge (owner exception on #953)
+
+Library only. No runtime path, server or worker imports the module, and the legacy composition is unchanged. Not merged before the WS2 SDD v1.4 gates D1 (§99 rebuilt-OT reproduction) and D2 (M4.1 closure) pass and the INV-M4-04 ruling is recorded on #953.
+
+- `remora/verification/monitor_discharge.py` composes the legacy record with `compose_authorized_decision` unchanged, records threshold crossings as typed events per attempt family, and lifts only the monitor's crossed-threshold cap, and only when a deployment-signed contract covers the question and tool and a signed, current, exactly bound verifier receipt proves the named obligation. Any uncovered question, untyped historical veto, unverifiable contract or receipt, binding mismatch, expiry or contradicting receipt leaves the veto in place. Every other cap is the legacy one; a view that differs anywhere else is refused.
+- Two new signature domains in `remora/crypto/domain_signing.py`: `REMORA/MONITOR-DISCHARGE-CONTRACT/v1` and `REMORA/MONITOR-DISCHARGE-RECEIPT/v1`. No key, role or credential topology entry is added, because nothing holds these keys yet.
+- `compose.py`, `execution_gate.py`, the ToolSpec schema, `MONITOR_SYSTEM`, hard guards, dispatch, thresholds and holdouts are untouched. The capability register is unchanged: nothing is wired, and no capability, claim or result is upgraded.
+- Tests: `tests/verification/test_monitor_discharge.py` (34), one per row of SDD §6 B-01 to B-12, B-14 and B-17. Passing tests are not H3 evidence and register or authorize no study.
 ### Security review 2026-11: §99 reproduced on a rebuilt OT pilot, and M4.1 closed
 
 - NEGATIVE_RESULTS §99 moves from open to accepted. A rebuilt pilot, with a second process from the same image in the executor domain, answered 404 on `/v1/execution/dispatch-leased` in the authority domain under every pilot credential, refused the agent token and unlinked leases on the executor, recorded `lease_dispatch_admitted` before and `lease_dispatch_result` after the admitted lease in the shared tenant chain, and refused a tampered call and a replay. The 16-case OT battery passed 16/16; the fault-injection runner's result is in the capsule README. Evidence: `artifacts/ws1/m4/sec99-reproduction/sec99-20261103T194032Z-dee87d1a/`, with tokens and keys redacted.
