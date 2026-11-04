@@ -328,7 +328,7 @@ def run_scenario(scenario: dict[str, Any], baseline: dict[str, float]) -> dict[s
         prior[n] = rec
         public = {k: v for k, v in rec.items() if k != "execution_token"}
         if rec.get("execution_token") is not None:
-            public["execution_token_sha256"] = hashlib.sha256(
+            public["grant_digest16"] = hashlib.sha256(
                 json.dumps(rec["execution_token"], sort_keys=True).encode()).hexdigest()[:16]
         log.append({"step": n, "role": step["role"], "method": step["method"], "path": path,
                     "request": _redact(request), "response": public})

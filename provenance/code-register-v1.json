@@ -285,9 +285,9 @@
     },
     ".gitleaksignore": {
       "concepts": [],
-      "git_blob": "03a68fdcb524c0bb2803fdc34f36f3b06429d326",
+      "git_blob": "fe7d091c6435e27a7493e4fa92a16b4eec314fd3",
       "mode": "100644",
-      "sha256": "424853a4364e0df0ffc1b608d8a71124e8886b1c4dd4a6b462354133a224ce9a"
+      "sha256": "b6f854fe8784e1723385a1528c6406d5d13cfe6042e86039908f8f16893d53d4"
     },
     ".nvmrc": {
       "concepts": [],
@@ -3257,9 +3257,9 @@
     },
     "artifacts/ot-pilot/grounded-reads-2026-11-03/independent-scenarios/phase-a.json": {
       "concepts": [],
-      "git_blob": "a1bdbfd4b77d1652cfbbd2ea1c3e5abe25d5657b",
+      "git_blob": "ba4567923e002de473745e483f9d3a1cc6f7296f",
       "mode": "100644",
-      "sha256": "5b7cf1afb0199c8962055e70766e74bdc97b8cefac24c80a6fb27c4ef266958d"
+      "sha256": "78341719ea720eea5231bb403587dcbbf240bf6efaa3bea1c6f94a59b55b5412"
     },
     "artifacts/ot-pilot/grounded-reads-2026-11-03/independent-scenarios/phase-b.json": {
       "concepts": [],
@@ -5357,9 +5357,9 @@
     },
     "deploy/ot-pilot/run_independent_scenarios.py": {
       "concepts": [],
-      "git_blob": "8b7923fe2293f6232dfd1bd38ca9daf032f683e7",
+      "git_blob": "89df1b1f13b2ac68d760807db8739d17123ad2ed",
       "mode": "100644",
-      "sha256": "19f61f6632de5d37e7d006ce67dda0a1b3411d897090462e2792bcfc349ce5f2"
+      "sha256": "568c300fca6d4a9e5efd0dc7d24fcbda8f0e8b73dc4010b9b7a68094ad1024c0"
     },
     "deploy/ot-pilot/run_ot_battery.py": {
       "concepts": [],
@@ -22663,7 +22663,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "d53e3b0f46cae14237c4bf30e4ae2cf25f6100f76a3968f2b92890817bebfd7f",
+  "register_sha256": "e63129f8904e564a52b1c74c42f3224d6c964b12f47c8fd48162797b8c1236f1",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

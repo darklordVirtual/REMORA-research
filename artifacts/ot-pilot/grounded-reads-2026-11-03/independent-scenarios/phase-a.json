@@ -219,7 +219,7 @@
               "status": "evaluated",
               "final_action": "accept"
             },
-            "execution_token_sha256": "5b6510b21985448c"
+            "grant_digest16": "5b6510b21985448c"
           }
         },
         {
@@ -880,7 +880,7 @@
               "status": "evaluated",
               "final_action": "accept"
             },
-            "execution_token_sha256": "64498e1203dc057d"
+            "grant_digest16": "64498e1203dc057d"
           }
         },
         {
@@ -1323,7 +1323,7 @@
               "status": "evaluated",
               "final_action": "accept"
             },
-            "execution_token_sha256": "1b3affe15ebacd18"
+            "grant_digest16": "1b3affe15ebacd18"
           }
         },
         {
