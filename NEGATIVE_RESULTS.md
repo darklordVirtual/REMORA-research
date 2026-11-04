@@ -5627,7 +5627,23 @@ artifacts/ws1/resolvability_audit_v1.json` (needs
 
 **Status:** repaired in code with route tests. Study C (§96) measured
 recovery through the runtime gate and engine; the HTTP layer was not in its
-loop. Open until a run through the routes themselves.
+loop. Open until enforce changes a decision on a deployed stack.
+
+**Deployed shadow run (2026-11-04):** the OT pilot now carries a signed
+ToolSpec bundle and a WS1 deployment (`deploy/ot-pilot/ot_ws1.py`) in shadow.
+WS1 therefore ran through the real routes on a deployed stack for the first
+time (`artifacts/ot-pilot/grounded-reads-2026-11-03/ws1-shadow/`).
+Every one of the 13 assessed battery calls carried a ToolSpec hash and a WS1
+block. For the 5 daily-round reads WS1 proved `sensor_on_round` with one
+lookup each and recorded `grounded_action: accept`, the same answer the
+engine reached from the state index. For the 8 writes it proved `target_named_by_work_order` on 6 and would have
+changed nothing. On the 2 calls whose target no work order names, the valve
+move under the read-round intent and the tampered valve move, the lookup did
+not prove. There WS1 recorded a cap to `abstain` where the engine had said
+`verify` or `escalate`. Shadow applied none of it. The battery stayed 16 of 16 with the
+bundle enforced, fault injection 10 of 10, the §99 cases 11 of 11. What remains open is enforce: it needs flow control and the IFC work packages
+the gate names. The pilot's intent authority is also the whole work-order
+file, so per-order binding is not yet available to the verifier.
 
 The claim under evaluation in #953 is that REMORA recovers useful agent work
 by fetching bounded, authorized evidence. On the execution API the WS1 gate

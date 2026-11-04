@@ -1,0 +1,6 @@
+Run aef5e9ad-de53-4ea3-b160-f07587f9933c
+Cases: 16 total, 16 passed, 0 failed
+Confirmed side effects: 6
+Monitoring reads completed: 0/5
+Execution chain valid: True
+Envelope chain valid: True

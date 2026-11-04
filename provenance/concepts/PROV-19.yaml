@@ -1,0 +1,96 @@
+# Concept record. Hand-maintained; digests live in provenance/manifests/, not here.
+# Registration records priority and content. It is not a claim of invention (see provenance/README.md).
+schema_version: remora-concept-record-v1
+concept_id: PROV-19
+canonical_name: WS1, a deterministic floor with bounded evidence lookups and grounding from proofs
+invariant: Authority comes from deterministic composition over proved preconditions, never from a
+  learned score. Each precondition is compiled from a deployment-owned registry, bound to the call, the
+  tenant, the evidence revision and the policy profile, and settled only by a bounded, tenant-scoped
+  lookup against a system of record through a registered verifier. A PROVED precondition may supply the
+  engine's grounding signals, so the engine re-decides on facts read from the systems of record; WS1
+  itself never raises a decision. A learned monitor may veto or order lookups; it may not select a new
+  source, change a verifier outcome, close a prerequisite, weaken a deterministic denial or mint a
+  grant. The composition is a meet, every cap keeps its reason, and the record is hash-bound.
+identifying_terms:
+- Ws1Gate
+- Ws1Deployment
+- grounding_facts
+- compose_authorized_decision
+origin:
+  authors:
+  - Stian Skogbrott
+  project: REMORA
+  status: claimed_original_contribution
+classification: UNKNOWN
+first_recorded:
+  commit: e6c56e11517f94dda13a825e240c85a57b438aed
+  authored: '2026-10-19T22:07:15+02:00'
+  committed: '2026-10-19T22:07:15+02:00'
+  signature: N
+  paths:
+  - remora/verification/__init__.py
+  - remora/verification/execution_gate.py
+  - servers/execution_api.py
+  - tests/test_ws1_execution_binding.py
+  method: first commit on the snapshot history that introduced an identifying term as its own token; docs/assurance/provenance_register_v1.json
+canonical_spec:
+- path: docs/design/ws1-deterministic-authorization-learned-monitoring-v1.md
+- path: docs/design/ws1-m4-safe-autonomy-recovery-v0.2.md
+- path: docs/assurance/ws1_m4_1_closure_record_v1.md
+implementation:
+- path: remora/verification/compose.py
+- path: remora/verification/execution_gate.py
+- path: remora/verification/preconditions.py
+- path: remora/verification/registry.py
+- path: remora/verification/resolvers.py
+- path: remora/verification/check.py
+- path: remora/verification/records.py
+- path: deploy/ot-pilot/ot_ws1.py
+tests:
+- path: tests/test_ws1_execution_binding.py
+- path: tests/test_ws1_grounding.py
+- path: tests/test_ws1_atomic_admission_route.py
+- path: tests/test_ws1_m4_fault_matrix.py
+- path: tests/test_ws1_formal_typed.py
+- path: tests/verification/test_authority_ceiling.py
+conformance: []
+interop_contracts: []
+related_capabilities:
+- CAP-030
+related_claims: []
+federation_produces: policy_decision
+distinguishing_contribution: 'Deterministic authorization that recovers useful work by fetching bounded,
+  authorized evidence instead of trusting a learned score: preconditions compiled from a deployment
+  registry, settled by tenant-scoped lookups against systems of record, composed as a meet whose caps
+  keep their reasons, with a PROVED precondition able to ground the engine''s own signals and a learned
+  monitor confined to vetoing or ordering lookups. Measured in Studies B and C (NEGATIVE_RESULTS §95,
+  §96), on the M4.1 negative matrix at the Postgres reference backend (docs/assurance/ws1_m4_1_closure_record_v1.md)
+  and, in shadow, through the real routes of a deployed stack (§94, 2026-11-04).'
+prior_art:
+  reviewed: false
+  review_sources: []
+  records: []
+  note: "Not yet reviewed. Work to compare against before any classification: XACML-style PDP/PEP with
+    attribute retrieval (PA-SRC-007), proof-carrying authorization and logic-based access control
+    (Appel and Felten; Bauer et al.), capability systems with attenuation (PA-SRC-009), and recent
+    agent-safety work on verifier-mediated tool use. Classification stays UNKNOWN until a dated review
+    in PRIOR_ART.yaml names this concept."
+evolution:
+- stage: first_recorded
+  commit: e6c56e11517f94dda13a825e240c85a57b438aed
+  date: '2026-10-19'
+  note: identifying term first introduced as its own token (Ws1Gate and Ws1Deployment on the execution API)
+- stage: grounding_from_proofs
+  commit: be8b122c75bc5883103698657a32ccb81bfe44cf
+  date: '2026-10-20'
+  note: grounding_facts lets a PROVED precondition supply the engine's grounding signals (NEGATIVE_RESULTS §94)
+- stage: deployed_shadow_run
+  commit: beb6717161dbd4ff2e2de42665bdad760f414f1c
+  date: '2026-11-04'
+  note: 'WS1 in shadow on the OT pilot through the real routes: 13 of 13 assessed calls carry a WS1 block; 5 reads
+    proved sensor_on_round, 6 of 8 writes proved their target, 2 would have been capped'
+external_adoption: []
+license:
+  spdx: BUSL-1.1
+  licensor: Stian Skogbrott
+  reference: legal/LICENSING.md
