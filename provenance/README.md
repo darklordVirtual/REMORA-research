@@ -33,6 +33,7 @@ concept record (PROV-xx)
 | `manifests/provenance-manifest-2026-10-30.json` | refreshed concept-file digests at the same commit; the earlier v1 manifest remains intact |
 | `manifests/code-snapshot-2026-11-04.json` | complete file inventory frozen at `b9865d320ae68119a806a73d332c60792a66aaa8`, the commit that added PROV-18 to PROV-20 |
 | `manifests/provenance-manifest-2026-11-04.json` | concept-file digests for the twenty records at the same commit; the v1 manifest was rewritten to this snapshot and the 2026-10-30 manifests remain intact |
+| `../artifacts/timestamps/provenance-manifest-2026-11-04.json.ots` | OpenTimestamps proof for that manifest's SHA-256 (803963f9…), submitted 2026-11-04 to four public calendars; pending until a Bitcoin block attests it (`ots upgrade`), then `ots verify` against the manifest file |
 
 ## Current code coverage
 
