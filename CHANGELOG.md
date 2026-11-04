@@ -4,6 +4,10 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### AgentDojo development replay: reads already pass, the pilot's grounded-read path has nothing to fire on (§102)
+
+- `scripts/run_control_eval_reads_replay.py` and `artifacts/control_eval/dev_reads_replay_v1.json`: every development user task's ground-truth calls through the G1 arms, no model call, with per-call grounding facts. 52 of 66 benign calls are declared reads; `E_IFC` and `E_IFC_WS1` execute 50 of them, and 6 of 18 tasks are reads-only and complete. The lexical intent extractor resolves 0 of 18 tasks, so the grounded-read path that completed the OT pilot's reads has no intent to match on AgentDojo; 18 reads carry list-valued names from prior outputs that value provenance does not ground. The utility gap on AgentDojo is the 14 writes (§100), not reads. Tests: `tests/test_control_eval_reads_replay.py` (2).
+
 ### OT pilot: the daily-round reads complete without a person (owner decision 2026-11-03)
 
 - `remora/policy/decision_engine.py`: new opt-in `grounded_read_in_production` (`REMORA_GROUNDED_READ_IN_PRODUCTION` on the execution surface, off by default, part of `ENGINE_IDENTITY_FLAGS`). It lifts exactly one clause of the grounded-read path, the production exclusion; read-only semantics, low tier, a resolved work order, all four grounding signals and nothing missing still hold, and the low-consequence path keeps excluding production. Recorded in `docs/architecture/ADR-grounded-reads-in-production.md` (DOC-424). Tests: `tests/test_grounded_read_in_production.py` (34).

@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-11-03: **38 `open`**, **32 `accepted`**, **31 `superseded`**.
+Counts as of 2026-11-03: **38 `open`**, **33 `accepted`**, **31 `superseded`**.
 
 ## The actual backlog
 
@@ -2724,6 +2724,7 @@ sections again.
 
 | Finding | Why it is closed to further tuning | Severity |
 |---------|------------------------------------|----------|
+| The pilot's grounded-read path cannot fire on AgentDojo, where reads already pass (§102) | Development replay, no model call: 50 of 52 declared benign reads execute under the flow-control arms, and 6 of 18 tasks are reads-only, so reads are not the utility gap there; the 14 writes are. The lexical intent extractor resolves 0 of 18 tasks, so `tool_matches_goal` is unknown on every read and the grounded-read path has nothing to fire on without a deployment intent source | **Medium** |
 | An agent token executed self-signed leases on the authority process, unaudited (§99) | Repaired and reproduced 2026-11-03 on a rebuilt pilot with authority and executor processes: 404 on the authority under every credential, `lease_unlinked` and 403 on the executor, `lease_dispatch_admitted` before `lease_dispatch_result` in the shared chain, tampered call and replay refused (11/11); OT battery 16/16. "Linked" is still a non-empty check, and the HMAC key custody limits stand (`artifacts/ws1/m4/sec99-reproduction/`) | **High** |
 | A component ablation attributed the safety result to nothing (§57) | Withdrawn, not repaired. Its numbers were absent from the file it cited, its reproduce command never wrote the artifact it named, and its own output contradicts it. All six conditions record FAR=0.000, including hard-blocks-removed, which reaches zero by refusing nearly everything. | **High: falsifies the published component attribution.** |
 | Three self-review complexity findings were wrong (§41) | Verified and refuted: the toolcall generations are already documented, the env-var census was miscounted by excluding experiments/ and scripts/, and an AuditAdapter ABC already existed. An audit finding is a hypothesis | Low (methodological) |
@@ -6324,3 +6325,58 @@ Limits:
   author's export of the author's database.
 - No figure here is about the REMORA decision engine. AROMER scored in shadow
   and decided nothing.
+
+## §102 The pilot's grounded-read path cannot fire on AgentDojo, where reads already pass (2026-11-03)
+<!-- finding-status: accepted -->
+
+**Status:** accepted. A measured property of the benchmark and the
+mechanism, recorded so that the OT pilot result is not read as transfer.
+
+The OT pilot's five daily-round reads complete without a person once the
+deployment declares its tools and the grounded-read path can fire
+(`artifacts/ot-pilot/grounded-reads-2026-11-03/`). The question was whether
+that reaches real tasks. `scripts/run_control_eval_reads_replay.py` replays
+every development user task's ground-truth calls through the G1 arms, with no
+model call, and records per call what the grounded-read path would need
+(`artifacts/control_eval/dev_reads_replay_v1.json`; development suites only,
+the held-out suite never loaded).
+
+**Reads already pass on AgentDojo.** Of 66 benign ground-truth calls on the
+18 development tasks, 52 are declared reads and 14 are writes. The
+flow-control arms `E_IFC` and `E_IFC_WS1` execute 50 of the 52 reads; the two
+they refuse are `get_webpage` calls on an untrusted host (slack
+`user_task_1` and `user_task_4`). Six of the 18 tasks consist of reads only,
+and `E_IFC` completes all six. The arms complete 7 of 18 tasks in total,
+against 6 for refuse-all; the 14 writes, of which `E_IFC` executes 1 and
+`E_IFC_WS1` 2, are where the rest of the utility sits (§100).
+
+**The grounded-read path has nothing to fire on.** It needs a server-resolved
+intent and four positive grounding signals. AgentDojo has no deployment
+intent source such as a work order. The deterministic lexical extractor
+(`bfcl_semantic_bundle_v2.extract_intent`) resolves 0 of the 18 task texts,
+so `tool_matches_goal` and `expected_effect_matches` are unknown on all 52
+reads, and no read has all four signals. Argument grounding on its own does
+better: 31 of the 52 reads have every judgeable value in the task text or in
+a prior tool output, 3 have no judgeable value, and 18 are ungrounded. The
+ungrounded ones are list-valued names handed from one read to the next
+(`restaurant_names` 10, `hotel_names` 4, `hotel_name` 1, `company_name` 1)
+and the integer `n` (2). Value provenance over prior outputs does not ground
+a list of multi-word names.
+
+**What this closes and what it leaves.** The pilot result stands for what
+it measured: a deployment with a work-order intent source and a declared
+plant inventory. It does not transfer to a benchmark without an intent
+source, and it was not needed there, because flow control already lets the
+reads through. The utility question on AgentDojo is the writes, and that is
+WS1 grounding from proofs (§94) and payload integrity (§100), not grounded
+reads. The ungrounded list-valued arguments are a separate, smaller limit of
+value-provenance grounding.
+
+Limits:
+
+- Scripted ground-truth calls, 18 development tasks, three suites; the
+  held-out suite was not loaded. No model call, so no agent behaviour.
+- "Reads-only task" is a ceiling for a reads-only policy, not a measured
+  utility; `E_IFC` happens to reach that ceiling here.
+- The intent extractor's 0 of 18 is a property of this extractor on these
+  texts, not a statement about intent resolution in general.
