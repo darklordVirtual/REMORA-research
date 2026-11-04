@@ -16,6 +16,7 @@ Seven documents cover most questions. Everything else in `docs/` is listed furth
 - [Experiment 10](03-experiments.md#experiment-10-ot-pilot-read-autonomy-with-a-control-2026-11-0304): OT pilot read autonomy with a control, signed ToolSpec and WS1 shadow; evidence in `artifacts/ot-pilot/grounded-reads-2026-11-03/`.
 - [Concept record PROV-18](../provenance/concepts/PROV-18.yaml): declared-tool grounded read autonomy; classification UNKNOWN until a prior-art review names it.
 - NEGATIVE_RESULTS §94 (WS1 on a deployed stack, shadow) and §102 (the mechanism does not reach AgentDojo).
+- [Broader test plan v1](assurance/ws1_utility_test_plan_v1.md): criteria fixed before the runs; mutation, independent scenarios, labels, properties, baselines, realism, external reproduction.
 
 ## Start here
 

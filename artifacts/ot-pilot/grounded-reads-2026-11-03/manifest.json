@@ -63,12 +63,14 @@
   "runs": {
     "battery-prod": "OT battery, target_environment prod, REMORA_GROUNDED_READ_IN_PRODUCTION=1, fresh stack",
     "fault-injection": "deploy/ot-pilot/run_fault_injection.py on a fresh stack with the opt-in on",
-    "sec99-cases": "the \u00a799 reproduction script (artifacts/ws1/m4/sec99-reproduction/.../tooling/sec99_repro.py) against this build with a second executor-domain process",
+    "sec99-cases": "the §99 reproduction script (artifacts/ws1/m4/sec99-reproduction/.../tooling/sec99_repro.py) against this build with a second executor-domain process",
     "battery-control": "OT battery on a fresh stack with REMORA_GROUNDED_READ_IN_PRODUCTION=0, same image and declaration",
     "ws1-shadow": "assessed events read back from Postgres after the first battery on the bundle-enforced, WS1-shadow stack: toolspec_hash and a WS1 shadow block on every call",
     "battery-toolspec-ws1": "OT battery on a fresh stack with the signed ToolSpec bundle enforced and WS1 in shadow (REMORA_WS1_MODE=shadow)",
     "fault-injection-toolspec-ws1": "fault-injection battery on a fresh stack, same configuration",
-    "sec99-cases-toolspec-ws1": "the \u00a799 cases against the same configuration; the executor process also loads the bundle"
+    "sec99-cases-toolspec-ws1": "the §99 cases against the same configuration; the executor process also loads the bundle",
+    "independent-scenarios": "24 black-box scenarios written by a separate session from the API reference, quickstart, work orders and limits only (scenarios_v1.json, sha256 ada092cf…a4e0), run by deploy/ot-pilot/run_independent_scenarios.py in three phases on freshly reset stacks: phase-a S01-S19 and S21-S23, phase-b S20, phase-c S24. 20 pass, 4 fail; 2 should-block writes executed after the scripted approver approved a verify/escalate; WS1 shadow said abstain on 3 of the 4",
+    "mutation-sweep-2026-11-04": "mutmut sweep over monitor_discharge.py and deployment_registry.py with their covering tests: 610 mutants, 595 killed after the added tests; survivors classified"
   },
   "baseline": "artifacts/ws1/m4/sec99-reproduction/sec99-20261103T194032Z-dee87d1a/battery/ (dev before this branch): 16/16 cases, 0 of 5 monitoring reads completed",
   "toolspec": {
@@ -80,6 +82,8 @@
   "copyright": "2026 Stian Skogbrott",
   "license": "BUSL-1.1",
   "concept_records": [
-    "PROV-18"
+    "PROV-18",
+    "PROV-19",
+    "PROV-20"
   ]
 }

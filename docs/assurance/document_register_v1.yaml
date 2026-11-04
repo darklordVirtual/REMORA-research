@@ -3471,7 +3471,19 @@ documents:
   - maintainers
   - operators
   last_reviewed: '2026-11-03'
+- id: DOC-425
+  path: docs/assurance/ws1_utility_test_plan_v1.md
+  status: proposal
+  topic: docs_assurance_ws1_utility_test_plan_v1_md
+  code_synced: unreviewed
+  verdict: pending
+  owner: darklordVirtual
+  audience:
+  - researchers
+  - evaluators
+  last_reviewed: '2026-11-04'
 topics:
+- docs_assurance_ws1_utility_test_plan_v1_md
 - docs_architecture_ADR-grounded-reads-in-production_md
 - docs_assurance_ws1_m4_1_closure_record_v1_md
 - docs_assurance_execution_path_quality_review_2026-11-01_md
