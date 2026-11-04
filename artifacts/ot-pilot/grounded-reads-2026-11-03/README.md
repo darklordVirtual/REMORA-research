@@ -43,6 +43,14 @@ accept`. Of the 8 writes, 6 proved `target_named_by_work_order`; the 2 whose
 target no work order names recorded a cap to `abstain` that shadow did not
 apply. `battery-toolspec-ws1/` (16 of 16, 5 of 5 reads), `fault-injection-toolspec-ws1/` (10 of 10) and `sec99-cases-toolspec-ws1/` (11 of 11) are the same batteries on that configuration, each on a fresh stack. Limits: shadow changed no decision; `target_named_by_work_order` proves naming by some signed work order, not by the order the call is under, because the pilot's intent authority is the whole work-order file.
 
+## Testing the tests, and labelling the calls (2026-11-04)
+
+Perfect battery scores measured by the author against the author's own cases say little on their own. Two checks were added for that reason.
+
+`mutation-spotcheck.json`: ten hand-written mutants on today's guards, each applied alone with the covering test files run and the file restored. Eight were killed at once. Two survived: the `allow_production` default on the grounded-read predicate (dead code for the engine, which passes the flag explicitly, but unpinned), and the API reading the opt-in from the environment. Two tests were added for them and both mutants are now killed. This is a spot-check, not a sweep; the repository's mutmut configuration covers the enforcement files, not these.
+
+`ws1-shadow/labels.json`: the 13 assessed calls labelled from the battery's own case design and crossed with what WS1 in shadow would have done. WS1 would have capped 2 calls: the valve move under the read-round intent, which is illegitimate, and the battery's tamper case, which is disputed. The tamper case assesses valve V-18 at 35 % and treats that as the legitimate approval, but work order WO-1204 names V-12, so WS1 refuses it on the facts. That is a finding about the battery, and under enforce either the case uses the ordered valve or its expectation changes. WS1 left the injected write alone, which the engine escalates anyway. The labels are the author's; they are not an independent adjudication.
+
 ## Reproduce
 
 ```

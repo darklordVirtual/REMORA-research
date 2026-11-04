@@ -93,3 +93,30 @@ def test_the_flag_is_part_of_the_policy_identity() -> None:
     from servers import api
 
     assert "grounded_read_in_production" in api.ENGINE_IDENTITY_FLAGS
+
+
+# ── The two guards a mutation spot-check found untested (2026-11-04) ─────────
+
+def test_the_predicates_refuse_production_by_default_when_called_directly() -> None:
+    """The engine passes allow_production explicitly, so a wrong default would
+    be dead code there; these calls pin the default itself."""
+    from remora.policy.decision_engine import _is_grounded_read, _is_low_consequence
+
+    for env in PROD_ALIASES:
+        assert _is_grounded_read(_grounded(target_environment=env)) is False, env
+        assert _is_low_consequence(_grounded(target_environment=env)) is False, env
+    assert _is_grounded_read(_grounded(target_environment="staging")) is True
+    assert _is_grounded_read(_grounded(target_environment="prod"), allow_production=True) is True
+
+
+def test_the_api_reads_the_opt_in_from_the_environment_and_defaults_off(monkeypatch) -> None:
+    from servers import execution_api
+
+    monkeypatch.delenv("REMORA_GROUNDED_READ_IN_PRODUCTION", raising=False)
+    assert execution_api._engine_from_env().grounded_read_in_production is False
+    for value in ("1", "true", "yes", "on"):
+        monkeypatch.setenv("REMORA_GROUNDED_READ_IN_PRODUCTION", value)
+        assert execution_api._engine_from_env().grounded_read_in_production is True, value
+    for value in ("0", "false", "", "off"):
+        monkeypatch.setenv("REMORA_GROUNDED_READ_IN_PRODUCTION", value)
+        assert execution_api._engine_from_env().grounded_read_in_production is False, value

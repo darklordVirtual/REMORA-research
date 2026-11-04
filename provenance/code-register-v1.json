@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "d61101ee608c001e48623469be99af47df0dd7aa",
+      "git_blob": "f9adb8c0d8007a84dd59eadcd3d5f07c0c0bd7a9",
       "mode": "100644",
-      "sha256": "e26612685fba4f2b5c94dd188e9422b4a9a138d1c9839f0804dba6784e726b77"
+      "sha256": "7e5aa6f33cef93f0d9ef88a986028610d16c600c45b2060eabffa0cfdb6c2a74"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -3089,9 +3089,9 @@
     },
     "artifacts/ot-pilot/grounded-reads-2026-11-03/README.md": {
       "concepts": [],
-      "git_blob": "49021b5eed2dbff656ef7f7a28402abc63de36f8",
+      "git_blob": "08bf85afa1468e52fb644c02666c4b942eed4a64",
       "mode": "100644",
-      "sha256": "591d9d3d2499d6c4a4991d6d8355f9449e83adafd6f767ebccaf7d5a629deff5"
+      "sha256": "dcb009452bfa718f152f9ebef22e035dc7613be05dc4b0858ee0d3822e340be4"
     },
     "artifacts/ot-pilot/grounded-reads-2026-11-03/battery-control/chain-verification.json": {
       "concepts": [],
@@ -3249,6 +3249,12 @@
       "mode": "100644",
       "sha256": "a49eb79d26bb7780e6649872c41dbbfa0396ec75cab52295862903a2f15ddf0d"
     },
+    "artifacts/ot-pilot/grounded-reads-2026-11-03/mutation-spotcheck.json": {
+      "concepts": [],
+      "git_blob": "0c687d113a00ed68bdf40745af4a381b05c395f3",
+      "mode": "100644",
+      "sha256": "a61cdb0c08bcc1df4e004774583fd95c522b129dd56b7069124f5ccf151309a2"
+    },
     "artifacts/ot-pilot/grounded-reads-2026-11-03/sec99-cases-toolspec-ws1/cases.json": {
       "concepts": [],
       "git_blob": "ac79325eb9b21c6083d3192c29f64fc18b1404bc",
@@ -3278,6 +3284,12 @@
       "git_blob": "e8fe07f0e5b1d2fc3b15d452cf39c0bf6727e02b",
       "mode": "100644",
       "sha256": "fdbb84546f866ce45588ff293e6ab32bf25a65182fb875beb0def8f5a4fe5436"
+    },
+    "artifacts/ot-pilot/grounded-reads-2026-11-03/ws1-shadow/labels.json": {
+      "concepts": [],
+      "git_blob": "8ea0d532ee925a020c01798a2c27642bb1dbb9bc",
+      "mode": "100644",
+      "sha256": "137f043d281d8cbdb24a7e683ee65dbeb710a2c25b507e667f439a61de929d52"
     },
     "artifacts/ot-pilot/grounded-reads-2026-11-03/ws1-shadow/manifest.json": {
       "concepts": [],
@@ -19646,9 +19658,9 @@
       "concepts": [
         "PROV-18"
       ],
-      "git_blob": "4a2fbe300215df3542cbb7575f41de44e15d6eac",
+      "git_blob": "d778838d8cb69921a16cd6816c5a726ae0d7c609",
       "mode": "100644",
-      "sha256": "bbba8bb824276e553a28d8ce71fbafc97c082a0e393a5fc746c0c9f489e2b216"
+      "sha256": "0cb19bfbd5d802179f6b9007a8fc842ebc5b5ad203b11bedf0fb0477c7fe6438"
     },
     "tests/test_grounding_holdout.py": {
       "concepts": [],
@@ -22561,7 +22573,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "44d756f1d04c296051307284b6aca3b66f3da2abdb22301a4ae513c8e58f5c00",
+  "register_sha256": "9ca1b8342ae38f60bb8efc6d9122492884df064b675a54f4bab68e10030af47c",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
