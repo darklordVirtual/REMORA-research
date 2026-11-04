@@ -1,0 +1,152 @@
+{
+  "schema": "mutation-spotcheck/v1",
+  "date": "2026-11-04",
+  "method": "hand-written mutants on today's guards, each applied alone, the named test files run, the file restored; not a mutmut sweep ([tool.mutmut] covers the enforcement files only)",
+  "killed": 8,
+  "survived": 2,
+  "not_applied": 0,
+  "mutants": [
+    {
+      "id": "M1",
+      "file": "remora/policy/decision_engine.py",
+      "mutation": "tier clause removed from the grounded-read path",
+      "tests": [
+        "tests/test_grounded_read_accept.py",
+        "tests/test_grounded_read_in_production.py"
+      ],
+      "status": "KILLED",
+      "pytest_tail": "========================= 1 failed, 14 passed in 0.81s =========================",
+      "seconds": 1.2
+    },
+    {
+      "id": "M2",
+      "file": "remora/policy/decision_engine.py",
+      "mutation": "production allowed by default in the grounded-read path",
+      "tests": [
+        "tests/test_grounded_read_accept.py",
+        "tests/test_grounded_read_in_production.py"
+      ],
+      "status": "SURVIVED",
+      "pytest_tail": "============================== 80 passed in 0.59s ==============================",
+      "seconds": 1.1
+    },
+    {
+      "id": "M3",
+      "file": "remora/policy/decision_engine.py",
+      "mutation": "grounding signals no longer required",
+      "tests": [
+        "tests/test_grounded_read_accept.py",
+        "tests/test_grounded_read_in_production.py"
+      ],
+      "status": "KILLED",
+      "pytest_tail": "========================= 1 failed, 4 passed in 0.53s ==========================",
+      "seconds": 0.8
+    },
+    {
+      "id": "M4",
+      "file": "remora/verification/monitor_discharge.py",
+      "mutation": "receipt signature failure ignored",
+      "tests": [
+        "tests/verification/test_monitor_discharge.py"
+      ],
+      "status": "KILLED",
+      "pytest_tail": "========================= 1 failed, 10 passed in 0.59s =========================",
+      "seconds": 0.9
+    },
+    {
+      "id": "M5",
+      "file": "remora/verification/monitor_discharge.py",
+      "mutation": "untyped historical veto no longer sticky",
+      "tests": [
+        "tests/verification/test_monitor_discharge.py"
+      ],
+      "status": "KILLED",
+      "pytest_tail": "========================= 1 failed, 5 passed in 0.49s ==========================",
+      "seconds": 0.7
+    },
+    {
+      "id": "M6",
+      "file": "remora/verification/monitor_discharge.py",
+      "mutation": "receipt expiry ignored",
+      "tests": [
+        "tests/verification/test_monitor_discharge.py"
+      ],
+      "status": "KILLED",
+      "pytest_tail": "========================= 1 failed, 21 passed in 0.53s =========================",
+      "seconds": 0.8
+    },
+    {
+      "id": "M7",
+      "file": "remora/execution/authorization.py",
+      "mutation": "callable no longer measured against its signed spec at registration",
+      "tests": [
+        "tests/test_rest_callable_verification.py",
+        "tests/test_toolspec_runtime.py",
+        "tests/test_callable_closure_digest.py"
+      ],
+      "status": "KILLED",
+      "pytest_tail": "========================= 1 failed, 1 passed in 0.61s ==========================",
+      "seconds": 0.9
+    },
+    {
+      "id": "M8",
+      "file": "remora/toolcall/toolspec.py",
+      "mutation": "target environment no longer checked against allowed_targets",
+      "tests": [
+        "tests/test_toolspec_runtime.py",
+        "tests/test_toolspec_execution_wiring.py",
+        "tests/test_toolspec_bound_at_dispatch.py"
+      ],
+      "status": "KILLED",
+      "pytest_tail": "========================= 1 failed, 7 passed in 0.59s ==========================",
+      "seconds": 0.9
+    },
+    {
+      "id": "M9",
+      "file": "servers/execution_api.py",
+      "mutation": "production opt-in hard-wired on instead of read from the environment",
+      "tests": [
+        "tests/test_grounded_read_in_production.py",
+        "tests/test_policy_identity.py",
+        "tests/test_api_execution_surface_binding.py"
+      ],
+      "status": "SURVIVED",
+      "pytest_tail": "============================== 48 passed in 0.60s ==============================",
+      "seconds": 0.9
+    },
+    {
+      "id": "M10",
+      "file": "deploy/ot-pilot/ot_ws1.py",
+      "mutation": "WS1 grounding map removed from the pilot deployment",
+      "tests": [
+        "tests/test_ot_pilot_toolspec.py"
+      ],
+      "status": "KILLED",
+      "pytest_tail": "========================= 1 failed, 4 passed in 0.58s ==========================",
+      "seconds": 0.8
+    }
+  ],
+  "after_adding_tests": {
+    "date": "2026-11-04",
+    "tests_added": [
+      "test_the_predicates_refuse_production_by_default_when_called_directly",
+      "test_the_api_reads_the_opt_in_from_the_environment_and_defaults_off"
+    ],
+    "reruns": [
+      {
+        "id": "M2",
+        "status": "KILLED",
+        "pytest_tail": "========================= 1 failed, 80 passed in 0.62s ========================="
+      },
+      {
+        "id": "M9",
+        "status": "KILLED",
+        "pytest_tail": "========================= 1 failed, 35 passed in 0.68s ========================="
+      }
+    ]
+  },
+  "survivors_before_fix": [
+    "M2",
+    "M9"
+  ]
+}

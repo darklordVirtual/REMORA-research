@@ -1,0 +1,117 @@
+{
+  "schema": "remora-mutation-sweep-record/v1",
+  "date": "2026-11-04",
+  "tool": "mutmut 3.8.0 (requirements-mutation.lock), mutate_only_covered_lines",
+  "modules": [
+    "remora/verification/monitor_discharge.py",
+    "remora/toolcall/deployment_registry.py"
+  ],
+  "not_swept": {
+    "deploy/ot-pilot/ot_ws1.py": "outside the remora source path and loaded by module name inside the container; not reachable by mutmut's import trampoline"
+  },
+  "test_selection": [
+    "tests/verification/test_monitor_discharge.py",
+    "tests/verification/test_monitor_discharge_properties.py",
+    "tests/verification/test_monitor_discharge_mutation_kills.py",
+    "tests/test_deployment_tool_registry.py",
+    "tests/test_deployment_tool_registry_mutation_kills.py",
+    "tests/test_ot_pilot_tool_metadata.py",
+    "tests/test_grounded_read_in_production.py",
+    "tests/test_grounded_read_properties.py",
+    "tests/test_assess_api_labels.py",
+    "tests/test_delegated_execution_and_approval_policy.py",
+    "tests/test_review_path_binding.py",
+    "tests/test_review_path_audit_r3.py",
+    "tests/test_runtime_profile.py",
+    "tests/test_mcp_gateway_effect_receipt_contract.py"
+  ],
+  "attempts": [
+    {
+      "n": 1,
+      "outcome": "no mutant ran: the sandbox lacked integrations/ (a fixture) and collection stopped"
+    },
+    {
+      "n": 2,
+      "outcome": "no mutant ran: the sandbox lacked scripts/ (tests/test_ws1_execution_binding.py imports from it)"
+    },
+    {
+      "n": 3,
+      "outcome": "ran against the repository's fixed enforcement test selection, which does not cover either module: 151 mutants of deployment_registry.py, 93 killed, 58 survived; 0 mutants generated for monitor_discharge.py because its tests were not in the selection. Discarded as a measurement; kept as the record of the mistake"
+    },
+    {
+      "n": 4,
+      "outcome": "covering tests selected: 609 mutants, 470 killed, 139 survived (77.2 %). monitor_discharge.py 110 survivors, deployment_registry.py 29",
+      "survivors_by_function": {
+        "to_dict (four dataclasses)": 54,
+        "_decide": 27,
+        "compose_with_monitor_discharge": 23,
+        "_validate_entry": 11,
+        "_cached": 6,
+        "deployment_registry_digest": 5,
+        "with_crossings": 4,
+        "load_deployment_tool_metadata": 4,
+        "reset_deployment_tool_metadata": 2,
+        "verify_contract": 1,
+        "_receipt_reason": 1,
+        "_load_vocabulary": 1
+      }
+    },
+    {
+      "n": 5,
+      "outcome": "after tests/verification/test_monitor_discharge_mutation_kills.py and tests/test_deployment_tool_registry_mutation_kills.py: 610 mutants, 595 killed, 15 survived (97.5 %)",
+      "survivors": [
+        "remora.verification.monitor_discharge.x__decide__mutmut_44",
+        "remora.verification.monitor_discharge.x__decide__mutmut_51",
+        "remora.verification.monitor_discharge.x__decide__mutmut_53",
+        "remora.verification.monitor_discharge.x__decide__mutmut_59",
+        "remora.verification.monitor_discharge.x__decide__mutmut_92",
+        "remora.verification.monitor_discharge.x_compose_with_monitor_discharge__mutmut_16",
+        "remora.verification.monitor_discharge.x_compose_with_monitor_discharge__mutmut_134",
+        "remora.verification.monitor_discharge.x_compose_with_monitor_discharge__mutmut_141",
+        "remora.toolcall.deployment_registry.x_load_deployment_tool_metadata__mutmut_15",
+        "remora.toolcall.deployment_registry.x_load_deployment_tool_metadata__mutmut_17",
+        "remora.toolcall.deployment_registry.x_load_deployment_tool_metadata__mutmut_19",
+        "remora.toolcall.deployment_registry.x__cached__mutmut_6",
+        "remora.toolcall.deployment_registry.x_reset_deployment_tool_metadata__mutmut_1",
+        "remora.toolcall.deployment_registry.x_reset_deployment_tool_metadata__mutmut_2",
+        "remora.toolcall.deployment_registry.x_deployment_registry_digest__mutmut_26"
+      ]
+    },
+    {
+      "n": 6,
+      "outcome": "after the four further tests and the registry vocabulary fix: 609 mutants, 598 killed, 11 survived (98.2 %); the 11 are exactly the ones classified equivalent after attempt 5",
+      "survivors": [
+        "x__decide__mutmut_51",
+        "x__decide__mutmut_53",
+        "x_compose_with_monitor_discharge__mutmut_134",
+        "x_compose_with_monitor_discharge__mutmut_141",
+        "x_load_deployment_tool_metadata__mutmut_15",
+        "x_load_deployment_tool_metadata__mutmut_17",
+        "x_load_deployment_tool_metadata__mutmut_19",
+        "x__cached__mutmut_6",
+        "x_reset_deployment_tool_metadata__mutmut_1",
+        "x_reset_deployment_tool_metadata__mutmut_2",
+        "x_deployment_registry_digest__mutmut_26"
+      ]
+    }
+  ],
+  "survivor_classification_after_attempt_5": {
+    "killed_by_tests_added_afterwards": [
+      "x__decide__mutmut_44",
+      "x__decide__mutmut_59",
+      "x__decide__mutmut_92",
+      "x_compose_with_monitor_discharge__mutmut_16"
+    ],
+    "equivalent": {
+      "x__decide__mutmut_51, x__decide__mutmut_53": "by_question.get(q) without a default yields None, and `if not candidates` treats None and [] alike",
+      "x_compose_with_monitor_discharge__mutmut_134, _141": "monitor_veto_on_record=None, or omitted, is the composer's falsy default",
+      "x_load_deployment_tool_metadata__mutmut_15, _17; x_deployment_registry_digest__mutmut_26": "encoding 'UTF-8' is 'utf-8'; encoding=None is the platform default, UTF-8 on every host this runs on, and the file is JSON",
+      "x_load_deployment_tool_metadata__mutmut_19": "str(exc) already contains strerror; the message differs in wording only",
+      "x__cached__mutmut_6": "the default is used only when the variable is unset, where load_deployment_tool_metadata reads the environment itself and returns {}; the cache key differs in text only",
+      "x_reset_deployment_tool_metadata__mutmut_1, _2": "each alone leaves the other sentinel None, so the next _cached() call still reloads; only both together would break, and mutmut applies one at a time"
+    }
+  },
+  "criterion": "test plan H1: at least 90 % of mutants on executed lines killed, every survivor given a killing test or an equivalence reason",
+  "result": "met at attempt 5 (97.5 %) and attempt 6 (98.2 %); every survivor has a killing test or an equivalence reason",
+  "finding_from_the_clean_run": "attempt 5's clean test run surfaced a Hypothesis counterexample in tests/test_grounded_read_properties.py: action_type 'get' satisfies every grounded-read clause yet the engine floors it to verify as an unknown action type; the registry accepted 'get', 'search' and 'lookup' as declarable. Fixed in deployment_registry.py (refused at load), engine unchanged"
+}

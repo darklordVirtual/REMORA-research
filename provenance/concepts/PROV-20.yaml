@@ -1,0 +1,75 @@
+# Concept record. Hand-maintained; digests live in provenance/manifests/, not here.
+# Registration records priority and content. It is not a claim of invention (see provenance/README.md).
+schema_version: remora-concept-record-v1
+concept_id: PROV-20
+canonical_name: Typed monitor-veto discharge under a deployment-signed contract
+invariant: A learned monitor's threshold crossing is recorded as a typed, hash-bound, durable event per
+  attempt family and stays a veto by default. It is discharged only when a deployment-signed contract
+  names the crossed question, the risk obligation, the verifier and the tool, and an independently signed,
+  current receipt bound to contract, obligation, verifier, context, evidence revision and monitor profile
+  states that the obligation is PROVED. The monitor itself plays no part in the discharge. The result is
+  the legacy composition minus that one cap, bounded above by every deterministic cap; an uncovered
+  question, an untyped historical veto, an unverifiable or mismatched receipt, expiry or any contradicting
+  receipt keeps the veto, and the original crossing and the receipt stay in the audit record.
+identifying_terms:
+- MonitorVetoLedger
+- DischargeContract
+- compose_with_monitor_discharge
+origin:
+  authors:
+  - Stian Skogbrott
+  project: REMORA
+  status: claimed_original_contribution
+classification: UNKNOWN
+first_recorded:
+  commit: 8686fc1e8fac3c16890959569d6ff8609454fe2a
+  authored: '2026-11-03T19:26:56+01:00'
+  committed: '2026-11-03T19:26:56+01:00'
+  signature: N
+  paths:
+  - docs/design/ws2-minimal-intervention-governance-sdd-v1.4.md
+  method: first commit on the snapshot history that introduced an identifying term as its own token; docs/assurance/provenance_register_v1.json
+canonical_spec:
+- path: docs/design/ws2-minimal-intervention-governance-sdd-v1.4.md
+- path: docs/assurance/ws2_monitor_question_verifier_coverage_dev_v1.2.md
+- path: docs/assurance/ws1_study_d_ws2_monitor_composition_prereg_draft_v1.3.md
+implementation:
+- path: remora/verification/monitor_discharge.py
+- path: remora/crypto/domain_signing.py
+tests:
+- path: tests/verification/test_monitor_discharge.py
+conformance: []
+interop_contracts: []
+related_capabilities:
+- CAP-030
+related_claims: []
+federation_produces: policy_decision
+distinguishing_contribution: 'Separating what a learned monitor may say from what may lift its veto: the
+  crossing becomes a typed event owned by the deployment''s audit, and only a signed deployment contract
+  plus an independent, exactly bound verifier receipt can discharge it, with the deterministic authority
+  as an unmovable ceiling. The owner ruling of 2026-11-03 (#953) reads INV-M4-04''s "denial" as
+  deterministic authority on exactly these conditions. Implemented as an unwired, opt-in prototype
+  (library_only) with tests for the SDD §6 rows B-01 to B-12, B-14 and B-17; no study, claim or
+  capability is upgraded by it (WS2 SDD v1.4 §7, NEGATIVE_RESULTS §99 to §101 for the gates it waited on).'
+prior_art:
+  reviewed: false
+  review_sources: []
+  records: []
+  note: "Not yet reviewed. Work to compare against before any classification: policy exception and
+    override handling in access-control systems, attestation-based waivers in supply-chain policy
+    (PA-SRC-006), and LLM-as-judge override literature. Classification stays UNKNOWN until a dated review
+    in PRIOR_ART.yaml names this concept."
+evolution:
+- stage: first_recorded
+  commit: 8686fc1e8fac3c16890959569d6ff8609454fe2a
+  date: '2026-11-03'
+  note: identifying term first introduced as its own token, in the WS2 SDD v1.4 (docs-only PR #1160)
+- stage: unwired_prototype
+  commit: dee87d1ad1f2dbab9296c29f56494997a1269794
+  date: '2026-11-03'
+  note: remora/verification/monitor_discharge.py and its 34 tests under the owner exception on #953 (PR #1162, merged to dev)
+external_adoption: []
+license:
+  spdx: BUSL-1.1
+  licensor: Stian Skogbrott
+  reference: legal/LICENSING.md

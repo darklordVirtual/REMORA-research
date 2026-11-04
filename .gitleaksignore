@@ -53,3 +53,10 @@ f5f3363090becd74f64e399d37b099370c336967:deploy/ot-pilot/docker-compose.yml:gene
 c0d0f3e891ba4436a772f56fd4e97510cf03270a:.gitleaks.toml:generic-api-key:102
 c0d0f3e891ba4436a772f56fd4e97510cf03270a:.gitleaks.toml:generic-api-key:103
 c0d0f3e891ba4436a772f56fd4e97510cf03270a:.gitleaks.toml:private-key:104
+#
+# artifacts/ot-pilot/grounded-reads-2026-11-03/independent-scenarios/phase-a.json
+# at f2958f1d, line 883: the first sixteen hex characters of the SHA-256 of
+# a redacted single-use grant, recorded so two steps can be seen to have
+# redeemed the same grant. The field was named execution_token_sha256, which
+# the generic-api-key rule read as a token; it is now grant_digest16.
+f2958f1d9fcef42b301bc2da9840b4608af8df89:artifacts/ot-pilot/grounded-reads-2026-11-03/independent-scenarios/phase-a.json:generic-api-key:883

@@ -1,0 +1,188 @@
+[
+  {
+    "id": "N1-agent-unlinked",
+    "title": "self-signed unlinked lease on the authority domain with the agent token",
+    "expected": "HTTP 404; nothing dispatched",
+    "observed": {
+      "status": 404,
+      "body": {
+        "detail": "served only by the execution domain"
+      }
+    },
+    "result": "PASS"
+  },
+  {
+    "id": "N1-agent-linked",
+    "title": "self-signed linked lease on the authority domain with the agent token",
+    "expected": "HTTP 404; nothing dispatched",
+    "observed": {
+      "status": 404,
+      "body": {
+        "detail": "served only by the execution domain"
+      }
+    },
+    "result": "PASS"
+  },
+  {
+    "id": "N1-approver-unlinked",
+    "title": "self-signed unlinked lease on the authority domain with the approver token",
+    "expected": "HTTP 404; nothing dispatched",
+    "observed": {
+      "status": 404,
+      "body": {
+        "detail": "served only by the execution domain"
+      }
+    },
+    "result": "PASS"
+  },
+  {
+    "id": "N1-approver-linked",
+    "title": "self-signed linked lease on the authority domain with the approver token",
+    "expected": "HTTP 404; nothing dispatched",
+    "observed": {
+      "status": 404,
+      "body": {
+        "detail": "served only by the execution domain"
+      }
+    },
+    "result": "PASS"
+  },
+  {
+    "id": "N1-supervisor-unlinked",
+    "title": "self-signed unlinked lease on the authority domain with the supervisor token",
+    "expected": "HTTP 404; nothing dispatched",
+    "observed": {
+      "status": 404,
+      "body": {
+        "detail": "served only by the execution domain"
+      }
+    },
+    "result": "PASS"
+  },
+  {
+    "id": "N1-supervisor-linked",
+    "title": "self-signed linked lease on the authority domain with the supervisor token",
+    "expected": "HTTP 404; nothing dispatched",
+    "observed": {
+      "status": 404,
+      "body": {
+        "detail": "served only by the execution domain"
+      }
+    },
+    "result": "PASS"
+  },
+  {
+    "id": "N2-agent-executor",
+    "title": "agent (operator) token on the executor domain",
+    "expected": "HTTP 403; the operator role holds no dispatch capability",
+    "observed": {
+      "status": 403,
+      "body": {
+        "detail": "role operator cannot perform dispatch"
+      }
+    },
+    "result": "PASS"
+  },
+  {
+    "id": "N3-hop-unlinked",
+    "title": "dispatch_hop token, validly signed lease, no proposal or grant",
+    "expected": "HTTP 200 with executed=false, refusal_reason=lease_unlinked",
+    "observed": {
+      "status": 200,
+      "body": {
+        "outcome": "refused",
+        "tool_execution": {
+          "executed": false,
+          "refusal_reason": "lease_unlinked",
+          "proposal_id": ""
+        }
+      }
+    },
+    "result": "PASS"
+  },
+  {
+    "id": "P1-hop-linked",
+    "title": "dispatch_hop token, validly signed lease with non-empty linkage",
+    "expected": "either executed=true with lease_dispatch_admitted and lease_dispatch_result on the chain, or a refusal naming its reason; never a silent dispatch",
+    "observed": {
+      "status": 200,
+      "body": {
+        "outcome": "refused",
+        "tool_execution": {
+          "executed": false,
+          "dispatch_began": false,
+          "proposal_id": "prop-fabricated-1",
+          "nested_effects": {
+            "mediated": false,
+            "count": 0,
+            "settled": true
+          },
+          "refusal_reason": "toolspec_hash_mismatch"
+        }
+      },
+      "executor_audit_before": {
+        "detail": "not served by the execution domain"
+      },
+      "executor_audit_after": {
+        "detail": "not served by the execution domain"
+      },
+      "authority_audit_after": {
+        "tenant": "ot-pilot",
+        "valid": true,
+        "problems": [],
+        "records_checked": 46,
+        "empty": false,
+        "hash_chain_status": "INTACT",
+        "signature_status": "CHECKED",
+        "signature_format": "v1"
+      }
+    },
+    "result": "PASS"
+  },
+  {
+    "id": "N4-hop-tampered-call",
+    "title": "the call under a valid lease is changed after signing",
+    "expected": "refused (409 or executed=false); nothing runs",
+    "observed": {
+      "status": 200,
+      "body": {
+        "outcome": "refused",
+        "tool_execution": {
+          "executed": false,
+          "dispatch_began": false,
+          "proposal_id": "prop-fabricated-1",
+          "nested_effects": {
+            "mediated": false,
+            "count": 0,
+            "settled": true
+          },
+          "refusal_reason": "toolspec_hash_mismatch"
+        }
+      }
+    },
+    "result": "PASS"
+  },
+  {
+    "id": "N5-hop-replay",
+    "title": "the admitted lease from P1 is presented a second time",
+    "expected": "refused (409 or executed=false); a lease nonce is consumed once",
+    "observed": {
+      "status": 200,
+      "body": {
+        "outcome": "refused",
+        "tool_execution": {
+          "executed": false,
+          "dispatch_began": false,
+          "proposal_id": "prop-fabricated-1",
+          "nested_effects": {
+            "mediated": false,
+            "count": 0,
+            "settled": true
+          },
+          "refusal_reason": "toolspec_hash_mismatch"
+        }
+      }
+    },
+    "result": "PASS"
+  }
+]

@@ -1,0 +1,6 @@
+Run cd2e51df-cc02-4924-a0ff-68d462a6e78f
+Cases: 16 total, 16 passed, 0 failed
+Confirmed side effects: 11
+Monitoring reads completed: 5/5
+Execution chain valid: True
+Envelope chain valid: True
