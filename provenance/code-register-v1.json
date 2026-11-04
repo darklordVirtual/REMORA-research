@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "dd8ccc99a79f7a4ce075002a9b567ddab48a817f",
+      "git_blob": "f35873e367555ff49a17264ab343ea208d5e75ba",
       "mode": "100644",
-      "sha256": "8807d7e03d77b62ff85694ec5e8840114fce7dff23a15f650c3b7eca63cd17cb"
+      "sha256": "a5eed53edc4698e15b9fae4e48dc0a95f15739c3c119d8071bbebcbe5c597850"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -369,9 +369,9 @@
     },
     "NEGATIVE_RESULTS.md": {
       "concepts": [],
-      "git_blob": "e6c588bb896bf3dd3172077dcd7e0623bbd9e5df",
+      "git_blob": "16f8ca4a269afe095c73e6737a15cc44464671c5",
       "mode": "100644",
-      "sha256": "a91f036c3b3bc47813b9add7ddd19239645f37c083e094d8b93c362f40896212"
+      "sha256": "f495692f8a536efcd679c604f023d407cb0e9e547598c83ae130a8f6bfa5306b"
     },
     "NOTICE": {
       "concepts": [],
@@ -429,15 +429,27 @@
     },
     "artifacts/aromer/d1_export_2026-11-03/README.md": {
       "concepts": [],
-      "git_blob": "43fe6bd6d4b52e93268ae5cd0f7f12299213e27f",
+      "git_blob": "90cac80f212480ae88a7c44a5363d89f9146a31f",
       "mode": "100644",
-      "sha256": "974c91117cb8f26673296a28fb9437fdb1a361aa27e97830354a6d34f4176b64"
+      "sha256": "ba0f3652de7ad63420034bf6b75ca7b880163910971b4c06f8ba2aed9b1ad4ed"
     },
     "artifacts/aromer/d1_export_2026-11-03/aromer_d1_export_2026-11-03.json": {
       "concepts": [],
       "git_blob": "2e9e23d20294f897c846b322e0f3304622354b5f",
       "mode": "100644",
       "sha256": "ccdf48d7856a3d03c96e4031b271551a31ed7247aaeae2a5616b52609ca903d5"
+    },
+    "artifacts/aromer/d1_export_2026-11-03/hook_episode_friction_v1.json": {
+      "concepts": [],
+      "git_blob": "7a46813041d19711b588978c3a5a3222cca00ac5",
+      "mode": "100644",
+      "sha256": "3091940c39765f0fc953db83c1daaa4d9cdf4ed96a7c5db385c68ab54f961aed"
+    },
+    "artifacts/aromer/d1_export_2026-11-03/hook_episode_friction_v1.provenance.json": {
+      "concepts": [],
+      "git_blob": "19687696479e0f804ac72a3a05ad05f95506ce6e",
+      "mode": "100644",
+      "sha256": "a003c7ba7279d71a71eb6017cf204939207860579b3752ca2f0b8630ed7f0ff4"
     },
     "artifacts/aromer/external_dataset_eval.json": {
       "concepts": [],
@@ -627,9 +639,9 @@
     },
     "artifacts/credibility-pack/claim-register.yaml": {
       "concepts": [],
-      "git_blob": "136f75829d76d7105a1308abe803f4f763f72be4",
+      "git_blob": "174eb8b97c52aa9e4965d2c18932b5cf137f957b",
       "mode": "100644",
-      "sha256": "db02a30b9a17a622b14fe9af58a559592970eceb5686a095a2c75dc5e5f17885"
+      "sha256": "db72e59cf1c48e0a3ec3f34d83660060a843ced82959e6c1afe6c1782041eb53"
     },
     "artifacts/credibility-pack/executive-summary.md": {
       "concepts": [],
@@ -6167,9 +6179,9 @@
     },
     "docs/assurance/claim_register_v1.yaml": {
       "concepts": [],
-      "git_blob": "136f75829d76d7105a1308abe803f4f763f72be4",
+      "git_blob": "174eb8b97c52aa9e4965d2c18932b5cf137f957b",
       "mode": "100644",
-      "sha256": "db02a30b9a17a622b14fe9af58a559592970eceb5686a095a2c75dc5e5f17885"
+      "sha256": "db72e59cf1c48e0a3ec3f34d83660060a843ced82959e6c1afe6c1782041eb53"
     },
     "docs/assurance/credential_topology.yaml": {
       "concepts": [],
@@ -6365,9 +6377,9 @@
     },
     "docs/assurance/remediation_register.yaml": {
       "concepts": [],
-      "git_blob": "a8be49a845e641972a8839d0131c731044269412",
+      "git_blob": "f0f8436d4ef45d56cd80a6340821f017a8229eac",
       "mode": "100644",
-      "sha256": "aafb93ccd6ea120b0794ad0528031548392c6273c3000930222dcc317f2dedd7"
+      "sha256": "720919625a54725a055c00c48fa401830eff31e173a065405593f57e13d4a00a"
     },
     "docs/assurance/reproducibility_scorecard_v1.md": {
       "concepts": [],
@@ -15233,6 +15245,12 @@
       "mode": "100755",
       "sha256": "6be7cb2a469b0b7b645d70eaa6b566d946f43316edb6ce79d019b6e7201268c2"
     },
+    "scripts/aromer_hook_friction.py": {
+      "concepts": [],
+      "git_blob": "54e06ea085063212ec218436bf0596eab2f021f1",
+      "mode": "100644",
+      "sha256": "86d9cf0cfd23eb71d1c7821b6320c40bdce61cecdd188de3002db5b637e56a03"
+    },
     "scripts/aromer_label.py": {
       "concepts": [],
       "git_blob": "515ceea3c176eca90cb41b498ed6f52489a7fc91",
@@ -15571,9 +15589,9 @@
     },
     "scripts/check_negative_results_status.py": {
       "concepts": [],
-      "git_blob": "8d21d516afeab923c1af1702b7d9a3104d997baa",
+      "git_blob": "2043ff6fce74fea850086e4def2112e7a966683d",
       "mode": "100644",
-      "sha256": "7b45d2035afc2b8b30495b8441eb2456898fa43f7f7986c2d0aca5b96cd932b8"
+      "sha256": "d2fb508917d0fbf31775e4f0b1f9b351c6780463ec5decca9b6c16d9df913dd6"
     },
     "scripts/check_no_evaluation_leakage.py": {
       "concepts": [],
@@ -17694,6 +17712,12 @@
       "git_blob": "9026f1161d01ad680f26a6de9fb3a1960ebd3cbf",
       "mode": "100644",
       "sha256": "3d2ef05a392846b36c473a0a202ddfcb874f885c7aa3196d3a87d74f56291b5d"
+    },
+    "tests/test_aromer_hook_friction.py": {
+      "concepts": [],
+      "git_blob": "0ed8e248091b57da9b75480cca35c10fb22a9b39",
+      "mode": "100644",
+      "sha256": "3f15aa3442db85414e805fe4313d860733a2fe4908a2f7c014d9337961aa8f3d"
     },
     "tests/test_aromer_intelligence.py": {
       "concepts": [],
@@ -22663,7 +22687,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "e63129f8904e564a52b1c74c42f3224d6c964b12f47c8fd48162797b8c1236f1",
+  "register_sha256": "e10e642a0398a20026f5049de2a0c541425a9de8b5755894c0bdca8ef34a67eb",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

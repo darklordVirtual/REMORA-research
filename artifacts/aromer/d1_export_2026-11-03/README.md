@@ -77,6 +77,18 @@ tool names, dataset names, seed-script names, one generic git command and two
 deliberate prompt-injection test strings. The unsanitized export is retained
 privately and is not part of this repository.
 
+## Follow-up artifacts (2026-11-03)
+
+- `hook_episode_friction_v1.json`: AROMER's shadow-mode verdicts on the 18,249
+  recorder-hook episodes, by tool, action type, risk tier and domain. Produced by
+  `scripts/aromer_hook_friction.py` from `episodes_public.jsonl`; the script
+  refuses any input whose SHA-256 is not the one pinned above. Review was asked
+  on 3,033 of 18,249 calls (16.6 %), 2,767 of them medium-tier shell execution.
+  Review load on presumed-benign traffic, not a false-block rate.
+- NEGATIVE_RESULTS §101 records the idle loop, the inflated priors and bandit
+  rows, and the unexplained AII step of 2026-06-29. CLAIM-006 cites this export
+  for its 2026-06-27 and 06-28 values.
+
 ## Reproduce
 
 ```bash
