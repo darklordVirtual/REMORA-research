@@ -238,6 +238,12 @@ class Meter:
     #: A field of the tool's result that carries the value before the write,
     #: as the controller reports it. Used to account for the actual movement.
     previous_field: str | None = None
+    #: Per resource, the scaled value the deployment declares safe (a change
+    #: meter only). A write whose new value is exactly that is never refused by
+    #: a movement limit and is charged nothing, before or after the fact: a
+    #: plant must always be able to go to its safe state through the governed
+    #: path. Moving away from it again is charged as any move.
+    safe_values: Mapping[str, int] = dataclass_field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, tool: str, raw: Any) -> Meter:
@@ -263,9 +269,27 @@ class Meter:
         previous = raw.get("previous_field")
         if previous is not None and not observed:
             raise LimitPolicyError(f"tool {tool!r}: previous_field needs an observed meter")
+        scale = _int(raw.get("scale", 1), "scale", 1)
+        safe_raw = raw.get("safe_values")
+        safe: dict[str, int] = {}
+        if safe_raw is not None:
+            if kind != "change":
+                raise LimitPolicyError(f"tool {tool!r}: safe_values are for change meters only")
+            if not isinstance(safe_raw, Mapping) or not safe_raw:
+                raise LimitPolicyError(
+                    f"tool {tool!r}: safe_values is a non-empty object of resource to value")
+            for resource_id, value in safe_raw.items():
+                if not isinstance(resource_id, str) or not resource_id or _SEP in resource_id:
+                    raise LimitPolicyError(f"tool {tool!r}: a safe_values key names a resource")
+                scaled = _scaled(value, scale)
+                if scaled is None:
+                    raise LimitPolicyError(
+                        f"tool {tool!r}: safe value for {resource_id!r} is not a number at "
+                        f"scale {scale}")
+                safe[resource_id] = scaled
         return cls(
             quantity=_text(raw.get("quantity"), f"tool {tool!r} quantity"), kind=kind,
-            argument=argument, scale=_int(raw.get("scale", 1), "scale", 1),
+            argument=argument, scale=scale,
             per_call=_int(raw.get("per_call", 1), "per_call", 1),
             unit=None if unit is None else _text(unit, "unit"),
             unit_argument=None if unit_argument is None else _text(unit_argument,
@@ -273,7 +297,8 @@ class Meter:
             resource_argument=None if resource is None else _text(resource,
                                                                    "resource_argument"),
             observed=observed,
-            previous_field=None if previous is None else _text(previous, "previous_field"))
+            previous_field=None if previous is None else _text(previous, "previous_field"),
+            safe_values=safe)
 
 
 @dataclass(frozen=True)
@@ -421,6 +446,14 @@ class LimitPolicy:
         """Quantities whose change is measured from an observed value."""
         return frozenset(m.quantity for meters in self.meters.values() for m in meters
                          if m.observed)
+
+    def safe_value(self, quantity: str, resource: str) -> int | None:
+        """The scaled value declared safe for this quantity and resource, or None."""
+        for meters in self.meters.values():
+            for m in meters:
+                if m.quantity == quantity and resource in m.safe_values:
+                    return m.safe_values[resource]
+        return None
 
     def baseline(self, tenant: str, quantity: str, resource: str) -> Baseline | None:
         return next((b for b in self.baselines
@@ -925,9 +958,13 @@ class LimitGuard:
         charges: list[tuple[Limit, str, int]] = []
         values: list[tuple[str, int, str]] = []
         seen_at: list[tuple[str, Decimal, int]] = []
+        #: Counters whose charge here is a move to a declared safe value.
+        safe_keys: set[str] = set()
         for index, reading in enumerate(readings):
             m = reading.meter
             amount: int | None = reading.value
+            to_safe = (m.kind == "change" and reading.resource is not None
+                       and m.safe_values.get(reading.resource) == reading.value)
             if m.kind == "change" and m.observed:
                 resource = reading.resource or ""
                 value_key = "\x1f".join((tenant, m.quantity, resource))
@@ -971,9 +1008,13 @@ class LimitGuard:
                                        reading.resource)]
             if not matching:
                 raise _Refused(UNDECLARED)
+            if to_safe and amount is not None:
+                amount = 0  # the move to the safe state is never charged
             for lim in matching:
                 key = lim.counter_key(principal, reading.resource)
                 charges.append((lim, key, -1 if amount is None else amount))
+                if to_safe:
+                    safe_keys.add(key)
         priors = [self.ledger.prior(conn, key, operation_id) for _, key, _ in charges]
         if charges and all(p is not None for p in priors):
             for (_, _, amount), prior in zip(charges, priors, strict=True):
@@ -984,6 +1025,8 @@ class LimitGuard:
             raise _Refused(CHANGED)
         # Each charge has its own counter: one meter per quantity, one quantity per limit.
         for lim, key, amount in charges:
+            if key in safe_keys:
+                continue  # a full counter must not stop the move to the safe state
             if self.ledger.used(conn, key, lim.binding, lim.window_seconds, now) + amount > lim.max:
                 raise _Refused(EXCEEDED)
         return False, charges, values, seen_at
@@ -1301,6 +1344,12 @@ class LimitGuard:
             tenant, quantity, resource = value_key.split("\x1f")
             if quantity not in observed:
                 continue  # a tracked meter's row holds its last value, not a reading
+            safe = self.policy.safe_value(quantity, resource)
+            if safe is not None:
+                with self.ledger.transaction() as conn:
+                    state = self.ledger.value(conn, value_key)
+                if state is not None and state[0] == safe:  # this operation holds the row
+                    continue  # going to the safe state is right whatever the plant did meanwhile
             now_seen = self._observe(tenant, quantity, resource, self._scale_of(quantity))
             if now_seen is None:
                 return OBSERVATION_UNAVAILABLE
@@ -1339,6 +1388,8 @@ class LimitGuard:
         charged_at = {k: c for k, _, c in self.ledger.observations(operation_id)}
         charges = self.ledger.charges(operation_id)
         for record in records:
+            if self.policy.safe_value(record["quantity"], record["resource"]) == record["target"]:
+                continue  # a move to the safe state is charged nothing, after the fact either
             field = fields.get(record["quantity"])
             previous = result.get(field) if field else None
             if isinstance(previous, bool) or not isinstance(previous, int | float):
