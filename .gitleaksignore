@@ -27,6 +27,10 @@ d3d690ebbdfb8b689e8ee4dd4ecba72bb069699b:scripts/execution_chain_attack_eval.py:
 # not in the repository. The generic-api-key rule reads "..._KEYS: <hex>" as a
 # key and its value.
 f5f3363090becd74f64e399d37b099370c336967:deploy/ot-pilot/docker-compose.yml:generic-api-key:111
+# The same setting after the limit authority was replaced on 2026-11-06: the new
+# Ed25519 PUBLIC key e165e0eb...e7c9, which verifies limits.json kid
+# ed25519-2722f6b6.... The seed is outside the repository.
+a2e5fdf0670bf8b65228789421532514137cf5ad:deploy/ot-pilot/docker-compose.yml:generic-api-key:174
 # docs/design/unified-capability-execution-v1.1.md line 158: the proposed CAM
 # example has an api_contract field whose value is a dotted contract name
 # (remora.execution.limits, version 1). The generic-api-key rule reads an

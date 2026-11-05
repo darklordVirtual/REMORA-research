@@ -285,9 +285,9 @@
     },
     ".gitleaksignore": {
       "concepts": [],
-      "git_blob": "fe7d091c6435e27a7493e4fa92a16b4eec314fd3",
+      "git_blob": "f6deacf76015b250de988214f0271869ea98dbdd",
       "mode": "100644",
-      "sha256": "b6f854fe8784e1723385a1528c6406d5d13cfe6042e86039908f8f16893d53d4"
+      "sha256": "59e71521de7e4485058b8e611073886fda34a52d5e09650e6f5980e7a0cf848c"
     },
     ".nvmrc": {
       "concepts": [],
@@ -22933,7 +22933,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "46692e2daf051cd2622dbaa99001eb216ab44d8c37c15d9636daee19ddba5dad",
+  "register_sha256": "b0b2c9680610d1e6375356eea6dfb55fbed7de253997e775287eafac640e52ed",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
