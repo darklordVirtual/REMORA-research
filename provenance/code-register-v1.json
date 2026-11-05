@@ -3453,6 +3453,12 @@
       "mode": "100644",
       "sha256": "3ad25de2066b71eab45c2f127383eed8d8e8d71c09894cb0df54953eed98eb50"
     },
+    "artifacts/ot-pilot/limits-holdout-v1/author-brief.md": {
+      "concepts": [],
+      "git_blob": "6c0f09b913de4331a3348e71df5331bf71f52140",
+      "mode": "100644",
+      "sha256": "5b984a68da6c1d13e6e5272185675013cfa993ab8d4250bdfdbe1d2f13d2783f"
+    },
     "artifacts/pilot-pack/README.md": {
       "concepts": [],
       "git_blob": "ce2ad3ccd26523a4b785b005cc4ba9516c848aec",
@@ -6293,9 +6299,9 @@
     },
     "docs/assurance/document_register_v1.yaml": {
       "concepts": [],
-      "git_blob": "fabfdc4c35cc79af781cec0988a4e545c4993229",
+      "git_blob": "1d21d6fb267c88cf5d9f6b8abaca738dae81e9e3",
       "mode": "100644",
-      "sha256": "f618135293d6049911f52b959cc2a8626e89e8d8256755304bd41c34e01c046a"
+      "sha256": "2171a283af64484d4ea2990da6d4a8026581a0676aef70638530dc2d655ec7d7"
     },
     "docs/assurance/documentation_governance_v1.md": {
       "concepts": [],
@@ -6410,6 +6416,12 @@
       "git_blob": "927106bdfbdbfc373a429bee6dff748c8c78700c",
       "mode": "100644",
       "sha256": "54b77707f706571201ed2073d72bcbd871f9f8b096f89a1cd44ca6305ba7ae27"
+    },
+    "docs/assurance/ot_limits_holdout_plan_v1.md": {
+      "concepts": [],
+      "git_blob": "045254fb8553c5d3391be7930fb026406a186a86",
+      "mode": "100644",
+      "sha256": "f2f7b164848cd193361774f50eb9f91d89d8f449d0e9232f86c39a211910623c"
     },
     "docs/assurance/policy_engine_audit_v1.md": {
       "concepts": [],
@@ -22819,7 +22831,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "d6f7bc1b6ac905e303e2fa7ff22eef34f4fbb0f687db901be174012ccddd26fc",
+  "register_sha256": "c1b5bd33f89e8b27925d5e6582a6fc0a7d7d3481d42aaad61cbc5153427f7723",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
