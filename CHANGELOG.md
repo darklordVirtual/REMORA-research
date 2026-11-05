@@ -4,6 +4,10 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### OT pilot: an AACP v0.2 self-assessment (2026-11-05)
+
+- `artifacts/ot-pilot/execution-path-reproduction-2026-11-05/aacp-assessment-v0.2.json` reads the pilot runs of that folder and the cited unit tests in the Agent Authority Conformance Profiles v0.2 format, pinned to `4cdaa5c9`. It is a self-assessment (BCR-0, SELF) and carries no score. A, B, C and F are PASS, each bounded to one host, one replica and simulated effects. D is FAIL, because S06 and S09 executed after an approver approved a mismatch the engine had flagged. E is UNTESTED, and G is NOT_ESTABLISHED. It validates with the AACP checker and coverage matrix. `tests/test_aacp_ot_pilot_assessment.py` (6) keeps every cited path resolvable and the D violation recorded.
+
 ### Mutation sweep: the sandbox had stopped measuring, and the cumulative limits were never in it (2026-11-04)
 
 - The scheduled sweep of 2026-11-02 failed in its stats phase (`integrations/invocation-evidence/` missing from the sandbox) and produced no result; `cumulative_limits.py` had been in `only_mutate` since 2026-10-24 without any of `tests/limits/` in the runner, and the selection guard scanned only the top level of `tests/`. The sandbox now copies `integrations/invocation-evidence/`, `integrations/horizon55/` and `scripts/`; the selection gains `tests/limits/`, `tests/capabilities/`, `tests/conformance/`, `tests/flow/`, the execution-stop suites and the Horizon #55 suite; the guard recurses. Full account, with the numbers: `docs/assurance/mutation_testing_v1.md`, "The 2026-11-04 re-measurement".
