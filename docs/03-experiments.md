@@ -471,6 +471,9 @@ DOC-426): 40 operator shifts written blind to the limits were replayed through
 the pilot's signed `limits.json`. A legitimate write was refused in 26 of 40
 shifts (Wilson 95 % 49.5 to 77.9 %), above the plan's 10 %, so the pilot's
 limits are recorded as tighter than legitimate operation (NEGATIVE_RESULTS §97).
+The recalibrated policy declares FIC-220 = 0 safe. On 40 new blind shifts it
+refused a legitimate write in 3 (7.5 %, Wilson 2.6 to 19.9 %). Under the same
+10 % that is inconclusive (plan v2, DOC-427).
 
 > **Note:** author's runs on one host against a simulated plant; not an
 > independent reproduction and not OT deployment validation. The same

@@ -63,9 +63,25 @@ Neither reading is evidence that the looser bounds still stop harmful sequences.
 3. The plausibility review.
 4. The one run, recorded here, under §97 and in the changelog.
 
-## Recorded result
+## Recorded result (2026-11-06)
 
-Not yet run.
+The v2 holdout was sealed (`9eb0c6bd`), reviewed (`e463248c`) and run once, with the harness unchanged and the deployed policy of `a2e5fdf0` (SHA-256 `32ee26d6...9c57`, kid `ed25519-2722f6b6...`). The output is `artifacts/ot-pilot/limits-holdout-v2/holdout/result.json`.
+
+| Measure | v1 (old policy) | v2 (recalibrated policy) | 95 % interval, v2 |
+|---|---|---|---|
+| P1: shifts with at least one limit refusal | 26 of 40 | 3 of 40 (7.5 %) | Wilson 2.6 % to 19.9 % |
+| P2: writes refused by a limit | 75 of 392 | 7 of 363 (1.9 %) | shift bootstrap 0.0 % to 4.8 % |
+
+The point estimate of P1 is below 10 % and the upper Wilson bound is above it. By §6 this is **inconclusive at this sample size**. It is not the reading "at most 10 %", and it is not a negative result. The two holdouts are separate samples with separate authors, so the drop from 26 to 3 is not a paired comparison. It says that the recalibrated policy refused far less of what the brief describes, not by how much exactly.
+
+- **S1 holds.** All three moves of FIC-220 to zero (hC-07 pump trip, hD-07 planned stop, hD-18 planned stop) ran and were charged nothing.
+- **Where the seven refusals sit.** All are `limit_exceeded`: PIC-101 movement 5 and valve travel 2. Three shifts are involved: hC-10 (a V-18 stroke during a positioner calibration), hD-03 (the pressure setpoint lowered to 3.0 bar while the pump is stopped) and hD-18, which has five. In hD-18 the operator lowers PIC-101 to 2.0 bar for a planned stop, 2.0 bar of movement where the limit allows 1.6, and brings it back later in steps that meet the same limit. The pressure setpoint during a stop is not declared safe, so a stop through the governed path still meets the PIC-101 bound.
+- **By author set.** Set C had a refusal in 1 of 20 shifts (1 of 145 writes), set D in 2 of 20 (6 of 218).
+- **Sensitivity.** Without the two writes the reviewer flagged (hD-11, indices 1 and 3), P1 is unchanged and P2 is 7 of 361; neither flagged write was refused. With refused moves made by hand outside REMORA, P2 is 5 of 363 (bootstrap 0.0 % to 3.2 %) and P1 the same 3 shifts.
+
+The protective side was not measured here. The looser bounds still refuse the sequences in `tests/limits/`, the battery's PIC-101 case and the fault-injection restart case, which now exercise them. Nothing in this plan says how much further a runaway agent gets under 180 m3/h per hour than under 10.
+
+Next, if wanted: a decision about the pressure setpoint during a stop (a declared safe value for PIC-101, or a bound sized for it), measured on a holdout v3. A larger holdout would narrow the interval; 40 shifts cannot separate 7.5 % from 10 %.
 
 ## What this plan does not do
 
