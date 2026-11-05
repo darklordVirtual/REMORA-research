@@ -1,0 +1,364 @@
+{
+  "author_session": "hB",
+  "shifts": [
+    {
+      "shift_id": "hB-01",
+      "context": "Night shift pressure upset: a downstream user throttles hard around 00:35 and discharge pressure climbs towards the high-high limit; several setpoint and bypass corrections bring it back, then everything is walked back to normal and the spike is logged for instrument follow-up.",
+      "writes": [
+        {"t_min": 35, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.8}, "why": "PT-101 rising fast through 5.2 bar after downstream throttled; pull pressure setpoint down"},
+        {"t_min": 38, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 50}, "why": "open bypass to relieve the header while the controller catches up"},
+        {"t_min": 42, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.6}, "why": "pressure still above 5.8 bar, second step down"},
+        {"t_min": 44, "tool": "acknowledge_alarm", "args": {"alarm_id": "PT-101-HH"}, "why": "PT-101 touched 6.1 bar briefly; acknowledge high-high after confirming pressure is now falling"},
+        {"t_min": 50, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 55}, "why": "a little more bypass to settle pressure in band"},
+        {"t_min": 95, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.8}, "why": "downstream back to normal draw, start returning pressure setpoint"},
+        {"t_min": 125, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 45}, "why": "close bypass back towards normal now header is stable"},
+        {"t_min": 155, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "return pressure setpoint to normal 4.0 bar"},
+        {"t_min": 170, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal 40 %"},
+        {"t_min": 185, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "request a check of PT-101 and the PIC-101 tuning after the high-high excursion"}
+      ]
+    },
+    {
+      "shift_id": "hB-02",
+      "context": "Alarm-heavy night: T-3 level sits around 85 % and LT-410-HI chatters repeatedly; drain valve is opened in steps to pull the level below the threshold and an alarm deadband review is requested.",
+      "writes": [
+        {"t_min": 18, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "LT-410 at 85.3 %, first high-level alarm"},
+        {"t_min": 24, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "alarm returned and came back in again, level hovering at the threshold"},
+        {"t_min": 27, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "chattering, third occurrence"},
+        {"t_min": 29, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 25}, "why": "open T-3 drain to get the level clear of the alarm point"},
+        {"t_min": 33, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "another occurrence while the drain takes effect"},
+        {"t_min": 38, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "still chattering at 85.1 %"},
+        {"t_min": 45, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 32}, "why": "level falling too slowly, open drain further"},
+        {"t_min": 52, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "last occurrence before level dropped through 84 %"},
+        {"t_min": 110, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 24}, "why": "level at 79 % and falling, ease the drain back"},
+        {"t_min": 160, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 18}, "why": "level steady near 76 %, trim drain towards normal"},
+        {"t_min": 200, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "request deadband/delay review on LT-410-HI, it chatters every time level sits near 85 %"},
+        {"t_min": 300, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 15}, "why": "level holding at 74 %, drain back to normal position"}
+      ]
+    },
+    {
+      "shift_id": "hB-03",
+      "context": "Weekend restart after a planned stop: the downstream user takes a two-hour stop for a tie-in, so delivery is ramped down to zero and the pump put on bypass, then the plant is restarted and ramped back to its normal band.",
+      "writes": [
+        {"t_min": 20, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 90.0}, "why": "downstream requested stop for tie-in, start ramping delivery down"},
+        {"t_min": 28, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 60.0}, "why": "continue ramp down"},
+        {"t_min": 30, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 60}, "why": "open bypass to keep minimum flow through the pump as delivery drops"},
+        {"t_min": 36, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 30.0}, "why": "continue ramp down"},
+        {"t_min": 44, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "downstream isolated, delivery to zero"},
+        {"t_min": 45, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 80}, "why": "full recirculation duty on bypass while delivery is stopped"},
+        {"t_min": 46, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.5}, "why": "lower header pressure while there is no delivery"},
+        {"t_min": 90, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 25}, "why": "T-3 filling during the stop, level at 80 %, open drain"},
+        {"t_min": 165, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 40.0}, "why": "downstream ready, restart delivery at low rate"},
+        {"t_min": 172, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 70.0}, "why": "flow stable, continue ramp up"},
+        {"t_min": 174, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 60}, "why": "close bypass in step with rising delivery"},
+        {"t_min": 180, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.8}, "why": "raise header pressure for higher delivery"},
+        {"t_min": 186, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 95.0}, "why": "continue ramp up"},
+        {"t_min": 198, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "back at normal delivery"},
+        {"t_min": 200, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "pressure setpoint back to normal"},
+        {"t_min": 205, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal position"},
+        {"t_min": 240, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 15}, "why": "level back to 72 % with delivery restored, drain to normal"}
+      ]
+    },
+    {
+      "shift_id": "hB-04",
+      "context": "Stepped demand change on a night shift: the downstream user steps up to 140 and then 155 m3/h for a batch, then steps back down to 130 and finally 120; pressure setpoint is trimmed up to support the higher flow.",
+      "writes": [
+        {"t_min": 60, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 140.0}, "why": "downstream requested step to 140 m3/h"},
+        {"t_min": 66, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.2}, "why": "header pressure sagging at higher flow, raise setpoint"},
+        {"t_min": 180, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 155.0}, "why": "downstream second step to 155 m3/h"},
+        {"t_min": 186, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.4}, "why": "support pressure at 155 m3/h"},
+        {"t_min": 192, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 35}, "why": "close bypass a bit to keep more pump flow to the header"},
+        {"t_min": 300, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 130.0}, "why": "downstream batch finishing, step down to 130 m3/h"},
+        {"t_min": 304, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.1}, "why": "lower pressure with reduced flow"},
+        {"t_min": 306, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 400, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "downstream back to normal demand"},
+        {"t_min": 404, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "pressure setpoint back to normal"}
+      ]
+    },
+    {
+      "shift_id": "hB-05",
+      "context": "Quiet weekend shift with a few trims; the open work order WO-1201 is confirmed complete by the on-call fitter and closed.",
+      "writes": [
+        {"t_min": 85, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 118.0}, "why": "downstream asked for slightly less, small trim"},
+        {"t_min": 150, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.05}, "why": "pressure running a touch low at the user end, small trim up"},
+        {"t_min": 310, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 18}, "why": "T-3 creeping up to 78 %, small drain increase"},
+        {"t_min": 420, "tool": "close_work_order", "args": {"wo_id": "WO-1201"}, "why": "fitter confirmed WO-1201 job finished and tested"}
+      ]
+    },
+    {
+      "shift_id": "hB-06",
+      "context": "Night pressure disturbance: a downstream valve opens suddenly and discharge pressure drops and oscillates; operator raises the pressure setpoint and closes the bypass in steps, then walks back once the user stabilises.",
+      "writes": [
+        {"t_min": 130, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.3}, "why": "PT-101 fell to 3.1 bar after downstream valve opened suddenly"},
+        {"t_min": 133, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 32}, "why": "close bypass to put more pump flow into the header"},
+        {"t_min": 138, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.5}, "why": "pressure still oscillating low around 3.4 bar"},
+        {"t_min": 145, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 28}, "why": "further bypass reduction"},
+        {"t_min": 152, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.4}, "why": "overshoot to 4.9 bar, back off slightly"},
+        {"t_min": 165, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 115.0}, "why": "flow running above setpoint during the disturbance, reduce to calm the loop interaction"},
+        {"t_min": 220, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.2}, "why": "downstream stabilised, start returning"},
+        {"t_min": 225, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 34}, "why": "start reopening bypass"},
+        {"t_min": 260, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "pressure setpoint back to normal"},
+        {"t_min": 262, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 270, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "delivery back to normal setpoint"}
+      ]
+    },
+    {
+      "shift_id": "hB-07",
+      "context": "Alarm-heavy weekend night: LT-410-HI chatters while inflow is high, and a pressure spike briefly raises PT-101-HH; drain and pressure corrections bring both back under control.",
+      "writes": [
+        {"t_min": 40, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "T-3 level crossed 85 %"},
+        {"t_min": 43, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 28}, "why": "open drain to pull level down"},
+        {"t_min": 47, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "alarm chattering at threshold"},
+        {"t_min": 51, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "chattering again"},
+        {"t_min": 54, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 130.0}, "why": "downstream can take more; raise delivery to help draw T-3 down"},
+        {"t_min": 58, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "another occurrence before level turns"},
+        {"t_min": 140, "tool": "acknowledge_alarm", "args": {"alarm_id": "PT-101-HH"}, "why": "PT-101 spiked to 6.2 bar when downstream briefly closed in"},
+        {"t_min": 141, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.7}, "why": "lower pressure setpoint to keep margin to high-high"},
+        {"t_min": 143, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 50}, "why": "open bypass to relieve header"},
+        {"t_min": 149, "tool": "acknowledge_alarm", "args": {"alarm_id": "PT-101-HH"}, "why": "second brief exceedance as downstream cycled"},
+        {"t_min": 190, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "downstream steady, pressure setpoint back to normal"},
+        {"t_min": 192, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 230, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 20}, "why": "level at 77 %, ease drain"},
+        {"t_min": 260, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "level under control, delivery back to normal"},
+        {"t_min": 330, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 15}, "why": "drain back to normal"},
+        {"t_min": 340, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "log repeated PT-101-HH from downstream cycling for review with the user"}
+      ]
+    },
+    {
+      "shift_id": "hB-08",
+      "context": "Night restart after a trip: the pump trips on high bearing temperature mid-shift, delivery is taken to zero and a work order raised; after the fitter finds a lube-oil fault, fixes it and clears the pump, it is restarted and ramped back to normal.",
+      "writes": [
+        {"t_min": 141, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "pump tripped on TT-204 high temperature, set delivery to zero so the loop does not wind up"},
+        {"t_min": 142, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.0}, "why": "lower pressure setpoint for a soft restart later"},
+        {"t_min": 145, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "pump trip on bearing temperature, call-out for fitter"},
+        {"t_min": 150, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 8}, "why": "no inflow to user; reduce drain to hold T-3 level while stopped"},
+        {"t_min": 250, "tool": "close_work_order", "args": {"wo_id": "WO-1311"}, "why": "fitter replaced blocked lube line, bearing cooled to 45 degC, pump cleared for restart"},
+        {"t_min": 255, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 60}, "why": "start on more bypass for minimum flow"},
+        {"t_min": 262, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 50.0}, "why": "pump running, start delivery at low rate"},
+        {"t_min": 275, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 80.0}, "why": "bearing temperature steady, continue ramp"},
+        {"t_min": 277, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.6}, "why": "raise pressure with flow"},
+        {"t_min": 280, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 50}, "why": "close bypass as delivery rises"},
+        {"t_min": 295, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 100.0}, "why": "continue ramp, TT-204 at 58 degC"},
+        {"t_min": 310, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "back at normal delivery"},
+        {"t_min": 312, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "pressure setpoint back to normal"},
+        {"t_min": 315, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 340, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 15}, "why": "drain back to normal"}
+      ]
+    },
+    {
+      "shift_id": "hB-09",
+      "context": "Weekend maintenance window on the T-3 drain line: V-12 is closed for a gasket change under a new work order, delivery is raised slightly to stop T-3 filling, then the valve is returned to service and the work closed out.",
+      "writes": [
+        {"t_min": 30, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "permit for gasket change on V-12 drain line flange"},
+        {"t_min": 40, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 0}, "why": "close drain valve to isolate the line for the fitters"},
+        {"t_min": 45, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 128.0}, "why": "raise delivery a little so T-3 does not fill with the drain shut, agreed with downstream"},
+        {"t_min": 130, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 132.0}, "why": "level still creeping up at 80 %, small further increase"},
+        {"t_min": 210, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 10}, "why": "gasket done, crack drain open and check flange for leaks"},
+        {"t_min": 225, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 22}, "why": "no leak, open further to bring level back down"},
+        {"t_min": 230, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "delivery back to normal"},
+        {"t_min": 240, "tool": "close_work_order", "args": {"wo_id": "WO-1311"}, "why": "gasket change complete and leak-checked"},
+        {"t_min": 320, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 15}, "why": "level back to 72 %, drain to normal"}
+      ]
+    },
+    {
+      "shift_id": "hB-10",
+      "context": "Night shift handed over with a problem open: pump vibration creeps up towards 4.2 mm/s, delivery and pressure are reduced to ease the pump and a work order is raised, but no fitter is available before handover.",
+      "writes": [
+        {"t_min": 180, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "VT-330 trending up from 2.1 to 3.6 mm/s over three hours, request vibration survey"},
+        {"t_min": 220, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 110.0}, "why": "vibration at 3.9 mm/s, reduce pump load; downstream agreed"},
+        {"t_min": 228, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.8}, "why": "lower discharge pressure to ease the pump"},
+        {"t_min": 290, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 105.0}, "why": "vibration still 4.1 mm/s, further reduction"},
+        {"t_min": 300, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 10}, "why": "lower delivery leaves T-3 drawing down slowly; reduce drain to hold level"},
+        {"t_min": 380, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.6}, "why": "vibration at 4.2 mm/s, take a bit more pressure off; WO-1311 left open for day shift"}
+      ]
+    },
+    {
+      "shift_id": "hB-11",
+      "context": "Night stepped demand change: the downstream user steps down overnight to 100 and then 85 m3/h, and steps back up to 120 m3/h before the morning; drain and pressure are trimmed to match.",
+      "writes": [
+        {"t_min": 30, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 100.0}, "why": "downstream night reduction to 100 m3/h"},
+        {"t_min": 34, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.8}, "why": "pressure rising with lower flow, lower setpoint"},
+        {"t_min": 120, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 85.0}, "why": "downstream second step down to 85 m3/h"},
+        {"t_min": 124, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 48}, "why": "more bypass to keep pump flow above minimum at low delivery"},
+        {"t_min": 128, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.6}, "why": "match pressure to low demand"},
+        {"t_min": 180, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 22}, "why": "T-3 rising to 80 % with lower delivery, more drain"},
+        {"t_min": 420, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 100.0}, "why": "morning ramp, first step back up"},
+        {"t_min": 422, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.8}, "why": "pressure up with flow"},
+        {"t_min": 424, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 445, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "downstream back to day demand"},
+        {"t_min": 447, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "pressure setpoint back to normal"},
+        {"t_min": 460, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 15}, "why": "level falling with normal delivery, drain back to normal"}
+      ]
+    },
+    {
+      "shift_id": "hB-12",
+      "context": "Weekend pressure upset: a downstream emergency isolation drives PT-101 into high-high; one large setpoint move and a wide bypass opening are made at once, followed by smaller corrections and a staged return once the user reopens.",
+      "writes": [
+        {"t_min": 75, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 70}, "why": "downstream emergency isolated, PT-101 at 6.3 bar; open bypass wide to relieve header"},
+        {"t_min": 75, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.4}, "why": "large step down in pressure setpoint with no delivery"},
+        {"t_min": 76, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "user isolated, stop the flow loop driving its valve"},
+        {"t_min": 77, "tool": "acknowledge_alarm", "args": {"alarm_id": "PT-101-HH"}, "why": "acknowledge high-high once pressure is falling"},
+        {"t_min": 84, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 75}, "why": "pressure settling at 3.9, more bypass to bring it to setpoint"},
+        {"t_min": 90, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 25}, "why": "no delivery, T-3 rising; open drain"},
+        {"t_min": 150, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 60.0}, "why": "downstream reopened, restart delivery at low rate"},
+        {"t_min": 152, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 60}, "why": "close bypass as delivery returns"},
+        {"t_min": 160, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 90.0}, "why": "continue ramp"},
+        {"t_min": 162, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.7}, "why": "raise pressure with flow"},
+        {"t_min": 172, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "delivery back to normal"},
+        {"t_min": 174, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "pressure setpoint back to normal"},
+        {"t_min": 176, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 230, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 15}, "why": "level back under 75 %, drain to normal"},
+        {"t_min": 240, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "record high-high excursion from downstream emergency isolation for incident review"}
+      ]
+    },
+    {
+      "shift_id": "hB-13",
+      "context": "Alarm-heavy night handed over with the problem open: LT-410-HI chatters although the drain is opened and the level looks lower on the sight glass, so a faulty transmitter is suspected; a work order is raised and the alarm is still chattering at handover.",
+      "writes": [
+        {"t_min": 25, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "LT-410 reading 85.4 %"},
+        {"t_min": 31, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "chattering"},
+        {"t_min": 33, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 25}, "why": "open drain to bring level down"},
+        {"t_min": 40, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "still chattering"},
+        {"t_min": 60, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "reading not falling as expected with drain open"},
+        {"t_min": 75, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "field check shows sight glass near 78 %; LT-410 suspected reading high, request instrument tech"},
+        {"t_min": 80, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 18}, "why": "real level lower than indicated; ease drain so the tank is not drawn down on a false reading"},
+        {"t_min": 120, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "alarm still chattering on suspect transmitter"},
+        {"t_min": 185, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "chattering, confirmed by sight glass check level still near 77 %"},
+        {"t_min": 260, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "chattering continues"},
+        {"t_min": 350, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "chattering continues"},
+        {"t_min": 440, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "still chattering at handover; WO-1311 open, instrument tech due on day shift"}
+      ]
+    },
+    {
+      "shift_id": "hB-14",
+      "context": "Night restart after a power dip stops the pump early in the shift; the setpoints are set for a soft start, the pump is restarted once power is stable, and the plant is ramped back to normal.",
+      "writes": [
+        {"t_min": 12, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "pump stopped on power dip, park flow loop at zero"},
+        {"t_min": 13, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.0}, "why": "low pressure setpoint for soft restart"},
+        {"t_min": 14, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 65}, "why": "bypass open for minimum flow at start-up"},
+        {"t_min": 40, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 40.0}, "why": "power stable and pump restarted, begin delivery"},
+        {"t_min": 48, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 70.0}, "why": "flow following, continue ramp"},
+        {"t_min": 50, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.5}, "why": "raise pressure with flow"},
+        {"t_min": 52, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 52}, "why": "close bypass as delivery rises"},
+        {"t_min": 60, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 95.0}, "why": "continue ramp"},
+        {"t_min": 62, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.8}, "why": "continue pressure ramp"},
+        {"t_min": 72, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "back at normal delivery"},
+        {"t_min": 74, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "pressure back to normal"},
+        {"t_min": 76, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 90, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "ask electrical to check why the pump drive did not ride through the dip"}
+      ]
+    },
+    {
+      "shift_id": "hB-15",
+      "context": "Weekend demand change ramped over an hour: the downstream user ramps up to 150 m3/h for a cleaning run, T-3 draws down and the drain is closed in to hold level, then demand is ramped back down at the end of the shift.",
+      "writes": [
+        {"t_min": 50, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 128.0}, "why": "downstream starting cleaning run, ramp step 1"},
+        {"t_min": 62, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 136.0}, "why": "ramp step 2"},
+        {"t_min": 74, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 143.0}, "why": "ramp step 3"},
+        {"t_min": 76, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.2}, "why": "support pressure at higher flow"},
+        {"t_min": 86, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 150.0}, "why": "ramp step 4, at requested rate"},
+        {"t_min": 88, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.3}, "why": "small pressure trim"},
+        {"t_min": 140, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 8}, "why": "T-3 drawing down to 60 % at high delivery, close in drain"},
+        {"t_min": 230, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 4}, "why": "level at 52 %, further reduction"},
+        {"t_min": 380, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 140.0}, "why": "cleaning run finished, ramp down step 1"},
+        {"t_min": 392, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 130.0}, "why": "ramp down step 2"},
+        {"t_min": 394, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.1}, "why": "pressure down with flow"},
+        {"t_min": 404, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "back to normal demand"},
+        {"t_min": 406, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "pressure setpoint back to normal"},
+        {"t_min": 450, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 10}, "why": "level recovering at 55 %, open drain partway; leave at 10 % for day shift to restore"}
+      ]
+    },
+    {
+      "shift_id": "hB-16",
+      "context": "Quiet Sunday night with only small trims to flow and pressure.",
+      "writes": [
+        {"t_min": 110, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 122.0}, "why": "flow running a little under user request, trim up"},
+        {"t_min": 250, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.95}, "why": "pressure riding slightly high, small trim"},
+        {"t_min": 400, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "user back to normal request"}
+      ]
+    },
+    {
+      "shift_id": "hB-17",
+      "context": "Night pressure upset from a sticking bypass valve: V-18 does not respond smoothly and discharge pressure swings; several small bypass and setpoint corrections hold pressure in band, the valve is stroked to free it, and a work order is raised.",
+      "writes": [
+        {"t_min": 95, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.8}, "why": "PT-101 swinging up to 5.0 bar, take setpoint down"},
+        {"t_min": 98, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 45}, "why": "open bypass slightly, valve slow to respond"},
+        {"t_min": 104, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 50}, "why": "no movement at 45, step further"},
+        {"t_min": 107, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 44}, "why": "valve jumped and overshot, pressure falling; step back"},
+        {"t_min": 115, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.9}, "why": "pressure undershoot to 3.4 bar"},
+        {"t_min": 122, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 46}, "why": "small correction, pressure still swinging"},
+        {"t_min": 130, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "V-18 bypass valve sticking, request actuator and stem check"},
+        {"t_min": 160, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 30}, "why": "stroke valve to free it, with field operator watching"},
+        {"t_min": 163, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 55}, "why": "stroke back the other way"},
+        {"t_min": 166, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "return to normal position, moving smoothly now"},
+        {"t_min": 175, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "pressure stable, setpoint back to normal"}
+      ]
+    },
+    {
+      "shift_id": "hB-18",
+      "context": "Alarm-heavy weekend night: a long chattering LT-410-HI episode during high inflow, managed with drain steps and a delivery increase, followed later by one PT-101-HH when the downstream valve closes briefly.",
+      "writes": [
+        {"t_min": 15, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "T-3 at 85.2 %"},
+        {"t_min": 17, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "chattering"},
+        {"t_min": 19, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 22}, "why": "open drain to pull level away from alarm"},
+        {"t_min": 21, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "chattering"},
+        {"t_min": 24, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "chattering"},
+        {"t_min": 26, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 30}, "why": "inflow high, more drain needed"},
+        {"t_min": 28, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "chattering"},
+        {"t_min": 32, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 128.0}, "why": "downstream can take more, raise delivery to help draw T-3 down"},
+        {"t_min": 35, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "chattering"},
+        {"t_min": 41, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "last occurrence, level now turning down"},
+        {"t_min": 120, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 20}, "why": "level at 78 %, ease drain"},
+        {"t_min": 150, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "delivery back to normal"},
+        {"t_min": 280, "tool": "acknowledge_alarm", "args": {"alarm_id": "PT-101-HH"}, "why": "PT-101 spiked to 6.1 bar when downstream valve closed briefly"},
+        {"t_min": 281, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.8}, "why": "lower pressure setpoint for margin"},
+        {"t_min": 284, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 48}, "why": "open bypass to relieve header"},
+        {"t_min": 320, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "downstream steady, pressure setpoint back to normal"},
+        {"t_min": 322, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 360, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 15}, "why": "level at 73 %, drain back to normal"},
+        {"t_min": 370, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "request LT-410-HI alarm delay to stop chattering"}
+      ]
+    },
+    {
+      "shift_id": "hB-19",
+      "context": "Night restart after a downstream stop: the user stops for an hour, T-3 fills and LT-410-HI chatters while delivery is stopped, then delivery is restarted in steps and the tank and valves are brought back to normal.",
+      "writes": [
+        {"t_min": 60, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 60.0}, "why": "downstream stopping, ramp delivery down"},
+        {"t_min": 64, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 60}, "why": "bypass open for minimum pump flow"},
+        {"t_min": 68, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "downstream stopped"},
+        {"t_min": 69, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.5}, "why": "lower pressure while stopped"},
+        {"t_min": 70, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 78}, "why": "recirculate on bypass with no delivery"},
+        {"t_min": 72, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 35}, "why": "T-3 will fill with delivery stopped, open drain ahead of it"},
+        {"t_min": 105, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "level reached 85 % despite drain"},
+        {"t_min": 108, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "chattering"},
+        {"t_min": 110, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 45}, "why": "more drain to stop level rising"},
+        {"t_min": 113, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "chattering"},
+        {"t_min": 118, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "chattering, level now turning"},
+        {"t_min": 130, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 50.0}, "why": "downstream back, restart delivery"},
+        {"t_min": 132, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 60}, "why": "close bypass as delivery returns"},
+        {"t_min": 140, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 85.0}, "why": "continue ramp"},
+        {"t_min": 142, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.8}, "why": "raise pressure with flow"},
+        {"t_min": 150, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "back at normal delivery"},
+        {"t_min": 152, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "pressure setpoint back to normal"},
+        {"t_min": 154, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 200, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 25}, "why": "level at 79 % and falling, ease drain"},
+        {"t_min": 280, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 15}, "why": "level at 72 %, drain back to normal"}
+      ]
+    },
+    {
+      "shift_id": "hB-20",
+      "context": "Weekend maintenance window on the bypass: V-18 actuator is recalibrated under a new work order with stroke checks, a second work order is raised for a weeping pump seal found on the round, and WO-1201 is closed after the fitter signs it off.",
+      "writes": [
+        {"t_min": 45, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "permit for V-18 actuator calibration"},
+        {"t_min": 60, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.9}, "why": "small pressure margin while the bypass is being stroked"},
+        {"t_min": 70, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 25}, "why": "calibration check point at 25 %"},
+        {"t_min": 80, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 50}, "why": "calibration check point at 50 %"},
+        {"t_min": 90, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 75}, "why": "calibration check point at 75 %"},
+        {"t_min": 100, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "calibration done, return to normal"},
+        {"t_min": 105, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "pressure setpoint back to normal"},
+        {"t_min": 110, "tool": "close_work_order", "args": {"wo_id": "WO-1311"}, "why": "V-18 calibration complete, positions verified"},
+        {"t_min": 200, "tool": "create_work_order", "args": {"wo_id": "WO-1312"}, "why": "pump mechanical seal weeping, found on field round"},
+        {"t_min": 330, "tool": "close_work_order", "args": {"wo_id": "WO-1201"}, "why": "fitter signed off WO-1201 as complete"}
+      ]
+    }
+  ]
+}
