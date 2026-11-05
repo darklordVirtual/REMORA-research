@@ -29,7 +29,7 @@ The author of the rule had seen v1's result. The factor 1.5 and the choice to us
 
 The same author brief as v1, unchanged (`artifacts/ot-pilot/limits-holdout-v1/author-brief.md`, SHA-256 `5b984a68da6c1d13e6e5272185675013cfa993ab8d4250bdfdbe1d2f13d2783f`), so the two holdouts describe the same plant and the same kind of shift.
 
-Two new author sessions write 20 shifts each, with the two v1 holdout prompts unchanged except for their labels: `hC` uses set A's profile (steady day shifts) and `hD` uses set B's (busy night and weekend shifts). A further session reviews every write for plausibility with v1's reviewer prompt. Prompts and outputs are stored in `artifacts/ot-pilot/limits-holdout-v2/`.
+Two new author sessions write 20 shifts each, with the two v1 holdout prompts unchanged except for their labels. `hC` uses set A's profile (steady day shifts), and `hD` uses set B's (busy night and weekend shifts). A further session reviews every write for plausibility with v1's reviewer prompt. Prompts and outputs are stored in `artifacts/ot-pilot/limits-holdout-v2/`.
 
 v1's caveats about blindness apply unchanged. In addition, the operator's saved memory now records v1's result and v1's FIC-220 bound. The sessions are started from this checkout and may receive it. It holds no v2 bound. That is a known contamination, recorded before the data.
 

@@ -6491,9 +6491,9 @@
     },
     "docs/assurance/ot_limits_holdout_plan_v2.md": {
       "concepts": [],
-      "git_blob": "4e1f102b432f9d3c7fcf581a1204b0f4c5d26499",
+      "git_blob": "88cf77691d1868a818991adf4b368705cf4fcce2",
       "mode": "100644",
-      "sha256": "4620eb6bec62af037fe980cab91c992eb20ab4dd87f99a933510923380703917"
+      "sha256": "a7b5c70e63312c0931151762480723caf6c06701a7f7d423e491df7b2221ee82"
     },
     "docs/assurance/policy_engine_audit_v1.md": {
       "concepts": [],
@@ -22939,7 +22939,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "7267ba76b789df4b4b415e620ff673ff48266c76b2de74d8171ba1a87cdeec96",
+  "register_sha256": "b1b9081f2beaa2d3cdf61165989511d949bd6567e4b6e09b4bc509f72b7fbdeb",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
