@@ -5985,6 +5985,36 @@ What remains open:
   measures how often legitimate payments are refused. That needs new tasks
   and a holdout.
 
+Update 2026-11-05: the first holdout of legitimate writes, on the OT pilot's
+limits. The plan fixed the criteria before any data
+(`docs/assurance/ot_limits_holdout_plan_v1.md`, DOC-426). Separate sessions,
+blind to `limits.json` by instruction, wrote 40 operator shifts from a plant
+brief, 392 writes in all. A further session reviewed every write and flagged
+none as implausible. The shifts were sealed by SHA-256 before the replay read
+them. The replay ran each shift through the pilot's signed policy and the API's
+own `LimitGuard`, with the shift's clock
+(`artifacts/ot-pilot/limits-holdout-v1/holdout/result.json`).
+
+- In 26 of 40 shifts a legitimate write was refused by a limit (65 %, Wilson
+  95 % 49.5 to 77.9 %). That is above the plan's 10 %, so it is recorded as a
+  negative result: the pilot's limits are tighter than legitimate operation
+  as the brief describes it. Of the 392 writes, 75 were refused (19.1 %,
+  shift bootstrap 13.6 to 24.9 %), all as `limit_exceeded`.
+- FIC-220's 10 m3/h per hour caused 56 of the 75 refusals and the first
+  refusal in 18 of the 26 shifts. PIC-101 caused 12, valve travel 4 and
+  alarm acknowledgements 3.
+- All six writes that set delivery to zero after a trip, a stop or an
+  emergency isolation were refused, because each moves 120 m3/h. This was not
+  a preregistered measure. It matters more than the utility cost: a limit
+  that refuses the move to a safe state is a hazard.
+
+The authors are model sessions, not operators. The brief was written by
+someone who knows the limits. The procedure measures the limits alone, not
+the full pilot path, and does not model retries. The next step is a signed,
+recalibrated policy measured on a new holdout, with an answer for moves
+towards a safe value. Until then this finding stays open, and the pilot's
+limits are not fit for a plant where a stop must be possible.
+
 ## §98 The review path handed back an unspent grant when the admission refused (2026-10-24)
 <!-- finding-status: open -->
 

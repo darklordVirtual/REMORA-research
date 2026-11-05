@@ -4,6 +4,11 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### OT pilot limits: the first holdout of legitimate writes is a negative result (§97, 2026-11-05)
+
+- `docs/assurance/ot_limits_holdout_plan_v1.md` (DOC-426) fixed the measurement before any data. Separate sessions, blind to `limits.json`, wrote 40 operator shifts (392 writes) from `artifacts/ot-pilot/limits-holdout-v1/author-brief.md`. A further session flagged none as implausible, and the shifts were sealed by SHA-256 before the replay read them. `scripts/run_limits_holdout.py` replays them through the pilot's signed policy and the API's own `LimitGuard` with the shift's clock (tests: `tests/test_limits_holdout_replay.py`, 17).
+- Result: a legitimate write was refused in 26 of 40 shifts (65 %, Wilson 95 % 49.5 to 77.9 %), above the plan's 10 %, and 75 of 392 writes were refused (19.1 %). FIC-220's 10 m3/h per hour accounts for 56 of the 75 refusals. All six moves of delivery to zero after a trip, a stop or an emergency isolation were refused, which is a hazard rather than a utility cost. Recorded under NEGATIVE_RESULTS §97, which stays open until a recalibrated signed policy is measured on a new holdout.
+
 ### Mutation sweep: the sandbox had stopped measuring, and the cumulative limits were never in it (2026-11-04)
 
 - The scheduled sweep of 2026-11-02 failed in its stats phase (`integrations/invocation-evidence/` missing from the sandbox) and produced no result; `cumulative_limits.py` had been in `only_mutate` since 2026-10-24 without any of `tests/limits/` in the runner, and the selection guard scanned only the top level of `tests/`. The sandbox now copies `integrations/invocation-evidence/`, `integrations/horizon55/` and `scripts/`; the selection gains `tests/limits/`, `tests/capabilities/`, `tests/conformance/`, `tests/flow/`, the execution-stop suites and the Horizon #55 suite; the guard recurses. Full account, with the numbers: `docs/assurance/mutation_testing_v1.md`, "The 2026-11-04 re-measurement".

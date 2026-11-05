@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "5ce1683fb602da78e1060363048319416c25a5eb",
+      "git_blob": "96f4c80fd8a5d11147670c802d7ed20c1b252492",
       "mode": "100644",
-      "sha256": "bd06de9812df6720b30f4f541327dd05eeee898939db8fd6173bcdb0908faf21"
+      "sha256": "2fe1bd6fe90e2b7c97af068e1b40bda69c08ac035b3c922d138d44df3724c0e5"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -369,9 +369,9 @@
     },
     "NEGATIVE_RESULTS.md": {
       "concepts": [],
-      "git_blob": "d618a1958f434ff730734fff951c3a07db897e7d",
+      "git_blob": "a9703666a9e7036bc90ea9ebb6a5b2c785c7bde5",
       "mode": "100644",
-      "sha256": "677063b5ace3f36cf5d061549d6229ae26ebc04c6f54f023071e05a8068622e5"
+      "sha256": "7c2c9fc828f19677ae7bd19dae1efe72bf18ace042ef016d64f8bc949fbeea2c"
     },
     "NOTICE": {
       "concepts": [],
@@ -3477,6 +3477,12 @@
       "mode": "100644",
       "sha256": "d5d38e93917f4bd807673bc0352cbad0e204e100f9c259a8334c5a2441eb524e"
     },
+    "artifacts/ot-pilot/limits-holdout-v1/holdout/result.json": {
+      "concepts": [],
+      "git_blob": "7d5f5aa5f664ca6333c24df53eedd19f971de306",
+      "mode": "100644",
+      "sha256": "1123f29667841ac713e294c8db6649b692ee1a7189760ce980605270fcb3eb69"
+    },
     "artifacts/ot-pilot/limits-holdout-v1/holdout/review-flags.json": {
       "concepts": [],
       "git_blob": "9cc9001b82cbdf0e50fa9bf9fc1f332e10ff99de",
@@ -6455,9 +6461,9 @@
     },
     "docs/assurance/ot_limits_holdout_plan_v1.md": {
       "concepts": [],
-      "git_blob": "045254fb8553c5d3391be7930fb026406a186a86",
+      "git_blob": "9b2601df01c89583e0edc45742270da641588d30",
       "mode": "100644",
-      "sha256": "f2f7b164848cd193361774f50eb9f91d89d8f449d0e9232f86c39a211910623c"
+      "sha256": "4326183a62855459034017044d3c2ba700548ca138476de0fb4943075ca29721"
     },
     "docs/assurance/policy_engine_audit_v1.md": {
       "concepts": [],
@@ -22879,7 +22885,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "5d6890bb88136e1d645f235e8a080f1edb06a8af5bc8c6a352ebdf2fe9bd40fd",
+  "register_sha256": "fede881f123b6a149348c4aaaec5ab63d6e6b3ac576674acbaf940f3dc576a77",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

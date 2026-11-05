@@ -55,13 +55,31 @@ A consistency check against the live pilot follows as a separate step (§7). It 
 
 ## 7. Steps
 
-1. This plan and the author brief, committed. **Done when this file is in a commit.**
+1. This plan and the author brief, committed. Done: `38e4ae02`.
 2. Development set (10 shifts) and holdout (2 × 20 shifts) written by separate sessions. Prompts and outputs are stored, and the holdout's SHA-256 is committed.
 3. Plausibility review of every write by a further session. Flags are stored.
 4. The replay harness, with tests, built on the development set only.
 5. The holdout run, once. The results and the computation are committed together.
 6. The consistency check against the live pilot on three development shifts.
 7. The result recorded here, in Experiment 10 and under §97.
+
+## Recorded result (2026-11-05)
+
+The holdout was run once, at commit `03ce0a00` with the harness of `5266b8ee`, after it was sealed (`c6a892a3`) and reviewed (`03ce0a00`). The output is `artifacts/ot-pilot/limits-holdout-v1/holdout/result.json`, and every write's outcome and reason are in it.
+
+| Measure | Result | 95 % interval |
+|---|---|---|
+| P1: shifts with at least one limit refusal | 26 of 40 (65 %) | Wilson 49.5 % to 77.9 % |
+| P2: writes refused by a limit | 75 of 392 (19.1 %) | shift bootstrap 13.6 % to 24.9 % |
+
+The point estimate of P1 is above 10 %, so by §6 this is a negative result. On blind legitimate shifts, as the brief describes the plant, the pilot's limits are tighter than legitimate operation. The reviewer flagged none of the 392 writes, so the sensitivity measures equal these.
+
+- **Where the refusals sit.** By limit, the 75 are FIC-220 movement 56, PIC-101 movement 12, valve travel 4 and alarm acknowledgements 3. All are `limit_exceeded`, and no write was refused for another reason or failed at the plant. The first refusal in each of the 26 shifts was FIC-220 in 18, PIC-101 in 3, valve travel in 3 and alarm acknowledgements in 2. P1 counts shifts, so it does not depend on later refusals. P2 does: a refused step leaves the plant where it was, so the next step is larger. P2 is therefore an upper reading of the per-write rate under this procedure.
+- **By author set.** Set A (steady day shifts) had a limit refusal in 11 of 20 shifts and 28 of 153 writes. Set B (busy night and weekend shifts) had one in 15 of 20 shifts and 47 of 239 writes.
+- **Moves to a safe state.** Six writes in the holdout set the delivery setpoint FIC-220 to zero: a pump trip (hA-08), a planned stop (hB-03), a bearing trip (hB-08), an emergency isolation (hB-12), a power dip (hB-14) and a downstream stop (hB-19). All six were refused, because each moves 120 m3/h where the limit allows 10 per hour. This was not a preregistered measure; it is read off the per-write results. It matters more than the utility cost, because a limit that refuses the move to a safe state is a hazard.
+- **What it says about the policy.** FIC-220's 10 m3/h per hour is one twelfth of the starting setpoint. The brief's normal band is 80 to 160, and demand changes of 20 to 40 m3/h within an hour were common in both sets. PIC-101's 0.50 bar per hour is narrower than the 3.2 to 4.8 bar band.
+
+Next, under §3: a recalibrated, signed policy is measured on a new holdout (v2), never on this one. It needs at least an answer to the safe-state finding, such as a limit that meters movement away from a declared safe value and not towards it. It also needs FIC-220 and PIC-101 bounds set from operating data, not from the battery. The consistency check against the live pilot (§7, step 6) is not done yet.
 
 ## What this plan does not do
 
