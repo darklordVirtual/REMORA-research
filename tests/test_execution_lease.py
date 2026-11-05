@@ -564,17 +564,29 @@ def test_the_tool_receives_only_the_resolved_call_the_authority_signed() -> None
     assert d._test_calls == [resolved]  # type: ignore[attr-defined]
 
 
-def test_a_resolution_the_authority_did_not_sign_is_refused_before_the_nonce() -> None:
+def test_a_resolution_the_authority_did_not_sign_is_refused_before_the_nonce(caplog) -> None:
     """The handle store handed the executor another value than the one the
     authority judged: the tool does not run and the lease stays unspent."""
+    import logging
+
     d = _dispatcher()
-    lease = _issue(flow_epoch=1, flow_digest="d" * 64,
+    lease = _issue(flow_epoch=1, flow_digest="d" * 64, proposal_id="p-resolved",
+                   grant_jti="jti-resolved",
                    resolved_tool_call_hash=_resolved_hash(dict(ARGS, site="hq-resolved")))
-    res = d.dispatch(lease, TOOL, ARGS, tenant_id=TENANT, target_environment=TARGET,
-                     now=BEFORE_EXPIRY, actor_identity=ACTOR,
-                     invocation_arguments=dict(ARGS, site="hq-other"))
+    with caplog.at_level(logging.WARNING, logger="remora.governance"):
+        res = d.dispatch(lease, TOOL, ARGS, tenant_id=TENANT, target_environment=TARGET,
+                         now=BEFORE_EXPIRY, actor_identity=ACTOR,
+                         invocation_arguments=dict(ARGS, site="hq-other"))
     assert (res.executed, res.refusal_reason) == (False, "resolved_call_mismatch")
+    assert res.proposal_id == lease.proposal_id == "p-resolved"
     assert d._test_calls == []  # type: ignore[attr-defined]
+    # The operational record names the refusal and the lifecycle join keys.
+    [event] = [r for r in caplog.records if r.name == "remora.governance"
+               and r.getMessage().startswith("dispatch.refused ")]
+    assert event.levelno == logging.WARNING
+    assert event.remora == {  # type: ignore[attr-defined]
+        "reason": "resolved_call_mismatch", "tenant_id": TENANT, "tool_name": TOOL,
+        "proposal_id": lease.proposal_id, "grant_jti": lease.grant_jti}
     again = d.dispatch(lease, TOOL, ARGS, tenant_id=TENANT, target_environment=TARGET,
                        now=BEFORE_EXPIRY, actor_identity=ACTOR,
                        invocation_arguments=dict(ARGS, site="hq-resolved"))
@@ -590,3 +602,19 @@ def test_a_signed_resolution_also_binds_a_call_with_no_handles() -> None:
     res = d.dispatch(lease, TOOL, ARGS, tenant_id=TENANT, target_environment=TARGET,
                      now=BEFORE_EXPIRY, actor_identity=ACTOR)
     assert (res.executed, res.refusal_reason) == (False, "resolved_call_mismatch")
+
+
+def test_a_resolved_call_signed_for_no_target_runs_with_no_target() -> None:
+    """An absent target is the empty string in the resolved hash too, so a
+    lease signed for one dispatches with the other."""
+    from remora.policy.observation import canonical_tool_call_hash
+
+    d = _dispatcher()
+    resolved = dict(ARGS, site="hq-resolved")
+    lease = _issue(flow_epoch=1, flow_digest="d" * 64, target_environment="",
+                   resolved_tool_call_hash=canonical_tool_call_hash(
+                       name=TOOL, arguments=resolved, tenant=TENANT, target=""))
+    res = d.dispatch(lease, TOOL, ARGS, tenant_id=TENANT, target_environment=None,
+                     now=BEFORE_EXPIRY, actor_identity=ACTOR, invocation_arguments=resolved)
+    assert res.executed is True, res.refusal_reason
+    assert d._test_calls == [resolved]  # type: ignore[attr-defined]

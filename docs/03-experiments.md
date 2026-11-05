@@ -458,6 +458,14 @@ On the 2 writes whose target no work order names it recorded a cap to
 `abstain`. Shadow
 applied none of it (NEGATIVE_RESULTS §94).
 
+**Re-run on 2026-11-05** (`artifacts/ot-pilot/execution-path-reproduction-2026-11-05/`):
+the signed-ToolSpec, WS1-shadow configuration rebuilt from the head of PR #1171,
+which changes no runtime code. The battery gave 16 of 16 with 5 of 5 reads, and
+fault injection gave 10 of 10 with 8 of 8 writes and 0 false refusals. The 24
+independent scenarios gave the same verdict as on 2026-11-04 in every case,
+including the four failures (S06 and S09 executed after a scripted approval;
+S17 and S22 went to a human). All 16 battery decisions match the earlier run.
+
 > **Note:** author's runs on one host against a simulated plant; not an
 > independent reproduction and not OT deployment validation. The same
 > mechanism does not reach AgentDojo, which has no deployment intent source;

@@ -3,4 +3,4 @@
 # changes, re-read the argument. Format: <mutant name>  <reason>.
 # Survivor resolution, 2026-10-13 (evening): what remains here cannot be killed by any test.
 # Like every equivalent mutant, it may be killed nondeterministically in a given sweep.
-remora.enforcement.lease.xǁExecutionLeaseǁverify_historical__mutmut_18  verify_payload only tests live for truthiness (`and live`, `if live`, `if live else`), so live=None behaves exactly as live=False.
+remora.enforcement.lease.xǁExecutionLeaseǁverify_historical__mutmut_18  [identical] verify_payload only tests live for truthiness (`and live`, `if live`, `if live else`), so live=None behaves exactly as live=False.
