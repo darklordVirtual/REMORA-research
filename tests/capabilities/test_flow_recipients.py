@@ -385,3 +385,17 @@ def test_a_failing_effect_domain_close_is_recorded_and_does_not_fail_the_dispatc
     assert event.levelno == logging.WARNING
     assert event.remora == {"tenant_id": "acme", "tool_name": "report.generate",
                             "proposal_id": "p-close", "error_type": "ConnectionError"}
+
+
+def test_a_lease_with_half_a_flow_decision_never_reaches_the_flow_guard():
+    """Premise of the argued-equivalent mutant verify__mutmut_147: issue() never
+    signs an epoch without its digest, so the only way to present one is to
+    edit a signed lease, and the signature check refuses it first."""
+    parent = _parent()
+    plain = _lease(parent)
+    for half in ({"flow_epoch": 1}, {"flow_recipients_digest": recipients_digest({PARTNER})}):
+        lease = ExecutionLease.from_dict({**plain.to_dict(), **half})
+        result = lease.verify(tool_name="report.generate", arguments=ARGS, tenant_id="acme",
+                              target_environment="prod", now=datetime.now(UTC).isoformat(),
+                              actor_identity="agent-42")
+        assert result.reason == "signature_invalid"

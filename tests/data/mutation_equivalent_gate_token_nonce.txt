@@ -8,25 +8,25 @@
 # survivors: any single sweep kills some of them, nondeterministically, locally and on the
 # runner (cause not established). Excluded because they are not equivalent: an upper-case
 # "%S" placeholder (psycopg rejects it; the Postgres contract kills both).
-remora.enforcement.gate.xǁEnforcementGateǁ_bump_watermark__mutmut_4  SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
-remora.enforcement.gate.xǁEnforcementGateǁ_check_unlogged__mutmut_154  SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
-remora.enforcement.gate.xǁEnforcementGateǁ_check_unlogged__mutmut_187  SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
-remora.enforcement.gate.xǁEnforcementGateǁ_check_unlogged__mutmut_195  SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
-remora.enforcement.gate.xǁEnforcementGateǁ_check_unlogged__mutmut_196  SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
-remora.enforcement.gate.xǁEnforcementGateǁ_check_unlogged__mutmut_21  require_expiry=None for False: verify() only tests it for truth.
-remora.enforcement.gate.xǁEnforcementGateǁ_check_unlogged__mutmut_236  SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
-remora.enforcement.gate.xǁEnforcementGateǁ_check_unlogged__mutmut_237  SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
-remora.enforcement.gate.xǁEnforcementGateǁ_spend_enlisted__mutmut_15  Same as _13: only the exception class reaches the event.
-remora.enforcement.gate.xǁEnforcementGateǁenforce__mutmut_10  stacklevel 2 -> 3: same as _6.
-remora.enforcement.gate.xǁEnforcementGateǁenforce__mutmut_6  stacklevel of the deprecation warning dropped; killed by test_the_deprecated_enforce_warning_names_its_caller, deselected in the sweep for the trampoline's frames.
-remora.enforcement.gate.xǁEnforcementGateǁreset_ledger_watermark__mutmut_14  SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
-remora.enforcement.gate.xǁEnforcementGateǁreset_ledger_watermark__mutmut_15  SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
-remora.enforcement.gate.xǁEnforcementGateǁreset_ledger_watermark__mutmut_23  SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
-remora.enforcement.nonce_store.xǁDurableNonceStoreǁconsumed__mutmut_4  SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
-remora.enforcement.nonce_store.xǁDurableNonceStoreǁconsumed__mutmut_5  SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
-remora.enforcement.nonce_store.xǁDurableNonceStoreǁconsumed_count__mutmut_3  SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
-remora.enforcement.nonce_store.xǁDurableNonceStoreǁconsumed_count__mutmut_4  SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
-remora.enforcement.nonce_store.xǁDurableNonceStoreǁtry_consume__mutmut_11  SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
-remora.enforcement.nonce_store.xǁDurableNonceStoreǁtry_consume__mutmut_12  SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
-remora.enforcement.token.x__previous_keys__mutmut_7  os.environ.get(_ENV_PREVIOUS, "XXXX"): with the variable unset the default "XXXX" has no colon and is skipped as a malformed entry, like "".
-remora.enforcement.token.xǁPolicyDecisionTokenǁverify_historical__mutmut_2  _signature_refusal(live=None): live is only tested for truth.
+remora.enforcement.gate.xǁEnforcementGateǁ_bump_watermark__mutmut_4  [identical] SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
+remora.enforcement.gate.xǁEnforcementGateǁ_check_unlogged__mutmut_154  [identical] SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
+remora.enforcement.gate.xǁEnforcementGateǁ_check_unlogged__mutmut_187  [identical] SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
+remora.enforcement.gate.xǁEnforcementGateǁ_check_unlogged__mutmut_195  [identical] SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
+remora.enforcement.gate.xǁEnforcementGateǁ_check_unlogged__mutmut_196  [identical] SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
+remora.enforcement.gate.xǁEnforcementGateǁ_check_unlogged__mutmut_21  [identical] require_expiry=None for False: verify() only tests it for truth.
+remora.enforcement.gate.xǁEnforcementGateǁ_check_unlogged__mutmut_236  [identical] SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
+remora.enforcement.gate.xǁEnforcementGateǁ_check_unlogged__mutmut_237  [identical] SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
+remora.enforcement.gate.xǁEnforcementGateǁ_spend_enlisted__mutmut_15  [unreachable] Same as _13: only the exception class reaches the event.
+remora.enforcement.gate.xǁEnforcementGateǁenforce__mutmut_10  [tool] stacklevel 2 -> 3: same as _6.
+remora.enforcement.gate.xǁEnforcementGateǁenforce__mutmut_6  [tool] stacklevel of the deprecation warning dropped; killed by test_the_deprecated_enforce_warning_names_its_caller, deselected in the sweep for the trampoline's frames.
+remora.enforcement.gate.xǁEnforcementGateǁreset_ledger_watermark__mutmut_14  [identical] SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
+remora.enforcement.gate.xǁEnforcementGateǁreset_ledger_watermark__mutmut_15  [identical] SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
+remora.enforcement.gate.xǁEnforcementGateǁreset_ledger_watermark__mutmut_23  [identical] SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
+remora.enforcement.nonce_store.xǁDurableNonceStoreǁconsumed__mutmut_4  [identical] SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
+remora.enforcement.nonce_store.xǁDurableNonceStoreǁconsumed__mutmut_5  [identical] SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
+remora.enforcement.nonce_store.xǁDurableNonceStoreǁconsumed_count__mutmut_3  [identical] SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
+remora.enforcement.nonce_store.xǁDurableNonceStoreǁconsumed_count__mutmut_4  [identical] SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
+remora.enforcement.nonce_store.xǁDurableNonceStoreǁtry_consume__mutmut_11  [identical] SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
+remora.enforcement.nonce_store.xǁDurableNonceStoreǁtry_consume__mutmut_12  [identical] SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
+remora.enforcement.token.x__previous_keys__mutmut_7  [unreachable] os.environ.get(_ENV_PREVIOUS, "XXXX"): with the variable unset the default "XXXX" has no colon and is skipped as a malformed entry, like "".
+remora.enforcement.token.xǁPolicyDecisionTokenǁverify_historical__mutmut_2  [identical] _signature_refusal(live=None): live is only tested for truth.

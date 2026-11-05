@@ -804,3 +804,67 @@ def test_a_released_operation_cannot_be_reserved_again_under_its_own_id(tmp_path
     # Another operation on the resource starts from the value the reservation was measured from.
     assert reserve(guard, "move_seen", "2", unit="AHU-1", value=21.0) is None
     assert guard.ledger.charges("2") == [(cl._SEP.join(("seen", "*", "AHU-1")), 20)]
+
+
+# ── the persisted counter keys: a reopened ledger sees what was reserved ───────
+#
+# Review of PR #1171: a mutant that changes the serialized counter key is not
+# equivalent across a restart or an upgrade, because the ledger on disk was
+# written under the old key. These tests pin the key format as it is persisted
+# and show a reopened ledger still enforcing earlier consumption.
+
+PERSISTED_KEYS = {
+    # a per-principal limit with no resource: the principal, and "*" for all resources
+    ("spend", "p", None): "spend\x1fp\x1f*",
+    # a shared, per-resource limit: "*" for every principal, the resource itself
+    ("move", "p", "AHU-1"): "move\x1f*\x1fAHU-1",
+    ("starts", "q", "Pump 2"): "starts\x1f*\x1fPump 2",
+}
+
+
+def test_the_counter_key_format_is_frozen():
+    by_id = {lim.limit_id: lim for lim in policy().limits}
+    for (limit_id, principal, resource), key in PERSISTED_KEYS.items():
+        assert by_id[limit_id].counter_key(principal, resource) == key
+    fixed = policy(limits=[*LIMITS, dict(LIMITS[1], limit_id="ahu1", resource="AHU-1")]).limits[-1]
+    assert fixed.counter_key("p", "AHU-1") == "ahu1\x1f*\x1fAHU-1"
+    own = policy(limits=[*LIMITS, dict(LIMITS[1], limit_id="own", principal="p",
+                                       resource=None)]).limits[-1]
+    assert own.counter_key("p", "AHU-1") == "own\x1fp\x1f*"
+
+
+def test_a_reopened_ledger_enforces_what_an_earlier_process_reserved(tmp_path):
+    """Two payments of 7000 under one process, then the ledger file is opened by
+    a new LimitLedger and LimitGuard, as a restarted executor would. The third
+    payment must still refuse, and the rows must carry the frozen keys."""
+    import sqlite3
+
+    path = tmp_path / "persisted.db"
+    first = cl.LimitGuard(policy(), cl.LimitLedger(path))
+    assert reserve(first, "pay", "A", amount=7000, cur="JPY") is None
+    assert reserve(first, "pay", "B", amount=7000, cur="JPY") is None
+    assert reserve(first, "move", "M1", unit="AHU-1", value=19.5) is None
+    first.settle("M1", ok=True)
+    assert reserve(first, "start", "S1", principal="q", unit="Pump 2") is None
+    del first
+
+    reopened = cl.LimitGuard(policy(), cl.LimitLedger(path))
+    assert reserve(reopened, "pay", "C", amount=7000, cur="JPY") == cl.EXCEEDED
+    assert reserve(reopened, "move", "M2", unit="AHU-1", value=21.5) == cl.EXCEEDED  # 0.5 + 2.0 of 2.0
+    assert reserve(reopened, "start", "S2", principal="r", unit="Pump 2") is None
+    assert reserve(reopened, "start", "S3", principal="s", unit="Pump 2") == cl.EXCEEDED
+    with sqlite3.connect(path) as conn:
+        keys = {row[0] for row in conn.execute("SELECT counter_key FROM limit_counter")}
+    assert keys == set(PERSISTED_KEYS.values())
+
+
+def test_a_limit_redefined_under_the_same_id_fails_closed_on_the_old_ledger(tmp_path):
+    """The persisted counter carries the limit's binding. A limit whose
+    definition changed (here the maximum) meets its old rows and refuses as
+    changed rather than counting from zero."""
+    path = tmp_path / "rebound.db"
+    old = cl.LimitGuard(policy(), cl.LimitLedger(path))
+    assert reserve(old, "pay", "A", amount=7000, cur="JPY") is None
+    widened = cl.LimitGuard(policy(limits=[dict(LIMITS[0], max=40000), *LIMITS[1:]]),
+                            cl.LimitLedger(path))
+    assert reserve(widened, "pay", "B", amount=7000, cur="JPY") == cl.CHANGED
