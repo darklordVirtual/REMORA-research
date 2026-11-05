@@ -177,8 +177,12 @@ def test_the_lease_signs_the_recipient_digest_only_beside_a_flow_decision():
     bound = _lease(parent, flow_epoch=1, flow_digest="d" * 64, flow_recipients_digest=digest)
     assert bound._signed_fields()["flow_recipients_digest"] == digest
     assert ExecutionLease.from_dict(bound.to_dict()) == bound
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError,
+                       match="^flow_recipients_digest needs the flow decision it belongs to$"):
         _lease(parent, flow_recipients_digest=digest)
+    with pytest.raises(ValueError,
+                       match="^flow_epoch and flow_digest are set together or not at all$"):
+        _lease(parent, flow_epoch=1)
     # added to an unbound lease, the digest breaks the signature; a digest
     # without a flow decision is malformed even when it is signed
     half = ExecutionLease.from_dict({**plain.to_dict(), "flow_recipients_digest": digest})
@@ -202,16 +206,27 @@ def test_the_dispatcher_narrows_the_mediated_effects_to_the_approved_recipients(
         None, CapabilityRefusal.RECIPIENT_NOT_APPROVED.value]
 
 
-def test_a_recipient_set_that_differs_from_the_signed_digest_refuses_before_the_tool():
+def test_a_recipient_set_that_differs_from_the_signed_digest_refuses_before_the_tool(caplog):
+    import logging
+
     parent, calls = _parent(), []
-    lease = _lease(parent, flow_epoch=1, flow_digest="d" * 64,
-                   flow_recipients_digest=recipients_digest({PARTNER}))
+    lease = _lease(parent, flow_epoch=1, flow_digest="d" * 64, proposal_id="p-moved",
+                   grant_jti="jti-moved", flow_recipients_digest=recipients_digest({PARTNER}))
     d = _dispatcher(_report, calls)
-    result = d.dispatch(lease, "report.generate", ARGS, tenant_id="acme", target_environment="prod",
-                        actor_identity="agent-42", capability_set=parent,
-                        flow_recipients=frozenset({PARTNER, "ext://exfil.example"}))
+    with caplog.at_level(logging.WARNING, logger="remora.governance"):
+        result = d.dispatch(lease, "report.generate", ARGS, tenant_id="acme",
+                            target_environment="prod", actor_identity="agent-42",
+                            capability_set=parent,
+                            flow_recipients=frozenset({PARTNER, "ext://exfil.example"}))
     assert (result.executed, result.refusal_reason) == (False, "flow_recipients_changed")
+    assert result.proposal_id == "p-moved"
     assert calls == []
+    [event] = [r for r in caplog.records if r.name == "remora.governance"
+               and r.getMessage().startswith("dispatch.refused ")]
+    assert event.levelno == logging.WARNING
+    assert event.remora == {"reason": "flow_recipients_changed", "tenant_id": "acme",
+                            "tool_name": "report.generate", "proposal_id": "p-moved",
+                            "grant_jti": "jti-moved"}
     # the nonce is unspent: the same lease runs with the set it was signed over
     again = d.dispatch(lease, "report.generate", ARGS, tenant_id="acme", target_environment="prod",
                        actor_identity="agent-42", capability_set=parent,
@@ -219,20 +234,30 @@ def test_a_recipient_set_that_differs_from_the_signed_digest_refuses_before_the_
     assert again.executed is True
 
 
-def test_a_recipient_bound_lease_for_a_mediated_tool_needs_a_recipient_set():
+def test_a_recipient_bound_lease_for_a_mediated_tool_needs_a_recipient_set(caplog):
     """External review 2026-10-25, F-02: an executor with flow control off
     passes no set. Running the mediated tool then would widen its effects
     from the signed set to its whole ceiling, so it refuses before anything is
     spent; the same lease runs once the set is presented."""
+    import logging
+
     parent, calls = _parent(), []
-    lease = _lease(parent, flow_epoch=1, flow_digest="d" * 64,
-                   flow_recipients_digest=recipients_digest({PARTNER}))
+    lease = _lease(parent, flow_epoch=1, flow_digest="d" * 64, proposal_id="p-bound",
+                   grant_jti="jti-bound", flow_recipients_digest=recipients_digest({PARTNER}))
     d = _dispatcher(_report, calls)
-    result = d.dispatch(lease, "report.generate", ARGS, tenant_id="acme",
-                        target_environment="prod", actor_identity="agent-42",
-                        capability_set=parent)
+    with caplog.at_level(logging.WARNING, logger="remora.governance"):
+        result = d.dispatch(lease, "report.generate", ARGS, tenant_id="acme",
+                            target_environment="prod", actor_identity="agent-42",
+                            capability_set=parent)
     assert (result.executed, result.refusal_reason) == (False, "flow_recipients_required")
+    assert result.proposal_id == lease.proposal_id == "p-bound"
     assert calls == []
+    [event] = [r for r in caplog.records if r.name == "remora.governance"
+               and r.getMessage().startswith("dispatch.refused ")]
+    assert event.levelno == logging.WARNING
+    assert event.remora == {"reason": "flow_recipients_required", "tenant_id": "acme",
+                            "tool_name": "report.generate", "proposal_id": lease.proposal_id,
+                            "grant_jti": lease.grant_jti}
     again = d.dispatch(lease, "report.generate", ARGS, tenant_id="acme",
                        target_environment="prod", actor_identity="agent-42",
                        capability_set=parent, flow_recipients=frozenset({PARTNER}))
@@ -303,3 +328,60 @@ def test_a_lease_without_the_digest_ignores_a_set_the_worker_presents():
     lease = _lease(parent)
     answer = world.request(lease, parent, "https://exfil.example/drop", flow_recipients=[PARTNER])
     assert answer["state"] == "EXECUTED"
+
+
+def test_the_effect_domain_is_handed_the_approved_recipient_set():
+    """With mediated effects in a separate domain, the set the flow check
+    approved travels with the request; the domain verifies it against the
+    lease's digest. Dropped, the domain would narrow nothing."""
+    parent, handed = _parent(), []
+
+    class Domain:
+        def executors_for(self, lease, capability_set, capabilities, **kwargs):
+            handed.append((sorted(capabilities), kwargs))
+            return {"network.http.post": lambda resource, args: "posted"}
+
+    lease = _lease(parent, flow_epoch=1, flow_digest="d" * 64,
+                   flow_recipients_digest=recipients_digest({PARTNER}))
+    d = _dispatcher(_report, [])
+    d.bind_effect_domain(Domain())
+    result = d.dispatch(lease, "report.generate", ARGS, tenant_id="acme", target_environment="prod",
+                        actor_identity="agent-42", capability_set=parent,
+                        flow_recipients=frozenset({PARTNER}))
+    assert result.executed is True
+    assert handed == [(sorted(c.capability for c in CEILING.capabilities),
+                       {"flow_recipients": frozenset({PARTNER})})]
+    # Without flow control the domain is asked without a set, as before.
+    plain = _lease(parent)
+    handed.clear()
+    d.dispatch(plain, "report.generate", ARGS, tenant_id="acme", target_environment="prod",
+               actor_identity="agent-42", capability_set=parent)
+    assert handed[0][1] == {}
+
+
+def test_a_failing_effect_domain_close_is_recorded_and_does_not_fail_the_dispatch(caplog):
+    import logging
+
+    parent = _parent()
+
+    class Domain:
+        def executors_for(self, lease, capability_set, capabilities, **kwargs):
+            return {"network.http.post": lambda resource, args: "posted"}
+
+        def close(self, lease):
+            raise ConnectionError("domain unreachable")
+
+    lease = _lease(parent, flow_epoch=1, flow_digest="d" * 64, proposal_id="p-close",
+                   flow_recipients_digest=recipients_digest({PARTNER}))
+    d = _dispatcher(_report, [])
+    d.bind_effect_domain(Domain())
+    with caplog.at_level(logging.WARNING, logger="remora.governance"):
+        result = d.dispatch(lease, "report.generate", ARGS, tenant_id="acme",
+                            target_environment="prod", actor_identity="agent-42",
+                            capability_set=parent, flow_recipients=frozenset({PARTNER}))
+    assert result.executed is True, result.refusal_reason
+    [event] = [r for r in caplog.records if r.name == "remora.governance"
+               and r.getMessage().startswith("dispatch.effect_domain_close_failed ")]
+    assert event.levelno == logging.WARNING
+    assert event.remora == {"tenant_id": "acme", "tool_name": "report.generate",
+                            "proposal_id": "p-close", "error_type": "ConnectionError"}

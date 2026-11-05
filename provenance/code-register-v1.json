@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "5346113e132cb8f0f009f25a6bb8ef9337b74641",
+      "git_blob": "4760d926259e6f885ce5cae25f4ebf884f51d71b",
       "mode": "100644",
-      "sha256": "1820cc62be95e84ba0091f3f2a410c83ac9f14e2e2d9c442a62c3fbe9d298290"
+      "sha256": "c73add3de661fb57623d6dddd1f7af1288b139e7567fdd3849d4907ce39a07af"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -5875,9 +5875,9 @@
     },
     "docs/assurance/document_register_v1.yaml": {
       "concepts": [],
-      "git_blob": "05cbde7f0d0aa3243dcc20523f045a26231cd50d",
+      "git_blob": "6f061cffe4154e02c5aece622bce59b9cc496955",
       "mode": "100644",
-      "sha256": "f29a349bd43f38e837ff553a941cfa9e9d311ca98d2a01df41736a2943950cfb"
+      "sha256": "b94624eeb04bb609d1a001343c0e6ec31fc4736b2463f0c1c1478ed347d81dfc"
     },
     "docs/assurance/documentation_governance_v1.md": {
       "concepts": [],
@@ -5983,15 +5983,15 @@
     },
     "docs/assurance/mutation_baseline_v1.txt": {
       "concepts": [],
-      "git_blob": "83e84028ccf24c3b90df97874344e20d59073a26",
+      "git_blob": "93709dbc2d242a1d60ef123a088f945e5ef67345",
       "mode": "100644",
-      "sha256": "9d309d31edecf5266bf73ff93f937b085d1e6e604b4751a12ff0ee90f3dc3905"
+      "sha256": "9cf5ef6e2e567363f9b9e0c1dc3140f45180d3a51010b5561388522fd5b0d312"
     },
     "docs/assurance/mutation_testing_v1.md": {
       "concepts": [],
-      "git_blob": "91c91a3c0702128148582904d7882f04d15b2866",
+      "git_blob": "84916fcb45016e3b8cc3e601f60281aa37d3c8ba",
       "mode": "100644",
-      "sha256": "3f0ee33b7d8b6fe9f89cde428aa17a0c5931762afea37ebab6b1fd2897aaf6d8"
+      "sha256": "7d73f6277adf1ae88397c1dc024098a314f9c78083e2f1538d067801ffc83fbc"
     },
     "docs/assurance/policy_engine_audit_v1.md": {
       "concepts": [],
@@ -10353,9 +10353,9 @@
     },
     "pyproject.toml": {
       "concepts": [],
-      "git_blob": "c0460e2cf1d47ca0e49c5485043930830798d17f",
+      "git_blob": "fc417a1dbee7da56a290a72991a830e85321e36c",
       "mode": "100644",
-      "sha256": "ce8302fe4514dfe06c2d59078d548b4f88e9f062b138e19fe27a63c675cfaae9"
+      "sha256": "ba16479f3501cd33e6b1633c83fe4ce01c429ed6fe153c2e8863daa6d66e4102"
     },
     "remora/README.md": {
       "concepts": [],
@@ -16367,9 +16367,9 @@
     },
     "tests/capabilities/test_flow_recipients.py": {
       "concepts": [],
-      "git_blob": "b7bbf6b70872109a26ba83e6ed1ce75eb9df049a",
+      "git_blob": "8a6b212b14b00cf7cd8f84645d4281cdb17f51f3",
       "mode": "100644",
-      "sha256": "e6e81228f3181247a62eb893a412a36636acdfa67ff2a59f4ccbf352ffaf87e3"
+      "sha256": "3ef5c94411ddba1045ff8e455c8e7d7c1bee4359299550a993b6034f404525fe"
     },
     "tests/capabilities/test_mediation_flow_recipients_server_path.py": {
       "concepts": [],
@@ -16461,21 +16461,27 @@
     },
     "tests/data/mutation_equivalent_dispatch.txt": {
       "concepts": [],
-      "git_blob": "50415b4aa28dcb41ff4a6bb8b91209a7f078569d",
+      "git_blob": "9a27b04de720110506201dea65064d64bf184fdc",
       "mode": "100644",
-      "sha256": "63c01a4fff653b5e964f5fc8fcdb2ffe7ca7cbed18ab539bff20ef3e95c5e64a"
+      "sha256": "a8b2ff40fb8eb8d586dae158d83369406c0b5b038da658fa4cdf38736b31f544"
     },
     "tests/data/mutation_equivalent_gate_token_nonce.txt": {
       "concepts": [],
-      "git_blob": "0c4ecb33b546946d41b612b1e85a09aa4e9e8de8",
+      "git_blob": "034837f13a771448cbd62efccac54fb0a11f06ce",
       "mode": "100644",
-      "sha256": "ce1d3e4f10de728d98db73a1ffaf0436301bcc0ae64748c2f38ad502ddaa0de6"
+      "sha256": "f552807a25442e2e4fb4e78c9bcdc9578457c11d2405e422b6d9b2389084c451"
     },
     "tests/data/mutation_equivalent_lease.txt": {
       "concepts": [],
       "git_blob": "8c245832addb459b90938662716bff492bf37acf",
       "mode": "100644",
       "sha256": "f56c6a1a01e69b7f6ab12912792c93305d32fcb90257ced228b509836f611d0f"
+    },
+    "tests/data/mutation_equivalent_limits.txt": {
+      "concepts": [],
+      "git_blob": "286d6dc4bdc21c44a59f4dc187a47c47cf61564b",
+      "mode": "100644",
+      "sha256": "4ad5165babce5d79d47d2ddf9d38c8c8fcfe5a856f4bd1a7c31fe440ca1455da"
     },
     "tests/data/test_accounting/pytest8_all_outcomes.txt": {
       "concepts": [],
@@ -16783,6 +16789,12 @@
       "mode": "100644",
       "sha256": "6113e27281ff104a6a6189f8d42949fd6069abcd0efe4ed22f9a69fd8bd59e53"
     },
+    "tests/limits/test_limits_mutation_contract.py": {
+      "concepts": [],
+      "git_blob": "5dec73dc57030096abda91527debd65878422985",
+      "mode": "100644",
+      "sha256": "63fa26e4e178b8a7e31cb090eb59b7b20c03b755bf54e540b8a53f363e6e57c5"
+    },
     "tests/limits/test_limits_observed_ventilation.py": {
       "concepts": [],
       "git_blob": "53bf52a74daf79646b3a0f2aecc64b1e3da5bbae",
@@ -16803,9 +16815,9 @@
     },
     "tests/limits/test_limits_postgres.py": {
       "concepts": [],
-      "git_blob": "6f74630149b46b5a05763e30020d9c2dea908e57",
+      "git_blob": "85dda704c435af122f69b467896cbd7069c129a9",
       "mode": "100644",
-      "sha256": "4fcc4fbe157733fc3ff62faf63f31c8fa0b4247075a814ea170659e49c16ef29"
+      "sha256": "386b47cc3f60bb2b46e752f678d6073de3d8ed49bf482d9c899a603c5333a764"
     },
     "tests/limits/test_limits_preview_after_contract.py": {
       "concepts": [],
@@ -16821,9 +16833,9 @@
     },
     "tests/limits/test_limits_unit.py": {
       "concepts": [],
-      "git_blob": "b6736921402a45fef06621a06518525b14c91c44",
+      "git_blob": "7b29273865bfdcc51a48198400abe732785a1d43",
       "mode": "100644",
-      "sha256": "e530af7193d93a7f078c0a3b92165b9ab81000f40886e229e9bc20165e417bc9"
+      "sha256": "9b24f4a0c496090476706089acef44fe6e44f04c50cffa0b6c91bd6f14c14c2b"
     },
     "tests/limits/test_limits_ventilation.py": {
       "concepts": [],
@@ -18313,9 +18325,9 @@
     },
     "tests/test_dispatch_refusal_contract.py": {
       "concepts": [],
-      "git_blob": "d8c7a1c58cfa3532c30414bbcb9f7224cea8c48a",
+      "git_blob": "f6d9c63e4aa32f388f5e82a4529b678414b81a9f",
       "mode": "100644",
-      "sha256": "f7f9662cdad70f298ed120cad57ed032f45dab5726755d28533e1e141256fe4a"
+      "sha256": "863ddbcfda1f7148179a75b59c1af6bac3ec634141ffed8ec95f153eb0164f13"
     },
     "tests/test_dispatch_worker.py": {
       "concepts": [],
@@ -18541,9 +18553,9 @@
     },
     "tests/test_enforcement_ledgers_postgres.py": {
       "concepts": [],
-      "git_blob": "efc6a512c4ecfe55ddf9243c9c784a2ec4fbd9e4",
+      "git_blob": "d057f566630857f4f401f438cf5a4f8a9487ef52",
       "mode": "100644",
-      "sha256": "38d3e4ab5107136a6421806a89cee28b1a0a119d133dcf7df8d9bdc4cbbb53a0"
+      "sha256": "99f1aeb1270aac65cab9aacfe7ae0c1253f2b4908815109ab424471b3caf4c41"
     },
     "tests/test_enforcement_properties.py": {
       "concepts": [],
@@ -18848,9 +18860,9 @@
         "PROV-07",
         "PROV-13"
       ],
-      "git_blob": "7cda4d05e2ec37ac9ed8aa840a5fc97179130849",
+      "git_blob": "06640c07fdfe9b5e6950880d20e9ecda4266cd99",
       "mode": "100644",
-      "sha256": "3d484fc1af113f18aecfecf00d3afe939a1047129c3f1f5942ce491f8408145e"
+      "sha256": "2cd770fc60fe3ba6a6f595de5a301a36ff2372b2e36f9876b30d848a91b0c195"
     },
     "tests/test_execution_lifecycle_conformance.py": {
       "concepts": [],
@@ -19162,9 +19174,9 @@
     },
     "tests/test_gate_token_nonce_mutation_contract.py": {
       "concepts": [],
-      "git_blob": "5da5caa4399d650f2ad3bb31539e915dbb00c0f7",
+      "git_blob": "8108b2fe022c938aa16f42b80a657de34244a776",
       "mode": "100644",
-      "sha256": "351d94e998fa5f500113e1bb75254f46e0287dfe465fcc7d8d31e7ace4785a57"
+      "sha256": "73c0086845bb4a6492573c5a87f8b086545efa205aeed9523850a1e2aeec901a"
     },
     "tests/test_gateway_adapter.py": {
       "concepts": [],
@@ -19774,9 +19786,9 @@
     },
     "tests/test_mutation_sweep_selection.py": {
       "concepts": [],
-      "git_blob": "1b5fa7c903d6b082f978b447371fc36fcdc58295",
+      "git_blob": "2531dd182e540a74f913efbe2c97ff039c037ba3",
       "mode": "100644",
-      "sha256": "331491d32dd436f86887292de648cc8b300b15e8733faa558a9c07a43883d419"
+      "sha256": "7c6484630e69f0af648bbbbd6daf0a4d89d50746b31aebf9d8499ebec550e8c0"
     },
     "tests/test_negative_results_status.py": {
       "concepts": [],
@@ -22191,7 +22203,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "4001c025f6ab01b019a2cd766ba1e75f80605420e47c1bb44687e0fbe648dc87",
+  "register_sha256": "8f5c7fa8a27f423ec362a45621bf7c4883aaf29a8018a20516f351ebc69480c2",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

@@ -4,10 +4,13 @@
   numbers stated for what they are.
 - Scope: `remora/enforcement/token.py`, `gate.py`, `lease.py`,
   `nonce_store.py`, the files carrying one-time consumption and exact-call
-  binding.
-- Tooling: `mutmut` 3.7, configured in `pyproject.toml` `[tool.mutmut]`;
-  runner = the thirteen remora-only enforcement suites (~10 s). Runs on
-  Linux/WSL (`mutmut run`); mutmut has no native Windows support.
+  binding, and since 2026-10-24 `cumulative_limits.py`, the budget the OT
+  pilot's writes are reserved against (first measured 2026-11-04).
+- Tooling: `mutmut` 3.8.0 (pinned; mutant ids are stable only within one
+  version), configured in `pyproject.toml` `[tool.mutmut]`. The runner began as
+  thirteen remora-only enforcement suites (~10 s) and is now the selection
+  listed there (about 60 s, 2026-11-04). Runs on Linux/WSL (`mutmut run`);
+  mutmut has no native Windows support.
 
 ## Why this metric, and what it cannot say
 
@@ -321,6 +324,218 @@ second-round agent, each in its own worktree, with every kill verified by
 applying the mutant. The verification is what makes them evidence here, not
 who wrote them (docs/AI_USE.md).
 
+## The 2026-11-04 re-measurement: the sweep had stopped measuring, and the limits were never in it
+
+The scheduled sweep of 2026-11-02 (master `68760dee`) failed in its stats
+phase, before any mutant ran: `tests/test_invocation_evidence_export.py`
+reads `integrations/invocation-evidence/fixtures/` at import, and the
+sandbox did not copy it. No results artifact exists for that run. The
+sweep before it that completed was the 2026-10-13 baseline sweep.
+
+Repairing the sandbox exposed a second, older gap. `cumulative_limits.py`
+joined `only_mutate` on 2026-10-24 (#1046), but none of its suites in
+`tests/limits/` was in the runner, and `tests/test_mutation_sweep_selection.py`
+scanned only the top level of `tests/`. Recursing found seventeen more
+importers of the mutated modules in `tests/capabilities/`,
+`tests/conformance/` and `tests/flow/` that the sweep had never run. The
+numbers below are therefore the first measurement of the limits module,
+and the first with those modules in the runner.
+
+| Step | Mutants | Killed | Survived | Timeout |
+|---|---:|---:|---:|---:|
+| Sandbox and selection repaired, before any new test (Python 3.13, local Postgres 16) | 5,999 | 5,348 | 649 | 2 |
+| Confirming sweep after the kill rounds below | 6,077 | 5,865 | 210 | 2 |
+| Last round applied by hand to the 210 (each verified in the sandbox) | 6,077 | 5,888 | 186 | 2 |
+| Final confirming sweep (same tests, fresh sandbox) | 6,077 | 5,888 | 184 | 5 |
+
+Timeouts are detected mutants, not survivors; which mutants time out varies
+between sweeps (`_text` with an empty name passing validation, `_plan` with
+`a == -2`, and in the final sweep three in `verify_authenticity`). The final
+sweep found one survivor the earlier rounds had not: `_check_unlogged` with
+`action=None` in the Postgres duplicate-key result. The Postgres contract now
+pins the action of that refusal, and the kill was verified in the sandbox by
+hand after the sweep, which is why the baseline holds 184 and not 185. The
+pool grew
+again between the second and third rows because the new tests cover lines the
+old runner did not reach, which `mutate_only_covered_lines` then mutates.
+
+The pool went 3,581 to 5,999: `cumulative_limits.py` is 1,389 lines, and the
+new runner covers lines of `lease.py` and `gate.py` that the old one never
+executed. Of the 649, 323 sat in `cumulative_limits.py`, 281 in `lease.py`
+(158 of them in `dispatch`, 68 in `_limit_settle`), 39 in `gate.py`, and the
+six remaining were baseline entries. Every one was classified by reading its
+diff, and then killed or argued.
+
+### What the survivors said about the execution path
+
+The clusters were not random. Each names a contract the suites had used
+but not pinned:
+
+- **The dispatcher's limit hooks.** The dispatcher emits a governance event
+  when a reservation cannot be given back or settled, and when the plant moved
+  further than reserved (`dispatch.limit_release_failed`,
+  `dispatch.limit_settle_failed`, `dispatch.limit_charged_after_the_fact`,
+  `dispatch.limit_target_not_reached`). Every one survived field deletion and
+  renaming. The existing tests asserted the event name as a substring of the
+  log text, and `"XXdispatch.limit_release_failedXX"` contains the name.
+- **The dispatch clock.** `_limit_refusal`, `_limit_settle` and the `dispatch`
+  call sites could pass `None` for `now` and nothing noticed, because no
+  test placed a reservation and a later call inside one window by the
+  dispatch clock. With `None` the ledger uses the wall clock, and a window
+  measured against the wrong clock is the difference between refusing the
+  fourth setpoint move in an hour and allowing it.
+- **The lease's expiry.** `expires_at` could be dropped from the reservation:
+  a reservation whose lease expired before the tool started would then hold
+  the budget until a restart.
+- **The gate inside the caller's transaction.** `_spend_enlisted`, the path
+  atomic admission (WS1 M4) uses, had no contract of its own. Unpinned were its
+  refusal when a gate cannot join a transaction, its event, every field of its
+  result, and the Postgres placeholder. The Postgres branch had never executed
+  under a test, so `"%s"` could become `"?"` and nothing failed.
+- **After-the-fact accounting.** The movement the controller reports beyond
+  the reservation (`_account`) could be measured to the target instead of the
+  observed value, and the loop could stop at the first record without a
+  controller report. The existing test for this path happened to exhaust the
+  limit with or without the extra charge, so the charge itself was never the
+  deciding factor.
+- **The invocation form.** The capability, effect and procedure checks run a
+  second time over the resolved invocation arguments (IFC-06). That pass could
+  hand `None` to any of them for the tool, tenant, target or set, or skip the
+  procedure check. Every test with `invocation_arguments` ran without those
+  hooks bound.
+- **Policy validation messages.** 110 mutants in `LimitPolicy.from_dict`,
+  `Meter.from_dict` and the signed-envelope check changed or blanked the
+  message an operator reads when a signed `limits.json` is refused at
+  startup. The tests asserted the exception class only.
+
+### Kill rounds
+
+Each kill was verified by running the new test against the mutant in the
+sandbox (`MUTANT_UNDER_TEST`), module by module, before the confirming
+sweep. The tests are `tests/limits/test_limits_mutation_contract.py` (new),
+and additions to `tests/limits/test_limits_unit.py`,
+`tests/limits/test_limits_postgres.py`,
+`tests/test_gate_token_nonce_mutation_contract.py`,
+`tests/test_enforcement_ledgers_postgres.py`,
+`tests/test_dispatch_refusal_contract.py`, `tests/test_execution_lease.py`
+and `tests/capabilities/test_flow_recipients.py`. They pin:
+
+- Each limit event by name, level and whole payload. The events are pinned at
+  the hook and through `dispatch`, beside the independent recorder's intent
+  and outcome entries.
+- The dispatch clock in the reservation, the after-the-fact charge and the
+  refusal event. A call inside the window is refused and one outside it is
+  allowed.
+- The lease expiry. A reservation is released when its own lease expires, is
+  not released while its tool is running, and is never released while the
+  lease lives.
+- `_spend_enlisted` on SQLite and on Postgres. The full result per branch, the
+  `not_enlistable` event, the savepoint that leaves the caller's transaction
+  usable, and the rollback that takes the spend with it.
+- After-the-fact accounting measured to where the plant ended. It continues
+  past a record without a controller report, can exhaust the limit on its
+  own, and handles resources and limit ids that contain spaces.
+- The reviewer's resolution as the ledger records it. The principal is refused
+  before the evidence source is asked, and the resolution time is kept to the
+  second on Postgres.
+- The pilot's committed `deploy/ot-pilot/limits.json` verifies under the key
+  the compose file trusts, and is refused with its budget widened by one.
+- The operation key is a frozen canonical JSON digest, checked with a
+  non-ASCII payee. Two tenants' identical payments are two operations.
+- Every policy-validation message, with the bounds inclusive at both ends.
+- The invocation form is judged by the procedure, capability and effect
+  checks, and is deep-copied like the wire form.
+
+### The residue, and why it cannot be killed
+
+The baseline holds 184 entries, every one with a written argument in
+`tests/data/mutation_equivalent_{limits,dispatch,lease,gate_token_nonce}.txt`
+(`tests/test_mutation_baseline.py` requires the two sets to be equal). The
+case-only SQL mutants are enumerated over the whole pool by construction,
+from the sandbox's mutant functions, not read off one run's survivors: as the
+October note records, any single sweep kills some of them. A killed entry is
+a ratchet hint, never a failure.
+
+| Why the 184 cannot be killed | Count |
+|---|---:|
+| SQL keyword or identifier case; SQLite, D1 and Postgres fold unquoted names (listed by construction over the whole pool) | 92 |
+| SQL type name case or spelling on SQLite, which gives any declared type an affinity | 7 |
+| Defaults, placeholders, seeds and keys that no code path reads or compares (`_plan`, `readings`, `preview`, `counter_key`, `debit`, `_spend_enlisted` messages, `_limit_refusal` placeholder, and the like) | 50 |
+| `zip(strict=...)` over two sequences built from one tuple | 10 |
+| The same value spelled differently (`"\\x1F"` for `"\\x1f"`, `"UTF-8"`, `split(sep)[0]` for `split(sep, 1)[0]`, a key separator on a JSON array) | 14 |
+| `None` for `False` where the value is only tested for truth | 9 |
+| `stacklevel` of a warning, killed by tests the trampoline forces the sweep to deselect | 2 |
+| **Total** | **184** |
+
+Three entries deserve a reader's attention. They are reachable in principle
+and argued, not proved, equivalent. `dispatch__mutmut_417` is `or` for `and`
+in the task-unchecked condition, and rests on `verify()` refusing half a task
+identity. `_plan__mutmut_154` is the defensive `-1` clause of the
+partial-retry guard. `verify__mutmut_147` is the flow-binding guard behind
+the signature check. Each argument names the test that pins its premise.
+
+### What this says about the OT pilot and WS1
+
+The question behind this pass was how a deployment keeps the most utility
+without giving up security. The repository's own evidence answers it in two
+parts, and the survivors above sit exactly where the two meet.
+
+**Where the utility is decided.** In the OT pilot every write is gated three
+times. Policy routes it to review, an approver distinct from the proposer
+approves it, and the cumulative limits in `deploy/ot-pilot/limits.json` meter
+it at dispatch. The committed run
+(`artifacts/pilot-pack/runs/ot-battery-2026-10-25/`) passed 16 of 16 cases
+with 6 side effects: five writes ran after approval, and three were refused at
+assess for `limit_coverage_unknown`, `limit_observation_unavailable` and
+`limit_exceeded`. Reads resolve to VERIFY and run. The limits are therefore
+the only control that decides between two approved writes. A 0.3 bar move of
+PIC-101 runs; the fourth one in an hour does not. Their utility cost is the
+legitimate write they refuse, and the pilot has no measurement of that rate
+yet. NEGATIVE_RESULTS §97 says so: the mechanism "does not measure how often
+legitimate payments are refused, which needs new tasks and a holdout". For
+the refusals the limits do make to be worth their cost, the budget has to be
+exact. It must be charged once, measured against the plant, given back only
+when the call provably did not run, and counted in the right window. Every
+cluster of survivors above was a hole in a test of exactly that. The window
+is the dispatch clock. The release is the lease expiry and the trusted
+source. The measurement is where the plant ended, not the target. The record
+is the events an operator reads. None of them was a defect in the code. Each
+was a place where a defect would have gone unnoticed.
+
+**Where the security is decided.** WS1 Study C (NEGATIVE_RESULTS §96) is the
+closest measurement of this trade: five arms on 825 episodes. Every WS1 arm
+refused all 121 attack goals. The arms differed only in how many of the 33
+benign reads they completed (20, 20 and 32 of 33), and the whole gap was the
+monitor's veto threshold (0.3 against 0.4). The preconditions did all the
+blocking, and the monitor's measured effect was lost utility. The replay at
+0.35 would have recovered 12 of the 13 lost reads with no attack goal
+released. The AgentDojo replay (§100) shows the other edge. Value-provenance
+flow control kept every injected goal out and completed 7 of 18 tasks,
+against 6 for refusing everything. The tasks write content derived from
+untrusted reads, and no bounded lookup can vouch for free text.
+
+**Reading the two together.** Utility is recovered by making the
+deterministic checks exact and complete, not by loosening them. Every read the
+WS1 arms lost was lost to a learned veto on a call whose preconditions had
+proved. Every write the OT pilot refuses is refused by a declared number. The
+deterministic hard guards (one-time grants, bound leases, exact limits) are
+what let the arms execute 32 of 33 benign reads while refusing 121 of 121
+attack goals. The mutation residue is where those guards were under-tested.
+The kill rounds above change no decision, and they make every decision the
+limits take observable. The utility work that remains is measurement, not
+relaxation:
+
+1. A holdout of legitimate OT writes under the pilot's limits, to put a
+   number on `limit_exceeded` refusals of writes an operator would have made
+   (the §97 gap).
+2. A monitor threshold chosen on enough data, or a monitor that cannot veto
+   a call whose preconditions proved (the §96 gap).
+3. A planner that never sees untrusted data, if the AgentDojo-style tasks
+   matter (the §100 gap).
+
+None of these is a reason to weaken a hard guard. This document makes no
+claim that the pilot's utility has been measured.
+
 ## Survivors on covered lines, by function (pre-#405 baseline, 64.3 %)
 
 Historical table kept for the delta analysis above; the current numbers
@@ -364,12 +579,21 @@ defect the paper's wire-format claims depend on.
 
 - Triage rounds for the remaining `dispatch` (53) and `_check_unlogged` (16)
   survivors, the two functions where surviving mutants sit closest to
-  enforcement behaviour (down from 159/53 before #405).
+  enforcement behaviour (down from 159/53 before #405). Closed 2026-11-04:
+  every remaining survivor in both functions is argued in
+  `tests/data/mutation_equivalent_*.txt`.
 - Generate this document's tables from the mutation-results artifact so the
   headline and per-function numbers cannot drift apart again (external
   review 2026-08-26 caught exactly that drift here).
 - Coverage gap to the 95% targets for `remora/enforcement` (84.9) and
   `remora/execution` (93.7); floors are pinned at measured levels.
+- The scheduled sweep has no guard that its stats phase collected: a sandbox
+  that cannot import a selected module fails before any mutant runs, and the
+  2026-11-02 failure sat unread for two days. A step that fails the job on a
+  collection error, with the module named, is the cheap fix.
+- The utility cost of the OT pilot's limits is unmeasured (the §97 gap); the
+  mutation work makes the limits observable but puts no number on the
+  legitimate writes they refuse.
 ## Evidence-sufficiency checker sweep (2026-09-30)
 
 A second subject, measured the same way and ratcheted the same way. The

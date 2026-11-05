@@ -739,3 +739,97 @@ def test_the_count_is_read_positionally_and_carries_no_alias(
     counts = [s.upper() for s in fake_d1.sql() if s.upper().startswith("SELECT COUNT")]
     assert counts, "the D1 fake saw no count query"
     assert all(" AS " not in s for s in counts)
+
+
+# ── the gate spends inside the caller's transaction (atomic admission) ────────
+#
+# The 2026-11-04 sweep found EnforcementGate._spend_enlisted unpinned: the
+# refusal of a gate that cannot join a transaction, its operational event, and
+# the whole result of each branch. tests/test_atomic_admission.py drives it
+# through AtomicAdmission and asserts reasons; this pins the gate's own contract.
+
+
+def _tuple(r: EnforcementResult) -> tuple[bool, str, bool, str, bool]:
+    return (r.allowed, r.action, r.token_verified, r.reason, r.strict_mode)
+
+
+def test_an_in_process_gate_refuses_to_join_a_transaction_in_full(caplog: pytest.LogCaptureFixture) -> None:
+    gate = EnforcementGate(strict=True)
+    with caplog.at_level(logging.WARNING, logger=LOGGER):
+        result = gate.check(_grant(), OBS, consume=True, connection=object())
+    assert _tuple(result) == (False, "accept", True, "consumed_ledger_unavailable", True)
+    [record] = [r for r in caplog.records if r.name == LOGGER
+                and r.getMessage().startswith("grant.ledger_unavailable ")]
+    payload = record.remora  # type: ignore[attr-defined]
+    assert (payload["backend"], payload["error_class"]) == ("not_enlistable", "RuntimeError")
+    assert payload["token_jti"] == _grant().jti or payload["token_jti"]  # a jti is logged
+
+
+def test_a_sqlite_gate_spends_once_on_the_callers_connection(
+        tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+    db = str(tmp_path / "enlisted.db")
+    gate = EnforcementGate(strict=True, db_path=db)
+    grant = _grant()
+    with sqlite3.connect(db) as conn, caplog.at_level(logging.INFO, logger=LOGGER):
+        assert _tuple(gate.check(grant, OBS, consume=False, connection=conn)) == (
+            True, "accept", True, "accept", True)
+        # The operational record says the check rode on the caller's transaction.
+        [checked] = [r for r in caplog.records if r.getMessage().startswith("grant.checked ")]
+        assert checked.remora["enlisted"] is True  # type: ignore[attr-defined]
+        assert checked.remora["consumed"] is False  # type: ignore[attr-defined]
+        caplog.clear()
+        assert _tuple(gate.check(grant, OBS, consume=True, connection=conn)) == (
+            True, "accept", True, "accept", True)
+        # The spend is on the caller's transaction and visible to it before commit.
+        assert conn.execute("SELECT COUNT(*) FROM pep_consumed").fetchone() == (1,)
+        assert _tuple(gate.check(grant, OBS, consume=True, connection=conn)) == (
+            False, "accept", True, "token_already_consumed", True)
+        assert _tuple(gate.check(grant, OBS, consume=False, connection=conn)) == (
+            False, "accept", True, "token_already_consumed", True)
+        conn.commit()
+    # Outside the transaction the ledger agrees, and the watermark counted one spend.
+    caplog.clear()
+    with caplog.at_level(logging.INFO, logger=LOGGER):
+        assert _tuple(gate.check(grant, OBS, consume=True)) == (
+            False, "accept", True, "token_already_consumed", True)
+    [checked] = [r for r in caplog.records if r.getMessage().startswith("grant.checked ")]
+    assert "enlisted" not in checked.remora  # type: ignore[attr-defined]
+    assert gate.verify_ledger()["high_water_mark"] == 1
+
+
+def test_a_refused_decision_on_the_callers_connection_spends_nothing(tmp_path: Path) -> None:
+    db = str(tmp_path / "enlisted.db")
+    gate = EnforcementGate(strict=True, db_path=db)
+    with sqlite3.connect(db) as conn:
+        assert _tuple(gate.check(_grant("reject"), OBS, consume=True, connection=conn)) == (
+            False, "reject", True, "decision_reject_not_accept", True)
+        assert conn.execute("SELECT COUNT(*) FROM pep_consumed").fetchone() == (0,)
+
+
+def test_a_broken_callers_connection_is_the_named_refusal(
+        tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+    class Broken:
+        def execute(self, *a: Any, **k: Any) -> Any:
+            raise sqlite3.OperationalError("database is locked")
+
+    gate = EnforcementGate(strict=True, db_path=str(tmp_path / "enlisted.db"))
+    with caplog.at_level(logging.WARNING, logger=LOGGER):
+        result = gate.check(_grant(), OBS, consume=True, connection=Broken())
+    assert _tuple(result) == (False, "accept", True, "consumed_ledger_unavailable", True)
+    [record] = [r for r in caplog.records if r.name == LOGGER
+                and r.getMessage().startswith("grant.ledger_unavailable ")]
+    payload = record.remora  # type: ignore[attr-defined]
+    assert (payload["backend"], payload["error_class"]) == ("sqlite", "OperationalError")
+
+
+def test_the_watermark_report_names_the_unaccounted_rows(tmp_path: Path) -> None:
+    db = str(tmp_path / "l.db")
+    gate = EnforcementGate(strict=True, db_path=db)
+    assert gate.check(_grant(), consume=True).allowed
+    with sqlite3.connect(db) as conn:
+        conn.execute("INSERT INTO pep_consumed (jti) VALUES ('out-of-band-1'), ('out-of-band-2')")
+    report = gate.verify_ledger()
+    assert report["intact"] is False
+    assert report["problems"][0].startswith(
+        "ledger holds 3 consumed grants but its high-water mark records only 1: "
+        "2 unaccounted rows.")

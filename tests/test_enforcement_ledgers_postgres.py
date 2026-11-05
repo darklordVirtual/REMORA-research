@@ -109,8 +109,9 @@ def test_postgres_gate_spends_a_grant_exactly_once() -> None:
     grant = _grant("once")
     assert _result(gate.check(grant, OBS, consume=True)) == (True, "accept", True, True)
     assert _sql("SELECT jti FROM pep_consumed") == [(grant.jti,)]
-    assert _result(gate.check(grant, OBS, consume=True)) == (
-        False, "token_already_consumed", True, True)
+    spent = gate.check(grant, OBS, consume=True)
+    assert _result(spent) == (False, "token_already_consumed", True, True)
+    assert spent.action == "accept"  # the refusal still names the decision it refused
     # A second gate process shares the ledger: the spend is not per-instance.
     assert _result(EnforcementGate(dsn=DSN).check(grant, OBS, consume=True)) == (
         False, "token_already_consumed", True, True)
@@ -262,3 +263,64 @@ def test_a_postgres_nonce_store_outage_is_unknown_not_spent(
     monkeypatch.undo()
     monkeypatch.setenv("REMORA_PDP_SIGNING_KEY", KEY)
     assert store.try_consume("n-o", tenant_id="t") is True
+
+
+def test_postgres_gate_spends_inside_the_callers_transaction() -> None:
+    """Atomic admission hands the gate its open connection. The spend lands in a
+    savepoint, so a duplicate leaves the caller's transaction usable, and the
+    placeholder is psycopg's, so the SQL runs at all (the 2026-11-04 sweep
+    found the Postgres branch of _spend_enlisted unreached)."""
+    gate = EnforcementGate(dsn=DSN)
+    grant = _grant("enlisted")
+    with psycopg.connect(DSN) as conn:
+        with conn.transaction():
+            r = gate.check(grant, OBS, consume=True, connection=conn)
+            assert (r.allowed, r.action, r.token_verified, r.reason, r.strict_mode) == (
+                True, "accept", True, "accept", True)
+            assert conn.execute("SELECT COUNT(*) FROM pep_consumed").fetchone() == (1,)
+            r = gate.check(grant, OBS, consume=True, connection=conn)
+            assert (r.allowed, r.action, r.token_verified, r.reason, r.strict_mode) == (
+                False, "accept", True, "token_already_consumed", True)
+            # The failed INSERT was confined to its savepoint.
+            assert conn.execute("SELECT 1").fetchone() == (1,)
+            r = gate.check(grant, OBS, consume=False, connection=conn)
+            assert (r.allowed, r.reason) == (False, "token_already_consumed")
+    assert _sql("SELECT jti FROM pep_consumed") == [(grant.jti,)]
+    assert _sql("SELECT issued_count FROM pep_ledger_watermark") == [(1,)]
+    assert _result(gate.check(grant, OBS, consume=True)) == (
+        False, "token_already_consumed", True, True)
+
+
+def test_postgres_gate_spend_rolls_back_with_the_callers_transaction() -> None:
+    class Abort(Exception):
+        pass
+
+    gate = EnforcementGate(dsn=DSN)
+    grant = _grant("rolled-back")
+    with psycopg.connect(DSN) as conn, pytest.raises(Abort):
+        with conn.transaction():
+            assert gate.check(grant, OBS, consume=True, connection=conn).allowed
+            assert conn.execute("SELECT COUNT(*) FROM pep_consumed").fetchone() == (1,)
+            raise Abort  # the caller's intent could not be recorded
+    assert _sql("SELECT COUNT(*) FROM pep_consumed") == [(0,)]
+    assert _result(gate.check(grant, OBS, consume=True)) == (True, "accept", True, True)
+
+
+def test_postgres_gate_on_a_broken_callers_connection_names_its_backend(
+        caplog: pytest.LogCaptureFixture) -> None:
+    class Broken:
+        def transaction(self) -> Any:
+            raise psycopg.OperationalError("connection is closed")
+
+        def execute(self, *a: Any, **k: Any) -> Any:
+            raise psycopg.OperationalError("connection is closed")
+
+    gate = EnforcementGate(dsn=DSN)
+    with caplog.at_level(logging.WARNING, logger="remora.governance"):
+        r = gate.check(_grant("broken"), OBS, consume=True, connection=Broken())
+    assert (r.allowed, r.reason) == (False, "consumed_ledger_unavailable")
+    [record] = [r for r in caplog.records if r.name == "remora.governance"
+                and r.getMessage().startswith("grant.ledger_unavailable ")]
+    payload = record.remora  # type: ignore[attr-defined]
+    assert (payload["backend"], payload["error_class"]) == ("postgres", "OperationalError")
+    assert _sql("SELECT COUNT(*) FROM pep_consumed") == [(0,)]

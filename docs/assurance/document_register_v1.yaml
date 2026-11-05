@@ -2447,9 +2447,9 @@ documents:
   audience:
   - evaluators
   - researchers
-  last_validated: '2026-08-25'
-  last_audited: '2026-08-25'
-  last_reviewed: '2026-08-25'
+  last_validated: '2026-11-04'
+  last_audited: '2026-11-04'
+  last_reviewed: '2026-11-04'
   validates_against: []
   claims: []
 - id: DOC-328
