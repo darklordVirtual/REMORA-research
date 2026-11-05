@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "228ec807233586bf20a14ff8a99aa159c6d8b818",
+      "git_blob": "75266c783c7508de4150c0da9a6a5bcd4edd091f",
       "mode": "100644",
-      "sha256": "5891cae0aba4011a05dd230832f7ca179eb8bf30363af6d5f922429a0a2b347f"
+      "sha256": "ff2540fc8931e4bcad31088eba7e4f97d0bedf6257ff4a5f9771b2dd3a146dec"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -6401,15 +6401,15 @@
     },
     "docs/assurance/mutation_baseline_v1.txt": {
       "concepts": [],
-      "git_blob": "a94f010fc5c42c71b3b699c88d002a01f3900266",
+      "git_blob": "d0809ee315ff0344af25e7c0ecf37e76925ddb5f",
       "mode": "100644",
-      "sha256": "27171712dd1edf60fb0eb81d6a905412b827e044afe021bda70886cf63c0a661"
+      "sha256": "d85e18f16d5994ebfed66b08d9d23bb1e262045133ff932fa358171d1f791bce"
     },
     "docs/assurance/mutation_testing_v1.md": {
       "concepts": [],
-      "git_blob": "35edf2f5c7b344424cc0762e07853bc6a1630c83",
+      "git_blob": "729c68e6119d1c3070f35a00957116c84a8399c4",
       "mode": "100644",
-      "sha256": "107b7cdb81f92b6a45afeff4d3de0a0ae71bc220cb643482031c8b039ee99e0a"
+      "sha256": "ec60103d64427f7dddbd88a170aba0230dc19db13ac0a914825837102b4e14fa"
     },
     "docs/assurance/policy_engine_audit_v1.md": {
       "concepts": [],
@@ -16989,9 +16989,9 @@
     },
     "tests/data/mutation_equivalent_gate_token_nonce.txt": {
       "concepts": [],
-      "git_blob": "369017a55952a63d76e7d2b3ec2abcc6e09d6edb",
+      "git_blob": "6f869d2f5d68cb92ae5dc424d83a3ce553afa12c",
       "mode": "100644",
-      "sha256": "df04814770e86c575f51593f1199da00e5c17db7c12ebdd29ba261036d12c3cf"
+      "sha256": "ba1e6d5d304f5cfa677cfca25db1891f0d7e0b58a00d2d28e81697eb9cb797ca"
     },
     "tests/data/mutation_equivalent_lease.txt": {
       "concepts": [],
@@ -22819,7 +22819,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "0be3bb72958b212624803244b1ed3011984e01abfaa211a5bcae176474fd8214",
+  "register_sha256": "a1fcdbe0f50021154c42636ec135416cec8d648ebf6a2774fe64c5149791628c",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

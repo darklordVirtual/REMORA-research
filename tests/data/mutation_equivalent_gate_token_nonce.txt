@@ -20,6 +20,7 @@ remora.enforcement.gate.xǁEnforcementGateǁ_check_unlogged__mutmut_195  [identi
 remora.enforcement.gate.xǁEnforcementGateǁ_check_unlogged__mutmut_196  [identical] SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
 remora.enforcement.gate.xǁEnforcementGateǁ_check_unlogged__mutmut_236  [identical] SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
 remora.enforcement.gate.xǁEnforcementGateǁ_check_unlogged__mutmut_237  [identical] SQL keyword or identifier case only: SQLite, D1 (SQLite) and Postgres fold unquoted keywords and names, and the placeholder is unchanged.
+remora.enforcement.gate.xǁEnforcementGateǁ_spend_enlisted__mutmut_13  [unreachable] RuntimeError(None) for the not_enlistable message: _ledger_unavailable puts only type(exc).__name__ in the grant.ledger_unavailable event and never reads the text. Killed in run 42075725878, survived in run 42085159140; the argument for _15 names it.
 remora.enforcement.gate.xǁEnforcementGateǁ_spend_enlisted__mutmut_15  [unreachable] Same as _13: only the exception class reaches the event.
 remora.enforcement.gate.xǁEnforcementGateǁenforce__mutmut_10  [tool] stacklevel 2 -> 3: same as _6.
 remora.enforcement.gate.xǁEnforcementGateǁenforce__mutmut_6  [tool] stacklevel of the deprecation warning dropped; killed by test_the_deprecated_enforce_warning_names_its_caller, deselected in the sweep for the trampoline's frames.

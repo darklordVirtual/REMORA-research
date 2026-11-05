@@ -348,6 +348,7 @@ and the first with those modules in the runner.
 | Last round applied by hand to the 210 (each verified in the sandbox) | 6,077 | 5,888 | 186 | 2 |
 | Final confirming sweep (same tests, fresh sandbox) | 6,077 | 5,888 | 184 | 5 |
 | Confirmation on the PR head, hosted runner, run `42075725878` (2026-11-05; see below) | 6,077 | 5,901 | 176 | 0 |
+| Confirming sweep on the final tests, run `42085159140` (2026-11-05; see below) | 6,084 | 5,909 | 175 | 0 |
 
 Timeouts are detected mutants, not survivors; which mutants time out varies
 between sweeps (`_text` with an empty name passing validation, `_plan` with
@@ -482,6 +483,7 @@ that run. Its `mutation-results` artifact holds the results and the full log.
 | Run | Mutants | Killed | Survived | Timeout |
 |---|---:|---:|---:|---:|
 | `42075725878` on `456648b0` | 6,077 | 5,901 | 176 | 0 |
+| `42085159140` on `cad17041`, after the changes below | 6,084 | 5,909 | 175 | 0 |
 
 The new gate (`scripts/check_mutation_sweep_measured.py`) passed: the run
 executed 6,077 mutants and finished its phases. The baseline gate failed, with
@@ -516,20 +518,33 @@ re-measurement doing its job, and every difference is accounted for:
   could, and asserts `flow_binding_malformed`. Applied by hand to the source,
   the mutant fails both cases.
 
-The baseline is now the 189 written arguments. Of this run's 176 survivors,
-175 are among them. The remaining one is `verify__mutmut_147`, which the
-new test kills. The next scheduled sweep confirms that kill, and so does the
-dispatch on the head that carries this text, linked from the PR.
+The second run, `42085159140`, is on `cad17041`, which carries these tests
+and arguments. Its pool grew by seven mutants, because the new test covers
+lines `mutate_only_covered_lines` had skipped. It kills `verify__mutmut_147`.
+It found one survivor without an argument: `_spend_enlisted__mutmut_13`
+replaces the `not_enlistable` exception's message with `None`. The event
+records only the exception class and never reads the text, and the argument
+for `_15` already said so. The first run had killed the mutant and this one
+did not, which is the same instability the SQL-case entries show. Its
+argument is added, and nothing else changes between `cad17041` and the head
+that carries this text. Against this run's results the baseline gate passes:
+175 survivors, none new, baseline 190. The gate can be re-run from the run's
+`mutation-results` artifact:
+
+```
+gh run download 42085159140 -n mutation-results -D sweep
+python scripts/check_mutation_baseline.py sweep/mutation-results.txt
+```
 
 Every entry carries its class, so a proof can be told apart from a premise:
 
 | Class | Meaning | Count |
 |---|---|---:|
 | `identical` | the same semantics by a language, library or SQL rule (case folding, codec names, escapes, falsy defaults) | 131 |
-| `unreachable` | the mutated value is never read on any path of this code | 42 |
+| `unreachable` | the mutated value is never read on any path of this code | 43 |
 | `assumption` | equivalent only while an invariant holds that another test pins | 12 |
 | `tool` | killed by a test the trampoline forces the sweep to deselect | 4 |
-| **Total** | | **189** |
+| **Total** | | **190** |
 
 The twelve `assumption` entries are where a reader should look. They are not
 proved equivalent. Each holds only while its premise holds, and each argument
