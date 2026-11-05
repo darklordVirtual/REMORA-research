@@ -28,6 +28,7 @@ from remora.enforcement.lease import GovernedToolDispatcher, ToolDidNotExecute
 from tests.limits.test_limits_unit import (
     LIMITS,
     METERS as METERS_PLAIN,
+    OBSERVED_METERS,
     PREV_METERS,
     SEEN_LIMIT,
     T0,
@@ -868,3 +869,129 @@ def test_a_limit_redefined_under_the_same_id_fails_closed_on_the_old_ledger(tmp_
     widened = cl.LimitGuard(policy(limits=[dict(LIMITS[0], max=40000), *LIMITS[1:]]),
                             cl.LimitLedger(path))
     assert reserve(widened, "pay", "B", amount=7000, cur="JPY") == cl.CHANGED
+
+
+# ── the argued premises, broken on purpose (2026-11-05) ────────────────────────
+#
+# Twelve survivors were argued equivalent on a premise another test pinned. The
+# tests below break each premise that can be broken and show the guard still
+# refuses, so those mutants are killed rather than argued. Two of the arguments
+# were wrong: _plan__mutmut_138 drops the request-hash comparison through
+# operator precedence, and _limit_refusal__mutmut_35 stores every reservation
+# under "none" instead of the lease's call hash.
+
+
+def _reservation_hashes(path, operation_id):
+    import sqlite3
+
+    with sqlite3.connect(path) as conn:
+        return [row[0] for row in conn.execute(
+            "SELECT request_hash FROM limit_reservation WHERE operation_id=?", (operation_id,))]
+
+
+def test_the_dispatcher_reserves_under_the_leases_call_hash(tmp_path):
+    """The reservation names the exact call it was made for. A second call
+    presented under the same lease nonce is a different request and refuses as
+    changed; it must not ride on the first call's reservation."""
+    path = tmp_path / "hash.db"
+    d = _dispatcher(cl.LimitGuard(policy(), cl.LimitLedger(path)))
+    args = {"amount": 7000, "cur": "JPY"}
+    assert d._limit_refusal(_lease("n1"), "pay", args, args, None) is None
+    assert _reservation_hashes(path, "lease:n1") == ["h" * 64]
+    other = SimpleNamespace(**{**vars(_lease("n1")), "tool_args_hash": "g" * 64})
+    assert d._limit_refusal(other, "pay", args, args, None) == cl.CHANGED
+
+
+@pytest.mark.parametrize("missing", ["", None])
+def test_a_lease_without_a_call_hash_reserves_under_the_placeholder_none(tmp_path, missing):
+    """issue() always sets tool_args_hash, and verify() and the final hop both
+    compare it, so dispatch never reaches here without one. A direct caller
+    can: its reservation is recorded under the literal "none", never under an
+    empty or other string."""
+    path = tmp_path / "none.db"
+    d = _dispatcher(cl.LimitGuard(policy(), cl.LimitLedger(path)))
+    args = {"amount": 7000, "cur": "JPY"}
+    lease = SimpleNamespace(**{**vars(_lease("n2")), "tool_args_hash": missing})
+    assert d._limit_refusal(lease, "pay", args, args, None) is None
+    assert _reservation_hashes(path, "lease:n2") == ["none"]
+
+
+def test_a_retry_under_its_own_id_with_a_different_request_refuses_as_changed(tmp_path):
+    """Same operation id, same amount, another request hash: the request
+    changed, so it is not this operation's retry."""
+    guard = cl.LimitGuard(policy(), cl.LimitLedger(tmp_path / "retry.db"))
+    args = {"amount": 7000, "cur": "JPY"}
+    assert guard.reserve(tenant="t", principal="p", tool_name="pay", arguments=args,
+                         operation_id="1", request_hash="h-a", now=T0) is None
+    assert guard.reserve(tenant="t", principal="p", tool_name="pay", arguments=args,
+                         operation_id="1", request_hash="h-a", now=T0) is None  # its retry
+    assert guard.reserve(tenant="t", principal="p", tool_name="pay", arguments=args,
+                         operation_id="1", request_hash="h-b", now=T0) == cl.CHANGED
+
+
+def test_a_value_row_that_outlived_its_reservation_fails_closed(tmp_path):
+    """The ledger never writes a tracked value row owned by an operation without
+    that operation's reservation rows, but a hand-edited or partly restored
+    ledger can hold one. The call refuses as changed and records no charge: a
+    retry marker must never be booked as a negative reservation that frees
+    budget."""
+    path = tmp_path / "orphan.db"
+    guard = cl.LimitGuard(policy(), cl.LimitLedger(path))
+    with guard.ledger.transaction() as conn:
+        cl.LimitLedger.set_value(conn, cl._SEP.join(("t", "movement", "AHU-1")), 195,
+                                 "settled", "X", "s1")
+    assert reserve(guard, "move", "X", unit="AHU-1", value=19.5) == cl.CHANGED
+    assert _reservation_hashes(path, "X") == []
+
+
+def test_a_shared_limit_on_a_meter_without_a_resource_keeps_its_persisted_key(tmp_path):
+    """A per-resource limit ("*") matched by a meter that names no resource
+    argument. Its counter is persisted under a key ending in "None", and a
+    reopened ledger keeps enforcing what was reserved under it."""
+    import sqlite3
+
+    path = tmp_path / "shared.db"
+    limits = [*LIMITS, dict(LIMITS[0], limit_id="spend-shared", principal="*", resource="*")]
+    first = cl.LimitGuard(policy(limits=limits), cl.LimitLedger(path))
+    assert reserve(first, "pay", "A", amount=12000, cur="JPY") is None
+    with sqlite3.connect(path) as conn:
+        keys = {row[0] for row in conn.execute("SELECT counter_key FROM limit_counter")}
+    assert "spend-shared\x1f*\x1fNone" in keys
+    reopened = cl.LimitGuard(policy(limits=limits), cl.LimitLedger(path))
+    assert reserve(reopened, "pay", "B", principal="q", amount=12000, cur="JPY") == cl.EXCEEDED
+
+
+def test_a_meter_without_a_previous_field_never_reads_the_result(tmp_path):
+    """The after-the-fact charge reads only the declared previous_field. A tool
+    result is any Mapping, not only JSON, so one with a None key must not be
+    read as the controller's previous value for a quantity that declares none."""
+    plant = {"AHU-1": 19.0}
+    guard = cl.LimitGuard(policy(meters=OBSERVED_METERS, limits=[*LIMITS, SEEN_LIMIT]),
+                          cl.LimitLedger(tmp_path / "noprev.db"),
+                          observer=lambda t, q, r: plant[r])
+    assert reserve(guard, "move_seen", "1", unit="AHU-1", value=19.5) is None
+    plant["AHU-1"] = 19.5
+    [record] = guard.settle("1", ok=True, result={None: 10.0}, now=T0)
+    assert "charged_after" not in record and "actual_movement" not in record
+    assert guard.ledger.charges("1#after") == []
+
+
+def test_the_second_read_judges_the_resolver_again(tmp_path):
+    """The evidence source is asked outside the ledger transaction, and the row
+    is read again before anything is released. If the row changed meanwhile so
+    that the resolver is now its principal, the second read refuses: the whole
+    check runs twice, not only the state check."""
+    import sqlite3
+
+    path = tmp_path / "ledger.db"
+
+    def checker(tenant, operation, evidence_ref):
+        with sqlite3.connect(path) as conn:
+            conn.execute("UPDATE limit_operation SET principal='reviewer-1' "
+                         "WHERE operation_id='A'")
+        return {"executed": False}
+
+    guard = _unknown_payment(tmp_path, checker)
+    assert guard.resolve(tenant="t", operation_id="A", executed=False, resolved_by="reviewer-1",
+                         evidence_ref="stmt-1") == cl.RESOLVER_IS_PRINCIPAL
+    assert guard.unresolved("t")[0]["operation_id"] == "A"

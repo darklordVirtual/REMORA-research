@@ -536,30 +536,63 @@ gh run download 42085159140 -n mutation-results -D sweep
 python scripts/check_mutation_baseline.py sweep/mutation-results.txt
 ```
 
-Every entry carries its class, so a proof can be told apart from a premise:
+Every entry carries its class, so a proof can be told apart from a premise.
+After that run, twelve entries were `assumption`: equivalent only while an
+invariant held that another test pinned. Each premise was then broken on
+purpose, by a test that reaches the state the premise rules out, to see
+whether the guard still refuses. Two of the arguments were wrong:
+
+- **`_plan__mutmut_138`.** The mutant is `prior is None and prior[0] != ...`
+  for `prior is None or prior[0] != ...`. Operator precedence turns the
+  condition into `amount not in (-1, prior[1])` alone, so the mutant drops
+  the request-hash comparison. A second request under the same operation id
+  and with the same amount would then pass as a retry of the first. The
+  argument had read `prior is None` as constant False and missed the
+  regrouping.
+- **`_limit_refusal__mutmut_35`.** The mutant is `tool_args_hash and "none"`
+  for `tool_args_hash or "none"`. It books every dispatcher reservation
+  under `"none"` instead of the lease's call hash. The argument covered only
+  the fallback branch.
+
+Eight of the twelve are now killed by tests in
+`tests/limits/test_limits_mutation_contract.py`. Each kill was checked by
+applying the mutation by hand to the source and running the file:
+
+| Mutant | The test breaks this premise |
+|---|---|
+| `_limit_refusal` 35 | a second call under the same lease nonce with another call hash refuses as changed, and the reservation records the lease's hash |
+| `_limit_refusal` 36, 37 | a direct caller with no call hash reserves under the literal `"none"` |
+| `_plan` 138 | the same operation id, the same amount, another request hash: refused as changed |
+| `_plan` 154 | a tracked value row owned by an operation that has no reservation rows (a hand-edited or partly restored ledger) refuses as changed and books no negative charge |
+| `readings` 24 | a shared per-resource limit on a meter without a resource argument persists its counter under the key ending in `None`, and a reopened ledger enforces it |
+| `_account` 14 | a tool result that is a Mapping with a `None` key is not read as the previous value of a quantity that declares no `previous_field` |
+| `resolve` 30 | the row's principal changes to the resolver while the evidence source is asked, and the second read refuses |
+
+The other four cannot be killed by any test. Dispatch reaches none of them
+with an input that tells the mutant from the original, so they are now
+classed `unreachable`. Each names the test that pins the reason:
+
+- **`dispatch__mutmut_417`.** Dispatch always runs `verify()` first, and
+  `verify()` refuses half a task identity
+  (`test_a_lease_signed_with_half_a_task_never_reaches_the_task_check`).
+- **`dispatch__mutmut_507`.** The wire-form pass runs first with the same
+  set and an empty target. A set's environment is compared by equality and
+  cannot be blank, so an absent target is refused before the
+  invocation-form pass
+  (`test_a_capability_set_cannot_name_a_blank_environment`).
+- **`_prepare_mediation__mutmut_80` and `_85`.** A derived effect authority
+  carries only literal `within` conditions, so the mediator never asks its
+  state reader (`test_a_derived_effect_authority_never_carries_a_state_condition`).
+  If a later change lets a ceiling carry a state condition, that test fails
+  first.
 
 | Class | Meaning | Count |
 |---|---|---:|
 | `identical` | the same semantics by a language, library or SQL rule (case folding, codec names, escapes, falsy defaults) | 131 |
-| `unreachable` | the mutated value is never read on any path of this code | 43 |
-| `assumption` | equivalent only while an invariant holds that another test pins | 12 |
+| `unreachable` | no input reaches the mutated value through the code's entry points; the reason is stated, and pinned by a test where it rests on another module | 47 |
+| `assumption` | equivalent only while an invariant holds | 0 |
 | `tool` | killed by a test the trampoline forces the sweep to deselect | 4 |
-| **Total** | | **190** |
-
-The twelve `assumption` entries are where a reader should look. They are not
-proved equivalent. Each holds only while its premise holds, and each argument
-names the test that pins that premise. Seven sit in the dispatcher (`lease.py`):
-
-- `dispatch__mutmut_417` rests on `verify()` refusing half a task identity.
-- `dispatch__mutmut_507` rests on a capability set's environment never being blank.
-- `_limit_refusal` 35 to 37 rest on `issue()` always setting `tool_args_hash`.
-- `_prepare_mediation` 80 and 85 rest on a derived effect authority having no
-  state condition.
-
-Five sit in the limits (`cumulative_limits.py`): `_plan__mutmut_154`
-(the defensive `-1` clause of the partial-retry guard), `_plan__mutmut_138`,
-`_account__mutmut_14`, `readings__mutmut_24` and `resolve__mutmut_30`. If a
-change breaks one of those premises, the mutant becomes a live defect.
+| **Total** | | **182** |
 
 ### What this says about the OT pilot and WS1
 

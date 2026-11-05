@@ -426,3 +426,37 @@ def test_a_validly_signed_half_flow_binding_is_refused_as_malformed(half):
         target_environment="prod", now=datetime.now(UTC).isoformat(),
         actor_identity="agent-42")
     assert (result.verified, result.reason) == (False, "flow_binding_malformed")
+
+
+def test_a_derived_effect_authority_never_carries_a_state_condition():
+    """Premise of the unreachable mutants _prepare_mediation__mutmut_80 and _85,
+    which hand the mediator no state reader: every condition of a derived effect
+    authority is a literal ``within`` on the resource argument, so the reader is
+    never consulted. A change that lets a ceiling carry a state condition must
+    fail here, because those two mutants would then refuse every such effect
+    as unverifiable."""
+    from remora.capabilities.constraints import ToolConstraint
+
+    authority = derive_effect_authority(_parent(), tool_name="report.generate",
+                                        ceiling=CEILING, now=datetime.now(UTC))
+    assert authority.constraints
+    for raw in authority.constraints.values():
+        for condition in ToolConstraint.from_dict(raw).conditions:
+            assert (condition.argument, condition.operator, condition.state) == (
+                "resource", "within", None)
+
+
+@pytest.mark.parametrize("blank", ["", "  "])
+def test_a_capability_set_cannot_name_a_blank_environment(blank):
+    """Premise of the unreachable mutant dispatch__mutmut_507 ("" -> "XXXX" for
+    an absent target in the invocation-form pass): the wire-form pass runs first
+    with the same set and "", and the set's environment check is equality with
+    a value that cannot be blank, so it refuses before the second pass runs."""
+    import dataclasses
+
+    parent = _parent()
+    with pytest.raises(ValueError, match="^environment must not be blank$"):
+        dataclasses.replace(parent, environment=blank)
+    assert parent.check("report.generate", principal_id="agent-42", tenant_id="acme",
+                        environment="", now=datetime.now(UTC)) is (
+        CapabilityRefusal.ENVIRONMENT_MISMATCH)
