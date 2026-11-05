@@ -4,6 +4,11 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### OT pilot limits: the first holdout of legitimate writes is a negative result (§97, 2026-11-05)
+
+- `docs/assurance/ot_limits_holdout_plan_v1.md` (DOC-426) fixed the measurement before any data. Separate sessions, blind to `limits.json`, wrote 40 operator shifts (392 writes) from `artifacts/ot-pilot/limits-holdout-v1/author-brief.md`. A further session flagged none as implausible, and the shifts were sealed by SHA-256 before the replay read them. `scripts/run_limits_holdout.py` replays them through the pilot's signed policy and the API's own `LimitGuard` with the shift's clock (tests: `tests/test_limits_holdout_replay.py`, 17).
+- Result: a legitimate write was refused in 26 of 40 shifts (65 %, Wilson 95 % 49.5 to 77.9 %), above the plan's 10 %, and 75 of 392 writes were refused (19.1 %). FIC-220's 10 m3/h per hour accounts for 56 of the 75 refusals. All six moves of delivery to zero after a stop or trip were refused; whether that is a hazard was not assessed, and it shows that the limits stop the governed path from parking the flow loop. A post-hoc replay with refused moves made by hand gives 85 of 392 writes and the same 26 shifts, and an independent review reproduced the result and agreed with the replay on every write. Recorded under NEGATIVE_RESULTS §97, which stays open until a recalibrated signed policy is measured on a new holdout.
+
 ### OT pilot: an AACP v0.2 self-assessment (2026-11-05)
 
 - `artifacts/ot-pilot/execution-path-reproduction-2026-11-05/aacp-assessment-v0.2.json` reads the pilot runs of that folder and the cited unit tests in the Agent Authority Conformance Profiles v0.2 format, pinned to `4cdaa5c9`. It is a self-assessment (BCR-0, SELF) and carries no score. A, B, C and F are PASS, each bounded to one host, one replica and simulated effects. D is FAIL, because S06 and S09 executed after an approver approved a mismatch the engine had flagged. E is UNTESTED, and G is NOT_ESTABLISHED. It validates with the AACP checker and coverage matrix. `tests/test_aacp_ot_pilot_assessment.py` (6) keeps every cited path resolvable and the D violation recorded.

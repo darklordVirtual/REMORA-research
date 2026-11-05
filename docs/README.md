@@ -17,6 +17,7 @@ Seven documents cover most questions. Everything else in `docs/` is listed furth
 - [Concept record PROV-18](../provenance/concepts/PROV-18.yaml): declared-tool grounded read autonomy; classification UNKNOWN until a prior-art review names it.
 - NEGATIVE_RESULTS §94 (WS1 on a deployed stack, shadow) and §102 (the mechanism does not reach AgentDojo).
 - [Broader test plan v1](assurance/ws1_utility_test_plan_v1.md): criteria fixed before the runs; mutation, independent scenarios, labels, properties, baselines, realism, external reproduction.
+- [Limits holdout plan v1](assurance/ot_limits_holdout_plan_v1.md): how often the pilot's cumulative limits refuse a legitimate operator write, on blind shifts (§97); criteria fixed before the data.
 
 ## Start here
 
