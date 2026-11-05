@@ -466,6 +466,12 @@ independent scenarios gave the same verdict as on 2026-11-04 in every case,
 including the four failures (S06 and S09 executed after a scripted approval;
 S17 and S22 went to a human). All 16 battery decisions match the earlier run.
 
+**Limits holdout (2026-11-05)** (`artifacts/ot-pilot/limits-holdout-v1/`, plan
+DOC-426): 40 operator shifts written blind to the limits were replayed through
+the pilot's signed `limits.json`. A legitimate write was refused in 26 of 40
+shifts (Wilson 95 % 49.5 to 77.9 %), above the plan's 10 %, so the pilot's
+limits are recorded as tighter than legitimate operation (NEGATIVE_RESULTS §97).
+
 > **Note:** author's runs on one host against a simulated plant; not an
 > independent reproduction and not OT deployment validation. The same
 > mechanism does not reach AgentDojo, which has no deployment intent source;
