@@ -3513,6 +3513,18 @@
       "mode": "100644",
       "sha256": "39b4cfb8641eae62c3e0716771a2080840345f815622297092e4dbb4ed4066a4"
     },
+    "artifacts/ot-pilot/limits-holdout-v1/limits-v1.json": {
+      "concepts": [],
+      "git_blob": "177c515eb2b4b22a592c82160cf3d894cab55bc1",
+      "mode": "100644",
+      "sha256": "c9c91d9c7d771239e49112afd9238bdbaa1e8b9061194147f413a8c80a35796e"
+    },
+    "artifacts/ot-pilot/limits-holdout-v1/limits-v1.trusted-key": {
+      "concepts": [],
+      "git_blob": "4725ba192a7f80b20425d48d7f654b0bfc79ef06",
+      "mode": "100644",
+      "sha256": "84803c9d44bd555c856529ce47ba98f735c1453703d1499157835d59c11b81f0"
+    },
     "artifacts/pilot-pack/README.md": {
       "concepts": [],
       "git_blob": "ce2ad3ccd26523a4b785b005cc4ba9516c848aec",
@@ -5473,9 +5485,9 @@
     },
     "deploy/ot-pilot/docker-compose.yml": {
       "concepts": [],
-      "git_blob": "ce941cd36b68bd4b10931ce9c866e4e6bb16498c",
+      "git_blob": "9d013d859733cbcce06de791e2bd5fda93b035be",
       "mode": "100644",
-      "sha256": "71d5c4d088daee91c5a756effd8d712560af2d05f859486e3ed6c0fcdc728397"
+      "sha256": "20b12031c1a380b9da3e8229341d5d2cdd34a715259823cdeb51c688b61cd65c"
     },
     "deploy/ot-pilot/init_tokens.py": {
       "concepts": [],
@@ -5485,9 +5497,9 @@
     },
     "deploy/ot-pilot/limits.json": {
       "concepts": [],
-      "git_blob": "177c515eb2b4b22a592c82160cf3d894cab55bc1",
+      "git_blob": "1834bea3f7148642cc22764a5efe6d05f5580a50",
       "mode": "100644",
-      "sha256": "c9c91d9c7d771239e49112afd9238bdbaa1e8b9061194147f413a8c80a35796e"
+      "sha256": "32ee26d6a659c62510d3ae0511b135c524ad9e0eab782c6a34bf24087c0f9c57"
     },
     "deploy/ot-pilot/ot_bundle.py": {
       "concepts": [
@@ -5519,9 +5531,9 @@
     },
     "deploy/ot-pilot/run_fault_injection.py": {
       "concepts": [],
-      "git_blob": "00f827b4eaa5dc6c3cd9d6fa3f66fc7fc3347724",
+      "git_blob": "5fe082c54d8a0eedfec82e7f8ae12137d3549436",
       "mode": "100644",
-      "sha256": "086db2e0cd09fc3938fbe80fd6cb592b58ee527ab8309a51975bc03c68b18795"
+      "sha256": "2dd40b376bf1c4e9d77aaa72db76834b937d7a5e04e6fa2b1c4d00f0169bd84a"
     },
     "deploy/ot-pilot/run_independent_scenarios.py": {
       "concepts": [],
@@ -5531,9 +5543,9 @@
     },
     "deploy/ot-pilot/run_ot_battery.py": {
       "concepts": [],
-      "git_blob": "9cf9f52ec699cbcdacfa6f0ade9a3e5feceeb1da",
+      "git_blob": "d360b9ebdd6e516e519448d63f35de18bc2837f8",
       "mode": "100644",
-      "sha256": "62b7d5cb1ca190900886997cd6ceb0c3c9df4c3dbccd6fbabc5d3efca25043b8"
+      "sha256": "20cf76af59e59b39a02dca10d2aa80a1f016dc95bb15cd5affdfbce665cf5fcd"
     },
     "deploy/ot-pilot/tool_metadata.json": {
       "concepts": [
@@ -17403,9 +17415,9 @@
     },
     "tests/limits/test_limits_ot_pilot.py": {
       "concepts": [],
-      "git_blob": "ef929f766490152de2cd3256e6e7d664d226d6f2",
+      "git_blob": "9489efa62ac42d4b064a2992a99247fcfb726f9b",
       "mode": "100644",
-      "sha256": "ee238532b9f2f10a882c76ca9b3cd9782a9984e36e6c7b8e627136606e5793a9"
+      "sha256": "ce924a818a3b418ac7332abd76e4a22e31188c8555bee6236bad30fefe30b413"
     },
     "tests/limits/test_limits_payments.py": {
       "concepts": [],
@@ -20312,15 +20324,15 @@
     },
     "tests/test_limits_holdout_replay.py": {
       "concepts": [],
-      "git_blob": "375f67288cc80bea2e033efa69b38a4351a34323",
+      "git_blob": "75dcac4b83a3871607db4e523816c43c6e43191f",
       "mode": "100644",
-      "sha256": "69d0c44337ad495dd9d2f5760870d2a254b7ba547eb2fff6b7d5118f45b90435"
+      "sha256": "32427a0624cbc5ff26bb7aa24e5e61b272540a36fb8ce3a231b831b30261c9b3"
     },
     "tests/test_limits_holdout_sensitivity.py": {
       "concepts": [],
-      "git_blob": "48534229130ab0e31b8c58eaba7b20b6b896d505",
+      "git_blob": "f7100338f3eca4e982baae6c3c6fae27f40d3b7d",
       "mode": "100644",
-      "sha256": "c5ba51cc390efd32272225d3294dc651c21eefbcbf6f8b03a1b9fc42d4991067"
+      "sha256": "f25165a16f647d675303010eb7a305c159bbb998305a6a610c049134adfa5818"
     },
     "tests/test_llm_judge.py": {
       "concepts": [],
@@ -22921,7 +22933,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "d10e5abf4258e86059dc758fba81b1c38ea289eef7c4395490c17d0a1bee24f7",
+  "register_sha256": "46692e2daf051cd2622dbaa99001eb216ab44d8c37c15d9636daee19ddba5dad",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

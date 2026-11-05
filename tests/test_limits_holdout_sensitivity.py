@@ -12,6 +12,8 @@ import importlib.util
 import json
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -25,6 +27,22 @@ def _load(name: str):
 
 S = _load("limits_holdout_sensitivity")
 H = _load("run_limits_holdout")
+MODULES = (H, S.H)
+
+#: The holdout v1 was measured under the pilot's policy as it was then. It is
+#: kept with its trusted key, so these hand-worked answers stay pinned after the
+#: pilot's limits.json is recalibrated (docs/assurance/ot_limits_holdout_plan_v2.md).
+V1_POLICY = ROOT / "artifacts" / "ot-pilot" / "limits-holdout-v1" / "limits-v1.json"
+V1_KEY = (ROOT / "artifacts" / "ot-pilot" / "limits-holdout-v1" /
+          "limits-v1.trusted-key").read_text(encoding="utf-8").strip()
+
+
+@pytest.fixture(autouse=True)
+def _the_v1_policy(monkeypatch):
+    for module in MODULES:
+        original = module.load_policy
+        monkeypatch.setattr(module, "load_policy",
+                            lambda path=V1_POLICY, keys=None, _o=original: _o(path, keys or [V1_KEY]))
 
 
 def _sp(t, value):

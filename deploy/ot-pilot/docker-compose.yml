@@ -171,7 +171,7 @@ services:
       # public key. To change the limits, sign a new policy with your own key
       # (scripts/sign_limit_policy.py) and replace the key below.
       REMORA_REQUIRE_LIMITS: "1"
-      REMORA_LIMITS_TRUSTED_KEYS: e6195cd0d965e0ae3554152a45d578d56843a4f27fa60e413630c0a42e531a0d
+      REMORA_LIMITS_TRUSTED_KEYS: e165e0eb8e0f21b03f5d7ce97c97286f7b60a873ed3fd984873d142dc169e7c9
 
       # Prometheus scrape without a bearer token (local pilot only).
       REMORA_PROMETHEUS_PUBLIC: "1"

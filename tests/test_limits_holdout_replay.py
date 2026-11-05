@@ -20,6 +20,22 @@ SPEC = importlib.util.spec_from_file_location("run_limits_holdout",
 H = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader is not None
 SPEC.loader.exec_module(H)
+MODULES = (H,)
+
+#: The holdout v1 was measured under the pilot's policy as it was then. It is
+#: kept with its trusted key, so these hand-worked answers stay pinned after the
+#: pilot's limits.json is recalibrated (docs/assurance/ot_limits_holdout_plan_v2.md).
+V1_POLICY = ROOT / "artifacts" / "ot-pilot" / "limits-holdout-v1" / "limits-v1.json"
+V1_KEY = (ROOT / "artifacts" / "ot-pilot" / "limits-holdout-v1" /
+          "limits-v1.trusted-key").read_text(encoding="utf-8").strip()
+
+
+@pytest.fixture(autouse=True)
+def _the_v1_policy(monkeypatch):
+    for module in MODULES:
+        original = module.load_policy
+        monkeypatch.setattr(module, "load_policy",
+                            lambda path=V1_POLICY, keys=None, _o=original: _o(path, keys or [V1_KEY]))
 
 
 def _run(tmp_path, *shifts, flags=None):
@@ -41,8 +57,9 @@ def _outcomes(result):
     return [(w["outcome"], w.get("reason")) for w in result["writes"]]
 
 
-def test_the_policy_is_the_signed_one_the_compose_file_trusts():
+def test_the_v1_policy_is_kept_signed_under_its_key():
     policy, digest, kid = H.load_policy()
+    assert digest == "sha256:" + __import__("hashlib").sha256(V1_POLICY.read_bytes()).hexdigest()
     assert digest.startswith("sha256:") and kid
     assert {lim.limit_id for lim in policy.limits} >= {"pic-101-movement", "valve-travel"}
 
