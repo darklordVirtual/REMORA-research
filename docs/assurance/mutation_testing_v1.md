@@ -484,6 +484,7 @@ that run. Its `mutation-results` artifact holds the results and the full log.
 |---|---:|---:|---:|---:|
 | `42075725878` on `456648b0` | 6,077 | 5,901 | 176 | 0 |
 | `42085159140` on `cad17041`, after the changes below | 6,084 | 5,909 | 175 | 0 |
+| `42094489655` on `935d1ddf`, after the assumption pass below | 6,084 | 5,918 | 166 | 0 |
 
 The new gate (`scripts/check_mutation_sweep_measured.py`) passed: the run
 executed 6,077 mutants and finished its phases. The baseline gate failed, with
@@ -495,8 +496,10 @@ re-measurement doing its job, and every difference is accounted for:
   with itself". The review rejected that argument, because the key is persisted
   and read back after a restart. The frozen-key and reopened-ledger tests
   added in `cbb8cadc` now kill all four. `_check_unlogged__mutmut_21`
-  (`require_expiry=None`) was argued equivalent and is also killed. The
-  argument was wrong, and the entry is removed.
+  (`require_expiry=None`) was also killed in this run, and its argument was
+  removed as wrong. That was a mistake: `verify()` reads the flag only for
+  truth, and the two later runs below let the mutant survive. It is unstable
+  in the same way as the SQL-case entries, and its argument is restored.
 - **Killed, and kept.** Eight SQL-case entries (`_check_unlogged` 187, 195
   and 236; `reset_ledger_watermark` 14 and 23; three in `nonce_store`). Some
   sweeps kill such mutants and others do not, as the October note records.
@@ -588,11 +591,25 @@ classed `unreachable`. Each names the test that pins the reason:
 
 | Class | Meaning | Count |
 |---|---|---:|
-| `identical` | the same semantics by a language, library or SQL rule (case folding, codec names, escapes, falsy defaults) | 131 |
-| `unreachable` | no input reaches the mutated value through the code's entry points; the reason is stated, and pinned by a test where it rests on another module | 47 |
+| `identical` | the same semantics by a language, library or SQL rule (case folding, codec names, escapes, falsy defaults) | 132 |
+| `unreachable` | no input reaches the mutated value through the code's entry points; the reason is stated, and pinned by a test where it rests on another module | 48 |
 | `assumption` | equivalent only while an invariant holds | 0 |
 | `tool` | killed by a test the trampoline forces the sweep to deselect | 4 |
-| **Total** | | **182** |
+| **Total** | | **184** |
+
+Run `42094489655` on `935d1ddf` measured the tests above. It killed all eight
+mutants, so the hand checks were confirmed by mutmut itself. The four
+`unreachable` mutants survived, as expected. Two survivors had no argument.
+One was `_check_unlogged__mutmut_21`, discussed above. The other was
+`_spend_enlisted__mutmut_14`, which wraps the `not_enlistable` message in
+`XX`, a text the event never reads (the same class as `_13` and `_15`). Both
+arguments are added, and nothing else changes after `935d1ddf`. Against this
+run's results the baseline gate passes: 166 survivors, none new, baseline 184:
+
+```
+gh run download 42094489655 -n mutation-results -D sweep
+python scripts/check_mutation_baseline.py sweep/mutation-results.txt
+```
 
 ### What this says about the OT pilot and WS1
 
