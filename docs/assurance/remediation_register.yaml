@@ -1823,6 +1823,30 @@ items:
       tests/test_separation_of_duties.py, including an end-to-end self-approval
       refused with approver_is_proposer.
 
+  - id: REM-066
+    section: "operations-2026-11"
+    title: "AROMER Worker cron re-scored a frozen sample every five minutes for four months"
+    gate: P2
+    status: DONE
+    completed: "2026-11-03"
+    artifacts:
+      - workers/aromer/wrangler.toml
+      - artifacts/aromer/d1_export_2026-11-03/aromer_d1_export_2026-11-03.json
+      - artifacts/aromer/d1_export_2026-11-03/hook_episode_friction_v1.json
+      - scripts/aromer_export.sh
+      - scripts/aromer_hook_friction.py
+    notes: >
+      No episode reached AROMER after 2026-07-02; the deployed cron ran every
+      five minutes (the repository said every four hours) and re-scored the same
+      200-episode sample 37,698 times, inflating nine world-model priors and all
+      three oracle-bandit rows past the episode count. PR #1165 archived the
+      database (export verified 13/13 against the live console) and set
+      crons = []; the deploy follows the next merge to master. The follow-up
+      cites the committed daily AII series in CLAIM-006, records the unexplained
+      AII step of 2026-06-29 and the idle loop as NEGATIVE_RESULTS §101, and adds
+      a descriptive friction artifact from the sanitized recorder-hook episodes.
+      Open in §101: attribution of the AII step; the hook corpus is presumed
+      benign, not adjudicated.
   - id: REM-065
     section: "security-review-2026-11"
     title: "RMR-SEC-0023: audit-outbox drain deadlocked on SQLite with two or more pending events"

@@ -109,6 +109,38 @@ services:
       REMORA_TOOL_REGISTRY_MODULE: ot_registry
       REMORA_SEMANTIC_BUNDLE_MODULE: ot_bundle
       REMORA_INTENT_SOURCE_FILE: /app/work_orders.json
+      # The pilot's own risk declaration for its six tools (domain ot_plant, so
+      # the state index in ot_bundle.py applies; read_sensor low, every write
+      # critical). Hashed into the policy bundle. Without it every tool was
+      # critical/unknown and no monitoring read could be grounded.
+      REMORA_TOOL_METADATA_FILE: /app/tool_metadata.json
+      # Grounded reads (opt-in, 2026-08-06): a read-only, low-tier call under a
+      # resolved work order with all four grounding signals true may ACCEPT.
+      REMORA_GROUNDED_READ_ACCEPT: "1"
+      # Owner decision 2026-11-03 (docs/architecture/ADR-grounded-reads-in-production.md):
+      # the same path may fire for this pilot's production target. The five
+      # daily-round sensor reads then complete without a person; every write
+      # still goes to a senior_authority approver. Remove this line to restore
+      # the production exclusion.
+      REMORA_GROUNDED_READ_IN_PRODUCTION: "1"
+
+      # --- Signed ToolSpec (RMR-CR-001) ------------------------------------
+      # Authored and signed offline by deploy/ot-pilot/build_toolspec.py with an
+      # Ed25519 seed that never enters the image. This process verifies with
+      # the public key and accepts only the pinned bundle; every call is then
+      # measured against its signed spec (enforced=true), and the callables in
+      # ot_registry.py are measured at registration.
+      REMORA_TOOLSPEC_BUNDLE: /app/toolspec-bundle.json
+      REMORA_TOOLSPEC_VERIFY_KEYS: ${OT_TOOLSPEC_VERIFY_KEY:?run python deploy/ot-pilot/build_toolspec.py first}
+      REMORA_TOOLSPEC_PINNED_DIGEST: ${OT_TOOLSPEC_PINNED_DIGEST:?run python deploy/ot-pilot/build_toolspec.py first}
+
+      # --- WS1, shadow (#953, §94) -----------------------------------------
+      # Deterministic authorization with bounded evidence lookups, through the
+      # real routes, recording in the audit chain what it would do. Shadow
+      # changes no decision. Enforce needs REMORA_FLOW_CONTROL=1, a flow block
+      # per tool and evidence for IFC-04b/06/11/12/13; not set here.
+      REMORA_WS1_MODE: shadow
+      REMORA_WS1_DEPLOYMENT_MODULE: ot_ws1
       REMORA_EXECUTION_ARTIFACT_DIR: /var/lib/remora/artifacts
 
       # --- Cumulative limits -------------------------------------------------
@@ -149,6 +181,8 @@ services:
     # would start from zero. The Postgres service already persists the rest.
     volumes:
       - remora-state:/var/lib/remora
+      # The signed bundle, authored on the host; the seed stays on the host.
+      - ./toolspec-bundle.json:/app/toolspec-bundle.json:ro
 
   # Operator console: live metrics, scenario buttons, one-click OT battery.
   # Holds the viewer token only (SR-06) — a real deployment puts an identity

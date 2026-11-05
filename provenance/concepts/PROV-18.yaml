@@ -1,0 +1,90 @@
+# Concept record. Hand-maintained; digests live in provenance/manifests/, not here.
+# Registration records priority and content. It is not a claim of invention (see provenance/README.md).
+schema_version: remora-concept-record-v1
+concept_id: PROV-18
+canonical_name: Declared-tool grounded read autonomy, with the production exclusion lifted only by deployment opt-in
+invariant: A read executes without a person only when every question the engine can answer from
+  declared data is answered positively, and the deployment, not the agent, supplied that data. The tool's
+  risk, action type and domain come from the deployment's signed or hashed declaration; the arguments
+  are grounded against the deployment's state index and the task text; the call is made under an intent
+  the deployment resolved from its own source. Production is excluded by default. A deployment that
+  lifts the exclusion does so with one flag that is part of the policy identity, lifts only that clause,
+  and accepts the disclosure a grounded read makes to the agent. Writes, higher tiers, calls without a
+  resolved authority and calls with any grounding signal unknown or false never reach this path.
+identifying_terms:
+- grounded_read_in_production
+- REMORA_GROUNDED_READ_IN_PRODUCTION
+origin:
+  authors:
+  - Stian Skogbrott
+  project: REMORA
+  status: claimed_original_contribution
+classification: UNKNOWN
+first_recorded:
+  commit: d4039894c321db2b7540682a44414bff397bae14
+  authored: '2026-11-03T23:22:12+01:00'
+  committed: '2026-11-03T23:22:12+01:00'
+  signature: N
+  paths:
+  - docs/architecture/ADR-grounded-reads-in-production.md
+  - remora/policy/decision_engine.py
+  - servers/api.py
+  - servers/execution_api.py
+  - tests/test_grounded_read_in_production.py
+  method: first commit on the snapshot history that introduced an identifying term as its own token; docs/assurance/provenance_register_v1.json
+canonical_spec:
+- path: docs/architecture/ADR-grounded-reads-in-production.md
+- path: docs/deployment/execution-quickstart.md
+- path: docs/07-api-reference.md
+implementation:
+- path: remora/policy/decision_engine.py
+- path: servers/execution_api.py
+- path: servers/api.py
+- path: remora/toolcall/deployment_registry.py
+- path: deploy/ot-pilot/tool_metadata.json
+- path: deploy/ot-pilot/ot_bundle.py
+tests:
+- path: tests/test_grounded_read_in_production.py
+- path: tests/test_grounded_read_accept.py
+- path: tests/test_low_consequence_accept.py
+- path: tests/test_ot_pilot_tool_metadata.py
+conformance: []
+interop_contracts: []
+related_capabilities:
+- CAP-001
+- CAP-014
+related_claims:
+- CLAIM-019
+federation_produces: policy_decision
+distinguishing_contribution: 'The combination, measured on a deployed stack with a control: a read-only,
+  low-tier tool declared by the deployment, arguments grounded against the deployment''s state index and
+  the task text, an intent the deployment resolved itself, and all four grounding signals positive, lets
+  the read execute without a person; a production target is excluded unless the deployment opts in with a
+  flag that is part of the policy identity and lifts only that clause. On the OT pilot this took the
+  five daily-round reads from review to completion (0 of 5 to 5 of 5) while every write still waited for
+  an approver and every negative case still refused (artifacts/ot-pilot/grounded-reads-2026-11-03/).
+  Shown not to transfer to a benchmark without a deployment intent source (NEGATIVE_RESULTS §102).'
+prior_art:
+  reviewed: false
+  review_sources: []
+  records: []
+  note: "Not yet reviewed. Adjacent work to compare against before any classification: capability-based
+    and attribute-based access control with environment attributes (XACML, PA-SRC-007), least-privilege
+    read grants in agent frameworks, and the repository's own earlier grounded-read path (GROUNDED_READ_ACCEPT,
+    2026-08-06), of which this is the deployment-declared, production-capable extension. Classification stays
+    UNKNOWN until a dated review in PRIOR_ART.yaml names this concept."
+evolution:
+- stage: first_recorded
+  commit: d4039894c321db2b7540682a44414bff397bae14
+  date: '2026-11-03'
+  note: identifying term first introduced as its own token (engine flag, API wiring, ADR, tests)
+- stage: measured_on_deployed_stack
+  commit: 59227f9668ec99bb12745161fb6b6376df98d7f4
+  date: '2026-11-03'
+  note: 'OT pilot battery with a control: monitoring reads 5 of 5 with the opt-in, 0 of 5 without, 16 of 16
+    cases as specified in both; fault injection 10 of 10; §99 cases 11 of 11'
+external_adoption: []
+license:
+  spdx: BUSL-1.1
+  licensor: Stian Skogbrott
+  reference: legal/LICENSING.md

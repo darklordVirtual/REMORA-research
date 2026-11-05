@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "_comment": [
+    "Risk metadata the OT pilot declares for its own tools (REMORA_TOOL_METADATA_FILE).",
+    "",
+    "Without it every pilot tool fell to the fail-closed default of critical/unknown,",
+    "and the state index in ot_bundle.py (coverage scope 'ot_plant') never applied,",
+    "because the policy engine saw domain 'unknown'. A monitoring read of a sensor",
+    "the plant inventory lists was therefore ungrounded and went to review along",
+    "with the valve moves (OT battery 2026-11-03: 0 of 5 monitoring reads completed).",
+    "",
+    "This file is hashed into the policy bundle. Editing it moves the hash and",
+    "invalidates every outstanding lease. Declaring a tool lower than it is would",
+    "be the way to grant yourself something here, so each entry says why."
+  ],
+  "_why": {
+    "read_sensor": "Returns one sensor's current value and unit from the plant inventory and changes nothing. Low: the tool reads; where it reads is the target environment's concern, not the tier's. With REMORA_GROUNDED_READ_IN_PRODUCTION on, a read of a sensor the daily round names can complete without a person; every other clause of the grounded-read path still applies.",
+    "adjust_setpoint": "Moves a control loop's setpoint on the plant. Critical: a physical process change; every approval needs senior_authority and the cumulative movement limit applies.",
+    "set_valve_position": "Strokes a valve. Critical, as adjust_setpoint.",
+    "acknowledge_alarm": "Clears an alarm the operator must otherwise see. Critical: silencing an alarm is a safety-relevant state change even though it moves nothing.",
+    "create_work_order": "Creates a maintenance record that later authorises work. Critical: the record is itself an authority.",
+    "close_work_order": "Closes an authority record. Critical, as create_work_order.",
+    "_schema": "schema_valid is true because the registry refuses an unknown sensor, loop, valve or alarm id before anything runs (ot_registry.py raises ValueError), and every write argument is a fixed shape."
+  },
+  "tools": {
+    "read_sensor":        {"risk_tier": "low",      "domain": "ot_plant", "action_type": "read",  "schema_valid": true},
+    "adjust_setpoint":    {"risk_tier": "critical", "domain": "ot_plant", "action_type": "write", "schema_valid": true},
+    "set_valve_position": {"risk_tier": "critical", "domain": "ot_plant", "action_type": "write", "schema_valid": true},
+    "acknowledge_alarm":  {"risk_tier": "critical", "domain": "ot_plant", "action_type": "write", "schema_valid": true},
+    "create_work_order":  {"risk_tier": "critical", "domain": "ot_plant", "action_type": "write", "schema_valid": true},
+    "close_work_order":   {"risk_tier": "critical", "domain": "ot_plant", "action_type": "write", "schema_valid": true}
+  }
+}

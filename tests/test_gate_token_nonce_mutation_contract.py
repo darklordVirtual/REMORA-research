@@ -755,14 +755,15 @@ def _tuple(r: EnforcementResult) -> tuple[bool, str, bool, str, bool]:
 
 def test_an_in_process_gate_refuses_to_join_a_transaction_in_full(caplog: pytest.LogCaptureFixture) -> None:
     gate = EnforcementGate(strict=True)
+    grant = _grant()
     with caplog.at_level(logging.WARNING, logger=LOGGER):
-        result = gate.check(_grant(), OBS, consume=True, connection=object())
+        result = gate.check(grant, OBS, consume=True, connection=object())
     assert _tuple(result) == (False, "accept", True, "consumed_ledger_unavailable", True)
     [record] = [r for r in caplog.records if r.name == LOGGER
                 and r.getMessage().startswith("grant.ledger_unavailable ")]
     payload = record.remora  # type: ignore[attr-defined]
     assert (payload["backend"], payload["error_class"]) == ("not_enlistable", "RuntimeError")
-    assert payload["token_jti"] == _grant().jti or payload["token_jti"]  # a jti is logged
+    assert payload["token_jti"] == grant.jti  # the event names the grant it refused
 
 
 def test_a_sqlite_gate_spends_once_on_the_callers_connection(
