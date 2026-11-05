@@ -157,8 +157,6 @@ def test_a_malformed_policy_refuses_and_says_why(changes, message):
     """The operator reads this message when a signed limits.json is wrong and
     the deployment refuses to start. The words are the contract: the whole
     message, anchored, so a wrapped or extended message does not pass."""
-    import re
-
     with pytest.raises(cl.LimitPolicyError) as caught:
         policy(**changes)
     assert re.fullmatch(message, str(caught.value)), str(caught.value)

@@ -153,7 +153,7 @@ def test_tool_did_not_execute_reads_as_source_and_detail():
 def test_tool_did_not_execute_names_what_it_needs(source, detail):
     with pytest.raises(ValueError,
                        match="^ToolDidNotExecute needs the source and what it observed$"):
-        ToolDidNotExecute(source, detail)
+        raise ToolDidNotExecute(source, detail)  # the constructor refuses before anything is raised
 
 
 # ── after-the-fact accounting: the controller's report, not the target ────────

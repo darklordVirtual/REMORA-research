@@ -291,17 +291,22 @@ def test_postgres_gate_spends_inside_the_callers_transaction() -> None:
         False, "token_already_consumed", True, True)
 
 
-def test_postgres_gate_spend_rolls_back_with_the_callers_transaction() -> None:
-    class Abort(Exception):
-        pass
+class _Abort(Exception):
+    """The caller's intent could not be recorded; its transaction rolls back."""
 
+
+def _abort() -> None:
+    raise _Abort
+
+
+def test_postgres_gate_spend_rolls_back_with_the_callers_transaction() -> None:
     gate = EnforcementGate(dsn=DSN)
     grant = _grant("rolled-back")
-    with psycopg.connect(DSN) as conn, pytest.raises(Abort):
+    with psycopg.connect(DSN) as conn, pytest.raises(_Abort):
         with conn.transaction():
             assert gate.check(grant, OBS, consume=True, connection=conn).allowed
             assert conn.execute("SELECT COUNT(*) FROM pep_consumed").fetchone() == (1,)
-            raise Abort  # the caller's intent could not be recorded
+            _abort()
     assert _sql("SELECT COUNT(*) FROM pep_consumed") == [(0,)]
     assert _result(gate.check(grant, OBS, consume=True)) == (True, "accept", True, True)
 
