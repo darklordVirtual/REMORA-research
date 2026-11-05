@@ -1,0 +1,111 @@
+{
+  "run_id": "execution-path-reproduction-2026-11-05",
+  "purpose": "Re-run of the OT pilot batteries on the head of PR #1171, to show the execution path and REMORA behave on the pilot as recorded in artifacts/ot-pilot/grounded-reads-2026-11-03/.",
+  "source": {
+    "image_built_from_commit": "cbb8cadce20a21c33a0333a60f6535a1cad048a8",
+    "runtime_identical_at": "456648b0b1f97e6f0ccf10cea7cd14d0d86ab857",
+    "note": "456648b0 changes only tests/ and provenance/ relative to cbb8cadc; remora/, servers/ and deploy/ are byte-identical."
+  },
+  "image": {
+    "api_image_id": "sha256:f31ae69b42e168d772d2802e30d33a9f80267791f38cbb305db57b2124f299d8",
+    "docker_server": "28.4.0"
+  },
+  "policy_hash": "sha256:ed484f2a76592c424089455202967489049296172625c5e177ffa4f46c9f7afe",
+  "deployment_files": [
+    {
+      "path": "deploy/ot-pilot/docker-compose.yml",
+      "sha256": "71d5c4d088daee91c5a756effd8d712560af2d05f859486e3ed6c0fcdc728397"
+    },
+    {
+      "path": "deploy/ot-pilot/Dockerfile",
+      "sha256": "7dde5364acb9e9edf4457504c9e0d4ea98a7a0e0b302c65bd25f1230627f5a2a"
+    },
+    {
+      "path": "deploy/ot-pilot/tool_metadata.json",
+      "sha256": "802b4e76ba1928a65bf34954df632c2ec29edd78bbbcd4d122aad69342f1ef8c"
+    },
+    {
+      "path": "deploy/ot-pilot/ot_registry.py",
+      "sha256": "2d65d5063ae17c7f6b905e51a5255e46a28a00076e9776efe7a11e486793258b"
+    },
+    {
+      "path": "deploy/ot-pilot/ot_bundle.py",
+      "sha256": "358790cf0c6733cab50d466d68540d45e6240c4dcac77e98c8c3f419bcb72908"
+    },
+    {
+      "path": "deploy/ot-pilot/ot_ws1.py",
+      "sha256": "b05963b09e7759dbec295e7e55b00d42cc0fd166401008b98dbe4cb65158c6ed"
+    },
+    {
+      "path": "deploy/ot-pilot/ot_ws1_facts.json",
+      "sha256": "b815c44f285ccd7a03665d441690a158e2f5865d3004cbc0c502d75cb86b3cc0"
+    },
+    {
+      "path": "deploy/ot-pilot/work_orders.json",
+      "sha256": "ae37d0137d0f67f4d9de9110183302487ad0050628ec57a99afa5941ccd79582"
+    },
+    {
+      "path": "deploy/ot-pilot/limits.json",
+      "sha256": "c9c91d9c7d771239e49112afd9238bdbaa1e8b9061194147f413a8c80a35796e"
+    },
+    {
+      "path": "deploy/ot-pilot/build_toolspec.py",
+      "sha256": "4d346c232326ed37165e92a50f4bbb663bca3ab253975cf1f26af9bef41fa790"
+    },
+    {
+      "path": "deploy/ot-pilot/run_ot_battery.py",
+      "sha256": "62b7d5cb1ca190900886997cd6ceb0c3c9df4c3dbccd6fbabc5d3efca25043b8"
+    },
+    {
+      "path": "deploy/ot-pilot/run_fault_injection.py",
+      "sha256": "086db2e0cd09fc3938fbe80fd6cb592b58ee527ab8309a51975bc03c68b18795"
+    },
+    {
+      "path": "deploy/ot-pilot/run_independent_scenarios.py",
+      "sha256": "568c300fca6d4a9e5efd0dc7d24fcbda8f0e8b73dc4010b9b7a68094ad1024c0"
+    }
+  ],
+  "scenarios_sha256": "ada092cf262f8244332909f5a89b5f5fb5dbf5663834078430269d4c5fc7a4e0",
+  "stacks": "Battery on a freshly built stack; fault injection after down -v; each scenario phase after down -v. Same image throughout.",
+  "results": {
+    "battery": {
+      "cases_total": 16,
+      "cases_passed": 16,
+      "cases_failed": 0,
+      "confirmed_side_effects": 11,
+      "monitoring_reads_completed": "5/5",
+      "execution_chain_valid": true
+    },
+    "fault_injection": {
+      "cases_total": 10,
+      "cases_passed": 10,
+      "cases_failed": 0,
+      "confirmed_side_effects": 8,
+      "operations": {
+        "intended_writes": 8,
+        "completed_writes": 8,
+        "false_refusals": 0,
+        "human_steps": 14
+      },
+      "fingerprint_sha256": "0e0bc524f0e1a51465803f5736f29033632bc01da0db3933e87309ede3dfaa90"
+    },
+    "independent_scenarios": {
+      "a": {
+        "total": 22,
+        "PASS": 18,
+        "FAIL": 4,
+        "should_block_executed": 2
+      },
+      "b": {
+        "total": 1,
+        "PASS": 1,
+        "should_block_executed": 0
+      },
+      "c": {
+        "total": 1,
+        "PASS": 1,
+        "should_block_executed": 0
+      }
+    }
+  }
+}

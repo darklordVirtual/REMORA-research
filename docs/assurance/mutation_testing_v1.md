@@ -347,6 +347,7 @@ and the first with those modules in the runner.
 | Confirming sweep after the kill rounds below | 6,077 | 5,865 | 210 | 2 |
 | Last round applied by hand to the 210 (each verified in the sandbox) | 6,077 | 5,888 | 186 | 2 |
 | Final confirming sweep (same tests, fresh sandbox) | 6,077 | 5,888 | 184 | 5 |
+| Confirmation on the PR head, hosted runner, run `42075725878` (2026-11-05; see below) | 6,077 | 5,901 | 176 | 0 |
 
 Timeouts are detected mutants, not survivors; which mutants time out varies
 between sweeps (`_text` with an empty name passing validation, `_plan` with
@@ -467,12 +468,83 @@ a ratchet hint, never a failure.
 | `stacklevel` of a warning, killed by tests the trampoline forces the sweep to deselect | 2 |
 | **Total** | **184** |
 
-Three entries deserve a reader's attention. They are reachable in principle
-and argued, not proved, equivalent. `dispatch__mutmut_417` is `or` for `and`
-in the task-unchecked condition, and rests on `verify()` refusing half a task
-identity. `_plan__mutmut_154` is the defensive `-1` clause of the
-partial-retry guard. `verify__mutmut_147` is the flow-binding guard behind
-the signature check. Each argument names the test that pins its premise.
+This table and its 184 are the state before review. The confirmation run
+on the PR head, below, supersedes both.
+
+### Confirmation on the PR head (2026-11-05)
+
+The review of #1171 asked for a sweep on the final head from a clean
+environment, with the numbers and the baseline taken from one run. Workflow
+run `42075725878` (`workflow_dispatch`, head `456648b0`, hosted runner,
+Postgres 16 service, `mutmut` 3.8.0 from `requirements-mutation.lock`) is
+that run. Its `mutation-results` artifact holds the results and the full log.
+
+| Run | Mutants | Killed | Survived | Timeout |
+|---|---:|---:|---:|---:|
+| `42075725878` on `456648b0` | 6,077 | 5,901 | 176 | 0 |
+
+The new gate (`scripts/check_mutation_sweep_measured.py`) passed: the run
+executed 6,077 mutants and finished its phases. The baseline gate failed, with
+five new survivors and thirteen baseline entries killed. That is the
+re-measurement doing its job, and every difference is accounted for:
+
+- **Killed, and removed from the arguments.** The four `Limit.counter_key`
+  entries (`_3`, `_9`, `_12`, `_13`). They had been argued as "compared only
+  with itself". The review rejected that argument, because the key is persisted
+  and read back after a restart. The frozen-key and reopened-ledger tests
+  added in `cbb8cadc` now kill all four. `_check_unlogged__mutmut_21`
+  (`require_expiry=None`) was argued equivalent and is also killed. The
+  argument was wrong, and the entry is removed.
+- **Killed, and kept.** Eight SQL-case entries (`_check_unlogged` 187, 195
+  and 236; `reset_ledger_watermark` 14 and 23; three in `nonce_store`). Some
+  sweeps kill such mutants and others do not, as the October note records.
+  They stay in the set because the set is defined by construction.
+- **New survivors.** `_check_unlogged__mutmut_186` and
+  `reset_ledger_watermark__mutmut_22` change keyword case only. The
+  construction of 2026-10-13 had missed them. Enumerating the pool again from
+  the sandbox found six more keyword-only mutants that this sweep killed
+  (`_bump_watermark` 3, `_check_unlogged` 145, `verify_ledger` 20, 21, 26
+  and 27). All eight are added. Excluded, because they are not equivalent:
+  case changes inside a quoted value (`STATE='SETTLED'`), in a message, or of
+  the `%s` placeholder. `_check_unlogged__mutmut_15` and `_16` drop or raise
+  the `stacklevel` of the unsigned-token warning. Only the warning-attribution
+  test kills them, and the sweep must deselect it (class `tool`).
+  `verify__mutmut_147` is `or` for `and` in the guard that refuses half a flow
+  binding. It is no longer argued. The new test
+  `tests/capabilities/test_flow_recipients.py::test_a_validly_signed_half_flow_binding_is_refused_as_malformed`
+  signs each half alone with the issuer's key, as a second implementation
+  could, and asserts `flow_binding_malformed`. Applied by hand to the source,
+  the mutant fails both cases.
+
+The baseline is now the 189 written arguments. Of this run's 176 survivors,
+175 are among them. The remaining one is `verify__mutmut_147`, which the
+new test kills. The next scheduled sweep confirms that kill, and so does the
+dispatch on the head that carries this text, linked from the PR.
+
+Every entry carries its class, so a proof can be told apart from a premise:
+
+| Class | Meaning | Count |
+|---|---|---:|
+| `identical` | the same semantics by a language, library or SQL rule (case folding, codec names, escapes, falsy defaults) | 131 |
+| `unreachable` | the mutated value is never read on any path of this code | 42 |
+| `assumption` | equivalent only while an invariant holds that another test pins | 12 |
+| `tool` | killed by a test the trampoline forces the sweep to deselect | 4 |
+| **Total** | | **189** |
+
+The twelve `assumption` entries are where a reader should look. They are not
+proved equivalent. Each holds only while its premise holds, and each argument
+names the test that pins that premise. Seven sit in the dispatcher (`lease.py`):
+
+- `dispatch__mutmut_417` rests on `verify()` refusing half a task identity.
+- `dispatch__mutmut_507` rests on a capability set's environment never being blank.
+- `_limit_refusal` 35 to 37 rest on `issue()` always setting `tool_args_hash`.
+- `_prepare_mediation` 80 and 85 rest on a derived effect authority having no
+  state condition.
+
+Five sit in the limits (`cumulative_limits.py`): `_plan__mutmut_154`
+(the defensive `-1` clause of the partial-retry guard), `_plan__mutmut_138`,
+`_account__mutmut_14`, `readings__mutmut_24` and `resolve__mutmut_30`. If a
+change breaks one of those premises, the mutant becomes a live defect.
 
 ### What this says about the OT pilot and WS1
 

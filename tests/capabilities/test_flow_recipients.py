@@ -399,3 +399,30 @@ def test_a_lease_with_half_a_flow_decision_never_reaches_the_flow_guard():
                               target_environment="prod", now=datetime.now(UTC).isoformat(),
                               actor_identity="agent-42")
         assert result.reason == "signature_invalid"
+
+
+
+@pytest.mark.parametrize("half", ["epoch", "recipients"])
+def test_a_validly_signed_half_flow_binding_is_refused_as_malformed(half):
+    """The flow guard itself, not only its premise (review of #1171). issue()
+    never signs half a flow binding, but any holder of the lease key can: a
+    second implementation, a migration tool or a fixture writer. A lease whose
+    signature covers an epoch alone, or a recipients digest alone, must be
+    refused as flow_binding_malformed. It must not pass as a lease with no
+    flow decision. Each half is tried alone, which kills ``or`` -> ``and``."""
+    import dataclasses
+
+    from remora.enforcement import lease_signing as _signing
+
+    plain = _lease(_parent())
+    change = ({"flow_epoch": 1} if half == "epoch"
+              else {"flow_recipients_digest": recipients_digest({PARTNER})})
+    unsigned = dataclasses.replace(plain, **change)
+    signature = _signing.sign_payload(unsigned.signed_payload(), alg=plain.sig_alg)
+    forged_by_a_key_holder = dataclasses.replace(unsigned, signature=signature)
+    assert forged_by_a_key_holder.verify_historical().verified  # the signature is good
+    result = forged_by_a_key_holder.verify(
+        tool_name="report.generate", arguments=ARGS, tenant_id="acme",
+        target_environment="prod", now=datetime.now(UTC).isoformat(),
+        actor_identity="agent-42")
+    assert (result.verified, result.reason) == (False, "flow_binding_malformed")

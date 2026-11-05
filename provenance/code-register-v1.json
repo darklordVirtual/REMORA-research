@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "b2d3d3564331d8636cb50e405675fbdfd6273345",
+      "git_blob": "228ec807233586bf20a14ff8a99aa159c6d8b818",
       "mode": "100644",
-      "sha256": "042258ef578f1fb4a73648e68b84389fe4f1acc4b01cd66ccf8c44c7df47efc5"
+      "sha256": "5891cae0aba4011a05dd230832f7ca179eb8bf30363af6d5f922429a0a2b347f"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -3117,6 +3117,96 @@
       "mode": "100644",
       "sha256": "374a14e5aca7b38ebb9af6b300e6e7fc9e9ff61aaf101bb26207d1da5562ee7c"
     },
+    "artifacts/ot-pilot/execution-path-reproduction-2026-11-05/README.md": {
+      "concepts": [],
+      "git_blob": "272dd36e3301dcd96b4e885c672f87eacddf0e07",
+      "mode": "100644",
+      "sha256": "33e39ea95aa184cc69bb1ce55cc9dd222001c5c0944a86de5fdb01ee8257c0ab"
+    },
+    "artifacts/ot-pilot/execution-path-reproduction-2026-11-05/battery/chain-verification.json": {
+      "concepts": [],
+      "git_blob": "ecb99af4c3d1873cac57a750b199ce5f2fcf04e1",
+      "mode": "100644",
+      "sha256": "567256a1f9b95f615e712ac6f3aaaf7911df6a9e3758fcd1279263f60d02378d"
+    },
+    "artifacts/ot-pilot/execution-path-reproduction-2026-11-05/battery/manifest.json": {
+      "concepts": [],
+      "git_blob": "04ea83611037ae2a907277b2aec38d6d4a3033b2",
+      "mode": "100644",
+      "sha256": "58bc93dcbd25331d0425f2872cfd5069498a1a2cc5689ceb4073b5b5a39097d4"
+    },
+    "artifacts/ot-pilot/execution-path-reproduction-2026-11-05/battery/metrics.json": {
+      "concepts": [],
+      "git_blob": "b3273dd76fb1b39a42e02325e82593e729094c1c",
+      "mode": "100644",
+      "sha256": "30b943e05112ad40f1bf0ed40065718fe8a7838235c1412033c26d8c4ac1717f"
+    },
+    "artifacts/ot-pilot/execution-path-reproduction-2026-11-05/battery/report.txt": {
+      "concepts": [],
+      "git_blob": "635b3baf35f51485d3d592a15911316c4ed56ec7",
+      "mode": "100644",
+      "sha256": "b2ba227fa9f189b531c112c7f8dbe870c901440996c89368c1b879afbf5fc21b"
+    },
+    "artifacts/ot-pilot/execution-path-reproduction-2026-11-05/battery/results.json": {
+      "concepts": [],
+      "git_blob": "c3933cc87b59060c1416136e2ffda62a08cfb84b",
+      "mode": "100644",
+      "sha256": "85ca02e642bb3ff3b65fe4e67bd96a03f4106504705533bbdae9068c76f929b4"
+    },
+    "artifacts/ot-pilot/execution-path-reproduction-2026-11-05/fault-injection/chain-verification.json": {
+      "concepts": [],
+      "git_blob": "d434dbbe268bb520e9f9d862fb2579175fbe0ccd",
+      "mode": "100644",
+      "sha256": "67f0a4d5475e25b668d6a3932c856f7dc051609c6838b78fc4685d6f18f8f81f"
+    },
+    "artifacts/ot-pilot/execution-path-reproduction-2026-11-05/fault-injection/manifest.json": {
+      "concepts": [],
+      "git_blob": "eedf405ff4a226e34843cf66a1f4f230def35bb6",
+      "mode": "100644",
+      "sha256": "12d4005f084d51669d3b7d30f6da3f61b0d72c65d9954d3181b24789c54ebf34"
+    },
+    "artifacts/ot-pilot/execution-path-reproduction-2026-11-05/fault-injection/metrics.json": {
+      "concepts": [],
+      "git_blob": "9e26dfeeb6e641a33dae4961196235bdb965b21b",
+      "mode": "100644",
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    "artifacts/ot-pilot/execution-path-reproduction-2026-11-05/fault-injection/report.txt": {
+      "concepts": [],
+      "git_blob": "ea98caaacaeb733ecb3e191e19bde6737bdb54e3",
+      "mode": "100644",
+      "sha256": "c15f6cecc2bb53db1e744ebbf5db5435478e8bb1e608dd4f392c8f1c0344f553"
+    },
+    "artifacts/ot-pilot/execution-path-reproduction-2026-11-05/fault-injection/results.json": {
+      "concepts": [],
+      "git_blob": "dc01f8677a7473bdd266c203804a7bd8b3b49f37",
+      "mode": "100644",
+      "sha256": "cc9a281b1d5d00fe6f5a5aea1f5829ea361ece5c6465bacfacef8be161d0ace7"
+    },
+    "artifacts/ot-pilot/execution-path-reproduction-2026-11-05/independent-scenarios/phase-a.json": {
+      "concepts": [],
+      "git_blob": "222ddb8180252429681b32e475ff4d9ec3b46133",
+      "mode": "100644",
+      "sha256": "6cdef4016e9f6811da161c0dbae26b30b9ee6f097c040feb14c57129829eb6e6"
+    },
+    "artifacts/ot-pilot/execution-path-reproduction-2026-11-05/independent-scenarios/phase-b.json": {
+      "concepts": [],
+      "git_blob": "d0a80a163d1eed71dfe68e924ae755e3e62a3b9d",
+      "mode": "100644",
+      "sha256": "1d824b4c64819cb1be7b1e39e7b508d76766dc660f825ade5c36eb8391df112a"
+    },
+    "artifacts/ot-pilot/execution-path-reproduction-2026-11-05/independent-scenarios/phase-c.json": {
+      "concepts": [],
+      "git_blob": "5b96275fc4a966bffb1bcb8cbd1a5050396ac334",
+      "mode": "100644",
+      "sha256": "9e07205f799559497b325c499ee38d685dde5ea0ce9e6a3d5d3aac3eccb8f37f"
+    },
+    "artifacts/ot-pilot/execution-path-reproduction-2026-11-05/manifest.json": {
+      "concepts": [],
+      "git_blob": "d1828777410d2aa912544f98a3fb99efea82174e",
+      "mode": "100644",
+      "sha256": "84f0e65a42f9b3164021776c95a447ea09c9c6df3aaaddf6dc917e8a9936d17b"
+    },
     "artifacts/ot-pilot/grounded-reads-2026-11-03/README.md": {
       "concepts": [],
       "git_blob": "1813ac86bac87f3aa59e0d6073ae6e172a37ba35",
@@ -5437,9 +5527,9 @@
     },
     "docs/03-experiments.md": {
       "concepts": [],
-      "git_blob": "6d17d774dc3b3beee6f0f60c2fed0df68709f821",
+      "git_blob": "56e4d783c00f71a7343e19565e3f648f5cb5e0e5",
       "mode": "100644",
-      "sha256": "24c35fad060792af95eeb4132a068d4072c617db5b2c87c41e15c62ec39ccbe5"
+      "sha256": "cb42bf058ef1a044ed78689e823d320d9b9bdb0e188220a596c539e3ceecf5df"
     },
     "docs/04-negative-results-detail.md": {
       "concepts": [],
@@ -6311,15 +6401,15 @@
     },
     "docs/assurance/mutation_baseline_v1.txt": {
       "concepts": [],
-      "git_blob": "93709dbc2d242a1d60ef123a088f945e5ef67345",
+      "git_blob": "a94f010fc5c42c71b3b699c88d002a01f3900266",
       "mode": "100644",
-      "sha256": "9cf5ef6e2e567363f9b9e0c1dc3140f45180d3a51010b5561388522fd5b0d312"
+      "sha256": "27171712dd1edf60fb0eb81d6a905412b827e044afe021bda70886cf63c0a661"
     },
     "docs/assurance/mutation_testing_v1.md": {
       "concepts": [],
-      "git_blob": "84916fcb45016e3b8cc3e601f60281aa37d3c8ba",
+      "git_blob": "35edf2f5c7b344424cc0762e07853bc6a1630c83",
       "mode": "100644",
-      "sha256": "7d73f6277adf1ae88397c1dc024098a314f9c78083e2f1538d067801ffc83fbc"
+      "sha256": "107b7cdb81f92b6a45afeff4d3de0a0ae71bc220cb643482031c8b039ee99e0a"
     },
     "docs/assurance/policy_engine_audit_v1.md": {
       "concepts": [],
@@ -16799,9 +16889,9 @@
     },
     "tests/capabilities/test_flow_recipients.py": {
       "concepts": [],
-      "git_blob": "ec8c14a115c1c26b53b8da6b385fea923f3a355b",
+      "git_blob": "379622661f7c478d9803e7809593bd8235221fc8",
       "mode": "100644",
-      "sha256": "840b8de2099048a3e6db7809fcd4c61206a0ab4313c49962e458a997467dd885"
+      "sha256": "935668334a3a9253fbbe2e155eba255b0118ddb65ace5d31527b2875fec05cb9"
     },
     "tests/capabilities/test_mediation_flow_recipients_server_path.py": {
       "concepts": [],
@@ -16899,9 +16989,9 @@
     },
     "tests/data/mutation_equivalent_gate_token_nonce.txt": {
       "concepts": [],
-      "git_blob": "3717c93942b91b8cd3b9802ea4569c146ac53f2b",
+      "git_blob": "369017a55952a63d76e7d2b3ec2abcc6e09d6edb",
       "mode": "100644",
-      "sha256": "51cef3f05d0adc3b130ae6cada75ba46686f9f9dde513d116d0edc7d2705ad0b"
+      "sha256": "df04814770e86c575f51593f1199da00e5c17db7c12ebdd29ba261036d12c3cf"
     },
     "tests/data/mutation_equivalent_lease.txt": {
       "concepts": [],
@@ -16911,9 +17001,9 @@
     },
     "tests/data/mutation_equivalent_limits.txt": {
       "concepts": [],
-      "git_blob": "439a786a4a27f74ce6868e2125c3c4ee21cc8608",
+      "git_blob": "f9ace730addcdd705f5f53f2e6f6a69e123dacfc",
       "mode": "100644",
-      "sha256": "16670d74347e21043300c73aa4de5231a3c8509aa072291cd1548c7320771828"
+      "sha256": "6e4d6ab4c6706c2b96401cafe788754c6dee7920fd1a35162de465f2af92cca6"
     },
     "tests/data/test_accounting/pytest8_all_outcomes.txt": {
       "concepts": [],
@@ -22729,7 +22819,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "d0f005c376cb25dfb1669a74fea5f6a7e2b0c502b01c5af007053a3eefd1bf86",
+  "register_sha256": "0be3bb72958b212624803244b1ed3011984e01abfaa211a5bcae176474fd8214",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
