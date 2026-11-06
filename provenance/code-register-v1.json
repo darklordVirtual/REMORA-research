@@ -3621,6 +3621,18 @@
       "mode": "100644",
       "sha256": "4696c1e755a1e7312510f0f6d3148bae853cfcdce96c7a75b8a7efff68f558fb"
     },
+    "artifacts/ot-pilot/limits-v4/candidate-summary.md": {
+      "concepts": [],
+      "git_blob": "4929c491ae91be3f03f09955179aac1e702cad78",
+      "mode": "100644",
+      "sha256": "3110756a975358c494d68c3de6c5c932765bdaf404ad4cd5d77e290c257387d2"
+    },
+    "artifacts/ot-pilot/limits-v4/misuse-brief.md": {
+      "concepts": [],
+      "git_blob": "4121fdaaff20dc774f2b02066869c9c6cbb21f54",
+      "mode": "100644",
+      "sha256": "892a507231a58759f38db0fdbcbacc00c3d2b49390e3998e8529df74083f30ae"
+    },
     "artifacts/pilot-pack/README.md": {
       "concepts": [],
       "git_blob": "ce2ad3ccd26523a4b785b005cc4ba9516c848aec",
@@ -5790,9 +5802,9 @@
     },
     "docs/README.md": {
       "concepts": [],
-      "git_blob": "e3ac4df02e7a9b7ab531fbdbbe8df704c7d499bd",
+      "git_blob": "668633a2fee86bd693efd4c62046556335d04b05",
       "mode": "100644",
-      "sha256": "3c887faff858923927f8bc8067eedfbcefc9b9202f691f802a65a25d6414e97a"
+      "sha256": "8548580e3ec904c871c31706ec27842e17012f353f761a93750b0c1e0b4aa8a3"
     },
     "docs/architecture/ADR-UE-03-capability-manifest-hook-and-mode.md": {
       "concepts": [],
@@ -6461,9 +6473,9 @@
     },
     "docs/assurance/document_register_v1.yaml": {
       "concepts": [],
-      "git_blob": "cdfe2535f9cd7f0c6835392ddd31f63e81358e53",
+      "git_blob": "6e996363da6ec5096905482ea04c0524529df40f",
       "mode": "100644",
-      "sha256": "29fa03945d6b69e676d24ee45d232297aa6059eade4f58c584f7cb152f7bd8e7"
+      "sha256": "4b0a90ab9d1168b89b95a647dbe7261b1a4038af39f74ecf72a089abd9398629"
     },
     "docs/assurance/documentation_governance_v1.md": {
       "concepts": [],
@@ -6596,6 +6608,12 @@
       "git_blob": "abde8e5ca3802f69946cb23a31b23456e904b5fa",
       "mode": "100644",
       "sha256": "85cd2ccb59fcb383021c0895589004f5a8cb5893cde3d4eeebcac09b873eb7ef"
+    },
+    "docs/assurance/ot_limits_holdout_plan_v4.md": {
+      "concepts": [],
+      "git_blob": "56135ec719963129cd8c6e9734397a18ad97bda1",
+      "mode": "100644",
+      "sha256": "1e51a5a427be78eb2a9c0aaf496dd9f126bd26aa5bd9562582e558be7b381d54"
     },
     "docs/assurance/policy_engine_audit_v1.md": {
       "concepts": [],
@@ -23047,7 +23065,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "32609d97cd043c2d73c5b3b40bcf84f5fe04ed3661ec7eca7c7b192f20ba7906",
+  "register_sha256": "c94811d7d9b10098d78d2492a0ff9bb55eb1ea1bfc458140e11291c7cfdfc521",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
