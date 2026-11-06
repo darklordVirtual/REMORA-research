@@ -2829,9 +2829,9 @@
     },
     "artifacts/interop/remora-boundary-summary-v1.json": {
       "concepts": [],
-      "git_blob": "a5f4773138ff255bc02e4d871e7a9d543693cb8e",
+      "git_blob": "8bc413fcaf2c72d939d182c7f6fa219a8b5a00cd",
       "mode": "100644",
-      "sha256": "47fd95c26712dc7208ec0022fc54d3302a9411e47ffb31238e62677f1abc36c7"
+      "sha256": "2e6bff5dde6d8ae36a89e80cec68df1aca5c0d7e3dcd81d78e39fcf14135713b"
     },
     "artifacts/interop/runs/README.md": {
       "concepts": [],
@@ -21032,9 +21032,9 @@
     },
     "tests/test_limits_holdout_replay.py": {
       "concepts": [],
-      "git_blob": "617fc9aa6285ba040fc933eb9974578b7104795b",
+      "git_blob": "3542c4e9a6928efcd8b05d433497b13a4064db3e",
       "mode": "100644",
-      "sha256": "142c3dca5508b6c5ea814a31240d5faf6d6a662c18e4b01d987bf60bacc987ab"
+      "sha256": "400ff0dd57adf1863e56faf1b87989dc6a33eae4c5cacbcd19e439b524ad209e"
     },
     "tests/test_limits_holdout_sensitivity.py": {
       "concepts": [],
@@ -23671,7 +23671,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "aca887391931053e2e831a7537b0f7a0e8ff5be3eeb0755df9d20ea2603a20f8",
+  "register_sha256": "a5d7085b5f852d16e2e6fca2a41e47a00cca71d38673508bdd721f059d5897d6",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

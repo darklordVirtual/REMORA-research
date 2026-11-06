@@ -203,6 +203,17 @@ def test_a_policy_and_its_key_go_together(tmp_path, policy, key):
     path.write_text(json.dumps({"shifts": []}), encoding="utf-8")
     with pytest.raises(SystemExit, match="go together"):
         H.run([path], None, policy, key)
+
+
+@pytest.mark.parametrize("key", [str(CANDIDATE_KEY), CANDIDATE_KEY.read_text().strip()])
+def test_command_line_accepts_key_file_and_inline_key(tmp_path, key):
+    shifts = tmp_path / "shifts.json"
+    shifts.write_text(json.dumps({"shifts": []}), encoding="utf-8")
+    out = tmp_path / "result.json"
+    assert H.main([str(shifts), "--out", str(out), "--policy", str(CANDIDATE),
+                   "--trusted-key", key, "--approvers", "2"]) == 0
+    assert json.loads(out.read_text(encoding="utf-8"))["limits_policy"]["path"] == \
+        "artifacts/ot-pilot/limits-v4/limits-candidate-v4.json"
 # ── the pilot's tiered policy: a second approver past half a bar ─────────────
 
 
