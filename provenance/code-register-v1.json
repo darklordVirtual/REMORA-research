@@ -5897,9 +5897,9 @@
     },
     "deploy/ot-pilot/run_boundary_assessment.py": {
       "concepts": [],
-      "git_blob": "979c06dbaebd4c0aa1761c54f73045bf026eb483",
+      "git_blob": "600b731446ccb9b40f73463241f0ac25d0c2978a",
       "mode": "100644",
-      "sha256": "a1ce8a1ab635f67c5df40fbb4b7adcdc357e0ddb579cdf9bea6afeb90721426d"
+      "sha256": "b469bced60077c9ed4384dbb222df8058772844049d17e204fe1e5efced7e268"
     },
     "deploy/ot-pilot/run_boundary_suite.py": {
       "concepts": [],
@@ -18075,9 +18075,9 @@
     },
     "tests/test_aacp_ot_pilot_assessment.py": {
       "concepts": [],
-      "git_blob": "30291e26b73f9066acbec15087af7b9e054ae133",
+      "git_blob": "af4ceb22efb59a84c796ca43e6809eebd823e65d",
       "mode": "100644",
-      "sha256": "2b19b8a96928523f5d73bd8b78280db839194e6d539b1b23c353893850983eb9"
+      "sha256": "6a7e5dfbdd7338c3cd0493fe18a576c9f1a6ad05f40dfee69de0d78cf303f300"
     },
     "tests/test_ablation_v2.py": {
       "concepts": [],
@@ -23371,7 +23371,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "ba0a88bd0a7fbce5c5493cefc0a6b1d27307d90fbdb8889670cde1144a6cf432",
+  "register_sha256": "726cf18099a2a90a72a3babb5e3a53b22be41756d9e7e8efc5f2b421d0f6092e",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

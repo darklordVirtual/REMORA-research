@@ -139,7 +139,9 @@ def test_the_e_row_agrees_with_the_boundary_run() -> None:
     interval = run["suite_interval"]
     assert interval["agree"] and interval["journal_complete"] and not interval["unattributed_writes"]
     assert interval["executed_write_dispatches"] >= 2  # the two governed positive controls
-    assert run["secret_values_found_in_agent_capture"] == []
+    # The key changed with the CodeQL fix (names to a count); either form must be empty.
+    assert run.get("credential_values_found_in_agent_capture",
+                   len(run.get("secret_values_found_in_agent_capture", [None]))) == 0
     assert run["detector_sensitivity_control"]["detected"] is True
     assert run["live_networks_match_register"] is True
     assert sorted(run["agent_network_while_suite_ran"]["members"]) == ["agent", "api"]

@@ -90,17 +90,19 @@ def _interval(since_seq: int) -> dict[str, Any]:
     return rec
 
 
-def _register_names_found(text: str) -> list[str]:
-    """Register names of non-public credentials whose .env value occurs in ``text``.
+def _count_values_found(text: str) -> int:
+    """How many non-public credential values from .env occur in ``text``.
 
-    The names come from the register, never from the .env file, and only a
-    yes or no leaves the comparison, so the record holds names and no value.
+    Only a count leaves this function: not a value, and not which credential
+    matched, so the record and the console hold no credential-derived data. On
+    a non-zero count, rerun the comparison by hand to see which one leaked.
     """
     import yaml
 
     register = yaml.safe_load((HERE / "credential_topology.yaml").read_text(encoding="utf-8"))
-    private = [e["name"] for e in register["credentials"] if not e.get("agent_reachable")]
-    return sorted(name for name in private if host.env_value_occurs(name, text))
+    entries = register["credentials"]
+    return sum(1 for entry in entries if not entry.get("agent_reachable")
+               and host.env_value_occurs(entry["name"], text))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -145,7 +147,7 @@ def main(argv: list[str] | None = None) -> int:
                                         {"valve": "V-12", "position_pct": 27}, "WO-1204")
     time.sleep(1)
     suite_interval = _interval(mark)
-    found = _register_names_found(json.dumps(boundary)) if boundary else ["<no suite output>"]
+    found = _count_values_found(json.dumps(boundary)) if boundary else -1
 
     # Detector-sensitivity control, its own interval.
     mark2 = suite_interval["journal_seq_end"]
@@ -191,7 +193,8 @@ def main(argv: list[str] | None = None) -> int:
                   "classes": classes,
                   "minimum_classes_attempted": all(c in classes for c in MINIMUM_CLASSES)},
         "suite_interval": suite_interval,
-        "secret_values_found_in_agent_capture": found,
+        # -1 when the suite produced no report to scan.
+        "credential_values_found_in_agent_capture": found,
         "verdict_by_class": verdicts,
         "detector_sensitivity_control": {
             "action": ("from inside the API container, POST the plant's /tools/"
@@ -207,7 +210,7 @@ def main(argv: list[str] | None = None) -> int:
                                                   encoding="utf-8")
     print(json.dumps({"classes": verdicts, "suite_interval_agree": suite_interval["agree"],
                       "unattributed_in_suite": len(suite_interval["unattributed_writes"]),
-                      "values_found": len(found), "detector_detected":
+                      "values_found": found, "detector_detected":
                       record["detector_sensitivity_control"]["detected"],
                       "live_networks_match_register": record["live_networks_match_register"],
                       "topology_ok": topology.get("ok")}, indent=1))
