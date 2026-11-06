@@ -21,9 +21,15 @@
     "measured_with_python": "3.13.7 (macOS arm64, venv with the dev extras)",
     "requirements_lock": {
       "path": "requirements-lock.txt",
-      "sha256_lf": "313b58b57784ea64c806488d8f492129471fc18f334686e2ff6a2f1991662223"
+      "sha256_lf": "29a96e23d896adf13812921fdc2a04600e993fb86e07444c1ea87c1a0443bd66"
     },
     "requirements_lock_history": [
+      {
+        "path": "requirements-lock.txt",
+        "git_revision": "f954d483cbd27a6b3458522c4bb8689140c6ac0c",
+        "sha256_lf": "313b58b57784ea64c806488d8f492129471fc18f334686e2ff6a2f1991662223",
+        "reason": "Dependabot updates of 2026-11-05 integrated on dev (#1173-#1183): anyio 4.16.0, pydantic 2.14.2, pydantic-core 2.50.2, pydantic-settings 2.16.2, hf-xet 1.8.0, torch 2.15.0, transformers 5.22.1, openai 3.42.1, langchain 1.4.8, langchain-core 1.7.4, langsmith 0.14.17"
+      },
       {
         "path": "requirements-lock.txt",
         "git_revision": "66d94dff6391bc164554ad2d1f964412dceb6a32",
