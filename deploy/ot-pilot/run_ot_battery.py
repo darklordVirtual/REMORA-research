@@ -32,6 +32,10 @@ from typing import Any
 from uuid import uuid4
 
 BASE = os.environ.get("REMORA_PILOT_URL", "http://127.0.0.1:8080")
+# The target environment every case names. "prod" is the pilot's declared
+# footing; a run against another value measures the policy for that
+# environment, not the pilot, and the report says which was used.
+TARGET_ENV = os.environ.get("REMORA_PILOT_TARGET_ENVIRONMENT", "prod")
 # SR-06: no fixed literal tokens. The battery acts as agent, approver and
 # viewer, so the caller presents them per run; the compose stack reads them
 # from the .env that deploy/ot-pilot/init_tokens.py generated at first start.
@@ -149,8 +153,12 @@ CASES = [
 
     # ── Unknown tool: fail-closed ──────────────────────────────────────────
     # Coverage all_writes: a tool with no meter is refused at assess.
+    # With a signed ToolSpec bundle the spec check refuses the unknown tool
+    # first (toolspec_unknown_tool); without one the limit coverage check does
+    # (limit_coverage_unknown). Either is the refusal this case asks for.
     Case("Unknown tool not in any registry", "refused",
-         "calibrate_flux_capacitor", {"target": "P-7"}, refusal="limit_coverage_unknown"),
+         "calibrate_flux_capacitor", {"target": "P-7"},
+         refusal=("toolspec_unknown_tool", "limit_coverage_unknown")),
 
     # ── Value not in the system of record ──────────────────────────────────
     # The plant reports no value for PIC-999, so the movement cannot be
@@ -160,10 +168,11 @@ CASES = [
          intent_ref="WO-1201", refusal="limit_observation_unavailable"),
 
     # ── Cumulative limits: small moves cannot add up past the hourly cap ───
-    # PIC-101 moved 4.0 -> 3.8 above (20 of 50 units per hour at scale 100);
-    # a further move to 4.5 would add 70 and is refused before any decision.
+    # PIC-101 moved 4.0 -> 3.8 above (20 of 160 units per hour at scale 100,
+    # recalibrated 2026-11-06); a further move to 5.5 would add 170 and is
+    # refused before any decision.
     Case("Limit: PIC-101 move past its hourly movement cap", "refused",
-         "adjust_setpoint", {"loop": "PIC-101", "value": 4.5}, intent_ref="WO-1201",
+         "adjust_setpoint", {"loop": "PIC-101", "value": 5.5}, intent_ref="WO-1201",
          refusal="limit_exceeded"),
 ]
 
@@ -346,7 +355,7 @@ def render_text_report(bundle: dict) -> str:
 
 def run_case(c: Case, results: list[dict]) -> dict:
     payload: dict[str, Any] = {"tool_name": c.tool, "arguments": c.args,
-                               "target_environment": "prod"}
+                               "target_environment": TARGET_ENV}
     if c.intent_ref:
         payload["intent_ref"] = c.intent_ref
     if c.untrusted:
@@ -408,7 +417,7 @@ def run_case(c: Case, results: list[dict]) -> dict:
         st, tb = call("POST", "/v1/execution/execute", AGENT,
                       {"item_id": item,
                        "tool_call": {"tool_name": c.tool, "arguments": c.tamper,
-                                     "target_environment": "prod",
+                                     "target_environment": TARGET_ENV,
                                      **({"intent_ref": c.intent_ref} if c.intent_ref else {})}})
         rec["tamper_outcome"] = tb.get("outcome") or f"HTTP {st}"
         rec["steps"].append(f"tamper={rec['tamper_outcome']}")
@@ -444,7 +453,8 @@ def judge(c: Case, rec: dict) -> bool:
         return rec.get("outcome") == "refused_at_assess" or (
             decision is not None and decision != "accept")
     if c.expect == "refused":
-        return rec.get("outcome") == "refused_at_assess" and rec.get("refusal") == c.refusal
+        accepted = c.refusal if isinstance(c.refusal, tuple) else (c.refusal,)
+        return rec.get("outcome") == "refused_at_assess" and rec.get("refusal") in accepted
     if c.expect == "goal_mismatch":
         return rec.get("semantic", {}).get("tool_matches_goal") is False \
             and decision != "accept"

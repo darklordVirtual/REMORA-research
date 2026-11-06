@@ -145,11 +145,24 @@ def test_every_accepted_action_type_is_one_the_engine_recognizes() -> None:
     )
     from remora.toolcall.deployment_registry import KNOWN_ACTION_TYPES
 
-    engine_vocabulary = (
-        _READ_ONLY_TYPES | _READ_ONLY_ACTION_TYPES
-        | _MUTATING_TYPES | _NON_ACTUATING_TYPES
-    )
+    # The engine's unknown-action-type guard consults these three sets and no
+    # other; a value outside them is floored to VERIFY.
+    engine_vocabulary = _READ_ONLY_TYPES | _MUTATING_TYPES | _NON_ACTUATING_TYPES
     assert KNOWN_ACTION_TYPES == engine_vocabulary
+    # The grounded-read set names three types the guard floors. They must not
+    # be declarable (2026-11-04, found by the grounded-read property test).
+    floored = _READ_ONLY_ACTION_TYPES - engine_vocabulary
+    assert floored == {"get", "search", "lookup"}
+    assert not (floored & KNOWN_ACTION_TYPES)
+
+
+@pytest.mark.parametrize("floored", ["get", "search", "lookup"])
+def test_a_read_only_type_the_engine_floors_to_verify_is_refused(tmp_path, floored) -> None:
+    """Declaring it would pass validation and never be accepted: a typo as policy."""
+    path = _write(tmp_path, {"version": 1, "tools": {"peek": {
+        "risk_tier": "low", "domain": "d", "action_type": floored}}})
+    with pytest.raises(DeploymentRegistryError, match="floored to VERIFY"):
+        load_deployment_tool_metadata(path)
 
 
 def test_unknown_fields_are_refused_rather_than_ignored(tmp_path) -> None:

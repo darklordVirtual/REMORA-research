@@ -4,13 +4,13 @@
 from __future__ import annotations
 
 import importlib.util
-import textwrap
 import io
 import json
 import keyword
 import re
 import subprocess
 import sys
+import textwrap
 import tokenize
 from pathlib import Path
 
@@ -113,14 +113,37 @@ def test_two_coined_identifiers_are_flagged_and_one_is_not(tmp_path: Path) -> No
     assert {hit["marker"] for hit in paired["markers"]} == {"PolicyDecisionToken", "ExecutionLease"}
 
 
+def _halves(body: str) -> list[str]:
+    """A method over forty lines cut at the blank line nearest its middle, when
+    both halves still tokenize; otherwise the method whole."""
+    lines = body.splitlines(keepends=True)
+    if len(lines) <= 40:
+        return [body]
+    blanks = [i for i, line in enumerate(lines) if not line.strip() and 0 < i < len(lines) - 1]
+    if not blanks:
+        return [body]
+    cut = min(blanks, key=lambda i: abs(i - len(lines) // 2))
+    halves = ["".join(lines[:cut]), "".join(lines[cut:])]
+    try:
+        for half in halves:
+            list(tokenize.generate_tokens(io.StringIO(textwrap.dedent(half)).readline))
+    except (tokenize.TokenError, SyntaxError, IndentationError):
+        return [body]
+    return halves
+
+
 @needs_history
 def test_a_renamed_copy_split_across_files_is_still_flagged(tmp_path: Path) -> None:
     snapshot = REGISTER["snapshot"]
     lease = subprocess.run(["git", "show", f"{snapshot}:remora/enforcement/lease.py"], cwd=ROOT,
                            capture_output=True, text=True, encoding="utf-8", check=True).stdout
-    # One renamed file per method. The two large classes would otherwise keep
-    # more than 25 % in a single file. Measured at 20.1 % in one file and 59.6 %
-    # across the eight files that cover the most.
+    # One renamed file per method, and a method longer than forty lines cut in
+    # two, as someone extracting helpers would. The two large classes would
+    # otherwise keep more than 25 % in a single file: at snapshot 0b595b8c the
+    # per-method split measured 20.1 % in one file and 59.6 % across the eight
+    # files that cover the most; at b9865d32 one method alone reached 25.0 %,
+    # which is the single-file threshold and would make the test measure the
+    # file's growth rather than the cover rule.
     chunks = [part for part in re.split(r"(?=^(?:def |class |async def ))", lease, flags=re.M) if part.strip()]
     dest = tmp_path / "split"
     dest.mkdir()
@@ -128,8 +151,10 @@ def test_a_renamed_copy_split_across_files_is_still_flagged(tmp_path: Path) -> N
     for chunk in chunks:
         for method in re.split(r"(?=^    def )", chunk, flags=re.M):
             body = textwrap.dedent(method)
-            if body.strip():
-                (dest / f"part_{n}.py").write_text(_rename_everything(body), encoding="utf-8")
+            if not body.strip():
+                continue
+            for half in _halves(body):
+                (dest / f"part_{n}.py").write_text(_rename_everything(half), encoding="utf-8")
                 n += 1
     row = next(r for r in PR.compare(dest, REGISTER, 0.25, 0.50)["modules"]
                if r["module"] == "remora/enforcement/lease.py")

@@ -47,6 +47,9 @@ workers/*/dist-check/
 hotpotqa_yesno.json
 .env
 *.key
+# OT pilot: authored per deployment by deploy/ot-pilot/build_toolspec.py
+deploy/ot-pilot/toolspec-bundle.json
+deploy/ot-pilot/.toolspec-seed
 .env.vars
 .claude/settings.local.json
 frontend/.lovable/

@@ -1,0 +1,68 @@
+{
+  "uptime_seconds": 859.5,
+  "assess_total": 0,
+  "assess_errors": 0,
+  "auth_failures": 0,
+  "review_total": 0,
+  "follow_up_total": 0,
+  "evidence_total": 0,
+  "rerun_total": 0,
+  "control_plane_backend": "postgres",
+  "control_plane_durable": true,
+  "execution_state_backend": "postgres",
+  "execution_state_durable": true,
+  "decision_counts": {
+    "accept": 0,
+    "verify": 0,
+    "abstain": 0,
+    "escalate": 0
+  },
+  "decision_counts_by_risk": {},
+  "execution_assess_total": 13,
+  "execution_decision_counts": {
+    "accept": 5,
+    "verify": 6,
+    "abstain": 0,
+    "escalate": 2
+  },
+  "execution_approvals_total": 6,
+  "execution_executes_total": 17,
+  "execution_tool_calls_executed": 11,
+  "execution_refusals": {
+    "binding_refused": 1,
+    "approval_expired": 0,
+    "approval_invalidated": 0,
+    "pep_denied": 0,
+    "tool_failed": 0,
+    "no_dispatcher": 5,
+    "unknown_tool": 0
+  },
+  "latency_buckets_ms": {
+    "100": 0,
+    "250": 0,
+    "500": 0,
+    "1000": 0,
+    "2000": 0,
+    "+Inf": 0
+  },
+  "mean_assess_latency_ms": 0.0,
+  "escalation_rate": 0.0,
+  "avg_oracle_cost_per_assess_usd": 0.0,
+  "slo": {
+    "targets": {
+      "latency_p95_ms": 2000.0,
+      "escalation_rate_max": 0.3,
+      "oracle_cost_per_assess_usd_max": 0.05
+    },
+    "current": {
+      "mean_latency_ms": 0.0,
+      "escalation_rate": 0.0,
+      "avg_oracle_cost_per_assess_usd": 0.0
+    },
+    "breaches": {
+      "latency_p95": 0,
+      "escalation_rate": 0,
+      "oracle_cost": 0
+    }
+  }
+}

@@ -289,6 +289,7 @@ tokens); both services bind loopback only.
 
 ```bash
 python deploy/ot-pilot/init_tokens.py
+python deploy/ot-pilot/build_toolspec.py   # signs the six tools' ToolSpec; the seed stays on the host
 docker compose -f deploy/ot-pilot/docker-compose.yml up --build -d
 set -a && . deploy/ot-pilot/.env && set +a
 python deploy/ot-pilot/run_ot_battery.py
@@ -297,6 +298,31 @@ docker compose -f deploy/ot-pilot/docker-compose.yml down -v
 
 The console (127.0.0.1:8081) holds only the viewer token: operator and
 approver credentials are entered per request in the UI.
+
+The pilot declares its six tools in `deploy/ot-pilot/tool_metadata.json`
+(`REMORA_TOOL_METADATA_FILE`): `read_sensor` is low tier and read-only, every
+write is critical. The declaration is hashed into the policy bundle. With
+`REMORA_GROUNDED_READ_ACCEPT=1` and the owner's opt-in
+`REMORA_GROUNDED_READ_IN_PRODUCTION=1`
+([ADR](../architecture/ADR-grounded-reads-in-production.md)), a read of a sensor
+the plant inventory lists, made under the daily-round work order, completes
+without a person. The battery reports those reads under "Legitimate monitoring
+reads completed". Remove the second variable to restore the production
+exclusion, and the same reads go to review again. Writes are unaffected either
+way. `REMORA_PILOT_TARGET_ENVIRONMENT` lets the battery name another
+environment than `prod`; the report says which one ran.
+
+The pilot runs with a signed ToolSpec bundle
+(`deploy/ot-pilot/build_toolspec.py`, RMR-CR-001). The six specs are authored
+from the deployment's own sources: the callable in `ot_registry.py`, the
+contract in `ot_bundle.py` and the risk declaration in `tool_metadata.json`.
+They are signed with an Ed25519 seed kept in `.toolspec-seed`. The API holds only the public key and the pinned digest, so no process on the
+stack can author a bundle. Every call is then measured against its spec, and
+the registered callables are measured at startup. WS1
+runs in shadow (`REMORA_WS1_MODE=shadow`, deployment `ot_ws1.py`): it proves
+what it can from `ot_ws1_facts.json` on every assessment and records in the
+audit chain what it would do, without changing a decision. Enforce needs flow
+control and the IFC work packages it names; see NEGATIVE_RESULTS §94.
 
 A useful negative test is to remove one strict prerequisite and confirm that
 startup/policy identity construction or the first execution-path lookup fails

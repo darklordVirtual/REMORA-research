@@ -13,7 +13,10 @@
           "unit": "engineering_units",
           "resource_argument": "loop",
           "observed": true,
-          "previous_field": "old_setpoint"
+          "previous_field": "old_setpoint",
+          "safe_values": {
+            "FIC-220": 0
+          }
         }
       ],
       "set_valve_position": [
@@ -58,7 +61,7 @@
         "unit": "engineering_units",
         "resource": "PIC-101",
         "principal": "*",
-        "max": 50,
+        "max": 160,
         "window_seconds": 3600
       },
       {
@@ -68,7 +71,7 @@
         "unit": "engineering_units",
         "resource": "FIC-220",
         "principal": "*",
-        "max": 1000,
+        "max": 18000,
         "window_seconds": 3600
       },
       {
@@ -78,7 +81,7 @@
         "unit": "pct",
         "resource": "*",
         "principal": "*",
-        "max": 60,
+        "max": 70,
         "window_seconds": 3600
       },
       {
@@ -88,7 +91,7 @@
         "unit": "acks",
         "resource": "*",
         "principal": "*",
-        "max": 5,
+        "max": 6,
         "window_seconds": 3600
       },
       {
@@ -111,11 +114,11 @@
       }
     ]
   },
-  "signed_at": "2026-10-23T09:49:28Z",
+  "signed_at": "2026-11-05T23:21:12Z",
   "signature": {
     "algorithm": "Ed25519",
     "domain": "REMORA/LIMIT-POLICY/v1",
-    "kid": "ed25519-79ffe2c98ac7ca174efd7f6b6445e392c00a10b23e3cccc27943f601b5d7c405",
-    "signature": "xRe9s/pmcOLfoSaRSiBvKBcv2zFRqCtTA+E0BfqKCc9Bteu5mwruDpbbUCgWn3TwT10job+/OFueum1ILYt4CQ=="
+    "kid": "ed25519-2722f6b656ec840223a4eeaf495814f16cbfd24326ed9926bd6ea839894484b5",
+    "signature": "acUv8yYsFzTxAfLKuhTd6zcUkSJXPxMXd4+yo2xAJ9CqYc3cCIhpUpjFpS36f4cQxCO/TlPwwyo+OegO5qcQBQ=="
   }
 }

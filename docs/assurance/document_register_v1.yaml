@@ -2447,9 +2447,9 @@ documents:
   audience:
   - evaluators
   - researchers
-  last_validated: '2026-08-25'
-  last_audited: '2026-08-25'
-  last_reviewed: '2026-08-25'
+  last_validated: '2026-11-04'
+  last_audited: '2026-11-04'
+  last_reviewed: '2026-11-04'
   validates_against: []
   claims: []
 - id: DOC-328
@@ -3460,7 +3460,55 @@ documents:
   - researchers
   - maintainers
   last_reviewed: '2026-11-03'
+- id: DOC-424
+  path: docs/architecture/ADR-grounded-reads-in-production.md
+  status: canonical
+  topic: docs_architecture_ADR-grounded-reads-in-production_md
+  code_synced: unreviewed
+  verdict: pending
+  owner: darklordVirtual
+  audience:
+  - maintainers
+  - operators
+  last_reviewed: '2026-11-03'
+- id: DOC-425
+  path: docs/assurance/ws1_utility_test_plan_v1.md
+  status: proposal
+  topic: docs_assurance_ws1_utility_test_plan_v1_md
+  code_synced: unreviewed
+  verdict: pending
+  owner: darklordVirtual
+  audience:
+  - researchers
+  - evaluators
+  last_reviewed: '2026-11-04'
+- id: DOC-426
+  path: docs/assurance/ot_limits_holdout_plan_v1.md
+  status: proposal
+  topic: docs_assurance_ot_limits_holdout_plan_v1_md
+  code_synced: unreviewed
+  verdict: pending
+  owner: darklordVirtual
+  audience:
+  - researchers
+  - evaluators
+  last_reviewed: '2026-11-05'
+- id: DOC-427
+  path: docs/assurance/ot_limits_holdout_plan_v2.md
+  status: proposal
+  topic: docs_assurance_ot_limits_holdout_plan_v2_md
+  code_synced: unreviewed
+  verdict: pending
+  owner: darklordVirtual
+  audience:
+  - researchers
+  - evaluators
+  last_reviewed: '2026-11-06'
 topics:
+- docs_assurance_ot_limits_holdout_plan_v2_md
+- docs_assurance_ot_limits_holdout_plan_v1_md
+- docs_assurance_ws1_utility_test_plan_v1_md
+- docs_architecture_ADR-grounded-reads-in-production_md
 - docs_assurance_ws1_m4_1_closure_record_v1_md
 - docs_assurance_execution_path_quality_review_2026-11-01_md
 - provenance_README_md

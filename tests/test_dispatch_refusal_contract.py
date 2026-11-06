@@ -440,6 +440,96 @@ def test_a_procedure_violation_depends_on_the_arguments(events) -> None:
     assert _dispatch(d, _lease(arguments=other), other).executed is True
 
 
+# ── IFC-06: the invocation form goes through the same runtime checks ───────
+#
+# A resolved handle can carry a value the wire form could not name. The
+# dispatcher therefore runs the capability, effect and procedure checks a
+# second time over the invocation form. The 2026-11-04 sweep found that
+# second pass unpinned: each of its arguments could be replaced by None, and
+# the procedure check could be skipped, without a test noticing.
+
+
+def test_a_procedure_violated_only_by_the_invocation_form_refuses(events) -> None:
+    contract = ProcedureContract("no_wo1", (absence(StepPattern(TOOL, {"id": "WO-1"})),))
+    d = _dispatcher()
+    d.bind_procedure(contract, lambda lease: [])
+    wire = {"id": "WO-2"}
+    _assert_refused(_dispatch(d, _lease(arguments=wire), wire, invocation_arguments={"id": "WO-1"}),
+                    events, reason="procedure_violation", level=logging.WARNING,
+                    payload=_refusal_payload("procedure_violation"), execution_id=JTI)
+    assert _dispatch(d, _lease(arguments=wire), wire,
+                     invocation_arguments={"id": "WO-3"}).executed is True
+
+
+def test_a_capability_constraint_violated_only_by_the_invocation_form_refuses(events) -> None:
+    cs = _capability_set(constraints=ONLY_ID)
+    lease = _lease(capability_set=cs)
+    result = _dispatch(_dispatcher(), lease, ARGS, capability_set=cs,
+                       invocation_arguments={"id": "WO-1", "amount": 5})
+    _assert_refused(result, events, reason="capability_argument_mismatch",
+                    level=logging.WARNING,
+                    payload=_refusal_payload("capability_argument_mismatch"), execution_id=JTI)
+    assert _dispatch(_dispatcher(), _lease(capability_set=cs), ARGS, capability_set=cs,
+                     invocation_arguments={"id": "WO-1"}).executed is True
+
+
+def test_an_effect_refused_only_for_the_invocation_form_refuses(events) -> None:
+    """The resolver sees the invocation form, and refuses it on its value."""
+    from remora.enforcement.resolved_effect import UnresolvedReference
+
+    class Picky:
+        def resolve(self, tool_name: str, arguments: Any, target_environment: str) -> ResolvedEffect:
+            if arguments.get("id") == "WO-9":
+                raise UnresolvedReference("WO-9 names no work order")
+            return ResolvedEffect(tool_name, "impl/v1", f"env:{target_environment}", "write")
+
+    d = _dispatcher()
+    d.bind_effect_resolver(Picky())
+    result = _dispatch(d, _lease(), ARGS, invocation_arguments={"id": "WO-9"})
+    assert result.executed is False
+    assert result.refusal_reason == "unresolved_reference"
+    assert _dispatch(d, _lease(), ARGS, invocation_arguments={"id": "WO-2"}).executed is True
+
+
+def test_the_caller_cannot_reach_nested_invocation_arguments_after_dispatch_began() -> None:
+    """The invocation form is copied as deeply as the wire form."""
+    meta = {"note": "resolved"}
+    received: list[Any] = []
+    d = _dispatcher(received.append)
+    d.bind_effect_resolver(_Resolver(lambda _private: meta.update(note="tampered")))
+    result = _dispatch(d, _lease(arguments={"id": "WO-1", "meta": {"note": "wire"}}),
+                       {"id": "WO-1", "meta": {"note": "wire"}},
+                       invocation_arguments={"id": "WO-1", "meta": meta})
+    assert result.executed is True, result.refusal_reason
+    assert received == [{"id": "WO-1", "meta": {"note": "resolved"}}]
+
+
+def test_the_invocation_form_resolves_to_the_effect_the_lease_signed() -> None:
+    """The resolver sees the invocation form under the lease's tool and
+    target; the effect it names must be the one the authority bound."""
+    asked: list[tuple[str, Any, str]] = []
+
+    class Resolver:
+        def resolve(self, tool_name: str, arguments: Any, target_environment: str) -> ResolvedEffect:
+            asked.append((tool_name, dict(arguments), target_environment))
+            return ResolvedEffect(tool_name, "impl/v1", f"env:{target_environment}", "write")
+
+    effect = ResolvedEffect(TOOL, "impl/v1", f"env:{TARGET}", "write")
+    d = _dispatcher()
+    d.bind_effect_resolver(Resolver())
+    result = _dispatch(d, _lease(resolved_effect=effect), ARGS,
+                       invocation_arguments={"id": "WO-1", "note": "resolved"})
+    assert result.executed is True, result.refusal_reason
+    assert asked == [(TOOL, ARGS, TARGET), (TOOL, {"id": "WO-1", "note": "resolved"}, TARGET)]
+    # An absent target is the empty string in the second pass as in the first.
+    asked.clear()
+    bare = ResolvedEffect(TOOL, "impl/v1", "env:", "write")
+    result = _dispatch(d, _lease(target="", resolved_effect=bare), ARGS, target_environment=None,
+                       invocation_arguments={"id": "WO-1", "note": "resolved"})
+    assert result.executed is True, result.refusal_reason
+    assert asked == [(TOOL, ARGS, ""), (TOOL, {"id": "WO-1", "note": "resolved"}, "")]
+
+
 # ── capability sets: every argument of the check is load-bearing ───────────
 
 

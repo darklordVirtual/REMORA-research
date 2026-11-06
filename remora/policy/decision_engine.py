@@ -363,7 +363,7 @@ def _is_read_only_action(obs: PolicyObservation) -> bool:
     return (obs.action_type or "").strip().lower() in _READ_ONLY_ACTION_TYPES
 
 
-def _is_low_consequence(obs: PolicyObservation) -> bool:
+def _is_low_consequence(obs: PolicyObservation, *, allow_production: bool = False) -> bool:
     """True when the action is read-only and carries no negative safety signal.
 
     Every condition is a *confirmed negative* check written so that ``None``
@@ -399,7 +399,7 @@ def _is_low_consequence(obs: PolicyObservation) -> bool:
 
     # Production is excluded even for reads: blast radius there includes
     # disclosure of live data, which no read-only guarantee covers.
-    if (obs.target_environment or "").strip().lower() in _PROD_ENVS:
+    if not allow_production and (obs.target_environment or "").strip().lower() in _PROD_ENVS:
         return False
 
     return True
@@ -416,7 +416,7 @@ _GROUNDING_SIGNALS: tuple[str, ...] = (
 )
 
 
-def _is_grounded_read(obs: PolicyObservation) -> bool:
+def _is_grounded_read(obs: PolicyObservation, *, allow_production: bool = False) -> bool:
     """True when a read is confirmed to be *this* task's read, on real data.
 
     The policy-only execution kernel has no oracle and no trust score, so the
@@ -443,18 +443,23 @@ def _is_grounded_read(obs: PolicyObservation) -> bool:
 
     ``None`` never satisfies any clause. Unknown is not grounded.
 
+    ``allow_production`` (owner decision 2026-11-03, opt-in through the engine's
+    ``grounded_read_in_production``) lifts only the environment clause. Every
+    other clause stands. A production deployment that turns it on accepts that
+    a grounded read discloses live data to the agent without a person.
+
     What this does NOT assert: that the read returns a correct answer, or that
     reading is free. It asserts that the call is the declared call for a
     declared authority over declared data — which is what makes a human
     approval on it ceremony rather than control.
     """
-    if not _is_low_consequence(obs):
+    if not _is_low_consequence(obs, allow_production=allow_production):
         return False
     if _normalize_risk_tier(obs.risk_tier) != "low":
         return False
     # _is_low_consequence already excludes prod/production; "live" is the
     # third alias in the canonical set and must not slip through here.
-    if (obs.target_environment or "").strip().lower() in _PROD_ENVS:
+    if not allow_production and (obs.target_environment or "").strip().lower() in _PROD_ENVS:
         return False
     if obs.intent_authority_present is not True:
         return False
@@ -903,6 +908,7 @@ class RemoraDecisionEngine:
         conformal_phase_thresholds: dict[str, float] | None = None,
         low_consequence_accept: bool = False,
         grounded_read_accept: bool = False,
+        grounded_read_in_production: bool = False,
         execution_profile: bool = False,
         semantic_authority_floor: bool = False,
         verify_invariants: bool = True,
@@ -930,6 +936,10 @@ class RemoraDecisionEngine:
         # tool contracts, a state index and an intent source; enabling it
         # without those declarations grounds nothing and accepts nothing.
         self.grounded_read_accept = grounded_read_accept
+        # Opt-in (owner decision 2026-11-03, ADR grounded reads in production):
+        # the grounded-read path may also fire for a production target. It does
+        # nothing without grounded_read_accept.
+        self.grounded_read_in_production = grounded_read_in_production
         # Issue #35: the execution profile makes it STRUCTURALLY impossible
         # for a probabilistic signal (conformal/temperature/evidence/
         # ordered-trust) to directly produce ACCEPT — those paths route to
@@ -1575,7 +1585,8 @@ class RemoraDecisionEngine:
         # Same placement guarantee as that path — after every hard guard and
         # blocking gate, so it can only convert a fall-through and can never
         # preempt a block.
-        if self.grounded_read_accept and _is_grounded_read(obs):
+        if self.grounded_read_accept and _is_grounded_read(
+                obs, allow_production=self.grounded_read_in_production):
             reasons.append(DecisionReason.GROUNDED_READ_ACCEPT)
             return self._build(DecisionAction.ACCEPT, reasons, obs,
                                credal=_credal, raw_obs=_raw_obs)

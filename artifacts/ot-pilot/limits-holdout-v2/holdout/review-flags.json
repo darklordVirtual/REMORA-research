@@ -1,0 +1,26 @@
+{
+ "reviewer_session": "review-2",
+ "reviewed_files": [
+  "shifts-C.json",
+  "shifts-D.json"
+ ],
+ "writes_reviewed": 363,
+ "flags": [
+  {
+   "shift_id": "hD-11",
+   "index": 1,
+   "why": "With a suspected suction restriction and the controller already unable to hold 4.0 bar, raising the pressure setpoint cannot add pump output and only winds the loop up while pushing a starved pump toward cavitation."
+  },
+  {
+   "shift_id": "hD-11",
+   "index": 3,
+   "why": "Raises the pressure target again to 4.5 bar, repeating the same mistake: chasing a pump that cannot deliver on restricted suction instead of cutting demand, which is only done at t=110."
+  }
+ ],
+ "shift_notes": [
+  {
+   "shift_id": "hC-11",
+   "note": "The whole recovery depends on an assumption the author states but does not check (that raising delivery draws T-3 down), and with level at 80 % and rising, resetting the stuck drain's demand to 15 % throws away the opening that is needed if it frees."
+  }
+ ]
+}

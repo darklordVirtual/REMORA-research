@@ -419,3 +419,64 @@ delta vs. heuristic baselines is not statistically significant at the
 template-cluster level (p = 0.50); the significant advantage is decision utility
 (`results/toolcall_benchmark_v2_results.json`,
 `results/toolcall_benchmark_v2_significance.json`).
+
+## Experiment 10: OT pilot read autonomy, with a control (2026-11-03/04)
+
+**Research question:** Can the policy-only execution kernel let a legitimate
+read run without a person on a deployed stack, without changing any write's
+path or any negative case's outcome?
+
+**Design:** The OT pilot stack (`deploy/ot-pilot/`, production mode, Postgres,
+simulated plant) rebuilt from one image and run three ways, each on a fresh
+stack. First the previous `dev` without a tool declaration. Then this branch
+with the deployment's tool declaration (`tool_metadata.json`),
+`REMORA_GROUNDED_READ_ACCEPT=1` and the owner's opt-in
+`REMORA_GROUNDED_READ_IN_PRODUCTION=1`
+([ADR](architecture/ADR-grounded-reads-in-production.md)). Then the same
+branch with the opt-in off, as the control. The 16-case OT battery, the fault-injection
+battery and the §99 cases are the instruments. The pilot was then given a signed
+ToolSpec bundle and a WS1 deployment in shadow, and the batteries were repeated.
+
+**N:** 16 battery cases, of which 5 daily-round reads; 10 faults; 11 §99 cases.
+
+**Artifact:** `artifacts/ot-pilot/grounded-reads-2026-11-03/` (manifest with
+image id, policy hash and deployment-file digests; no provenance sidecar, so no
+claim-register entry is bound to it).
+
+**Result:**
+
+| Run | Monitoring reads completed | Battery cases as specified |
+|---|---|---|
+| `dev` before the branch | 0 of 5 | 16 of 16 |
+| opt-in on | 5 of 5 (`grounded_read_accept`, executed, replay 409) | 16 of 16 |
+| opt-in off (control) | 0 of 5 | 16 of 16 |
+| opt-in on, signed ToolSpec, WS1 shadow | 5 of 5 | 16 of 16 |
+
+Fault injection 10 of 10 and §99 cases 11 of 11 on both configurations. WS1 in shadow, through the real routes, proved `sensor_on_round` on all 5
+reads with `grounded_action: accept` and proved the target of 6 of 8 writes.
+On the 2 writes whose target no work order names it recorded a cap to
+`abstain`. Shadow
+applied none of it (NEGATIVE_RESULTS §94).
+
+**Re-run on 2026-11-05** (`artifacts/ot-pilot/execution-path-reproduction-2026-11-05/`):
+the signed-ToolSpec, WS1-shadow configuration rebuilt from the head of PR #1171,
+which changes no runtime code. The battery gave 16 of 16 with 5 of 5 reads, and
+fault injection gave 10 of 10 with 8 of 8 writes and 0 false refusals. The 24
+independent scenarios gave the same verdict as on 2026-11-04 in every case,
+including the four failures (S06 and S09 executed after a scripted approval;
+S17 and S22 went to a human). All 16 battery decisions match the earlier run.
+
+**Limits holdout (2026-11-05)** (`artifacts/ot-pilot/limits-holdout-v1/`, plan
+DOC-426): 40 operator shifts written blind to the limits were replayed through
+the pilot's signed `limits.json`. A legitimate write was refused in 26 of 40
+shifts (Wilson 95 % 49.5 to 77.9 %), above the plan's 10 %, so the pilot's
+limits are recorded as tighter than legitimate operation (NEGATIVE_RESULTS §97).
+The recalibrated policy declares FIC-220 = 0 safe. On 40 new blind shifts it
+refused a legitimate write in 3 (7.5 %, Wilson 2.6 to 19.9 %). Under the same
+10 % that is inconclusive (plan v2, DOC-427).
+
+> **Note:** author's runs on one host against a simulated plant; not an
+> independent reproduction and not OT deployment validation. The same
+> mechanism does not reach AgentDojo, which has no deployment intent source;
+> there reads already pass through flow control and the utility gap is writes
+> (NEGATIVE_RESULTS §102). Concept record: `provenance/concepts/PROV-18.yaml`.

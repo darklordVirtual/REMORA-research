@@ -26,9 +26,13 @@ psycopg = pytest.importorskip("psycopg")
 conninfo = pytest.importorskip("psycopg.conninfo")
 
 from remora.enforcement import cumulative_limits as cl  # noqa: E402
-from tests.limits.test_limits_idempotency import T0, policy, rail  # noqa: E402
+from tests.limits.test_limits_idempotency import LIMITS, T0, policy, rail  # noqa: E402
 
-BASE_DSN = os.environ.get("REMORA_PG_DSN", "")
+# The mutation sweep sets REMORA_ENFORCEMENT_PG_DSN rather than REMORA_PG_DSN so
+# that DSN-gated modules sharing tables keep skipping; every test here works in
+# its own schema, so it runs under either variable (2026-11-04: without it every
+# Postgres branch of the limit ledger survived the sweep as unreachable).
+BASE_DSN = os.environ.get("REMORA_PG_DSN") or os.environ.get("REMORA_ENFORCEMENT_PG_DSN", "")
 pytestmark = pytest.mark.skipif(not BASE_DSN, reason="REMORA_PG_DSN not set")
 
 
@@ -150,3 +154,43 @@ def test_postgres_an_older_schema_gains_the_resolution_columns(dsn):
             "WHERE table_name='limit_operation'").fetchall()}
     assert {"evidence_ref", "reason", "resolved_at", "audit_recorded"} <= columns
     assert ledger.unrecorded_resolutions("t") == []
+
+
+def test_postgres_keeps_the_resolution_time_to_the_second(dsn):
+    """``resolved_at`` is DOUBLE PRECISION on Postgres. A single-precision
+    column would round a 2026 epoch to the nearest 128 seconds."""
+    import time
+
+    guard = _executor(dsn)
+    assert _pay(guard, "A", "INV-1") is None
+    guard.settle("A", ok=False)
+    from tests.limits.test_limits_idempotency import RAIL_SAYS
+
+    RAIL_SAYS["A"] = False
+    before = time.time()
+    assert guard.resolve(tenant="t", operation_id="A", executed=False, resolved_by="reviewer-1",
+                         evidence_ref="stmt-1") is None
+    [row] = guard.unrecorded_resolutions("t")
+    assert before - 1 <= row["resolved_at"] <= time.time() + 1
+
+
+def test_postgres_keeps_reservation_times_to_the_second(dsn):
+    """``at`` is DOUBLE PRECISION on Postgres. In single precision a 2027 epoch
+    is a multiple of 128 seconds, and a payment made one second into a window
+    would be dated at its start and drop out of the window an hour too early."""
+    windowed = [dict(policy().limits[0].__dict__, window_seconds=3600)]
+    windowed[0].pop("binding", None)
+    guard = cl.LimitGuard(
+        policy(limits=[{k: v for k, v in windowed[0].items()}, LIMITS[1]]),
+        cl.LimitLedger(dsn), evidence=rail)
+
+    def pay(op, now):
+        return guard.reserve(tenant="t", principal="p", tool_name="pay",
+                             arguments={"payee": "acme", "amount": 7000, "reference": op},
+                             operation_id=op, request_hash=f"h-{op}", now=now)
+
+    assert pay("A", T0 + 1) is None
+    assert pay("B", T0 + 1) is None
+    # At T0 + 3600 both payments are still inside the hour that began at T0 + 1.
+    assert pay("C", T0 + 3600) == cl.EXCEEDED
+    assert pay("D", T0 + 3602) is None
