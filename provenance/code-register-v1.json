@@ -285,9 +285,9 @@
     },
     ".gitleaksignore": {
       "concepts": [],
-      "git_blob": "f6deacf76015b250de988214f0271869ea98dbdd",
+      "git_blob": "3e6ff55023bda1beaa1435b20acbe7d3fef512b6",
       "mode": "100644",
-      "sha256": "59e71521de7e4485058b8e611073886fda34a52d5e09650e6f5980e7a0cf848c"
+      "sha256": "ee1f52b14cfdace1fafc60afa076872fa8361d4a872ac1c935f34bb5737404c1"
     },
     ".nvmrc": {
       "concepts": [],
@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "1eb014ea4ad9e23a84b656301b187aafceb60238",
+      "git_blob": "93027556c8484e5dee633795669529e987ca4253",
       "mode": "100644",
-      "sha256": "d31f46d5cd7d85fd347cd660254d2cd0000838e7e3b6808aaf06e8c7d9636052"
+      "sha256": "7a237b4c6447cf4058989e1483b39d632d37124ef0f092e41844eea638da297f"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -369,9 +369,9 @@
     },
     "NEGATIVE_RESULTS.md": {
       "concepts": [],
-      "git_blob": "47448ab5a3f4e54b9a1129f6f521c244a7612a2a",
+      "git_blob": "91d242769e9c5c098c8f38d02a66d0e8988fe2fa",
       "mode": "100644",
-      "sha256": "7fbc5c78ba3270a6eca7640d5166a3b1f7dbb0b0761eb67ee43fef8fc469aa26"
+      "sha256": "3f25ee914d0b9ed6609e40ec35a31613314561e403aae219210fc12ea30dafc7"
     },
     "NOTICE": {
       "concepts": [],
@@ -3242,6 +3242,126 @@
       "git_blob": "c3d2c680e69d74d9d78f7081e21bd6907bcb15c2",
       "mode": "100644",
       "sha256": "66b23f020e0c934ee8fceff10aedc79570a9d63a5c58bb29411ece4a4b36c335"
+    },
+    "artifacts/ot-pilot/dual-control-2026-11-06/README.md": {
+      "concepts": [],
+      "git_blob": "1b097de34d7ce937de4bd079f038e456f932209f",
+      "mode": "100644",
+      "sha256": "f896b14ce683bd8c7d16b3eb445c20801d7bd02a0db39eb164f9f518e4bd18dc"
+    },
+    "artifacts/ot-pilot/dual-control-2026-11-06/battery/chain-verification.json": {
+      "concepts": [],
+      "git_blob": "21b726ff44ca9694d820f3d95076780e4483f9ee",
+      "mode": "100644",
+      "sha256": "8efd9c5ad34509714001da1d50bcc82fc731374af9180e5c3dedf139677d05b2"
+    },
+    "artifacts/ot-pilot/dual-control-2026-11-06/battery/manifest.json": {
+      "concepts": [],
+      "git_blob": "c0aca93ba0ad40e431a60797e60272be72be7c65",
+      "mode": "100644",
+      "sha256": "cc0eaacc12310cf90ee28372c6f03ae24fb91ac50c24c84521057cd830e7b46c"
+    },
+    "artifacts/ot-pilot/dual-control-2026-11-06/battery/metrics.json": {
+      "concepts": [],
+      "git_blob": "5a2b68176c05e44e3b90059e7fb591cf7e454d88",
+      "mode": "100644",
+      "sha256": "0fe8d2c6c78c34782cb4cbbdad7e87a995f3eea2a5a6ee8d365b5ed2a296034f"
+    },
+    "artifacts/ot-pilot/dual-control-2026-11-06/battery/report.txt": {
+      "concepts": [],
+      "git_blob": "e7db277f9bb3d1c305decf58b20b2cc4095d2e73",
+      "mode": "100644",
+      "sha256": "0d19530e3483b61f427e43e451b8e54942243ef4b6fe9172415adbb6fc75bd44"
+    },
+    "artifacts/ot-pilot/dual-control-2026-11-06/battery/results.json": {
+      "concepts": [],
+      "git_blob": "bdc7b5e47aac01e2f3b3864386414e83c9e91bd6",
+      "mode": "100644",
+      "sha256": "29c864d4c2590233cbd67905ed764ed2e7ab43369c386314390c17127fcf5964"
+    },
+    "artifacts/ot-pilot/dual-control-2026-11-06/battery/verifier-report.json": {
+      "concepts": [],
+      "git_blob": "86aecd6fa4edcb08d3f266d33c33b76914487056",
+      "mode": "100644",
+      "sha256": "e06ba176a77df2d4b4126e56280f21c2b3ec7b839ddf47aa93b7020dcec05c72"
+    },
+    "artifacts/ot-pilot/dual-control-2026-11-06/boundary/boundary-assessment.json": {
+      "concepts": [],
+      "git_blob": "64ba89574a85c9456f2e95118b2b00b9c50981be",
+      "mode": "100644",
+      "sha256": "d7ecb0a795885811dde77884294553f21ec7c2574689d99b8819e37509e27d75"
+    },
+    "artifacts/ot-pilot/dual-control-2026-11-06/boundary/boundary-suite.json": {
+      "concepts": [],
+      "git_blob": "4ae448deffd7d1a6efac591b499e95df37dd1899",
+      "mode": "100644",
+      "sha256": "119631a41081830e8efaa0158178bd4f652247c11e86d59b4b418565370833f9"
+    },
+    "artifacts/ot-pilot/dual-control-2026-11-06/dual-control/dual-control-check.json": {
+      "concepts": [],
+      "git_blob": "bdac83fea02a4fa7882b7acf84327f6b2771d392",
+      "mode": "100644",
+      "sha256": "26bef770d37a49ff38469bf769e1b1d4f2e8801cc4df4d81da0cdf9e4da1e789"
+    },
+    "artifacts/ot-pilot/dual-control-2026-11-06/effect/effect-verification.json": {
+      "concepts": [],
+      "git_blob": "89dee100ea593b0cffc077aa7bcbca1eb4d07ca5",
+      "mode": "100644",
+      "sha256": "49e58096587f6f1090ae5aa07c455d4d80dfc0d84328ac097122c2d2ac9fb3eb"
+    },
+    "artifacts/ot-pilot/dual-control-2026-11-06/fault-injection/chain-verification.json": {
+      "concepts": [],
+      "git_blob": "276072f2681bb40e86dcfb060ceca7b5c82fc385",
+      "mode": "100644",
+      "sha256": "48ddb716ea91b80405a638a6a9db49477a89cb1b052a4d73dc3e641591fd547b"
+    },
+    "artifacts/ot-pilot/dual-control-2026-11-06/fault-injection/manifest.json": {
+      "concepts": [],
+      "git_blob": "1bf8659cc4109865b0115814c3404a5a4a669f18",
+      "mode": "100644",
+      "sha256": "9ba447876c446aded057123559b4137a39f4fc96becc05a0eb7526a47a1d7f9a"
+    },
+    "artifacts/ot-pilot/dual-control-2026-11-06/fault-injection/metrics.json": {
+      "concepts": [],
+      "git_blob": "9e26dfeeb6e641a33dae4961196235bdb965b21b",
+      "mode": "100644",
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    "artifacts/ot-pilot/dual-control-2026-11-06/fault-injection/report.txt": {
+      "concepts": [],
+      "git_blob": "4a81d9e80edc03a1fd2aec366d147132819029bc",
+      "mode": "100644",
+      "sha256": "2cf6117e957508f34da4218500193488bf8e2e819a9266ceaeddc30117ad7bc3"
+    },
+    "artifacts/ot-pilot/dual-control-2026-11-06/fault-injection/results.json": {
+      "concepts": [],
+      "git_blob": "975a0f72845b2903e4e23adeff221da33dc5987b",
+      "mode": "100644",
+      "sha256": "ed8b8843d8b661d13e82bc87a3047f545685a0cebb90391ffc19a00ad19103c4"
+    },
+    "artifacts/ot-pilot/dual-control-2026-11-06/independent-scenarios/phase-a.json": {
+      "concepts": [],
+      "git_blob": "e3bff42dd1f253af469c3d61da7f87a96576df0c",
+      "mode": "100644",
+      "sha256": "a898f4929e59c12328a619d8510f13da3c0063a4efa7b0250436d643f6bf12f2"
+    },
+    "artifacts/ot-pilot/dual-control-2026-11-06/independent-scenarios/phase-b.json": {
+      "concepts": [],
+      "git_blob": "9e0624129c90ac5ba91a0fe343b0f0bdab08800d",
+      "mode": "100644",
+      "sha256": "1d0faf2059e7566318354840735548da3df53c33694301120391b19500c37f64"
+    },
+    "artifacts/ot-pilot/dual-control-2026-11-06/independent-scenarios/phase-c.json": {
+      "concepts": [],
+      "git_blob": "bb8d0fba2f417c94d84d55f4144b7bff12660a2f",
+      "mode": "100644",
+      "sha256": "e341c334b0d62a467c48130d654028ade2f4126555fe4afc0f47c6f5f1cfd0ad"
+    },
+    "artifacts/ot-pilot/dual-control-2026-11-06/manifest.json": {
+      "concepts": [],
+      "git_blob": "9a36fe08568ccdae140f6dee74339d7f2c54e1d4",
+      "mode": "100644",
+      "sha256": "c754226aa7dbcb92fdb45d1bd9e0a67f2d4a300e82b72be305ef95926eb77114"
     },
     "artifacts/ot-pilot/dual-control-2026-11-06/replay/tiered-one-approver.json": {
       "concepts": [],
@@ -7173,9 +7293,9 @@
     },
     "docs/assurance/ws1_utility_test_plan_v1.md": {
       "concepts": [],
-      "git_blob": "0a503ed8cd44f2bd496f12f64b7ecd749a08894d",
+      "git_blob": "a371254aa49a4fa6281ec6150f0d94f8413f588a",
       "mode": "100644",
-      "sha256": "4cbb2d8bb35d3317b12d355beba1ef9845dedbc7035600dc0bf5a73f3272ca38"
+      "sha256": "af9da2e7c9268dabe4ac5766ba43591c6e34e822f40616bbe80796f1b718f7e0"
     },
     "docs/assurance/ws2_monitor_question_verifier_coverage_dev_v1.2.md": {
       "concepts": [
@@ -23425,7 +23545,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "0a8eaabff0d34ba32ab99d44c7f4789deae59df458b08da34d8d1250f82a2d1a",
+  "register_sha256": "fc381a9b07378431227f146133d87b80a4217109941a05ce01ff3f24c95bf685",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
