@@ -107,16 +107,17 @@ def _load_vocabulary() -> tuple[frozenset[str], frozenset[str]]:
         _KNOWN_RISK_TIERS,
         _MUTATING_TYPES,
         _NON_ACTUATING_TYPES,
-        _READ_ONLY_ACTION_TYPES,
         _READ_ONLY_TYPES,
     )
 
-    actions = (
-        _READ_ONLY_TYPES
-        | _READ_ONLY_ACTION_TYPES
-        | _MUTATING_TYPES
-        | _NON_ACTUATING_TYPES
-    )
+    # Exactly the three sets the engine's unknown-action-type guard consults.
+    # ``_READ_ONLY_ACTION_TYPES`` is deliberately not folded in: it also names
+    # ``get``, ``search`` and ``lookup``, which that guard does not recognise
+    # and floors to VERIFY. Until 2026-11-04 this union included them, so a
+    # deployment could declare ``action_type: get``, pass validation and never
+    # be accepted, which is the configuration-mistake-as-policy outcome this
+    # module exists to refuse (found by tests/test_grounded_read_properties.py).
+    actions = _READ_ONLY_TYPES | _MUTATING_TYPES | _NON_ACTUATING_TYPES
     return frozenset(actions), frozenset(_KNOWN_RISK_TIERS)
 
 

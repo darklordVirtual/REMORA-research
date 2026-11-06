@@ -1,0 +1,258 @@
+{
+  "schema": "aromer_hook_episode_friction_v1",
+  "generated_at": "2026-11-03T21:20:57Z",
+  "input": {
+    "name": "episodes_public.jsonl",
+    "sha256": "a11abfac43e05d69520ac57548a21d5cbd829db728494a20be0c49e1340f2db3",
+    "rows": 21864,
+    "pinned_in": "artifacts/aromer/d1_export_2026-11-03/aromer_d1_export_2026-11-03.json"
+  },
+  "scope": "AROMER shadow-mode verdicts on Claude Code PreToolUse recorder-hook episodes, 2026-06-04 to 2026-07-02. Descriptive only.",
+  "caveats": [
+    "Hook labels are presumed-benign defaults or TTL expiries, not adjudications; VERIFY is review load, not a proven false block.",
+    "Episodes carry no tool arguments (sanitized), so they cannot be replayed through REMORA's gate; this measures AROMER, not REMORA.",
+    "One scorer, one deployment, one month of one developer's traffic; not a benchmark."
+  ],
+  "summary": {
+    "hook_episodes": 18249,
+    "verdicts": {
+      "ACCEPT": 15208,
+      "ESCALATE": 14,
+      "VERIFY": 3019,
+      "pending": 8
+    },
+    "review_required": {
+      "count": 3033,
+      "denominator": 18249,
+      "rate": 0.16620088771987507
+    },
+    "ground_truth": {
+      "benign": 17539,
+      "unknown": 710
+    },
+    "by_tool": {
+      "Read": {
+        "ACCEPT": 4362,
+        "VERIFY": 9,
+        "pending": 1
+      },
+      "PowerShell": {
+        "ACCEPT": 2439,
+        "VERIFY": 1255
+      },
+      "Bash": {
+        "ACCEPT": 2321,
+        "ESCALATE": 11,
+        "VERIFY": 845,
+        "pending": 5
+      },
+      "Edit": {
+        "ACCEPT": 2417,
+        "VERIFY": 4,
+        "pending": 2
+      },
+      "Grep": {
+        "ACCEPT": 1701,
+        "VERIFY": 3
+      },
+      "Write": {
+        "ACCEPT": 731,
+        "ESCALATE": 2,
+        "VERIFY": 1
+      },
+      "Glob": {
+        "ACCEPT": 689,
+        "VERIFY": 2
+      },
+      "ScheduleWakeup": {
+        "ACCEPT": 414,
+        "VERIFY": 29
+      },
+      "TaskUpdate": {
+        "ACCEPT": 17,
+        "VERIFY": 293
+      },
+      "Agent": {
+        "ESCALATE": 1,
+        "VERIFY": 180
+      },
+      "TaskCreate": {
+        "ACCEPT": 9,
+        "VERIFY": 154
+      },
+      "WebFetch": {
+        "ACCEPT": 39,
+        "VERIFY": 37
+      },
+      "ToolSearch": {
+        "ACCEPT": 14,
+        "VERIFY": 46
+      },
+      "apply_patch": {
+        "VERIFY": 49
+      },
+      "Skill": {
+        "VERIFY": 45
+      },
+      "mcp__claude_ai_Hugging_Face__hub_repo_search": {
+        "ACCEPT": 32,
+        "VERIFY": 1
+      },
+      "mcp__claude_ai_Hugging_Face__paper_search": {
+        "ACCEPT": 16,
+        "VERIFY": 1
+      },
+      "AskUserQuestion": {
+        "ACCEPT": 2,
+        "VERIFY": 12
+      },
+      "mcp__plugin_playwright_playwright__browser_navigate": {
+        "ACCEPT": 1,
+        "VERIFY": 11
+      },
+      "mcp__plugin_playwright_playwright__browser_take_screenshot": {
+        "ACCEPT": 1,
+        "VERIFY": 11
+      },
+      "Monitor": {
+        "VERIFY": 9
+      },
+      "mcp__plugin_playwright_playwright__browser_evaluate": {
+        "VERIFY": 4
+      },
+      "mcp__claude_ai_Tripletex_MCP__search_projects": {
+        "VERIFY": 3
+      },
+      "mcp__plugin_playwright_playwright__browser_resize": {
+        "VERIFY": 3
+      },
+      "mcp__plugin_cloudflare_cloudflare-docs__search_cloudflare_documentation": {
+        "VERIFY": 2
+      },
+      "mcp__claude_ai_Hugging_Face__hf_hub_query": {
+        "ACCEPT": 1,
+        "VERIFY": 1
+      },
+      "RemoteTrigger": {
+        "VERIFY": 2
+      },
+      "mcp__claude_ai_Hugging_Face__hf_whoami": {
+        "VERIFY": 1
+      },
+      "mcp__codegraph_darklordVirtual_go_star__codegraph_explore": {
+        "VERIFY": 1
+      },
+      "mcp__claude_ai_Tripletex_MCP__logged_in_user_info": {
+        "VERIFY": 1
+      },
+      "mcp__claude_ai_Tripletex_MCP__search_customers": {
+        "VERIFY": 1
+      },
+      "mcp__claude_ai_Tripletex_MCP__search_invoices": {
+        "VERIFY": 1
+      },
+      "TaskStop": {
+        "VERIFY": 1
+      },
+      "mcp__plugin_playwright_playwright__browser_console_messages": {
+        "VERIFY": 1
+      },
+      "mcp__plugin_playwright_playwright__browser_wait_for": {
+        "ACCEPT": 1
+      },
+      "Workflow": {
+        "ACCEPT": 1
+      }
+    },
+    "by_action_type": {
+      "read": {
+        "ACCEPT": 8126,
+        "VERIFY": 17,
+        "pending": 2
+      },
+      "execution": {
+        "ACCEPT": 3701,
+        "ESCALATE": 1,
+        "VERIFY": 2822,
+        "pending": 2
+      },
+      "write": {
+        "ACCEPT": 3381,
+        "ESCALATE": 2,
+        "VERIFY": 138,
+        "pending": 4
+      },
+      "deployment": {
+        "ESCALATE": 1,
+        "VERIFY": 41
+      },
+      "destructive_write": {
+        "ESCALATE": 8,
+        "VERIFY": 1
+      },
+      "force_push": {
+        "ESCALATE": 2
+      }
+    },
+    "by_risk_tier": {
+      "low": {
+        "ACCEPT": 12186,
+        "VERIFY": 30,
+        "pending": 4
+      },
+      "medium": {
+        "ACCEPT": 3022,
+        "VERIFY": 2767,
+        "pending": 4
+      },
+      "high": {
+        "ESCALATE": 5,
+        "VERIFY": 222
+      },
+      "critical": {
+        "ESCALATE": 9
+      }
+    },
+    "by_domain": {
+      "system": {
+        "ACCEPT": 7923,
+        "ESCALATE": 6,
+        "VERIFY": 2650,
+        "pending": 4
+      },
+      "information": {
+        "ACCEPT": 6752,
+        "VERIFY": 14,
+        "pending": 1
+      },
+      "git": {
+        "ACCEPT": 530,
+        "ESCALATE": 2,
+        "VERIFY": 133,
+        "pending": 3
+      },
+      "agentic": {
+        "ESCALATE": 1,
+        "VERIFY": 180
+      },
+      "cloudflare": {
+        "ESCALATE": 2,
+        "VERIFY": 42
+      },
+      "network": {
+        "ACCEPT": 3
+      },
+      "database": {
+        "ESCALATE": 3
+      }
+    },
+    "p_harm": {
+      "n": 18241,
+      "min": 0.0,
+      "p50": 0.005,
+      "p90": 0.008,
+      "p99": 0.116,
+      "max": 0.998
+    }
+  }
+}

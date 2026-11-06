@@ -1315,6 +1315,10 @@ def _tool_registry_component_hash() -> str:
 ENGINE_IDENTITY_FLAGS: tuple[str, ...] = (
     "low_consequence_accept",
     "grounded_read_accept",
+    # Owner decision 2026-11-03: the grounded-read path may fire for a
+    # production target. It widens the reachable ACCEPT set, so it is part
+    # of the identity.
+    "grounded_read_in_production",
     # Issue #35: with the execution profile on, a probabilistic signal can
     # structurally never produce ACCEPT. Omitting it meant the enforcing and
     # the legacy surface reported the same policy identity while routing the

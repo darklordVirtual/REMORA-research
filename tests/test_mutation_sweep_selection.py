@@ -41,8 +41,10 @@ def _mutated_module_names() -> list[str]:
 
 
 def _selected_test_files() -> set[str]:
+    """Repo-relative POSIX paths, so ``tests/limits/test_x.py`` is distinct from
+    ``tests/test_x.py``."""
     return {
-        Path(entry).name
+        Path(entry).as_posix()
         for entry in _mutmut_config()["pytest_add_cli_args_test_selection"]
     }
 
@@ -54,9 +56,11 @@ def _importers(module_names: list[str]) -> set[str]:
         rf"|import remora\.enforcement\.(?:{names})\b"
         rf"|from remora\.enforcement import (?:[^\n]*\b(?:{names})\b))"
     )
+    # rglob, not glob: tests/limits/ holds the cumulative_limits suites, and a
+    # top-level-only scan let that module join only_mutate without a single test.
     return {
-        path.name
-        for path in sorted(TESTS_DIR.glob("test_*.py"))
+        path.relative_to(REPO_ROOT).as_posix()
+        for path in sorted(TESTS_DIR.rglob("test_*.py"))
         if pattern.search(path.read_text(encoding="utf-8"))
     }
 
@@ -71,7 +75,7 @@ def test_every_test_touching_a_mutated_module_is_in_the_sweep() -> None:
 
 
 def test_the_selection_only_names_tests_that_exist() -> None:
-    absent = sorted(name for name in _selected_test_files() if not (TESTS_DIR / name).is_file())
+    absent = sorted(name for name in _selected_test_files() if not (REPO_ROOT / name).is_file())
     assert not absent, (
         f"the sweep selects test files that do not exist, so pytest would error: {absent}"
     )
@@ -81,7 +85,7 @@ def test_the_guard_would_notice_a_missing_file() -> None:
     """A guard that cannot fail is not a guard."""
     importers = _importers(_mutated_module_names())
     assert importers, "no test module imports the mutated modules -- the pattern is wrong"
-    assert importers - {"test_execution_lease.py"} != importers, (
+    assert importers - {"tests/test_execution_lease.py"} != importers, (
         "tests/test_execution_lease.py must be detected as an importer of a mutated "
         "module; if it was renamed, this guard's pattern needs the same update"
     )
@@ -109,7 +113,9 @@ def test_every_deselected_node_id_still_exists() -> None:
             capture_output=True,
             text=True,
         )
-        if collected.returncode != 0 or selector not in collected.stdout:
+        # pytest prints the collection as node ids or as a tree depending on
+        # its verbosity settings; the innermost name appears in both.
+        if collected.returncode != 0 or selector.rsplit("::", 1)[-1] not in collected.stdout:
             missing.append(node_id)
     assert not missing, (
         "the mutation sweep deselects node ids that no longer collect, so the tests it "
@@ -122,7 +128,7 @@ def test_the_deselections_are_confined_to_selected_modules() -> None:
     stray = sorted(
         node_id
         for node_id in _deselected_node_ids()
-        if Path(node_id.partition("::")[0]).name not in selected
+        if Path(node_id.partition("::")[0]).as_posix() not in selected
     )
     assert not stray, (
         f"deselecting a test the sweep never runs is dead configuration: {stray}"

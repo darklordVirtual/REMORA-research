@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-11-03: **36 `open`**, **32 `accepted`**, **31 `superseded`**.
+Counts as of 2026-11-03: **38 `open`**, **33 `accepted`**, **31 `superseded`**.
 
 ## The actual backlog
 
@@ -186,6 +186,22 @@ cites only `open` sections and that no `open` section is missing a theme.
    ACCEPT grant when the admission transaction refused, redeemable at
    `/execute-accepted` without the review path's checks. Repaired with route
    tests; open until the mode runs outside the author's own tests.
+
+21. **The AROMER learning layer ran idle for four months, and its AII step is
+   unexplained** (§101): no episode arrived after 2026-07-02, and the cron
+   re-scored one 200-episode sample every five minutes until the export of
+   2026-11-03. Nine world-model priors and all three oracle-bandit rows were
+   inflated by the loop. The AII rise from 0.8441 to 0.9918 over 06-28 to
+   07-01 is not attributed to any cause. Open until the step is attributed from
+   the worker's deploy history or the AII series is marked unusable past
+   06-28.
+
+22. **G1 failed on AgentDojo development tasks** (§100): the flow-control
+   arm `E_IFC_WS1` kept all 48 injected goals out but completed 7 of 18
+   benign tasks against 6 of 18 for refuse-all, missing the +10 percentage
+   point rule. The 14 blocked benign calls were 12 writes and 2 reads, with
+   payload integrity the main cause. Open until a redesigned arm passes a
+   development gate or SAP v8 is withdrawn.
 
 <!-- backlog-end -->
 
@@ -2697,6 +2713,8 @@ sections again.
 | Study C holdout: utility recovered and authority held under defence-aware search; the monitor threshold decided how much (§96) | H_DET and H_COST 20/33 reads, H_EDV 32/33, H0 0/33; every loss a monitor veto at the threshold. No WS1 arm executed an attack goal, an out-of-scope call or a leak in 121 attack episodes each; arm A did | **High** |
 | REMORA did not stop a payment past its budget, and had nothing that could (§97) | Replayed through /assess, /approve and /execute, all three 7000 payments ran (21000 of 20000). Opt-in cumulative limits reserved at dispatch (CAP-031) now refuse the third, and cap setpoint movement, starts and runtime per unit; author's replays only, false refusals unmeasured | **High** |
 | The review path handed back an unspent grant when the admission refused (§98) | Under `REMORA_WS1_ADMISSION=atomic` the ACCEPT grant was minted before the admission; a refusal rolled the spend back and the response still carried the grant, which `/execute-accepted` accepted and spent. Now spent in place and withheld; route tests pin it. Author's tests only | **High** |
+| G1 failed on AgentDojo development tasks (§100) | `E_IFC_WS1` completed 7/18 benign tasks against 6/18 for refuse-all and kept 0/48 injected goals; 14 blocked benign calls were 12 writes and 2 `get_webpage` reads, payload integrity the main cause. Scripted replay, zero model calls; SAP v8 stays DRAFT and unregistered | **High** |
+| The AROMER learning layer ran idle for four months, and its AII step is unexplained (§101) | 124 daily snapshots after the last episode (2026-07-02) show AII 0.9897 to 0.9915 on a frozen 200-episode sample; nine priors and all three bandit rows carry observation counts above the 21,864 episodes; the one-day ECE drop from 0.0637 to 0.0065 on 06-29 has no recorded cause. On the 18,249 recorder-hook episodes AROMER asked for review on 3,033 (16.6 %), 2,767 of them medium-tier shell execution | **Medium** |
 | Study B holdout: the monitor-directed arm lost utility, and the attack search was barely adaptive (§95) | H_EDV 15/45 reads against H_DET 28/45; it vetoed all 43 benign port reads. 55 of 60 final injections were the fixed template. No unauthorized dispatch in any WS1 arm | **High** |
 | WS1 evidence could not make a call executable on the execution API (§94) | WS1 caps only; the grounding that turned PROVED preconditions into an engine ACCEPT lived in Study B's harness. Grounding from proofs is now opt-in on the assess path, tested through the route, and not yet measured in a study | **High** |
 | No blocked development call is recoverable by a bounded lookup alone (§93) | After schema validation, 0 of 92 E1-blocked AgentDojo development calls reach ACCEPT. Causes: no extracted intent (71), undeclared risk tier on a write (16), ground-truth call refused as the wrong tool (5). WS1 recovery needs intent and contract coverage first | **High** |
@@ -2706,6 +2724,7 @@ sections again.
 
 | Finding | Why it is closed to further tuning | Severity |
 |---------|------------------------------------|----------|
+| The pilot's grounded-read path cannot fire on AgentDojo, where reads already pass (§102) | Development replay, no model call: 50 of 52 declared benign reads execute under the flow-control arms, and 6 of 18 tasks are reads-only, so reads are not the utility gap there; the 14 writes are. The lexical intent extractor resolves 0 of 18 tasks, so `tool_matches_goal` is unknown on every read and the grounded-read path has nothing to fire on without a deployment intent source | **Medium** |
 | An agent token executed self-signed leases on the authority process, unaudited (§99) | Repaired and reproduced 2026-11-03 on a rebuilt pilot with authority and executor processes: 404 on the authority under every credential, `lease_unlinked` and 403 on the executor, `lease_dispatch_admitted` before `lease_dispatch_result` in the shared chain, tampered call and replay refused (11/11); OT battery 16/16. "Linked" is still a non-empty check, and the HMAC key custody limits stand (`artifacts/ws1/m4/sec99-reproduction/`) | **High** |
 | A component ablation attributed the safety result to nothing (§57) | Withdrawn, not repaired. Its numbers were absent from the file it cited, its reproduce command never wrote the artifact it named, and its own output contradicts it. All six conditions record FAR=0.000, including hard-blocks-removed, which reaches zero by refusing nearly everything. | **High: falsifies the published component attribution.** |
 | Three self-review complexity findings were wrong (§41) | Verified and refuted: the toolcall generations are already documented, the env-var census was miscounted by excluding experiments/ and scripts/, and an AuditAdapter ABC already existed. An audit finding is a hypothesis | Low (methodological) |
@@ -5608,7 +5627,23 @@ artifacts/ws1/resolvability_audit_v1.json` (needs
 
 **Status:** repaired in code with route tests. Study C (§96) measured
 recovery through the runtime gate and engine; the HTTP layer was not in its
-loop. Open until a run through the routes themselves.
+loop. Open until enforce changes a decision on a deployed stack.
+
+**Deployed shadow run (2026-11-04):** the OT pilot now carries a signed
+ToolSpec bundle and a WS1 deployment (`deploy/ot-pilot/ot_ws1.py`) in shadow.
+WS1 therefore ran through the real routes on a deployed stack for the first
+time (`artifacts/ot-pilot/grounded-reads-2026-11-03/ws1-shadow/`).
+Every one of the 13 assessed battery calls carried a ToolSpec hash and a WS1
+block. For the 5 daily-round reads WS1 proved `sensor_on_round` with one
+lookup each and recorded `grounded_action: accept`, the same answer the
+engine reached from the state index. For the 8 writes it proved `target_named_by_work_order` on 6 and would have
+changed nothing. On the 2 calls whose target no work order names, the valve
+move under the read-round intent and the tampered valve move, the lookup did
+not prove. There WS1 recorded a cap to `abstain` where the engine had said
+`verify` or `escalate`. Shadow applied none of it. The battery stayed 16 of 16 with the
+bundle enforced, fault injection 10 of 10, the §99 cases 11 of 11. What remains open is enforce: it needs flow control and the IFC work packages
+the gate names. The pilot's intent authority is also the whole work-order
+file, so per-order binding is not yet available to the verifier.
 
 The claim under evaluation in #953 is that REMORA recovers useful agent work
 by fetching bounded, authorized evidence. On the execution API the WS1 gate
@@ -5950,6 +5985,43 @@ What remains open:
   measures how often legitimate payments are refused. That needs new tasks
   and a holdout.
 
+Update 2026-11-05: the first holdout of legitimate writes, on the OT pilot's
+limits. The plan fixed the criteria before any data
+(`docs/assurance/ot_limits_holdout_plan_v1.md`, DOC-426). Separate sessions,
+blind to `limits.json` by instruction, wrote 40 operator shifts from a plant
+brief, 392 writes in all. A further session reviewed every write and flagged
+none as implausible. The shifts were sealed by SHA-256 before the replay read
+them. The replay ran each shift through the pilot's signed policy and the API's
+own `LimitGuard`, with the shift's clock
+(`artifacts/ot-pilot/limits-holdout-v1/holdout/result.json`).
+
+- In 26 of 40 shifts a legitimate write was refused by a limit (65 %, Wilson
+  95 % 49.5 to 77.9 %). That is above the plan's 10 %, so it is recorded as a
+  negative result: the pilot's limits are tighter than legitimate operation
+  as the brief describes it. Of the 392 writes, 75 were refused (19.1 %,
+  shift bootstrap 13.6 to 24.9 %), all as `limit_exceeded`.
+- FIC-220's 10 m3/h per hour caused 56 of the 75 refusals and the first
+  refusal in 18 of the 26 shifts. PIC-101 caused 12, valve travel 4 and
+  alarm acknowledgements 3.
+- All six writes that set delivery to zero after a stop or trip were
+  refused, as any such move from the normal band would be. This was not a
+  preregistered measure, and whether it is a hazard was not assessed. In three
+  of the six the pump had already stopped and the write parks the loop. What
+  it shows is that the limits stop the governed path from parking the flow
+  loop or following a planned stop; no safe value is declared anywhere.
+
+The authors are model sessions, not operators. The brief was written by
+someone who knows the limits. The procedure measures the limits alone, not
+the full pilot path, and does not model retries. The next step is a signed,
+recalibrated policy measured on a new holdout, with an answer for moves
+towards a safe value. Until then this finding stays open.
+
+The holdout's per-write rate depends on its no-retry rule. If a refused move
+is instead made by hand outside REMORA, 85 of 392 writes are refused and the
+same 26 shifts (post hoc, `holdout/sensitivity-refused-by-hand.json`). An
+independent review reproduced the result and agreed with the replay on every
+write. The review's caveats are recorded in the plan.
+
 ## §98 The review path handed back an unspent grant when the admission refused (2026-10-24)
 <!-- finding-status: open -->
 
@@ -6224,3 +6296,124 @@ targets, so the breakdown of eight, five and one is unchanged, as are all
 counts in the table. Reads whose URL was not tainted ran. The sentences above
 are kept as they were published; the error was found while checking the WS2
 documents of PR #1160 against the artifact.
+
+## §101 The AROMER learning layer ran idle for four months, and its AII step is unexplained (2026-11-03)
+<!-- finding-status: open -->
+
+**Status:** open. The idle loop is stopped by PR #1165 (`crons = []`). The
+step in the AII series is not attributed, and the recorder-hook corpus is not
+adjudicated.
+
+The AROMER Worker is the experimental learning layer beside REMORA
+(`workers/aromer/`, deployment status SHADOW_ONLY; CLAIM-006). Its D1 database
+was exported on 2026-11-03 before the cron was disabled
+(`artifacts/aromer/d1_export_2026-11-03/aromer_d1_export_2026-11-03.json`,
+13/13 verification checks against the live console). The export shows three
+things the registers did not.
+
+**The loop learned nothing after 2 July.** The last episode arrived on
+2026-07-02 15:47 UTC. The cron, deployed at every five minutes against the
+repository's every four hours, then re-scored the same 200-episode sample
+37,698 times. Reduced to the last snapshot per UTC day, the 124 days from
+2026-07-03 to 2026-11-03 read AII 0.9897 to 0.9915 and ECE 0.0057 throughout,
+with `n_episodes` fixed at 200. That flatness is the sample, not stability.
+It may not be cited as either.
+
+**The loop contaminated the state it was meant to learn.** Of 198 world-model
+priors, 189 are untouched since the live period and 9 were updated by the idle
+loop. Five of those carry more observations than the database holds episodes
+(`information/read/low` reaches 112,066 against 21,864 episodes), each with
+Beta(1.0, 199.0). The three oracle-bandit rows (`cf_fast`, `cf_strong`,
+`cf_diverse`) are identical at alpha 59, beta 1.0, with 86,320, 140,249 and
+141,898 observations. The bandit distinguishes nothing between the oracles,
+and its counts are the loop's. Neither table is usable as a prior or as a
+selection policy.
+
+**The AII step of 29 June has no recorded cause.** In the live period the
+daily series moves from 0.4066 (06-05) through 0.8440 (06-27) and 0.8441
+(06-28), which agrees with CLAIM-006's peak. It then reaches 0.9240 (06-29),
+0.9851 (06-30) and 0.9918 (07-01). On 06-29 ECE falls from 0.0637 to 0.0065 and the
+calibration component from 0.6817 to 0.9677 in one day, while
+`n_high_confidence` goes 117, 161, 191. A one-day change of that size in a
+calibration metric is a scoring or window change until shown otherwise. The
+committed `intelligence_snapshot_2026-07-02.json` reads `aii_smoothed` 0.9922
+and `adapt_cycles` 2033 without saying what changed. Attribution needs the
+worker's deploy history, which is not in this repository.
+
+**What the hook corpus does measure.** 18,249 of the 21,864 episodes are
+Claude Code PreToolUse recorder-hook calls, real and mostly routine, with
+presumed-benign or TTL labels and no harmful label. On them AROMER's
+shadow-mode verdicts were ACCEPT 15,208, VERIFY 3,019, ESCALATE 14, pending 8.
+Review was asked on 3,033 of 18,249 (16.6 %). The review load sits almost
+entirely in medium-tier shell execution: 2,767 of the 3,033 are medium tier,
+and 2,822 are `execution`, 43 % of the 6,526 execution calls, nearly all
+PowerShell and Bash. Low-tier calls were reviewed 30 times in 12,220, reads 17
+times in 8,145. `artifacts/aromer/d1_export_2026-11-03/hook_episode_friction_v1.json`
+holds the tables (`scripts/aromer_hook_friction.py`, input pinned by SHA-256).
+This is review load on presumed-benign traffic from one developer over one
+month, not a false-block rate. The episodes carry no arguments, so they
+cannot be replayed through REMORA's gate.
+
+Limits:
+
+- The daily reduction hides intra-day movement; CLAIM-006's same-day
+  regression to 0.7885 is one example.
+- The export verified 13 reference values against the live console. It is the
+  author's export of the author's database.
+- No figure here is about the REMORA decision engine. AROMER scored in shadow
+  and decided nothing.
+
+## §102 The pilot's grounded-read path cannot fire on AgentDojo, where reads already pass (2026-11-03)
+<!-- finding-status: accepted -->
+
+**Status:** accepted. A measured property of the benchmark and the
+mechanism, recorded so that the OT pilot result is not read as transfer.
+
+The OT pilot's five daily-round reads complete without a person once the
+deployment declares its tools and the grounded-read path can fire
+(`artifacts/ot-pilot/grounded-reads-2026-11-03/`). The question was whether
+that reaches real tasks. `scripts/run_control_eval_reads_replay.py` replays
+every development user task's ground-truth calls through the G1 arms, with no
+model call, and records per call what the grounded-read path would need
+(`artifacts/control_eval/dev_reads_replay_v1.json`; development suites only,
+the held-out suite never loaded).
+
+**Reads already pass on AgentDojo.** Of 66 benign ground-truth calls on the
+18 development tasks, 52 are declared reads and 14 are writes. The
+flow-control arms `E_IFC` and `E_IFC_WS1` execute 50 of the 52 reads; the two
+they refuse are `get_webpage` calls on an untrusted host (slack
+`user_task_1` and `user_task_4`). Six of the 18 tasks consist of reads only,
+and `E_IFC` completes all six. The arms complete 7 of 18 tasks in total,
+against 6 for refuse-all; the 14 writes, of which `E_IFC` executes 1 and
+`E_IFC_WS1` 2, are where the rest of the utility sits (§100).
+
+**The grounded-read path has nothing to fire on.** It needs a server-resolved
+intent and four positive grounding signals. AgentDojo has no deployment
+intent source such as a work order. The deterministic lexical extractor
+(`bfcl_semantic_bundle_v2.extract_intent`) resolves 0 of the 18 task texts,
+so `tool_matches_goal` and `expected_effect_matches` are unknown on all 52
+reads, and no read has all four signals. Argument grounding on its own does
+better: 31 of the 52 reads have every judgeable value in the task text or in
+a prior tool output, 3 have no judgeable value, and 18 are ungrounded. The
+ungrounded ones are list-valued names handed from one read to the next
+(`restaurant_names` 10, `hotel_names` 4, `hotel_name` 1, `company_name` 1)
+and the integer `n` (2). Value provenance over prior outputs does not ground
+a list of multi-word names.
+
+**What this closes and what it leaves.** The pilot result stands for what
+it measured: a deployment with a work-order intent source and a declared
+plant inventory. It does not transfer to a benchmark without an intent
+source, and it was not needed there, because flow control already lets the
+reads through. The utility question on AgentDojo is the writes, and that is
+WS1 grounding from proofs (§94) and payload integrity (§100), not grounded
+reads. The ungrounded list-valued arguments are a separate, smaller limit of
+value-provenance grounding.
+
+Limits:
+
+- Scripted ground-truth calls, 18 development tasks, three suites; the
+  held-out suite was not loaded. No model call, so no agent behaviour.
+- "Reads-only task" is a ceiling for a reads-only policy, not a measured
+  utility; `E_IFC` happens to reach that ceiling here.
+- The intent extractor's 0 of 18 is a property of this extractor on these
+  texts, not a statement about intent resolution in general.

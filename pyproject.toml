@@ -297,9 +297,10 @@ markers = [
 
 [tool.mutmut]
 # Issue #280: mutation testing over the grant/lease/PEP consumption paths.
-# Scoped deliberately: these four files carry the one-time-consumption and
-# exact-call-binding guarantees, and the selected tests are the remora-only
-# suites that exercise them (~10 s), so a full mutant sweep stays tractable.
+# Scoped deliberately: these five files carry the one-time-consumption,
+# exact-call-binding and cumulative-limit guarantees, and the selected tests
+# are the suites that exercise them (about 60 s for the selection, 2026-11-04),
+# so a full mutant sweep stays tractable (about 75 minutes on four cores).
 # Run from WSL/Linux (mutmut has no native Windows support):
 #   mutmut run && mutmut results
 source_paths = ["remora"]
@@ -324,7 +325,18 @@ only_mutate = [
 # tests/test_binding_policy_matrix.py checks the code against
 # docs/assurance/binding_policy_matrix_v1.yaml at import, so without it the
 # whole selection fails to collect (sweeps of 2026-10-05 and 2026-10-12).
-also_copy = ["servers/", "schemas/", "deploy/", "artifacts/interop/", "vectors/", "docs/assurance/"]
+# integrations/invocation-evidence/ (244 KB) joined 2026-11-04:
+# tests/test_invocation_evidence_export.py reads its JSON-RPC id vectors at
+# import and runs its reference verifier, so without it the stats phase fails to
+# collect and the scheduled sweep of 2026-11-02 measured nothing.
+# integrations/horizon55/ holds the payment tool that
+# tests/test_horizon55_enforcement_adversarial.py loads by path.
+# scripts/ (2.8 MB, copied once per sandbox) joined the same day:
+# tests/flow/test_mediation_surface.py imports scripts/check_flow_mediation_surface
+# and then drives forged, foreign and replayed contexts at the dispatching
+# routes, which are kill tests for lease.py. The deselected regeneration tests
+# below stay deselected: they also need artifacts/, which is not copied.
+also_copy = ["servers/", "schemas/", "deploy/", "artifacts/interop/", "vectors/", "docs/assurance/", "integrations/invocation-evidence/", "integrations/horizon55/", "scripts/"]
 # The meaningful metric: mutants on lines the runner executes. All-lines
 # numbers conflate untested behaviour with uncovered adapter branches the
 # coverage gate already documents (docs/assurance/mutation_testing_v1.md).
@@ -341,6 +353,15 @@ mutate_only_covered_lines = true
 # temporary tree. mutmut's trampoline in that child reads its configuration from
 # the working directory, finds none and exits, so the test measures mutmut, not
 # the code; the startup refusals they pin stay covered by the regular suite.
+# tests/conformance/test_execution_boundary_process_split.py (2026-11-04) starts the
+# split authority and executor processes the same way and is deselected for the
+# same reason; tests/conformance/test_execution_boundary.py stays in. One test of
+# tests/flow/test_mediation_surface.py inventories workers/, which is not copied,
+# and is deselected; its bypass probes stay in.
+# tests/capabilities/test_capability_delegation.py::TestProperties is a Hypothesis
+# test on a class: mutmut runs its stats and clean phases in one process, so
+# Hypothesis sees the method called from two executors and fails its
+# differing_executors health check. The regular suite still runs it.
 # tests/test_wheel_excludes_datasets.py's size check is deselected too: mutmut
 # inflates each mutated module past the 300 KB dataset threshold.
 # So is the warning-attribution test (2026-10-13): it pins warnings.warn's
@@ -374,6 +395,12 @@ pytest_add_cli_args = [
     "tests/test_effect_mediation_policy.py::test_the_scaffold_executor_starts",
     "--deselect",
     "tests/test_strict_v2_three_domain_e2e.py",
+    "--deselect",
+    "tests/conformance/test_execution_boundary_process_split.py",
+    "--deselect",
+    "tests/flow/test_mediation_surface.py::test_the_inventory_covers_every_surface_the_sdd_names_and_says_what_it_cannot_hold",
+    "--deselect",
+    "tests/capabilities/test_capability_delegation.py::TestProperties::test_every_link_is_a_subset_and_never_outlives_its_parent",
     "--deselect",
     "tests/test_wheel_excludes_datasets.py::test_no_other_shipped_module_is_dataset_sized",
     "--deselect",
@@ -430,6 +457,14 @@ pytest_add_cli_args_test_selection = [
     "tests/test_execution_context_binding.py",
     "tests/test_execution_lease.py",
     "tests/test_execution_lifecycle_machine.py",
+    # The stop switch is read inside GovernedToolDispatcher.dispatch; these two
+    # reach it through the execution API only, so the import guard cannot see
+    # them (2026-11-04: _stop_refusal's survivors).
+    "tests/test_execution_stop.py",
+    "tests/test_execution_stop_spends_nothing.py",
+    # Drives the cumulative limits through the dispatcher with the Horizon #55
+    # payment tool, loaded from integrations/horizon55/ by path.
+    "tests/test_horizon55_enforcement_adversarial.py",
     "tests/test_fail_closed_hardening.py",
     "tests/test_federation_report_selection.py",
     "tests/test_forwarding_authority_dispatcher.py",
@@ -453,6 +488,10 @@ pytest_add_cli_args_test_selection = [
     "tests/test_lease_verification_completeness.py",
     "tests/test_lease_verification_contracts.py",
     "tests/test_ledger_failure_parity.py",
+    # Replays operator shifts through cumulative_limits with the pilot's signed
+    # policy (docs/assurance/ot_limits_holdout_plan_v1.md); synthetic shifts only.
+    "tests/test_limits_holdout_replay.py",
+    "tests/test_limits_holdout_sensitivity.py",
     "tests/test_nonce_store_consumed.py",
     "tests/test_plan_binding.py",
     "tests/test_policy_engine_audit_v1.py",
@@ -491,4 +530,38 @@ pytest_add_cli_args_test_selection = [
     "tests/test_ws1_m4_fault_matrix.py",
     "tests/test_ws1_task_budget.py",
     "tests/test_ws7_server_path.py",
+    # tests/limits/ (2026-11-04): cumulative_limits.py joined only_mutate on
+    # 2026-10-24 without its tests, so every covered-line mutant in it was
+    # measured against a runner that never exercised it.
+    "tests/limits/test_limits_binding.py",
+    "tests/limits/test_limits_mutation_contract.py",
+    "tests/limits/test_limits_idempotency.py",
+    "tests/limits/test_limits_ledger_topology.py",
+    "tests/limits/test_limits_observed_ventilation.py",
+    "tests/limits/test_limits_ot_pilot.py",
+    "tests/limits/test_limits_payments.py",
+    "tests/limits/test_limits_postgres.py",
+    "tests/limits/test_limits_preview_after_contract.py",
+    "tests/limits/test_limits_resolve_route.py",
+    "tests/limits/test_limits_unit.py",
+    "tests/limits/test_limits_ventilation.py",
+    # tests/capabilities/, tests/conformance/ and tests/flow/ (2026-11-04): the
+    # same top-level-only scan hid these importers of gate, lease and token.
+    "tests/capabilities/test_capability_constraints.py",
+    "tests/capabilities/test_capability_delegation.py",
+    "tests/capabilities/test_capability_enforcement.py",
+    "tests/capabilities/test_capability_revocation.py",
+    "tests/capabilities/test_capability_server_path.py",
+    "tests/capabilities/test_dispatcher_mediation.py",
+    "tests/capabilities/test_effect_domain.py",
+    "tests/capabilities/test_effect_domain_server.py",
+    "tests/capabilities/test_flow_recipients.py",
+    "tests/capabilities/test_mediation_flow_recipients_server_path.py",
+    "tests/conformance/test_custody_guard.py",
+    "tests/conformance/test_execution_boundary.py",
+    "tests/conformance/test_execution_boundary_process_split.py",
+    "tests/flow/test_flow_at_dispatch.py",
+    "tests/flow/test_flow_dispatch_leased.py",
+    "tests/flow/test_flow_review_findings_2026_10_25.py",
+    "tests/flow/test_mediation_surface.py",
 ]

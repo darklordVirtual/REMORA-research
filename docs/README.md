@@ -10,6 +10,15 @@ Seven documents cover most questions. Everything else in `docs/` is listed furth
 - [Study D WS2-B H3 annex v1.3](assurance/ws1_study_d_ws2_monitor_composition_prereg_draft_v1.3.md): draft, not preregistered; FOLLOW_ON recommended.
 - [Owner invariant interpretation and Study D decision](https://github.com/darklordVirtual/REMORA-research/issues/953): pending; no runtime authorization.
 
+## WS1 utility milestone (2026-11-03/04)
+
+- [ADR: grounded reads in production](architecture/ADR-grounded-reads-in-production.md): the owner's opt-in and its bounds.
+- [Experiment 10](03-experiments.md#experiment-10-ot-pilot-read-autonomy-with-a-control-2026-11-0304): OT pilot read autonomy with a control, signed ToolSpec and WS1 shadow; evidence in `artifacts/ot-pilot/grounded-reads-2026-11-03/`.
+- [Concept record PROV-18](../provenance/concepts/PROV-18.yaml): declared-tool grounded read autonomy; classification UNKNOWN until a prior-art review names it.
+- NEGATIVE_RESULTS §94 (WS1 on a deployed stack, shadow) and §102 (the mechanism does not reach AgentDojo).
+- [Broader test plan v1](assurance/ws1_utility_test_plan_v1.md): criteria fixed before the runs; mutation, independent scenarios, labels, properties, baselines, realism, external reproduction.
+- [Limits holdout plan v1](assurance/ot_limits_holdout_plan_v1.md): how often the pilot's cumulative limits refuse a legitimate operator write, on blind shifts (§97); criteria fixed before the data.
+
 ## Start here
 
 1. [Project front page](../README.md): what REMORA is, the evidence summary and current limitations.
@@ -212,6 +221,7 @@ Several topics have more than one document. This table says which to open.
 | [ADR-UE-03: capability activation manifest, hook and mode](architecture/ADR-UE-03-capability-manifest-hook-and-mode.md) | Accepted as proposed 2026-10-25 (owner decision): the primary hook as a register fact (the hook inventory of #1058), the requested mode in a signed per-deployment manifest with its digest signed into the lease beside the policy identity, its own trusted-key setting; the five implementation slices |
 | [ADR: pilot readiness is the maintainer's decision](architecture/ADR-pilot-readiness-owner-decision.md) | Accepted 2026-10-25 (owner decision): `CONTROLLED_PILOT` rests on the technical gates and a recorded owner decision, not on REM-021; REM-023 closed on its code criteria; REM-021 stays open and gates `EXTERNALLY_VERIFIED` and `PRODUCTION` |
 | [ADR: WS1-M4 recovery scheduler](architecture/ADR-ws1-m4-recovery-scheduler.md) | Accepted 2026-10-23, not implemented (M4.5a): a gateway Durable Object re-asks `/assess` for a call WS1 refused for missing evidence, within the task budget; it holds no token or authority state, and Postgres stays the only authority transaction domain |
+| [ADR: grounded reads in production](architecture/ADR-grounded-reads-in-production.md) | Accepted 2026-11-03 (owner decision): a deployment may opt in to the grounded-read ACCEPT path for production targets; lifts only the environment clause; part of the policy identity; the OT pilot turns it on |
 | [ADR: WS1-M4 admission topology](architecture/ADR-ws1-m4-admission-topology.md) | Accepted (M4.1a, owner decisions 2026-10-22; M4.1b implemented, not wired): one Postgres transaction per tenant for grant consumption, evidence and epoch checks and the dispatch intent; database time decides expiry; D1 refused by the strict M4.1 profile |
 | [ADR: canonical decision engine](architecture/ADR-canonical-decision-engine.md) | The policy core decides; the consensus engine is a research surface with a stated lifetime; cross-surface middleware shared (issue #296) |
 | [ADR: SDD-AS-v1 owner decisions](architecture/ADR-sdd-as-v1-owner-decisions.md) | Ten owner decisions: frozen BFCL extractor kept, manifest issuer and inventory close, isolation runtime, no paid runs before the harness, pilot/research split, VerificationPlan v2 registry and budget, mcp 2 deferred |

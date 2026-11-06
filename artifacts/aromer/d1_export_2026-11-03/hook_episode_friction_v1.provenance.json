@@ -1,0 +1,17 @@
+{
+  "schema": "result_provenance_v2",
+  "git_commit": "908e2c5d5601b470acc20dfdd921a5419835f280",
+  "worktree_clean": false,
+  "python_version": "3.13.7",
+  "dependency_lock_sha256": "313b58b57784ea64c806488d8f492129471fc18f334686e2ff6a2f1991662223",
+  "script": "scripts/aromer_hook_friction.py",
+  "input_sha256": {
+    "episodes": "a11abfac43e05d69520ac57548a21d5cbd829db728494a20be0c49e1340f2db3",
+    "export": "ccdf48d7856a3d03c96e4031b271551a31ed7247aaeae2a5616b52609ca903d5"
+  },
+  "random_seeds": null,
+  "command": "python scripts/aromer_hook_friction.py <episodes_public.jsonl> --export artifacts/aromer/d1_export_2026-11-03/aromer_d1_export_2026-11-03.json --out artifacts/aromer/d1_export_2026-11-03/hook_episode_friction_v1.json",
+  "generated_at": "2026-11-03T21:20:57.853593+00:00",
+  "artifact": "hook_episode_friction_v1.json",
+  "artifact_sha256": "3091940c39765f0fc953db83c1daaa4d9cdf4ed96a7c5db385c68ab54f961aed"
+}

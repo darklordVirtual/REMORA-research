@@ -407,8 +407,8 @@ jobs:
         # required by master branch protection. No path filters or auto-write.
         run: |
           python scripts/check_code_provenance.py --check
-          python scripts/check_code_provenance.py --check-snapshot provenance/manifests/code-snapshot-2026-10-30.json
-          python scripts/build_provenance_manifest.py --check --out provenance/manifests/provenance-manifest-2026-10-30.json
+          python scripts/check_code_provenance.py --check-snapshot provenance/manifests/code-snapshot-2026-11-04.json
+          python scripts/build_provenance_manifest.py --check --out provenance/manifests/provenance-manifest-2026-11-04.json
 
       - name: Federation outbound contribution provenance (scope and licence boundary)
         run: python scripts/check_outbound_provenance.py --check

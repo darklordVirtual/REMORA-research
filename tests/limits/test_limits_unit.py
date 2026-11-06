@@ -49,39 +49,135 @@ def settle(guard, op, ok=True):
     guard.settle(op, ok)
 
 
-@pytest.mark.parametrize("changes", [
-    {"schema": "other"},
-    {"coverage": "some"},
-    {"meters": {}},
-    {"meters": {"pay": []}},
-    {"meters": {"pay": ["x"]}},
-    {"meters": {"pay": [{"quantity": "q", "kind": "avg", "argument": "a", "unit": "u"}]}},
-    {"meters": {"pay": [{"quantity": "q", "kind": "sum", "unit": "u"}]}},
-    {"meters": {"pay": [{"quantity": "q", "kind": "count", "argument": "a", "unit": "u"}]}},
-    {"meters": {"pay": [{"quantity": "q", "kind": "sum", "argument": "a"}]}},
-    {"meters": {"pay": [{"quantity": "q", "kind": "sum", "argument": "a", "unit": "u",
-                         "unit_argument": "c"}]}},
-    {"meters": {"pay": [{"quantity": "q", "kind": "change", "argument": "a", "unit": "u"}]}},
-    {"meters": {"pay": [{"quantity": "q", "kind": "sum", "argument": "a", "unit": "u"},
-                        {"quantity": "q", "kind": "count", "unit": "u"}]}},
-    {"meters": {"a": [{"quantity": "q", "kind": "sum", "argument": "x", "unit": "u"}],
-                "b": [{"quantity": "q", "kind": "sum", "argument": "x", "unit": "u",
-                       "scale": 10}]}},
-    {"meters": {"pay": [{"quantity": "q", "kind": "sum", "argument": "a", "unit": "u",
-                         "scale": 0}]}},
-    {"limits": ["x"]},
-    {"limits": [dict(LIMITS[0], max=-1)]},
-    {"limits": [dict(LIMITS[0], max=1.5)]},
-    {"limits": [dict(LIMITS[0], window_seconds=0)]},
-    {"limits": [LIMITS[0], LIMITS[0]]},
-    {"baselines": ["x"]},
-    {"baselines": [dict(BASELINES[0], quantity="spend2")]},
-    {"baselines": [dict(BASELINES[0], value=19.05)]},
-    {"baselines": [BASELINES[0], dict(BASELINES[0], seed_id="s2")]},
-])
-def test_a_malformed_policy_refuses(changes):
-    with pytest.raises(cl.LimitPolicyError):
+import re
+
+MAX = cl.MAX_UNITS
+MALFORMED = [
+    ({"schema": "other"}, "limit policy schema must be 'remora-cumulative-limits/v1'"),
+    ({"coverage": "some"}, f"coverage must be one of {re.escape(str(cl.COVERAGES))}"),
+    ({"meters": {}}, "a limit policy meters at least one tool"),
+    ({"meters": "x"}, "a limit policy meters at least one tool"),
+    ({"meters": {"pay": []}}, "tool 'pay': a non-empty list of meters"),
+    ({"meters": {"pay": "x"}}, "tool 'pay': a non-empty list of meters"),
+    ({"meters": {"pay": ["x"]}}, "tool 'pay': each meter is an object"),
+    ({"meters": {"": METERS["pay"]}}, "tool name must be a non-empty string of at most 200 characters"),
+    ({"meters": {"pay": [{"quantity": "q", "kind": "avg", "argument": "a", "unit": "u"}]}},
+     f"tool 'pay': kind must be one of {re.escape(str(cl.KINDS))}"),
+    ({"meters": {"pay": [{"quantity": "q", "kind": "sum", "unit": "u"}]}},
+     "tool 'pay' argument must be a non-empty string of at most 200 characters"),
+    ({"meters": {"pay": [{"quantity": "q", "kind": "count", "argument": "a", "unit": "u"}]}},
+     "tool 'pay': a count meter reads no argument"),
+    ({"meters": {"pay": [{"quantity": "q", "kind": "sum", "argument": "a"}]}},
+     "tool 'pay': declare exactly one of unit, unit_argument"),
+    ({"meters": {"pay": [{"quantity": "q", "kind": "sum", "argument": "a", "unit": "u",
+                          "unit_argument": "c"}]}},
+     "tool 'pay': declare exactly one of unit, unit_argument"),
+    ({"meters": {"pay": [{"quantity": "q", "kind": "change", "argument": "a", "unit": "u"}]}},
+     "tool 'pay': a change meter needs resource_argument"),
+    ({"meters": {"pay": [{"quantity": "q", "kind": "sum", "argument": "a", "unit": "u",
+                          "observed": "yes"}]}},
+     "tool 'pay': observed is a boolean, on change meters only"),
+    ({"meters": {"pay": [{"quantity": "q", "kind": "sum", "argument": "a", "unit": "u",
+                          "observed": True}]}},
+     "tool 'pay': observed is a boolean, on change meters only"),
+    ({"meters": {"move": [dict(METERS["move"][0], previous_field="old")]}},
+     "tool 'move': previous_field needs an observed meter"),
+    ({"meters": {"move": [dict(METERS["move"][0], observed="yes")]}},
+     "tool 'move': observed is a boolean, on change meters only"),
+    ({"meters": {"pay": [{"quantity": "", "kind": "sum", "argument": "a", "unit": "u"}]}},
+     "tool 'pay' quantity must be a non-empty string of at most 200 characters"),
+    ({"meters": {"pay": [{"quantity": "q", "kind": "sum", "argument": "a", "unit": ""}]}},
+     "unit must be a non-empty string of at most 200 characters"),
+    ({"meters": {"pay": [{"quantity": "q", "kind": "sum", "argument": "a",
+                          "unit_argument": ""}]}},
+     "unit_argument must be a non-empty string of at most 200 characters"),
+    ({"meters": {"pay": [{"quantity": "q", "kind": "sum", "argument": "a", "unit": "u",
+                          "resource_argument": ""}]}},
+     "resource_argument must be a non-empty string of at most 200 characters"),
+    ({"meters": {"move": [dict(METERS["move"][0], observed=True, previous_field="")]}},
+     "previous_field must be a non-empty string of at most 200 characters"),
+    ({"meters": {"pay": [{"quantity": "q", "kind": "sum", "argument": "a", "unit": "u"},
+                         {"quantity": "q", "kind": "count", "unit": "u"}]}},
+     "tool 'pay': one meter per quantity"),
+    ({"meters": {"a": [{"quantity": "q", "kind": "sum", "argument": "x", "unit": "u"}],
+                 "b": [{"quantity": "q", "kind": "sum", "argument": "x", "unit": "u",
+                        "scale": 10}]}},
+     "quantity 'q' has two scales"),
+    ({"meters": {"pay": [{"quantity": "q", "kind": "sum", "argument": "a", "unit": "u",
+                          "scale": 0}]}},
+     f"scale must be an integer in \\[1, {MAX}\\]"),
+    ({"meters": {"pay": [{"quantity": "q", "kind": "count", "unit": "u", "per_call": 0}]}},
+     f"per_call must be an integer in \\[1, {MAX}\\]"),
+    ({"limits": ["x"]}, "each limit is an object"),
+    ({"limits": [dict(LIMITS[0], limit_id=None)]}, "limit_id must be a non-empty string of at most 200 characters"),
+    ({"limits": [dict(LIMITS[0], tenant="")]}, "tenant must be a non-empty string of at most 200 characters"),
+    ({"limits": [dict(LIMITS[0], quantity=" ")]}, "quantity must be a non-empty string of at most 200 characters"),
+    ({"limits": [dict(LIMITS[0], unit=1)]}, "unit must be a non-empty string of at most 200 characters"),
+    ({"limits": [dict(LIMITS[0], principal="")]}, "principal must be a non-empty string of at most 200 characters"),
+    ({"limits": [dict(LIMITS[0], resource="")]}, "resource must be a non-empty string of at most 200 characters"),
+    ({"limits": [dict(LIMITS[0], max=-1)]}, f"max must be an integer in \\[0, {MAX}\\]"),
+    ({"limits": [dict(LIMITS[0], max=1.5)]}, f"max must be an integer in \\[0, {MAX}\\]"),
+    ({"limits": [dict(LIMITS[0], max=MAX + 1)]}, f"max must be an integer in \\[0, {MAX}\\]"),
+    ({"limits": [dict(LIMITS[0], window_seconds=0)]},
+     f"window_seconds must be an integer in \\[1, {MAX}\\]"),
+    ({"limits": [LIMITS[0], LIMITS[0]]}, "limit_id values must be unique"),
+    ({"baselines": ["x"]}, "each baseline is an object"),
+    ({"baselines": [dict(BASELINES[0], quantity="spend2")]},
+     "baseline for unmetered quantity 'spend2'"),
+    ({"baselines": [dict(BASELINES[0], quantity="")]},
+     "baseline quantity must be a non-empty string of at most 200 characters"),
+    ({"baselines": [dict(BASELINES[0], value=19.05)]},
+     "baseline value for 'movement' is not exact at scale 10"),
+    ({"baselines": [dict(BASELINES[0], tenant="")]}, "tenant must be a non-empty string of at most 200 characters"),
+    ({"baselines": [dict(BASELINES[0], resource="")]}, "resource must be a non-empty string of at most 200 characters"),
+    ({"baselines": [dict(BASELINES[0], seed_id="")]}, "seed_id must be a non-empty string of at most 200 characters"),
+    ({"baselines": [BASELINES[0], dict(BASELINES[0], seed_id="s2")]},
+     "two baselines for one resource"),
+    ({"idempotency": "x"}, "idempotency is an object keyed by tool"),
+    ({"idempotency": {"read": {"key_arguments": ["a"]}}},
+     "idempotency for unmetered tool 'read'"),
+    ({"idempotency": {"pay": {"key_arguments": []}}},
+     "tool 'pay': key_arguments is a non-empty list of distinct argument names"),
+    ({"idempotency": {"pay": {"key_arguments": ["a", "a"]}}},
+     "tool 'pay': key_arguments is a non-empty list of distinct argument names"),
+    ({"idempotency": {"pay": {"key_arguments": [""]}}},
+     "tool 'pay' key argument must be a non-empty string of at most 200 characters"),
+    ({"non_execution": "x"}, "non_execution is an object keyed by tool"),
+    ({"non_execution": {"read": {"trusted_sources": ["rail"]}}},
+     "non_execution for unmetered tool 'read'"),
+    ({"non_execution": {"pay": {"trusted_sources": []}}},
+     "tool 'pay': trusted_sources is a non-empty list of distinct source names"),
+    ({"non_execution": {"pay": {"trusted_sources": [""]}}},
+     "tool 'pay' trusted source must be a non-empty string of at most 200 characters"),
+]
+
+
+@pytest.mark.parametrize("changes, message", MALFORMED, ids=[m for _, m in MALFORMED])
+def test_a_malformed_policy_refuses_and_says_why(changes, message):
+    """The operator reads this message when a signed limits.json is wrong and
+    the deployment refuses to start. The words are the contract: the whole
+    message, anchored, so a wrapped or extended message does not pass."""
+    with pytest.raises(cl.LimitPolicyError) as caught:
         policy(**changes)
+    assert re.fullmatch(message, str(caught.value)), str(caught.value)
+
+
+def test_the_validation_bounds_are_inclusive():
+    long = "x" * 200
+    p = policy(limits=[dict(LIMITS[0], max=0, window_seconds=1),
+                       dict(LIMITS[0], limit_id="big", tenant=long, max=MAX)])
+    assert (p.limits[0].max, p.limits[0].window_seconds) == (0, 1)
+    assert (p.limits[1].max, p.limits[1].tenant) == (MAX, long)
+    with pytest.raises(cl.LimitPolicyError, match="tenant must be a non-empty string of at most 200 characters"):
+        policy(limits=[dict(LIMITS[0], tenant="x" * 201)])
+    assert cl._scaled(MAX, 1) == MAX and cl._scaled(MAX + 1, 1) is None
+    assert cl._scaled(MAX / 100, 100) == MAX
+
+
+def test_a_zero_limit_refuses_every_metered_call(tmp_path):
+    guard = cl.LimitGuard(policy(limits=[dict(LIMITS[0], max=0)]),
+                          cl.LimitLedger(tmp_path / "zero.db"))
+    assert reserve(guard, "pay", "A", amount=1, cur="JPY") == cl.EXCEEDED
 
 
 def test_three_times_7000_against_20000(guard):

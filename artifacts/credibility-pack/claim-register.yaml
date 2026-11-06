@@ -358,9 +358,17 @@ claims:
       place). AROMER's own status is unchanged by that profile. Do not cite AII as
       a safety proof. AROMER is NOT the core governance system; AII metrics do not
       imply safety for the REMORA decision engine.
-      The AII values are live D1 telemetry transcribed into the NEGATIVE_RESULTS.md
-      §11 table; no committed machine-readable artifact carries them, so no gate
-      can bind them. The committed snapshot artifacts/aromer/intelligence_after_v020.json
+      The AII values were live D1 telemetry transcribed into the NEGATIVE_RESULTS.md
+      §11 table until 2026-11-03, when the D1 export
+      artifacts/aromer/d1_export_2026-11-03/aromer_d1_export_2026-11-03.json (key
+      intelligence_scores_daily, last snapshot per UTC day) committed the series.
+      It is cited here, not gate-bound: the export was a shell export with no
+      provenance sidecar, and a sidecar is never written retroactively. Values:
+      0.8440 on 2026-06-27 and 0.8441 on 2026-06-28 agree with the peak; the
+      same-day regression to 0.7885 is intra-day and not visible at daily
+      resolution. The series then rises to 0.9240 (06-29), 0.9851 (06-30) and
+      0.9918 (07-01) while ECE falls from 0.0637 to 0.0065 in one day; §101 records
+      that step as unexplained. The committed snapshot artifacts/aromer/intelligence_after_v020.json
       (2026-06-09) predates this run and reads AII=0.5165 (history peak 0.6497,
       trend degraded_from_peak); it was listed as evidence until 2026-09-28 and
       does not support this claim.
