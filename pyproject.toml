@@ -535,6 +535,7 @@ pytest_add_cli_args_test_selection = [
     # measured against a runner that never exercised it.
     "tests/limits/test_limits_binding.py",
     "tests/limits/test_limits_exempt_while_safe.py",
+    "tests/limits/test_limits_free_toward_safe.py",
     "tests/limits/test_limits_mutation_contract.py",
     "tests/limits/test_limits_idempotency.py",
     "tests/limits/test_limits_ledger_topology.py",
