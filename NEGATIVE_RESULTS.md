@@ -178,8 +178,10 @@ cites only `open` sections and that no `open` section is missing a theme.
 19. **Cumulative limits hold only where a deployment declares them** (§97):
    REMORA as shipped executed three approved payments of 7000 past a 20000
    budget, and small setpoint moves that added up without bound. Opt-in
-   limits reserved before dispatch now refuse both, tested on the author's
-   replays only. How often they refuse legitimate calls is unmeasured.
+   limits reserved before dispatch now refuse both. Blind OT holdouts measured
+   both sides. The undeployed v4 candidate refused no legitimate write in 40
+   shifts with a stop. Against misuse it let 23 of 40 episodes reach their
+   harm, where the deployed v3 let 18 and v1 5 (plan v4, DOC-429).
 
 20. **Atomic admission has run only in the author's tests** (§98): a
    2026-10-24 audit found that the review path returned an unspent, signed
@@ -2711,7 +2713,7 @@ sections again.
 | Approvability is not yet monotone (§90) | Every firing guard and gate enters the meet (#944). A risk signal on an abstained call still opens a review route, and medium-to-high risk lowers a production write from ESCALATE to VERIFY. The owner decided on 2026-10-18; the strict profile closes both on the execution API by default (2026-10-20), and two strict xfails pin the library default | Medium |
 | REMORA blocked 90 of 91 legitimate AgentDojo calls in a development dry run (§92) | E1 and E2 complete 11 of 29 tasks against 10 for refuse-all; 70 of the blocks are `semantic_authority_unknown_verify`. SAP v7 requires E1 to beat refuse-all; the IFC read path (CAPR-03) is the design response and is not built | **High** |
 | Study C holdout: utility recovered and authority held under defence-aware search; the monitor threshold decided how much (§96) | H_DET and H_COST 20/33 reads, H_EDV 32/33, H0 0/33; every loss a monitor veto at the threshold. No WS1 arm executed an attack goal, an out-of-scope call or a leak in 121 attack episodes each; arm A did | **High** |
-| REMORA did not stop a payment past its budget, and had nothing that could (§97) | Replayed through /assess, /approve and /execute, all three 7000 payments ran (21000 of 20000). Opt-in cumulative limits reserved at dispatch (CAP-031) now refuse the third, and cap setpoint movement, starts and runtime per unit; author's replays only, false refusals unmeasured | **High** |
+| REMORA did not stop a payment past its budget, and had nothing that could (§97) | Replayed through /assess, /approve and /execute, all three 7000 payments ran (21000 of 20000). Opt-in cumulative limits reserved at dispatch (CAP-031) now refuse the third, and cap setpoint movement, starts and runtime per unit; author's replays only. Blind OT holdouts: legitimate writes refused in 26 of 40 shifts (v1), 3 of 40 (v2), 6 of 40 with a stop (v3) and 0 of 40 (v4 candidate, not deployed); misuse harm reached in 5 of 40 episodes (v1), 18 (v3) and 23 (candidate) | **High** |
 | The review path handed back an unspent grant when the admission refused (§98) | Under `REMORA_WS1_ADMISSION=atomic` the ACCEPT grant was minted before the admission; a refusal rolled the spend back and the response still carried the grant, which `/execute-accepted` accepted and spent. Now spent in place and withheld; route tests pin it. Author's tests only | **High** |
 | G1 failed on AgentDojo development tasks (§100) | `E_IFC_WS1` completed 7/18 benign tasks against 6/18 for refuse-all and kept 0/48 injected goals; 14 blocked benign calls were 12 writes and 2 `get_webpage` reads, payload integrity the main cause. Scripted replay, zero model calls; SAP v8 stays DRAFT and unregistered | **High** |
 | The AROMER learning layer ran idle for four months, and its AII step is unexplained (§101) | 124 daily snapshots after the last episode (2026-07-02) show AII 0.9897 to 0.9915 on a frozen 200-episode sample; nine priors and all three bandit rows carry observation counts above the 21,864 episodes; the one-day ECE drop from 0.0637 to 0.0065 on 06-29 has no recorded cause. On the 18,249 recorder-hook episodes AROMER asked for review on 3,033 (16.6 %), 2,767 of them medium-tier shell execution | **Medium** |
