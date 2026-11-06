@@ -21,9 +21,15 @@
     "measured_with_python": "3.13.7 (macOS arm64, venv with the dev extras)",
     "requirements_lock": {
       "path": "requirements-lock.txt",
-      "sha256_lf": "29a96e23d896adf13812921fdc2a04600e993fb86e07444c1ea87c1a0443bd66"
+      "sha256_lf": "0663a9c9665a579c3d1c8f2cf5a7160bed465b9425a5e28157ebfd839699efee"
     },
     "requirements_lock_history": [
+      {
+        "path": "requirements-lock.txt",
+        "git_revision": "c1ccaf69f3fec2c73e6a98500c9c00a64020d944",
+        "sha256_lf": "29a96e23d896adf13812921fdc2a04600e993fb86e07444c1ea87c1a0443bd66",
+        "reason": "oauthlib 4.0.1 (Dependabot alert #426, high)"
+      },
       {
         "path": "requirements-lock.txt",
         "git_revision": "f954d483cbd27a6b3458522c4bb8689140c6ac0c",

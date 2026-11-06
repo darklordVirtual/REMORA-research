@@ -3749,9 +3749,9 @@
     },
     "artifacts/replication-pack/replication_pack_v1.json": {
       "concepts": [],
-      "git_blob": "3510b7028c724be099735eff490c3f56bf9f96d1",
+      "git_blob": "3951f097d1d7f4cf4cd754f35549cc54d64d4782",
       "mode": "100644",
-      "sha256": "97910f1c47e4b04c965b24fa7a454e1eaa206f1917f9512ce2ea8a4b55ad064f"
+      "sha256": "22a322cc7f4034ec609a76a639f2052bd333892d7bddd2e6bbefc3f0abc1a7d4"
     },
     "artifacts/reproduce.sh": {
       "concepts": [],
@@ -14205,9 +14205,9 @@
     },
     "requirements-lock.txt": {
       "concepts": [],
-      "git_blob": "dbf03b5a91c6eb529bb1cc580316f4fe3cf4b9ac",
+      "git_blob": "811569e5edc421ad7495f54d5ab4de1cf3b31d7d",
       "mode": "100644",
-      "sha256": "29a96e23d896adf13812921fdc2a04600e993fb86e07444c1ea87c1a0443bd66"
+      "sha256": "0663a9c9665a579c3d1c8f2cf5a7160bed465b9425a5e28157ebfd839699efee"
     },
     "requirements-mutation.in": {
       "concepts": [],
@@ -22915,7 +22915,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "13bfea45256cbdd69db14523b085729613298b79edd1acdaae9b080194973dc2",
+  "register_sha256": "f7f778a37f5e81d5c655ade41001e96cd3a44bdfee3d3b41f484beb6287e106e",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
