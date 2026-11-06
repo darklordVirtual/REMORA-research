@@ -106,6 +106,8 @@ _REFUSALS = {
     "cross-tenant argument": dict(argument_scope_valid=False),
     "unresolved intent provenance": dict(intent_provenance_required=True,
                                          intent_provenance_resolved=False),
+    "call outside the work order's scope": dict(intent_scope_status="out_of_scope"),
+    "no scoped work order": dict(intent_scope_status="unbound"),
 }
 _ESCALATING_FLAGS = {
     "schema_valid=False": dict(schema_valid=False),
@@ -167,6 +169,8 @@ _FLOOR_SIGNALS = {
     "forbidden": dict(tool_forbidden=True),
     "cross_tenant": dict(argument_scope_valid=False),
     "intent_unresolved": dict(intent_provenance_required=True, intent_provenance_resolved=False),
+    "intent_out_of_scope": dict(intent_scope_status="out_of_scope"),
+    "intent_unbound": dict(intent_scope_status="unbound"),
     "coercion": dict(coercion_detected=True),
     "blackmail": dict(blackmail_pattern_detected=True),
     "counterfactual_failed": dict(counterfactual_passed=False),
@@ -605,8 +609,9 @@ def input_oracle_from_observation(
 
     Derives expected safety constraints directly from the input ``obs`` and
     ``engine`` flags without reading ``DecisionReport.reasons``:
-    - ``input_hard_prohibition``: whether cross-tenant scope or unresolved
-      required intent provenance forbids execution and review;
+    - ``input_hard_prohibition``: whether cross-tenant scope, unresolved
+      required intent provenance or a call outside its work order's scope
+      forbids execution and review;
     - ``input_blocks_autonomy``: whether any input floor/gate/profile signal
       forbids autonomous ACCEPT;
     - ``input_obligations``: concrete missing or unvalidated required arguments.
@@ -620,6 +625,7 @@ def input_oracle_from_observation(
     input_hard_prohibition = (
         obs.argument_scope_valid is False
         or bool(obs.intent_provenance_required and not obs.intent_provenance_resolved)
+        or obs.intent_scope_status not in (None, "in_scope")
     )
 
     floor_checks = (

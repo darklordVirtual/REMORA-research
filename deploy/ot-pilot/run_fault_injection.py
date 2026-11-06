@@ -304,7 +304,7 @@ class Fault:
 
 
 def f_restart_between_approve_and_execute(rec: dict) -> bool:
-    tc = tool_call("create_work_order", {"wo_id": "WO-1401"}, "WO-1205")
+    tc = tool_call("create_work_order", {"wo_id": "WO-1401"}, "WO-1206")
     item = approved_item(tc)
     compose("restart", "api")
     rec["api_back"] = wait_healthy()
@@ -316,7 +316,7 @@ def f_restart_between_approve_and_execute(rec: dict) -> bool:
 
 
 def f_spent_grant_stays_spent_across_restart(rec: dict) -> bool:
-    tc = tool_call("create_work_order", {"wo_id": "WO-1402"}, "WO-1205")
+    tc = tool_call("create_work_order", {"wo_id": "WO-1402"}, "WO-1206")
     item = approved_item(tc)
     s1, b1 = execute(item, tc)
     compose("restart", "api")
@@ -348,13 +348,13 @@ def f_limits_survive_restart(rec: dict) -> bool:
 
 
 def f_store_outage_during_execute(rec: dict) -> bool:
-    tc = tool_call("adjust_setpoint", {"loop": "FIC-220", "value": 121.0}, "WO-1201")
+    tc = tool_call("adjust_setpoint", {"loop": "FIC-220", "value": 121.0}, "WO-1207")
     item = approved_item(tc)
     compose("stop", "postgres")
     IN_FAULT_WINDOW.set()
     try:
         s_exec, b_exec = execute(item, tc)
-        s_assess, b_assess = propose(tool_call("create_work_order", {"wo_id": "WO-1403"}, "WO-1205"))
+        s_assess, b_assess = propose(tool_call("create_work_order", {"wo_id": "WO-1403"}, "WO-1206"))
     finally:
         IN_FAULT_WINDOW.clear()
         compose("start", "postgres")
@@ -410,7 +410,7 @@ def f_readiness_follows_the_store(rec: dict) -> bool:
 
 
 def f_concurrent_executions_of_one_approval(rec: dict) -> bool:
-    tc = tool_call("create_work_order", {"wo_id": "WO-1404"}, "WO-1205")
+    tc = tool_call("create_work_order", {"wo_id": "WO-1404"}, "WO-1206")
     item = approved_item(tc)
     barrier, out = threading.Barrier(4), []
 
@@ -433,7 +433,7 @@ def f_same_proposal_twice(rec: dict) -> bool:
     # The pilot's limit policy declares no idempotency.key_arguments, so two
     # separately approved identical proposals are two operations. This fault
     # records that documented behaviour; it is not a guarantee.
-    tc = tool_call("create_work_order", {"wo_id": "WO-1405"}, "WO-1205")
+    tc = tool_call("create_work_order", {"wo_id": "WO-1405"}, "WO-1206")
     items = [approved_item(tc), approved_item(tc)]
     results = [execute(item, tc) for item in items]
     ran = sum(1 for s, b in results if s == 200 and executed(b) is True)
@@ -444,7 +444,7 @@ def f_same_proposal_twice(rec: dict) -> bool:
 
 
 def f_stop_between_approve_and_execute(rec: dict) -> bool:
-    tc = tool_call("create_work_order", {"wo_id": "WO-1406"}, "WO-1205")
+    tc = tool_call("create_work_order", {"wo_id": "WO-1406"}, "WO-1206")
     item = approved_item(tc)
     HUMAN_STEPS.append("stop")
     s_stop, _ = call("POST", "/v1/execution/stop", SUPERVISOR, {"reason": "fault injection"})
@@ -460,7 +460,7 @@ def f_stop_between_approve_and_execute(rec: dict) -> bool:
 
 
 def f_tool_fails_after_dispatch_began(rec: dict) -> bool:
-    tc = tool_call("close_work_order", {"wo_id": "WO-9999"}, "WO-1203")
+    tc = tool_call("close_work_order", {"wo_id": "WO-9999"}, "WO-1208")
     item = approved_item(tc)
     s1, b1 = execute(item, tc)
     te = (b1 or {}).get("tool_execution") or {}
@@ -489,7 +489,7 @@ def f_tool_fails_after_dispatch_began(rec: dict) -> bool:
 
 def f_approver_revoked_after_approval(rec: dict) -> bool:
     # Last: the approver stays revoked for the rest of the stack's life.
-    tc = tool_call("create_work_order", {"wo_id": "WO-1407"}, "WO-1205")
+    tc = tool_call("create_work_order", {"wo_id": "WO-1407"}, "WO-1206")
     item = approved_item(tc)
     HUMAN_STEPS.append("revoke")
     s_rev, _ = call("POST", "/v1/execution/revoke-principal", SUPERVISOR,

@@ -56,6 +56,7 @@ from types import MappingProxyType
 from typing import Any, ClassVar
 
 from remora.observability.events import governance_event
+from remora.policy.composition import NON_APPROVABLE_REASONS
 from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction, DecisionReason, DecisionReport
 
@@ -72,6 +73,20 @@ OPA_EXPORT_EXCLUSIONS: frozenset[str] = frozenset({
     "intent_resolution_status", # internal audit reason; deliberately not public policy input
     "flow_epoch",               # binding for the dispatch-time re-check (IFC-06); not a guard input
     "flow_digest",              # same
+    "intent_scope_violations",  # audit only; the engine reads intent_scope_status
+})
+
+
+#: Why each non-approvable floor refuses, for the report's explanation.
+_NON_APPROVABLE_CAUSE: Mapping[DecisionReason, str] = MappingProxyType({
+    DecisionReason.CROSS_TENANT_ARGUMENT_BLOCKED:
+        "The deployment proved an argument crossed its tenant boundary.",
+    DecisionReason.INTENT_PROVENANCE_REQUIRED:
+        "The intent did not resolve from a deployment-owned source.",
+    DecisionReason.INTENT_SCOPE_MISMATCH:
+        "The call is outside the scope of the work order its intent_ref names.",
+    DecisionReason.INTENT_AUTHORITY_UNBOUND:
+        "No scoped work order resolves for the call's intent_ref.",
 })
 
 
@@ -172,6 +187,8 @@ class OPAContext:
     # deployment-owned source. Read by the engine, so exported, not excluded.
     intent_provenance_required: bool
     intent_provenance_resolved: bool | None
+    # Property D, deployment-declared work-order scope. Read by the engine.
+    intent_scope_status: str | None
     missing_required_arguments: tuple[str, ...]
     argument_resolver_tools: tuple[str, ...]
     proposed_tool_name: str | None
@@ -407,14 +424,11 @@ class OPAAdapter:
         # deployment boundary. ESCALATE creates an approval route; a tenant
         # boundary is deliberately non-approvable. Preserve the exact hard
         # refusal even if an external policy calls review "stricter".
-        non_approvable_floor = bool(
-            floor and floor[1] in (
-                DecisionReason.CROSS_TENANT_ARGUMENT_BLOCKED,
-                # Same shape: missing authority is not something review can
-                # supply, so the refusal must survive an external policy.
-                DecisionReason.INTENT_PROVENANCE_REQUIRED,
-            )
-        )
+        # The set is the composition's own (cross-tenant argument, missing
+        # intent provenance, an intent scope the call falls outside): missing
+        # authority is not something review can supply, so the refusal must
+        # survive an external policy.
+        non_approvable_floor = bool(floor and floor[1] in NON_APPROVABLE_REASONS)
 
         # Same fail-closed normalisation as the engine: strips whitespace and
         # maps unknown values to "unknown", so ' HIGH ' cannot bypass the
@@ -445,9 +459,11 @@ class OPAAdapter:
                 human_review_required=False,
                 source_of_decision=floor_source,
                 explanation=(
-                    "The deployment proved an argument crossed its tenant "
-                    "boundary. This hard ABSTAIN has no approval route; an "
-                    f"external '{report.action.value}' cannot replace it. "
+                    _NON_APPROVABLE_CAUSE.get(
+                        floor_reasons[0], "The call lacks authority review cannot supply.")
+                    + " This hard ABSTAIN has no approval route; an "
+                    f"external '{report.action.value}' cannot replace it "
+                    "(decision monotonicity floor). "
                     "Original OPA explanation: " + report.explanation
                 ),
             )

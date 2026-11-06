@@ -17,8 +17,9 @@ Ties are resolved by component order, earliest first, so a decision that
 first-match and meet agree on keeps its reasons unchanged.
 
 A refusal that review cannot lift ranks below every other cap (RMR-AUD-003).
-ESCALATE opens a review item on the execution path; a cross-tenant argument or
-an intent the deployment never authorised has no such route. Under the tie
+ESCALATE opens a review item on the execution path; a cross-tenant argument,
+an intent the deployment never authorised, or a call outside the scope of the
+work order it is made under has no such route. Under the tie
 ``ABSTAIN ≡ ESCALATE`` an ESCALATE guard listed earlier (``schema_valid=False``,
 ``adversarial_detected``) won the tie and turned the refusal into a review
 item. A cap is non-approvable when its reason is in ``NON_APPROVABLE_REASONS``
@@ -68,6 +69,10 @@ EXTERNAL_CAP_REASONS: Final = frozenset({
 NON_APPROVABLE_REASONS: Final = frozenset({
     DecisionReason.CROSS_TENANT_ARGUMENT_BLOCKED,
     DecisionReason.INTENT_PROVENANCE_REQUIRED,
+    # A work order's scope is authority, not advice: an approver cannot extend
+    # it to another tool, effect or target, nor supply one that is missing.
+    DecisionReason.INTENT_AUTHORITY_UNBOUND,
+    DecisionReason.INTENT_SCOPE_MISMATCH,
     # Emitted only by the opt-in strict_monotone profile (RMR-AUD-001).
     DecisionReason.RISK_SIGNAL_NO_ROUTE,
 })

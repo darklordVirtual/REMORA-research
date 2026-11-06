@@ -216,7 +216,26 @@ _HARD_GUARD_CASES = [
      DecisionReason.EVIDENCE_CONTRADICTED),
     ({"argument_tainted": True}, DecisionAction.VERIFY,
      DecisionReason.TAINTED_ARGUMENT_VERIFY),
+    ({"intent_scope_status": "out_of_scope"}, DecisionAction.ABSTAIN,
+     DecisionReason.INTENT_SCOPE_MISMATCH),
+    ({"intent_scope_status": "unbound"}, DecisionAction.ABSTAIN,
+     DecisionReason.INTENT_AUTHORITY_UNBOUND),
 ]
+
+
+def test_an_escalating_opa_policy_cannot_turn_a_scope_refusal_into_review() -> None:
+    """ESCALATE opens a review item; an out-of-scope call must keep ABSTAIN."""
+    for status, reason in (("out_of_scope", DecisionReason.INTENT_SCOPE_MISMATCH),
+                           ("unbound", DecisionReason.INTENT_AUTHORITY_UNBOUND)):
+        obs = PolicyObservation(question="set valve", risk_tier="high",
+                                action_type="write", intent_scope_status=status)
+        adapter = _adapter_with_opa_response("escalate")
+        with adapter._urlopen_patch:
+            report, fallback_used = adapter.evaluate(obs)
+        assert not fallback_used
+        assert report.action == DecisionAction.ABSTAIN, status
+        assert reason in report.reasons
+        assert not report.human_review_required
 
 
 def test_opa_accept_cannot_override_any_hard_guard() -> None:

@@ -99,7 +99,13 @@ from remora.toolcall.semantic_bundle import (
     load_argument_scope_validator,
     load_intent_resolution_provider,
     load_intent_resolver,
+    load_intent_scope_validator,
     load_semantic_bundle,
+)
+from remora.toolcall.intent_scope import (
+    UNBOUND,
+    IntentScopeResult,
+    normalise_scope_result,
 )
 from remora.toolcall.toolspec import ToolSpecBundle, ToolSpecRefused
 
@@ -2474,6 +2480,13 @@ def semantic_call_context(
             argument_scope_valid=scope.valid,
             scope_violating_arguments=scope.violating_arguments,
         )
+    intent_scope = _intent_scope_result(intent_ref, tool_name, arguments, tenant)
+    if intent_scope is not None:
+        full = dataclasses.replace(
+            full,
+            intent_scope_status=intent_scope.status,
+            intent_scope_violations=intent_scope.violations,
+        )
     from remora.enforcement.custody import custody_is_enforced
 
     full = dataclasses.replace(
@@ -2510,6 +2523,26 @@ def semantic_call_context(
         "derivation_transforms_digest": DERIVATION_TRANSFORMS_DIGEST,
     }
     return full, context
+
+
+def _intent_scope_result(
+    intent_ref: str | None, tool_name: str, arguments: dict[str, Any], tenant: str,
+) -> IntentScopeResult | None:
+    """The deployment's work-order scope verdict, or ``None`` when it declares none.
+
+    A validator that raises or answers in another shape has not shown the call
+    to be in scope, so the call is recorded as unbound and refused.
+    """
+    validator = load_intent_scope_validator()
+    if validator is None:
+        return None
+    try:
+        answer = validator(intent_ref, tool_name, dict(arguments), tenant)
+    except Exception:  # noqa: BLE001 - any failure is fail-closed
+        _LOGGER.warning("intent scope validator raised; call recorded as unbound",
+                     exc_info=True)
+        return IntentScopeResult(UNBOUND, ("validator_error",))
+    return normalise_scope_result(answer)
 
 
 def _observation(req: ToolCallRequest, tenant: str) -> PolicyObservation:
