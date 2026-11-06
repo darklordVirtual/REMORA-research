@@ -4,6 +4,22 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### OT pilot: the plant in its own trust domain and an independent effect verifier; A to G assessed (AACP E, G, 2026-11-06)
+
+- `deploy/ot-pilot/plant_service.py` runs the simulated plant as its own service and image, using only the standard library. Its write token is carried only by the API container and its read token only by the effect verifier, and it journals every request with the credential it presented. `ot_registry.py` writes to it over HTTP and refuses an in-process plant in production. The compose file puts PostgreSQL, the plant and the agent zone on separate internal networks; the `agent` service reaches only the API.
+- `deploy/ot-pilot/credential_topology.yaml` declares which container carries which secret, who reads it and who reaches whom. `scripts/check_ot_pilot_topology.py` fails on each drift and runs in CI.
+- `run_boundary_suite.py` makes 53 attempts in the five AACP minimum classes and two more, from the agent container. `run_boundary_assessment.py` reconciles the plant journal with REMORA's dispatches for that interval (`reconcile.py`), scans the agent's capture for secrets and runs a detector-sensitivity control. The control is a direct write from inside the API container, and it is reported as unattributed.
+- `effect_verifier.py` finds every executed dispatch through the new read-only `GET /v1/execution/dispatches`. It reads the target back with the read-only token and signs a receipt with its own key. ToolSpec schema 5 signs a postcondition per write, so REMORA computes the verdict and derives the vantage `independent`.
+- `servers/execution_api.py`: an unchanged revision with the declared delta absent is now EFFECT_MISMATCH `postcondition_effect_absent`, where it was UNOBSERVABLE. With the delta present it stays UNOBSERVABLE. `run_effect_verification.py` covers an honest plant, declared faults (clamp, drop, hide) and receipts REMORA must refuse.
+- Measured on the rebuilt stack (`artifacts/ot-pilot/aacp-a-g-2026-11-06/`):
+  - battery 16 of 16, with 6 of 6 writes verified independently;
+  - fault injection 10 of 10;
+  - scenarios 23 of 24 (S20, §97);
+  - E: no attempt reached the plant, the interval reconciles, no secret leaked, the detector control was detected;
+  - G: honest 5 of 5, faults 4 of 4, receipt controls 4 of 4.
+  The new AACP v0.2 self-assessment records A to G as bounded PASS. The two earlier records are unchanged. E holds for the agent container as the zone; the host, the API container and the verifier container are outside it. Nothing here is independent.
+- Tests: `tests/test_ot_pilot_plant_boundary.py`, `tests/test_ot_pilot_effect_verification.py` (the full G chain in-process), `tests/test_aacp_ot_pilot_assessment.py` (the record agrees with its run files), and the signed-receipt route. OpenAPI and the generated frontend types are regenerated, and the mediation inventory classifies the new route (29 routes).
+
 ### OT pilot: a call outside its work order's scope is refused before review (AACP D, 2026-11-06)
 
 - `remora/toolcall/intent_scope.py`: the structured scope of one intent authority (tools, contract effects, target identifiers per target argument) and an exact check against it. Identifiers match as given, with no case, whitespace or prefix folding; a value that is not a string never matches; violations name the dimension (`tool`, `effect`, `target:<argument>`), never the value.

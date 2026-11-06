@@ -1,0 +1,142 @@
+{
+ "register": "deploy/ot-pilot/credential_topology.yaml",
+ "compose": "deploy/ot-pilot/docker-compose.yml",
+ "credentials": 18,
+ "holders": {
+  "OT_AUDIT_SIGNING_KEY": [
+   "api"
+  ],
+  "OT_ENVELOPE_SIGNING_KEY": [
+   "api"
+  ],
+  "OT_LEASE_SIGNING_KEY": [
+   "api"
+  ],
+  "OT_PDP_SIGNING_KEY": [
+   "api"
+  ],
+  "OT_PLANT_FAULTS": [
+   "plant"
+  ],
+  "OT_PLANT_READ_TOKEN": [
+   "plant",
+   "verifier"
+  ],
+  "OT_PLANT_WRITE_TOKEN": [
+   "api",
+   "plant"
+  ],
+  "OT_TOKEN_AGENT": [
+   "agent",
+   "api"
+  ],
+  "OT_TOKEN_APPROVER": [
+   "api"
+  ],
+  "OT_TOKEN_SUPERVISOR": [
+   "api"
+  ],
+  "OT_TOKEN_VERIFIER": [
+   "api",
+   "verifier"
+  ],
+  "OT_TOKEN_VIEWER": [
+   "api",
+   "console"
+  ],
+  "OT_TOOLSPEC_PINNED_DIGEST": [
+   "api"
+  ],
+  "OT_TOOLSPEC_VERIFY_KEY": [
+   "api"
+  ],
+  "OT_VERIFIER_PUBLIC_KEY": [
+   "api"
+  ],
+  "OT_VERIFIER_SIGNING_SEED": [
+   "verifier"
+  ],
+  "POSTGRES_PASSWORD": [
+   "api",
+   "postgres"
+  ],
+  "REMORA_LIMITS_TRUSTED_KEYS": [
+   "api"
+  ]
+ },
+ "readers": {
+  "OT_PLANT_FAULTS": [
+   "deploy/ot-pilot/plant_service.py"
+  ],
+  "OT_PLANT_READ_TOKEN": [
+   "deploy/ot-pilot/effect_verifier.py",
+   "deploy/ot-pilot/plant_dump.py",
+   "deploy/ot-pilot/plant_service.py"
+  ],
+  "OT_PLANT_WRITE_TOKEN": [
+   "deploy/ot-pilot/ot_registry.py",
+   "deploy/ot-pilot/plant_service.py"
+  ],
+  "OT_TOKEN_AGENT": [
+   "deploy/ot-pilot/pilot_host.py",
+   "deploy/ot-pilot/run_boundary_suite.py",
+   "deploy/ot-pilot/run_fault_injection.py",
+   "deploy/ot-pilot/run_independent_scenarios.py",
+   "deploy/ot-pilot/run_ot_battery.py"
+  ],
+  "OT_TOKEN_APPROVER": [
+   "deploy/ot-pilot/pilot_host.py",
+   "deploy/ot-pilot/run_fault_injection.py",
+   "deploy/ot-pilot/run_independent_scenarios.py",
+   "deploy/ot-pilot/run_ot_battery.py"
+  ],
+  "OT_TOKEN_SUPERVISOR": [
+   "deploy/ot-pilot/run_fault_injection.py"
+  ],
+  "OT_TOKEN_VERIFIER": [
+   "deploy/ot-pilot/effect_verifier.py",
+   "deploy/ot-pilot/run_effect_verification.py"
+  ],
+  "OT_TOKEN_VIEWER": [
+   "deploy/ot-pilot/pilot_host.py",
+   "deploy/ot-pilot/run_fault_injection.py",
+   "deploy/ot-pilot/run_independent_scenarios.py",
+   "deploy/ot-pilot/run_ot_battery.py"
+  ],
+  "OT_VERIFIER_SIGNING_SEED": [
+   "deploy/ot-pilot/effect_verifier.py",
+   "deploy/ot-pilot/run_effect_verification.py"
+  ]
+ },
+ "agent_zone": {
+  "service": "agent",
+  "networks": [
+   "agent-net"
+  ],
+  "credentials_carried": [
+   "OT_TOKEN_AGENT"
+  ]
+ },
+ "network_members": {
+  "agent-net": [
+   "agent",
+   "api"
+  ],
+  "backend": [
+   "api",
+   "postgres"
+  ],
+  "edge": [
+   "api",
+   "console",
+   "verifier"
+  ],
+  "plant-net": [
+   "api",
+   "plant",
+   "verifier"
+  ]
+ },
+ "problems": [],
+ "ok": true
+}

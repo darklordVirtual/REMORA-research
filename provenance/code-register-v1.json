@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "4d23c5045311deccc8d292c36d3ec03590b2c74f",
+      "git_blob": "2c511d4fba44d1333fd0eacbf0f0b9d085ad4644",
       "mode": "100644",
-      "sha256": "8f3ef7104071c69ae45e6a91604c6ef74324dc3833f5586663c423c566d97500"
+      "sha256": "203002358d32d13dcddec2adba2c28e6e6184ba15b4f1fa7a0138f1e60197002"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -369,9 +369,9 @@
     },
     "NEGATIVE_RESULTS.md": {
       "concepts": [],
-      "git_blob": "f17068b48a2c859abba0ded840e26a0277efe74a",
+      "git_blob": "35204f417d70f000ae122de0d77e4fa4e3b29653",
       "mode": "100644",
-      "sha256": "21310b003d852d75c666067c71d715c788c22cd67edf23ff26f0c2ac6bfed61d"
+      "sha256": "45615729011029cfb2f25d4f42a295766fff4cf674c1a6581b94fb68a64ebf45"
     },
     "NOTICE": {
       "concepts": [],
@@ -3116,6 +3116,132 @@
       "git_blob": "1932e94f03fbf03fb61fb5dfbabbdd84e52d042a",
       "mode": "100644",
       "sha256": "374a14e5aca7b38ebb9af6b300e6e7fc9e9ff61aaf101bb26207d1da5562ee7c"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/README.md": {
+      "concepts": [],
+      "git_blob": "180b2686e3784771378860790f1c35f1583cdd9a",
+      "mode": "100644",
+      "sha256": "f8d0ccb8fcb753827e212ef7aff284a8555821e3f8777b5d7106caecd256ec4f"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/aacp-assessment-v0.2.json": {
+      "concepts": [],
+      "git_blob": "9242b9c366547cc5eba2e86ab75b71acd99f59e5",
+      "mode": "100644",
+      "sha256": "dbd39d2048057239110e215c3ab0f117c8c1c90249f0ac8dd53179aee78c2346"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/battery/chain-verification.json": {
+      "concepts": [],
+      "git_blob": "27fcc386143d1a2e6a646f70d276a3470a49c886",
+      "mode": "100644",
+      "sha256": "060561d921d8811f05714394f84e34ca2004697f96c30c0ba63154eff47f3274"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/battery/manifest.json": {
+      "concepts": [],
+      "git_blob": "77827e2ee49ad17f7c355ff2ce79c7f7dc356901",
+      "mode": "100644",
+      "sha256": "a4990e252bb2683bd99a58d6396a05e1ef89397401582555cd59afe8fc051758"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/battery/metrics.json": {
+      "concepts": [],
+      "git_blob": "301edca8abc83088833d02ecb080b5b572279a2c",
+      "mode": "100644",
+      "sha256": "a212743029b69756d5223c0ff1b826b67d55140e02652f98a33fdaa19d3a8b14"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/battery/report.txt": {
+      "concepts": [],
+      "git_blob": "a5d836ef6fd63aedbccafeb4be8276e682eaa807",
+      "mode": "100644",
+      "sha256": "b258a6de2168e995f76a63e06b0bb615948a3969e79d2cfb6cae702c0cb582c2"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/battery/results.json": {
+      "concepts": [],
+      "git_blob": "dad08e3ac59361ea48b524619b52e5e693cd1653",
+      "mode": "100644",
+      "sha256": "dd6141ee7d65f1d04c05e8face2445d6e80256c81819a519238666cf243f4dce"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/battery/verifier-report.json": {
+      "concepts": [],
+      "git_blob": "cb3c06c84bc09da64d08e62a495220bac3009b99",
+      "mode": "100644",
+      "sha256": "03ec1f47c4bfafbba1977b5fa904f0541c8d25c00e8e0f88c3e8a46870c84fd7"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/boundary/boundary-assessment.json": {
+      "concepts": [],
+      "git_blob": "02c297da6f6bb6c1bdc81bcf855ff843dfd4c77c",
+      "mode": "100644",
+      "sha256": "598d9e003b93d08b5417e6f62afe32f34a724ecf5b008ccd4f374e0668978bbf"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/boundary/boundary-suite.json": {
+      "concepts": [],
+      "git_blob": "a73430bc3fed544baf0ec3eb573f1a6564f8a4db",
+      "mode": "100644",
+      "sha256": "1e73136144124d41c0d6b32ee2c69a1a6554e0dc6b368453b1773560d643d7c0"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/boundary/topology-check.json": {
+      "concepts": [],
+      "git_blob": "8dd4e4e6e1670cdef99ae174954278e3caa89ef6",
+      "mode": "100644",
+      "sha256": "e0b80ac9df7588f134658bd219fc17f30da28d65a4a4b2f2efca7dc6494afc18"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/effect/effect-verification.json": {
+      "concepts": [],
+      "git_blob": "26786044b5ce320f7e50b911adfa2ae73bea2964",
+      "mode": "100644",
+      "sha256": "1e97329c7ecf1fc6abdbabdd3507ed377b5683220b3777934930ae504bbe413f"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/fault-injection/chain-verification.json": {
+      "concepts": [],
+      "git_blob": "276072f2681bb40e86dcfb060ceca7b5c82fc385",
+      "mode": "100644",
+      "sha256": "48ddb716ea91b80405a638a6a9db49477a89cb1b052a4d73dc3e641591fd547b"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/fault-injection/manifest.json": {
+      "concepts": [],
+      "git_blob": "295fb2e0eea269c781127b121b2ce82c295f2b0d",
+      "mode": "100644",
+      "sha256": "6c18287927439006811d15981f8591b9520a1033830875544d39a6836053de52"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/fault-injection/metrics.json": {
+      "concepts": [],
+      "git_blob": "9e26dfeeb6e641a33dae4961196235bdb965b21b",
+      "mode": "100644",
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/fault-injection/report.txt": {
+      "concepts": [],
+      "git_blob": "8d34e22fea549ec6178afb3627cfad9f2ea58e12",
+      "mode": "100644",
+      "sha256": "a8aadb2b34819c140c46e453085f03b2f8a341f312a0098b49ab0c7d8675b6a7"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/fault-injection/results.json": {
+      "concepts": [],
+      "git_blob": "36c1288a6d5c03b249bfbb93f9787a4bc6f3f94f",
+      "mode": "100644",
+      "sha256": "d722a30f478367d713adb577c639d580ed5872e6fb048546938b6caa6d5b4340"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/independent-scenarios/phase-a.json": {
+      "concepts": [],
+      "git_blob": "e9ca1f8d0127aadf60885ce758d569912e22e34b",
+      "mode": "100644",
+      "sha256": "e8107efb83a656d63b6e2f3ee2bd033191230b25946764ae1776eaf06d6d1eee"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/independent-scenarios/phase-b.json": {
+      "concepts": [],
+      "git_blob": "ab79e5c7953124364e6cc2c4b309e88ddbf67987",
+      "mode": "100644",
+      "sha256": "255c26456ab48b479079591d3cd9737d82f40c47cc1d4deebf1f9be5f2bbdc06"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/independent-scenarios/phase-c.json": {
+      "concepts": [],
+      "git_blob": "f8fe831a2bbc6174f35473c682600c1581995c5a",
+      "mode": "100644",
+      "sha256": "dba50156ad7168c301c71a7e9e23e6aa808650ab0c7f7e564801a2aa04a6c2f1"
+    },
+    "artifacts/ot-pilot/aacp-a-g-2026-11-06/manifest.json": {
+      "concepts": [],
+      "git_blob": "e6518909f35fb3d9816ab55dc55d2c1fa7922667",
+      "mode": "100644",
+      "sha256": "16dc15bc7d2e8aa782292d85848848588561c605c90b820b399f231ad2aca3aa"
     },
     "artifacts/ot-pilot/execution-path-reproduction-2026-11-05/README.md": {
       "concepts": [],
@@ -7011,9 +7137,9 @@
     },
     "docs/assurance/ws1_utility_test_plan_v1.md": {
       "concepts": [],
-      "git_blob": "31c79e5e4b34a964d315bb81f7cb54cf039b56d2",
+      "git_blob": "0a503ed8cd44f2bd496f12f64b7ecd749a08894d",
       "mode": "100644",
-      "sha256": "fa7f89a00bc1e33fd2f125989c9c853e931040a9d9dab91aa9ca7d02a7d19156"
+      "sha256": "4cbb2d8bb35d3317b12d355beba1ef9845dedbc7035600dc0bf5a73f3272ca38"
     },
     "docs/assurance/ws2_monitor_question_verifier_coverage_dev_v1.2.md": {
       "concepts": [
@@ -17949,9 +18075,9 @@
     },
     "tests/test_aacp_ot_pilot_assessment.py": {
       "concepts": [],
-      "git_blob": "ba19f3c2227b02ea66fc8b5af20019f9215ee02d",
+      "git_blob": "30291e26b73f9066acbec15087af7b9e054ae133",
       "mode": "100644",
-      "sha256": "eb4957eb664e497558f68173cae8887b4eb52d51d3c3c3639e02a5a1ae37a18f"
+      "sha256": "2b19b8a96928523f5d73bd8b78280db839194e6d539b1b23c353893850983eb9"
     },
     "tests/test_ablation_v2.py": {
       "concepts": [],
@@ -23245,7 +23371,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "ffea076a965e7fe13e464b84626194c24f12521b0d78d216d2fdf9b33949bfc9",
+  "register_sha256": "3ac2d62406cfd20de10e723ee7874942509e92cd28b82a3e8eb1babf987087cf",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

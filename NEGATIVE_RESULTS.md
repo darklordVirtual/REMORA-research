@@ -5243,6 +5243,19 @@ field, or a target-side operation id or revision that the dispatch returns
 and the reader confirms. Until then, causal attribution is NOT_ESTABLISHED
 for every effect REMORA verifies.
 
+Update 2026-11-06: narrowed on the OT pilot, not closed. The pilot's plant is
+a separate service that revisions every object and journals every write with
+the credential that made it and the dispatch it names
+(`deploy/ot-pilot/plant_service.py`). The effect verifier sends the object's
+revision before the dispatch (from that journal entry) with its read-back. An
+unchanged revision is therefore not VERIFIED. With the delta absent it is now
+EFFECT_MISMATCH `postcondition_effect_absent` (it was UNOBSERVABLE), so a write
+acknowledged and never applied is reported as absent. Who wrote is answered by
+the plant's journal and the journal-to-chain reconciliation, not by the
+verdict (`artifacts/ot-pilot/aacp-a-g-2026-11-06/`). The library verdict still
+has no writer field, and a deployment without revisions keeps this limit as
+stated above.
+
 ## §86 The Worker edge collapsed repeated JSON members before the API could refuse them (2026-10-18)
 <!-- finding-status: accepted -->
 

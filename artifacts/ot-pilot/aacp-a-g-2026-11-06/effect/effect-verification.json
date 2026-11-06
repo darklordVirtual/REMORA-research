@@ -1,0 +1,812 @@
+{
+ "schema": "ot-pilot-effect-verification/v1",
+ "started_at": "2026-11-06T12:51:48.847610+00:00",
+ "honest": {
+  "cases": [
+   {
+    "write": {
+     "tool": "adjust_setpoint",
+     "arguments": {
+      "loop": "PIC-101",
+      "value": 3.9
+     },
+     "intent_ref": "WO-1201",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "015147de-68ab-4cd9-b640-787386417ecb",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "loop": "PIC-101",
+      "new_setpoint": 3.9,
+      "old_setpoint": 4.0
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_VERIFIED",
+     "effect": {
+      "status": "EFFECT_VERIFIED",
+      "reason_code": "postcondition_verified",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T12:52:29.450132+00:00",
+      "effect_state": "EFFECT_VERIFIED"
+     },
+     "history": [
+      {
+       "status": "EFFECT_VERIFIED",
+       "reason_code": "postcondition_verified",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T12:52:29.450132+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_VERIFIED",
+    "expected_reason": null,
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "set_valve_position",
+     "arguments": {
+      "valve": "V-12",
+      "position_pct": 30
+     },
+     "intent_ref": "WO-1204",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "abdfb5b5-e690-46de-a899-d978d16e0d97",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "new_pct": 30,
+      "old_pct": 15,
+      "valve": "V-12"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_VERIFIED",
+     "effect": {
+      "status": "EFFECT_VERIFIED",
+      "reason_code": "postcondition_verified",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T12:52:31.574027+00:00",
+      "effect_state": "EFFECT_VERIFIED"
+     },
+     "history": [
+      {
+       "status": "EFFECT_VERIFIED",
+       "reason_code": "postcondition_verified",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T12:52:31.574027+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_VERIFIED",
+    "expected_reason": null,
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "acknowledge_alarm",
+     "arguments": {
+      "alarm_id": "LT-410-HI"
+     },
+     "intent_ref": "WO-1202",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "bb87cd96-f3ec-4667-872f-cae2efeffc02",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "acked": true,
+      "alarm_id": "LT-410-HI"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_VERIFIED",
+     "effect": {
+      "status": "EFFECT_VERIFIED",
+      "reason_code": "postcondition_verified",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T12:52:32.654491+00:00",
+      "effect_state": "EFFECT_VERIFIED"
+     },
+     "history": [
+      {
+       "status": "EFFECT_VERIFIED",
+       "reason_code": "postcondition_verified",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T12:52:32.654491+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_VERIFIED",
+    "expected_reason": null,
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "create_work_order",
+     "arguments": {
+      "wo_id": "WO-1310"
+     },
+     "intent_ref": "WO-1205",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "8ff7aeae-b563-428c-9fc5-1a357ec9a188",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "status": "open",
+      "wo_id": "WO-1310"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_VERIFIED",
+     "effect": {
+      "status": "EFFECT_VERIFIED",
+      "reason_code": "postcondition_verified",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T12:52:34.770467+00:00",
+      "effect_state": "EFFECT_VERIFIED"
+     },
+     "history": [
+      {
+       "status": "EFFECT_VERIFIED",
+       "reason_code": "postcondition_verified",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T12:52:34.770467+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_VERIFIED",
+    "expected_reason": null,
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "close_work_order",
+     "arguments": {
+      "wo_id": "WO-1201"
+     },
+     "intent_ref": "WO-1203",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "739ed896-b36b-4f10-90dd-d87cef17632e",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "status": "closed",
+      "wo_id": "WO-1201"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_VERIFIED",
+     "effect": {
+      "status": "EFFECT_VERIFIED",
+      "reason_code": "postcondition_verified",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T12:52:36.894586+00:00",
+      "effect_state": "EFFECT_VERIFIED"
+     },
+     "history": [
+      {
+       "status": "EFFECT_VERIFIED",
+       "reason_code": "postcondition_verified",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T12:52:36.894586+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_VERIFIED",
+    "expected_reason": null,
+    "as_expected": true
+   }
+  ],
+  "verifier_report": {
+   "results": [
+    {
+     "proposal_id": "015147de-68ab-4cd9-b640-787386417ecb",
+     "tool_name": "adjust_setpoint",
+     "http": 200,
+     "status": "EFFECT_VERIFIED",
+     "reason_code": "postcondition_verified",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "PIC-101",
+      "kind": "loop",
+      "revision": 1,
+      "setpoint": 3.9
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    },
+    {
+     "proposal_id": "739ed896-b36b-4f10-90dd-d87cef17632e",
+     "tool_name": "close_work_order",
+     "http": 200,
+     "status": "EFFECT_VERIFIED",
+     "reason_code": "postcondition_verified",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "WO-1201",
+      "kind": "work_order",
+      "revision": 1,
+      "status": "closed"
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    },
+    {
+     "proposal_id": "8ff7aeae-b563-428c-9fc5-1a357ec9a188",
+     "tool_name": "create_work_order",
+     "http": 200,
+     "status": "EFFECT_VERIFIED",
+     "reason_code": "postcondition_verified",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "WO-1310",
+      "kind": "work_order",
+      "revision": 1,
+      "status": "open"
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    },
+    {
+     "proposal_id": "abdfb5b5-e690-46de-a899-d978d16e0d97",
+     "tool_name": "set_valve_position",
+     "http": 200,
+     "status": "EFFECT_VERIFIED",
+     "reason_code": "postcondition_verified",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "V-12",
+      "kind": "valve",
+      "pct": 30,
+      "revision": 1
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    },
+    {
+     "proposal_id": "bb87cd96-f3ec-4667-872f-cae2efeffc02",
+     "tool_name": "acknowledge_alarm",
+     "http": 200,
+     "status": "EFFECT_VERIFIED",
+     "reason_code": "postcondition_verified",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "acked": true,
+      "id": "LT-410-HI",
+      "kind": "alarm",
+      "revision": 1
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    }
+   ],
+   "anomalies": [],
+   "reconciliation": {
+    "journal_entries": 5,
+    "applied_writes": 5,
+    "refused_requests": 0,
+    "refused_by_credential": {},
+    "executed_write_dispatches": 5,
+    "unattributed_writes": [],
+    "dispatches_named_twice": [],
+    "dispatches_without_plant_record": [],
+    "journal_complete": true,
+    "agree": true
+   },
+   "errors": [],
+   "verifier_kid": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd"
+  },
+  "all_as_expected": true
+ },
+ "receipt_controls": [
+  {
+   "control": "unregistered_key",
+   "http": 409,
+   "detail": "effect receipt refused (receipt_signature_unknown_kid): the receipt signature does not verify under REMORA/EFFECT-RECEIPT/v1 (unknown_kid)",
+   "verdict_before": "EFFECT_VERIFIED",
+   "verdict_after": "EFFECT_VERIFIED",
+   "refused_and_unchanged": true
+  },
+  {
+   "control": "agent_token",
+   "http": 403,
+   "detail": "role operator cannot perform verify_effect",
+   "verdict_before": "EFFECT_VERIFIED",
+   "verdict_after": "EFFECT_VERIFIED",
+   "refused_and_unchanged": true
+  },
+  {
+   "control": "arguments_not_the_dispatched_call",
+   "http": 409,
+   "detail": "effect receipt refused (arguments_not_the_dispatched_call): the arguments do not hash to the dispatched call",
+   "verdict_before": "EFFECT_VERIFIED",
+   "verdict_after": "EFFECT_VERIFIED",
+   "refused_and_unchanged": true
+  },
+  {
+   "control": "replay_after_settled_verdict",
+   "http": 409,
+   "detail": "effect receipt refused (receipt_replayed): this dispatch already has a settled verdict (EFFECT_VERIFIED); a second would overwrite evidence",
+   "verdict_before": "EFFECT_VERIFIED",
+   "verdict_after": "EFFECT_VERIFIED",
+   "refused_and_unchanged": true
+  }
+ ],
+ "faults": {
+  "declared": {
+   "valve:V-12": [
+    "clamp",
+    20
+   ],
+   "loop:PIC-101": [
+    "drop"
+   ],
+   "alarm:LT-410-HI": [
+    "hide"
+   ]
+  },
+  "cases": [
+   {
+    "write": {
+     "tool": "set_valve_position",
+     "arguments": {
+      "valve": "V-12",
+      "position_pct": 30
+     },
+     "intent_ref": "WO-1204",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "a5c66d21-41b1-4155-99f5-28627506f494",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "new_pct": 30,
+      "old_pct": 15,
+      "valve": "V-12"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_MISMATCH",
+     "effect": {
+      "status": "EFFECT_MISMATCH",
+      "reason_code": "postcondition_field_mismatch",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T12:53:17.932213+00:00",
+      "effect_state": "EFFECT_MISMATCH"
+     },
+     "history": [
+      {
+       "status": "EFFECT_MISMATCH",
+       "reason_code": "postcondition_field_mismatch",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T12:53:17.932213+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_MISMATCH",
+    "expected_reason": "postcondition_field_mismatch",
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "adjust_setpoint",
+     "arguments": {
+      "loop": "PIC-101",
+      "value": 3.9
+     },
+     "intent_ref": "WO-1201",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "fc3411e0-0097-45fb-bfe0-2876f8a67168",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "loop": "PIC-101",
+      "new_setpoint": 3.9,
+      "old_setpoint": 4.0
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_MISMATCH",
+     "effect": {
+      "status": "EFFECT_MISMATCH",
+      "reason_code": "postcondition_effect_absent",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T12:53:20.058069+00:00",
+      "effect_state": "EFFECT_MISMATCH"
+     },
+     "history": [
+      {
+       "status": "EFFECT_MISMATCH",
+       "reason_code": "postcondition_effect_absent",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T12:53:20.058069+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_MISMATCH",
+    "expected_reason": "postcondition_effect_absent",
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "acknowledge_alarm",
+     "arguments": {
+      "alarm_id": "LT-410-HI"
+     },
+     "intent_ref": "WO-1202",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "7aa5e4ca-a7b0-46d8-864c-a39f9090dc90",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "acked": true,
+      "alarm_id": "LT-410-HI"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_UNKNOWN",
+     "effect": {
+      "status": "EFFECT_UNOBSERVABLE",
+      "reason_code": "postcondition_object_absent",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T12:53:23.307484+00:00",
+      "effect_state": "EFFECT_UNKNOWN"
+     },
+     "history": [
+      {
+       "status": "EFFECT_UNOBSERVABLE",
+       "reason_code": "postcondition_object_absent",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T12:53:21.139898+00:00"
+      },
+      {
+       "status": "EFFECT_UNOBSERVABLE",
+       "reason_code": "postcondition_object_absent",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T12:53:22.230839+00:00"
+      },
+      {
+       "status": "EFFECT_UNOBSERVABLE",
+       "reason_code": "postcondition_object_absent",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T12:53:23.307484+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_UNOBSERVABLE",
+    "expected_reason": "postcondition_object_absent",
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "close_work_order",
+     "arguments": {
+      "wo_id": "WO-1201"
+     },
+     "intent_ref": "WO-1203",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "fe3ab289-3b08-4f7b-9625-f445854e1cdc",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "status": "closed",
+      "wo_id": "WO-1201"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_VERIFIED",
+     "effect": {
+      "status": "EFFECT_VERIFIED",
+      "reason_code": "postcondition_verified",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T12:53:34.755353+00:00",
+      "effect_state": "EFFECT_VERIFIED"
+     },
+     "history": [
+      {
+       "status": "EFFECT_VERIFIED",
+       "reason_code": "postcondition_verified",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T12:53:34.755353+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_VERIFIED",
+    "expected_reason": "postcondition_verified",
+    "as_expected": true
+   }
+  ],
+  "verifier_report": {
+   "results": [
+    {
+     "proposal_id": "7aa5e4ca-a7b0-46d8-864c-a39f9090dc90",
+     "tool_name": "acknowledge_alarm",
+     "http": 200,
+     "status": "EFFECT_UNOBSERVABLE",
+     "reason_code": "postcondition_object_absent",
+     "vantage": "independent",
+     "detail": null,
+     "observed": null,
+     "source_revision": "",
+     "pre_state_revision": "0",
+     "attempts": 3
+    },
+    {
+     "proposal_id": "a5c66d21-41b1-4155-99f5-28627506f494",
+     "tool_name": "set_valve_position",
+     "http": 200,
+     "status": "EFFECT_MISMATCH",
+     "reason_code": "postcondition_field_mismatch",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "V-12",
+      "kind": "valve",
+      "pct": 20,
+      "revision": 1
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    },
+    {
+     "proposal_id": "fc3411e0-0097-45fb-bfe0-2876f8a67168",
+     "tool_name": "adjust_setpoint",
+     "http": 200,
+     "status": "EFFECT_MISMATCH",
+     "reason_code": "postcondition_effect_absent",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "PIC-101",
+      "kind": "loop",
+      "revision": 0,
+      "setpoint": 4.0
+     },
+     "source_revision": "0",
+     "pre_state_revision": "0",
+     "attempts": 1
+    },
+    {
+     "proposal_id": "fe3ab289-3b08-4f7b-9625-f445854e1cdc",
+     "tool_name": "close_work_order",
+     "http": 200,
+     "status": "EFFECT_VERIFIED",
+     "reason_code": "postcondition_verified",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "WO-1201",
+      "kind": "work_order",
+      "revision": 1,
+      "status": "closed"
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    }
+   ],
+   "anomalies": [],
+   "reconciliation": {
+    "journal_entries": 4,
+    "applied_writes": 4,
+    "refused_requests": 0,
+    "refused_by_credential": {},
+    "executed_write_dispatches": 4,
+    "unattributed_writes": [],
+    "dispatches_named_twice": [],
+    "dispatches_without_plant_record": [],
+    "journal_complete": true,
+    "agree": true
+   },
+   "errors": [],
+   "verifier_kid": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd"
+  },
+  "plant_journal": [
+   {
+    "arguments": {
+     "position_pct": 30,
+     "valve": "V-12"
+    },
+    "at": 1793969597.4555993,
+    "credential": "writer",
+    "dispatch_ref": "a5c66d21-41b1-4155-99f5-28627506f494",
+    "fault": [
+     "clamp",
+     20
+    ],
+    "object": "valve:V-12",
+    "outcome": "applied",
+    "result": {
+     "new_pct": 30,
+     "old_pct": 15,
+     "valve": "V-12"
+    },
+    "rev_after": 1,
+    "rev_before": 0,
+    "seq": 1,
+    "source": "172.20.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "tool": "set_valve_position"
+   },
+   {
+    "arguments": {
+     "loop": "PIC-101",
+     "value": 3.9
+    },
+    "at": 1793969599.1624827,
+    "credential": "writer",
+    "dispatch_ref": "fc3411e0-0097-45fb-bfe0-2876f8a67168",
+    "fault": [
+     "drop",
+     null
+    ],
+    "object": "loop:PIC-101",
+    "outcome": "applied",
+    "result": {
+     "loop": "PIC-101",
+     "new_setpoint": 3.9,
+     "old_setpoint": 4.0
+    },
+    "rev_after": 0,
+    "rev_before": 0,
+    "seq": 2,
+    "source": "172.20.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "tool": "adjust_setpoint"
+   },
+   {
+    "arguments": {
+     "alarm_id": "LT-410-HI"
+    },
+    "at": 1793969600.9080281,
+    "credential": "writer",
+    "dispatch_ref": "7aa5e4ca-a7b0-46d8-864c-a39f9090dc90",
+    "fault": [
+     "hide",
+     null
+    ],
+    "object": "alarm:LT-410-HI",
+    "outcome": "applied",
+    "result": {
+     "acked": true,
+     "alarm_id": "LT-410-HI"
+    },
+    "rev_after": 1,
+    "rev_before": 0,
+    "seq": 3,
+    "source": "172.20.0.3",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "tool": "acknowledge_alarm"
+   },
+   {
+    "arguments": {
+     "wo_id": "WO-1201"
+    },
+    "at": 1793969613.9672449,
+    "credential": "writer",
+    "dispatch_ref": "fe3ab289-3b08-4f7b-9625-f445854e1cdc",
+    "fault": null,
+    "object": "work_order:WO-1201",
+    "outcome": "applied",
+    "result": {
+     "status": "closed",
+     "wo_id": "WO-1201"
+    },
+    "rev_after": 1,
+    "rev_before": 0,
+    "seq": 4,
+    "source": "172.20.0.3",
+    "state_digest": "ab14060e3e0db021d14b89cc12aaf6e85200dedbc2e0573af3dd43c8eb930385",
+    "tool": "close_work_order"
+   }
+  ],
+  "all_as_expected": true
+ },
+ "finished_at": "2026-11-06T12:53:35.631812+00:00",
+ "summary": {
+  "honest_as_expected": "5 of 5",
+  "faults_as_expected": "4 of 4",
+  "receipt_controls_refused": "4 of 4"
+ }
+}

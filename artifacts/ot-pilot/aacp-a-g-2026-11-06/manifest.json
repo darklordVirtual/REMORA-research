@@ -1,0 +1,128 @@
+{
+ "run_id": "aacp-a-g-2026-11-06",
+ "purpose": "The OT pilot after the plant moved to its own trust domain and an independent effect verifier was added: battery, fault injection, the 24 independent scenarios, the E boundary procedure and the G effect-verification run, each on a stack reset with down -v.",
+ "source": {
+  "image_built_from_commit": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+  "note": "Built from the working tree at this commit; the only uncommitted change at build time was NEGATIVE_RESULTS.md, which no image contains.",
+  "build_note": "Built in a sandbox behind an egress proxy: the API image with docker build --network host, the proxy as build arguments and its CA bind-mounted for the pip step only (RUN --mount, not copied into the image); the plant image has no pip step and was built by compose. The console was not built or started. The battery was run a second time on the same images so its verifier report was read after the verifier's last pass; the first run's report was read before it."
+ },
+ "images": {
+  "api_image_id": "sha256:8401b51bd44b97f782116afea1ea59a54a2ccd3b2022d3a46c5076c54bc9e660",
+  "plant_image_id": "sha256:69720c69d587e442e1a508a00e7a7eeada742a848e694fa5c8ed7f06f2257f87",
+  "docker_server": "29.9.2"
+ },
+ "policy_hash": "sha256:9ebb86c62010186fd3539b2e6a42407ec1d3a425cb3ffd61d2d02c4d4ded1376",
+ "deployment_files": [
+  {
+   "path": "deploy/ot-pilot/docker-compose.yml",
+   "sha256": "28ecad2b33d1c56db309e3a728fc2b3fc32133078cf5cfb78c44aa758d1e4b45"
+  },
+  {
+   "path": "deploy/ot-pilot/Dockerfile",
+   "sha256": "4467f5141ea109a5f78d50e51c6226c8762b55895f67e46b872df4381f14e6ce"
+  },
+  {
+   "path": "deploy/ot-pilot/plant/Dockerfile",
+   "sha256": "c69da34a583caeb7298e1209c26d5b3fcebf0c58bdd2f5907ea70a55645da100"
+  },
+  {
+   "path": "deploy/ot-pilot/credential_topology.yaml",
+   "sha256": "e5e7b22760ae7c67caee9c2f1e50aa80632e3833fe7e490a8ea05432f309b50e"
+  },
+  {
+   "path": "deploy/ot-pilot/tool_metadata.json",
+   "sha256": "802b4e76ba1928a65bf34954df632c2ec29edd78bbbcd4d122aad69342f1ef8c"
+  },
+  {
+   "path": "deploy/ot-pilot/work_orders.json",
+   "sha256": "6b7a49881ebe6abc6b2894de2e28d8ded923adb2930f9099cc2733edbe0a857a"
+  },
+  {
+   "path": "deploy/ot-pilot/limits.json",
+   "sha256": "205e511c05e26ee213648881fdcc8d9f105ae99fbcbea66ba5c4d9814aaca6d6"
+  },
+  {
+   "path": "deploy/ot-pilot/ot_registry.py",
+   "sha256": "8f7abb166b9d1ea350fd791027f1488de1769267fb912a71f976bb849d5d887d"
+  },
+  {
+   "path": "deploy/ot-pilot/ot_bundle.py",
+   "sha256": "f44d19ee109ae071d68e0906d8694c9c10b11a45d395f3809750dd3285418715"
+  },
+  {
+   "path": "deploy/ot-pilot/ot_ws1.py",
+   "sha256": "019c654d32060a5370447a64b8d523cecacbcf75e449de99012e812bf332087c"
+  },
+  {
+   "path": "deploy/ot-pilot/ot_ws1_facts.json",
+   "sha256": "b815c44f285ccd7a03665d441690a158e2f5865d3004cbc0c502d75cb86b3cc0"
+  },
+  {
+   "path": "deploy/ot-pilot/plant_model.py",
+   "sha256": "63242e4746329fa06d7f75ae1dd9f7c84568acee51c07d3ad14326540e406cf6"
+  },
+  {
+   "path": "deploy/ot-pilot/plant_service.py",
+   "sha256": "0983e80e21babff46d1c57543dd60897a521cc6bdfdc84f10ff2748e6a803d27"
+  },
+  {
+   "path": "deploy/ot-pilot/plant_dump.py",
+   "sha256": "9f31ce3c8ca31b658ca0ed1c69a91c49788d5c0279de10853997b02cf6dedd69"
+  },
+  {
+   "path": "deploy/ot-pilot/reconcile.py",
+   "sha256": "ae25b0e238ebe8d5b9e7aa848ededd0261425358aff5b3f935317778284e7f9d"
+  },
+  {
+   "path": "deploy/ot-pilot/effect_verifier.py",
+   "sha256": "c131f66d8ba365b23e0b08dad3a1aa7661fa42de58c833ae5fb66875e64afc00"
+  },
+  {
+   "path": "deploy/ot-pilot/build_toolspec.py",
+   "sha256": "53856d92605b632a3fbff9ac8919e823b030300565aa53a264ed713d2f4346c8"
+  },
+  {
+   "path": "deploy/ot-pilot/init_tokens.py",
+   "sha256": "854a3a549be923c59f7af74d7fd999e8899324757441904a9ed277efc96330e8"
+  },
+  {
+   "path": "deploy/ot-pilot/pilot_host.py",
+   "sha256": "de60f5a51fe219dc1d7b6351ce2a56c9a28854922f5fc506f0ebe0951ea2f74d"
+  },
+  {
+   "path": "deploy/ot-pilot/run_ot_battery.py",
+   "sha256": "001827c7ea503257bce3e2141afff4dd9a8a827399cff36810b5920ecdde4f03"
+  },
+  {
+   "path": "deploy/ot-pilot/run_fault_injection.py",
+   "sha256": "db5e27a78f35daa7dc92689132e0c68b1b10c65a0cb458c4b801d59511f50bac"
+  },
+  {
+   "path": "deploy/ot-pilot/run_independent_scenarios.py",
+   "sha256": "ec8d5a6114b20db5e90fca8c882d4703fd126a72b77fdf223f0d83fb554f48db"
+  },
+  {
+   "path": "deploy/ot-pilot/run_boundary_suite.py",
+   "sha256": "cf5cdf6321e439d962f85900087280de6a2b11770ba705901c5b358486f52b97"
+  },
+  {
+   "path": "deploy/ot-pilot/run_boundary_assessment.py",
+   "sha256": "8bb1d24a81213a48cfe28c5c5c269ee29125a42ef670d02800945a7df41cab1f"
+  },
+  {
+   "path": "deploy/ot-pilot/run_effect_verification.py",
+   "sha256": "b9cd0d7b4f9077862e064415fbfd9feea478c089511158c223e4499ac70c0121"
+  },
+  {
+   "path": "scripts/check_ot_pilot_topology.py",
+   "sha256": "88c1e1b85bb04514d46a4d0217c127c1b04272d8231ec3ec97c066e755d9cc12"
+  }
+ ],
+ "runs": {
+  "battery": "16 of 16 as specified; 5 of 5 monitoring reads; 6 of 6 writes EFFECT_VERIFIED, vantage independent; journal and chain agree",
+  "fault-injection": "10 of 10; 8 of 8 intended writes; 0 false refusals; 14 human steps",
+  "independent-scenarios": "23 of 24 (S20 fails on the recalibrated PIC-101 cap, NEGATIVE_RESULTS section 97)",
+  "boundary": "7 attempt classes, 53 attempts, none reached the plant; suite interval reconciles; 0 secrets in the agent capture; the detector-sensitivity control is detected; live networks match the register",
+  "effect": "honest 5 of 5, faults 4 of 4, receipt controls refused 4 of 4"
+ }
+}
