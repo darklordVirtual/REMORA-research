@@ -118,6 +118,12 @@ class ToolExecutionResult(BaseModel):
     result_envelope: ToolResultEnvelopeModel | None = None
 
 
+class DualControl(BaseModel):
+    reason: Literal["limit_dual_control_required"]
+    limits: list[str] = Field(
+        description="The limit ids whose dual_control_above this call would pass.")
+
+
 class ExecutionAssessResponse(BaseModel):
     proposal_id: str = Field(
         description="FT-01: the canonical proposal identity minted here — "
@@ -132,11 +138,25 @@ class ExecutionAssessResponse(BaseModel):
     review_item_id: str | None = Field(
         None, description="Present only on verify/escalate; key absent "
                           "otherwise (abstain has neither).")
+    approvals_required: int | None = Field(
+        None, description="Present when the review item needs more than one "
+                          "distinct approver: 2 for a call past a cumulative "
+                          "limit's dual_control_above.")
+    dual_control: DualControl | None = Field(
+        None, description="Present when the call needs two approvers: the "
+                          "limits it would take past their second tier.")
     audit: AuditRef
 
 
 class ExecutionApproveResponse(BaseModel):
-    status: Literal["approved"]
+    status: Literal["approved", "approval_recorded"] = Field(
+        description="approved: the item may be executed. approval_recorded: "
+                    "one approval towards a dual-control quorum; the item "
+                    "stays pending until a different approver approves it.")
+    approvals_received: int | None = Field(
+        None, description="Dual control only: distinct approvals so far.")
+    approvals_required: int | None = Field(
+        None, description="Dual control only: distinct approvals the item needs.")
     proposal_id: str | None = Field(
         None, description="Canonical proposal identity; null only for items "
                           "enqueued before the lifecycle existed.")

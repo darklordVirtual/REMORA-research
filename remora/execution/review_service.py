@@ -34,6 +34,7 @@ from remora.governance.execution_identity import (
     ExecutionContextRefused,
     historical_context,
 )
+from remora.governance.review_queue import ApproverAlreadyApproved, ItemStatus
 
 
 class ReviewNotFound(RemoraError):
@@ -186,6 +187,17 @@ def approve_item(
         if proposer == principal:
             raise SeparationOfDutiesRefused(
                 "the approver proposed this call", reason="approver_is_proposer")
+    if getattr(item, "required_approvers", 1) > 1:
+        # Dual control asks for two people besides the one who proposed, in
+        # every profile: a proposer counted as one of the two would make it
+        # one human and the agent. Unknown is refused, as above.
+        if proposer is None:
+            raise SeparationOfDutiesRefused(
+                "the proposing principal could not be established",
+                reason="proposer_unknown")
+        if proposer == principal:
+            raise SeparationOfDutiesRefused(
+                "the approver proposed this call", reason="approver_is_proposer")
     context = historical_context(
         chain, tenant, str(proposal_id or ""), required=require_execution_context)
     if (context.digest() if context is not None else "") != item.observation.execution_context_hash:
@@ -210,14 +222,27 @@ def approve_item(
                 required_role=authority.required_role if authority else None,
                 approval_policy_hash=authority.policy_hash if authority else None,
             )
-            key = encode_key(tenant, "approved", item_id,
+            settled = q.item(item_id)
+            # Dual control: an approval short of the item's quorum leaves it
+            # pending, and is recorded as one approval towards it.
+            partial = settled.status is ItemStatus.PENDING
+            quorum: dict[str, Any] = {}
+            if settled.required_approvers > 1:
+                quorum = {
+                    "approvals_received": len({a.approver for a in settled.approvals}),
+                    "approvals_required": settled.required_approvers,
+                    **({} if partial else
+                       {"approvers": [a.approver for a in settled.approvals]}),
+                }
+            event = "approval_recorded" if partial else "approved"
+            key = encode_key(tenant, event, item_id,
                              approval.issued_at.isoformat())
             # REM-047: INSIDE the transaction that records the approval. It
             # used to be appended after the commit, so a crash in between left
             # an approved item with no audit event and a verifier unable to
             # tell that from a chain nobody had written to.
             entry = append(tenant, {
-                "event": "approved",
+                "event": event,
                 "proposal_id": proposal_id,
                 "actor": principal,
                 # Both principals on the approval record, so a reader can
@@ -238,7 +263,13 @@ def approve_item(
                                      else None),
                 # What the reviewer approved includes who may execute it.
                 **({"delegated_executor": delegate} if delegate else {}),
+                **quorum,
             }, key=key)
+    except ApproverAlreadyApproved as exc:
+        # Dual control needs a second person; the same one twice is not that.
+        raise ReviewConflict(
+            "the approver already approved this item",
+            reason="approver_already_approved") from exc
     except (KeyError, ValueError) as exc:
         # The queue's own message is not repeated to the caller: it is raised
         # from internal state handling and can name item keys and internal
@@ -252,15 +283,18 @@ def approve_item(
 
     # FT-01 conformance, AFTER the queue accepted: the move the queue just
     # performed (pending → approved) must be one the declared machine allows.
-    lifecycle_guard("REVIEW_PENDING", "human_approval")
+    # An approval short of a dual-control quorum moved nothing.
+    if not partial:
+        lifecycle_guard("REVIEW_PENDING", "human_approval")
 
     note_proposal_id(proposal_id)
     response: dict[str, Any] = {
-        "status": "approved",
+        "status": "approval_recorded" if partial else "approved",
         "proposal_id": proposal_id,
         "item_id": item_id,
         "expires_at": approval.expires_at.isoformat(),
         "audit": audit_ref(entry, key=key),
+        **{k: v for k, v in quorum.items() if k != "approvers"},
     }
     if delegate:
         response["delegated_executor"] = delegate

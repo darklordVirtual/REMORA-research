@@ -4,6 +4,7 @@
 """Replay operator shifts through the OT pilot's signed cumulative limits.
 
     python scripts/run_limits_holdout.py SHIFTS.json [...] --out RESULT.json [--flags FLAGS.json]
+        [--policy LIMITS.json --trusted-key HEX] [--approvers N]
 
 The procedure is fixed in docs/assurance/ot_limits_holdout_plan_v1.md §4. The
 pilot's limits.json is verified against the key its compose file trusts, with
@@ -21,6 +22,18 @@ limit refusal, Wilson 95 %), P2 (share of writes, shift-level bootstrap with
 seed 20261105) and the refusals by limit and reason. With --flags, both are
 also given without the writes a plausibility reviewer flagged. There is no
 score beyond those.
+
+A policy with a limit's second tier (``dual_control_above``) adds one measure:
+the writes, and the shifts, that needed a second approver. ``--approvers`` is
+how many distinct people approve each write (1 by default: every pilot write
+is reviewed by one person). With 1, a write past the tier refuses as
+``limit_dual_control_unmet``; with 2, it runs and is counted. ``--policy``
+replays under another signed policy, such as a holdout's sealed one. The
+recorded holdouts reproduce only under the policy each was sealed with:
+v1 and v2 keep theirs in their artifact folders, and v3's is
+``artifacts/ot-pilot/limits-holdout-v3/limits-v3.json``. The pilot's current
+policy has the PIC-101 tier, so a replay without ``--policy`` measures that
+policy, not theirs.
 """
 from __future__ import annotations
 
@@ -127,7 +140,7 @@ def _request_hash(tool: str, args: dict[str, Any]) -> str:
 
 
 def replay_shift(shift: dict[str, Any], policy, registry, pristine: dict[str, Any],
-                 workdir: Path) -> list[dict[str, Any]]:
+                 workdir: Path, approvers: int = 1) -> list[dict[str, Any]]:
     from remora.enforcement.cumulative_limits import LimitGuard, LimitLedger
 
     registry.PLANT.clear()
@@ -142,9 +155,17 @@ def replay_shift(shift: dict[str, Any], policy, registry, pristine: dict[str, An
         now = SHIFT_START + 60.0 * w["t_min"]
         row = {"shift_id": shift["shift_id"], "index": i, "t_min": w["t_min"],
                "tool": w["tool"], "args": w["args"]}
+        if _tiered(policy):
+            # Asked as /assess asks it, before the reservation: which limits
+            # this write would take past their second tier.
+            needs = guard.dual_control(tenant=TENANT, principal=PRINCIPAL,
+                                       tool_name=w["tool"], arguments=w["args"], now=now)
+            if needs:
+                row["dual_control"] = list(needs)
         refusal = guard.reserve(tenant=TENANT, principal=PRINCIPAL, tool_name=w["tool"],
                                 arguments=w["args"], operation_id=op,
-                                request_hash=_request_hash(w["tool"], w["args"]), now=now)
+                                request_hash=_request_hash(w["tool"], w["args"]), now=now,
+                                approvers=approvers)
         stage = "reserve"
         if refusal is None:
             refusal, stage = guard.begin(op), "begin"
@@ -165,6 +186,11 @@ def replay_shift(shift: dict[str, Any], policy, registry, pristine: dict[str, An
         guard.settle(op, True, result=result, now=now)
         rows.append({**row, "outcome": "ran"})
     return rows
+
+
+def _tiered(policy) -> bool:
+    """Whether any limit declares a second tier; a policy without one replays as before."""
+    return any(lim.dual_control_above is not None for lim in policy.limits)
 
 
 def _limits_named(guard, policy, write) -> list[str]:
@@ -199,7 +225,7 @@ def _is_limit(row: dict[str, Any]) -> bool:
 
 
 def measures(rows: list[dict[str, Any]], shift_ids: list[str],
-             excluded: set[tuple[str, int]] = frozenset()) -> dict[str, Any]:
+             excluded: set[tuple[str, int]] = frozenset(), dual: bool = False) -> dict[str, Any]:
     kept = [r for r in rows if (r["shift_id"], r["index"]) not in excluded]
     by_shift: dict[str, list[dict[str, Any]]] = {s: [] for s in shift_ids}
     for r in kept:
@@ -223,7 +249,7 @@ def measures(rows: list[dict[str, Any]], shift_ids: list[str],
             by_reason[r["reason"]] = by_reason.get(r["reason"], 0) + 1
             for lim in r.get("limits") or ["(none named)"]:
                 by_limit[lim] = by_limit.get(lim, 0) + 1
-    return {
+    out = {
         "shifts": len(ids), "writes": len(kept),
         "P1": {"shifts_with_a_limit_refusal": len(hit), "of_shifts": len(ids),
                "share": len(hit) / len(ids) if ids else 0.0,
@@ -240,10 +266,26 @@ def measures(rows: list[dict[str, Any]], shift_ids: list[str],
                                           for r in kept),
             "tool_error": sum(r["outcome"] == "tool_error" for r in kept)},
     }
+    if dual:
+        needing = sorted(s for s, rs in by_shift.items() if any(r.get("dual_control") for r in rs))
+        lo2, hi2 = wilson(len(needing), len(ids))
+        out["D1"] = {"shifts_with_a_write_past_a_second_tier": len(needing),
+                     "of_shifts": len(ids),
+                     "share": len(needing) / len(ids) if ids else 0.0,
+                     "wilson_95": [lo2, hi2], "shift_ids": needing}
+        out["D2"] = {"writes_past_a_second_tier": sum(bool(r.get("dual_control")) for r in kept),
+                     "of_writes": len(kept)}
+    return out
 
 
-def run(paths: list[Path], flags: Path | None = None) -> dict[str, Any]:
-    policy, digest, kid = load_policy()
+def run(paths: list[Path], flags: Path | None = None, *, policy_path: Path | None = None,
+        trusted_key: str | None = None, approvers: int = 1) -> dict[str, Any]:
+    if policy_path is not None:
+        policy, digest, kid = load_policy(policy_path,
+                                          keys=[trusted_key] if trusted_key else None)
+    else:
+        policy, digest, kid = load_policy()
+    dual = _tiered(policy)
     registry = _registry()
     pristine = copy.deepcopy(registry.PLANT)
     shifts, inputs = [], []
@@ -254,19 +296,24 @@ def run(paths: list[Path], flags: Path | None = None) -> dict[str, Any]:
     rows: list[dict[str, Any]] = []
     with tempfile.TemporaryDirectory() as tmp:
         for shift in shifts:
-            rows.extend(replay_shift(shift, policy, registry, pristine, Path(tmp)))
+            rows.extend(replay_shift(shift, policy, registry, pristine, Path(tmp),
+                                     approvers=approvers))
     ids = [s["shift_id"] for s in shifts]
+    shown = "deploy/ot-pilot/limits.json"
+    if policy_path is not None:
+        where = policy_path.resolve()
+        shown = str(where.relative_to(ROOT)) if where.is_relative_to(ROOT) else where.name
     out = {"procedure": "docs/assurance/ot_limits_holdout_plan_v1.md section 4",
-           "limits_policy": {"path": "deploy/ot-pilot/limits.json", "sha256": digest,
-                             "signer_kid": kid},
-           "inputs": inputs, "measures": measures(rows, ids), "writes": rows}
+           "limits_policy": {"path": shown, "sha256": digest, "signer_kid": kid},
+           **({"approvers_per_write": approvers} if dual else {}),
+           "inputs": inputs, "measures": measures(rows, ids, dual=dual), "writes": rows}
     if flags is not None:
         flagged = json.loads(flags.read_text(encoding="utf-8"))
         excluded = {(f["shift_id"], int(f["index"])) for f in flagged.get("flags", [])}
         out["flags"] = {"path": flags.name,
                         "sha256": hashlib.sha256(flags.read_bytes()).hexdigest(),
                         "flagged_writes": len(excluded)}
-        out["measures_without_flagged"] = measures(rows, ids, excluded)
+        out["measures_without_flagged"] = measures(rows, ids, excluded, dual=dual)
     return out
 
 
@@ -275,9 +322,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("shifts", nargs="+", type=Path)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--flags", type=Path)
+    parser.add_argument("--policy", type=Path, help="a signed policy other than the pilot's")
+    parser.add_argument("--trusted-key", help="the key --policy is verified under")
+    parser.add_argument("--approvers", type=int, default=1, choices=(1, 2))
     args = parser.parse_args(argv)
+    if (args.policy is None) != (args.trusted_key is None):
+        parser.error("--policy and --trusted-key go together")
     try:
-        result = run(args.shifts, args.flags)
+        result = run(args.shifts, args.flags, policy_path=args.policy,
+                     trusted_key=args.trusted_key, approvers=args.approvers)
     except ShiftError as exc:
         print(f"[REFUSED] {exc}", file=sys.stderr)
         return 2
@@ -287,6 +340,11 @@ def main(argv: list[str] | None = None) -> int:
           f"(Wilson 95 % {m['P1']['wilson_95'][0]:.3f} to {m['P1']['wilson_95'][1]:.3f}); "
           f"P2 {m['P2']['limit_refusals']}/{m['P2']['of_writes']} writes "
           f"(bootstrap 95 % {m['P2']['bootstrap_95'][0]:.3f} to {m['P2']['bootstrap_95'][1]:.3f})")
+    if "D1" in m:
+        print(f"D1 {m['D1']['shifts_with_a_write_past_a_second_tier']}/{m['D1']['of_shifts']} "
+              f"shifts needed a second approver (Wilson 95 % {m['D1']['wilson_95'][0]:.3f} to "
+              f"{m['D1']['wilson_95'][1]:.3f}); D2 {m['D2']['writes_past_a_second_tier']}/"
+              f"{m['D2']['of_writes']} writes")
     return 0
 
 

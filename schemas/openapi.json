@@ -530,6 +530,29 @@
         "title": "DispatchLeasedRequest",
         "type": "object"
       },
+      "DualControl": {
+        "properties": {
+          "limits": {
+            "description": "The limit ids whose dual_control_above this call would pass.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Limits",
+            "type": "array"
+          },
+          "reason": {
+            "const": "limit_dual_control_required",
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason",
+          "limits"
+        ],
+        "title": "DualControl",
+        "type": "object"
+      },
       "EffectStatus": {
         "description": "Five outcomes. Collapsing any pair loses a distinction an operator\nneeds in order to choose what to do next.",
         "enum": [
@@ -783,6 +806,30 @@
       },
       "ExecutionApproveResponse": {
         "properties": {
+          "approvals_received": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Dual control only: distinct approvals so far.",
+            "title": "Approvals Received"
+          },
+          "approvals_required": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Dual control only: distinct approvals the item needs.",
+            "title": "Approvals Required"
+          },
           "audit": {
             "$ref": "#/components/schemas/AuditRef"
           },
@@ -819,7 +866,11 @@
             "title": "Proposal Id"
           },
           "status": {
-            "const": "approved",
+            "description": "approved: the item may be executed. approval_recorded: one approval towards a dual-control quorum; the item stays pending until a different approver approves it.",
+            "enum": [
+              "approved",
+              "approval_recorded"
+            ],
             "title": "Status",
             "type": "string"
           }
@@ -835,6 +886,18 @@
       },
       "ExecutionAssessResponse": {
         "properties": {
+          "approvals_required": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Present when the review item needs more than one distinct approver: 2 for a call past a cumulative limit's dual_control_above.",
+            "title": "Approvals Required"
+          },
           "audit": {
             "$ref": "#/components/schemas/AuditRef"
           },
@@ -847,6 +910,17 @@
             ],
             "title": "Decision",
             "type": "string"
+          },
+          "dual_control": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DualControl"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Present when the call needs two approvers: the limits it would take past their second tier."
           },
           "execution_token": {
             "anyOf": [
