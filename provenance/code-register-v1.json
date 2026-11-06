@@ -5897,9 +5897,9 @@
     },
     "deploy/ot-pilot/run_boundary_assessment.py": {
       "concepts": [],
-      "git_blob": "600b731446ccb9b40f73463241f0ac25d0c2978a",
+      "git_blob": "e6b4405351a3aabcc96ed3fb7519fe70825d10a7",
       "mode": "100644",
-      "sha256": "b469bced60077c9ed4384dbb222df8058772844049d17e204fe1e5efced7e268"
+      "sha256": "ff13f9b7b0866dac386d19821f5d4ace9069ad56bf8bae58f8554cafb211662e"
     },
     "deploy/ot-pilot/run_boundary_suite.py": {
       "concepts": [],
@@ -23371,7 +23371,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "ffefbb19025b422cfe44cdd475c254949866fa569b8fe9fedc3517fba1943749",
+  "register_sha256": "7051dba0856206d981e334d94702a4f7c2178d7e295420ae62d1a54922f504da",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

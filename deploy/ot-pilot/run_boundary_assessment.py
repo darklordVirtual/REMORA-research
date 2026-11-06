@@ -13,8 +13,8 @@ On a running stack (``docker compose up``), from the host:
 3. reconciles the plant journal for that interval with REMORA's executed
    dispatches (``reconcile.py``). An applied write no executed dispatch
    accounts for is a bypass, and the run records it as one;
-4. scans everything the agent zone captured for every secret value in
-   ``deploy/ot-pilot/.env``;
+4. counts how many non-public credential values from ``deploy/ot-pilot/.env``
+   occur in what the agent zone captured (a count, never which or what);
 5. runs a detector-sensitivity control in a separate interval: a direct write
    to the plant with the executor's credential from inside the API container,
    which the reconciliation must report as unattributed. A detector that
@@ -170,8 +170,8 @@ def main(argv: list[str] | None = None) -> int:
         "evaluation_scope": (f"ot-pilot/agent-container-zone/plant-state/single-host/"
                              f"{started}/{datetime.now(UTC).isoformat()}"),
         "agent_zone": {"service": "agent", "networks": ["agent-net"],
-                       "carried_secret_names": (boundary or {}).get("zone", {})
-                       .get("secret_like_env_names")},
+                       # The zone as the suite reported it from inside, kept whole.
+                       "reported_by_suite": (boundary or {}).get("zone")},
         "topology_check": topology,
         "live_networks": live_networks,
         # Declared members that were running when the networks were read; the
