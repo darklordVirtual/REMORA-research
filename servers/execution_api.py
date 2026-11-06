@@ -4361,6 +4361,13 @@ def _computed_postcondition_verdict(
         # effect is absent. That needs no attribution, since the claim is
         # about the post-state. Until 2026-11-06 this read UNOBSERVABLE, so a
         # write the system acknowledged and never applied was "unknown".
+        # MISMATCH is settled. The precondition is the reader's, and a
+        # deployment that sends revisions must meet it: the revision advances
+        # when the system of record applies the write, not before. A system
+        # that applies later (a ramped setpoint, an eventually consistent
+        # store) must not read back before that, or it records a write still
+        # on its way as absent. Without revisions in the receipt this branch
+        # does not apply.
         computed = dataclasses.replace(computed,
                            reason_code="postcondition_effect_absent",
                            detail=("pre-state and observed revisions are equal "
@@ -4386,14 +4393,20 @@ def list_dispatches(request: Request, after_sequence: int = 0,
 
     For an effect verifier in another control domain (AACP G): it needs to
     find every dispatch to verify without being told which ones by the agent
-    or the executor. Read capability only, tenant-scoped, identities and
-    hashes only: the chain holds no arguments or results, and this returns
-    none. ``next_after_sequence`` continues the listing.
+    or the executor. It needs ``verify_effect`` (the effect_verifier role, and
+    admin), not ``read``: the rows name every principal's proposals and grant
+    ids in the tenant, which an agent holding ``read`` has no use for
+    (adversarial review 2026-11-06). Tenant-scoped, identities and hashes
+    only: the chain holds no arguments or results, and this returns none.
+    ``next_after_sequence`` continues the listing. Each call reads the
+    tenant's whole chain, so its cost grows with the chain; a caller should
+    page forward from its last cursor, as the pilot's verifier does.
     """
     tenant, role, _principal = _auth(request)
     from servers import api as api_mod
 
-    api_mod._require_tenant_capability(role, tenant, "read")
+    api_mod._require_tenant_capability(role, tenant, "verify_effect")
+    after_sequence = max(0, int(after_sequence))
     limit = max(1, min(int(limit), 500))
     entries = _CHAIN.entries(tenant)
     tools: dict[str, str] = {}

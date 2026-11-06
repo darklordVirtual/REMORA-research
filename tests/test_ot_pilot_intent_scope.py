@@ -241,9 +241,14 @@ def test_the_fresh_scope_verdict_at_execute_voids_the_approval(pilot, monkeypatc
     r = client.post("/v1/execution/execute", json={"item_id": item, "tool_call": p})
     assert r.status_code == 200, r.text
     e = r.json()
-    assert e["outcome"] != "execute", e
+    assert e["outcome"] == "approval_invalidated", e
+    assert "no review can lift" in e.get("detail", ""), e
     assert not (e.get("tool_execution") or {}).get("executed")
     assert ot_registry.PLANT["valves"]["V-12"]["pct"] == 15
+    # Settled, not re-queued: there is no second approval to give.
+    again = client.post("/v1/execution/approve",
+                        json={"item_id": item, "approval_ttl_seconds": 900})
+    assert again.status_code in (404, 409), again.text
 
 
 def test_an_unchanged_work_order_lets_the_approved_call_run(pilot, monkeypatch, tmp_path):

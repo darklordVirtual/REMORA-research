@@ -171,7 +171,8 @@ def test_over_http_the_writer_writes_and_the_reader_reads_it_back(served):
     status, obj = _http("GET", f"{url}/objects/valve/V-12", READ)
     assert status == 200 and obj == {"kind": "valve", "id": "V-12", "pct": 30, "revision": 1}
     status, journal = _http("GET", f"{url}/journal", READ)
-    assert journal["entries"][-1]["dispatch_ref"] == "pid-1"
+    applied = [e for e in journal["entries"] if e["outcome"] == "applied"]
+    assert [e["dispatch_ref"] for e in applied] == ["pid-1"]
     status, digest = _http("GET", f"{url}/digest", READ)
     assert digest["live"] == digest["replayed"]
 
@@ -373,3 +374,97 @@ def test_initial_state_is_not_shared_between_plants():
     assert b.state["valves"]["V-12"]["pct"] == 15
     assert plant_model.INITIAL_STATE == copy.deepcopy(plant_model.INITIAL_STATE)
     assert plant_model.INITIAL_STATE["valves"]["V-12"]["pct"] == 15
+
+
+# ── adversarial review 2026-11-06 ──────────────────────────────────────────
+
+def test_every_answered_request_is_journaled_reads_included(served):
+    plant, url = served
+    _http("GET", f"{url}/objects/valve/V-12", READ)
+    _http("GET", f"{url}/objects/valve/V-99", READ)
+    _http("GET", f"{url}/journal", READ)
+    assert [(e["outcome"], e["credential"]) for e in plant.journal] == [
+        ("read", "reader"), ("refused", "reader"), ("read", "reader")]
+
+
+def test_an_object_reads_back_at_the_revision_a_write_produced():
+    plant = plant_model.Plant()
+    for pct in (30, 35):
+        plant.apply("set_valve_position", {"valve": "V-12", "position_pct": pct},
+                    credential="writer")
+    assert plant.read_object("valve", "V-12")["pct"] == 35
+    assert plant.read_object("valve", "V-12", 1) == {"kind": "valve", "id": "V-12",
+                                                     "pct": 30, "revision": 1}
+    assert plant.read_object("valve", "V-12", 0)["pct"] == 15
+    for missing in (3, 7):
+        with pytest.raises(plant_model.PlantRefused):
+            plant.read_object("valve", "V-12", missing)
+
+
+def test_health_reports_active_faults(monkeypatch):
+    plant = plant_model.Plant(faults={"valve:V-12": ["clamp", 20]})
+    server = plant_service.build_server("127.0.0.1", 0, plant, {WRITE: "writer", READ: "reader"})
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    try:
+        status, body = _http("GET", f"http://127.0.0.1:{server.server_address[1]}/health")
+        assert status == 200 and body["faults"] == {"valve:V-12": ["clamp", 20]}
+    finally:
+        server.shutdown()
+
+
+@pytest.mark.parametrize("resource", ["V-12?dispatch_ref=x", "../tools/set_valve_position",
+                                      "http://plant:9100/tools/x", "V-12/../../journal", "",
+                                      "V 12", "V-12%2F..", None])
+def test_the_limit_observer_never_sends_an_agent_string_to_the_plant(remote_registry, resource):
+    plant, registry = remote_registry
+    before = len(plant.journal)
+    with pytest.raises(KeyError):
+        registry.observe_limit_value("ot-pilot", "valve_travel", resource)
+    assert len(plant.journal) == before  # no request reached the plant
+
+
+def test_a_write_reusing_a_pre_window_reference_is_reported():
+    rec = reconcile_mod.reconcile(_journal("a", "a"), [_dispatch("a")],
+                                  live_digest="d", replayed_digest="d", since_seq=1)
+    assert rec["dispatches_named_twice"] == ["a"] and rec["agree"] is False
+
+
+def test_dispatches_before_the_window_are_not_missing():
+    rec = reconcile_mod.reconcile(_journal("a", ""), [_dispatch("a")],
+                                  live_digest="d", replayed_digest="d", since_seq=1)
+    assert rec["dispatches_without_plant_record"] == []
+    assert len(rec["unattributed_writes"]) == 1
+
+
+def test_a_write_naming_a_dispatch_of_another_tool_is_a_mismatch():
+    rec = reconcile_mod.reconcile(_journal("a"), [_dispatch("a", tool="adjust_setpoint")],
+                                  live_digest="d", replayed_digest="d")
+    assert rec["tool_mismatches"] and rec["agree"] is False
+
+
+def test_an_unknown_outcome_accounts_for_its_write_and_is_never_missing():
+    unknown = {"proposal_id": "a", "executed": False, "state_unknown": True,
+               "tool_name": "set_valve_position"}
+    assert reconcile_mod.reconcile(_journal("a"), [unknown], live_digest="d",
+                                   replayed_digest="d")["agree"] is True
+    assert reconcile_mod.reconcile([], [unknown], live_digest="d",
+                                   replayed_digest="d")["agree"] is True
+
+
+@pytest.mark.parametrize("name,mutate,expect", [
+    ("agent gets an env_file",
+     lambda c: c["services"]["agent"].__setitem__("env_file", [".env"]), "env_file"),
+    ("agent mounts the deployment directory",
+     lambda c: c["services"]["agent"]["volumes"].append(".:/deploy"), "agent zone mounts"),
+    ("agent is privileged",
+     lambda c: c["services"]["agent"].__setitem__("privileged", True), "sets privileged"),
+    ("agent shares the API's network namespace",
+     lambda c: c["services"]["agent"].__setitem__("network_mode", "service:api"),
+     "sets network_mode"),
+    ("agent gets an undeclared key",
+     lambda c: c["services"]["agent"].__setitem__("extra_hosts", ["plant:172.18.0.2"]),
+     "undeclared keys"),
+])
+def test_ways_to_widen_the_agent_zone_fail_the_check(tmp_path, monkeypatch, name, mutate, expect):
+    problems = _checker(tmp_path, monkeypatch, compose=mutate)
+    assert any(expect in p for p in problems), (name, problems)

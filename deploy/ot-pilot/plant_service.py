@@ -14,8 +14,9 @@ process with two credentials of its own:
   reports is not something it could have produced (REMORA derives the
   verifier's vantage from that credential scope).
 
-Every request is journaled with the credential it presented, including the
-ones refused for having none. ``GET /journal`` serves the journal, and
+Every request it answers, except the unauthenticated ``/health``, is
+journaled with the credential it presented: writes, reads and refusals,
+including the ones refused for having no credential. ``GET /journal`` serves the journal, and
 ``GET /digest`` the live and replayed state digests, which is how a run shows
 that no state change escaped the journal.
 
@@ -33,7 +34,7 @@ import sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, unquote, urlparse
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -88,9 +89,18 @@ class PlantHandler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def _refuse(self, status: int, reason: str, role: str) -> None:
-        self.plant.note_refused(self.command, urlparse(self.path).path, credential=role,
+        self.plant.note_request(self.command, urlparse(self.path).path, credential=role,
                                 source=self.client_address[0], status=status, reason=reason)
         self._send(status, {"error": reason})
+
+    def _answer(self, role: str, status: int, body: Any) -> None:
+        """Send a read's answer and journal it, served or refused."""
+        self.plant.note_request(
+            self.command, urlparse(self.path).path, credential=role,
+            source=self.client_address[0], status=status,
+            reason="" if status == 200 else str((body or {}).get("error", "")),
+            outcome="read" if status == 200 else "refused")
+        self._send(status, body)
 
     def _readable(self, role: str) -> bool:
         if role in ("writer", "reader"):
@@ -103,30 +113,40 @@ class PlantHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:  # noqa: N802 - http.server naming
         url = urlparse(self.path)
-        parts = [p for p in url.path.split("/") if p]
+        parts = [unquote(p) for p in url.path.split("/") if p]
         if parts == ["health"]:
-            return self._send(200, {"ok": True, "started_at": self.plant.started_at})
+            # Unauthenticated and not journaled: liveness for the orchestrator.
+            # Active faults are reported, so a faulty plant cannot pass as an
+            # honest one.
+            return self._send(200, {"ok": True, "started_at": self.plant.started_at,
+                                    "faults": {k: list(v) for k, v in self.plant.faults.items()}})
         role = self._role()
         if not self._readable(role):
             return None
+        query = parse_qs(url.query)
         try:
             if len(parts) == 3 and parts[0] == "objects":
-                return self._send(200, self.plant.read_object(parts[1], parts[2]))
+                raw = (query.get("revision") or [None])[0]
+                revision = int(raw) if raw is not None else None
+                return self._answer(role, 200,
+                                    self.plant.read_object(parts[1], parts[2], revision))
             if len(parts) == 2 and parts[0] == "sensors":
-                return self._send(200, self.plant.read_sensor(parts[1]))
+                return self._answer(role, 200, self.plant.read_sensor(parts[1]))
             if len(parts) == 3 and parts[0] == "observe":
-                return self._send(200, {"value": self.plant.observe(parts[1], parts[2])})
+                return self._answer(role, 200,
+                                    {"value": self.plant.observe(parts[1], parts[2])})
             if parts == ["journal"]:
-                since = int((parse_qs(url.query).get("since") or ["0"])[0])
-                return self._send(200, {"entries": self.plant.journal_since(max(since, 0)),
-                                        "started_at": self.plant.started_at})
+                since = int((query.get("since") or ["0"])[0])
+                body = {"entries": self.plant.journal_since(max(since, 0)),
+                        "started_at": self.plant.started_at}
+                return self._answer(role, 200, body)
             if parts == ["digest"]:
-                return self._send(200, {"live": self.plant.digest(),
-                                        "replayed": self.plant.replay_digest()})
+                return self._answer(role, 200, {"live": self.plant.digest(),
+                                                "replayed": self.plant.replay_digest()})
         except PlantRefused as exc:
-            return self._send(exc.status, {"error": exc.reason})
+            return self._answer(role, exc.status, {"error": exc.reason})
         except (KeyError, ValueError) as exc:
-            return self._send(404, {"error": str(exc)})
+            return self._answer(role, 404, {"error": str(exc)})
         return self._refuse(404, "no such route", role)
 
     def do_POST(self) -> None:  # noqa: N802

@@ -6,9 +6,10 @@ Standard library only, so the plant service can run in a container that holds
 none of REMORA's code or keys (``plant_service.py``). ``ot_registry`` uses the
 same model in-process for the unit tests, where no plant service runs.
 
-The journal is the plant's own record of every request that reached it,
-applied or refused, with the credential it presented. It is complete for
-state changes by construction: ``Plant.apply`` is the only function that
+The journal is the plant's own record of every request the service
+answered: writes applied or refused, reads, and refusals before a tool was
+named, each with the credential it presented. It is complete for state
+changes by construction: ``Plant.apply`` is the only function that
 mutates ``state``, and it appends the journal entry under the same lock, with
 the state digest after the change. ``replay_digest`` recomputes the state
 from the initial state and the applied entries, so an unjournaled mutation
@@ -145,6 +146,10 @@ class Plant:
         self._clock = clock
         self.state: dict[str, Any] = copy.deepcopy(INITIAL_STATE)
         self.revisions: dict[str, int] = {}
+        #: Each object's state at each revision it reached, as the plant
+        #: recorded it when the write applied (a historian). Revision 0 is the
+        #: initial state and is read from ``INITIAL_STATE``.
+        self.history: dict[str, dict[int, dict[str, Any]]] = {}
         self.journal: list[dict[str, Any]] = []
         self.started_at = clock()
         self.faults = self._parse_faults(faults or {})
@@ -194,6 +199,9 @@ class Plant:
                 changed = not (fault and fault[0] == "drop")
                 if changed:
                     self.revisions[key] = before + 1
+                    kind_, ident_ = key.split(":", 1)
+                    self.history.setdefault(key, {})[before + 1] = copy.deepcopy(
+                        self.state[OBJECT_KINDS[kind_]][ident_])
                 entry.update(outcome="applied", object=key, rev_before=before,
                              rev_after=self.revisions.get(key, 0), result=result,
                              fault=list(fault) if fault else None,
@@ -206,20 +214,36 @@ class Plant:
             finally:
                 self.journal.append(entry)
 
-    def note_refused(self, method: str, path: str, *, credential: str, source: str,
-                     status: int, reason: str) -> None:
-        """Journal a request refused before it named a tool (bad path, no token)."""
+    def note_request(self, method: str, path: str, *, credential: str, source: str,
+                     status: int, reason: str = "", outcome: str = "refused") -> None:
+        """Journal a request that is not a tool write: a read, or a refusal
+        before a tool was named (bad path, no token). Writes are journaled by
+        ``apply``. Together every request the service answers is journaled."""
         with self._lock:
             self.journal.append({
                 "seq": len(self.journal) + 1, "at": self._clock(), "tool": None,
                 "request": f"{method} {path}", "credential": credential,
-                "dispatch_ref": "", "source": source, "outcome": "refused",
+                "dispatch_ref": "", "source": source, "outcome": outcome,
                 "status": status, "reason": reason,
                 "state_digest": state_digest(self.state)})
 
+    #: Kept for callers written before reads were journaled.
+    def note_refused(self, method: str, path: str, *, credential: str, source: str,
+                     status: int, reason: str) -> None:
+        self.note_request(method, path, credential=credential, source=source,
+                          status=status, reason=reason)
+
     # ── reads ─────────────────────────────────────────────────────────────
 
-    def read_object(self, kind: str, ident: str) -> dict[str, Any]:
+    def read_object(self, kind: str, ident: str,
+                    revision: int | None = None) -> dict[str, Any]:
+        """The object now, or as it was at ``revision`` (the plant's own record).
+
+        An effect verifier reads a write's effect at the revision that write
+        produced, so a later write to the same object is not mistaken for it.
+        A revision the object never reached, or one later than its current
+        revision, is refused rather than answered with the nearest one.
+        """
         coll_name = OBJECT_KINDS.get(kind)
         if coll_name is None:
             raise PlantRefused(404, f"unknown object kind {kind!r}")
@@ -229,8 +253,18 @@ class Plant:
             obj = self.state[coll_name].get(ident)
             if obj is None or (fault and fault[0] == "hide"):
                 raise PlantRefused(404, f"unknown {kind} {ident!r}")
-            return {"kind": kind, "id": ident, **copy.deepcopy(obj),
-                    "revision": self.revisions.get(key, 0)}
+            current = self.revisions.get(key, 0)
+            if revision is None or revision == current:
+                return {"kind": kind, "id": ident, **copy.deepcopy(obj), "revision": current}
+            if revision == 0:
+                initial = INITIAL_STATE[coll_name].get(ident)
+                if initial is None:
+                    raise PlantRefused(404, f"{kind} {ident!r} did not exist at revision 0")
+                return {"kind": kind, "id": ident, **copy.deepcopy(initial), "revision": 0}
+            recorded = self.history.get(key, {}).get(revision)
+            if recorded is None:
+                raise PlantRefused(404, f"{kind} {ident!r} has no revision {revision}")
+            return {"kind": kind, "id": ident, **copy.deepcopy(recorded), "revision": revision}
 
     def read_sensor(self, sensor_id: str) -> dict[str, Any]:
         obj = self.read_object("sensor", sensor_id)

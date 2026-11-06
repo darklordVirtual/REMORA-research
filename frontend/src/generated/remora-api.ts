@@ -351,9 +351,14 @@ export interface paths {
          *
          *     For an effect verifier in another control domain (AACP G): it needs to
          *     find every dispatch to verify without being told which ones by the agent
-         *     or the executor. Read capability only, tenant-scoped, identities and
-         *     hashes only: the chain holds no arguments or results, and this returns
-         *     none. ``next_after_sequence`` continues the listing.
+         *     or the executor. It needs ``verify_effect`` (the effect_verifier role, and
+         *     admin), not ``read``: the rows name every principal's proposals and grant
+         *     ids in the tenant, which an agent holding ``read`` has no use for
+         *     (adversarial review 2026-11-06). Tenant-scoped, identities and hashes
+         *     only: the chain holds no arguments or results, and this returns none.
+         *     ``next_after_sequence`` continues the listing. Each call reads the
+         *     tenant's whole chain, so its cost grows with the chain; a caller should
+         *     page forward from its last cursor, as the pilot's verifier does.
          */
         get: operations["list_dispatches_v1_execution_dispatches_get"];
         put?: never;

@@ -10,7 +10,9 @@ Reads ``deploy/ot-pilot/credential_topology.yaml`` and checks it against
    the pilot's code reads, that the register does not declare;
 2. a register entry that no service carries any more;
 3. a holder set or reader set that differs from what the files say;
-4. a credential declared unreachable that the agent service carries;
+4. a credential declared unreachable that the agent service carries, an
+   ``env_file`` on any service, a privilege or namespace setting, or an agent
+   service with keys or mounts outside its declared shape;
 5. a network whose declared membership or ``internal`` flag differs from the
    compose file, an agent zone that is not exactly its declared networks, or
    an agent network shared with a protected service.
@@ -38,6 +40,12 @@ REGISTER = PILOT / "credential_topology.yaml"
 COMPOSE = PILOT / "docker-compose.yml"
 
 _SECRET_NAME = re.compile(r"TOKEN|KEY|SEED|SECRET|PASSWORD|DSN|FAULTS")
+#: The agent service's whole declared shape.
+_AGENT_KEYS = frozenset({"image", "pull_policy", "profiles", "command", "environment",
+                         "volumes", "networks"})
+#: Settings that widen what a container can reach, on any service.
+_ESCALATING_KEYS = frozenset({"privileged", "pid", "ipc", "network_mode", "cap_add",
+                              "devices", "userns_mode", "security_opt"})
 _REFERENCE = re.compile(r"\$\{(\w+)")
 
 
@@ -114,6 +122,24 @@ def check() -> tuple[list[str], dict[str, Any]]:
     zone = register["agent_zone"]
     agent = zone["service"]
     services = compose.get("services") or {}
+    # Ways to hand a container secrets or reach that the environment scan above
+    # cannot see (adversarial review 2026-11-06): an env_file anywhere, and on
+    # the agent any key outside the declared shape, a host mount, or a
+    # privilege, namespace or device setting.
+    for service, spec in services.items():
+        if "env_file" in (spec or {}):
+            problems.append(f"service {service} uses env_file, which this check cannot read")
+        for key in _ESCALATING_KEYS & set(spec or {}):
+            problems.append(f"service {service} sets {key}")
+    agent_spec = services.get(agent) or {}
+    extra = set(agent_spec) - _AGENT_KEYS
+    if extra:
+        problems.append(f"agent zone service sets undeclared keys {sorted(extra)}")
+    for volume in agent_spec.get("volumes") or []:
+        target = str(volume).rsplit(":", 1)[-1] if isinstance(volume, str) else \
+            (volume or {}).get("target")
+        if target != zone.get("output_mount", "/out"):
+            problems.append(f"agent zone mounts {volume!r}; only its output directory is declared")
     if agent not in services:
         problems.append(f"agent zone service {agent!r} is not in the compose file")
     for name, entry in declared.items():

@@ -41,6 +41,11 @@ READ = "r" * 40
 
 pilot = _limits.pilot
 
+import servers.api as _api  # noqa: E402
+
+#: The real RBAC check, captured before the pilot fixture replaces it.
+_REAL_CAPABILITY_CHECK = _api._require_tenant_capability
+
 
 class ClientHttp:
     """effect_verifier.Http's interface over the in-process TestClient."""
@@ -184,3 +189,46 @@ def test_the_dispatch_listing_names_each_execution_and_its_verdict(stack):
         "read_sensor"
     page = client.get(f"/v1/execution/dispatches?after_sequence={rows[-1]['sequence_no']}").json()
     assert page["dispatches"] == []
+
+
+# ── adversarial review 2026-11-06 ──────────────────────────────────────────
+
+def test_two_writes_before_a_pass_are_each_verified_against_their_own_revision(stack):
+    """The second write must not stand in for the first (it used to be read as
+    the first write's effect, a settled MISMATCH for a correct write)."""
+    client, _, verifier = stack
+    first = _write(client, "set_valve_position", "WO-1204", valve="V-12", position_pct=30)
+    second = _write(client, "set_valve_position", "WO-1204", valve="V-12", position_pct=40)
+    verifier.run_once()
+    assert [_effect(client, p)["status"] for p in (first, second)] == ["EFFECT_VERIFIED"] * 2
+    revisions = {r["proposal_id"]: r["source_revision"] for r in verifier.report()["results"]}
+    assert (revisions[first], revisions[second]) == ("1", "2")
+
+
+def test_a_dropped_write_is_not_verified_by_a_later_write_of_the_same_value(stack):
+    client, registry, verifier = stack
+    registry._LOCAL.faults["valve:V-12"] = ("drop", None)
+    dropped = _write(client, "set_valve_position", "WO-1204", valve="V-12", position_pct=30)
+    registry._LOCAL.faults.pop("valve:V-12")
+    applied = _write(client, "set_valve_position", "WO-1204", valve="V-12", position_pct=30)
+    verifier.run_once()
+    assert (_effect(client, dropped)["status"], _effect(client, dropped)["reason_code"]) == (
+        "EFFECT_MISMATCH", "postcondition_effect_absent")
+    assert _effect(client, applied)["status"] == "EFFECT_VERIFIED"
+
+
+@pytest.mark.parametrize("role,expected", [("operator", 403), ("viewer", 403),
+                                           ("effect_verifier", 200), ("admin", 200)])
+def test_the_dispatch_listing_needs_verify_effect(stack, monkeypatch, role, expected):
+    client, _, _ = stack
+    import servers.api as api_mod
+
+    monkeypatch.setattr(api_mod, "_require_tenant_capability", _REAL_CAPABILITY_CHECK)
+    monkeypatch.setattr(api_mod, "_authenticate", lambda request: ("ot-pilot", role))
+    assert client.get("/v1/execution/dispatches").status_code == expected
+
+
+def test_a_negative_cursor_is_read_as_zero(stack):
+    client, _, _ = stack
+    body = client.get("/v1/execution/dispatches?after_sequence=-5").json()
+    assert body["next_after_sequence"] >= 0

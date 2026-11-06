@@ -160,7 +160,10 @@ def main(argv: list[str] | None = None) -> int:
     record = {
         "schema": "ot-pilot-boundary-assessment/v1",
         "started_at": started, "finished_at": datetime.now(UTC).isoformat(),
-        "evaluation_scope": "ot-pilot/agent-container-zone/plant-state/single-host",
+        # Bound to this run's interval (AACP v0.2 section 4): another interval
+        # is another scope and needs its own evidence.
+        "evaluation_scope": (f"ot-pilot/agent-container-zone/plant-state/single-host/"
+                             f"{started}/{datetime.now(UTC).isoformat()}"),
         "agent_zone": {"service": "agent", "networks": ["agent-net"],
                        "carried_secret_names": (boundary or {}).get("zone", {})
                        .get("secret_like_env_names")},
@@ -177,6 +180,8 @@ def main(argv: list[str] | None = None) -> int:
             and live_networks.get(net, {}).get("internal") == spec["internal"]
             for net, spec in _register_networks().items()),
         "agent_network_while_suite_ran": agent_net_during,
+        # A plant with declared faults is not the deployment under test here.
+        "plant_faults_active": host.plant_health().get("faults"),
         "positive_controls": [control_before, control_after],
         "suite": {"exit_code": suite_run.returncode, "seconds": suite_seconds,
                   "stderr_tail": suite_run.stderr[-1500:], "attempt_count": len(attempts),

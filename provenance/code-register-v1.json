@@ -5803,9 +5803,9 @@
     },
     "deploy/ot-pilot/credential_topology.yaml": {
       "concepts": [],
-      "git_blob": "73971ec815ba8bf39a99ea7814d6af432fbe0eb7",
+      "git_blob": "a05c124e6d14cf35ca371b110708042d7fae9411",
       "mode": "100644",
-      "sha256": "e5e7b22760ae7c67caee9c2f1e50aa80632e3833fe7e490a8ea05432f309b50e"
+      "sha256": "df9587a6a0d0ebbfcf5898597119e4d23c8225af15e90f788db47ca0661758ee"
     },
     "deploy/ot-pilot/docker-compose.yml": {
       "concepts": [],
@@ -5815,9 +5815,9 @@
     },
     "deploy/ot-pilot/effect_verifier.py": {
       "concepts": [],
-      "git_blob": "6513a0ab73d9a7a696990a0ad6949b5543e65d90",
+      "git_blob": "ebed653e389fc9e27c0968297895d44103312182",
       "mode": "100644",
-      "sha256": "c131f66d8ba365b23e0b08dad3a1aa7661fa42de58c833ae5fb66875e64afc00"
+      "sha256": "1a44ae3993fc00eca4c75c2cb1f11cf9727e62a91d636cb877c989d9ae2a18f7"
     },
     "deploy/ot-pilot/init_tokens.py": {
       "concepts": [],
@@ -5841,9 +5841,9 @@
     },
     "deploy/ot-pilot/ot_registry.py": {
       "concepts": [],
-      "git_blob": "3dccbb808b54c1d4b014c4c97995a1812dc0bdf6",
+      "git_blob": "95b27a462ea4d7769a51afb88487a132f57ef0c6",
       "mode": "100644",
-      "sha256": "8f7abb166b9d1ea350fd791027f1488de1769267fb912a71f976bb849d5d887d"
+      "sha256": "b081a1d33b93a1b2d45117573f5b942889cd00336d0c1fcbfdaeb71f553bccb8"
     },
     "deploy/ot-pilot/ot_ws1.py": {
       "concepts": [
@@ -5861,9 +5861,9 @@
     },
     "deploy/ot-pilot/pilot_host.py": {
       "concepts": [],
-      "git_blob": "c25257f3bf6776d3aefc728fb3fd25ca3be4b3a9",
+      "git_blob": "21663e5a4f44e73ee988a7246708752aa0c889dd",
       "mode": "100644",
-      "sha256": "de60f5a51fe219dc1d7b6351ce2a56c9a28854922f5fc506f0ebe0951ea2f74d"
+      "sha256": "a1233096bed4b336cb5fabf76cfebac37c1cfe969bb522ca85acdc3e136a5dda"
     },
     "deploy/ot-pilot/plant/Dockerfile": {
       "concepts": [],
@@ -5879,27 +5879,27 @@
     },
     "deploy/ot-pilot/plant_model.py": {
       "concepts": [],
-      "git_blob": "7f3c3aa587eee1bc3445c01da021abdff4a22c96",
+      "git_blob": "ff9a775e0aedf77363b90c0af5bb854335987ff8",
       "mode": "100644",
-      "sha256": "63242e4746329fa06d7f75ae1dd9f7c84568acee51c07d3ad14326540e406cf6"
+      "sha256": "5fa0adb833b7c16a4e3817d0496b6b938796f6f8308b553e32ff687b53ef704d"
     },
     "deploy/ot-pilot/plant_service.py": {
       "concepts": [],
-      "git_blob": "01e1be74bed4e66d112b2b57bfd208c875f40d7d",
+      "git_blob": "0bde1159624b6e0c49c0f321a45ad7b0d4d24f69",
       "mode": "100644",
-      "sha256": "0983e80e21babff46d1c57543dd60897a521cc6bdfdc84f10ff2748e6a803d27"
+      "sha256": "544abf4d2b00284c392339e331d2f5d248520ae68f098fde81d158ea46f66e98"
     },
     "deploy/ot-pilot/reconcile.py": {
       "concepts": [],
-      "git_blob": "4374a5a23dffe4dd4283aa24982ae56365c08591",
+      "git_blob": "301a6863436bfcca58cc4884d57836bc67a3a48f",
       "mode": "100644",
-      "sha256": "ae25b0e238ebe8d5b9e7aa848ededd0261425358aff5b3f935317778284e7f9d"
+      "sha256": "95c58c140d44135454f988fe9ffb01dab8aa410b5941c07732b507c4dde82519"
     },
     "deploy/ot-pilot/run_boundary_assessment.py": {
       "concepts": [],
-      "git_blob": "8d19a1384585aae6ba8a43b12f06c1368ec30de1",
+      "git_blob": "38038e6ba908536a8f2848ecfb8cb06112a20ef3",
       "mode": "100644",
-      "sha256": "8bb1d24a81213a48cfe28c5c5c269ee29125a42ef670d02800945a7df41cab1f"
+      "sha256": "570331e16e7f6db35c2bce6e5859d1eec6d7f90b3c2a9b03af342da256fed815"
     },
     "deploy/ot-pilot/run_boundary_suite.py": {
       "concepts": [],
@@ -10046,9 +10046,9 @@
     },
     "frontend/src/generated/remora-api.ts": {
       "concepts": [],
-      "git_blob": "a835f6ba7dfcc831723bbc6a30fd4fe9d1ca461b",
+      "git_blob": "6877f800761c765efd07dffeb8a4b351017fbc3d",
       "mode": "100644",
-      "sha256": "c4b394670788ee99e650e113fc3cbf5df1dd52c32b7eb08d8942770526064415"
+      "sha256": "adc91b6619b4757f7698083e9e49bdc37801ccdc7cb8df0f4f2c8d29c91e8c1d"
     },
     "frontend/src/hooks/use-mobile.tsx": {
       "concepts": [],
@@ -13116,9 +13116,9 @@
       "concepts": [
         "PROV-04"
       ],
-      "git_blob": "3d1ac2c78a7283892a147e19003f5528176eed61",
+      "git_blob": "fb1c4ebe1883a1e53fc18bf40886223c3b0fc616",
       "mode": "100644",
-      "sha256": "06df54ed60551f2ca20385e9ff1fb6e25ce64d27037211745a7ebd920a464cd4"
+      "sha256": "453d17d5d07f316077f31f02c7b96d492f83b9be232b4c1bd7153ed556e61a3c"
     },
     "remora/governance/revocation_store.py": {
       "concepts": [],
@@ -15671,9 +15671,9 @@
     },
     "schemas/openapi.json": {
       "concepts": [],
-      "git_blob": "f59591e7ab04c696dded8c399750f5e1c53be135",
+      "git_blob": "e062670f39aee28448378e70b7ec9dd595590e97",
       "mode": "100644",
-      "sha256": "e6f666c2ed72539875f1652e6b53e86d4985026e347c5a6aac0b2b05a6c31248"
+      "sha256": "acd54df243db845a4dfa144a4cac69898cd0a895ad585e85e6ba53d0ae5cc920"
     },
     "schemas/postcondition_contract_v1.yaml": {
       "concepts": [],
@@ -16189,9 +16189,9 @@
     },
     "scripts/check_ot_pilot_topology.py": {
       "concepts": [],
-      "git_blob": "e661dca0f785c35205b8cafa8e713f468b35cc18",
+      "git_blob": "5d278a28df1877468a2784ddc3f9ff2fb29fa63f",
       "mode": "100644",
-      "sha256": "88c1e1b85bb04514d46a4d0217c127c1b04272d8231ec3ec97c066e755d9cc12"
+      "sha256": "b878af6917a4108b3053324185451188f7d73be719e1b4a3b0997da3136409ad"
     },
     "scripts/check_outbound_provenance.py": {
       "concepts": [],
@@ -17225,9 +17225,9 @@
       "concepts": [
         "PROV-18"
       ],
-      "git_blob": "6a37b85ce6a3c537e8ab8b046342fa82d67db451",
+      "git_blob": "b83159e924deec4de2cb32f21f802ff49d98b97f",
       "mode": "100644",
-      "sha256": "34a3d47691f604d38e79cae70b322c2f0d5e52a34b7acb8b0ccb2c47adfa0ebe"
+      "sha256": "489bbb7cc2f7fe583c76f38eb9c98473859071e09e366d1dc6cc3f0056444d45"
     },
     "servers/execution_contracts.py": {
       "concepts": [],
@@ -20552,9 +20552,9 @@
     },
     "tests/test_intent_scope.py": {
       "concepts": [],
-      "git_blob": "83911751371d4e8827e7202975f8cba7783045fc",
+      "git_blob": "02f7ca018310164b0ffee0988870016197a18607",
       "mode": "100644",
-      "sha256": "5a256df5370d435d2064d23d7da132e15d1508af78d524397802eacac922e83a"
+      "sha256": "142d7418225ef22bbd45ea25f41160a381c9dbc116c5d348f9d277e05a38f039"
     },
     "tests/test_interop_boundary_fixtures.py": {
       "concepts": [
@@ -21004,21 +21004,21 @@
     },
     "tests/test_ot_pilot_effect_verification.py": {
       "concepts": [],
-      "git_blob": "f58aca82323b1670df45924556236a4cd4b53ebf",
+      "git_blob": "129c648352dde19c9ccc6efc4e9441241b96a1e5",
       "mode": "100644",
-      "sha256": "893a5b3376d34c016ebd8160ff9409ddfb16b1ba71c4bcf70e13c323d96490e2"
+      "sha256": "c79d7e86d7a01de3d5016dc887d4c7e712aa70c45a9ece7e982f15648d6cdeee"
     },
     "tests/test_ot_pilot_intent_scope.py": {
       "concepts": [],
-      "git_blob": "21bd6ceb07081e8192f06c31589232af382f8a80",
+      "git_blob": "e414b63f1b5e3d57022422238dfc25d6014628bf",
       "mode": "100644",
-      "sha256": "0b18df4cdc2abfc17d6d0ba6c80bb44b7c2b2b64547e6de9b91647d7020e061a"
+      "sha256": "e0f1ebee2b1f5f7a95b7198518666664fdd0e1f3021e2348ab5fce8ee2b0486c"
     },
     "tests/test_ot_pilot_plant_boundary.py": {
       "concepts": [],
-      "git_blob": "1d742b16e6773d75b5bd5593f68e15c0663f0a90",
+      "git_blob": "1a9c235f8ff692d99cb6da0dd24ef73e98dd6dda",
       "mode": "100644",
-      "sha256": "409db4c0dbf740899a4bd397aa3bf16ccc94b325728e6e076a22d12ed8e58ffc"
+      "sha256": "4473efa40f8295e64d6c22a423a20f72af8c36653d363f9087862f1eebc0fcb2"
     },
     "tests/test_ot_pilot_tool_metadata.py": {
       "concepts": [
@@ -23371,7 +23371,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "3ac2d62406cfd20de10e723ee7874942509e92cd28b82a3e8eb1babf987087cf",
+  "register_sha256": "f84c6e38dd50d13eba239b63c17ac1b35094454e050c3378e3968922f3d8a77f",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

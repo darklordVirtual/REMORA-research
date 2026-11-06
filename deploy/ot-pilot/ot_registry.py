@@ -9,7 +9,12 @@ the only holder of a path to the plant's state (AACP E; the deployment's
 credential register is ``credential_topology.yaml``). Each write carries the
 current proposal id as ``dispatch_ref``, which the plant journals for
 attribution; it is not authority, and REMORA binds the effect to the call by
-the approved arguments' hash, not by this reference.
+the approved arguments' hash, not by this reference. The id is read from the
+execution API's request holder, so it is present on the synchronous execute
+path the pilot uses. The async dispatch worker (``REMORA_ASYNC_DISPATCH``) has
+no request holder: there every write would reach the plant without a
+reference, and the journal reconciliation would report it as unattributed.
+The pilot does not run that worker.
 
 Without ``OT_PLANT_URL`` the plant is an in-process ``plant_model.Plant``,
 for the unit tests only. Production mode refuses that configuration at
@@ -21,8 +26,10 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import Any, Callable
@@ -104,7 +111,7 @@ def read_sensor(a: dict[str, Any]) -> dict[str, Any]:
     try:
         if _LOCAL is not None:
             return _LOCAL.read_sensor(sid)
-        return _request("GET", f"/sensors/{urllib.request.quote(sid, safe='')}")
+        return _request("GET", f"/sensors/{urllib.parse.quote(sid, safe='')}")
     except PlantRefused as exc:
         raise _known("read_sensor", exc) from exc
 
@@ -144,16 +151,30 @@ def close_work_order(a: dict[str, Any]) -> dict[str, Any]:
         raise _known("close_work_order", exc) from exc
 
 
+#: What a plant identifier looks like. The limit observer runs at assess, on
+#: the call's own target argument, before the scope guard has refused anything,
+#: so an agent-chosen string must not become a path at the plant (adversarial
+#: review 2026-11-06: ``V-12?dispatch_ref=x`` and ``../`` reached it as
+#: writer-credential requests).
+_PLANT_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}")
+_QUANTITIES = frozenset({"setpoint_movement", "valve_travel"})
+
+
 def observe_limit_value(tenant: str, quantity: str, resource: str) -> float:
     """The value the plant reports, for cumulative limits.
 
     Reads the plant, not REMORA's ledger. An unknown quantity or resource
-    raises, and the limit then refuses the call.
+    raises, and the limit then refuses the call. A resource that is not a
+    plant identifier raises before any request is made.
     """
+    if quantity not in _QUANTITIES or not isinstance(resource, str) \
+            or not _PLANT_ID.fullmatch(resource):
+        raise KeyError(f"no observation for {quantity!r} on {resource!r}")
     if _LOCAL is not None:
         return _LOCAL.observe(quantity, resource)
     try:
-        return float(_request("GET", f"/observe/{quantity}/{resource}")["value"])
+        return float(_request("GET", f"/observe/{quantity}/"
+                                     f"{urllib.parse.quote(resource, safe='')}")["value"])
     except PlantRefused as exc:
         raise KeyError(f"no observation for {quantity!r} on {resource!r}") from exc
 

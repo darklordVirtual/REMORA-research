@@ -204,3 +204,45 @@ def test_the_scope_status_is_exported_to_opa():
 
     obs = replace(MAX_TRUST, intent_scope_status=OUT_OF_SCOPE)
     assert export_opa_context(obs).intent_scope_status == OUT_OF_SCOPE
+
+
+# ── the review queue: a non-approvable refusal at execute and at dispatch ──
+
+def _scoped_obs(status):
+    from dataclasses import replace as _replace
+
+    return _replace(PolicyObservation.minimal("set valve", risk_tier="high"), action_type="write",
+                    tool_call_hash="h" * 64, intent_scope_status=status)
+
+
+def test_a_scope_refusal_at_execute_settles_the_item_and_cannot_be_approved_again():
+    from datetime import timedelta
+
+    from remora.governance.review_queue import ExecutionDecision, ItemStatus, ReviewQueue
+
+    queue = ReviewQueue(engine=RemoraDecisionEngine())
+    item = queue.enqueue(_scoped_obs(IN_SCOPE), DecisionAction.VERIFY)
+    queue.approve(item.item_id, "reviewer-1", timedelta(minutes=5))
+    outcome = queue.execute(item.item_id, _scoped_obs(OUT_OF_SCOPE))
+    assert outcome.decision is ExecutionDecision.APPROVAL_INVALIDATED
+    assert outcome.fresh_action is DecisionAction.ABSTAIN
+    stored = queue.item(item.item_id)
+    assert stored.status is ItemStatus.DISPATCH_REFUSED and stored.approval is None
+    assert queue.events[-1].payload["reason"] == "non_approvable_refusal"
+    with pytest.raises(Exception):
+        queue.approve(item.item_id, "reviewer-2", timedelta(minutes=5))
+
+
+def test_a_scope_refusal_at_the_async_dispatch_regate_is_not_executed():
+    from datetime import timedelta
+
+    from remora.governance.review_queue import ExecutionDecision, ReviewQueue
+
+    queue = ReviewQueue(engine=RemoraDecisionEngine())
+    item = queue.enqueue(_scoped_obs(IN_SCOPE), DecisionAction.VERIFY)
+    queue.approve(item.item_id, "reviewer-1", timedelta(minutes=5))
+    assert queue.execute(item.item_id, _scoped_obs(IN_SCOPE)).decision is ExecutionDecision.EXECUTE
+    for status in (OUT_OF_SCOPE, UNBOUND):
+        outcome = queue.regate_authorized(item.item_id, _scoped_obs(status))
+        assert outcome.decision is ExecutionDecision.APPROVAL_INVALIDATED
+        assert outcome.fresh_action is DecisionAction.ABSTAIN

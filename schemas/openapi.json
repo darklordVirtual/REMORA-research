@@ -2870,7 +2870,7 @@
     },
     "/v1/execution/dispatches": {
       "get": {
-        "description": "Every ``execution_result`` in this tenant's chain after a sequence number.\n\nFor an effect verifier in another control domain (AACP G): it needs to\nfind every dispatch to verify without being told which ones by the agent\nor the executor. Read capability only, tenant-scoped, identities and\nhashes only: the chain holds no arguments or results, and this returns\nnone. ``next_after_sequence`` continues the listing.",
+        "description": "Every ``execution_result`` in this tenant's chain after a sequence number.\n\nFor an effect verifier in another control domain (AACP G): it needs to\nfind every dispatch to verify without being told which ones by the agent\nor the executor. It needs ``verify_effect`` (the effect_verifier role, and\nadmin), not ``read``: the rows name every principal's proposals and grant\nids in the tenant, which an agent holding ``read`` has no use for\n(adversarial review 2026-11-06). Tenant-scoped, identities and hashes\nonly: the chain holds no arguments or results, and this returns none.\n``next_after_sequence`` continues the listing. Each call reads the\ntenant's whole chain, so its cost grows with the chain; a caller should\npage forward from its last cursor, as the pilot's verifier does.",
         "operationId": "list_dispatches_v1_execution_dispatches_get",
         "parameters": [
           {

@@ -27,11 +27,15 @@ COMPOSE = os.environ.get("REMORA_PILOT_COMPOSE", str(HERE / "docker-compose.yml"
 AGENT = os.environ.get("OT_TOKEN_AGENT", "")
 APPROVER = os.environ.get("OT_TOKEN_APPROVER", "")
 VIEWER = os.environ.get("OT_TOKEN_VIEWER", "")
+#: The dispatch listing needs verify_effect, which of the host's tokens only
+#: the supervisor (admin) holds.
+SUPERVISOR = os.environ.get("OT_TOKEN_SUPERVISOR", "")
 
 
 def require_tokens() -> None:
     missing = [n for n, v in (("OT_TOKEN_AGENT", AGENT), ("OT_TOKEN_APPROVER", APPROVER),
-                              ("OT_TOKEN_VIEWER", VIEWER)) if not v]
+                              ("OT_TOKEN_VIEWER", VIEWER), ("OT_TOKEN_SUPERVISOR", SUPERVISOR))
+               if not v]
     if missing:
         raise SystemExit(f"missing pilot credentials {missing}: source deploy/ot-pilot/.env")
 
@@ -68,12 +72,19 @@ def plant_dump() -> dict[str, Any]:
     return json.loads(compose("exec", "-T", "plant", "python", "/plant/plant_dump.py"))
 
 
+def plant_health() -> dict[str, Any]:
+    """The plant's /health, including the faults it reports active."""
+    code = ("import json,urllib.request;print(urllib.request.urlopen("
+            "'http://127.0.0.1:9100/health',timeout=5).read().decode())")
+    return json.loads(compose("exec", "-T", "plant", "python", "-c", code))
+
+
 def dispatches() -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     after = 0
     while True:
         status, body = call("GET", f"/v1/execution/dispatches?after_sequence={after}&limit=500",
-                            VIEWER)
+                            SUPERVISOR)
         if status != 200:
             raise RuntimeError(f"dispatch listing answered {status}: {body}")
         rows.extend(body["dispatches"])
