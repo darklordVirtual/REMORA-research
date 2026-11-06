@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "2c511d4fba44d1333fd0eacbf0f0b9d085ad4644",
+      "git_blob": "6f870156497bb4b73e64b969e192e37f47361ebe",
       "mode": "100644",
-      "sha256": "203002358d32d13dcddec2adba2c28e6e6184ba15b4f1fa7a0138f1e60197002"
+      "sha256": "98ff42ec3f83dc5fb94b46722580f49c6a1c9ded62780773b3ce0dbd7ec5d16a"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -3119,75 +3119,75 @@
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/README.md": {
       "concepts": [],
-      "git_blob": "180b2686e3784771378860790f1c35f1583cdd9a",
+      "git_blob": "3ad1518ecd99b652f785e7e40770d1f168bf73c0",
       "mode": "100644",
-      "sha256": "f8d0ccb8fcb753827e212ef7aff284a8555821e3f8777b5d7106caecd256ec4f"
+      "sha256": "d6842c181ea98a2d213c15b3f42b5c0dd5309d661f249b2d228adeb400d98c8a"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/aacp-assessment-v0.2.json": {
       "concepts": [],
-      "git_blob": "9242b9c366547cc5eba2e86ab75b71acd99f59e5",
+      "git_blob": "fb7f2fcc6dec6a701291cdf480e25b9354aadfe8",
       "mode": "100644",
-      "sha256": "dbd39d2048057239110e215c3ab0f117c8c1c90249f0ac8dd53179aee78c2346"
+      "sha256": "8c3d376eebac9830fc725d21ea7170e5d8dc569d9e8deb3ccb4c0f32d6155da1"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/battery/chain-verification.json": {
       "concepts": [],
-      "git_blob": "27fcc386143d1a2e6a646f70d276a3470a49c886",
+      "git_blob": "21b726ff44ca9694d820f3d95076780e4483f9ee",
       "mode": "100644",
-      "sha256": "060561d921d8811f05714394f84e34ca2004697f96c30c0ba63154eff47f3274"
+      "sha256": "8efd9c5ad34509714001da1d50bcc82fc731374af9180e5c3dedf139677d05b2"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/battery/manifest.json": {
       "concepts": [],
-      "git_blob": "77827e2ee49ad17f7c355ff2ce79c7f7dc356901",
+      "git_blob": "b53c277f2254e6ce11a45b572a500d15a0b79815",
       "mode": "100644",
-      "sha256": "a4990e252bb2683bd99a58d6396a05e1ef89397401582555cd59afe8fc051758"
+      "sha256": "cd014b9a86c9cf6160b8ce3536ddf3df9969b9d05d35ea093a2a06165d34a543"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/battery/metrics.json": {
       "concepts": [],
-      "git_blob": "301edca8abc83088833d02ecb080b5b572279a2c",
+      "git_blob": "724f776f442713ab2f757d33d72bf19b3d442595",
       "mode": "100644",
-      "sha256": "a212743029b69756d5223c0ff1b826b67d55140e02652f98a33fdaa19d3a8b14"
+      "sha256": "316431eac53d48eea7c84dd0751f5dc976c769b40739bdb1710cd412d43df2f3"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/battery/report.txt": {
       "concepts": [],
-      "git_blob": "a5d836ef6fd63aedbccafeb4be8276e682eaa807",
+      "git_blob": "fc02e0e984850bc33bfbd13fbc2b4fbf9ce228d7",
       "mode": "100644",
-      "sha256": "b258a6de2168e995f76a63e06b0bb615948a3969e79d2cfb6cae702c0cb582c2"
+      "sha256": "41be044fb484348a771412b5d878fd6d5e435338ed847b2718bd28342bed45d8"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/battery/results.json": {
       "concepts": [],
-      "git_blob": "dad08e3ac59361ea48b524619b52e5e693cd1653",
+      "git_blob": "e4d2bac5656e091197f4e82e18bf5fe17396b013",
       "mode": "100644",
-      "sha256": "dd6141ee7d65f1d04c05e8face2445d6e80256c81819a519238666cf243f4dce"
+      "sha256": "115b3e9fef02793afd3e6122da1d6cf93521accb073bebad0bd926c116328ee2"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/battery/verifier-report.json": {
       "concepts": [],
-      "git_blob": "cb3c06c84bc09da64d08e62a495220bac3009b99",
+      "git_blob": "f94d972ca12064b536a7a879e6165219e95edbda",
       "mode": "100644",
-      "sha256": "03ec1f47c4bfafbba1977b5fa904f0541c8d25c00e8e0f88c3e8a46870c84fd7"
+      "sha256": "905c8c70dd800ed2293e5af6deaf0ad73204b47fb4aa01580aa97fe6b2aa8ce8"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/boundary/boundary-assessment.json": {
       "concepts": [],
-      "git_blob": "02c297da6f6bb6c1bdc81bcf855ff843dfd4c77c",
+      "git_blob": "d54eabc22e6c9f50c2398f89df04da512bd2107b",
       "mode": "100644",
-      "sha256": "598d9e003b93d08b5417e6f62afe32f34a724ecf5b008ccd4f374e0668978bbf"
+      "sha256": "245acfecb0d816465b4de0c6ad9f9dd7906a85faf4b6666e32891d465f4bf70b"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/boundary/boundary-suite.json": {
       "concepts": [],
-      "git_blob": "a73430bc3fed544baf0ec3eb573f1a6564f8a4db",
+      "git_blob": "765e36f3577516bb3b83a92d0650cd332e6897bd",
       "mode": "100644",
-      "sha256": "1e73136144124d41c0d6b32ee2c69a1a6554e0dc6b368453b1773560d643d7c0"
+      "sha256": "d250a3968c3295798ed03aaaf33655ebaa8726f6f14ed903c32d9601898932d8"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/boundary/topology-check.json": {
       "concepts": [],
-      "git_blob": "8dd4e4e6e1670cdef99ae174954278e3caa89ef6",
+      "git_blob": "45b2db76b81c483060dd4843c6bcaf0e6de732ed",
       "mode": "100644",
-      "sha256": "e0b80ac9df7588f134658bd219fc17f30da28d65a4a4b2f2efca7dc6494afc18"
+      "sha256": "ff41d52d8c4faba0cb776ffbedb0d65fd90befc130bb0c4335036edc4a87f172"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/effect/effect-verification.json": {
       "concepts": [],
-      "git_blob": "26786044b5ce320f7e50b911adfa2ae73bea2964",
+      "git_blob": "c521c96a958c5a2ab36f031c8c9c8947471fbb39",
       "mode": "100644",
-      "sha256": "1e97329c7ecf1fc6abdbabdd3507ed377b5683220b3777934930ae504bbe413f"
+      "sha256": "f58a1ce99b71896f5a20b9743457e6e3edf69cd0fb4f7ea3674b7402b8add303"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/fault-injection/chain-verification.json": {
       "concepts": [],
@@ -3197,9 +3197,9 @@
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/fault-injection/manifest.json": {
       "concepts": [],
-      "git_blob": "295fb2e0eea269c781127b121b2ce82c295f2b0d",
+      "git_blob": "235befe8714ce0ea98ad2925698e6447dd9f4d47",
       "mode": "100644",
-      "sha256": "6c18287927439006811d15981f8591b9520a1033830875544d39a6836053de52"
+      "sha256": "729f1ba4b49bd298a494e0eea2e41d01aa07aeafe8449b2d1fc84f15344d55ed"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/fault-injection/metrics.json": {
       "concepts": [],
@@ -3209,39 +3209,39 @@
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/fault-injection/report.txt": {
       "concepts": [],
-      "git_blob": "8d34e22fea549ec6178afb3627cfad9f2ea58e12",
+      "git_blob": "ca8d8317d9f8a075c2ef88a47cb2a6b9077eb1e5",
       "mode": "100644",
-      "sha256": "a8aadb2b34819c140c46e453085f03b2f8a341f312a0098b49ab0c7d8675b6a7"
+      "sha256": "13a151f92a8a19feee971529dd3f6f6b8763032b9b8becef71f3913f8e22b45f"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/fault-injection/results.json": {
       "concepts": [],
-      "git_blob": "36c1288a6d5c03b249bfbb93f9787a4bc6f3f94f",
+      "git_blob": "5a35e4114797ff0b5bb3a2d4d3eef49918fb5f74",
       "mode": "100644",
-      "sha256": "d722a30f478367d713adb577c639d580ed5872e6fb048546938b6caa6d5b4340"
+      "sha256": "7f6a81b8383001ccc9c0b4560bf817ae49e6049c1781771c5973300ec8b32f32"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/independent-scenarios/phase-a.json": {
       "concepts": [],
-      "git_blob": "e9ca1f8d0127aadf60885ce758d569912e22e34b",
+      "git_blob": "a7d9fcba9ae85cfa3fa05b870b64edfd73dcadc5",
       "mode": "100644",
-      "sha256": "e8107efb83a656d63b6e2f3ee2bd033191230b25946764ae1776eaf06d6d1eee"
+      "sha256": "03e1ab309d76a4988b87998c89db2155a5542f48b6e1f145364308031822f557"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/independent-scenarios/phase-b.json": {
       "concepts": [],
-      "git_blob": "ab79e5c7953124364e6cc2c4b309e88ddbf67987",
+      "git_blob": "b88a603a55dc9ff34e9d22257d3d821a7bbdc86e",
       "mode": "100644",
-      "sha256": "255c26456ab48b479079591d3cd9737d82f40c47cc1d4deebf1f9be5f2bbdc06"
+      "sha256": "ce535ebb392182453b5b723c7d669bc910ab0ae835af7751b0fd7e057331fc84"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/independent-scenarios/phase-c.json": {
       "concepts": [],
-      "git_blob": "f8fe831a2bbc6174f35473c682600c1581995c5a",
+      "git_blob": "27390d0c648b49b866bb2b3c7b713aac0aebb1bc",
       "mode": "100644",
-      "sha256": "dba50156ad7168c301c71a7e9e23e6aa808650ab0c7f7e564801a2aa04a6c2f1"
+      "sha256": "6691f66d1be956d35715a618e08ef2e32ef61531266c8afc5b05d8cbceebd0ac"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/manifest.json": {
       "concepts": [],
-      "git_blob": "e6518909f35fb3d9816ab55dc55d2c1fa7922667",
+      "git_blob": "87d00c5d8caa21f93a3d03cf279abf2e8ff7a07c",
       "mode": "100644",
-      "sha256": "16dc15bc7d2e8aa782292d85848848588561c605c90b820b399f231ad2aca3aa"
+      "sha256": "b82661e0997a6b5ea9a2347d6186d3c40c11dd90513d2cde355a59e702a2c6fe"
     },
     "artifacts/ot-pilot/execution-path-reproduction-2026-11-05/README.md": {
       "concepts": [],
@@ -23371,7 +23371,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "467d8824a980501a0ec553ced53d3210c2be6fef60523b64f5a5877e599607d2",
+  "register_sha256": "52fe0faff7c1fae18ad5a78d34e141b06cda5cda202729cf51fd01f4d5e1b342",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

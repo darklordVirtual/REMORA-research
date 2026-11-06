@@ -64,26 +64,26 @@
           "durable_state": "unavailable"
         }
       },
-      "unhealthy_after_s": 57.3,
+      "unhealthy_after_s": 56.4,
       "ready_after_s": 1.0,
-      "healthy_after_s": 8.2,
+      "healthy_after_s": 9.3,
       "container_before": {
         "health": "starting",
         "running": true,
         "restart_count": 0,
-        "started_at": "2026-11-06T12:47:35.52551576Z"
+        "started_at": "2026-11-06T15:57:06.491928296Z"
       },
       "container_during": {
         "health": "unhealthy",
         "running": true,
         "restart_count": 0,
-        "started_at": "2026-11-06T12:47:35.52551576Z"
+        "started_at": "2026-11-06T15:57:06.491928296Z"
       },
       "container_after": {
         "health": "healthy",
         "running": true,
         "restart_count": 0,
-        "started_at": "2026-11-06T12:47:35.52551576Z"
+        "started_at": "2026-11-06T15:57:06.491928296Z"
       },
       "ok": true
     },

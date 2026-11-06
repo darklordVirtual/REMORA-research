@@ -2,7 +2,7 @@
  "spec_version": "0.2",
  "system": "REMORA OT pilot (deploy/ot-pilot)",
  "system_version": "REMORA-research branch ccr-517b3507-wax4yx: the plant in its own trust domain, an independent effect verifier, the work-order scope guard",
- "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+ "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
  "assessed_at": "2026-11-06",
  "assessor": "REMORA-research authors; drafted by an AI agent (claude-opus-5-5), AI-assisted. Self-assessment (BCR-0, SELF): producer's code, fixtures, runner and execution.",
  "scope": {
@@ -35,49 +35,49 @@
     {
      "kind": "artifact",
      "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/battery/results.json",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "16-case OT battery against the pilot built from this revision; per-case steps and refusals.",
      "command": "python deploy/ot-pilot/run_ot_battery.py --evidence-root <dir>"
     },
     {
      "kind": "artifact",
      "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/fault-injection/results.json",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "Ten injected faults against the running pilot; per-fault expectation and outcome.",
      "command": "python deploy/ot-pilot/run_fault_injection.py --evidence-root <dir>"
     },
     {
      "kind": "artifact",
      "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/independent-scenarios/phase-a.json",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "22 of the 24 scenarios written by a separate session from the public docs; per-scenario verdict.",
      "command": "python deploy/ot-pilot/run_independent_scenarios.py --scenarios artifacts/ot-pilot/grounded-reads-2026-11-03/independent-scenarios/scenarios_v1.json --only S01,...,S23"
     },
     {
      "kind": "test",
      "reference": "tests/test_execution_lease.py::test_expired_lease_refused",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "An expired lease is refused.",
      "command": "python -m pytest tests/test_execution_lease.py::test_expired_lease_refused"
     },
     {
      "kind": "test",
      "reference": "tests/test_execution_lease.py::test_tampered_fields_invalidate_signature",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "Changing a signed lease field invalidates its signature.",
      "command": "python -m pytest tests/test_execution_lease.py::test_tampered_fields_invalidate_signature"
     },
     {
      "kind": "test",
      "reference": "tests/test_token_golden_vectors.py",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "The decision token's signature matches frozen golden vectors.",
      "command": "python -m pytest tests/test_token_golden_vectors.py"
     },
     {
      "kind": "test",
      "reference": "tests/test_lease_nonce_durability.py::test_concurrent_consumption_admits_exactly_one",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "Concurrent consumption of one nonce admits exactly one.",
      "command": "python -m pytest tests/test_lease_nonce_durability.py::test_concurrent_consumption_admits_exactly_one"
     }
@@ -88,7 +88,7 @@
    "procedure": {
     "kind": "other",
     "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/README.md",
-    "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+    "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
     "description": "Manual assessment by the REMORA authors of the committed pilot runs and the cited tests, following AACP SPECIFICATION v0.2 sections 2 to 5."
    },
    "unresolved_obligations": [],
@@ -105,28 +105,28 @@
     {
      "kind": "artifact",
      "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/battery/results.json",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "16-case OT battery against the pilot built from this revision; per-case steps and refusals.",
      "command": "python deploy/ot-pilot/run_ot_battery.py --evidence-root <dir>"
     },
     {
      "kind": "artifact",
      "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/fault-injection/results.json",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "Ten injected faults against the running pilot; per-fault expectation and outcome.",
      "command": "python deploy/ot-pilot/run_fault_injection.py --evidence-root <dir>"
     },
     {
      "kind": "artifact",
      "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/independent-scenarios/phase-a.json",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "22 of the 24 scenarios written by a separate session from the public docs; per-scenario verdict.",
      "command": "python deploy/ot-pilot/run_independent_scenarios.py --scenarios artifacts/ot-pilot/grounded-reads-2026-11-03/independent-scenarios/scenarios_v1.json --only S01,...,S23"
     },
     {
      "kind": "test",
      "reference": "tests/test_separation_of_duties.py::test_production_refuses_self_approval_end_to_end",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "Production refuses self-approval end to end.",
      "command": "python -m pytest tests/test_separation_of_duties.py::test_production_refuses_self_approval_end_to_end"
     }
@@ -137,7 +137,7 @@
    "procedure": {
     "kind": "other",
     "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/README.md",
-    "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+    "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
     "description": "Manual assessment by the REMORA authors of the committed pilot runs and the cited tests, following AACP SPECIFICATION v0.2 sections 2 to 5."
    },
    "unresolved_obligations": [],
@@ -154,28 +154,28 @@
     {
      "kind": "artifact",
      "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/battery/results.json",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "16-case OT battery against the pilot built from this revision; per-case steps and refusals.",
      "command": "python deploy/ot-pilot/run_ot_battery.py --evidence-root <dir>"
     },
     {
      "kind": "artifact",
      "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/independent-scenarios/phase-a.json",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "22 of the 24 scenarios written by a separate session from the public docs; per-scenario verdict.",
      "command": "python deploy/ot-pilot/run_independent_scenarios.py --scenarios artifacts/ot-pilot/grounded-reads-2026-11-03/independent-scenarios/scenarios_v1.json --only S01,...,S23"
     },
     {
      "kind": "test",
      "reference": "tests/test_enforcement_properties.py::test_lease_refuses_any_argument_mutation",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "Hypothesis: any argument mutation is refused.",
      "command": "python -m pytest tests/test_enforcement_properties.py::test_lease_refuses_any_argument_mutation"
     },
     {
      "kind": "test",
      "reference": "tests/test_lease_verification_completeness.py",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "Each call binding names its own refusal; an absent binding is never a wildcard.",
      "command": "python -m pytest tests/test_lease_verification_completeness.py"
     }
@@ -186,7 +186,7 @@
    "procedure": {
     "kind": "other",
     "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/README.md",
-    "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+    "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
     "description": "Manual assessment by the REMORA authors of the committed pilot runs and the cited tests, following AACP SPECIFICATION v0.2 sections 2 to 5."
    },
    "unresolved_obligations": [],
@@ -203,28 +203,28 @@
     {
      "kind": "artifact",
      "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/independent-scenarios/phase-a.json",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "22 of the 24 scenarios on a fresh stack; per-scenario verdict, 22 PASS.",
      "command": "python deploy/ot-pilot/run_independent_scenarios.py --scenarios artifacts/ot-pilot/grounded-reads-2026-11-03/independent-scenarios/scenarios_v1.json --only S01,...,S23"
     },
     {
      "kind": "artifact",
      "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/battery/results.json",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "16-case OT battery; the wrong-tool and injection cases abstain as intent_scope_mismatch.",
      "command": "python deploy/ot-pilot/run_ot_battery.py --evidence-root <dir>"
     },
     {
      "kind": "test",
      "reference": "tests/test_ot_pilot_intent_scope.py",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "Through the real routes with the pilot's configuration: S01, S06, S09, S17 and S22 refused at assess with no review item; legitimate writes and round reads unaffected; every (work order, tool, target) combination refused exactly when its order does not name it; a scope verdict changed after approval voids it at execute.",
      "command": "python -m pytest tests/test_ot_pilot_intent_scope.py"
     },
     {
      "kind": "test",
      "reference": "tests/test_intent_scope.py",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "The scope check (exact, contract-driven, names not values; a property over generated scopes and calls) and the guard (fail closed on unknown status, non-approvable against maximum trust, every escalating flag and an escalating OPA policy).",
      "command": "python -m pytest tests/test_intent_scope.py"
     }
@@ -235,7 +235,7 @@
    "procedure": {
     "kind": "other",
     "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/README.md",
-    "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+    "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
     "description": "Manual assessment by the REMORA authors of the committed pilot runs and the cited tests, following AACP SPECIFICATION v0.2 sections 2 to 5."
    },
    "unresolved_obligations": [],
@@ -246,57 +246,57 @@
    "id": "E",
    "property": "Execution-Boundary Integrity",
    "status": "PASS",
-   "reasoning": "No demonstrable alternative path to the plant's state within the declared zone (the agent container), the observation interval of the boundary run and the attempted classes. Topology: the plant runs in its own container with a write token only the API carries and a read token only the verifier carries; deploy/ot-pilot/credential_topology.yaml declares every secret the compose file hands out, its holders, its readers and the network membership, and scripts/check_ot_pilot_topology.py fails on each drift and on any unreachable credential the agent service carries. The agent service carries only OT_TOKEN_AGENT, and agent-net, which is internal, holds the agent and the API and nothing else; the live network membership read while the suite ran matched the register. Bypass: 53 attempts in the five minimum classes and two more (forged effect receipt, direct access to the authority store) were made from inside the agent container. Every one was refused or failed to reach anything, and the agent's process table, environment and filesystem held no other credential. Coverage: the plant journals every request with the credential it presented, and the state replayed from its journal equals the live state at the end of the interval; for the suite's interval every applied write names an executed REMORA dispatch and every executed write dispatch has exactly one applied write (two governed positive controls). A detector-sensitivity control in its own interval, a direct write with the executor's token from inside the API container, was reported as an unattributed write, so the reconciliation does see a bypass when one happens.",
+   "reasoning": "No demonstrable alternative path to the plant's state within the declared zone (the agent container), the observation interval of the boundary run and the attempted classes. Topology: the plant runs in its own container with a write token only the API carries and a read token only the verifier carries; deploy/ot-pilot/credential_topology.yaml declares every secret the compose file hands out, its holders, its readers and the network membership, and scripts/check_ot_pilot_topology.py fails on each drift and on any unreachable credential the agent service carries. The agent service carries only OT_TOKEN_AGENT, and agent-net, which is internal, holds the agent and the API and nothing else; the live network membership read while the suite ran matched the register. Bypass: 53 attempts in the five minimum classes and two more (forged effect receipt, direct access to the authority store) were made from inside the agent container. No attempt changed the plant's state: in the run's interval the plant applied only the two governed control writes and refused no request, and every answer the agent saw was a refusal or a failure to connect or resolve. The agent's process table, environment and filesystem held no other credential. Coverage: the plant journals every request it answers (writes, reads and refusals; only the unauthenticated /health is not) with the credential it presented, and the state replayed from its journal equals the live state at the end of the interval; for the suite's interval every applied write names an executed REMORA dispatch and every executed write dispatch has exactly one applied write (two governed positive controls). A detector-sensitivity control in its own interval, a direct write with the executor's token from inside the API container, was reported as an unattributed write, so the reconciliation does see a bypass when one happens.",
    "caveat": "A PASS here means no demonstrable alternative path within the declared zone, observation interval and attempted classes; it is not universal non-bypassability. The zone is the assessor's choice: drawn at the host, or at the API or verifier container, it does not hold, and the detector-sensitivity control shows code inside the API container reaching the plant (v0.1 section 12.3: an in-process runtime offers no custody; ot_registry refuses an in-process plant in production, and that refusal is tested). The topology check is static over the committed files and could miss an edge; the bypass suite needs only the running endpoint, the topology needs source access, so the procedure is asymmetric. Which component refused each attempt is not attributed. Docker and the kernel are trusted; one host, simulated plant, attempts written by the producer.",
    "evidence": [
     {
      "kind": "artifact",
      "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/boundary/boundary-assessment.json",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "The assessor's record: topology check, live networks, positive controls, the suite interval's reconciliation, the secret scan, the per-class verdict and the detector-sensitivity control.",
      "command": "python deploy/ot-pilot/run_boundary_assessment.py --out <dir>"
     },
     {
      "kind": "artifact",
      "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/boundary/boundary-suite.json",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "Every attempt the agent container made, with what it observed."
     },
     {
      "kind": "artifact",
      "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/boundary/topology-check.json",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "Output of scripts/check_ot_pilot_topology.py --json for this revision.",
      "command": "python scripts/check_ot_pilot_topology.py --json"
     },
     {
      "kind": "code",
      "reference": "deploy/ot-pilot/credential_topology.yaml",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "The deployment's credential and network register."
     },
     {
      "kind": "test",
      "reference": "tests/test_ot_pilot_plant_boundary.py",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "Journal completeness, credential roles at the plant, the production refusal of an in-process plant, the reconciliation and each drift the topology check names.",
      "command": "python -m pytest tests/test_ot_pilot_plant_boundary.py"
     }
    ],
    "verification_status": "COMPLETED",
    "evidence_tier": "RESOLVED",
-   "evaluation_scope": "ot-pilot/agent-container-zone/plant-state/single-host",
+   "evaluation_scope": "ot-pilot/agent-container-zone/plant-state/single-host/2026-11-06T16:01:12.811502+00:00/2026-11-06T16:01:21.078695+00:00",
    "procedure": {
     "kind": "other",
     "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/README.md",
-    "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+    "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
     "description": "Manual assessment by the REMORA authors of the committed pilot runs and the cited tests, following AACP SPECIFICATION v0.2 sections 2 to 5."
    },
    "unresolved_obligations": [],
    "supported_scope": "the plant's state as the protected effect; the agent container as the agent zone (operator token, agent-net only); the boundary run's interval on one host; the seven attempted classes",
    "untested_remainder": "other agent zones (host, API, verifier containers); a container escape or kernel compromise; several hosts or replicas; attempts the producer did not think of; a real control network",
    "execution_boundary": {
-    "evaluation_scope": "ot-pilot/agent-container-zone/plant-state/single-host",
+    "evaluation_scope": "ot-pilot/agent-container-zone/plant-state/single-host/2026-11-06T16:01:12.811502+00:00/2026-11-06T16:01:21.078695+00:00",
     "agent_zone": "service agent in deploy/ot-pilot/docker-compose.yml: the API image, OT_TOKEN_AGENT only, network agent-net only (internal; members agent and api). Justified and bounded in deploy/ot-pilot/credential_topology.yaml (agent_zone, with what changes if it is drawn wider).",
     "attempted_bypass_classes": [
      "without_authorization",
@@ -310,20 +310,20 @@
     "topology_evidence": {
      "kind": "artifact",
      "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/boundary/topology-check.json",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "Register checked against the compose file and the code; live membership in boundary-assessment.json."
     },
     "coverage_evidence": {
      "kind": "artifact",
      "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/boundary/boundary-assessment.json",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "suite_interval (journal replay equals live state; every applied write attributed; every executed write seen once) and detector_sensitivity_control (a direct write is detected)."
     },
     "bypass_evidence": [
      {
       "kind": "artifact",
       "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/boundary/boundary-suite.json",
-      "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+      "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
       "description": "53 attempts from the agent container, each with its observation."
      }
     ]
@@ -339,14 +339,14 @@
     {
      "kind": "artifact",
      "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/fault-injection/results.json",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "Ten injected faults against the running pilot; per-fault expectation and outcome.",
      "command": "python deploy/ot-pilot/run_fault_injection.py --evidence-root <dir>"
     },
     {
      "kind": "artifact",
      "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/battery/results.json",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "16-case OT battery against the pilot built from this revision; per-case steps and refusals.",
      "command": "python deploy/ot-pilot/run_ot_battery.py --evidence-root <dir>"
     }
@@ -357,7 +357,7 @@
    "procedure": {
     "kind": "other",
     "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/README.md",
-    "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+    "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
     "description": "Manual assessment by the REMORA authors of the committed pilot runs and the cited tests, following AACP SPECIFICATION v0.2 sections 2 to 5."
    },
    "unresolved_obligations": [],
@@ -368,33 +368,33 @@
    "id": "G",
    "property": "Effect Verification",
    "status": "PASS",
-   "reasoning": "After every executed write the plant's state is read back by a verifier in another control domain, and REMORA computes the verdict itself. The verifier finds each executed dispatch through GET /v1/execution/dispatches, takes the plant journal's record of that dispatch, reads the object back with a read-only plant token and signs a receipt with its own key; REMORA instantiates the postcondition from the signed ToolSpec (schema 5) and the approved arguments, accepts them only when they hash to the dispatched call, and derives the vantage independent from the key's registry record (another control domain, read-only scope). On an honest plant all 5 write tools verified, and in the battery 6 of 6 writes. On a plant with declared faults: a clamped valve is EFFECT_MISMATCH (field mismatch); a write acknowledged and never applied is EFFECT_MISMATCH (postcondition_effect_absent, from the unchanged revision); an object the verifier cannot read is EFFECT_UNOBSERVABLE and never VERIFIED; a write without a fault beside them verified. A receipt from an unregistered key, one posted with the agent's token, one with arguments other than the dispatched call's, and a replay after a settled verdict were refused, and the verdict did not move. A dispatch the plant has no record of is reported as an anomaly, not verified (in-process test).",
+   "reasoning": "After every executed write the plant's state is read back by a verifier in another control domain, and REMORA computes the verdict itself. The verifier finds each executed dispatch through GET /v1/execution/dispatches, takes the plant journal's record of that dispatch, reads the object back with a read-only plant token at the revision that write produced (from the plant's history when a later write has moved it on) and signs a receipt with its own key; REMORA instantiates the postcondition from the signed ToolSpec (schema 5) and the approved arguments, accepts them only when they hash to the dispatched call, and derives the vantage independent from the key's registry record (another control domain, read-only scope). On an honest plant all 5 write tools verified, and in the battery 6 of 6 writes. On a plant with declared faults: a clamped valve is EFFECT_MISMATCH (field mismatch); a write acknowledged and never applied is EFFECT_MISMATCH (postcondition_effect_absent, from the unchanged revision); an object the verifier cannot read is EFFECT_UNOBSERVABLE and never VERIFIED; a write without a fault beside them verified. A receipt from an unregistered key, one posted with the agent's token, one with arguments other than the dispatched call's, and a replay after a settled verdict were refused, and the verdict did not move. A dispatch the plant has no record of is reported as an anomaly, not verified (in-process test).",
    "caveat": "The verdict covers the declared delta only (scope declared_delta_only); fields a postcondition does not name are not compared. Independence rests on configuration REMORA reads (the executor's control domain, the key's domain and read-only scope), and on the plant reporting its state truthfully; the verifier and the plant are simulated and run on the same host. The fault set was written by the producer. The verdict itself names no writer; attribution on this pilot comes from the plant's revisions and journal (NEGATIVE_RESULTS section 85, narrowed here). Reads (read_sensor) declare no postcondition and are not verified.",
    "evidence": [
     {
      "kind": "artifact",
      "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/effect/effect-verification.json",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "Honest plant, declared faults and receipt controls, with every verdict REMORA recorded and the plant journal of the fault phase.",
      "command": "python deploy/ot-pilot/run_effect_verification.py --out <dir>"
     },
     {
      "kind": "artifact",
      "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/battery/verifier-report.json",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "The verifier's report after the battery: 6 of 6 writes verified, journal and chain agree."
     },
     {
      "kind": "test",
      "reference": "tests/test_ot_pilot_effect_verification.py",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "The same chain in-process with nothing mocked between the read-back and the verdict, including the anomaly for a dispatch the plant never saw.",
      "command": "python -m pytest tests/test_ot_pilot_effect_verification.py"
     },
     {
      "kind": "test",
      "reference": "tests/test_effect_receipt_endpoint_signed.py",
-     "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+     "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
      "description": "The signed-receipt route: computed verdict, target and argument binding, unchanged revisions, refusals.",
      "command": "python -m pytest tests/test_effect_receipt_endpoint_signed.py"
     }
@@ -405,7 +405,7 @@
    "procedure": {
     "kind": "other",
     "reference": "artifacts/ot-pilot/aacp-a-g-2026-11-06/README.md",
-    "revision": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
+    "revision": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
     "description": "Manual assessment by the REMORA authors of the committed pilot runs and the cited tests, following AACP SPECIFICATION v0.2 sections 2 to 5."
    },
    "unresolved_obligations": [],

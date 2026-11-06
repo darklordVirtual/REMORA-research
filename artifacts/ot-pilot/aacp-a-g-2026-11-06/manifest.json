@@ -2,16 +2,18 @@
  "run_id": "aacp-a-g-2026-11-06",
  "purpose": "The OT pilot after the plant moved to its own trust domain and an independent effect verifier was added: battery, fault injection, the 24 independent scenarios, the E boundary procedure and the G effect-verification run, each on a stack reset with down -v.",
  "source": {
-  "image_built_from_commit": "b39a94c2ae4a39228dc9ff41982dc308f17457fa",
-  "note": "Built from the working tree at this commit; the only uncommitted change at build time was NEGATIVE_RESULTS.md, which no image contains.",
-  "build_note": "Built in a sandbox behind an egress proxy: the API image with docker build --network host, the proxy as build arguments and its CA bind-mounted for the pip step only (RUN --mount, not copied into the image); the plant image has no pip step and was built by compose. The console was not built or started. The battery was run a second time on the same images so its verifier report was read after the verifier's last pass; the first run's report was read before it."
+  "image_built_from_commit": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
+  "note": "Built from the working tree at this commit with no uncommitted change in remora/, servers/ or deploy/.",
+  "build_note": "Built in a sandbox behind an egress proxy. The API image: docker build --network host, the proxy as build arguments, its CA bind-mounted for the pip step only (RUN --mount, not copied into the image). Docker Hub answered 429 to the base image's metadata request, so python:3.12-slim was pulled from mirror.gcr.io/library/python:3.12-slim and tagged locally; its digest is in images.base_image_digest. The console was not built or started.",
+  "toolspec_note": "The ToolSpec bundle was re-signed (build_toolspec.py --force) after ot_registry.py changed. A first run on this build used the bundle signed before that change: REMORA refused the changed callables (toolspec_callable_digest_mismatch, HTTP 500 at execute) and nothing ran. That run is not used here; the re-signed run is."
  },
  "images": {
-  "api_image_id": "sha256:8401b51bd44b97f782116afea1ea59a54a2ccd3b2022d3a46c5076c54bc9e660",
-  "plant_image_id": "sha256:69720c69d587e442e1a508a00e7a7eeada742a848e694fa5c8ed7f06f2257f87",
+  "api_image_id": "sha256:b0024efec4df5c91f6b6bc72e3847ff535ce41c70b39108a3cf4084bb2bf61b7",
+  "plant_image_id": "sha256:0656abe96162b8e09f5a0f618dc0dcecef79a00b418efca27300e320d6ff62db",
+  "base_image_digest": "python@sha256:4840d514c583a4d3d8cad3940e68dee6f0f6f3635c12fcd0a3d74c21a5b93a54",
   "docker_server": "29.9.2"
  },
- "policy_hash": "sha256:9ebb86c62010186fd3539b2e6a42407ec1d3a425cb3ffd61d2d02c4d4ded1376",
+ "policy_hash": "sha256:6c7077ac84bae8e7ae8064215ea1f8b7a49519459b8538addda33defbd423dfd",
  "deployment_files": [
   {
    "path": "deploy/ot-pilot/docker-compose.yml",
@@ -27,7 +29,7 @@
   },
   {
    "path": "deploy/ot-pilot/credential_topology.yaml",
-   "sha256": "e5e7b22760ae7c67caee9c2f1e50aa80632e3833fe7e490a8ea05432f309b50e"
+   "sha256": "df9587a6a0d0ebbfcf5898597119e4d23c8225af15e90f788db47ca0661758ee"
   },
   {
    "path": "deploy/ot-pilot/tool_metadata.json",
@@ -43,7 +45,7 @@
   },
   {
    "path": "deploy/ot-pilot/ot_registry.py",
-   "sha256": "8f7abb166b9d1ea350fd791027f1488de1769267fb912a71f976bb849d5d887d"
+   "sha256": "b081a1d33b93a1b2d45117573f5b942889cd00336d0c1fcbfdaeb71f553bccb8"
   },
   {
    "path": "deploy/ot-pilot/ot_bundle.py",
@@ -59,11 +61,11 @@
   },
   {
    "path": "deploy/ot-pilot/plant_model.py",
-   "sha256": "63242e4746329fa06d7f75ae1dd9f7c84568acee51c07d3ad14326540e406cf6"
+   "sha256": "5fa0adb833b7c16a4e3817d0496b6b938796f6f8308b553e32ff687b53ef704d"
   },
   {
    "path": "deploy/ot-pilot/plant_service.py",
-   "sha256": "0983e80e21babff46d1c57543dd60897a521cc6bdfdc84f10ff2748e6a803d27"
+   "sha256": "544abf4d2b00284c392339e331d2f5d248520ae68f098fde81d158ea46f66e98"
   },
   {
    "path": "deploy/ot-pilot/plant_dump.py",
@@ -71,11 +73,11 @@
   },
   {
    "path": "deploy/ot-pilot/reconcile.py",
-   "sha256": "ae25b0e238ebe8d5b9e7aa848ededd0261425358aff5b3f935317778284e7f9d"
+   "sha256": "95c58c140d44135454f988fe9ffb01dab8aa410b5941c07732b507c4dde82519"
   },
   {
    "path": "deploy/ot-pilot/effect_verifier.py",
-   "sha256": "c131f66d8ba365b23e0b08dad3a1aa7661fa42de58c833ae5fb66875e64afc00"
+   "sha256": "1a44ae3993fc00eca4c75c2cb1f11cf9727e62a91d636cb877c989d9ae2a18f7"
   },
   {
    "path": "deploy/ot-pilot/build_toolspec.py",
@@ -87,7 +89,7 @@
   },
   {
    "path": "deploy/ot-pilot/pilot_host.py",
-   "sha256": "de60f5a51fe219dc1d7b6351ce2a56c9a28854922f5fc506f0ebe0951ea2f74d"
+   "sha256": "a1233096bed4b336cb5fabf76cfebac37c1cfe969bb522ca85acdc3e136a5dda"
   },
   {
    "path": "deploy/ot-pilot/run_ot_battery.py",
@@ -107,7 +109,7 @@
   },
   {
    "path": "deploy/ot-pilot/run_boundary_assessment.py",
-   "sha256": "8bb1d24a81213a48cfe28c5c5c269ee29125a42ef670d02800945a7df41cab1f"
+   "sha256": "570331e16e7f6db35c2bce6e5859d1eec6d7f90b3c2a9b03af342da256fed815"
   },
   {
    "path": "deploy/ot-pilot/run_effect_verification.py",
@@ -115,14 +117,14 @@
   },
   {
    "path": "scripts/check_ot_pilot_topology.py",
-   "sha256": "88c1e1b85bb04514d46a4d0217c127c1b04272d8231ec3ec97c066e755d9cc12"
+   "sha256": "b878af6917a4108b3053324185451188f7d73be719e1b4a3b0997da3136409ad"
   }
  ],
  "runs": {
   "battery": "16 of 16 as specified; 5 of 5 monitoring reads; 6 of 6 writes EFFECT_VERIFIED, vantage independent; journal and chain agree",
   "fault-injection": "10 of 10; 8 of 8 intended writes; 0 false refusals; 14 human steps",
   "independent-scenarios": "23 of 24 (S20 fails on the recalibrated PIC-101 cap, NEGATIVE_RESULTS section 97)",
-  "boundary": "7 attempt classes, 53 attempts, none reached the plant; suite interval reconciles; 0 secrets in the agent capture; the detector-sensitivity control is detected; live networks match the register",
+  "boundary": "7 attempt classes, 53 attempts from the agent container; no applied write in the interval but the two governed controls, no request refused at the plant; the interval reconciles; 0 secrets in the agent capture; the detector-sensitivity control is detected; live networks match the register",
   "effect": "honest 5 of 5, faults 4 of 4, receipt controls refused 4 of 4"
  }
 }

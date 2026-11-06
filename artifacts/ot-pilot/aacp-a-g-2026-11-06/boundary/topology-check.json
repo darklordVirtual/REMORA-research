@@ -91,6 +91,7 @@
    "deploy/ot-pilot/run_ot_battery.py"
   ],
   "OT_TOKEN_SUPERVISOR": [
+   "deploy/ot-pilot/pilot_host.py",
    "deploy/ot-pilot/run_fault_injection.py"
   ],
   "OT_TOKEN_VERIFIER": [

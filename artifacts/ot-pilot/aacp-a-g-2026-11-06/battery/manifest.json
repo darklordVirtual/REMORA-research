@@ -1,10 +1,10 @@
 {
   "schema_version": "remora-evidence-run-v1",
-  "run_id": "250cda4a-135b-446c-8aca-294d9fdfe1f4",
+  "run_id": "56661a62-cdb6-4bbd-997f-ae2f3ba3d2ef",
   "suite_id": "ot-enforcement-battery-v1",
   "suite_version": "local",
-  "started_at": "2026-11-06T12:54:50Z",
-  "finished_at": "2026-11-06T12:54:59Z",
+  "started_at": "2026-11-06T15:56:00Z",
+  "finished_at": "2026-11-06T15:56:09Z",
   "exit_code": 0,
   "source": {
     "repository": "darklordVirtual/REMORA-research",
@@ -19,7 +19,7 @@
     "execution_state_backend": "postgres"
   },
   "governance": {
-    "policy_hash": "sha256:9ebb86c62010186fd3539b2e6a42407ec1d3a425cb3ffd61d2d02c4d4ded1376",
+    "policy_hash": "sha256:6c7077ac84bae8e7ae8064215ea1f8b7a49519459b8538addda33defbd423dfd",
     "tool_contract_bundle_hash": "f6d7425270a52eace7abee24b7dfd1784434e12942525795feda9d7441f4f9ea",
     "intent_authority_hash": "7913b9a781fda2bd46db34b94206deb34d8b3c4dbaf6e369ab539834fcfa058d",
     "tenant": "ot-pilot"
@@ -34,7 +34,7 @@
     "tenant_chain_valid": true,
     "tenant_chain_records_checked": 0,
     "execution_chain_valid": true,
-    "execution_chain_records_checked": 55,
+    "execution_chain_records_checked": 54,
     "problems": []
   },
   "results": [
@@ -72,7 +72,7 @@
       "tool_execution": {
         "executed": true,
         "dispatch_began": true,
-        "proposal_id": "bce38c5a-f5bb-4f6c-ba9a-4a1ce4fff441",
+        "proposal_id": "c8870a96-f83c-4638-a669-4fd033869a6d",
         "nested_effects": {
           "mediated": false,
           "count": 0,
@@ -132,7 +132,7 @@
       "tool_execution": {
         "executed": true,
         "dispatch_began": true,
-        "proposal_id": "a458065a-3d97-48ad-90c7-0bda97c17ed2",
+        "proposal_id": "d70f2d3d-13ca-41b4-93e9-6443136ecdcd",
         "nested_effects": {
           "mediated": false,
           "count": 0,
@@ -192,7 +192,7 @@
       "tool_execution": {
         "executed": true,
         "dispatch_began": true,
-        "proposal_id": "14257063-c40c-4975-bbbc-0544b51fa6c8",
+        "proposal_id": "7c9e3b8d-8152-48cc-b2b1-7b52c57f587c",
         "nested_effects": {
           "mediated": false,
           "count": 0,
@@ -252,7 +252,7 @@
       "tool_execution": {
         "executed": true,
         "dispatch_began": true,
-        "proposal_id": "996aeab1-ef68-4364-b405-937c4f27d1b7",
+        "proposal_id": "abd3de5b-8833-40af-8973-2efb5a1ad51e",
         "nested_effects": {
           "mediated": false,
           "count": 0,
@@ -312,7 +312,7 @@
       "tool_execution": {
         "executed": true,
         "dispatch_began": true,
-        "proposal_id": "df5c7eca-2339-42f5-9289-8c59d97a0464",
+        "proposal_id": "8d163bb7-413f-4b06-960f-728d4d9c8207",
         "nested_effects": {
           "mediated": false,
           "count": 0,
@@ -379,7 +379,7 @@
       "tool_execution": {
         "executed": true,
         "dispatch_began": true,
-        "proposal_id": "73ec881e-9ddc-4526-b533-711013759ed3",
+        "proposal_id": "cf12871e-fd32-4c01-be46-3bfbb6378ea4",
         "nested_effects": {
           "mediated": false,
           "count": 0,
@@ -446,7 +446,7 @@
       "tool_execution": {
         "executed": true,
         "dispatch_began": true,
-        "proposal_id": "e9026e89-b840-4f1e-b243-443dd2ccf7cd",
+        "proposal_id": "4545a929-9ff7-41d0-8878-b0c3d2725850",
         "nested_effects": {
           "mediated": false,
           "count": 0,
@@ -510,7 +510,7 @@
       "tool_execution": {
         "executed": true,
         "dispatch_began": true,
-        "proposal_id": "47748428-15c2-4d92-b83a-86251bdc3b2e",
+        "proposal_id": "940f5a2c-b762-4345-b392-888c7c187733",
         "nested_effects": {
           "mediated": false,
           "count": 0,
@@ -572,7 +572,7 @@
       "tool_execution": {
         "executed": true,
         "dispatch_began": true,
-        "proposal_id": "9a5fca3c-53cd-4911-a2e5-6cf1e272cc08",
+        "proposal_id": "6a71f0d9-e7e8-4682-bf4e-8a82180ce35f",
         "nested_effects": {
           "mediated": false,
           "count": 0,
@@ -634,7 +634,7 @@
       "tool_execution": {
         "executed": true,
         "dispatch_began": true,
-        "proposal_id": "7a9eaf20-1d38-4cab-b751-c9fac9e0ccfd",
+        "proposal_id": "104cb051-d8b3-478c-949d-2248be7dc283",
         "nested_effects": {
           "mediated": false,
           "count": 0,
@@ -701,7 +701,7 @@
       "tool_execution": {
         "executed": true,
         "dispatch_began": true,
-        "proposal_id": "959f3d52-3359-464c-8057-afe346dc8d75",
+        "proposal_id": "dde1fa8c-3a30-4375-946f-a925190a53e7",
         "nested_effects": {
           "mediated": false,
           "count": 0,
@@ -849,7 +849,7 @@
   },
   "execution_audit_chain": {
     "valid": true,
-    "records_checked": 55,
+    "records_checked": 54,
     "problems": []
   },
   "envelope_chain": {
@@ -858,7 +858,7 @@
     "problems": []
   },
   "metrics": {
-    "uptime_seconds": 19.5,
+    "uptime_seconds": 19.4,
     "assess_total": 0,
     "assess_errors": 0,
     "auth_failures": 0,
