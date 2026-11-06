@@ -53,6 +53,11 @@ def pilot(monkeypatch, tmp_path):
         import servers.execution_api as exec_mod
 
         monkeypatch.setattr(api_mod, "_authenticate", lambda request: ("ot-pilot", "reviewer"))
+        # Who acts comes from a header, so a dual-control item can be given
+        # two distinct approvers; without it, the one principal as before.
+        monkeypatch.setattr(api_mod, "_authenticated_principal",
+                            lambda request: request.headers.get("x-test-principal",
+                                                                "pilot-reviewer"))
         path = tmp_path / "limits.json"
         path.write_text(json.dumps(limits) if limits is not None
                         else (PILOT / "limits.json").read_text(encoding="utf-8"))
@@ -81,14 +86,20 @@ def payload(tool, intent_ref, **arguments):
 
 
 def run(client, p):
-    r = client.post("/v1/execution/assess", json=p)
+    """Assess, approve and execute one call; a dual-control item gets a second approver."""
+    agent = {"x-test-principal": "pilot-agent"}
+    r = client.post("/v1/execution/assess", json=p, headers=agent)
     if r.status_code != 200:
         return {"stage": "assess", "status": r.status_code, "detail": r.json()["detail"]}
     item = r.json().get("review_item_id")
     if item is None:
         return {"stage": "assess", "decision": r.json()["decision"]}
     client.post("/v1/execution/approve", json={"item_id": item, "approval_ttl_seconds": 900})
-    e = client.post("/v1/execution/execute", json={"item_id": item, "tool_call": p}).json()
+    if r.json().get("approvals_required") == 2:
+        client.post("/v1/execution/approve", headers={"x-test-principal": "second-reviewer"},
+                    json={"item_id": item, "approval_ttl_seconds": 900})
+    e = client.post("/v1/execution/execute", json={"item_id": item, "tool_call": p},
+                    headers=agent).json()
     execution = e.get("tool_execution") or {}
     return {"stage": "execute", "executed": execution.get("executed"),
             "refusal": execution.get("refusal_reason")}
@@ -216,6 +227,37 @@ def test_the_pilot_observer_reads_the_plant():
     finally:
         sys.path.remove(str(PILOT))
         sys.modules.pop("ot_registry", None)
+
+
+def test_the_shipped_pilot_policy_puts_pic_101_past_half_a_bar_under_dual_control():
+    """S20 (two +0.30 bar moves in an hour) is stopped by the second tier, not
+    by a lower cap: the cap stays 1.60 bar, and 0.50 is where a second
+    approver becomes necessary (NEGATIVE_RESULTS section 97)."""
+    from remora.enforcement.cumulative_limits import LimitPolicy
+
+    tiers = {lim.limit_id: (lim.max, lim.dual_control_above)
+             for lim in LimitPolicy.from_dict(shipped_policy()).limits}
+    assert tiers["pic-101-movement"] == (160, 50)
+    assert all(tier is None for lid, (_, tier) in tiers.items() if lid != "pic-101-movement")
+
+
+def test_s20_needs_a_second_approver_on_the_shipped_policy(pilot):
+    client = pilot()
+    import ot_registry
+
+    assert run(client, payload("adjust_setpoint", "WO-1201", loop="PIC-101",
+                               value=4.3))["executed"] is True
+    r = client.post("/v1/execution/assess", json=payload("adjust_setpoint", "WO-1201",
+                                                         loop="PIC-101", value=4.6),
+                    headers={"x-test-principal": "pilot-agent"})
+    assert r.json()["approvals_required"] == 2
+    item = r.json()["review_item_id"]
+    client.post("/v1/execution/approve", json={"item_id": item, "approval_ttl_seconds": 900})
+    e = client.post("/v1/execution/execute", json={"item_id": item, "tool_call": payload(
+        "adjust_setpoint", "WO-1201", loop="PIC-101", value=4.6)},
+        headers={"x-test-principal": "pilot-agent"})
+    assert (e.status_code, e.json()["detail"]) == (409, "dual_control_second_approval_required")
+    assert ot_registry.PLANT["loops"]["PIC-101"]["setpoint"] == 4.3
 
 
 def test_the_shipped_pilot_policy_is_signed_by_the_pilot_key_and_required(pilot):

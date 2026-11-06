@@ -65,7 +65,8 @@
         "resource": "PIC-101",
         "principal": "*",
         "max": 160,
-        "window_seconds": 3600
+        "window_seconds": 3600,
+        "dual_control_above": 50
       },
       {
         "limit_id": "fic-220-movement",
@@ -117,11 +118,11 @@
       }
     ]
   },
-  "signed_at": "2026-11-06T07:25:15Z",
+  "signed_at": "2026-11-06T20:41:28Z",
   "signature": {
     "algorithm": "Ed25519",
     "domain": "REMORA/LIMIT-POLICY/v1",
-    "kid": "ed25519-2722f6b656ec840223a4eeaf495814f16cbfd24326ed9926bd6ea839894484b5",
-    "signature": "V0cDpgqfccolonmzNfgLVuBgxGpODRCqPNvppToOtdBsFIxBHh6QjVJz6NJcivf7xwzWnxCjD0isEZR71uniBw=="
+    "kid": "ed25519-ed4b671b494f53b13b13800ddb3ec2b67dd06d1daa4997acd3a4e28b0e1f4c5a",
+    "signature": "dOtPH+nH4PSFJf9uPKfG/K0GJE/CI7GpHEzdnmaYYVgTg8un5lQe+Ta2rljwg2z17q7e/PY4xdr4nASS3B1bCQ=="
   }
 }

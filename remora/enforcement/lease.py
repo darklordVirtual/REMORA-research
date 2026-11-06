@@ -274,6 +274,12 @@ class ExecutionLease:
     #: beside the policy identity, not folded into it. The executor compares
     #: it with its own manifest's digest before anything is spent.
     cam_digest: str = ""
+    #: How many distinct approver identities approved the call this lease authorises,
+    #: when two or more did (a review item under dual control). Signed only
+    #: when set; 0 means one approver or none, and the dispatcher passes it
+    #: to the cumulative limits, which refuse a call past a limit's
+    #: ``dual_control_above`` on fewer than two.
+    approver_count: int = 0
 
     @classmethod
     def issue(
@@ -306,6 +312,7 @@ class ExecutionLease:
         resolved_tool_call_hash: str = "",
         flow_recipients_digest: str = "",
         cam_digest: str = "",
+        approver_count: int = 0,
     ) -> ExecutionLease:
         """Issue a lease for an ACCEPTED decision; refuse everything else.
 
@@ -394,6 +401,11 @@ class ExecutionLease:
             fields["flow_recipients_digest"] = flow_recipients_digest
         if cam_digest:
             fields["cam_digest"] = cam_digest
+        if isinstance(approver_count, bool) or not isinstance(approver_count, int) \
+                or approver_count < 0:
+            raise ValueError("approver_count must be a non-negative integer")
+        if approver_count >= 2:
+            fields["approver_count"] = approver_count
         task_event_fields: dict[str, Any] = dict(task_fields(task_identity))
         alg = _signing.issuer_algorithm()
         if alg is None:
@@ -530,6 +542,10 @@ class ExecutionLease:
             fields["flow_recipients_digest"] = self.flow_recipients_digest
         if self.cam_digest:
             fields["cam_digest"] = self.cam_digest
+        # Signed whenever it carries information, so a count the signature
+        # does not cover cannot be added to a lease (verify() refuses it).
+        if self.approver_count:
+            fields["approver_count"] = self.approver_count
         return fields
 
     def task_identity(self) -> "TaskIdentity | None":
@@ -733,6 +749,11 @@ class ExecutionLease:
         # decision; issue() never signs one, so it is a malformed lease.
         if (self.flow_epoch or self.flow_recipients_digest) and not self.flow_digest:
             return LeaseVerificationResult(False, "flow_binding_malformed")
+        # issue() signs a count of two or more, or none; anything else names
+        # no review it could have come from.
+        count = self.approver_count
+        if isinstance(count, bool) or not isinstance(count, int) or count < 0 or count == 1:
+            return LeaseVerificationResult(False, "approver_count_malformed")
         if task_identity is not None:
             if bound_task is None:
                 return LeaseVerificationResult(False, "task_unbound")
@@ -754,7 +775,7 @@ class ExecutionLease:
         "surface_digest", "capability_digest",
         "execution_context_hash",
         "flow_epoch", "flow_digest", "resolved_tool_call_hash", "flow_recipients_digest",
-        "cam_digest",
+        "cam_digest", "approver_count",
     })
 
     @classmethod
@@ -866,6 +887,18 @@ class DispatchResult:
     execution_context_hash: str = ""
     execution_id: str = ""
     dispatch_check: Mapping[str, Any] | None = None
+
+
+def _signed_approvers(lease: ExecutionLease) -> int:
+    """The approver count a lease's signature covers; 0 for an unsigned lease.
+
+    An unsigned lease carries no authority over the count, so dual control
+    fails closed on it rather than taking the field on trust.
+    """
+    if not getattr(lease, "is_signed", False):
+        return 0
+    count = getattr(lease, "approver_count", 0)
+    return count if isinstance(count, int) and not isinstance(count, bool) else 0
 
 
 class GovernedToolDispatcher:
@@ -1412,7 +1445,8 @@ class GovernedToolDispatcher:
                                 tool_name=tool_name, arguments=arguments,
                                 operation_id=f"lease:{lease.nonce}",
                                 request_hash=lease.tool_args_hash or "none", now=now,
-                                expires_at=lease.expires_at)
+                                expires_at=lease.expires_at,
+                                approvers=_signed_approvers(lease))
         return None if refusal is None else str(refusal)
 
     def _limit_begin(self, lease: ExecutionLease, tool_name: str) -> str | None:

@@ -1367,6 +1367,19 @@ export interface components {
             tenant_id: string;
             tool_call: components["schemas"]["ToolCallRequest"];
         };
+        /** DualControl */
+        DualControl: {
+            /**
+             * Limits
+             * @description The limit ids whose dual_control_above this call would pass.
+             */
+            limits: string[];
+            /**
+             * Reason
+             * @constant
+             */
+            reason: "limit_dual_control_required";
+        };
         /**
          * EffectStatus
          * @description Five outcomes. Collapsing any pair loses a distinction an operator
@@ -1536,6 +1549,16 @@ export interface components {
         };
         /** ExecutionApproveResponse */
         ExecutionApproveResponse: {
+            /**
+             * Approvals Received
+             * @description Dual control only: distinct approvals so far.
+             */
+            approvals_received?: number | null;
+            /**
+             * Approvals Required
+             * @description Dual control only: distinct approvals the item needs.
+             */
+            approvals_required?: number | null;
             audit: components["schemas"]["AuditRef"];
             /**
              * Delegated Executor
@@ -1553,18 +1576,26 @@ export interface components {
             proposal_id?: string | null;
             /**
              * Status
-             * @constant
+             * @description approved: the item may be executed. approval_recorded: one approval towards a dual-control quorum; the item stays pending until a different approver approves it.
+             * @enum {string}
              */
-            status: "approved";
+            status: "approved" | "approval_recorded";
         };
         /** ExecutionAssessResponse */
         ExecutionAssessResponse: {
+            /**
+             * Approvals Required
+             * @description Present when the review item needs more than one distinct approver: 2 for a call past a cumulative limit's dual_control_above.
+             */
+            approvals_required?: number | null;
             audit: components["schemas"]["AuditRef"];
             /**
              * Decision
              * @enum {string}
              */
             decision: "accept" | "verify" | "abstain" | "escalate";
+            /** @description Present when the call needs two approvers: the limits it would take past their second tier. */
+            dual_control?: components["schemas"]["DualControl"] | null;
             /** @description Present only on accept; key absent otherwise. */
             execution_token?: components["schemas"]["ExecutionGrant"] | null;
             /**

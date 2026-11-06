@@ -215,9 +215,13 @@ services:
       # unsigned, or with coverage other than all_writes. limits.json is
       # signed by the pilot's limit authority; this host holds only its
       # public key. To change the limits, sign a new policy with your own key
-      # (scripts/sign_limit_policy.py) and replace the key below.
+      # (scripts/sign_limit_policy.py) and replace the key below. Two keys are
+      # trusted: e165e0eb... (the owner's, since 2026-11-06) and f067ca82...,
+      # added on 2026-11-06 to sign the PIC-101 dual-control tier from a
+      # session that did not hold the owner's seed (owner decision). Either
+      # may sign; drop one to retire it.
       REMORA_REQUIRE_LIMITS: "1"
-      REMORA_LIMITS_TRUSTED_KEYS: e165e0eb8e0f21b03f5d7ce97c97286f7b60a873ed3fd984873d142dc169e7c9
+      REMORA_LIMITS_TRUSTED_KEYS: e165e0eb8e0f21b03f5d7ce97c97286f7b60a873ed3fd984873d142dc169e7c9,f067ca82df8dac25f49d1012f032e652831cba51ca7d291139891f244d851628
 
       # Prometheus scrape without a bearer token (local pilot only).
       REMORA_PROMETHEUS_PUBLIC: "1"

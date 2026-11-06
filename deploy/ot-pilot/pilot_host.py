@@ -72,6 +72,16 @@ def plant_dump() -> dict[str, Any]:
     return json.loads(compose("exec", "-T", "plant", "python", "/plant/plant_dump.py"))
 
 
+def plant_object(kind: str, ident: str) -> dict[str, Any]:
+    """One plant object as the plant holds it, read inside the plant container."""
+    code = ("import json,os,sys,urllib.parse,urllib.request;"
+            "q=lambda v:urllib.parse.quote(v,safe='');"
+            "r=urllib.request.Request('http://127.0.0.1:9100/objects/'+q(sys.argv[1])+'/'+"
+            "q(sys.argv[2]),headers={'Authorization':'Bearer '+os.environ['OT_PLANT_READ_TOKEN']});"
+            "print(urllib.request.urlopen(r,timeout=5).read().decode())")
+    return json.loads(compose("exec", "-T", "plant", "python", "-c", code, kind, ident))
+
+
 def plant_health() -> dict[str, Any]:
     """The plant's /health, including the faults it reports active."""
     code = ("import json,urllib.request;print(urllib.request.urlopen("

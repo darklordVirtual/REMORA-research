@@ -463,10 +463,12 @@ def test_the_pilots_committed_limits_verify_under_the_pilots_trusted_key():
     pilot = Path(__file__).resolve().parents[2] / "deploy" / "ot-pilot"
     document = json.loads((pilot / "limits.json").read_text(encoding="utf-8"))
     compose = (pilot / "docker-compose.yml").read_text(encoding="utf-8")
-    [raw_key] = [line.split(":", 1)[1].strip() for line in compose.splitlines()
-                 if line.strip().startswith("REMORA_LIMITS_TRUSTED_KEYS:")]
-    key = VerificationKey.from_text(raw_key, {SignatureDomain.LIMIT_POLICY})
-    policy_out, kid = cl.verify_signed_policy(document, [key])
+    [raw_keys] = [line.split(":", 1)[1].strip() for line in compose.splitlines()
+                  if line.strip().startswith("REMORA_LIMITS_TRUSTED_KEYS:")]
+    keys = [VerificationKey.from_text(k.strip(), {SignatureDomain.LIMIT_POLICY})
+            for k in raw_keys.split(",") if k.strip()]
+    policy_out, kid = cl.verify_signed_policy(document, keys)
+    [key] = [k for k in keys if k.kid == kid]
     assert kid == key.kid == document["signature"]["kid"]
     assert policy_out == document["policy"] and policy_out["coverage"] == "all_writes"
     # Any edit to the signed body is refused: the budget cannot be widened in place.
