@@ -95,6 +95,9 @@ _REASON_STATUS: Mapping[str, EffectStatus] = {
     "postcondition_verified": EffectStatus.VERIFIED,
     "postcondition_field_mismatch": EffectStatus.MISMATCH,
     "postcondition_version_not_advanced": EffectStatus.MISMATCH,
+    # Revisions unchanged across the dispatch and the delta absent (server).
+    "postcondition_effect_absent": EffectStatus.MISMATCH,
+    "postcondition_no_attributable_change": EffectStatus.UNOBSERVABLE,
     "postcondition_object_absent": EffectStatus.UNOBSERVABLE,
     "postcondition_target_mismatch": EffectStatus.UNOBSERVABLE,
     "empty_postcondition": EffectStatus.UNSUPPORTED,

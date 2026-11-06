@@ -21,6 +21,10 @@ from types import SimpleNamespace
 from typing import Any
 from uuid import uuid4
 
+from remora.enforcement.cumulative_limits import (
+    DUAL_CONTROL_APPROVERS,
+    DUAL_CONTROL_REQUIRED,
+)
 from remora.enforcement.gate import EnforcementResult
 from remora.enforcement.outbox import OutboxState
 from remora.enforcement.token import AuthorizationContext, PolicyDecisionToken
@@ -52,7 +56,11 @@ from remora.governance.execution_identity import (
     observation_binding,
 )
 from remora.governance.proposal_lineage import derive_lineage, lineage_key_for
-from remora.governance.review_queue import ExecutionDecision
+from remora.governance.review_queue import (
+    DualControlPending,
+    ExecutionDecision,
+    approver_count,
+)
 from remora.governance.task_identity import TaskIdentity
 from remora.policy.report import DecisionAction, DecisionReason, DecisionReport
 from remora.toolcall.toolspec import ToolSpecRefused
@@ -251,6 +259,7 @@ def assess_proposal(
     execution_context_provider: ExecutionContextProvider | None = None,
     require_execution_context: bool = False,
     ws1_gate: Ws1GatePort | None = None,
+    dual_control_limits: tuple[str, ...] = (),
 ) -> dict[str, Any]:
     """Assess a proposed tool call — nothing executes here.
 
@@ -285,6 +294,13 @@ def assess_proposal(
     after every other component. In shadow mode its record is audited and
     nothing else changes. In enforce mode any WS1 cap makes the call ABSTAIN,
     and an ACCEPT carries the WS1 binding in its authorization context.
+
+    ``dual_control_limits`` are the cumulative limits whose
+    ``dual_control_above`` the call would pass, from the route's limits
+    preview. When there are any, the review item needs two distinct
+    approvers, and an ACCEPT becomes ESCALATE: a grant redeemed without review
+    carries no approver, and the reservation would refuse it. Last of all,
+    and never the other way.
     """
     task = task_identity_of(proposal)
     request_ref = request_ref_of(proposal)
@@ -362,6 +378,15 @@ def assess_proposal(
             report = _never_raised(grounded, ws1.apply(grounded))
         else:
             report = _never_raised(report, ws1.apply(report))
+    dual_control = tuple(sorted(set(dual_control_limits or ())))
+    if dual_control and report.action is DecisionAction.ACCEPT:
+        # ESCALATE, as loop safety lowers an ACCEPT: the only review route
+        # an ACCEPT may be lowered onto (``_never_raised``).
+        report = _never_raised(report, dataclasses.replace(
+            report, action=DecisionAction.ESCALATE, human_review_required=True))
+    required_approvers = (DUAL_CONTROL_APPROVERS
+                          if dual_control and report.action in (
+                              DecisionAction.VERIFY, DecisionAction.ESCALATE) else 1)
     now = datetime.now(UTC)
 
     # Derived from the chain, never from the request: a caller-declared
@@ -402,6 +427,10 @@ def assess_proposal(
         "state_hash": semantic["state_hash"],
         "intent_authority_hash": semantic["intent_authority_hash"],
         "intent_resolution_status": obs.intent_resolution_status,
+        # Property D: the work-order scope verdict and the dimensions it
+        # refused (names only). None when the deployment declares no scope.
+        "intent_scope_status": obs.intent_scope_status,
+        "intent_scope_violations": list(obs.intent_scope_violations),
         "toolspec_hash": toolspec_identity["hash"],
         "toolspec_version": toolspec_identity["version"],
     }
@@ -437,6 +466,10 @@ def assess_proposal(
         record["capability"] = capability
     if ws1 is not None:
         record["ws1"] = ws1.audit_block()
+    if dual_control:
+        record["dual_control"] = {"reason": DUAL_CONTROL_REQUIRED,
+                                  "limits": list(dual_control),
+                                  "approvals_required": required_approvers}
     response: dict[str, Any] = {
         "proposal_id": proposal_id,
         "decision": report.action.value,
@@ -517,6 +550,7 @@ def assess_proposal(
             item = q.enqueue(
                 obs, report.action,
                 reasons=[r.value for r in report.reasons],
+                required_approvers=required_approvers,
             ) if report.action in (
                 DecisionAction.VERIFY, DecisionAction.ESCALATE
             ) else None
@@ -527,6 +561,10 @@ def assess_proposal(
         if item is not None:
             record["review_item_id"] = item.item_id
             response["review_item_id"] = item.item_id
+            if required_approvers > 1:
+                response["approvals_required"] = required_approvers
+                response["dual_control"] = {"reason": DUAL_CONTROL_REQUIRED,
+                                            "limits": list(dual_control)}
 
     # Shadow only: the decision above was NOT influenced by this.
     response["lineage"] = lineage.to_dict()
@@ -950,6 +988,11 @@ def execute_approved_item(
                 item_id, fresh_obs,
                 approval_policy_hash=(approval_policy(fresh_obs)
                                       if approval_policy is not None else None))
+            # Dual control: how many people approved what was just
+            # authorised. Signed into the lease, so the reservation at
+            # dispatch can check a limit's second tier against it.
+            authorized_approvers = (approver_count(q.item(item_id))
+                                    if outcome.decision is ExecutionDecision.EXECUTE else 0)
             if outcome.decision is not ExecutionDecision.EXECUTE:
                 # REM-047: a re-gate refusal is a terminal state transition,
                 # and its audit event now commits with it. Appended after the
@@ -1024,6 +1067,14 @@ def execute_approved_item(
             "mismatched": list(exc.mismatched),
         })
         raise
+    except DualControlPending as exc:
+        # A named refusal, so a caller can tell "a second approver is
+        # needed" from an item in any other unexecutable state.
+        try:
+            raised = conflict(str(exc), reason=exc.reason)  # type: ignore[call-arg]
+        except TypeError:
+            raised = conflict(str(exc))
+        raise raised from exc
     except (KeyError, ValueError) as exc:
         raise conflict(str(exc)) from exc
 
@@ -1094,7 +1145,7 @@ def execute_approved_item(
         # token was minted just above, outside it, at claim time.
         assert intent is not None
         pending = intent
-        approver = _stored_approver(transaction, tenant, item_id)
+        approvers = _stored_approvers(transaction, tenant, item_id)
         try:
             admitted = admission.admit(
                 tenant, ws1=ws1,
@@ -1103,8 +1154,7 @@ def execute_approved_item(
                 consume=lambda connection, now_iso: gate.check(
                     token, observation_binding(fresh_obs), consume=True,
                     context=review_context, now=now_iso, connection=connection),
-                principals=(principal, acting_for or "",
-                            approver),
+                principals=(principal, acting_for or "", *approvers),
                 audit=_admission_audit(
                     proposal_id=proposal_id, actor=principal, acting_for=acting_for,
                     item_id=item_id, tool_call_hash=fresh_obs.tool_call_hash,
@@ -1211,7 +1261,7 @@ def execute_approved_item(
     })
 
     permit = (admission.permit(tenant, ws1=ws1, principals=(principal, acting_for or "",
-                                                            approver))
+                                                            *approvers))
               if admission is not None and admitted is not None else None)
     tool_execution: dict[str, Any] = (
         _not_sent(admission_refusal) if admission_refusal is not None
@@ -1230,6 +1280,7 @@ def execute_approved_item(
         **_task_kwargs(tool_call),
         **_flow_kwargs(fresh_obs),
         **_permit_kwargs(permit),
+        **_approver_kwargs(authorized_approvers),
     ))
     if permit is not None:
         tool_execution["permit"] = permit.audit_block()
@@ -1647,6 +1698,7 @@ def dispatch_pending_intent(
     # The fresh observation used to be hashed and nothing more, so a hard
     # guard that fired after the 202 was wrapped in a new ACCEPT. Re-decide it
     # with the engine the 202 used, before the claim and before any grant.
+    worker_approvers = 0
     if refusal is None:
         assert fresh_obs is not None
         regate: Any = None
@@ -1657,6 +1709,9 @@ def dispatch_pending_intent(
                     approval_policy_hash=(approval_policy(fresh_obs)
                                           if approval_policy is not None
                                           else None))
+                # Dual control, as on the synchronous path: the people behind
+                # the authorisation this worker honours.
+                worker_approvers = approver_count(q.item(row.item_id))
         except (KeyError, ValueError):
             # No AUTHORIZED item behind the row: nothing to honour.
             regate = None
@@ -1794,7 +1849,7 @@ def dispatch_pending_intent(
     if admission is not None:
         # WS1-M4: claim first, then check and spend, in one transaction. The
         # token was minted above, outside it: minting reads no shared state.
-        approver = _stored_approver(transaction, tenant, row.item_id)
+        approvers = _stored_approvers(transaction, tenant, row.item_id)
         try:
             admitted = admission.admit(
                 tenant, ws1=ws1,
@@ -1803,8 +1858,7 @@ def dispatch_pending_intent(
                 consume=lambda connection, now_iso: gate.check(
                     token, observation_binding(fresh_obs), consume=True,
                     context=honour_context, now=now_iso, connection=connection),
-                principals=(actor, acting_for or "",
-                            approver),
+                principals=(actor, acting_for or "", *approvers),
                 audit=_admission_audit(
                     proposal_id=proposal_id, actor=actor, acting_for=acting_for,
                     item_id=row.item_id, tool_call_hash=fresh_obs.tool_call_hash,
@@ -1839,7 +1893,7 @@ def dispatch_pending_intent(
         **({"admission": admitted.audit_block()} if admitted is not None else {}),
     })
 
-    permit = (admission.permit(tenant, ws1=ws1, principals=(actor, acting_for or "", approver))
+    permit = (admission.permit(tenant, ws1=ws1, principals=(actor, acting_for or "", *approvers))
               if admission is not None else None)
     tool_execution = (
         _not_sent("permit_refused", permit)
@@ -1857,6 +1911,7 @@ def dispatch_pending_intent(
         **_task_kwargs(tool_call),
         **_flow_kwargs(fresh_obs),
         **_permit_kwargs(permit),
+        **_approver_kwargs(worker_approvers),
     ))
     if permit is not None:
         tool_execution["permit"] = permit.audit_block()
@@ -2065,15 +2120,28 @@ def _ws1_approval_binding_matches(chain: AuditChainPort, tenant: str,
     return (prior.get("mode") == "enforce" and isinstance(expected, str)
             and bool(expected) and hmac.compare_digest(expected, outcome.binding_hash))
 
-def _stored_approver(transaction: Callable[[str], Any], tenant: str, item_id: str) -> str:
-    """The approver of the item's stored approval, with or without a role, or
-    "". Admission checks it for revocation (M4-T03)."""
+def _approver_kwargs(count: int) -> dict[str, Any]:
+    """``approver_count`` for the dispatch, only when two or more approved.
+
+    Omitted otherwise, so a dispatch of a single-approver item is minted as
+    before; the lease signs a count only when it is two or more.
+    """
+    return {"approver_count": count} if count >= DUAL_CONTROL_APPROVERS else {}
+
+
+def _stored_approvers(transaction: Callable[[str], Any], tenant: str,
+                      item_id: str) -> tuple[str, ...]:
+    """Every approver the item's standing approval rests on (two under dual
+    control), so admission checks each of them for revocation (M4-T03)."""
     try:
         with transaction(tenant) as q:
-            approval = q.item(item_id).approval
+            item = q.item(item_id)
     except (KeyError, LookupError):
-        return ""
-    return str(approval.approver) if approval is not None else ""
+        return ()
+    if item.approval is None:
+        return ()
+    names = [a.approver for a in (getattr(item, "approvals", ()) or (item.approval,))]
+    return tuple(dict.fromkeys(str(n) for n in names))
 
 
 def stored_approval(transaction: Callable[[str], Any], tenant: str,

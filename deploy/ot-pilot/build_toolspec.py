@@ -59,6 +59,29 @@ REQUIRED: dict[str, list[str]] = {
     "set_valve_position": ["valve", "position_pct"], "acknowledge_alarm": ["alarm_id"],
     "create_work_order": ["wo_id"], "close_work_order": ["wo_id"],
 }
+#: The signed postcondition of each write (ToolSpec schema 5, CAPR-07): the
+#: object the call changes and the declared delta, filled from the approved
+#: arguments. REMORA computes the effect verdict from this and the verifier's
+#: signed read-back; read_sensor changes nothing and declares none.
+POSTCONDITIONS: dict[str, dict[str, Any]] = {
+    "adjust_setpoint": {"target_selector": {"id": {"$arg": "loop"}},
+                        "expected_fields": {"setpoint": {"$arg": "value"}},
+                        "comparison_rules": {"setpoint": "exact"}},
+    "set_valve_position": {"target_selector": {"id": {"$arg": "valve"}},
+                           "expected_fields": {"pct": {"$arg": "position_pct"}},
+                           "comparison_rules": {"pct": "exact"}},
+    "acknowledge_alarm": {"target_selector": {"id": {"$arg": "alarm_id"}},
+                          "expected_fields": {"acked": True},
+                          "comparison_rules": {"acked": "exact"}},
+    "create_work_order": {"target_selector": {"id": {"$arg": "wo_id"}},
+                          "expected_fields": {"status": "open"},
+                          "comparison_rules": {"status": "exact"}},
+    "close_work_order": {"target_selector": {"id": {"$arg": "wo_id"}},
+                         "expected_fields": {"status": "closed"},
+                         "comparison_rules": {"status": "exact"}},
+}
+#: Who reads a postcondition back: the verifier service, read-only at the plant.
+POSTCONDITION_READER = "ot-plant-effect-verifier"
 DESCRIPTIONS = {
     "read_sensor": "Read one sensor's current value and unit from the plant inventory.",
     "adjust_setpoint": "Move a control loop's setpoint on the plant (physical process change).",
@@ -115,13 +138,14 @@ def unsigned_bundle() -> dict[str, Any]:
             "allowed_targets": list(ALLOWED_TARGETS),
             "idempotency_contract": {"safe_to_retry": not contract.mutation,
                                      "key_derivation": "canonical_args"},
-            "postcondition_reader": None,
+            "postcondition_reader": POSTCONDITION_READER if name in POSTCONDITIONS else None,
             "compensation_tool": None,
             "timeout_policy": {"dispatch_timeout_seconds": 15},
             "network_policy": {"egress": "none"},
             "signing_identity": "unsigned",
+            **({"postcondition": POSTCONDITIONS[name]} if name in POSTCONDITIONS else {}),
         })
-    return {"schema_version": 4, "tool_specs": specs}
+    return {"schema_version": 5, "tool_specs": specs}
 
 
 def _write_private(path: Path, content: str, *, force: bool) -> None:

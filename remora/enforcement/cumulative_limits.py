@@ -25,6 +25,10 @@ A deployment declares, in a ``remora-cumulative-limits/v1`` policy:
     ``"*"`` (shared by every principal, so two agents cannot each spend it),
     and for one resource, ``"*"`` (each resource separately) or no resource
     (all resources together). A call must fit every limit that matches it.
+    A limit may also declare ``dual_control_above``, a second tier below
+    ``max``: a call that would take the window's total past it runs only on
+    the authority of two distinct approvers (``limit_dual_control_unmet``
+    otherwise), and ``max`` still refuses whatever the approvals.
 ``baselines``
     For ``change`` meters, the value each resource starts from. A change
     meter with no known value refuses; nothing is guessed.
@@ -133,6 +137,12 @@ KEY_UNDECLARED = "limit_key_undeclared"
 EVIDENCE_UNCHECKED = "limit_evidence_unchecked"
 EVIDENCE_UNAVAILABLE = "limit_evidence_unavailable"
 EVIDENCE_DISPUTED = "limit_evidence_disputed"
+#: A call past a limit's ``dual_control_above`` with fewer than two approvers.
+DUAL_CONTROL_UNMET = "limit_dual_control_unmet"
+#: The assess-time notice that a call needs two distinct approvers.
+DUAL_CONTROL_REQUIRED = "limit_dual_control_required"
+#: The distinct approvers a call past ``dual_control_above`` needs.
+DUAL_CONTROL_APPROVERS = 2
 
 KINDS = ("sum", "count", "change")
 #: Joins the parts of ledger keys; refused inside any part.
@@ -361,6 +371,9 @@ class Limit:
     window_seconds: int | None
     principal: str  # an id, or "*" for one total shared by every principal
     resource: str | None  # an id, "*" for each resource apart, None for all together
+    #: The second tier: a total above this needs two distinct approvers.
+    #: None when the limit declares no such tier.
+    dual_control_above: int | None = None
 
     def matches(self, tenant: str, principal: str, quantity: str, unit: str,
                 resource: str | None) -> bool:
@@ -376,6 +389,13 @@ class Limit:
     @property
     def binding(self) -> str:
         """Every declared term, so an edited limit under the same id refuses."""
+        # ``dual_control_above`` is not a term here. It decides who must
+        # approve a charge, not what is charged, so the counter's history is
+        # the same with or without it; adding the tier to a limit with ledger
+        # history keeps that history counting instead of refusing every charge
+        # as limit_changed (adversarial review 2026-11-06). A change of tier
+        # still changes the policy digest, which voids approvals given under
+        # the other one (limits_policy_hash).
         terms = "\x1f".join((SCHEMA, self.limit_id, self.tenant, self.quantity, self.unit,
                              str(self.max), str(self.window_seconds), self.principal,
                              str(self.resource)))
@@ -431,14 +451,23 @@ class LimitPolicy:
                 raise LimitPolicyError("each limit is an object")
             window = raw.get("window_seconds")
             resource = raw.get("resource")
+            maximum = _int(raw.get("max"), "max")
+            dual = raw.get("dual_control_above")
+            if dual is not None:
+                dual = _int(dual, "dual_control_above")
+                if dual >= maximum:
+                    raise LimitPolicyError(
+                        f"limit {raw.get('limit_id')!r}: dual_control_above must be "
+                        "below max")
             limits.append(Limit(
                 limit_id=_text(raw.get("limit_id"), "limit_id"),
                 tenant=_text(raw.get("tenant"), "tenant"),
                 quantity=_text(raw.get("quantity"), "quantity"),
-                unit=_text(raw.get("unit"), "unit"), max=_int(raw.get("max"), "max"),
+                unit=_text(raw.get("unit"), "unit"), max=maximum,
                 window_seconds=None if window is None else _int(window, "window_seconds", 1),
                 principal=_text(raw.get("principal"), "principal"),
-                resource=None if resource is None else _text(resource, "resource")))
+                resource=None if resource is None else _text(resource, "resource"),
+                dual_control_above=dual))
         if len({lim.limit_id for lim in limits}) != len(limits):
             raise LimitPolicyError("limit_id values must be unique")
         baselines = []
@@ -1018,10 +1047,12 @@ class LimitGuard:
               now: float, observed: Mapping[int, Decimal] | None = None,
               exempt: frozenset[int] = frozenset(),
               ) -> tuple[bool, list[tuple[Limit, str, int]], list[tuple[str, int, str]],
-                         list[tuple[str, Decimal, int]]]:
+                         list[tuple[str, Decimal, int]], list[str]]:
         """Charges and value updates for this call, checked against every limit.
 
-        Returns (already reserved, charges, value updates). Raises ``_Refused``.
+        Returns (already reserved, charges, value updates, observations, the
+        limits this call would take past ``dual_control_above``). Raises
+        ``_Refused``.
         """
         charges: list[tuple[Limit, str, int]] = []
         values: list[tuple[str, int, str]] = []
@@ -1094,16 +1125,24 @@ class LimitGuard:
             for (_, _, amount), prior in zip(charges, priors, strict=True):
                 if prior is None or prior[0] != request_hash or amount not in (-1, prior[1]):
                     raise _Refused(CHANGED)
-            return True, charges, values, seen_at
+            return True, charges, values, seen_at, []
         if any(p is not None for p in priors) or any(a == -1 for _, _, a in charges):
             raise _Refused(CHANGED)
+        dual: list[str] = []
         # Each charge has its own counter: one meter per quantity, one quantity per limit.
         for lim, key, amount in charges:
             if key in safe_keys:
                 continue  # a full counter must not stop the move to the safe state
-            if self.ledger.used(conn, key, lim.binding, lim.window_seconds, now) + amount > lim.max:
+            used = self.ledger.used(conn, key, lim.binding, lim.window_seconds, now)
+            if used + amount > lim.max:
                 raise _Refused(EXCEEDED)
-        return False, charges, values, seen_at
+            # The second tier counts only what this call adds: a call charged
+            # nothing (a move to a safe value, an exempt move) needs no second
+            # approver even when the window is already past the tier.
+            if (lim.dual_control_above is not None and amount > 0
+                    and used + amount > lim.dual_control_above):
+                dual.append(lim.limit_id)
+        return False, charges, values, seen_at, dual
 
     def operation_key(self, tenant: str, tool_name: str, arguments: Any) -> str | None:
         """The idempotency key of a call, None when its tool declares none.
@@ -1155,7 +1194,8 @@ class LimitGuard:
 
     def _run(self, *, tenant: str, principal: str, tool_name: str, arguments: Any,
              operation_id: str, request_hash: str, now: str | float | None,
-             write: bool, expires_at: str | float | None = None) -> str | None:
+             write: bool, expires_at: str | float | None = None,
+             approvers: int = 0, dual_out: list[str] | None = None) -> str | None:
         if self._changed():
             return POLICY_CHANGED
         refusal = self._coverage_refusal(tool_name)
@@ -1193,10 +1233,17 @@ class LimitGuard:
                 duplicate = self._duplicate(conn, op_key, operation_id)
                 if duplicate is not None:
                     return duplicate
-                done, charges, values, seen_at = self._plan(
+                done, charges, values, seen_at, dual = self._plan(
                     conn, tenant=tenant, principal=principal, readings=readings,
                     operation_id=operation_id, request_hash=request_hash, now=at,
                     observed=observed, exempt=exempt)
+                if dual_out is not None:
+                    dual_out.extend(dual)
+                if write and dual and approvers < DUAL_CONTROL_APPROVERS:
+                    # Checked inside the reservation's transaction, so the
+                    # total it reads is the one the charge is added to: two
+                    # calls cannot each pass the tier on one approval.
+                    return DUAL_CONTROL_UNMET
                 if write and not done:
                     for lim, key, amount in charges:
                         self.ledger.record(conn, key, lim.binding, operation_id,
@@ -1224,27 +1271,56 @@ class LimitGuard:
         """The refusal this call would get now; reserves nothing.
 
         Advisory: the reservation at dispatch decides, and other calls may
-        reserve in between.
+        reserve in between. A call past ``dual_control_above`` is not refused
+        here, because two approvers may still authorise it; :meth:`dual_control`
+        says which limits need them.
         """
         return self._run(tenant=tenant, principal=principal, tool_name=tool_name,
                          arguments=arguments, operation_id="preview",
                          request_hash="preview", now=now, write=False)
 
+    def dual_control(self, *, tenant: str, principal: str, tool_name: str, arguments: Any,
+                     now: str | float | None = None) -> tuple[str, ...]:
+        """The limits this call would now take past ``dual_control_above``, sorted.
+
+        Advisory, like :meth:`preview`: it routes the call to two approvers at
+        assess. The reservation at dispatch checks the tier again on the total
+        it then reads. Empty when the call needs no second approver, and when
+        it is refused for another reason (the preview names that one).
+        """
+        return self.preview_with_tier(tenant=tenant, principal=principal,
+                                      tool_name=tool_name, arguments=arguments, now=now)[1]
+
+    def preview_with_tier(self, *, tenant: str, principal: str, tool_name: str,
+                          arguments: Any, now: str | float | None = None,
+                          ) -> tuple[str | None, tuple[str, ...]]:
+        """:meth:`preview` and :meth:`dual_control` in one pass, so the plant is read once."""
+        found: list[str] = []
+        refusal = self._run(tenant=tenant, principal=principal, tool_name=tool_name,
+                            arguments=arguments, operation_id="preview",
+                            request_hash="preview", now=now, write=False, dual_out=found)
+        return refusal, (() if refusal is not None else tuple(sorted(set(found))))
+
     def reserve(self, *, tenant: str, principal: str, tool_name: str, arguments: Any,
                 operation_id: str, request_hash: str,
                 now: str | float | None = None,
-                expires_at: str | float | None = None) -> str | None:
+                expires_at: str | float | None = None,
+                approvers: int = 0) -> str | None:
         """Reserve the call against every limit it matches; None when it may run.
 
         ``operation_id`` names the lease, so a retry of one lease (a crash
         between this reservation and the nonce consumption) finds its own
         reservation and is not charged twice. ``expires_at`` is the lease's
         expiry: a reservation whose lease expired before ``begin`` is released.
+        ``approvers`` is how many distinct approvers authorised the call, as
+        the signed lease states it. Below two, a call that would take a total
+        past ``dual_control_above`` refuses (``limit_dual_control_unmet``); the
+        default of none fails closed.
         """
         return self._run(tenant=tenant, principal=principal, tool_name=tool_name,
                          arguments=arguments, operation_id=operation_id,
                          request_hash=request_hash, now=now, write=True,
-                         expires_at=expires_at)
+                         expires_at=expires_at, approvers=approvers)
 
     def begin(self, operation_id: str) -> str | None:
         """Mark the operation started, just before the tool is invoked; the refusal, or None.

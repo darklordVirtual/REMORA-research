@@ -250,7 +250,7 @@ connection per request.
 ## PolicyObservation, input contract
 
 `PolicyObservation` (`remora/policy/observation.py`) is a frozen dataclass
-with 82 fields; on the research `/v1/assess` path **all fields except
+with 84 fields; on the research `/v1/assess` path **all fields except
 `question` are optional and caller-populated**, REMORA is stateless and
 performs no detection itself (the engine treats `None` as "unknown, not
 safe"); see the assess-time authorities subsection below for the two
@@ -267,7 +267,7 @@ Selected fields by group:
 | Risk & action | `risk_tier`, `action_type`, `target_environment`, `rollback_available`, `state_transition_uncertain`, `proposed_tool_name` |
 | Intent authority | `intent_authority_present` — did this call arrive under an intent the deployment resolved from a source it controls (a signed work order, a ticket of record)? Resolved server-side from `intent_ref`; the agent may name which authority it acts under and can never assert that it exists. `True` only when resolution succeeded; `False` when an `intent_ref` was presented and did not resolve; `None` when none was presented. Required for `GROUNDED_READ_ACCEPT` |
 | Resolution | `missing_required_arguments`, `argument_resolver_tools`, `unvalidated_required_arguments` — required parameters absent from the call and the authoritative tools that could supply them. Non-empty with resolvers available yields VERIFY carrying a `ResolutionPlan`; without them, ABSTAIN |
-| Security flags | `adversarial_detected`, `schema_valid`, `tool_forbidden`, `argument_tainted`, `coercion_detected`, `blackmail_pattern_detected`, `arguments_satisfiable`, `argument_values_supported`, `argument_values_grounded` + `ungrounded_arguments` (a derived value can ground via a verified `DerivationReceipt`: verbatim source span + whitelisted deterministic transform, re-executed server-side — `remora/toolcall/routing/derivation.py`), deployment-owned `argument_scope_valid` + `scope_violating_arguments`, strict-profile `intent_provenance_required` + `intent_provenance_resolved`, `tool_matches_goal`, `untrusted_controlled_arguments` |
+| Security flags | `adversarial_detected`, `schema_valid`, `tool_forbidden`, `argument_tainted`, `coercion_detected`, `blackmail_pattern_detected`, `arguments_satisfiable`, `argument_values_supported`, `argument_values_grounded` + `ungrounded_arguments` (a derived value can ground via a verified `DerivationReceipt`: verbatim source span + whitelisted deterministic transform, re-executed server-side — `remora/toolcall/routing/derivation.py`), deployment-owned `argument_scope_valid` + `scope_violating_arguments`, strict-profile `intent_provenance_required` + `intent_provenance_resolved`, deployment-declared work-order scope `intent_scope_status` (`validate_intent_scope`; anything but `in_scope` hard-abstains with no approval route), `tool_matches_goal`, `untrusted_controlled_arguments` |
 | Verification | `counterfactual_passed`, `distribution_shift_detected`, `classification_confidence`, `classification_alternatives`, `model_misspecification_risk` |
 | Session & fleet | `session_action_count`, `session_cumulative_risk`, `similar_action_seen_count`, `policy_generalization_risk`, `fleet_level_effect` |
 | Binding | `tool_call_hash`, SHA-256 of the full canonical tool call (name, exact args, tenant, target); recompute before execution and refuse on mismatch |
@@ -727,6 +727,38 @@ integer at the meter's scale, such as 19.05 at scale 10, is refused, so a
 move cannot be split into steps too small to count. A negative amount is
 refused too.
 
+A limit may declare a second tier, `dual_control_above`, below its `max`. A
+call that would take the window's total past it runs only on the authority of
+two distinct approver identities, neither of them the proposer, in every
+profile. `max` still refuses it whatever the approvals. At
+`/assess` the call is not refused for the tier. Its review item needs two
+approvers, and the response carries `approvals_required: 2` and
+`dual_control: {"reason": "limit_dual_control_required", "limits": [...]}`.
+An engine ACCEPT for such a call becomes ESCALATE, because a grant redeemed
+without review names no approver. A first approval answers `status:
+approval_recorded` with `approvals_received` and `approvals_required`, and the
+item stays pending. The same approver again is refused with 409
+`approver_already_approved`, and the proposer with 403 `approver_is_proposer`.
+Approvals count together only when the same approval requirement admitted
+them, and at execution each of them must still hold under the requirement in
+force. `/execute` before the second approval is refused
+with 409 `dual_control_second_approval_required`. The quorum expires with the
+first of its approvals. A revocation of either approver voids it, at the
+re-gate and, with atomic admission, in the admission transaction. The
+lease minted for the call signs the number of distinct approvers
+(`approver_count`, set only when two or more approved). The reservation at
+dispatch reads the window's total in the same transaction as the charge and
+refuses with `limit_dual_control_unmet` when the call would pass the tier on
+fewer than two. That covers a total that grew between approval and dispatch,
+a direct ACCEPT and an unsigned lease. An item approved by one person
+whose window passed the tier before dispatch settles refused, and the call has
+to be proposed again. A call charged nothing, such as a move to a declared
+safe value, needs no second approver. The tier is not a term of the limit's
+binding: it decides who approves a charge, not what is charged, so a limit
+that gains a tier keeps its ledger history. A changed tier still changes the
+policy digest, which voids approvals given under the other one. The approvers
+are identities. Whether they are two people is the deployment's token table.
+
 The governed dispatcher reserves a metered call against every limit it
 matches as its last check before the lease nonce is spent. A call that does
 not fit never reaches the tool, and `tool_execution.refusal_reason` names
@@ -743,6 +775,7 @@ means a `change` resource has no known value. `limit_resource_busy` means
 another change to it has not settled. `limit_changed` means a limit was
 edited under an existing `limit_id`; declare a new id instead. The last two
 are `limit_principal_missing` and `limit_ledger_unavailable`.
+`limit_dual_control_unmet` is the second tier's refusal (above).
 
 After the tool runs, the dispatcher records whether it ran. A write that
 raised leaves its resource unknown until a baseline with a new `seed_id` is

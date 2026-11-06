@@ -338,6 +338,37 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/execution/dispatches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Dispatches
+         * @description Every ``execution_result`` in this tenant's chain after a sequence number.
+         *
+         *     For an effect verifier in another control domain (AACP G): it needs to
+         *     find every dispatch to verify without being told which ones by the agent
+         *     or the executor. It needs ``verify_effect`` (the effect_verifier role, and
+         *     admin), not ``read``: the rows name every principal's proposals and grant
+         *     ids in the tenant, which an agent holding ``read`` has no use for
+         *     (adversarial review 2026-11-06). Tenant-scoped, identities and hashes
+         *     only: the chain holds no arguments or results, and this returns none.
+         *     ``next_after_sequence`` continues the listing. Each call reads the
+         *     tenant's whole chain, so its cost grows with the chain; a caller should
+         *     page forward from its last cursor, as the pilot's verifier does.
+         */
+        get: operations["list_dispatches_v1_execution_dispatches_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/execution/effects": {
         parameters: {
             query?: never;
@@ -1336,6 +1367,19 @@ export interface components {
             tenant_id: string;
             tool_call: components["schemas"]["ToolCallRequest"];
         };
+        /** DualControl */
+        DualControl: {
+            /**
+             * Limits
+             * @description The limit ids whose dual_control_above this call would pass.
+             */
+            limits: string[];
+            /**
+             * Reason
+             * @constant
+             */
+            reason: "limit_dual_control_required";
+        };
         /**
          * EffectStatus
          * @description Five outcomes. Collapsing any pair loses a distinction an operator
@@ -1505,6 +1549,16 @@ export interface components {
         };
         /** ExecutionApproveResponse */
         ExecutionApproveResponse: {
+            /**
+             * Approvals Received
+             * @description Dual control only: distinct approvals so far.
+             */
+            approvals_received?: number | null;
+            /**
+             * Approvals Required
+             * @description Dual control only: distinct approvals the item needs.
+             */
+            approvals_required?: number | null;
             audit: components["schemas"]["AuditRef"];
             /**
              * Delegated Executor
@@ -1522,18 +1576,26 @@ export interface components {
             proposal_id?: string | null;
             /**
              * Status
-             * @constant
+             * @description approved: the item may be executed. approval_recorded: one approval towards a dual-control quorum; the item stays pending until a different approver approves it.
+             * @enum {string}
              */
-            status: "approved";
+            status: "approved" | "approval_recorded";
         };
         /** ExecutionAssessResponse */
         ExecutionAssessResponse: {
+            /**
+             * Approvals Required
+             * @description Present when the review item needs more than one distinct approver: 2 for a call past a cumulative limit's dual_control_above.
+             */
+            approvals_required?: number | null;
             audit: components["schemas"]["AuditRef"];
             /**
              * Decision
              * @enum {string}
              */
             decision: "accept" | "verify" | "abstain" | "escalate";
+            /** @description Present when the call needs two approvers: the limits it would take past their second tier. */
+            dual_control?: components["schemas"]["DualControl"] | null;
             /** @description Present only on accept; key absent otherwise. */
             execution_token?: components["schemas"]["ExecutionGrant"] | null;
             /**
@@ -2653,6 +2715,58 @@ export interface operations {
             };
             /** @description The lease is malformed, does not verify against this domain's public key, or does not bind this call. */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_dispatches_v1_execution_dispatches_get: {
+        parameters: {
+            query?: {
+                after_sequence?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Executed dispatches in chain order, with each one's latest effect verdict. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Missing or invalid bearer token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Role lacks the required capability for this tenant. */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

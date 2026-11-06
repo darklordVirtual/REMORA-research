@@ -198,7 +198,7 @@ def _hard_guards(
     fired: list[tuple[DecisionAction, DecisionReason]] = []
     for guard in (_guard_flow_state, _guard_flow_confidentiality, _guard_flow_integrity,
                   _guard_admission, _guard_schema, _guard_forbidden, _guard_scope,
-                  _guard_intent_provenance, _guard_coercion, _guard_blackmail,
+                  _guard_intent_provenance, _guard_intent_scope, _guard_coercion, _guard_blackmail,
                   _guard_counterfactual, _guard_contradiction, _guard_taint):
         result = guard(obs)
         if result is not None:
@@ -274,6 +274,20 @@ def _guard_intent_provenance(obs: PolicyObservation) -> _GuardResult:
         # alone ACCEPT: nothing downstream can add the authority it lacks.
         return DecisionAction.ABSTAIN, DecisionReason.INTENT_PROVENANCE_REQUIRED
     return None
+
+
+def _guard_intent_scope(obs: PolicyObservation) -> _GuardResult:
+    # The authority behind the intent bounds the call structurally: which
+    # tool, which effect, which target. A call outside it, or one with no
+    # scoped authority at all, cannot reach review. Approval is not a way to
+    # issue a wider work order (AACP D; S06 and S09, 2026-11-05).
+    status = obs.intent_scope_status
+    if status is None or status == "in_scope":
+        return None
+    if status == "out_of_scope":
+        return DecisionAction.ABSTAIN, DecisionReason.INTENT_SCOPE_MISMATCH
+    # "unbound", and any status this engine does not know: fail closed.
+    return DecisionAction.ABSTAIN, DecisionReason.INTENT_AUTHORITY_UNBOUND
 
 
 def _guard_coercion(obs: PolicyObservation) -> _GuardResult:
@@ -486,6 +500,8 @@ _RISK_NEUTRAL: dict[str, tuple[dict[str, Any], ...]] = {
     "cross_tenant": ({"argument_scope_valid": None}, {"argument_scope_valid": True}),
     "intent_unresolved": ({"intent_provenance_required": False},
                           {"intent_provenance_resolved": True}),
+    "intent_out_of_scope": ({"intent_scope_status": None},
+                            {"intent_scope_status": "in_scope"}),
     "coercion": ({"coercion_detected": False},),
     "blackmail": ({"blackmail_pattern_detected": False},),
     "counterfactual_failed": ({"counterfactual_passed": None}, {"counterfactual_passed": True}),
@@ -511,6 +527,7 @@ def _active_risk_signals(obs: PolicyObservation) -> frozenset[str]:
         "cross_tenant": obs.argument_scope_valid is False,
         "intent_unresolved": (obs.intent_provenance_required is True
                               and obs.intent_provenance_resolved is not True),
+        "intent_out_of_scope": obs.intent_scope_status not in (None, "in_scope"),
         "coercion": obs.coercion_detected is True,
         "blackmail": obs.blackmail_pattern_detected is True,
         "counterfactual_failed": obs.counterfactual_passed is False,

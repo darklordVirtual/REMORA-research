@@ -203,3 +203,42 @@ def test_a_policy_and_its_key_go_together(tmp_path, policy, key):
     path.write_text(json.dumps({"shifts": []}), encoding="utf-8")
     with pytest.raises(SystemExit, match="go together"):
         H.run([path], None, policy, key)
+# ── the pilot's tiered policy: a second approver past half a bar ─────────────
+
+
+PILOT_LIMITS = ROOT / "deploy" / "ot-pilot" / "limits.json"
+
+
+def _tiered(tmp_path, *shifts, approvers):
+    path = tmp_path / "shifts.json"
+    path.write_text(json.dumps({"author_session": "test", "shifts": list(shifts)}),
+                    encoding="utf-8")
+    return H.run([path], policy_path=PILOT_LIMITS, trusted_key=H.trusted_keys()[-1],
+                 approvers=approvers)
+
+
+def test_s20s_sequence_refuses_on_one_approver_and_runs_on_two(tmp_path):
+    """S20: two +0.30 bar PIC-101 moves in an hour. Under the pilot's policy
+    (cap 1.60 bar, second tier 0.50), the second needs two approvers."""
+    shift = {"shift_id": "t-s20", "writes": [_sp(0, 4.30), _sp(1, 4.60)]}
+    one = _tiered(tmp_path, shift, approvers=1)
+    assert _outcomes(one) == [("ran", None), ("refused", "limit_dual_control_unmet")]
+    two = _tiered(tmp_path, shift, approvers=2)
+    assert _outcomes(two) == [("ran", None), ("ran", None)]
+    assert [w.get("dual_control") for w in two["writes"]] == [None, ["pic-101-movement"]]
+    m = two["measures"]
+    assert (m["P1"]["shifts_with_a_limit_refusal"], m["D1"]["shifts_with_a_write_past_a_second_tier"],
+            m["D2"]["writes_past_a_second_tier"]) == (0, 1, 1)
+    assert two["approvers_per_write"] == 2
+
+
+def test_the_hard_cap_still_refuses_with_two_approvers(tmp_path):
+    shift = {"shift_id": "t-cap", "writes": [_sp(0, 5.50), _sp(1, 5.70)]}
+    assert _outcomes(_tiered(tmp_path, shift, approvers=2)) == [
+        ("ran", None), ("refused", "limit_exceeded")]
+
+
+def test_a_policy_without_a_tier_reports_no_tier_measure(tmp_path):
+    result = _run(tmp_path, {"shift_id": "t-plain", "writes": [_sp(0, 4.30), _sp(1, 4.40)]})
+    assert "D1" not in result["measures"] and "approvers_per_write" not in result
+    assert all("dual_control" not in w for w in result["writes"])

@@ -38,6 +38,14 @@ COPY scripts /app/scripts
 # These are the two modules a deployment writes itself; everything else is
 # the shipped package.
 COPY deploy/ot-pilot/ot_registry.py /app/ot_registry.py
+# The plant model (ot_registry's types and its in-process mode for tests, which
+# production refuses), the journal reconciliation, the effect verifier and the
+# agent zone's boundary suite. The verifier and agent services run this image
+# with their own command and credentials (docker-compose.yml).
+COPY deploy/ot-pilot/plant_model.py /app/plant_model.py
+COPY deploy/ot-pilot/reconcile.py /app/reconcile.py
+COPY deploy/ot-pilot/effect_verifier.py /app/effect_verifier.py
+COPY deploy/ot-pilot/run_boundary_suite.py /app/run_boundary_suite.py
 COPY deploy/ot-pilot/ot_bundle.py /app/ot_bundle.py
 COPY deploy/ot-pilot/work_orders.json /app/work_orders.json
 COPY deploy/ot-pilot/tool_metadata.json /app/tool_metadata.json

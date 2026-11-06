@@ -97,6 +97,27 @@ def test_a_full_counter_does_not_refuse_a_move_towards_the_safe_value(tmp_path):
     assert _charges(tmp_path / "toward.db", "3") == [0]
 
 
+def test_free_move_and_charged_move_with_a_second_tier(tmp_path):
+    plant = {"PUMP": 0.0}
+    limits = [*LIMITS, {**SEEN_LIMIT, "dual_control_above": 10}]
+    guard = cl.LimitGuard(policy(meters={**METERS, "move_seen": [METER]}, limits=limits),
+                          cl.LimitLedger(tmp_path / "tier.db"),
+                          observer=lambda tenant, quantity, resource: plant[resource])
+    args = {"unit": "PUMP", "value": 1.5}
+    assert guard.dual_control(tenant="t", principal="p", tool_name="move_seen",
+                              arguments=args, now=T0) == (SEEN_LIMIT["limit_id"],)
+    assert guard.reserve(tenant="t", principal="p", tool_name="move_seen", arguments=args,
+                         operation_id="1", request_hash="h-1", now=T0,
+                         approvers=2) is None
+    assert guard.begin("1") is None
+    plant["PUMP"] = 1.5
+    guard.settle("1", True, result={"previous": 0.0}, now=T0)
+    args["value"] = 0.5
+    assert guard.dual_control(tenant="t", principal="p", tool_name="move_seen",
+                              arguments=args, now=T0) == ()
+    assert reserve(guard, "move_seen", "2", now=T0, **args) is None
+
+
 def test_an_overfull_counter_does_not_refuse_a_move_towards_safe(tmp_path):
     plant = {"PUMP": 0.0}
     guard = _guard(tmp_path, plant)

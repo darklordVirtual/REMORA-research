@@ -63,7 +63,7 @@ from remora.governance.revocation_store import (
     InMemoryRevocationStore,
     RevocationStore,
 )
-from remora.policy.composition import GRANT_ONLY_REASONS
+from remora.policy.composition import GRANT_ONLY_REASONS, NON_APPROVABLE_REASONS
 from remora.policy.decision_engine import RemoraDecisionEngine
 from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction
@@ -129,6 +129,21 @@ def _reviewed_tier(observation: PolicyObservation) -> str | None:
     """
     tier = observation.risk_tier
     return tier.strip().lower() if isinstance(tier, str) else None
+
+
+def _quorum_policy_refusal(item: Any, approval: Approval,
+                           current_policy_hash: str | None) -> str | None:
+    """:func:`_approval_policy_refusal` for every approval the item's quorum rests on.
+
+    Under dual control each approver was admitted by the requirement in force
+    when they approved. All of them must still hold under the current one, or
+    an approver who lost eligibility would still count towards the two.
+    """
+    for one in (getattr(item, "approvals", ()) or (approval,)):
+        refusal = _approval_policy_refusal(one, current_policy_hash)
+        if refusal is not None:
+            return refusal
+    return None
 
 
 def _approval_policy_refusal(
@@ -235,6 +250,40 @@ class PendingReview:
     #: The reasons behind ``requested_action``, sorted; None when the caller
     #: enqueued without them.
     requested_reasons: tuple[str, ...] | None = None
+    #: How many distinct approvers the item needs before it is APPROVED. Two
+    #: for a call past a cumulative limit's ``dual_control_above``.
+    required_approvers: int = 1
+    #: The approvals recorded towards ``required_approvers`` while it needs
+    #: more than one. Empty for a single-approver item.
+    approvals: tuple[Approval, ...] = ()
+
+
+class ApproverAlreadyApproved(ValueError):
+    """The approver already approved this item; a second approver must differ."""
+
+
+#: The refusal for executing an item that still awaits its second approver.
+DUAL_CONTROL_PENDING = "dual_control_second_approval_required"
+
+
+class DualControlPending(ValueError):
+    """Execution of an item whose dual-control quorum is not yet met."""
+
+    reason = DUAL_CONTROL_PENDING
+
+
+def _approvers(item: PendingReview) -> tuple[str, ...]:
+    """The distinct approvers behind the item's approval, in order."""
+    names: list[str] = []
+    for a in item.approvals or ((item.approval,) if item.approval is not None else ()):
+        if a.approver not in names:
+            names.append(a.approver)
+    return tuple(names)
+
+
+def approver_count(item: PendingReview) -> int:
+    """How many distinct approvers the item's standing approval rests on; 0 when none."""
+    return len(_approvers(item)) if item.approval is not None else 0
 
 
 @dataclass(frozen=True)
@@ -317,7 +366,11 @@ class ReviewQueue:
         queue_ttl: timedelta | None = None,
         *,
         reasons: Iterable[str] | None = None,
+        required_approvers: int = 1,
     ) -> PendingReview:
+        if isinstance(required_approvers, bool) or not isinstance(required_approvers, int) \
+                or required_approvers < 1:
+            raise ValueError("required_approvers must be a positive integer")
         if requested_action not in (DecisionAction.VERIFY, DecisionAction.ESCALATE):
             raise ValueError(
                 "only VERIFY and ESCALATE decisions await human review; got "
@@ -332,6 +385,7 @@ class ReviewQueue:
             queue_deadline=now + (queue_ttl or self._default_queue_ttl),
             requested_reasons=(tuple(sorted({str(r) for r in reasons}))
                                if reasons is not None else None),
+            required_approvers=required_approvers,
         )
         self._items[item.item_id] = item
         self._log.append(
@@ -341,6 +395,8 @@ class ReviewQueue:
                 "requested_action": requested_action.value,
                 "queue_deadline": item.queue_deadline.isoformat(),
                 "tool_call_hash": observation.tool_call_hash,
+                **({"required_approvers": required_approvers}
+                   if required_approvers > 1 else {}),
             },
         )
         return item
@@ -490,6 +546,40 @@ class ReviewQueue:
             approval_policy_hash=approval_policy_hash,
             approved_reasons=item.requested_reasons,
         )
+        dual: dict[str, Any] = {}
+        if item.required_approvers > 1:
+            # Dual control: the item is APPROVED only once that many distinct
+            # people approved it, each within their own approval's lifetime.
+            # A lapsed approval no longer counts towards the quorum.
+            # Only approvals admitted under the requirement this one was
+            # admitted under count with it: a quorum is two approvers admitted
+            # under one approval policy, not under two.
+            live = tuple(a for a in item.approvals if now < a.expires_at
+                         and a.approval_policy_hash == approval.approval_policy_hash
+                         and a.required_role == approval.required_role)
+            if any(a.approver == approver for a in live):
+                raise ApproverAlreadyApproved(
+                    f"{approver} already approved item {item_id}; the next "
+                    "approval must come from someone else")
+            item.approvals = (*live, approval)
+            received = len({a.approver for a in item.approvals})
+            if received < item.required_approvers:
+                self._log.append(
+                    "approval_recorded",
+                    {
+                        "item_id": item_id,
+                        "approver": approver,
+                        "approvals_received": received,
+                        "approvals_required": item.required_approvers,
+                        "expires_at": approval.expires_at.isoformat(),
+                    },
+                )
+                return approval
+            # The quorum holds only while every approval in it does.
+            approval = replace(approval,
+                               expires_at=min(a.expires_at for a in item.approvals))
+            dual = {"approvers": [a.approver for a in item.approvals],
+                    "approvals_required": item.required_approvers}
         item.status = ItemStatus.APPROVED
         item.approval = approval
         self._log.append(
@@ -499,6 +589,7 @@ class ReviewQueue:
                 "approver": approver,
                 "approved_action": approval.approved_action.value,
                 "expires_at": approval.expires_at.isoformat(),
+                **dual,
             },
         )
         return approval
@@ -537,6 +628,9 @@ class ReviewQueue:
     ) -> ExecutionOutcome:
         item = self._items[item_id]
         now = now or self._now_fn()
+        if item.status is ItemStatus.PENDING and item.required_approvers > 1:
+            raise DualControlPending(
+                f"item {item_id} needs {item.required_approvers} distinct approvers")
         if item.status is not ItemStatus.APPROVED or item.approval is None:
             raise ValueError(f"item {item_id} is {item.status.value}, not approved")
         approval = item.approval
@@ -545,6 +639,7 @@ class ReviewQueue:
         if now >= approval.expires_at:
             item.status = ItemStatus.PENDING
             item.approval = None
+            item.approvals = ()
             # Re-entering the queue must grant a FRESH review window: the
             # original deadline may itself have passed while approved, and a
             # stale deadline would immediately expire the item to ABSTAIN.
@@ -571,15 +666,17 @@ class ReviewQueue:
         # Reads the durable store. An unreachable store raises rather than
         # returning False, so the re-gate refuses instead of executing on an
         # answer it does not have.
-        if self.is_revoked(approval.approver):
+        revoked = next((name for name in _approvers(item) if self.is_revoked(name)), None)
+        if revoked is not None:
             item.status = ItemStatus.PENDING
             item.approval = None
+            item.approvals = ()
             self._log.append(
                 "approval_invalidated",
                 {
                     "item_id": item_id,
                     "reason": "approver_revoked",
-                    "approver": approval.approver,
+                    "approver": revoked,
                 },
             )
             return ExecutionOutcome(
@@ -634,6 +731,39 @@ class ReviewQueue:
         # ESCALATE=3, fresh ABSTAIN=2) must NOT be read as "safe to run".
         fresh = self._engine.decide(fresh_observation)
 
+        # 4c'. A refusal no review can lift (NON_APPROVABLE_REASONS: a
+        # cross-tenant argument, unresolved intent provenance, a call outside
+        # its work order's scope) settles the item. Re-queueing it, as the
+        # branches below do for a world that only got riskier, would offer a
+        # reviewer a second approval of a call that review cannot authorise
+        # (adversarial review 2026-11-06). Checked first, so a tier or policy
+        # change cannot route it back to the queue.
+        if fresh.action is DecisionAction.ABSTAIN and \
+                set(fresh.reasons) & NON_APPROVABLE_REASONS:
+            item.status = ItemStatus.DISPATCH_REFUSED
+            item.approval = None
+            item.approvals = ()
+            item.requested_action = fresh.action
+            item.requested_reasons = _reason_values(fresh)
+            item.observation = fresh_observation
+            self._log.append(
+                "approval_invalidated",
+                {
+                    "item_id": item_id,
+                    "reason": "non_approvable_refusal",
+                    "settled": True,
+                    "approved_action": approval.approved_action.value,
+                    "fresh_action": fresh.action.value,
+                    "fresh_reasons": [r.value for r in fresh.reasons],
+                },
+            )
+            return ExecutionOutcome(
+                ExecutionDecision.APPROVAL_INVALIDATED,
+                fresh.action,
+                "fresh decision is a refusal no review can lift; approval "
+                "voided and the item settled, not re-queued",
+            )
+
         # 4b'. Reviewed authority: an approval covers the risk tier the
         # reviewer saw, because that tier decided which role was allowed to
         # approve. A changed tier voids it even when the engine still says
@@ -645,6 +775,7 @@ class ReviewQueue:
             reviewed_tier = item.observation.risk_tier
             item.status = ItemStatus.PENDING
             item.approval = None
+            item.approvals = ()
             item.requested_action = fresh.action
             item.requested_reasons = _reason_values(fresh)
             item.observation = fresh_observation
@@ -671,10 +802,11 @@ class ReviewQueue:
         # 4b''. Approval policy: the requirement that decided who could
         # approve must be the one in force now. Checked after the tier, which
         # names the more specific cause when both moved.
-        policy_refusal = _approval_policy_refusal(approval, approval_policy_hash)
+        policy_refusal = _quorum_policy_refusal(item, approval, approval_policy_hash)
         if policy_refusal is not None:
             item.status = ItemStatus.PENDING
             item.approval = None
+            item.approvals = ()
             item.requested_action = fresh.action
             item.requested_reasons = _reason_values(fresh)
             item.observation = fresh_observation
@@ -720,6 +852,7 @@ class ReviewQueue:
         # fresh action (stricter, or a non-executable outcome at any severity).
         item.status = ItemStatus.PENDING
         item.approval = None
+        item.approvals = ()
         item.requested_action = fresh.action
         item.requested_reasons = _reason_values(fresh)
         item.observation = fresh_observation
@@ -783,7 +916,7 @@ class ReviewQueue:
                     "tool-call hash at dispatch differs from the approved "
                     "payload",
                 )
-            if self.is_revoked(approval.approver):
+            if any(self.is_revoked(name) for name in _approvers(item)):
                 return ExecutionOutcome(
                     ExecutionDecision.APPROVAL_INVALIDATED,
                     None,
@@ -796,7 +929,7 @@ class ReviewQueue:
                     "risk tier at dispatch differs from the one the approval "
                     "was reviewed at",
                 )
-            if _approval_policy_refusal(approval, approval_policy_hash) is not None:
+            if _quorum_policy_refusal(item, approval, approval_policy_hash) is not None:
                 return ExecutionOutcome(
                     ExecutionDecision.APPROVAL_INVALIDATED,
                     None,

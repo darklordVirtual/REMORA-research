@@ -92,6 +92,11 @@ from remora.policy.decision_engine import RemoraDecisionEngine
 from remora.policy.observation import PolicyObservation, canonical_tool_call_hash
 from remora.policy.report import DecisionAction
 from remora.toolcall.deployment_registry import resolve_tool_metadata
+from remora.toolcall.intent_scope import (
+    UNBOUND,
+    IntentScopeResult,
+    normalise_scope_result,
+)
 from remora.toolcall.semantic_bundle import (
     IntentResolver,
     SemanticBundle,
@@ -99,6 +104,7 @@ from remora.toolcall.semantic_bundle import (
     load_argument_scope_validator,
     load_intent_resolution_provider,
     load_intent_resolver,
+    load_intent_scope_validator,
     load_semantic_bundle,
 )
 from remora.toolcall.toolspec import ToolSpecBundle, ToolSpecRefused
@@ -189,6 +195,8 @@ MEDIATION_NO_TOOL_RESULT = frozenset({
     ("POST", "/v1/execution/effects/close"),
     # readers and evidence: records of what happened, never a live result
     ("GET", "/v1/execution/capabilities"),
+    # identities and hashes of executed dispatches, for the effect verifier
+    ("GET", "/v1/execution/dispatches"),
     ("GET", "/v1/execution/proposals/{proposal_id}"),
     ("GET", "/v1/execution/proposals/{proposal_id}/semantic-assessment"),
     ("POST", "/v1/execution/proposals/{proposal_id}/effect"),
@@ -1400,27 +1408,29 @@ def _limit_evidence_checker() -> Any:
     return check
 
 
-def _limits_or_refuse(req: Any, tenant: str, principal: str) -> None:
-    """Refuse a call its cumulative limits cannot take.
+def _limits_or_refuse(req: Any, tenant: str, principal: str) -> tuple[str, ...]:
+    """Refuse a call its cumulative limits cannot take; the limits it needs two approvers for.
 
     409 before anything is decided or queued, so no reviewer is asked to
     approve a call that could not run. Advisory only: the reservation at
     dispatch (``GovernedToolDispatcher.bind_limit_guard``) is what holds.
+    A call that would take a total past a limit's ``dual_control_above`` is
+    not refused here: the limits it names route it to two approvers.
     """
     guard = _limit_guard()
     if guard is None:
-        return
+        return ()
     # The preview can read the plant through the deployment's observer, with
     # the call's own argument as the resource. The signed contract is checked
     # first, so nothing is read on behalf of a call it refuses, and the
     # refusal names the contract rather than the meter. Raises 409.
     _resolve_toolspec(req.tool_name, req.arguments, req.target_environment)
     if not guard.governs(req.tool_name):
-        return
-    refusal = guard.preview(tenant=tenant, principal=principal, tool_name=req.tool_name,
-                            arguments=req.arguments)
+        return ()
+    refusal, dual_control = guard.preview_with_tier(
+        tenant=tenant, principal=principal, tool_name=req.tool_name, arguments=req.arguments)
     if refusal is None:
-        return
+        return dual_control
     _CHAIN.append(tenant, {"event": "limit_refused", "actor": principal,
                            "tool_name": req.tool_name, "detail": refusal,
                            "stage": "assess"})
@@ -2474,6 +2484,13 @@ def semantic_call_context(
             argument_scope_valid=scope.valid,
             scope_violating_arguments=scope.violating_arguments,
         )
+    intent_scope = _intent_scope_result(intent_ref, tool_name, arguments, tenant)
+    if intent_scope is not None:
+        full = dataclasses.replace(
+            full,
+            intent_scope_status=intent_scope.status,
+            intent_scope_violations=intent_scope.violations,
+        )
     from remora.enforcement.custody import custody_is_enforced
 
     full = dataclasses.replace(
@@ -2510,6 +2527,26 @@ def semantic_call_context(
         "derivation_transforms_digest": DERIVATION_TRANSFORMS_DIGEST,
     }
     return full, context
+
+
+def _intent_scope_result(
+    intent_ref: str | None, tool_name: str, arguments: dict[str, Any], tenant: str,
+) -> IntentScopeResult | None:
+    """The deployment's work-order scope verdict, or ``None`` when it declares none.
+
+    A validator that raises or answers in another shape has not shown the call
+    to be in scope, so the call is recorded as unbound and refused.
+    """
+    validator = load_intent_scope_validator()
+    if validator is None:
+        return None
+    try:
+        answer = validator(intent_ref, tool_name, dict(arguments), tenant)
+    except Exception:  # any failure is fail-closed: the call is recorded as unbound
+        _LOGGER.warning("intent scope validator raised; call recorded as unbound",
+                     exc_info=True)
+        return IntentScopeResult(UNBOUND, ("validator_error",))
+    return normalise_scope_result(answer)
 
 
 def _observation(req: ToolCallRequest, tenant: str) -> PolicyObservation:
@@ -2621,7 +2658,7 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     api_mod._require_tenant_capability(role, tenant, "assess")
     _task_or_refuse(req)
     _delegation_or_refuse(req, tenant, principal)
-    _limits_or_refuse(req, tenant, principal)
+    dual_control = _limits_or_refuse(req, tenant, principal) or ()
     claim = None
     if req.idempotency_key:
         claim = _idempotency_claim(tenant, principal, req.idempotency_key, req)
@@ -2636,7 +2673,7 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
         # this route binds the module's ambient state and stays HTTP conversion.
         try:
             response = _assess_proposal_with_loop_state(
-                tenant=tenant, principal=principal, req=req)
+                tenant=tenant, principal=principal, req=req, dual_control=dual_control)
         except LoopSafetyStoreUnavailable as exc:
             # 503 and no decision. Assessing without the context's history
             # would read an outage as "nothing accumulated".
@@ -2707,6 +2744,7 @@ _SEMANTIC_SHADOW = build_semantic_shadow_from_env(
 
 def _assess_proposal_with_loop_state(
     *, tenant: str, principal: str, req: ToolCallRequest,
+    dual_control: tuple[str, ...] = (),
 ) -> dict[str, Any]:
     return _assess_proposal(
         tenant=tenant, principal=principal, proposal=req,
@@ -2729,6 +2767,7 @@ def _assess_proposal_with_loop_state(
         execution_context_provider=context_provider(),
         require_execution_context=context_required(),
         ws1_gate=_ws1_gate(),
+        dual_control_limits=dual_control,
     )
 
 
@@ -3525,6 +3564,7 @@ def _dispatch_under_lease(
     report_lease: bool = False,
     flow_expected: tuple[int, str] | None = None,
     not_after: datetime | None = None,
+    approver_count: int = 0,
 ) -> dict[str, Any]:
     """Governed dispatch (see remora.execution.dispatch); binds this module's
     dispatcher and current policy bundle hash. Shared by /execute,
@@ -3585,7 +3625,8 @@ def _dispatch_under_lease(
             grant_jti=grant_jti, presented_lease=presented_lease, task_identity=task_identity,
             plan=plan, capability_set=capability_set, report_lease=report_lease,
             not_after=not_after, flow_expected=flow_expected, result_commit=result_commit,
-            resolved_arguments=resolved_arguments, flow_recipients=flow_recipients)
+            resolved_arguments=resolved_arguments, flow_recipients=flow_recipients,
+            approver_count=approver_count)
     finally:
         if release_fence is not None:
             # The commit released it on the executed path; every other path
@@ -3615,6 +3656,7 @@ def _dispatch_under_lease_fenced(
     result_commit: Any,
     resolved_arguments: dict[str, Any] | None,
     flow_recipients: frozenset[str] | None = None,
+    approver_count: int = 0,
 ) -> dict[str, Any]:
     """The rest of ``_dispatch_under_lease`` once the flow fence is held.
 
@@ -3690,6 +3732,8 @@ def _dispatch_under_lease_fenced(
             flow_binding=flow_binding,
             flow_recipients=flow_recipients,
             cam_digest=_cam_digest() or "",
+            # Signed into a lease minted here; a presented lease carries its own.
+            approver_count=approver_count if presented_lease is None else 0,
         )
         _span.set_attribute("remora.executed", bool(result.get("executed")))
         if result.get("refusal_reason"):
@@ -4310,23 +4354,103 @@ def _computed_postcondition_verdict(
         contract, observed, proposal_id=proposal_id,
         execution_id=execution_id, toolspec_hash=toolspec_hash,
         verifier_identity=verifier_identity)
-    if (pre_state_revision and source_revision
-            and pre_state_revision == source_revision
-            and computed.status in (EffectStatus.VERIFIED, EffectStatus.MISMATCH)):
-        # The object did not change across the dispatch, so whatever it holds
-        # is not attributable to this call (NEGATIVE_RESULTS §85, narrowed
-        # for systems that expose revisions).
+    unchanged = bool(pre_state_revision and source_revision
+                     and pre_state_revision == source_revision)
+    if unchanged and computed.status is EffectStatus.VERIFIED:
+        # The object did not change across the dispatch, so the expected
+        # values it holds are not attributable to this call (NEGATIVE_RESULTS
+        # §85, narrowed for systems that expose revisions).
         computed = dataclasses.replace(computed, status=EffectStatus.UNOBSERVABLE,
                            reason_code="postcondition_no_attributable_change",
                            detail=("pre-state and observed revisions are equal "
                                    f"({source_revision}); no change is "
                                    "attributable to this dispatch"))
+    elif unchanged and computed.status is EffectStatus.MISMATCH:
+        # The object did not change and does not hold the declared delta: the
+        # effect is absent. That needs no attribution, since the claim is
+        # about the post-state. Until 2026-11-06 this read UNOBSERVABLE, so a
+        # write the system acknowledged and never applied was "unknown".
+        # MISMATCH is settled. The precondition is the reader's, and a
+        # deployment that sends revisions must meet it: the revision advances
+        # when the system of record applies the write, not before. A system
+        # that applies later (a ramped setpoint, an eventually consistent
+        # store) must not read back before that, or it records a write still
+        # on its way as absent. Without revisions in the receipt this branch
+        # does not apply.
+        computed = dataclasses.replace(computed,
+                           reason_code="postcondition_effect_absent",
+                           detail=("pre-state and observed revisions are equal "
+                                   f"({source_revision}) and the object does "
+                                   "not hold the declared delta: "
+                                   + computed.detail))
     return computed
 
 
 def _current_state(events: list[dict[str, Any]],
                    dispatch: dict[str, Any] | None) -> str:
     return _current_state_impl(events, dispatch)
+
+
+@router.get("/dispatches", responses={
+    200: {"description": "Executed dispatches in chain order, with each one's "
+                         "latest effect verdict."},
+    **_AUTH_RESPONSES,
+})
+def list_dispatches(request: Request, after_sequence: int = 0,
+                    limit: int = 200) -> dict[str, Any]:
+    """Every ``execution_result`` in this tenant's chain after a sequence number.
+
+    For an effect verifier in another control domain (AACP G): it needs to
+    find every dispatch to verify without being told which ones by the agent
+    or the executor. It needs ``verify_effect`` (the effect_verifier role, and
+    admin), not ``read``: the rows name every principal's proposals and grant
+    ids in the tenant, which an agent holding ``read`` has no use for
+    (adversarial review 2026-11-06). Tenant-scoped, identities and hashes
+    only: the chain holds no arguments or results, and this returns none.
+    ``next_after_sequence`` continues the listing. Each call reads the
+    tenant's whole chain, so its cost grows with the chain; a caller should
+    page forward from its last cursor, as the pilot's verifier does.
+    """
+    tenant, role, _principal = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "verify_effect")
+    after_sequence = max(0, int(after_sequence))
+    limit = max(1, min(int(limit), 500))
+    entries = _CHAIN.entries(tenant)
+    tools: dict[str, str] = {}
+    verdicts: dict[str, str] = {}
+    for entry in entries:
+        payload = entry.payload
+        pid = str(payload.get("proposal_id") or "")
+        if payload.get("event") == "assessed" and pid:
+            tools[pid] = str(payload.get("tool_name") or "")
+        elif payload.get("event") == "effect_verified" and pid:
+            verdicts[pid] = str(payload.get("status") or "")
+    rows: list[dict[str, Any]] = []
+    last = after_sequence
+    for entry in entries:
+        if entry.sequence_no <= after_sequence:
+            continue
+        payload = entry.payload
+        if payload.get("event") != "execution_result":
+            continue
+        pid = str(payload.get("proposal_id") or "")
+        rows.append({
+            "sequence_no": entry.sequence_no,
+            "recorded_at": entry.timestamp,
+            "proposal_id": pid,
+            "tool_name": tools.get(pid, ""),
+            "executed": bool(payload.get("tool_executed")),
+            "state_unknown": bool(payload.get("state_unknown")),
+            "grant_jti": str(payload.get("grant_jti") or ""),
+            "tool_call_hash": str(payload.get("tool_call_hash") or ""),
+            "effect_status": verdicts.get(pid),
+        })
+        last = entry.sequence_no
+        if len(rows) >= limit:
+            break
+    return {"dispatches": rows, "next_after_sequence": last}
 
 
 @router.get("/proposals/{proposal_id}", responses={

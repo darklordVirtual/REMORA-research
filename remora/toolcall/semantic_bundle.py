@@ -18,6 +18,14 @@ and optionally
     def validate_argument_scope(
         tool_name: str, arguments: dict[str, Any], tenant: str
     ) -> ArgumentScopeResult: ...
+    def validate_intent_scope(
+        intent_ref: str | None, tool_name: str, arguments: dict[str, Any], tenant: str
+    ) -> IntentScopeResult: ...
+
+``validate_intent_scope`` binds the call to the scope of the one authority its
+``intent_ref`` names (``remora/toolcall/intent_scope.py``). Declared, it is
+consulted on every assessment and on the fresh observation at execute and
+dispatch; an answer other than ``in_scope`` is a refusal no review can lift.
 
 The bundle's hashes are ALWAYS computed here from the declarations themselves.
 A deployment module cannot assert a hash: a declared hash could be stale or
@@ -49,6 +57,7 @@ import os
 from dataclasses import dataclass, fields as _dc_fields
 from typing import Any, Callable, Protocol
 
+from remora.toolcall.intent_scope import IntentScopeResult
 from remora.toolcall.routing.compatibility import StateIndex
 from remora.toolcall.routing.goal_match import TaskIntent
 from remora.toolcall.routing.tool_contract import ToolContractRegistry
@@ -212,6 +221,17 @@ class IntentResolutionProvider(Protocol):
     def __call__(self, intent_ref: str) -> IntentResolution: ...
 
 
+class IntentScopeValidator(Protocol):
+    def __call__(
+        self,
+        intent_ref: str | None,
+        tool_name: str,
+        arguments: dict[str, Any],
+        tenant: str,
+    ) -> IntentScopeResult:
+        """The scope verdict for one proposed call."""
+
+
 class ArgumentScopeValidator(Protocol):
     def __call__(
         self, tool_name: str, arguments: dict[str, Any], tenant: str
@@ -282,4 +302,15 @@ def load_argument_scope_validator() -> ArgumentScopeValidator | None:
     validator = getattr(module, "validate_argument_scope", None)
     if validator is not None and not callable(validator):
         raise RuntimeError(f"{module.__name__}.validate_argument_scope is not callable")
+    return validator
+
+
+def load_intent_scope_validator() -> IntentScopeValidator | None:
+    """Deployment-owned work-order scope check, when declared."""
+    module = _bundle_module()
+    if module is None:
+        return None
+    validator = getattr(module, "validate_intent_scope", None)
+    if validator is not None and not callable(validator):
+        raise RuntimeError(f"{module.__name__}.validate_intent_scope is not callable")
     return validator

@@ -33,9 +33,10 @@ many writes meant to run did run, how many were refused although they
 should have run, and how many human steps (approvals, revocations, stops,
 resolutions) the run needed.
 
-The plant is simulated in the API process. A restart resets it to its
-starting values while the limit ledger and the audit chain persist; the
-evidence names that, and the faults are written so it does not decide them.
+The plant is its own service since 2026-11-06 (plant_service.py), so an API
+restart leaves it where it was; ``down -v`` resets it with everything else.
+Until then it was simulated in the API process and a restart reset it, and
+the restart fault's movement figures were written for that.
 """
 from __future__ import annotations
 
@@ -86,6 +87,10 @@ CONFIG_FILES = (
     "deploy/ot-pilot/work_orders.json",
     "deploy/ot-pilot/ot_registry.py",
     "deploy/ot-pilot/ot_bundle.py",
+    "deploy/ot-pilot/plant_model.py",
+    "deploy/ot-pilot/plant_service.py",
+    "deploy/ot-pilot/plant/Dockerfile",
+    "deploy/ot-pilot/effect_verifier.py",
 )
 
 def _require_tokens() -> str | None:
@@ -304,7 +309,7 @@ class Fault:
 
 
 def f_restart_between_approve_and_execute(rec: dict) -> bool:
-    tc = tool_call("create_work_order", {"wo_id": "WO-1401"}, "WO-1205")
+    tc = tool_call("create_work_order", {"wo_id": "WO-1401"}, "WO-1206")
     item = approved_item(tc)
     compose("restart", "api")
     rec["api_back"] = wait_healthy()
@@ -316,7 +321,7 @@ def f_restart_between_approve_and_execute(rec: dict) -> bool:
 
 
 def f_spent_grant_stays_spent_across_restart(rec: dict) -> bool:
-    tc = tool_call("create_work_order", {"wo_id": "WO-1402"}, "WO-1205")
+    tc = tool_call("create_work_order", {"wo_id": "WO-1402"}, "WO-1206")
     item = approved_item(tc)
     s1, b1 = execute(item, tc)
     compose("restart", "api")
@@ -335,11 +340,13 @@ def f_limits_survive_restart(rec: dict) -> bool:
     s1, b1 = execute(item, tc)
     compose("restart", "api")
     rec["api_back"] = wait_healthy()
-    # The simulated plant restarted at V-12 = 15, so movement is measured from 15.
+    # The plant is its own service since 2026-11-06 and does not restart with
+    # the API, so V-12 is still at 65 and movement is measured from there:
+    # 21 more (to 44) passes 70 for the hour, 20 more (to 45) does not.
     over_status, over = propose(tool_call("set_valve_position",
-                                          {"valve": "V-12", "position_pct": 36}, "WO-1204"))
+                                          {"valve": "V-12", "position_pct": 44}, "WO-1204"))
     under_status, _ = propose(tool_call("set_valve_position",
-                                        {"valve": "V-12", "position_pct": 35}, "WO-1204"))
+                                        {"valve": "V-12", "position_pct": 45}, "WO-1204"))
     rec.update(first_move_executed=executed(b1), over_cap=over_status,
                over_cap_reason=(over or {}).get("detail"), under_cap=under_status)
     rec["completed_writes"] = int(executed(b1) is True)
@@ -348,13 +355,13 @@ def f_limits_survive_restart(rec: dict) -> bool:
 
 
 def f_store_outage_during_execute(rec: dict) -> bool:
-    tc = tool_call("adjust_setpoint", {"loop": "FIC-220", "value": 121.0}, "WO-1201")
+    tc = tool_call("adjust_setpoint", {"loop": "FIC-220", "value": 121.0}, "WO-1207")
     item = approved_item(tc)
     compose("stop", "postgres")
     IN_FAULT_WINDOW.set()
     try:
         s_exec, b_exec = execute(item, tc)
-        s_assess, b_assess = propose(tool_call("create_work_order", {"wo_id": "WO-1403"}, "WO-1205"))
+        s_assess, b_assess = propose(tool_call("create_work_order", {"wo_id": "WO-1403"}, "WO-1206"))
     finally:
         IN_FAULT_WINDOW.clear()
         compose("start", "postgres")
@@ -410,7 +417,7 @@ def f_readiness_follows_the_store(rec: dict) -> bool:
 
 
 def f_concurrent_executions_of_one_approval(rec: dict) -> bool:
-    tc = tool_call("create_work_order", {"wo_id": "WO-1404"}, "WO-1205")
+    tc = tool_call("create_work_order", {"wo_id": "WO-1404"}, "WO-1206")
     item = approved_item(tc)
     barrier, out = threading.Barrier(4), []
 
@@ -433,7 +440,7 @@ def f_same_proposal_twice(rec: dict) -> bool:
     # The pilot's limit policy declares no idempotency.key_arguments, so two
     # separately approved identical proposals are two operations. This fault
     # records that documented behaviour; it is not a guarantee.
-    tc = tool_call("create_work_order", {"wo_id": "WO-1405"}, "WO-1205")
+    tc = tool_call("create_work_order", {"wo_id": "WO-1405"}, "WO-1206")
     items = [approved_item(tc), approved_item(tc)]
     results = [execute(item, tc) for item in items]
     ran = sum(1 for s, b in results if s == 200 and executed(b) is True)
@@ -444,7 +451,7 @@ def f_same_proposal_twice(rec: dict) -> bool:
 
 
 def f_stop_between_approve_and_execute(rec: dict) -> bool:
-    tc = tool_call("create_work_order", {"wo_id": "WO-1406"}, "WO-1205")
+    tc = tool_call("create_work_order", {"wo_id": "WO-1406"}, "WO-1206")
     item = approved_item(tc)
     HUMAN_STEPS.append("stop")
     s_stop, _ = call("POST", "/v1/execution/stop", SUPERVISOR, {"reason": "fault injection"})
@@ -460,7 +467,7 @@ def f_stop_between_approve_and_execute(rec: dict) -> bool:
 
 
 def f_tool_fails_after_dispatch_began(rec: dict) -> bool:
-    tc = tool_call("close_work_order", {"wo_id": "WO-9999"}, "WO-1203")
+    tc = tool_call("close_work_order", {"wo_id": "WO-9999"}, "WO-1208")
     item = approved_item(tc)
     s1, b1 = execute(item, tc)
     te = (b1 or {}).get("tool_execution") or {}
@@ -489,7 +496,7 @@ def f_tool_fails_after_dispatch_began(rec: dict) -> bool:
 
 def f_approver_revoked_after_approval(rec: dict) -> bool:
     # Last: the approver stays revoked for the rest of the stack's life.
-    tc = tool_call("create_work_order", {"wo_id": "WO-1407"}, "WO-1205")
+    tc = tool_call("create_work_order", {"wo_id": "WO-1407"}, "WO-1206")
     item = approved_item(tc)
     HUMAN_STEPS.append("revoke")
     s_rev, _ = call("POST", "/v1/execution/revoke-principal", SUPERVISOR,

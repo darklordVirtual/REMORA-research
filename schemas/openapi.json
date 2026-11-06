@@ -530,6 +530,29 @@
         "title": "DispatchLeasedRequest",
         "type": "object"
       },
+      "DualControl": {
+        "properties": {
+          "limits": {
+            "description": "The limit ids whose dual_control_above this call would pass.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Limits",
+            "type": "array"
+          },
+          "reason": {
+            "const": "limit_dual_control_required",
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason",
+          "limits"
+        ],
+        "title": "DualControl",
+        "type": "object"
+      },
       "EffectStatus": {
         "description": "Five outcomes. Collapsing any pair loses a distinction an operator\nneeds in order to choose what to do next.",
         "enum": [
@@ -783,6 +806,30 @@
       },
       "ExecutionApproveResponse": {
         "properties": {
+          "approvals_received": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Dual control only: distinct approvals so far.",
+            "title": "Approvals Received"
+          },
+          "approvals_required": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Dual control only: distinct approvals the item needs.",
+            "title": "Approvals Required"
+          },
           "audit": {
             "$ref": "#/components/schemas/AuditRef"
           },
@@ -819,7 +866,11 @@
             "title": "Proposal Id"
           },
           "status": {
-            "const": "approved",
+            "description": "approved: the item may be executed. approval_recorded: one approval towards a dual-control quorum; the item stays pending until a different approver approves it.",
+            "enum": [
+              "approved",
+              "approval_recorded"
+            ],
             "title": "Status",
             "type": "string"
           }
@@ -835,6 +886,18 @@
       },
       "ExecutionAssessResponse": {
         "properties": {
+          "approvals_required": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Present when the review item needs more than one distinct approver: 2 for a call past a cumulative limit's dual_control_above.",
+            "title": "Approvals Required"
+          },
           "audit": {
             "$ref": "#/components/schemas/AuditRef"
           },
@@ -847,6 +910,17 @@
             ],
             "title": "Decision",
             "type": "string"
+          },
+          "dual_control": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DualControl"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Present when the call needs two approvers: the limits it would take past their second tier."
           },
           "execution_token": {
             "anyOf": [
@@ -2863,6 +2937,82 @@
           }
         },
         "summary": "Dispatch Leased",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
+    "/v1/execution/dispatches": {
+      "get": {
+        "description": "Every ``execution_result`` in this tenant's chain after a sequence number.\n\nFor an effect verifier in another control domain (AACP G): it needs to\nfind every dispatch to verify without being told which ones by the agent\nor the executor. It needs ``verify_effect`` (the effect_verifier role, and\nadmin), not ``read``: the rows name every principal's proposals and grant\nids in the tenant, which an agent holding ``read`` has no use for\n(adversarial review 2026-11-06). Tenant-scoped, identities and hashes\nonly: the chain holds no arguments or results, and this returns none.\n``next_after_sequence`` continues the listing. Each call reads the\ntenant's whole chain, so its cost grows with the chain; a caller should\npage forward from its last cursor, as the pilot's verifier does.",
+        "operationId": "list_dispatches_v1_execution_dispatches_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "after_sequence",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "title": "After Sequence",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Dispatches V1 Execution Dispatches Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Executed dispatches in chain order, with each one's latest effect verdict."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Missing or invalid bearer token."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Role lacks the required capability for this tenant."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Dispatches",
         "tags": [
           "execution"
         ]

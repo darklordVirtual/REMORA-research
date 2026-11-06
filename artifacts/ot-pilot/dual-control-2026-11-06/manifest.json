@@ -1,0 +1,145 @@
+{
+ "run_id": "dual-control-2026-11-06",
+ "purpose": "S20 on the OT pilot under the PIC-101 second tier (dual_control_above 0.50 bar, cap 1.60), with every earlier run repeated on the rebuilt stack",
+ "source": {
+  "image_built_from_commit": "1623a015166f93f1ad238079c5ffe21fb1a1b9d6",
+  "note": "Images built from the working tree at 1623a015. The later commits on the branch before these files change only the capability register, the boundary declaration and summary, and the code-provenance register; no code, deployment file or runner.",
+  "build_note": "As for aacp-a-g-2026-11-06: built behind an egress proxy with --network host, the proxy as build arguments and its CA bind-mounted for the pip step only; python:3.12-slim from mirror.gcr.io, tagged locally. The console was not built.",
+  "toolspec_note": "The ToolSpec bundle was re-signed (build_toolspec.py --force) before the runs, as the deployment's own procedure requires after code changes."
+ },
+ "images": {
+  "api_image_id": "sha256:997f0d65140c45e62d2930af2ac1649526e9608f20512b64992398643e858a33",
+  "plant_image_id": "sha256:65b07c6e0ec878d279feead7757a2c6c36262a039253435b36bffdc16f5fb716",
+  "base_image_digest": "python@sha256:4840d514c583a4d3d8cad3940e68dee6f0f6f3635c12fcd0a3d74c21a5b93a54",
+  "docker_server": "29.9.2"
+ },
+ "policy_hash": "sha256:d0d141e055a3bd8f250c803891bbc6fb3693d8b44b285e51317b0051184c89bf",
+ "limits_policy": {
+  "path": "deploy/ot-pilot/limits.json",
+  "sha256": "5506a1f4756e5a383ce997cb60d65b9e3a03253c4746592cf86438feacd8a35d",
+  "signer_kid": "ed25519-ed4b671b494f53b13b13800ddb3ec2b67dd06d1daa4997acd3a4e28b0e1f4c5a"
+ },
+ "deployment_files": [
+  {
+   "path": "deploy/ot-pilot/Dockerfile",
+   "sha256": "4467f5141ea109a5f78d50e51c6226c8762b55895f67e46b872df4381f14e6ce"
+  },
+  {
+   "path": "deploy/ot-pilot/build_toolspec.py",
+   "sha256": "53856d92605b632a3fbff9ac8919e823b030300565aa53a264ed713d2f4346c8"
+  },
+  {
+   "path": "deploy/ot-pilot/credential_topology.yaml",
+   "sha256": "5562feef4a95e164bfab54604d121a9219ef1ad65195178e4d65fff4ef5ed9e4"
+  },
+  {
+   "path": "deploy/ot-pilot/docker-compose.yml",
+   "sha256": "dbd0eb7725adf9f87f2c53486f22ba72351624c092ac5b7638a62d092936c104"
+  },
+  {
+   "path": "deploy/ot-pilot/effect_verifier.py",
+   "sha256": "1a44ae3993fc00eca4c75c2cb1f11cf9727e62a91d636cb877c989d9ae2a18f7"
+  },
+  {
+   "path": "deploy/ot-pilot/init_tokens.py",
+   "sha256": "854a3a549be923c59f7af74d7fd999e8899324757441904a9ed277efc96330e8"
+  },
+  {
+   "path": "deploy/ot-pilot/limits.json",
+   "sha256": "5506a1f4756e5a383ce997cb60d65b9e3a03253c4746592cf86438feacd8a35d"
+  },
+  {
+   "path": "deploy/ot-pilot/ot_bundle.py",
+   "sha256": "f44d19ee109ae071d68e0906d8694c9c10b11a45d395f3809750dd3285418715"
+  },
+  {
+   "path": "deploy/ot-pilot/ot_registry.py",
+   "sha256": "10a982aca634ced842ab7c6567431d43303505cf3bd50662402d8adac83fc629"
+  },
+  {
+   "path": "deploy/ot-pilot/ot_ws1.py",
+   "sha256": "019c654d32060a5370447a64b8d523cecacbcf75e449de99012e812bf332087c"
+  },
+  {
+   "path": "deploy/ot-pilot/ot_ws1_facts.json",
+   "sha256": "b815c44f285ccd7a03665d441690a158e2f5865d3004cbc0c502d75cb86b3cc0"
+  },
+  {
+   "path": "deploy/ot-pilot/pilot_host.py",
+   "sha256": "84942d54771426b2df39f05fe584e2467a0f3b566546513b71177b5a5823f48d"
+  },
+  {
+   "path": "deploy/ot-pilot/plant_dump.py",
+   "sha256": "9f31ce3c8ca31b658ca0ed1c69a91c49788d5c0279de10853997b02cf6dedd69"
+  },
+  {
+   "path": "deploy/ot-pilot/plant_model.py",
+   "sha256": "85cbb8d847e7cfe8daecb2f82926ed6bd19e368f86830c77e3f894b9fe5bb553"
+  },
+  {
+   "path": "deploy/ot-pilot/plant_service.py",
+   "sha256": "544abf4d2b00284c392339e331d2f5d248520ae68f098fde81d158ea46f66e98"
+  },
+  {
+   "path": "deploy/ot-pilot/reconcile.py",
+   "sha256": "95c58c140d44135454f988fe9ffb01dab8aa410b5941c07732b507c4dde82519"
+  },
+  {
+   "path": "deploy/ot-pilot/run_boundary_assessment.py",
+   "sha256": "ff13f9b7b0866dac386d19821f5d4ace9069ad56bf8bae58f8554cafb211662e"
+  },
+  {
+   "path": "deploy/ot-pilot/run_boundary_suite.py",
+   "sha256": "f15ffc3243159829b4cb2769d9f479c14d9aa1074f0c4f92ef63b45d1298b67c"
+  },
+  {
+   "path": "deploy/ot-pilot/run_dual_control_check.py",
+   "sha256": "05ac1d1a6e10a8fa4d7b5690990a36ff09a32cffc7ecd9ed8e1eecf9e88bb24e"
+  },
+  {
+   "path": "deploy/ot-pilot/run_effect_verification.py",
+   "sha256": "b9cd0d7b4f9077862e064415fbfd9feea478c089511158c223e4499ac70c0121"
+  },
+  {
+   "path": "deploy/ot-pilot/run_fault_injection.py",
+   "sha256": "db5e27a78f35daa7dc92689132e0c68b1b10c65a0cb458c4b801d59511f50bac"
+  },
+  {
+   "path": "deploy/ot-pilot/run_independent_scenarios.py",
+   "sha256": "ec8d5a6114b20db5e90fca8c882d4703fd126a72b77fdf223f0d83fb554f48db"
+  },
+  {
+   "path": "deploy/ot-pilot/run_ot_battery.py",
+   "sha256": "001827c7ea503257bce3e2141afff4dd9a8a827399cff36810b5920ecdde4f03"
+  },
+  {
+   "path": "deploy/ot-pilot/tool_metadata.json",
+   "sha256": "802b4e76ba1928a65bf34954df632c2ec29edd78bbbcd4d122aad69342f1ef8c"
+  },
+  {
+   "path": "deploy/ot-pilot/work_orders.json",
+   "sha256": "6b7a49881ebe6abc6b2894de2e28d8ded923adb2930f9099cc2733edbe0a857a"
+  },
+  {
+   "path": "deploy/ot-pilot/plant/Dockerfile",
+   "sha256": "c69da34a583caeb7298e1209c26d5b3fcebf0c58bdd2f5907ea70a55645da100"
+  },
+  {
+   "path": "scripts/run_limits_holdout.py",
+   "sha256": "a2b26fc1a8616baacd2f6bd7ed4a863aaf66cc300ac775ac16ffbeff97c91df2"
+  },
+  {
+   "path": "artifacts/ot-pilot/limits-holdout-v3/limits-v3.json",
+   "sha256": "205e511c05e26ee213648881fdcc8d9f105ae99fbcbea66ba5c4d9814aaca6d6"
+  }
+ ],
+ "runs": {
+  "battery": "16 of 16 as specified; 5 of 5 monitoring reads; 6 of 6 writes EFFECT_VERIFIED, vantage independent; journal and chain agree",
+  "fault-injection": "10 of 10; 8 of 8 intended writes; 0 false refusals; 14 human steps",
+  "independent-scenarios": "24 of 24 (S20 passes: the second +0.30 bar move is refused at execute, 409 dual_control_second_approval_required)",
+  "boundary": "7 attempt classes from the agent container, every class BLOCKED; the interval reconciles; 0 credential values in the agent capture; the detector-sensitivity control is detected; live networks match the register",
+  "effect": "honest 5 of 5, faults 4 of 4, receipt controls refused 4 of 4",
+  "dual-control": "4 of 4 phases as expected: one approver, two approvers, a total that grew after approval, the hard cap",
+  "replay": "130 shifts: with two approvers every write has its v3 outcome (12 of 130 shifts with a limit refusal under both); 28 of 130 shifts need a second approver; with one approver 36 of 130 shifts have a limit refusal"
+ }
+}

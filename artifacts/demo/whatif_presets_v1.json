@@ -153,6 +153,14 @@
       "description": "the intent's provenance is resolved"
     },
     {
+      "name": "intent_scope",
+      "kind": "deployment_fact",
+      "assignments": {
+        "intent_scope_status": "in_scope"
+      },
+      "description": "a work order whose scope names this tool, effect and target is issued"
+    },
+    {
       "name": "tool_matches_goal",
       "kind": "deployment_fact",
       "assignments": {

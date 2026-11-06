@@ -44,12 +44,25 @@ def to_dict(obj):
     return obj
 
 
+def _approval_from_dict(v: dict) -> Approval:
+    v = dict(v)
+    v['expires_at'] = datetime.fromisoformat(v['expires_at'])
+    v['issued_at'] = datetime.fromisoformat(v['issued_at'])
+    v['approved_action'] = DecisionAction(v['approved_action'])
+    if isinstance(v.get('approved_reasons'), list):
+        v['approved_reasons'] = tuple(v['approved_reasons'])
+    return Approval(**v)
+
+
 def from_dict(d, cls):
     if hasattr(cls, "__dataclass_fields__"):
         kwargs = {}
         for k, v in d.items():
             field_type = cls.__dataclass_fields__[k].type
-            if 'datetime' in str(field_type) and isinstance(v, str):
+            if k == 'approvals' and isinstance(v, list):
+                # The approvals towards a dual-control quorum (PendingReview).
+                kwargs[k] = tuple(_approval_from_dict(a) for a in v)
+            elif 'datetime' in str(field_type) and isinstance(v, str):
                 kwargs[k] = datetime.fromisoformat(v)
             elif 'ItemStatus' in str(field_type):
                 kwargs[k] = ItemStatus(v)
@@ -58,12 +71,7 @@ def from_dict(d, cls):
             elif 'Observation' in str(field_type) and isinstance(v, dict):
                 kwargs[k] = PolicyObservation(**v)
             elif 'Approval' in str(field_type) and isinstance(v, dict):
-                v['expires_at'] = datetime.fromisoformat(v['expires_at'])
-                v['issued_at'] = datetime.fromisoformat(v['issued_at'])
-                v['approved_action'] = DecisionAction(v['approved_action'])
-                if isinstance(v.get('approved_reasons'), list):
-                    v['approved_reasons'] = tuple(v['approved_reasons'])
-                kwargs[k] = Approval(**v)
+                kwargs[k] = _approval_from_dict(v)
             elif k == 'requested_reasons' and isinstance(v, list):
                 kwargs[k] = tuple(v)
             else:

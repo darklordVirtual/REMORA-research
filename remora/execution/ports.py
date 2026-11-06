@@ -303,6 +303,7 @@ class ReviewQueuePort(Protocol):
         queue_ttl: timedelta | None = None,
         *,
         reasons: Iterable[str] | None = None,
+        required_approvers: int = 1,
     ) -> PendingReview: ...
 
     def expire_due(self, now: datetime | None = None) -> list[PendingReview]: ...

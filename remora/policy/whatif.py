@@ -431,6 +431,9 @@ LEVERS: tuple[Lever, ...] = (
            intent_authority_present=True),
     _lever("intent_provenance", _D, "the intent's provenance is resolved",
            intent_provenance_resolved=True),
+    _lever("intent_scope", _D,
+           "a work order whose scope names this tool, effect and target is issued",
+           intent_scope_status="in_scope", also_favourable=(None,)),
     _lever("tool_matches_goal", _D, "the declared tool contract matches the goal",
            tool_matches_goal=True),
     _lever("effect_matches", _D, "the declared effect matches the requested one",
@@ -510,6 +513,8 @@ _GUARD_FIELDS: Mapping[DecisionReason, frozenset[str]] = {
     DecisionReason.CROSS_TENANT_ARGUMENT_BLOCKED: frozenset({"argument_scope_valid"}),
     DecisionReason.INTENT_PROVENANCE_REQUIRED: frozenset(
         {"intent_provenance_required", "intent_provenance_resolved"}),
+    DecisionReason.INTENT_AUTHORITY_UNBOUND: frozenset({"intent_scope_status"}),
+    DecisionReason.INTENT_SCOPE_MISMATCH: frozenset({"intent_scope_status"}),
     DecisionReason.COERCION_BLOCKED: frozenset({"coercion_detected"}),
     DecisionReason.BLACKMAIL_BLOCKED: frozenset({"blackmail_pattern_detected"}),
     DecisionReason.COUNTERFACTUAL_FAILED: frozenset({"counterfactual_passed"}),

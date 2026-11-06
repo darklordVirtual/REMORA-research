@@ -46,17 +46,46 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
-    # Not published to the host: only the API needs it.
+    # Not published to the host: only the API needs it, and only the API is
+    # on the backend network (AACP E: the agent zone cannot reach it).
     expose:
       - "5432"
+    networks: [backend]
+
+  # The plant: its own process, container and credentials (plant_service.py).
+  # On plant-net only, which is internal: the API (writer) and the effect
+  # verifier (reader) reach it, the agent zone does not. Standard library
+  # only; the image holds none of REMORA's code or keys.
+  plant:
+    build:
+      context: ../..
+      dockerfile: deploy/ot-pilot/plant/Dockerfile
+    environment:
+      OT_PLANT_WRITE_TOKEN: ${OT_PLANT_WRITE_TOKEN:?run python deploy/ot-pilot/init_tokens.py --force}
+      OT_PLANT_READ_TOKEN: ${OT_PLANT_READ_TOKEN:?run python deploy/ot-pilot/init_tokens.py --force}
+      # Declared faults, for the effect-verification run only (empty here).
+      OT_PLANT_FAULTS: ${OT_PLANT_FAULTS:-}
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9100/health', timeout=4)"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [plant-net]
 
   api:
+    image: ot-pilot-api:local
     build:
       context: ../..
       dockerfile: deploy/ot-pilot/Dockerfile
     depends_on:
       postgres:
         condition: service_healthy
+      plant:
+        condition: service_healthy
+    # edge: the host port and the console. backend: PostgreSQL. plant-net:
+    # the plant, as its only writer. agent-net: the agent zone's only route.
+    networks: [edge, backend, plant-net, agent-net]
     # Host 8080 to stay clear of anything already on 8000.
     # SR-06 / SEC-05: loopback only — a pilot on 0.0.0.0 hands the network
     # both the propose and the approve path.
@@ -88,7 +117,8 @@ services:
         {"${OT_TOKEN_AGENT:?run python deploy/ot-pilot/init_tokens.py first}":{"tenant":"ot-pilot","role":"operator","actor_id":"ot-agent"},
          "${OT_TOKEN_APPROVER:?run python deploy/ot-pilot/init_tokens.py first}":{"tenant":"ot-pilot","role":"senior_authority","actor_id":"ot-approver"},
          "${OT_TOKEN_SUPERVISOR:?run python deploy/ot-pilot/init_tokens.py first}":{"tenant":"ot-pilot","role":"admin","actor_id":"ot-supervisor"},
-         "${OT_TOKEN_VIEWER:?run python deploy/ot-pilot/init_tokens.py first}":{"tenant":"ot-pilot","role":"viewer","actor_id":"ot-viewer"}}
+         "${OT_TOKEN_VIEWER:?run python deploy/ot-pilot/init_tokens.py first}":{"tenant":"ot-pilot","role":"viewer","actor_id":"ot-viewer"},
+         "${OT_TOKEN_VERIFIER:?run python deploy/ot-pilot/init_tokens.py --force}":{"tenant":"ot-pilot","role":"effect_verifier","actor_id":"ot-effect-verifier"}}
       REMORA_API_BEARER_TOKEN: ${OT_TOKEN_AGENT:?run python deploy/ot-pilot/init_tokens.py first}
 
       # --- Surfaces -------------------------------------------------------
@@ -104,6 +134,22 @@ services:
       REMORA_LEASE_SIGNING_KEY: ${OT_LEASE_SIGNING_KEY:?run python deploy/ot-pilot/init_tokens.py --force}
       REMORA_AUDIT_SIGNING_KEY: ${OT_AUDIT_SIGNING_KEY:?run python deploy/ot-pilot/init_tokens.py --force}
       REMORA_ENVELOPE_SIGNING_KEY: ${OT_ENVELOPE_SIGNING_KEY:?run python deploy/ot-pilot/init_tokens.py --force}
+
+      # --- The plant, in its own trust domain (AACP E) ---------------------
+      # The executor's write credential. Only this container holds it, and
+      # ot_registry refuses an in-process plant in production.
+      OT_PLANT_URL: http://plant:9100
+      OT_PLANT_WRITE_TOKEN: ${OT_PLANT_WRITE_TOKEN:?run python deploy/ot-pilot/init_tokens.py --force}
+
+      # --- Effect verification (AACP G) -------------------------------------
+      # The verifier's receipt key, registered for another control domain with
+      # a read-only credential at the plant; REMORA derives "independent"
+      # from these three facts and computes the verdict itself.
+      REMORA_EXECUTOR_CONTROL_DOMAIN: ot-pilot-executor
+      REMORA_EFFECT_VERIFIER_KEYS: >-
+        [{"public_key":"${OT_VERIFIER_PUBLIC_KEY:?run python deploy/ot-pilot/init_tokens.py --force}",
+          "control_domain":"ot-pilot-plant-observer","credential_scope":"read_only",
+          "tenants":["ot-pilot"]}]
 
       # --- Deployment-owned semantics --------------------------------------
       REMORA_TOOL_REGISTRY_MODULE: ot_registry
@@ -169,9 +215,13 @@ services:
       # unsigned, or with coverage other than all_writes. limits.json is
       # signed by the pilot's limit authority; this host holds only its
       # public key. To change the limits, sign a new policy with your own key
-      # (scripts/sign_limit_policy.py) and replace the key below.
+      # (scripts/sign_limit_policy.py) and replace the key below. Two keys are
+      # trusted: e165e0eb... (the owner's, since 2026-11-06) and f067ca82...,
+      # added on 2026-11-06 to sign the PIC-101 dual-control tier from a
+      # session that did not hold the owner's seed (owner decision). Either
+      # may sign; drop one to retire it.
       REMORA_REQUIRE_LIMITS: "1"
-      REMORA_LIMITS_TRUSTED_KEYS: e165e0eb8e0f21b03f5d7ce97c97286f7b60a873ed3fd984873d142dc169e7c9
+      REMORA_LIMITS_TRUSTED_KEYS: e165e0eb8e0f21b03f5d7ce97c97286f7b60a873ed3fd984873d142dc169e7c9,f067ca82df8dac25f49d1012f032e652831cba51ca7d291139891f244d851628
 
       # Prometheus scrape without a bearer token (local pilot only).
       REMORA_PROMETHEUS_PUBLIC: "1"
@@ -183,6 +233,48 @@ services:
       - remora-state:/var/lib/remora
       # The signed bundle, authored on the host; the seed stays on the host.
       - ./toolspec-bundle.json:/app/toolspec-bundle.json:ro
+
+  # The effect verifier (effect_verifier.py): another control domain. Reads
+  # the plant with the read-only token, signs receipts with its own key, and
+  # talks to REMORA as role effect_verifier. Its report is on host port 8082.
+  verifier:
+    image: ot-pilot-api:local
+    pull_policy: never
+    command: ["python", "/app/effect_verifier.py"]
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      OT_API_URL: http://api:8000
+      OT_PLANT_URL: http://plant:9100
+      OT_TOKEN_VERIFIER: ${OT_TOKEN_VERIFIER:?run python deploy/ot-pilot/init_tokens.py --force}
+      OT_PLANT_READ_TOKEN: ${OT_PLANT_READ_TOKEN:?run python deploy/ot-pilot/init_tokens.py --force}
+      OT_VERIFIER_SIGNING_SEED: ${OT_VERIFIER_SIGNING_SEED:?run python deploy/ot-pilot/init_tokens.py --force}
+      PYTHONPATH: /app
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9200/health', timeout=4)"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "127.0.0.1:8082:9200"
+    networks: [edge, plant-net]
+
+  # The agent zone (AACP E), started only for the boundary suite
+  # (--profile agent). It holds the operator token and nothing else, and its
+  # only network is agent-net, where the API is the only other member.
+  agent:
+    image: ot-pilot-api:local
+    pull_policy: never
+    profiles: [agent]
+    # The report goes to stdout; the agent zone mounts nothing from the host.
+    command: ["python", "/app/run_boundary_suite.py"]
+    environment:
+      OT_API_URL: http://api:8000
+      OT_TOKEN_AGENT: ${OT_TOKEN_AGENT:?run python deploy/ot-pilot/init_tokens.py first}
+      PYTHONPATH: /app
+    networks: [agent-net]
 
   # Operator console: live metrics, scenario buttons, one-click OT battery.
   # Holds the viewer token only (SR-06) — a real deployment puts an identity
@@ -216,6 +308,16 @@ services:
       REMORA_EVIDENCE_KEEP: "20"
     volumes:
       - remora-evidence:/var/lib/remora/evidence
+    networks: [edge]
+
+networks:
+  edge: {}
+  backend:
+    internal: true
+  plant-net:
+    internal: true
+  agent-net:
+    internal: true
 
 volumes:
   remora-evidence:
