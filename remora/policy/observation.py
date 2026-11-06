@@ -297,6 +297,18 @@ class PolicyObservation:
     # stays audit-only and off the OPA input on purpose.
     intent_provenance_resolved: bool | None = None
 
+    # Property D, deployment-declared scope (``validate_intent_scope`` in the
+    # semantic bundle): whether the call is inside what the authority behind
+    # its intent_ref grants. None means the deployment declares no scope check.
+    # "in_scope" passes; "out_of_scope" (tool, effect or target outside the
+    # work order) and "unbound" (no scoped authority resolves) hard-abstain
+    # before review, and any other value is read as "unbound".
+    intent_scope_status: str | None = None
+    # Audit only: which scope dimensions the call violated (``tool``,
+    # ``effect``, ``target:<argument>``). Names, never values, so an
+    # attacker-chosen string is not echoed.
+    intent_scope_violations: tuple[str, ...] = ()
+
     # Does this call serve the task's goal — right resource, right effect?
     # True  → established: the declared tool contract matches an intent quoted
     #         from the task text, and the call fills the targeted role.

@@ -133,10 +133,13 @@ CASES = [
          {"wo_id": "WO-1201"}, intent_ref="WO-1203", approve=True, execute=True),
 
     # ── Payload binding: approval is welded to exact arguments ─────────────
+    # On V-12, the valve WO-1204 names. Until 2026-11-06 this case used V-18,
+    # which only reached approval because the work order's target was not
+    # bound; with the scope check it is refused at assess and never approved.
     Case("Tamper: approved 35%, execute 100%", "binding_refused",
-         "set_valve_position", {"valve": "V-18", "position_pct": 35},
+         "set_valve_position", {"valve": "V-12", "position_pct": 35},
          intent_ref="WO-1204", approve=True, execute=True,
-         tamper={"valve": "V-18", "position_pct": 100}),
+         tamper={"valve": "V-12", "position_pct": 100}),
 
     # ── Wrong tool for the goal (the §34 residue) ──────────────────────────
     Case("Wrong tool: valve change under a read-round intent",

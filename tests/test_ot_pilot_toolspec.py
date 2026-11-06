@@ -37,12 +37,29 @@ def signed(tmp_path_factory):
 
 def test_the_bundle_describes_exactly_the_six_pilot_tools(signed):
     bundle, *_ = signed
-    assert bundle["schema_version"] == 4
+    # Schema 5 (2026-11-06): each write signs its postcondition, so REMORA
+    # computes the effect verdict from the verifier's read-back (AACP G).
+    assert bundle["schema_version"] == 5
     assert sorted(s["tool_id"] for s in bundle["tool_specs"]) == [
         "acknowledge_alarm", "adjust_setpoint", "close_work_order", "create_work_order",
         "read_sensor", "set_valve_position"]
     assert all(s["signing_identity"] == bundle["registry_signature"]["signing_identity"]
                for s in bundle["tool_specs"])
+
+
+def test_every_write_signs_a_postcondition_on_its_target_and_reads_declare_none(signed):
+    bundle, *_ = signed
+    by_id = {s["tool_id"]: s for s in bundle["tool_specs"]}
+    assert "postcondition" not in by_id["read_sensor"]
+    assert by_id["read_sensor"]["postcondition_reader"] is None
+    for name, spec in by_id.items():
+        if name == "read_sensor":
+            continue
+        target = spec["semantic_contract"]["argument_roles"]
+        target_arg = next(a for a, role in target.items() if role == "target_resource")
+        assert spec["postcondition"]["target_selector"] == {"id": {"$arg": target_arg}}, name
+        assert spec["postcondition_reader"] == "ot-plant-effect-verifier", name
+        assert spec["postcondition"]["expected_fields"], name
 
 
 def test_risk_declaration_and_bundle_agree(signed):

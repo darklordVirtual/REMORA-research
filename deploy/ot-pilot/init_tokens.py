@@ -3,12 +3,15 @@
 """Generate the OT pilot's credentials on first start (SR-06).
 
 Writes deploy/ot-pilot/.env (mode 600) with random tokens for the agent,
-approver, supervisor and viewer roles, and random signing keys for PDP
-tokens, leases, the audit chain and envelopes. docker compose reads that file
-automatically; the compose file refuses to start without it, so a pilot no
-longer boots with fixed literal tokens or keys anyone can guess. The keys
-used to be literals in docker-compose.yml, and anyone holding the lease key
-could sign a lease for any call (RMR-SEC-0001).
+approver, supervisor, viewer and effect-verifier roles, random signing keys
+for PDP tokens, leases, the audit chain and envelopes, the plant's write and
+read tokens, and the effect verifier's Ed25519 receipt seed with its public
+key. docker compose reads that file automatically; the compose file refuses
+to start without it, so a pilot no longer boots with fixed literal tokens or
+keys anyone can guess. The keys used to be literals in docker-compose.yml,
+and anyone holding the lease key could sign a lease for any call
+(RMR-SEC-0001). Which container receives which of them is declared in
+credential_topology.yaml and checked against docker-compose.yml.
 
 A .env written before the keys existed has none; rotate with --force.
 
@@ -31,6 +34,15 @@ from pathlib import Path
 ENV_PATH = Path(__file__).resolve().parent / ".env"
 
 
+def _public_key(seed_hex: str) -> str:
+    """The Ed25519 public key of a seed, hex (REMORA's own key type)."""
+    sys.path.insert(0, str(ENV_PATH.parents[2]))
+    from remora.crypto import SigningKey
+    from remora.governance.effect_receipt_signing import RECEIPT_DOMAIN
+
+    return SigningKey.from_text(seed_hex, {RECEIPT_DOMAIN}).verification_key().public_bytes.hex()
+
+
 def main() -> int:
     force = "--force" in sys.argv[1:]
     if ENV_PATH.exists() and not force:
@@ -39,7 +51,14 @@ def main() -> int:
         return 1
 
     tokens = {name: f"ot-{secrets.token_urlsafe(24)}" for name in
-              ("AGENT", "APPROVER", "SUPERVISOR", "VIEWER")}
+              ("AGENT", "APPROVER", "SUPERVISOR", "VIEWER", "VERIFIER")}
+    # The plant's own credentials (plant_service.py): the executor's write
+    # token and the effect verifier's read-only token. Distinct, 32+ chars.
+    plant = {name: secrets.token_hex(32) for name in ("WRITE", "READ")}
+    # The effect verifier's Ed25519 receipt key. The seed goes only to the
+    # verifier container; the API registers the public key.
+    verifier_seed = secrets.token_hex(32)
+    verifier_public = _public_key(verifier_seed)
     # 32 random bytes each, hex: the production startup check refuses keys
     # under 32 bytes or with a placeholder shape.
     keys = {name: secrets.token_hex(32) for name in
@@ -51,6 +70,11 @@ def main() -> int:
             f"OT_TOKEN_APPROVER={tokens['APPROVER']}",
             f"OT_TOKEN_SUPERVISOR={tokens['SUPERVISOR']}",
             f"OT_TOKEN_VIEWER={tokens['VIEWER']}",
+            f"OT_TOKEN_VERIFIER={tokens['VERIFIER']}",
+            f"OT_PLANT_WRITE_TOKEN={plant['WRITE']}",
+            f"OT_PLANT_READ_TOKEN={plant['READ']}",
+            f"OT_VERIFIER_SIGNING_SEED={verifier_seed}",
+            f"OT_VERIFIER_PUBLIC_KEY={verifier_public}",
             f"OT_PDP_SIGNING_KEY={keys['PDP']}",
             f"OT_LEASE_SIGNING_KEY={keys['LEASE']}",
             f"OT_AUDIT_SIGNING_KEY={keys['AUDIT']}",

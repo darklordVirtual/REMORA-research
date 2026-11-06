@@ -78,6 +78,13 @@ class DecisionReason(str, Enum):
     # authority to cross that boundary, so this is a hard ABSTAIN.
     CROSS_TENANT_ARGUMENT_BLOCKED = "cross_tenant_argument_blocked"
     INTENT_PROVENANCE_REQUIRED = "intent_provenance_required"
+    # Property D, deployment-declared: the intent_ref resolves to no scoped
+    # authority (unknown, malformed or unscoped work order), or the call falls
+    # outside the scope the authority grants (tool, effect or target). An
+    # approver cannot widen what a work order authorises; a new, correctly
+    # scoped work order must be issued and the call proposed again.
+    INTENT_AUTHORITY_UNBOUND = "intent_authority_unbound"
+    INTENT_SCOPE_MISMATCH = "intent_scope_mismatch"
     # §34 residue: the call is well-formed and its values are grounded, but the
     # declared tool contract contradicts the task's goal — wrong resource, or
     # right resource and wrong effect.

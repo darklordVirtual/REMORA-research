@@ -19,7 +19,10 @@ Two predicates, one verifier, two systems of record (``ot_ws1_facts.json``):
   is deliberately weaker than "the work order this call is made under": the
   pilot's intent authority is the hash of the whole work-order file, not one
   order, so per-order binding is not available to the verifier. It is a
-  pilot limit, recorded here, not a property of WS1.
+  pilot limit, recorded here, not a property of WS1. Since 2026-11-06 the
+  per-order binding is enforced outside WS1: ``ot_bundle.validate_intent_scope``
+  checks the call against the scope of its own work order, and the engine
+  refuses a call outside it before review. This predicate is unchanged.
 
 The verifier is synthetic and deployment-owned. Nothing it proves is a safety
 claim about a plant.

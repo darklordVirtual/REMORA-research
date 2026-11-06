@@ -1,0 +1,190 @@
+{
+  "schema": "remora-independent-scenario-run/v1",
+  "run_at": "2026-11-06T16:18:17.685594+00:00",
+  "phase": "c",
+  "scenarios_file": "scenarios_v1.json",
+  "scenarios_sha256": "ada092cf262f8244332909f5a89b5f5fb5dbf5663834078430269d4c5fc7a4e0",
+  "api": {
+    "health": {
+      "status": "ok",
+      "version": "0.12.0",
+      "uptime_seconds": 10.0,
+      "oracle_count": null
+    },
+    "policy_version": {
+      "policy_version": "RemoraDecisionEngine-v6",
+      "policy_hash": "sha256:8043af3265e8ec143f47ad56d15c4ec4f2a182e4c458972665fcbf471311b088",
+      "risk_profile_hash": "sha256:30d350f4a937fe3b113d9a383a604713cf89526e34be15139447b0bd4af64e45",
+      "schema_hash": "sha256:299c2deb548681cd7eed6bbef9e88ede6fc73f927e2889d9d3e3bb6852dcaf99",
+      "tool_registry_hash": "sha256:30b07e4dcc6d8fe1867094abfa835a7b8208b14bee9b6a2f6521ac1a2fc1e3db",
+      "opa_policy_hash": null,
+      "policy_hash_by_surface": {
+        "execution": "sha256:8043af3265e8ec143f47ad56d15c4ec4f2a182e4c458972665fcbf471311b088",
+        "assess": "sha256:69f6d1be94a40e3feba52b39052c1f30f92f676a987431fc093acd35f92092bb"
+      },
+      "engine_mode_flags": {
+        "low_consequence_accept": false,
+        "grounded_read_accept": true,
+        "grounded_read_in_production": true,
+        "execution_profile": true,
+        "semantic_authority_floor": false,
+        "strict_monotone": true
+      },
+      "source": "python_decision_engine",
+      "runtime_mode": "production",
+      "control_plane_backend": "postgres",
+      "control_plane_durable": true,
+      "execution_state_backend": "postgres",
+      "execution_state_durable": true
+    }
+  },
+  "baseline": {
+    "SP0_PIC101": 4.0,
+    "POS0_V12": 15,
+    "source": "initial plant state of a fresh stack; the simulator has no external read surface"
+  },
+  "plant_state_readback": "not_observed",
+  "field_mapping": "proposal_id->item_id (review_item_id); ttl_seconds->approval_ttl_seconds; call under tool_call; lifecycle by proposal_id",
+  "summary": {
+    "total": 1,
+    "PASS": 1,
+    "should_block_executed": 0
+  },
+  "results": [
+    {
+      "id": "S24",
+      "kind": "should_allow",
+      "title": "Valve move exactly at the hourly travel cap",
+      "verdict": "PASS",
+      "note": "moved to the cap; boundary probe answered 200 ",
+      "steps": [
+        {
+          "step": 1,
+          "role": "agent",
+          "method": "POST",
+          "path": "/v1/execution/assess",
+          "request": {
+            "tool_name": "set_valve_position",
+            "arguments": {
+              "valve": "V-12",
+              "position_pct": 75
+            },
+            "target_environment": "prod",
+            "intent_ref": "WO-1204"
+          },
+          "response": {
+            "status": 200,
+            "decision": "verify",
+            "reasons": [
+              "evidence_insufficient"
+            ],
+            "detail": null,
+            "outcome": null,
+            "executed": null,
+            "tool_result": null,
+            "review_item_id": "4581fc56-c057-441a-af5e-927ecfa8c6f7",
+            "proposal_id": "5d45d29f-a19b-45f1-82c1-17fac60128b5",
+            "execution_token_present": false,
+            "ws1": {
+              "mode": "shadow",
+              "status": "evaluated",
+              "final_action": "verify"
+            }
+          }
+        },
+        {
+          "step": 2,
+          "role": "approver",
+          "method": "POST",
+          "path": "/v1/execution/approve",
+          "request": {
+            "item_id": "4581fc56-c057-441a-af5e-927ecfa8c6f7",
+            "approval_ttl_seconds": 600
+          },
+          "response": {
+            "status": 200,
+            "decision": null,
+            "reasons": null,
+            "detail": null,
+            "outcome": null,
+            "executed": null,
+            "tool_result": null,
+            "review_item_id": null,
+            "proposal_id": "5d45d29f-a19b-45f1-82c1-17fac60128b5",
+            "execution_token_present": false,
+            "ws1": null
+          }
+        },
+        {
+          "step": 3,
+          "role": "agent",
+          "method": "POST",
+          "path": "/v1/execution/execute",
+          "request": {
+            "item_id": "4581fc56-c057-441a-af5e-927ecfa8c6f7",
+            "tool_call": {
+              "tool_name": "set_valve_position",
+              "arguments": {
+                "valve": "V-12",
+                "position_pct": 75
+              },
+              "target_environment": "prod",
+              "intent_ref": "WO-1204"
+            }
+          },
+          "response": {
+            "status": 200,
+            "decision": null,
+            "reasons": null,
+            "detail": "fresh decision is equal or safer; approval stands",
+            "outcome": "execute",
+            "executed": true,
+            "tool_result": {
+              "new_pct": 75,
+              "old_pct": 15,
+              "valve": "V-12"
+            },
+            "review_item_id": null,
+            "proposal_id": "5d45d29f-a19b-45f1-82c1-17fac60128b5",
+            "execution_token_present": false,
+            "ws1": null
+          }
+        },
+        {
+          "step": 4,
+          "role": "agent",
+          "method": "POST",
+          "path": "/v1/execution/assess",
+          "request": {
+            "tool_name": "set_valve_position",
+            "arguments": {
+              "valve": "V-12",
+              "position_pct": 76
+            },
+            "target_environment": "prod",
+            "intent_ref": "WO-1204"
+          },
+          "response": {
+            "status": 200,
+            "decision": "verify",
+            "reasons": [
+              "evidence_insufficient"
+            ],
+            "detail": null,
+            "outcome": null,
+            "executed": null,
+            "tool_result": null,
+            "review_item_id": "3b53c6b0-32ce-4e27-aa54-765025f60215",
+            "proposal_id": "9dd35d55-1813-40ca-b0b0-e9915147a51c",
+            "execution_token_present": false,
+            "ws1": {
+              "mode": "shadow",
+              "status": "evaluated",
+              "final_action": "verify"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

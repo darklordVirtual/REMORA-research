@@ -63,7 +63,7 @@ from remora.governance.revocation_store import (
     InMemoryRevocationStore,
     RevocationStore,
 )
-from remora.policy.composition import GRANT_ONLY_REASONS
+from remora.policy.composition import GRANT_ONLY_REASONS, NON_APPROVABLE_REASONS
 from remora.policy.decision_engine import RemoraDecisionEngine
 from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction
@@ -633,6 +633,38 @@ class ReviewQueue:
         # ESCALATE never execute — a numerically-lower severity (e.g. approved
         # ESCALATE=3, fresh ABSTAIN=2) must NOT be read as "safe to run".
         fresh = self._engine.decide(fresh_observation)
+
+        # 4c'. A refusal no review can lift (NON_APPROVABLE_REASONS: a
+        # cross-tenant argument, unresolved intent provenance, a call outside
+        # its work order's scope) settles the item. Re-queueing it, as the
+        # branches below do for a world that only got riskier, would offer a
+        # reviewer a second approval of a call that review cannot authorise
+        # (adversarial review 2026-11-06). Checked first, so a tier or policy
+        # change cannot route it back to the queue.
+        if fresh.action is DecisionAction.ABSTAIN and \
+                set(fresh.reasons) & NON_APPROVABLE_REASONS:
+            item.status = ItemStatus.DISPATCH_REFUSED
+            item.approval = None
+            item.requested_action = fresh.action
+            item.requested_reasons = _reason_values(fresh)
+            item.observation = fresh_observation
+            self._log.append(
+                "approval_invalidated",
+                {
+                    "item_id": item_id,
+                    "reason": "non_approvable_refusal",
+                    "settled": True,
+                    "approved_action": approval.approved_action.value,
+                    "fresh_action": fresh.action.value,
+                    "fresh_reasons": [r.value for r in fresh.reasons],
+                },
+            )
+            return ExecutionOutcome(
+                ExecutionDecision.APPROVAL_INVALIDATED,
+                fresh.action,
+                "fresh decision is a refusal no review can lift; approval "
+                "voided and the item settled, not re-queued",
+            )
 
         # 4b'. Reviewed authority: an approval covers the risk tier the
         # reviewer saw, because that tier decided which role was allowed to
