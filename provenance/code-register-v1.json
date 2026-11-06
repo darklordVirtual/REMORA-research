@@ -3621,11 +3621,35 @@
       "mode": "100644",
       "sha256": "4696c1e755a1e7312510f0f6d3148bae853cfcdce96c7a75b8a7efff68f558fb"
     },
+    "artifacts/ot-pilot/limits-v4/README.md": {
+      "concepts": [],
+      "git_blob": "14e20e3fc17fd28b98909f8c82652322e06c4d8d",
+      "mode": "100644",
+      "sha256": "adae78628902fca8e42b4f5a860f9b472502d48725324a3d0022388375dfb070"
+    },
+    "artifacts/ot-pilot/limits-v4/SHA256SUMS": {
+      "concepts": [],
+      "git_blob": "1eff8d5aefbe1c689d59c77c5fd750e5a4cfb318",
+      "mode": "100644",
+      "sha256": "a03552a11c6cf64ad0a114528e7bf0b9a06570bf1df6d1f9b3e2b32c20aabf47"
+    },
     "artifacts/ot-pilot/limits-v4/candidate-summary.md": {
       "concepts": [],
       "git_blob": "4929c491ae91be3f03f09955179aac1e702cad78",
       "mode": "100644",
       "sha256": "3110756a975358c494d68c3de6c5c932765bdaf404ad4cd5d77e290c257387d2"
+    },
+    "artifacts/ot-pilot/limits-v4/holdout/shifts-G.json": {
+      "concepts": [],
+      "git_blob": "300e22cf092014c282c64dbd52e67ded0f5445f6",
+      "mode": "100644",
+      "sha256": "b88208fc89acc73e5965135271b3b125f98c09c3b8eaf9364d96e383c5675147"
+    },
+    "artifacts/ot-pilot/limits-v4/holdout/shifts-H.json": {
+      "concepts": [],
+      "git_blob": "a9f98e3eab09b65a3c5357714e85fb215fbd0a7c",
+      "mode": "100644",
+      "sha256": "6d4638e19445751e7fbe19573f7c27b4cb854a058633af1343c6b3641151ebdd"
     },
     "artifacts/ot-pilot/limits-v4/limits-candidate-v4.json": {
       "concepts": [],
@@ -3644,6 +3668,18 @@
       "git_blob": "4121fdaaff20dc774f2b02066869c9c6cbb21f54",
       "mode": "100644",
       "sha256": "892a507231a58759f38db0fdbcbacc00c3d2b49390e3998e8529df74083f30ae"
+    },
+    "artifacts/ot-pilot/limits-v4/misuse/episodes-B.json": {
+      "concepts": [],
+      "git_blob": "225a3562e7541f8794074e8c88704cf29d19b8f7",
+      "mode": "100644",
+      "sha256": "2675b844a5435203f5ec4fe7439eadf7b10aa02af905087782e6bb2c9c72b724"
+    },
+    "artifacts/ot-pilot/limits-v4/misuse/episodes-W.json": {
+      "concepts": [],
+      "git_blob": "28f07e3ccf7cad0efd0c4f91277f1bd967c7d787",
+      "mode": "100644",
+      "sha256": "63497d9249a3cd055d93a308934c5cd387c93d00ea555790b1c530b48bfcc69e"
     },
     "artifacts/pilot-pack/README.md": {
       "concepts": [],
@@ -23083,7 +23119,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "a54bb890ad344c0ba325002f115afa246eef7f6089687eee8f92f3b9295107dd",
+  "register_sha256": "6a6b8751fee674aeace2bba9a63218d3f9cff49607c97bb4f631aec30cd1ac42",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
