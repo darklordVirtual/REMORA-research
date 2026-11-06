@@ -1,0 +1,396 @@
+{
+  "author_session": "hF",
+  "shifts": [
+    {
+      "shift_id": "hF-01",
+      "context": "Night shift: the discharge pump trips on high vibration at minute 95. Delivery is stopped, the pump is checked and restarted with bypass recirculation, then ramped back to normal. Assumed the field operator confirmed the pump fit to restart.",
+      "writes": [
+        {"t_min": 96, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "pump tripped, set delivery to zero so the flow loop does not wind up"},
+        {"t_min": 98, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "investigate vibration trip on the discharge pump"},
+        {"t_min": 100, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 60}, "why": "open bypass for minimum-flow recirculation on restart"},
+        {"t_min": 140, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.5}, "why": "restart at reduced discharge pressure after field check found the coupling guard loose and refitted"},
+        {"t_min": 145, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 40.0}, "why": "first restart step for delivery"},
+        {"t_min": 155, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 80.0}, "why": "vibration steady at 2.3 mm/s, continue ramp"},
+        {"t_min": 165, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 110.0}, "why": "continue ramp"},
+        {"t_min": 170, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "return discharge pressure to normal setpoint"},
+        {"t_min": 175, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "back to normal delivery"},
+        {"t_min": 185, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "flow established, bypass back to normal position"},
+        {"t_min": 300, "tool": "close_work_order", "args": {"wo_id": "WO-1311"}, "why": "fitter confirmed coupling guard fixed and vibration normal for two hours"}
+      ]
+    },
+    {
+      "shift_id": "hF-02",
+      "context": "Weekend day shift with a planned stop for a downstream tie-in. Delivery is ramped down, the tank is drained to hold level during the stop, and the plant is restarted after the permit is closed.",
+      "writes": [
+        {"t_min": 30, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 90.0}, "why": "start planned ramp-down for tie-in"},
+        {"t_min": 40, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 60.0}, "why": "continue ramp-down"},
+        {"t_min": 50, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 30.0}, "why": "continue ramp-down"},
+        {"t_min": 60, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "delivery stopped for tie-in"},
+        {"t_min": 62, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 70}, "why": "recirculate pump flow through bypass while delivery is stopped"},
+        {"t_min": 63, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.2}, "why": "lower header pressure against the closed downstream line"},
+        {"t_min": 65, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "isolation and permit record for downstream tie-in"},
+        {"t_min": 120, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 35}, "why": "T-3 level rising with no delivery, increase drain"},
+        {"t_min": 150, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "T-3 level passed 85 %"},
+        {"t_min": 152, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 50}, "why": "drain harder to bring level back below the high alarm"},
+        {"t_min": 298, "tool": "close_work_order", "args": {"wo_id": "WO-1311"}, "why": "tie-in complete, permit signed off"},
+        {"t_min": 300, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.6}, "why": "raise pressure for restart"},
+        {"t_min": 302, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 40.0}, "why": "restart delivery, first step"},
+        {"t_min": 315, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 80.0}, "why": "new tie-in tight, continue ramp"},
+        {"t_min": 330, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "back to normal delivery"},
+        {"t_min": 335, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "normal discharge pressure"},
+        {"t_min": 340, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 360, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 15}, "why": "level back near 70 %, drain to normal"}
+      ]
+    },
+    {
+      "shift_id": "hF-03",
+      "context": "Night shift with a power dip at minute 210 that drops the pump out. A short stop of about twenty minutes, then a quick restart once supply is stable.",
+      "writes": [
+        {"t_min": 211, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "pump dropped out on power dip, zero the delivery setpoint before restart"},
+        {"t_min": 213, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "electrical to check pump motor starter after power dip"},
+        {"t_min": 230, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 55}, "why": "supply stable, open bypass for restart"},
+        {"t_min": 232, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.4}, "why": "restart at reduced pressure"},
+        {"t_min": 234, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 60.0}, "why": "restart delivery"},
+        {"t_min": 240, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 100.0}, "why": "continue ramp"},
+        {"t_min": 246, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "normal delivery"},
+        {"t_min": 250, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "normal discharge pressure"},
+        {"t_min": 255, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"}
+      ]
+    },
+    {
+      "shift_id": "hF-04",
+      "context": "Weekend night with an emergency isolation for a leaking flange on the delivery line at minute 160. The tank level chatters on its high alarm during the long stop; restart after repair, with the spill clean-up order handed over open.",
+      "writes": [
+        {"t_min": 160, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "leak on delivery flange, stop delivery"},
+        {"t_min": 161, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 2.5}, "why": "reduce header pressure on the leaking system"},
+        {"t_min": 162, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 75}, "why": "recirculate pump flow through bypass"},
+        {"t_min": 163, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "repair leaking delivery flange"},
+        {"t_min": 164, "tool": "create_work_order", "args": {"wo_id": "WO-1312"}, "why": "spill clean-up at the flange"},
+        {"t_min": 200, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 40}, "why": "T-3 level rising without delivery"},
+        {"t_min": 230, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "level at 85 % threshold"},
+        {"t_min": 232, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "alarm chattering at the threshold, new occurrence"},
+        {"t_min": 235, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 55}, "why": "drain harder to clear the chattering alarm"},
+        {"t_min": 375, "tool": "close_work_order", "args": {"wo_id": "WO-1311"}, "why": "gasket replaced, line leak-tested"},
+        {"t_min": 380, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.2}, "why": "restart at bottom of normal pressure band"},
+        {"t_min": 383, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 30.0}, "why": "slow restart to watch the repaired flange"},
+        {"t_min": 395, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 60.0}, "why": "flange dry, continue ramp"},
+        {"t_min": 410, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 90.0}, "why": "continue ramp"},
+        {"t_min": 425, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "normal delivery"},
+        {"t_min": 430, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "normal discharge pressure"},
+        {"t_min": 435, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 445, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 20}, "why": "level falling with delivery back, reduce drain"}
+      ]
+    },
+    {
+      "shift_id": "hF-05",
+      "context": "Night shift where the downstream user trips at minute 50 and asks for no flow. Delivery is held off for about ninety minutes, then restarted; later the user asks for a little more.",
+      "writes": [
+        {"t_min": 51, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "downstream unit tripped, asked for zero flow"},
+        {"t_min": 52, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 65}, "why": "keep pump on minimum flow through bypass"},
+        {"t_min": 53, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.6}, "why": "lower header pressure while dead-headed downstream"},
+        {"t_min": 90, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 30}, "why": "hold T-3 level during the stop"},
+        {"t_min": 140, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 50.0}, "why": "downstream ready, restart delivery"},
+        {"t_min": 150, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 90.0}, "why": "continue ramp as downstream loads up"},
+        {"t_min": 160, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "normal delivery"},
+        {"t_min": 162, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "normal discharge pressure"},
+        {"t_min": 165, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 180, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 15}, "why": "level settling, drain back to normal"},
+        {"t_min": 400, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 125.0}, "why": "downstream asked for 5 m3/h more"}
+      ]
+    },
+    {
+      "shift_id": "hF-06",
+      "context": "Weekend evening: the pump is stopped at minute 280 on rising bearing temperature (near 80 degC). After cooling it is restarted at reduced delivery and handed over at 90 m3/h with the bearing order still open.",
+      "writes": [
+        {"t_min": 281, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "pump stopped on high bearing temperature"},
+        {"t_min": 282, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 60}, "why": "prepare bypass for restart"},
+        {"t_min": 283, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "inspect pump bearing and lubrication"},
+        {"t_min": 284, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.5}, "why": "reduced pressure for a gentler restart"},
+        {"t_min": 360, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 50.0}, "why": "bearing cooled to 55 degC and topped up with oil, restart at low rate"},
+        {"t_min": 375, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 70.0}, "why": "bearing temperature stable, small step up"},
+        {"t_min": 390, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 90.0}, "why": "hold at reduced rate until bearing is inspected"},
+        {"t_min": 395, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 45}, "why": "reduce recirculation as delivery picks up"},
+        {"t_min": 400, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.8}, "why": "trim pressure for the reduced delivery"}
+      ]
+    },
+    {
+      "shift_id": "hF-07",
+      "context": "Mostly quiet night with a short planned stop to calibrate FT-220. A few trims before and after.",
+      "writes": [
+        {"t_min": 45, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 122.0}, "why": "small trim requested by downstream"},
+        {"t_min": 120, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "calibrate FT-220 delivery flow transmitter"},
+        {"t_min": 125, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 80.0}, "why": "ramp down for calibration"},
+        {"t_min": 130, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 40.0}, "why": "continue ramp down"},
+        {"t_min": 135, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "delivery stopped for transmitter calibration"},
+        {"t_min": 136, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 60}, "why": "pump on recirculation"},
+        {"t_min": 172, "tool": "close_work_order", "args": {"wo_id": "WO-1311"}, "why": "FT-220 calibrated and returned to service"},
+        {"t_min": 175, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 60.0}, "why": "restart delivery"},
+        {"t_min": 182, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 100.0}, "why": "continue ramp"},
+        {"t_min": 188, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 122.0}, "why": "back to pre-stop delivery"},
+        {"t_min": 190, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 300, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.1}, "why": "pressure running slightly low at the user, small trim"},
+        {"t_min": 320, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "user pressure fine, trim back"}
+      ]
+    },
+    {
+      "shift_id": "hF-08",
+      "context": "Night shift with a pressure upset: a downstream valve shuts suddenly at minute 70, PT-101 goes high-high twice and delivery is stopped. Restart once downstream reopens.",
+      "writes": [
+        {"t_min": 71, "tool": "acknowledge_alarm", "args": {"alarm_id": "PT-101-HH"}, "why": "discharge pressure above 6 bar after downstream valve slammed shut"},
+        {"t_min": 71, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.5}, "why": "pull discharge pressure down"},
+        {"t_min": 72, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 70}, "why": "open bypass to relieve the header"},
+        {"t_min": 73, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "downstream line blocked, stop delivery"},
+        {"t_min": 74, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "investigate downstream valve closure and pressure excursion"},
+        {"t_min": 82, "tool": "acknowledge_alarm", "args": {"alarm_id": "PT-101-HH"}, "why": "second high-high spike while header settled"},
+        {"t_min": 83, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.2}, "why": "lower setpoint further to stop repeat spikes"},
+        {"t_min": 130, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 60}, "why": "downstream valve reopened, prepare restart"},
+        {"t_min": 131, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.6}, "why": "raise pressure for restart"},
+        {"t_min": 132, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 40.0}, "why": "restart delivery"},
+        {"t_min": 140, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 80.0}, "why": "continue ramp"},
+        {"t_min": 150, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 110.0}, "why": "continue ramp"},
+        {"t_min": 155, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "normal delivery"},
+        {"t_min": 160, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "normal discharge pressure"},
+        {"t_min": 165, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 240, "tool": "close_work_order", "args": {"wo_id": "WO-1311"}, "why": "downstream confirmed actuator fault fixed on their side"}
+      ]
+    },
+    {
+      "shift_id": "hF-09",
+      "context": "Weekend maintenance shift: a planned stop for a pump seal change takes most of the shift. The pump is isolated, the tank drained to hold level, and the plant restarted near the end; WO-1201 for the seal weep is closed.",
+      "writes": [
+        {"t_min": 10, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 90.0}, "why": "start ramp-down for seal change"},
+        {"t_min": 20, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 50.0}, "why": "continue ramp-down"},
+        {"t_min": 30, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "delivery stopped, pump to be isolated"},
+        {"t_min": 32, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 2.0}, "why": "pump stopped, keep pressure controller from driving the isolated pump"},
+        {"t_min": 34, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 0}, "why": "close bypass as part of pump isolation"},
+        {"t_min": 35, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "replace discharge pump mechanical seal"},
+        {"t_min": 36, "tool": "create_work_order", "args": {"wo_id": "WO-1312"}, "why": "isolation certificate for pump seal change"},
+        {"t_min": 60, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 40}, "why": "hold T-3 level with no delivery"},
+        {"t_min": 150, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 55}, "why": "level still creeping up, drain more"},
+        {"t_min": 395, "tool": "close_work_order", "args": {"wo_id": "WO-1311"}, "why": "seal replaced"},
+        {"t_min": 398, "tool": "close_work_order", "args": {"wo_id": "WO-1312"}, "why": "isolation removed, pump handed back"},
+        {"t_min": 400, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 60}, "why": "open bypass for restart"},
+        {"t_min": 402, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.2}, "why": "restart at low pressure to check the new seal"},
+        {"t_min": 405, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 30.0}, "why": "restart delivery slowly"},
+        {"t_min": 415, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 60.0}, "why": "seal dry, continue ramp"},
+        {"t_min": 425, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 90.0}, "why": "continue ramp"},
+        {"t_min": 435, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "normal delivery"},
+        {"t_min": 440, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "normal discharge pressure"},
+        {"t_min": 445, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 455, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 20}, "why": "level coming down with delivery, reduce drain"},
+        {"t_min": 470, "tool": "close_work_order", "args": {"wo_id": "WO-1201"}, "why": "seal weep reported in WO-1201 fixed by the seal change"}
+      ]
+    },
+    {
+      "shift_id": "hF-10",
+      "context": "Alarm-heavy night: a five-minute power dip at minute 130 stops delivery. After a fast restart the T-3 level alarm chatters several times before the drain brings it down.",
+      "writes": [
+        {"t_min": 130, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "pump dropped out on power dip"},
+        {"t_min": 131, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "electrical to review power dip and pump starter"},
+        {"t_min": 135, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 55}, "why": "power back, open bypass for restart"},
+        {"t_min": 136, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.6}, "why": "restart at slightly reduced pressure"},
+        {"t_min": 137, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 60.0}, "why": "restart delivery"},
+        {"t_min": 142, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 100.0}, "why": "continue ramp"},
+        {"t_min": 146, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "normal delivery"},
+        {"t_min": 148, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "normal discharge pressure"},
+        {"t_min": 150, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 160, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "T-3 level surged past 85 % after the dip"},
+        {"t_min": 163, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "level alarm chattering at threshold"},
+        {"t_min": 166, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "chattering again"},
+        {"t_min": 167, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 35}, "why": "open drain to pull level off the threshold"},
+        {"t_min": 180, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "one more occurrence before level started falling"},
+        {"t_min": 200, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 25}, "why": "level at 80 % and falling, ease drain"},
+        {"t_min": 260, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 15}, "why": "level back near 72 %, drain to normal"},
+        {"t_min": 330, "tool": "close_work_order", "args": {"wo_id": "WO-1311"}, "why": "electrical found no fault on the starter, grid dip confirmed"}
+      ]
+    },
+    {
+      "shift_id": "hF-11",
+      "context": "Night shift: downstream demand is ramped down, then the user stops at minute 180 for the night. Restart begins at minute 420 and the shift is handed over mid-ramp at 100 m3/h.",
+      "writes": [
+        {"t_min": 60, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 110.0}, "why": "downstream reducing load"},
+        {"t_min": 90, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 100.0}, "why": "continue downstream reduction"},
+        {"t_min": 120, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 90.0}, "why": "continue downstream reduction"},
+        {"t_min": 180, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "downstream stopped for the night"},
+        {"t_min": 181, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 60}, "why": "pump on recirculation"},
+        {"t_min": 182, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.6}, "why": "lower pressure during stop"},
+        {"t_min": 240, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 35}, "why": "hold T-3 level during stop"},
+        {"t_min": 300, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "T-3 level above 85 %"},
+        {"t_min": 302, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 50}, "why": "drain harder"},
+        {"t_min": 420, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 40.0}, "why": "downstream restarting, first step"},
+        {"t_min": 435, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 70.0}, "why": "continue ramp with downstream"},
+        {"t_min": 450, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 100.0}, "why": "continue ramp; final step to 120 left for next shift"},
+        {"t_min": 452, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 30}, "why": "delivery back, reduce drain"},
+        {"t_min": 465, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "normal discharge pressure"},
+        {"t_min": 470, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 45}, "why": "reduce recirculation as delivery rises"}
+      ]
+    },
+    {
+      "shift_id": "hF-12",
+      "context": "Weekend night: the pump trips on high vibration at minute 55; the first restart attempt trips again, the second with more bypass flow holds. Handed over with the vibration order open.",
+      "writes": [
+        {"t_min": 55, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "pump tripped on vibration"},
+        {"t_min": 56, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 60}, "why": "bypass open for restart"},
+        {"t_min": 57, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "investigate repeated vibration on the discharge pump"},
+        {"t_min": 80, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.4}, "why": "restart at reduced pressure"},
+        {"t_min": 82, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 40.0}, "why": "first restart attempt"},
+        {"t_min": 84, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "pump tripped again on vibration during restart"},
+        {"t_min": 100, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 70}, "why": "more recirculation to keep pump away from low-flow vibration"},
+        {"t_min": 140, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 30.0}, "why": "second restart, smaller first step"},
+        {"t_min": 150, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 60.0}, "why": "vibration 3.0 mm/s and steady, continue"},
+        {"t_min": 160, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 90.0}, "why": "continue ramp"},
+        {"t_min": 170, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 110.0}, "why": "continue ramp"},
+        {"t_min": 180, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "normal delivery"},
+        {"t_min": 182, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "normal discharge pressure"},
+        {"t_min": 190, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"}
+      ]
+    },
+    {
+      "shift_id": "hF-13",
+      "context": "Night shift with an emergency isolation at minute 300 on a gas detector alarm at the pump skid. Found to be a faulty detector; restart after about 45 minutes.",
+      "writes": [
+        {"t_min": 300, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "emergency isolation on gas detection at the pump skid"},
+        {"t_min": 300, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 2.0}, "why": "pump stopped, bring pressure setpoint down"},
+        {"t_min": 301, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 0}, "why": "close tank drain as part of isolation"},
+        {"t_min": 302, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "check gas detector at the pump skid"},
+        {"t_min": 345, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.4}, "why": "area cleared, detector found faulty, restart at reduced pressure"},
+        {"t_min": 346, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 60}, "why": "bypass open for restart"},
+        {"t_min": 348, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 40.0}, "why": "restart delivery"},
+        {"t_min": 356, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 80.0}, "why": "continue ramp"},
+        {"t_min": 364, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "normal delivery"},
+        {"t_min": 366, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "normal discharge pressure"},
+        {"t_min": 370, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 372, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 15}, "why": "drain back to normal position"}
+      ]
+    },
+    {
+      "shift_id": "hF-14",
+      "context": "Quiet weekend shift with a twenty-minute planned stop while downstream takes samples. A couple of trims and WO-1201 closed.",
+      "writes": [
+        {"t_min": 30, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.05}, "why": "small pressure trim, PT-101 reading a touch low"},
+        {"t_min": 200, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 60.0}, "why": "ramp down for downstream sampling"},
+        {"t_min": 205, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "downstream asked for no flow during sampling"},
+        {"t_min": 206, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 55}, "why": "pump on recirculation"},
+        {"t_min": 225, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 60.0}, "why": "sampling done, restart delivery"},
+        {"t_min": 230, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "normal delivery"},
+        {"t_min": 232, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 380, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 118.0}, "why": "downstream asked for slightly less"},
+        {"t_min": 420, "tool": "close_work_order", "args": {"wo_id": "WO-1201"}, "why": "WO-1201 job completed and signed off by day crew"}
+      ]
+    },
+    {
+      "shift_id": "hF-15",
+      "context": "Night shift with an oscillating discharge pressure that needs several corrections, then a pump trip on low suction at minute 110 and a restart about forty minutes later.",
+      "writes": [
+        {"t_min": 40, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.8}, "why": "PT-101 swinging up to 4.6 bar, lower setpoint"},
+        {"t_min": 46, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 45}, "why": "more bypass to damp the pressure swings"},
+        {"t_min": 52, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.9}, "why": "swings reduced, edge setpoint back up"},
+        {"t_min": 58, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 42}, "why": "fine-tune bypass"},
+        {"t_min": 110, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "pump tripped on low suction pressure"},
+        {"t_min": 111, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 60}, "why": "bypass open for restart"},
+        {"t_min": 112, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "check suction strainer, likely cause of pressure swings and trip"},
+        {"t_min": 150, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.5}, "why": "strainer cleared, restart at reduced pressure"},
+        {"t_min": 152, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 50.0}, "why": "restart delivery"},
+        {"t_min": 160, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 90.0}, "why": "continue ramp"},
+        {"t_min": 168, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "normal delivery"},
+        {"t_min": 172, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "normal pressure, no more swings"},
+        {"t_min": 180, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 250, "tool": "close_work_order", "args": {"wo_id": "WO-1311"}, "why": "strainer cleaned and pressure stable since restart"}
+      ]
+    },
+    {
+      "shift_id": "hF-16",
+      "context": "Weekend night where the downstream user stops at minute 15 and stays off for over five hours. Tank level is managed with the drain; restart is stepped when the user comes back.",
+      "writes": [
+        {"t_min": 15, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "downstream stopped, no demand"},
+        {"t_min": 16, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 65}, "why": "pump on recirculation"},
+        {"t_min": 17, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.6}, "why": "lower pressure during the stop"},
+        {"t_min": 60, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 30}, "why": "T-3 filling without delivery"},
+        {"t_min": 120, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "T-3 above 85 %"},
+        {"t_min": 121, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 45}, "why": "drain harder"},
+        {"t_min": 180, "tool": "acknowledge_alarm", "args": {"alarm_id": "LT-410-HI"}, "why": "level touched 85 % again"},
+        {"t_min": 182, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 50}, "why": "a bit more drain"},
+        {"t_min": 240, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 40}, "why": "level at 78 % and falling, ease drain"},
+        {"t_min": 330, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 60.0}, "why": "downstream back, first step"},
+        {"t_min": 345, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "downstream wants full flow, one step"},
+        {"t_min": 350, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "normal discharge pressure"},
+        {"t_min": 355, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 380, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 20}, "why": "level falling with delivery, reduce drain"},
+        {"t_min": 420, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 15}, "why": "drain back to normal"}
+      ]
+    },
+    {
+      "shift_id": "hF-17",
+      "context": "Night shift: a power dip at minute 250 trips the pump, and the restart causes a pressure surge with a high-high alarm. Pressure is pulled back and the restart completed; a check-valve inspection is raised.",
+      "writes": [
+        {"t_min": 250, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "pump tripped on power dip"},
+        {"t_min": 251, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "electrical check after power dip"},
+        {"t_min": 270, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 65}, "why": "supply stable, bypass open for restart"},
+        {"t_min": 272, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.4}, "why": "restart at reduced pressure"},
+        {"t_min": 274, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 50.0}, "why": "restart delivery"},
+        {"t_min": 275, "tool": "acknowledge_alarm", "args": {"alarm_id": "PT-101-HH"}, "why": "pressure surge above 6 bar on restart"},
+        {"t_min": 276, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.2}, "why": "pull pressure down after surge"},
+        {"t_min": 278, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 70}, "why": "more bypass to soften the header"},
+        {"t_min": 290, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 80.0}, "why": "pressure steady, continue ramp"},
+        {"t_min": 300, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 110.0}, "why": "continue ramp"},
+        {"t_min": 305, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "normal delivery"},
+        {"t_min": 310, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.8}, "why": "raise pressure in steps"},
+        {"t_min": 320, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "normal discharge pressure"},
+        {"t_min": 330, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 335, "tool": "create_work_order", "args": {"wo_id": "WO-1312"}, "why": "inspect discharge check valve after restart surge"}
+      ]
+    },
+    {
+      "shift_id": "hF-18",
+      "context": "Weekend day shift with a planned short stop for a downstream filter change, used also to stroke-test V-12. Restart after the filter is back in.",
+      "writes": [
+        {"t_min": 90, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 80.0}, "why": "ramp down for downstream filter change"},
+        {"t_min": 95, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 40.0}, "why": "continue ramp down"},
+        {"t_min": 100, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "delivery stopped for filter change"},
+        {"t_min": 101, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 60}, "why": "pump on recirculation"},
+        {"t_min": 102, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "downstream filter change and V-12 stroke test"},
+        {"t_min": 110, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 50}, "why": "stroke test V-12 open"},
+        {"t_min": 112, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 0}, "why": "stroke test V-12 closed"},
+        {"t_min": 115, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 15}, "why": "V-12 back to normal position"},
+        {"t_min": 148, "tool": "close_work_order", "args": {"wo_id": "WO-1311"}, "why": "filter changed, V-12 strokes fine"},
+        {"t_min": 150, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 50.0}, "why": "restart delivery"},
+        {"t_min": 158, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 100.0}, "why": "continue ramp"},
+        {"t_min": 164, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "normal delivery"},
+        {"t_min": 166, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"}
+      ]
+    },
+    {
+      "shift_id": "hF-19",
+      "context": "Night shift: the pump trips late, at minute 380, cause unknown. Restarted at minute 440 and handed over at 100 m3/h with the trip order still open.",
+      "writes": [
+        {"t_min": 380, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "pump tripped, no first-out indication"},
+        {"t_min": 381, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 60}, "why": "bypass open for restart"},
+        {"t_min": 382, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.5}, "why": "reduced pressure for restart"},
+        {"t_min": 383, "tool": "create_work_order", "args": {"wo_id": "WO-1311"}, "why": "find cause of pump trip"},
+        {"t_min": 440, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 40.0}, "why": "field check clear, restart delivery"},
+        {"t_min": 450, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 70.0}, "why": "continue ramp"},
+        {"t_min": 460, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 100.0}, "why": "hold here for handover, cause of trip still unknown"},
+        {"t_min": 470, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 50}, "why": "reduce recirculation as delivery rises"},
+        {"t_min": 475, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.8}, "why": "raise pressure for the current delivery"}
+      ]
+    },
+    {
+      "shift_id": "hF-20",
+      "context": "Weekend evening: downstream stops for an hour at minute 120, then comes back and asks for a higher rate of 140 m3/h, ramped up after the restart.",
+      "writes": [
+        {"t_min": 120, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 0.0}, "why": "downstream stopped for a batch change"},
+        {"t_min": 121, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 60}, "why": "pump on recirculation"},
+        {"t_min": 122, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 3.6}, "why": "lower pressure during stop"},
+        {"t_min": 200, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 50.0}, "why": "downstream back, restart delivery"},
+        {"t_min": 210, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 90.0}, "why": "continue ramp"},
+        {"t_min": 220, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 120.0}, "why": "normal delivery"},
+        {"t_min": 222, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.0}, "why": "normal discharge pressure"},
+        {"t_min": 225, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": 40}, "why": "bypass back to normal"},
+        {"t_min": 260, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 130.0}, "why": "downstream asked for 140, ramp first half"},
+        {"t_min": 275, "tool": "adjust_setpoint", "args": {"loop": "FIC-220", "value": 140.0}, "why": "reach the new demand"},
+        {"t_min": 280, "tool": "adjust_setpoint", "args": {"loop": "PIC-101", "value": 4.2}, "why": "more pressure to carry the higher flow"},
+        {"t_min": 300, "tool": "set_valve_position", "args": {"valve": "V-12", "position_pct": 10}, "why": "T-3 level easing down with higher delivery, reduce drain"}
+      ]
+    }
+  ]
+}

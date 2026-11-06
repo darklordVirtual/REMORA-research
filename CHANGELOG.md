@@ -4,6 +4,12 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### OT pilot limits: PIC-101 exempt while delivery is stopped, and holdout v3 (§97, 2026-11-06)
+
+- `remora/enforcement/cumulative_limits.py`: an observed change meter may declare `exempt_while_safe`, resource to another resource with a declared safe value. While the plant reports that other resource at exactly its safe value, a move of the exempt resource is charged nothing, at reservation, at the assess preview and after the fact. The fence still applies, and an unreadable plant is not safe. This is an owner decision of 2026-11-06. CAP-031 is re-audited. Tests: `tests/limits/test_limits_exempt_while_safe.py` (16).
+- `deploy/ot-pilot/limits.json` declares PIC-101 exempt while FIC-220 is at 0, re-signed by the same limit authority, with the bounds unchanged. The v2 policy is kept with its key, so holdout v2 reproduces.
+- Holdout v3 (`docs/assurance/ot_limits_holdout_plan_v3.md`, DOC-428) used 40 blind shifts that each contain a stop. None had a PIC-101 refusal (Wilson up to 8.8 %). Still, 6 of 40 shifts had another refusal (15 %, a negative result under the 10 % reading): four on valve travel and two on FIC-220 restarts.
+
 ### OT pilot limits: safe values, a recalibrated signed policy, and holdout v2 (§97, 2026-11-06)
 
 - `remora/enforcement/cumulative_limits.py`: a change meter may declare `safe_values` per resource. A write of exactly that value is never refused by a movement limit and is charged nothing, at reservation or after the fact, and the fence does not stop it. Moving away from it is charged as any move. CAP-031 is re-audited. Tests: `tests/limits/test_limits_safe_values.py` (18).

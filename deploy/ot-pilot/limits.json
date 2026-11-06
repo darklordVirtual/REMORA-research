@@ -16,6 +16,9 @@
           "previous_field": "old_setpoint",
           "safe_values": {
             "FIC-220": 0
+          },
+          "exempt_while_safe": {
+            "PIC-101": "FIC-220"
           }
         }
       ],
@@ -114,11 +117,11 @@
       }
     ]
   },
-  "signed_at": "2026-11-05T23:21:12Z",
+  "signed_at": "2026-11-06T07:25:15Z",
   "signature": {
     "algorithm": "Ed25519",
     "domain": "REMORA/LIMIT-POLICY/v1",
     "kid": "ed25519-2722f6b656ec840223a4eeaf495814f16cbfd24326ed9926bd6ea839894484b5",
-    "signature": "acUv8yYsFzTxAfLKuhTd6zcUkSJXPxMXd4+yo2xAJ9CqYc3cCIhpUpjFpS36f4cQxCO/TlPwwyo+OegO5qcQBQ=="
+    "signature": "V0cDpgqfccolonmzNfgLVuBgxGpODRCqPNvppToOtdBsFIxBHh6QjVJz6NJcivf7xwzWnxCjD0isEZR71uniBw=="
   }
 }

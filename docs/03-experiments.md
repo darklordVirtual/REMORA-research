@@ -474,6 +474,9 @@ limits are recorded as tighter than legitimate operation (NEGATIVE_RESULTS §97)
 The recalibrated policy declares FIC-220 = 0 safe. On 40 new blind shifts it
 refused a legitimate write in 3 (7.5 %, Wilson 2.6 to 19.9 %). Under the same
 10 % that is inconclusive (plan v2, DOC-427).
+With PIC-101 exempt while delivery is stopped, 40 blind shifts with a stop had
+no PIC-101 refusal. Six had a valve-travel or restart refusal (15 %), which is
+negative under the same 10 % (plan v3, DOC-428).
 
 > **Note:** author's runs on one host against a simulated plant; not an
 > independent reproduction and not OT deployment validation. The same

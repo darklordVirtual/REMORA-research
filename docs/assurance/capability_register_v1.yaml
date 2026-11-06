@@ -2682,8 +2682,9 @@ capabilities:
   - id: CAP-031
     name: "Cumulative limits per principal or resource, reserved before dispatch (opt-in)"
     status: WIRED_API_PATH
-    verified_at_sha: 359f9abe1a76f646884ba58b85109c7278c15268
+    verified_at_sha: 5468f5a446803e6cd3f7dd5f9ebca31962888fd9
     verified_by: >-
+      re-audited 2026-11-06 at 5468f5a (EXEMPT WHILE ANOTHER RESOURCE IS SAFE, owner decision 2026-11-06), from 359f9ab: remora/enforcement/cumulative_limits.py lets an observed change meter declare exempt_while_safe, resource to another resource with a declared safe value; while the plant reports that other resource at exactly its safe value, a move of the exempt resource is charged nothing and skips the limit check, at reservation, at the assess preview and after the fact. The fence still applies and an unreadable plant is not safe. Without exempt_while_safe nothing changes. A further deliberate opening, bounded by a declared safe value the plant must report. Tests: tests/limits/test_limits_exempt_while_safe.py (16, eight hand mutations killed). Status unchanged.
       re-audited 2026-11-06 at 359f9ab (SAFE VALUES ON CHANGE METERS, owner decision 2026-11-06), from d403989: remora/enforcement/cumulative_limits.py lets a change meter declare safe_values per resource; a write whose new value is exactly the declared value is charged nothing, skips the limit check, is not charged after the fact and is not refused by the fence. Moving away is charged as any move, and without safe_values nothing changes. This is a deliberate opening, bounded to an exact value the signing authority declares; no deployment declares one at this commit. Tests: tests/limits/test_limits_safe_values.py (18, eight hand mutations killed), the limits suite unchanged. Status unchanged.
       re-audited 2026-11-03 at d403989 (GROUNDED READS IN PRODUCTION, opt-in; ADR docs/architecture/ADR-grounded-reads-in-production.md), from 6fe8fdf: servers/api.py: ENGINE_IDENTITY_FLAGS gains grounded_read_in_production, so a deployment that sets it reports another policy identity; no permission, role or route changes. servers/execution_api.py: _engine_from_env reads REMORA_GROUNDED_READ_IN_PRODUCTION into the engine's new grounded_read_in_production flag (off by default). No route, refusal, binding, consumption or dispatch path changes. Status, scope and caveats unchanged.
       re-audited 2026-11-03 at 6fe8fdf (REVIEW OF RMR-SEC-0001 FIX), from 12940a6: servers/execution_api.py: the execution-domain check reads the matched route's path instead of request.url.path, so an ASGI root_path no longer moves a route out of the domain split (applies to /dispatch-leased and /effects). servers/api.py: production refuses, at import, a role configuration that grants the service-only dispatch capability to any role but dispatch_hop. Both only refuse more; no path that refused now admits. Evidence: the same 59 evidence test files pass at this revision, plus the root-path, role-config and OT-approver tests in tests/test_sec0001_dispatch_leased_boundary.py. Status, scope and caveats unchanged.
@@ -2781,6 +2782,7 @@ capabilities:
       - servers/execution_api.py
       - tests/limits/test_limits_payments.py
       - tests/limits/test_limits_safe_values.py
+      - tests/limits/test_limits_exempt_while_safe.py
       - tests/limits/test_limits_ventilation.py
       - tests/limits/test_limits_unit.py
       - tests/limits/harness.py

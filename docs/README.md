@@ -19,6 +19,7 @@ Seven documents cover most questions. Everything else in `docs/` is listed furth
 - [Broader test plan v1](assurance/ws1_utility_test_plan_v1.md): criteria fixed before the runs; mutation, independent scenarios, labels, properties, baselines, realism, external reproduction.
 - [Limits holdout plan v1](assurance/ot_limits_holdout_plan_v1.md): how often the pilot's cumulative limits refuse a legitimate operator write, on blind shifts (§97); criteria fixed before the data.
 - [Limits holdout plan v2](assurance/ot_limits_holdout_plan_v2.md): the recalibrated, signed limits with a declared safe value, measured on a new blind holdout.
+- [Limits holdout plan v3](assurance/ot_limits_holdout_plan_v3.md): PIC-101 exempt while delivery is stopped, measured on blind shifts that each contain a stop and a restart.
 
 ## Start here
 

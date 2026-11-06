@@ -6045,6 +6045,24 @@ This finding stays open. The utility cost is much smaller on this evidence,
 the interval does not settle it, and the protective cost of the looser bounds
 is unmeasured.
 
+Update 2026-11-06, later: stops. v2's PIC-101 refusals came around stops, so
+the pilot's meter now exempts PIC-101 while the plant reports FIC-220 at its
+safe value 0 (`exempt_while_safe`, `tests/limits/test_limits_exempt_while_safe.py`;
+owner decision). Plan v3 (`docs/assurance/ot_limits_holdout_plan_v3.md`,
+DOC-428) measured it on 40 new blind shifts that each contain a stop and a
+restart (525 writes, `artifacts/ot-pilot/limits-holdout-v3/`).
+
+- No shift had a PIC-101 refusal (0 of 40, Wilson 95 % up to 8.8 %). All 27
+  PIC-101 moves made while delivery was stopped ran, and so did all 42 moves of
+  delivery to zero.
+- A legitimate write was still refused in 6 of 40 shifts (15 %, Wilson 7.1 to
+  29.1 %), a negative result for stops under the plan's 10 %. Four refusals
+  are valve travel: a full stroke for maintenance does not fit 70 % per hour.
+  Two are restarts of FIC-220, where a ramp down to a stop and back within an
+  hour passes 180 m3/h.
+
+This finding stays open.
+
 ## §98 The review path handed back an unspent grant when the admission refused (2026-10-24)
 <!-- finding-status: open -->
 
