@@ -4,6 +4,7 @@
 """Replay operator shifts through the OT pilot's signed cumulative limits.
 
     python scripts/run_limits_holdout.py SHIFTS.json [...] --out RESULT.json [--flags FLAGS.json]
+        [--policy LIMITS.json --trusted-key KEY_FILE]
 
 The procedure is fixed in docs/assurance/ot_limits_holdout_plan_v1.md §4. The
 pilot's limits.json is verified against the key its compose file trusts, with
@@ -242,8 +243,20 @@ def measures(rows: list[dict[str, Any]], shift_ids: list[str],
     }
 
 
-def run(paths: list[Path], flags: Path | None = None) -> dict[str, Any]:
-    policy, digest, kid = load_policy()
+def run(paths: list[Path], flags: Path | None = None, policy_path: Path | None = None,
+        key_file: Path | None = None) -> dict[str, Any]:
+    """Replay under the pilot's deployed policy, or under ``policy_path`` and its key."""
+    if (policy_path is None) != (key_file is None):
+        raise SystemExit("--policy and --trusted-key go together")
+    if policy_path is None:
+        policy, digest, kid = load_policy()
+        shown = "deploy/ot-pilot/limits.json"
+    else:
+        policy, digest, kid = load_policy(policy_path,
+                                          key_file.read_text(encoding="utf-8").split())
+        resolved = policy_path.resolve()
+        shown = (str(resolved.relative_to(ROOT)) if resolved.is_relative_to(ROOT)
+                 else str(policy_path))
     registry = _registry()
     pristine = copy.deepcopy(registry.PLANT)
     shifts, inputs = [], []
@@ -257,7 +270,7 @@ def run(paths: list[Path], flags: Path | None = None) -> dict[str, Any]:
             rows.extend(replay_shift(shift, policy, registry, pristine, Path(tmp)))
     ids = [s["shift_id"] for s in shifts]
     out = {"procedure": "docs/assurance/ot_limits_holdout_plan_v1.md section 4",
-           "limits_policy": {"path": "deploy/ot-pilot/limits.json", "sha256": digest,
+           "limits_policy": {"path": shown, "sha256": digest,
                              "signer_kid": kid},
            "inputs": inputs, "measures": measures(rows, ids), "writes": rows}
     if flags is not None:
@@ -275,9 +288,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("shifts", nargs="+", type=Path)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--flags", type=Path)
+    parser.add_argument("--policy", type=Path, help="a signed policy other than the pilot's")
+    parser.add_argument("--trusted-key", type=Path, help="the file holding that policy's key")
     args = parser.parse_args(argv)
     try:
-        result = run(args.shifts, args.flags)
+        result = run(args.shifts, args.flags, args.policy, args.trusted_key)
     except ShiftError as exc:
         print(f"[REFUSED] {exc}", file=sys.stderr)
         return 2
