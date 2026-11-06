@@ -1408,27 +1408,29 @@ def _limit_evidence_checker() -> Any:
     return check
 
 
-def _limits_or_refuse(req: Any, tenant: str, principal: str) -> None:
-    """Refuse a call its cumulative limits cannot take.
+def _limits_or_refuse(req: Any, tenant: str, principal: str) -> tuple[str, ...]:
+    """Refuse a call its cumulative limits cannot take; the limits it needs two approvers for.
 
     409 before anything is decided or queued, so no reviewer is asked to
     approve a call that could not run. Advisory only: the reservation at
     dispatch (``GovernedToolDispatcher.bind_limit_guard``) is what holds.
+    A call that would take a total past a limit's ``dual_control_above`` is
+    not refused here: the limits it names route it to two approvers.
     """
     guard = _limit_guard()
     if guard is None:
-        return
+        return ()
     # The preview can read the plant through the deployment's observer, with
     # the call's own argument as the resource. The signed contract is checked
     # first, so nothing is read on behalf of a call it refuses, and the
     # refusal names the contract rather than the meter. Raises 409.
     _resolve_toolspec(req.tool_name, req.arguments, req.target_environment)
     if not guard.governs(req.tool_name):
-        return
-    refusal = guard.preview(tenant=tenant, principal=principal, tool_name=req.tool_name,
-                            arguments=req.arguments)
+        return ()
+    refusal, dual_control = guard.preview_with_tier(
+        tenant=tenant, principal=principal, tool_name=req.tool_name, arguments=req.arguments)
     if refusal is None:
-        return
+        return dual_control
     _CHAIN.append(tenant, {"event": "limit_refused", "actor": principal,
                            "tool_name": req.tool_name, "detail": refusal,
                            "stage": "assess"})
@@ -2656,7 +2658,7 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
     api_mod._require_tenant_capability(role, tenant, "assess")
     _task_or_refuse(req)
     _delegation_or_refuse(req, tenant, principal)
-    _limits_or_refuse(req, tenant, principal)
+    dual_control = _limits_or_refuse(req, tenant, principal) or ()
     claim = None
     if req.idempotency_key:
         claim = _idempotency_claim(tenant, principal, req.idempotency_key, req)
@@ -2671,7 +2673,7 @@ def assess(req: ToolCallRequest, request: Request) -> dict[str, Any]:
         # this route binds the module's ambient state and stays HTTP conversion.
         try:
             response = _assess_proposal_with_loop_state(
-                tenant=tenant, principal=principal, req=req)
+                tenant=tenant, principal=principal, req=req, dual_control=dual_control)
         except LoopSafetyStoreUnavailable as exc:
             # 503 and no decision. Assessing without the context's history
             # would read an outage as "nothing accumulated".
@@ -2742,6 +2744,7 @@ _SEMANTIC_SHADOW = build_semantic_shadow_from_env(
 
 def _assess_proposal_with_loop_state(
     *, tenant: str, principal: str, req: ToolCallRequest,
+    dual_control: tuple[str, ...] = (),
 ) -> dict[str, Any]:
     return _assess_proposal(
         tenant=tenant, principal=principal, proposal=req,
@@ -2764,6 +2767,7 @@ def _assess_proposal_with_loop_state(
         execution_context_provider=context_provider(),
         require_execution_context=context_required(),
         ws1_gate=_ws1_gate(),
+        dual_control_limits=dual_control,
     )
 
 
@@ -3560,6 +3564,7 @@ def _dispatch_under_lease(
     report_lease: bool = False,
     flow_expected: tuple[int, str] | None = None,
     not_after: datetime | None = None,
+    approver_count: int = 0,
 ) -> dict[str, Any]:
     """Governed dispatch (see remora.execution.dispatch); binds this module's
     dispatcher and current policy bundle hash. Shared by /execute,
@@ -3620,7 +3625,8 @@ def _dispatch_under_lease(
             grant_jti=grant_jti, presented_lease=presented_lease, task_identity=task_identity,
             plan=plan, capability_set=capability_set, report_lease=report_lease,
             not_after=not_after, flow_expected=flow_expected, result_commit=result_commit,
-            resolved_arguments=resolved_arguments, flow_recipients=flow_recipients)
+            resolved_arguments=resolved_arguments, flow_recipients=flow_recipients,
+            approver_count=approver_count)
     finally:
         if release_fence is not None:
             # The commit released it on the executed path; every other path
@@ -3650,6 +3656,7 @@ def _dispatch_under_lease_fenced(
     result_commit: Any,
     resolved_arguments: dict[str, Any] | None,
     flow_recipients: frozenset[str] | None = None,
+    approver_count: int = 0,
 ) -> dict[str, Any]:
     """The rest of ``_dispatch_under_lease`` once the flow fence is held.
 
@@ -3725,6 +3732,8 @@ def _dispatch_under_lease_fenced(
             flow_binding=flow_binding,
             flow_recipients=flow_recipients,
             cam_digest=_cam_digest() or "",
+            # Signed into a lease minted here; a presented lease carries its own.
+            approver_count=approver_count if presented_lease is None else 0,
         )
         _span.set_attribute("remora.executed", bool(result.get("executed")))
         if result.get("refusal_reason"):

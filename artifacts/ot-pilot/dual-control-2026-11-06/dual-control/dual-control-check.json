@@ -1,0 +1,234 @@
+{
+ "schema": "ot-pilot-dual-control-check/v1",
+ "started_at": "2026-11-06T21:11:41.789059+00:00",
+ "phases": {
+  "one_approver": {
+   "steps": [
+    {
+     "step": "assess +0.30",
+     "http": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "review_item_id": "f3069d76-2c42-4ba1-872c-85e99d520307"
+    },
+    {
+     "step": "approve (approver)",
+     "http": 200,
+     "status": "approved"
+    },
+    {
+     "step": "execute",
+     "http": 200,
+     "outcome": "execute",
+     "detail": "fresh decision is equal or safer; approval stands",
+     "executed": true,
+     "refusal_reason": null
+    },
+    {
+     "step": "assess second +0.30",
+     "http": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "review_item_id": "231988a8-7840-411f-831d-b3268c1fbd8a",
+     "approvals_required": 2,
+     "dual_control": {
+      "reason": "limit_dual_control_required",
+      "limits": [
+       "pic-101-movement"
+      ]
+     }
+    },
+    {
+     "step": "approve (approver)",
+     "http": 200,
+     "approvals_required": 2,
+     "status": "approval_recorded",
+     "approvals_received": 1
+    },
+    {
+     "step": "approve again (same approver)",
+     "http": 409,
+     "detail": "approver_already_approved"
+    },
+    {
+     "step": "execute",
+     "http": 409,
+     "detail": "dual_control_second_approval_required"
+    }
+   ],
+   "plant_setpoint_after": 4.3,
+   "as_expected": true
+  },
+  "two_approvers": {
+   "steps": [
+    {
+     "step": "assess +0.30",
+     "http": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "review_item_id": "b6a5af30-621f-4f2e-8a42-6f516ab8e56a"
+    },
+    {
+     "step": "approve (approver)",
+     "http": 200,
+     "status": "approved"
+    },
+    {
+     "step": "execute",
+     "http": 200,
+     "outcome": "execute",
+     "detail": "fresh decision is equal or safer; approval stands",
+     "executed": true,
+     "refusal_reason": null
+    },
+    {
+     "step": "assess second +0.30",
+     "http": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "review_item_id": "0af0525d-2405-4aae-bc7e-e4d36ec239ee",
+     "approvals_required": 2,
+     "dual_control": {
+      "reason": "limit_dual_control_required",
+      "limits": [
+       "pic-101-movement"
+      ]
+     }
+    },
+    {
+     "step": "approve (approver)",
+     "http": 200,
+     "approvals_required": 2,
+     "status": "approval_recorded",
+     "approvals_received": 1
+    },
+    {
+     "step": "approve (supervisor)",
+     "http": 200,
+     "approvals_required": 2,
+     "status": "approved",
+     "approvals_received": 2
+    },
+    {
+     "step": "execute",
+     "http": 200,
+     "outcome": "execute",
+     "detail": "fresh decision is equal or safer; approval stands",
+     "executed": true,
+     "refusal_reason": null
+    }
+   ],
+   "plant_setpoint_after": 4.6,
+   "as_expected": true
+  },
+  "grew_after_approval": {
+   "steps": [
+    {
+     "step": "assess +0.30 (late)",
+     "http": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "review_item_id": "63c0fcef-24d6-4539-9512-4e8a8173a6de"
+    },
+    {
+     "step": "approve late (approver)",
+     "http": 200,
+     "status": "approved"
+    },
+    {
+     "step": "assess -0.30 (early)",
+     "http": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "review_item_id": "dbcb5e70-251d-4d23-a29a-4bc49344477f"
+    },
+    {
+     "step": "approve early (approver)",
+     "http": 200,
+     "status": "approved"
+    },
+    {
+     "step": "execute early",
+     "http": 200,
+     "outcome": "execute",
+     "detail": "fresh decision is equal or safer; approval stands",
+     "executed": true,
+     "refusal_reason": null
+    },
+    {
+     "step": "execute late: 3.7 -> 4.3 is 0.9 this hour",
+     "http": 200,
+     "outcome": "execute",
+     "detail": "fresh decision is equal or safer; approval stands",
+     "executed": false,
+     "refusal_reason": "limit_dual_control_unmet"
+    }
+   ],
+   "plant_setpoint_after": 3.7,
+   "as_expected": true
+  },
+  "hard_cap": {
+   "steps": [
+    {
+     "step": "assess +1.40",
+     "http": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "review_item_id": "57b90f32-f20a-411b-8bc4-4f7296b6c2f8",
+     "approvals_required": 2,
+     "dual_control": {
+      "reason": "limit_dual_control_required",
+      "limits": [
+       "pic-101-movement"
+      ]
+     }
+    },
+    {
+     "step": "approve (approver)",
+     "http": 200,
+     "approvals_required": 2,
+     "status": "approval_recorded",
+     "approvals_received": 1
+    },
+    {
+     "step": "approve (supervisor)",
+     "http": 200,
+     "approvals_required": 2,
+     "status": "approved",
+     "approvals_received": 2
+    },
+    {
+     "step": "execute",
+     "http": 200,
+     "outcome": "execute",
+     "detail": "fresh decision is equal or safer; approval stands",
+     "executed": true,
+     "refusal_reason": null
+    },
+    {
+     "step": "assess +0.30 more: 1.70 > 1.60",
+     "http": 409,
+     "detail": "limit_exceeded"
+    }
+   ],
+   "plant_setpoint_after": 5.4,
+   "as_expected": true
+  }
+ },
+ "finished_at": "2026-11-06T21:14:25.225761+00:00",
+ "all_as_expected": true
+}

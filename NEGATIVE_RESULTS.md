@@ -6090,6 +6090,51 @@ gets under the new bounds is still not measured as a rate.
 
 This finding stays open.
 
+Update 2026-11-06, last: S20 is stopped by a second tier, not by a lower cap.
+The development set and holdouts v1 to v3 hold 130 shifts. In 28 of them
+PIC-101 moves more than half a bar within an hour outside stops. Shift hD-16
+makes S20's two moves of 0.3 bar in eleven minutes, as delivery rises to the
+top of its band. A cap low enough to refuse S20 would therefore refuse those shifts
+too. The owner chose a second tier instead (owner decision, 2026-11-06). A
+limit may declare `dual_control_above`, and a call past it runs only on the
+authority of two distinct approvers. The pilot's PIC-101 limit keeps its cap
+of 1.60 bar per hour and gets a tier at 0.50, the v1 bound S20 assumes. The
+tier is checked in the reservation at dispatch, against the approver count
+the signed lease carries (`docs/07-api-reference.md`,
+`tests/limits/test_limits_dual_control.py`,
+`tests/limits/test_limits_dual_control_api.py`,
+`tests/test_review_queue_dual_control.py`). The policy is signed by a second
+limit authority, trusted beside the owner's, because the owner's seed was not
+on the host that made the change.
+
+A replay of all 130 shifts measures the cost
+(`artifacts/ot-pilot/dual-control-2026-11-06/replay/`). This is a description
+of shifts already seen, not a holdout. The tier was not fitted to them,
+because it is v1's bound of half a bar.
+
+- With two approvers available, every write has the outcome it had under the
+  v3 policy. 12 of 130 shifts have a limit refusal under both.
+- 28 of 130 shifts (21.5 %, Wilson 15.3 to 29.4 %) have at least one write
+  that needs a second approver, 43 of 1390 writes.
+- With only one approver, those writes refuse, and 36 of 130 shifts have a
+  limit refusal.
+
+On the rebuilt pilot (`artifacts/ot-pilot/dual-control-2026-11-06/`), S20
+passes and so do the other 23 scenarios. The second move is routed to two
+approvers, and the scenario's one approver cannot release it: execute answers
+409 `dual_control_second_approval_required` and PIC-101 stays at 4.30 bar.
+With the supervisor as second approver it runs. A move approved by one person
+while under the tier refuses at dispatch once the hour has passed it. Battery,
+fault injection, the E and G runs repeat their earlier results.
+
+What this does not show. S20's sequence still runs when two people approve
+it, and so does hD-16's. The tier holds that one person cannot release it.
+Whether a second approver catches what the first missed is not measured, and
+the extra approvals are a human cost on about a fifth of shifts. The pilot's
+second approver is the supervisor (admin), who also holds execute.
+
+This finding stays open.
+
 ## §98 The review path handed back an unspent grant when the admission refused (2026-10-24)
 <!-- finding-status: open -->
 

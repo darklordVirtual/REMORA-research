@@ -110,7 +110,7 @@ def _resigned(lease: ExecutionLease, **over) -> ExecutionLease:
 SIGNED_WHEN_SET = {"context_id", "task_id", "resolved_effect_hash", "plan_binding_hash",
                    "surface_digest", "capability_digest", "execution_context_hash",
                    "flow_epoch", "flow_digest", "resolved_tool_call_hash",
-                   "flow_recipients_digest", "cam_digest"}
+                   "flow_recipients_digest", "cam_digest", "approver_count"}
 
 
 def _capability_set():
@@ -136,7 +136,8 @@ def test_every_reconstructable_field_is_inside_the_signature() -> None:
                    surface_digest="sha256:" + "0" * 64,
                    capability_set=_capability_set(),
                    flow_epoch=3, flow_digest="1" * 64, resolved_tool_call_hash="2" * 64,
-                   flow_recipients_digest="3" * 64, cam_digest="4" * 64),
+                   flow_recipients_digest="3" * 64, cam_digest="4" * 64,
+                   approver_count=2),
             execution_context_hash="0" * 64)
     reconstructable = set(ExecutionLease._FIELDS) - {"signature", "is_signed"}
     unsigned = sorted(reconstructable - set(bound._signed_fields()))
@@ -156,7 +157,8 @@ def test_every_reconstructable_field_is_inside_the_signature() -> None:
      {"execution_context_hash": "0" * 64},
      {"flow_epoch": 1, "flow_digest": "0" * 64}, {"flow_digest": "0" * 64},
      {"flow_epoch": 1}, {"resolved_tool_call_hash": "0" * 64},
-     {"flow_recipients_digest": "0" * 64}, {"cam_digest": "0" * 64}],
+     {"flow_recipients_digest": "0" * 64}, {"cam_digest": "0" * 64},
+     {"approver_count": 2}],
 )
 def test_adding_a_task_to_an_unbound_lease_breaks_its_signature(over) -> None:
     assert _verify(_rebuild(_lease(), **over)).reason == "signature_invalid"
