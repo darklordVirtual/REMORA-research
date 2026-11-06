@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "9caf3e9bb94bae895b372577771f22ebe61ce520",
+      "git_blob": "5ae6e85bc8cf272f705606373342e66e0d6cefd4",
       "mode": "100644",
-      "sha256": "4532f55b7bfbcbfb30d5421c6ead6779c39d1325ae644ebd54557e74562d521a"
+      "sha256": "0f048c398d861a678347a9d009a320f849bc2e9dbe8ad23e368ccf0672084054"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -369,9 +369,9 @@
     },
     "NEGATIVE_RESULTS.md": {
       "concepts": [],
-      "git_blob": "ee0d3a1ac34e2b67697f01fe4632a46efcb59755",
+      "git_blob": "0efb9a3b74c3c7edd8c583e8a5c56adabfb8405e",
       "mode": "100644",
-      "sha256": "3251e8ecfed0de34171598464caeb124136323e067a6dd121ba69df0313d5de4"
+      "sha256": "aa9b52edddf567d20f8424afe70ff0bb676c50517c85de67784d52bc4bbb2e41"
     },
     "NOTICE": {
       "concepts": [],
@@ -3591,11 +3591,23 @@
       "mode": "100644",
       "sha256": "98371aeb9aff3751b0cc62c12d4dec5102079060f67110dcff0860916b77cde6"
     },
+    "artifacts/ot-pilot/limits-holdout-v3/holdout/result.json": {
+      "concepts": [],
+      "git_blob": "82d0a96f7e71a93a791559d42211b4d9d36fb7a7",
+      "mode": "100644",
+      "sha256": "26b50844d2fd03144dadf0ad7512107f5481ac0c2d8cc7bd530c5adc004a2074"
+    },
     "artifacts/ot-pilot/limits-holdout-v3/holdout/review-flags.json": {
       "concepts": [],
       "git_blob": "3688545ce8c17ed35eb5a727c4c9959fb669da64",
       "mode": "100644",
       "sha256": "d8f887d79f4b5e8d6791cf470fb01f10d44e48e81d52f16375da68a0b8b091ee"
+    },
+    "artifacts/ot-pilot/limits-holdout-v3/holdout/sensitivity-refused-by-hand.json": {
+      "concepts": [],
+      "git_blob": "68de61954a29f022aa16fa6e5557951c352ce790",
+      "mode": "100644",
+      "sha256": "c797038ef10bcd49b9cde2fb1f33dffa35f9d4172064885d133e4ed6f4014d04"
     },
     "artifacts/ot-pilot/limits-holdout-v3/holdout/shifts-E.json": {
       "concepts": [],
@@ -5683,9 +5695,9 @@
     },
     "docs/03-experiments.md": {
       "concepts": [],
-      "git_blob": "efcc727b807d0faeab7eb0ba658b2bf47b2a2d59",
+      "git_blob": "28750dbe91c90abbb9874f7e087ee4d3203cc9c0",
       "mode": "100644",
-      "sha256": "81867c94cb2c75274fb29317d15d0a79bfeb1d247cc3200c545ae6bb005e275c"
+      "sha256": "7b640e6b9925fd0242dc40036c52f8fd59e7dc6fe278f157ca4fcf7301fb8472"
     },
     "docs/04-negative-results-detail.md": {
       "concepts": [],
@@ -6581,9 +6593,9 @@
     },
     "docs/assurance/ot_limits_holdout_plan_v3.md": {
       "concepts": [],
-      "git_blob": "6f5a99e75e84434733a9929975d24915f4b3fa50",
+      "git_blob": "abde8e5ca3802f69946cb23a31b23456e904b5fa",
       "mode": "100644",
-      "sha256": "7197874b89612a4dbd51ced8fae5e7690978405a4593da8d8a14dc9c816cd0e3"
+      "sha256": "85cd2ccb59fcb383021c0895589004f5a8cb5893cde3d4eeebcac09b873eb7ef"
     },
     "docs/assurance/policy_engine_audit_v1.md": {
       "concepts": [],
@@ -23035,7 +23047,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "7985af03608ff6804cfd0ff16d154cda0a13ddcfa7b025cbf9f6cda37a147b20",
+  "register_sha256": "2009a82c11979542f6a1c892c22019fd6bbdfed3d11e96c71213fabec6b933ed",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

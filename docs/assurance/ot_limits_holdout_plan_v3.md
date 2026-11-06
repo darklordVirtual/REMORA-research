@@ -50,6 +50,21 @@ As in v2, nothing here measures the protective side. The exemption lets an agent
 3. The plausibility review.
 4. The one run, recorded here, under §97 and in the changelog.
 
-## Recorded result
+## Recorded result (2026-11-06)
 
-Not yet run.
+The v3 holdout was sealed (`294091a7`), reviewed (`11408396`, 2 of 525 flagged) and run once with the unchanged harness and the policy of `8d587dd9`. The output is `artifacts/ot-pilot/limits-holdout-v3/holdout/result.json`.
+
+| Measure | Result | 95 % interval |
+|---|---|---|
+| P1: shifts with at least one limit refusal | 6 of 40 (15 %) | Wilson 7.1 % to 29.1 % |
+| P1-PIC: shifts with a PIC-101 refusal | 0 of 40 | Wilson 0.0 % to 8.8 % |
+| P2: writes refused by a limit | 6 of 525 (1.1 %) | shift bootstrap 0.4 % to 2.0 % |
+
+The point estimate of P1 is above 10 %, so by §6 this is **a negative result for stops under the v3 policy**. The exemption did what it was for, and the limits still refused other legitimate writes around stops:
+
+- **S1 and S2 hold.** All 42 writes of FIC-220 to zero ran. All 27 PIC-101 writes made while the plant held FIC-220 at zero ran and were charged nothing. No shift had a PIC-101 refusal.
+- **Valve travel, 4 refusals.** V-18 was returned from 60 % to 40 % after a bypass move earlier in the same hour (hE-06, hF-09). V-12 was opened from 15 % to 100 % in one move to drain T-3 for an inspection, 85 % against 70 (hE-18). V-12 was stroke-tested from 50 % to 0 two minutes after a move from 15 % to 50 % (hF-18).
+- **FIC-220 restarts, 2 refusals.** Only the write of exactly zero is free. The ramp down to a stop is charged, and so is the restart, so a ramp down, a stop and a ramp back within one hour can pass 180 m3/h (hE-17 at its last restart step, hF-07 at its second).
+- **Sensitivity and sets.** Without the two flagged writes, P1 is the same 6 of 40, and by hand P2 is 7 of 525. Set E had a refusal in 3 of 20 shifts, set F in 3 of 20.
+
+What this leaves: the PIC-101 question is settled on this evidence, and stops still meet two bounds. A maintenance full stroke of a valve does not fit 70 % per hour. A ramp down to a stop and back costs twice the band. Neither was the question v3 asked, and neither is changed here. Any change is measured on a further holdout. As in v2, the protective cost of the openings is unmeasured.
