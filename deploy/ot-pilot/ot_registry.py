@@ -1,137 +1,200 @@
-# OT-verktøy for produksjonskjøringen. Sideeffekter er ekte, men bundet til
-# en sandkasse-katalog og et in-memory anleggs-state.
+# Author: Stian Skogbrott
+# SPDX-License-Identifier: BUSL-1.1
+"""The OT pilot's tool registry: six tools, executed at the plant service.
+
+With ``OT_PLANT_URL`` set, every tool is a call to the plant service
+(``plant_service.py``) authenticated with ``OT_PLANT_WRITE_TOKEN``. That
+token is held by this process only, so the governed dispatcher in the API is
+the only holder of a path to the plant's state (AACP E; the deployment's
+credential register is ``credential_topology.yaml``). Each write carries the
+current proposal id as ``dispatch_ref``, which the plant journals for
+attribution; it is not authority, and REMORA binds the effect to the call by
+the approved arguments' hash, not by this reference.
+
+Without ``OT_PLANT_URL`` the plant is an in-process ``plant_model.Plant``,
+for the unit tests only. Production mode refuses that configuration at
+import: an in-process plant can be changed by any code beside REMORA, which
+is the bypass this split exists to remove (AACP v0.1 section 12.3: answered
+by refusing the configuration, and the refusal is tested).
+"""
 from __future__ import annotations
 
-from datetime import UTC, datetime
+import json
+import os
+import sys
+import urllib.error
+import urllib.request
+from pathlib import Path
 from typing import Any, Callable
 
-PLANT: dict[str, Any] = {
-    "sensors": {
-        "PT-101": {"unit": "bar", "value": 4.10},
-        "TT-204": {"unit": "degC", "value": 61.5},
-        "VT-330": {"unit": "mm/s", "value": 2.1},
-        "LT-410": {"unit": "%", "value": 71.0},
-        "FT-220": {"unit": "m3/h", "value": 118.0},
-    },
-    "loops": {"PIC-101": {"setpoint": 4.00}, "FIC-220": {"setpoint": 120.0}},
-    "valves": {"V-12": {"pct": 15}, "V-18": {"pct": 40}},
-    "alarms": {"LT-410-HI": {"acked": False}, "PT-101-HH": {"acked": False}},
-    "work_orders": {"WO-1201": {"status": "open"}},
-    "log": [],
-}
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from plant_model import TOOL_TARGETS, Plant, PlantRefused  # noqa: E402
+
+_TIMEOUT_S = 5.0
 
 
-def _log(tool: str, **kw: Any) -> None:
-    PLANT["log"].append({"at": datetime.now(UTC).isoformat(), "tool": tool, **kw})
+def _plant_url() -> str:
+    return os.environ.get("OT_PLANT_URL", "").strip().rstrip("/")
+
+
+if not _plant_url() and os.environ.get("REMORA_ENV", "").strip().lower() == "production":
+    raise RuntimeError(
+        "ot_registry refuses an in-process plant in production: set OT_PLANT_URL "
+        "and OT_PLANT_WRITE_TOKEN so the plant runs in its own trust domain")
+
+#: The in-process plant (unit tests only). ``PLANT`` is its state, which the
+#: tests read and change directly to stand for a change made at the plant.
+_LOCAL: Plant | None = None if _plant_url() else Plant()
+PLANT: dict[str, Any] = _LOCAL.state if _LOCAL is not None else {}
+
+#: When this plant started. The journal covers nothing earlier.
+PLANT_STARTED_AT: float = _LOCAL.started_at if _LOCAL is not None else 0.0
+
+
+class PlantUnavailable(RuntimeError):
+    """The plant service could not be reached or did not answer."""
+
+
+def _dispatch_ref() -> str:
+    """The proposal being executed, from the execution API's request holder."""
+    module = sys.modules.get("servers.execution_api")
+    var = getattr(module, "CURRENT_PROPOSAL_ID", None)
+    holder = var.get() if var is not None else None
+    return str((holder or {}).get("id") or "")
+
+
+def _request(method: str, path: str, body: dict[str, Any] | None = None) -> Any:
+    token = os.environ.get("OT_PLANT_WRITE_TOKEN", "")
+    data = json.dumps(body).encode("utf-8") if body is not None else None
+    req = urllib.request.Request(
+        f"{_plant_url()}{path}", data=data, method=method,
+        headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=_TIMEOUT_S) as resp:  # noqa: S310
+            return json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        try:
+            reason = json.loads(exc.read().decode("utf-8")).get("error", "")
+        except ValueError:
+            reason = ""
+        raise PlantRefused(exc.code, reason or f"plant answered {exc.code}") from exc
+    except (urllib.error.URLError, OSError, ValueError) as exc:
+        raise PlantUnavailable(f"plant service unavailable: {exc}") from exc
+
+
+def _write(tool: str, a: dict[str, Any]) -> dict[str, Any]:
+    if _LOCAL is not None:
+        result = _LOCAL.apply(tool, dict(a), credential="writer",
+                              dispatch_ref=_dispatch_ref(), source="in-process")
+    else:
+        result = _request("POST", f"/tools/{tool}",
+                          {"arguments": dict(a), "dispatch_ref": _dispatch_ref()})
+    result.pop("revision", None)
+    return result
+
+
+def _known(tool: str, error: PlantRefused) -> Exception:
+    # A 404 for the object is the tool's own "unknown loop" error, as before.
+    return ValueError(error.reason) if error.status in (400, 404, 409) else error
 
 
 def read_sensor(a: dict[str, Any]) -> dict[str, Any]:
     sid = str(a.get("sensor_id", ""))
-    s = PLANT["sensors"].get(sid)
-    if s is None:
-        raise ValueError(f"unknown sensor {sid!r}")
-    _log("read_sensor", sensor_id=sid, value=s["value"])
-    return {"sensor_id": sid, **s}
+    try:
+        if _LOCAL is not None:
+            return _LOCAL.read_sensor(sid)
+        return _request("GET", f"/sensors/{urllib.request.quote(sid, safe='')}")
+    except PlantRefused as exc:
+        raise _known("read_sensor", exc) from exc
 
 
 def adjust_setpoint(a: dict[str, Any]) -> dict[str, Any]:
-    loop = str(a.get("loop", ""))
-    lp = PLANT["loops"].get(loop)
-    if lp is None:
-        raise ValueError(f"unknown loop {loop!r}")
-    old, new = lp["setpoint"], float(a["value"])
-    lp["setpoint"] = new
-    _log("adjust_setpoint", loop=loop, old=old, new=new)
-    return {"loop": loop, "old_setpoint": old, "new_setpoint": new}
+    try:
+        return _write("adjust_setpoint", a)
+    except PlantRefused as exc:
+        raise _known("adjust_setpoint", exc) from exc
 
 
 def set_valve_position(a: dict[str, Any]) -> dict[str, Any]:
-    v = str(a.get("valve", ""))
-    val = PLANT["valves"].get(v)
-    if val is None:
-        raise ValueError(f"unknown valve {v!r}")
-    old, new = val["pct"], int(a["position_pct"])
-    val["pct"] = new
-    _log("set_valve_position", valve=v, old=old, new=new)
-    return {"valve": v, "old_pct": old, "new_pct": new}
+    try:
+        return _write("set_valve_position", a)
+    except PlantRefused as exc:
+        raise _known("set_valve_position", exc) from exc
 
 
 def acknowledge_alarm(a: dict[str, Any]) -> dict[str, Any]:
-    aid = str(a.get("alarm_id", ""))
-    al = PLANT["alarms"].get(aid)
-    if al is None:
-        raise ValueError(f"unknown alarm {aid!r}")
-    al["acked"] = True
-    _log("acknowledge_alarm", alarm_id=aid)
-    return {"alarm_id": aid, "acked": True}
+    try:
+        return _write("acknowledge_alarm", a)
+    except PlantRefused as exc:
+        raise _known("acknowledge_alarm", exc) from exc
 
 
 def create_work_order(a: dict[str, Any]) -> dict[str, Any]:
-    wo = str(a.get("wo_id", ""))
-    PLANT["work_orders"][wo] = {"status": "open"}
-    _log("create_work_order", wo_id=wo)
-    return {"wo_id": wo, "status": "open"}
+    try:
+        return _write("create_work_order", a)
+    except PlantRefused as exc:
+        raise _known("create_work_order", exc) from exc
 
 
 def close_work_order(a: dict[str, Any]) -> dict[str, Any]:
-    wo = str(a.get("wo_id", ""))
-    rec = PLANT["work_orders"].get(wo)
-    if rec is None:
-        raise ValueError(f"unknown work order {wo!r}")
-    rec["status"] = "closed"
-    _log("close_work_order", wo_id=wo)
-    return {"wo_id": wo, "status": "closed"}
+    try:
+        return _write("close_work_order", a)
+    except PlantRefused as exc:
+        raise _known("close_work_order", exc) from exc
 
 
 def observe_limit_value(tenant: str, quantity: str, resource: str) -> float:
-    """Den faktiske verdien anlegget rapporterer, for kumulative grenser.
+    """The value the plant reports, for cumulative limits.
 
-    Leser anleggets tilstand, ikke REMORAs ledger. En ukjent størrelse eller
-    ressurs kaster, og grensen avviser da kallet.
+    Reads the plant, not REMORA's ledger. An unknown quantity or resource
+    raises, and the limit then refuses the call.
     """
-    if quantity == "setpoint_movement":
-        return float(PLANT["loops"][resource]["setpoint"])
-    if quantity == "valve_travel":
-        return float(PLANT["valves"][resource]["pct"])
-    raise KeyError(f"no observation for {quantity!r}")
+    if _LOCAL is not None:
+        return _LOCAL.observe(quantity, resource)
+    try:
+        return float(_request("GET", f"/observe/{quantity}/{resource}")["value"])
+    except PlantRefused as exc:
+        raise KeyError(f"no observation for {quantity!r} on {resource!r}") from exc
 
 
-#: When this process's plant started. The log below covers nothing earlier.
-PLANT_STARTED_AT = datetime.now(UTC).timestamp()
-
-#: The argument each tool's log entry names its resource by.
-_RESOURCE_FIELD = {
-    "read_sensor": "sensor_id", "adjust_setpoint": "loop", "set_valve_position": "valve",
-    "acknowledge_alarm": "alarm_id", "create_work_order": "wo_id", "close_work_order": "wo_id",
-}
+def _journal() -> tuple[float, list[dict[str, Any]]]:
+    if _LOCAL is not None:
+        return PLANT_STARTED_AT, _LOCAL.journal_since(0)
+    body = _request("GET", "/journal")
+    return float(body["started_at"]), list(body["entries"])
 
 
 def check_limit_evidence(tenant: str, operation: Any, evidence_ref: str) -> dict[str, Any]:
-    """What the plant's log says an operation with an unknown outcome did.
+    """What the plant's journal says an operation with an unknown outcome did.
 
     ``REMORA_LIMITS_EVIDENCE_MODULE`` names this module, so a reviewer's
     ``POST /v1/execution/limits/resolve`` is checked against the plant rather
     than taken on trust. ``evidence_ref`` is ``plant-log:<tool>:<resource>``
-    and must name the operation's tool. The answer is whether the log holds an
-    entry for that tool and resource at or after the operation was reserved.
+    and must name the operation's tool. The answer is whether the journal
+    holds an applied entry for that tool and resource at or after the
+    operation was reserved.
 
     Raises, so the resolution refuses as ``limit_evidence_unavailable``, when
     the reference is malformed or names another tool, and when the plant
-    started after the operation: the log is in memory and cannot tell.
+    started after the operation: its journal is in memory and cannot tell.
     """
     kind, _, rest = evidence_ref.partition(":")
     tool, _, resource = rest.partition(":")
-    if kind != "plant-log" or not resource or tool != operation.get("tool"):
+    if kind != "plant-log" or not resource or tool != operation.get("tool") \
+            or tool not in TOOL_TARGETS:
         raise ValueError(f"evidence_ref {evidence_ref!r} is not plant-log:<tool>:<resource> "
                          "for this operation's tool")
+    started_at, entries = _journal()
     reserved_at = float(operation.get("at") or 0.0)
-    if reserved_at < PLANT_STARTED_AT:
-        raise LookupError("the plant restarted after this operation; its log cannot tell")
-    field = _RESOURCE_FIELD.get(tool)
-    ran = any(entry.get("tool") == tool and str(entry.get(field)) == resource
-              and datetime.fromisoformat(entry["at"]).timestamp() >= reserved_at
-              for entry in PLANT["log"])
-    return {"executed": ran, "source": "ot-plant-log"}
+    if reserved_at < started_at:
+        raise LookupError("the plant restarted after this operation; its journal cannot tell")
+    field = TOOL_TARGETS[tool][0]
+    ran = any(entry.get("tool") == tool and entry.get("outcome") == "applied"
+              and str((entry.get("arguments") or {}).get(field)) == resource
+              and float(entry.get("at") or 0.0) >= reserved_at
+              for entry in entries)
+    return {"executed": ran, "source": "ot-plant-journal"}
 
 
 def register_tools(register: Callable[[str, Callable[[Any], Any]], None]) -> None:

@@ -486,6 +486,14 @@ jobs:
         # as both together, never this gate alone.
         run: python scripts/check_credential_topology.py
 
+      - name: OT pilot credential and network topology (AACP E, deployment half)
+        # deploy/ot-pilot/credential_topology.yaml against docker-compose.yml
+        # and the pilot's code: which container carries which secret, which
+        # network reaches which service, and an agent zone that holds only the
+        # agent's token on a network without the plant or the stores. The
+        # bypass half runs against the stack (run_boundary_assessment.py).
+        run: python scripts/check_ot_pilot_topology.py
+
       # SR-11/SR-23 (SEC-19): no unpinned or unhashed pip installs anywhere in
       # CI, and the hashed locks carry a sha256 on every package.
       - name: Hash-pinning gate

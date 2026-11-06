@@ -13,7 +13,6 @@ from __future__ import annotations
 import importlib.util
 import sys
 import time
-from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -153,23 +152,27 @@ def test_the_readiness_fault_runs_before_the_revocation():
 
 @pytest.fixture()
 def plant(monkeypatch):
-    monkeypatch.setattr(registry, "PLANT", {**registry.PLANT, "log": []})
-    monkeypatch.setattr(registry, "PLANT_STARTED_AT", time.time() - 60)
-    return registry.PLANT
+    """A fresh in-process plant whose journal started a minute ago."""
+    fresh = registry.Plant()
+    fresh.started_at = time.time() - 60
+    monkeypatch.setattr(registry, "_LOCAL", fresh)
+    monkeypatch.setattr(registry, "PLANT", fresh.state)
+    monkeypatch.setattr(registry, "PLANT_STARTED_AT", fresh.started_at)
+    return fresh
 
 
 def _operation(tool: str = "close_work_order", seconds_ago: float = 10.0) -> dict:
     return {"tool": tool, "at": time.time() - seconds_ago, "principal": "ot-agent"}
 
 
-def _logged(plant, tool: str, seconds_ago: float, **fields) -> None:
-    at = datetime.now(UTC) - timedelta(seconds=seconds_ago)
-    plant["log"].append({"at": at.isoformat(), "tool": tool, **fields})
+def _logged(plant, tool: str, seconds_ago: float, outcome: str = "applied", **arguments) -> None:
+    plant.journal.append({"seq": len(plant.journal) + 1, "at": time.time() - seconds_ago,
+                          "tool": tool, "arguments": arguments, "outcome": outcome})
 
 
 def test_an_operation_the_plant_never_logged_did_not_execute(plant):
     verdict = registry.check_limit_evidence("ot-pilot", _operation(), "plant-log:close_work_order:WO-9999")
-    assert verdict == {"executed": False, "source": "ot-plant-log"}
+    assert verdict == {"executed": False, "source": "ot-plant-journal"}
 
 
 def test_a_logged_effect_after_the_reservation_executed(plant):
@@ -201,3 +204,9 @@ def test_an_operation_older_than_the_plant_cannot_be_told(plant):
     with pytest.raises(LookupError):
         registry.check_limit_evidence("ot-pilot", _operation(seconds_ago=120),
                                       "plant-log:close_work_order:WO-9999")
+
+
+def test_a_refused_request_at_the_plant_did_not_execute(plant):
+    _logged(plant, "close_work_order", seconds_ago=5, outcome="refused", wo_id="WO-9999")
+    verdict = registry.check_limit_evidence("ot-pilot", _operation(), "plant-log:close_work_order:WO-9999")
+    assert verdict["executed"] is False

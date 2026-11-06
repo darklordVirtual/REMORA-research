@@ -324,6 +324,28 @@ what it can from `ot_ws1_facts.json` on every assessment and records in the
 audit chain what it would do, without changing a decision. Enforce needs flow
 control and the IFC work packages it names; see NEGATIVE_RESULTS §94.
 
+Since 2026-11-06 the plant is its own service and trust domain
+(`deploy/ot-pilot/plant_service.py`, standard library only, its own image).
+It holds two credentials: the executor's write token, carried only by the API
+container, and a read-only token for the effect verifier. It journals every
+request with the credential it presented. `ot_registry.py` writes to it over
+HTTP, and production mode refuses an in-process plant. The networks are
+separate and internal: the agent zone (the `agent` service, `--profile
+agent`) reaches the API and nothing else, and PostgreSQL and the plant are not
+on its network. `deploy/ot-pilot/credential_topology.yaml` declares which
+container carries which secret and who reaches whom, and
+`scripts/check_ot_pilot_topology.py` checks it against the compose file and
+the code. The effect verifier (`effect_verifier.py`, service `verifier`) finds
+every executed dispatch through `GET /v1/execution/dispatches`. It reads the
+target back from the plant with the read-only token and signs a receipt.
+REMORA computes the verdict from the signed ToolSpec postcondition (schema 5)
+and derives the vantage `independent`. Two runners exercise the deployed
+properties: `run_boundary_assessment.py` (bypass attempts from the agent zone,
+plus journal reconciliation) and `run_effect_verification.py` (an honest plant,
+a plant with declared faults, and receipts REMORA must refuse). Rotate `.env`
+with `init_tokens.py --force` and re-sign with `build_toolspec.py --force`
+after upgrading from a stack older than this.
+
 A useful negative test is to remove one strict prerequisite and confirm that
 startup/policy identity construction or the first execution-path lookup fails
 closed instead of falling back to the legacy path.

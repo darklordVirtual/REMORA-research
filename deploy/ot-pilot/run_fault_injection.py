@@ -33,9 +33,10 @@ many writes meant to run did run, how many were refused although they
 should have run, and how many human steps (approvals, revocations, stops,
 resolutions) the run needed.
 
-The plant is simulated in the API process. A restart resets it to its
-starting values while the limit ledger and the audit chain persist; the
-evidence names that, and the faults are written so it does not decide them.
+The plant is its own service since 2026-11-06 (plant_service.py), so an API
+restart leaves it where it was; ``down -v`` resets it with everything else.
+Until then it was simulated in the API process and a restart reset it, and
+the restart fault's movement figures were written for that.
 """
 from __future__ import annotations
 
@@ -86,6 +87,10 @@ CONFIG_FILES = (
     "deploy/ot-pilot/work_orders.json",
     "deploy/ot-pilot/ot_registry.py",
     "deploy/ot-pilot/ot_bundle.py",
+    "deploy/ot-pilot/plant_model.py",
+    "deploy/ot-pilot/plant_service.py",
+    "deploy/ot-pilot/plant/Dockerfile",
+    "deploy/ot-pilot/effect_verifier.py",
 )
 
 def _require_tokens() -> str | None:
@@ -335,11 +340,13 @@ def f_limits_survive_restart(rec: dict) -> bool:
     s1, b1 = execute(item, tc)
     compose("restart", "api")
     rec["api_back"] = wait_healthy()
-    # The simulated plant restarted at V-12 = 15, so movement is measured from 15.
+    # The plant is its own service since 2026-11-06 and does not restart with
+    # the API, so V-12 is still at 65 and movement is measured from there:
+    # 21 more (to 44) passes 70 for the hour, 20 more (to 45) does not.
     over_status, over = propose(tool_call("set_valve_position",
-                                          {"valve": "V-12", "position_pct": 36}, "WO-1204"))
+                                          {"valve": "V-12", "position_pct": 44}, "WO-1204"))
     under_status, _ = propose(tool_call("set_valve_position",
-                                        {"valve": "V-12", "position_pct": 35}, "WO-1204"))
+                                        {"valve": "V-12", "position_pct": 45}, "WO-1204"))
     rec.update(first_move_executed=executed(b1), over_cap=over_status,
                over_cap_reason=(over or {}).get("detail"), under_cap=under_status)
     rec["completed_writes"] = int(executed(b1) is True)

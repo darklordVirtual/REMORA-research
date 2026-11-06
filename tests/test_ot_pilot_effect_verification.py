@@ -1,0 +1,186 @@
+# Author: Stian Skogbrott
+# SPDX-License-Identifier: BUSL-1.1
+"""The OT pilot's effect verification through the real routes (AACP G).
+
+The pilot's API runs in-process with its signed ToolSpec (schema 5, a
+postcondition per write), the plant runs as ``plant_service`` on loopback
+over the same in-process plant the registry writes to, and the effect
+verifier is ``effect_verifier.Verifier`` with the plant's read-only token and
+an Ed25519 receipt key the API registers for another control domain. Nothing
+is mocked between the verifier's read-back and REMORA's verdict.
+
+Pinned here, and on the deployed stack by ``run_effect_verification.py``:
+
+* an honest write verifies, with vantage ``independent``;
+* a clamped write is EFFECT_MISMATCH; a write acknowledged and never applied
+  is EFFECT_MISMATCH ``postcondition_effect_absent``; an object the verifier
+  cannot read is EFFECT_UNOBSERVABLE and never VERIFIED;
+* a dispatch the plant has no record of is reported as an anomaly, not
+  verified;
+* the dispatch listing names every executed dispatch and its verdict.
+"""
+from __future__ import annotations
+
+import json
+import sys
+import threading
+from pathlib import Path
+
+import pytest
+
+pytest.importorskip("fastapi")
+pytest.importorskip("cryptography")
+
+from tests.limits import test_limits_ot_pilot as _limits  # noqa: E402
+from tests.limits.test_limits_ot_pilot import payload  # noqa: E402
+
+ROOT = Path(__file__).resolve().parents[1]
+PILOT = ROOT / "deploy" / "ot-pilot"
+SEED = "5c" * 32
+READ = "r" * 40
+
+pilot = _limits.pilot
+
+
+class ClientHttp:
+    """effect_verifier.Http's interface over the in-process TestClient."""
+
+    def __init__(self, client) -> None:
+        self.client = client
+
+    def call(self, method, path, body=None):
+        r = self.client.request(method, path, json=body)
+        try:
+            return r.status_code, r.json()
+        except ValueError:
+            return r.status_code, None
+
+
+@pytest.fixture()
+def stack(pilot, monkeypatch, tmp_path):
+    from remora.crypto import SigningKey
+    from remora.governance.effect_receipt_signing import RECEIPT_DOMAIN
+    from remora.toolcall.toolspec_sign import sign_with_seed
+
+    client = pilot()
+    sys.path.insert(0, str(PILOT))
+    import build_toolspec
+    import effect_verifier
+    import ot_registry
+    import plant_service
+
+    bundle, public, digest = sign_with_seed(build_toolspec.unsigned_bundle(), SEED,
+                                            signed_at="2026-11-06T00:00:00+00:00")
+    path = tmp_path / "toolspec-bundle.json"
+    path.write_text(json.dumps(bundle), encoding="utf-8")
+    key = SigningKey.generate({RECEIPT_DOMAIN})
+    monkeypatch.setenv("REMORA_TOOLSPEC_BUNDLE", str(path))
+    monkeypatch.setenv("REMORA_TOOLSPEC_VERIFY_KEYS", public)
+    monkeypatch.setenv("REMORA_TOOLSPEC_PINNED_DIGEST", digest)
+    monkeypatch.delenv("REMORA_TOOLSPEC_SIGNING_KEY", raising=False)
+    monkeypatch.setenv("REMORA_EXECUTOR_CONTROL_DOMAIN", "ot-pilot-executor")
+    monkeypatch.setenv("REMORA_EFFECT_VERIFIER_KEYS", json.dumps([{
+        "public_key": key.verification_key().public_bytes.hex(),
+        "control_domain": "ot-pilot-plant-observer", "credential_scope": "read_only",
+        "tenants": ["ot-pilot"]}]))
+    import servers.api as api_mod
+    import servers.execution_api as exec_mod
+
+    monkeypatch.setattr(api_mod, "_authenticated_principal",
+                        lambda request: ("ot-effect-verifier" if "/effect" in request.url.path
+                                         else "ot-agent"))
+    exec_mod._reset_toolspec_bundle()
+    exec_mod._reset_tool_dispatcher()
+
+    server = plant_service.build_server("127.0.0.1", 0, ot_registry._LOCAL,
+                                        {"w" * 40: "writer", READ: "reader"})
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    verifier = effect_verifier.Verifier(
+        ClientHttp(client),
+        effect_verifier.Http(f"http://127.0.0.1:{server.server_address[1]}", READ), key)
+    yield client, ot_registry, verifier
+    server.shutdown()
+
+
+def _write(client, tool, intent, **arguments):
+    p = payload(tool, intent, **arguments)
+    assessed = client.post("/v1/execution/assess", json=p).json()
+    item = assessed["review_item_id"]
+    assert client.post("/v1/execution/approve",
+                       json={"item_id": item, "approval_ttl_seconds": 900}).status_code == 200
+    executed = client.post("/v1/execution/execute", json={"item_id": item, "tool_call": p}).json()
+    assert executed["outcome"] == "execute", executed
+    return assessed["proposal_id"]
+
+
+def _effect(client, pid):
+    return client.get(f"/v1/execution/proposals/{pid}").json()["effect"]
+
+
+def test_an_honest_write_verifies_independently_from_the_plant_read_back(stack):
+    client, registry, verifier = stack
+    pid = _write(client, "set_valve_position", "WO-1204", valve="V-12", position_pct=30)
+    assert registry._LOCAL.journal[-1]["dispatch_ref"] == pid
+    verifier.run_once()
+    effect = _effect(client, pid)
+    assert (effect["status"], effect["vantage"], effect["verdict_source"]) == (
+        "EFFECT_VERIFIED", "independent", "computed")
+    assert verifier.report()["reconciliation"]["agree"] is True
+
+
+@pytest.mark.parametrize("tool,intent,args,fault,status,reason", [
+    ("set_valve_position", "WO-1204", {"valve": "V-12", "position_pct": 30},
+     ("valve:V-12", ("clamp", 20)), "EFFECT_MISMATCH", "postcondition_field_mismatch"),
+    ("adjust_setpoint", "WO-1201", {"loop": "PIC-101", "value": 3.9},
+     ("loop:PIC-101", ("drop", None)), "EFFECT_MISMATCH", "postcondition_effect_absent"),
+    ("acknowledge_alarm", "WO-1202", {"alarm_id": "LT-410-HI"},
+     ("alarm:LT-410-HI", ("hide", None)), "EFFECT_UNOBSERVABLE", "postcondition_object_absent"),
+])
+def test_a_faulty_plant_is_never_verified(stack, tool, intent, args, fault, status, reason):
+    client, registry, verifier = stack
+    registry._LOCAL.faults[fault[0]] = fault[1]
+    pid = _write(client, tool, intent, **args)
+    for _ in range(3):
+        verifier.run_once()
+    effect = _effect(client, pid)
+    assert (effect["status"], effect["reason_code"]) == (status, reason)
+    assert all(h["status"] != "EFFECT_VERIFIED" for h in effect["history"])
+
+
+def test_every_write_tool_verifies_on_an_honest_plant(stack):
+    client, _, verifier = stack
+    pids = [
+        _write(client, "adjust_setpoint", "WO-1201", loop="PIC-101", value=3.9),
+        _write(client, "acknowledge_alarm", "WO-1202", alarm_id="LT-410-HI"),
+        _write(client, "create_work_order", "WO-1205", wo_id="WO-1310"),
+        _write(client, "close_work_order", "WO-1203", wo_id="WO-1201"),
+    ]
+    verifier.run_once()
+    assert [_effect(client, p)["status"] for p in pids] == ["EFFECT_VERIFIED"] * 4
+
+
+def test_a_dispatch_the_plant_has_no_record_of_is_an_anomaly_not_a_verdict(stack):
+    client, registry, verifier = stack
+    pid = _write(client, "set_valve_position", "WO-1204", valve="V-12", position_pct=30)
+    registry._LOCAL.journal.pop()  # the plant "lost" the write
+    rec = verifier.run_once()
+    assert verifier.report()["anomalies"][0]["reason"] == "dispatch_without_plant_record"
+    assert rec["dispatches_without_plant_record"] == [pid]
+    assert _effect(client, pid)["status"] is None
+
+
+def test_the_dispatch_listing_names_each_execution_and_its_verdict(stack):
+    client, _, verifier = stack
+    read = client.post("/v1/execution/assess",
+                       json=payload("read_sensor", "MON-ROUND", sensor_id="PT-101")).json()
+    pid = _write(client, "set_valve_position", "WO-1204", valve="V-12", position_pct=30)
+    verifier.run_once()
+    rows = client.get("/v1/execution/dispatches").json()["dispatches"]
+    by_pid = {r["proposal_id"]: r for r in rows}
+    assert by_pid[pid]["tool_name"] == "set_valve_position"
+    assert by_pid[pid]["executed"] is True and by_pid[pid]["effect_status"] == "EFFECT_VERIFIED"
+    assert len(by_pid[pid]["tool_call_hash"]) == 64
+    assert read["proposal_id"] not in by_pid or by_pid[read["proposal_id"]]["tool_name"] == \
+        "read_sensor"
+    page = client.get(f"/v1/execution/dispatches?after_sequence={rows[-1]['sequence_no']}").json()
+    assert page["dispatches"] == []

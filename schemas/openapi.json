@@ -2868,6 +2868,82 @@
         ]
       }
     },
+    "/v1/execution/dispatches": {
+      "get": {
+        "description": "Every ``execution_result`` in this tenant's chain after a sequence number.\n\nFor an effect verifier in another control domain (AACP G): it needs to\nfind every dispatch to verify without being told which ones by the agent\nor the executor. Read capability only, tenant-scoped, identities and\nhashes only: the chain holds no arguments or results, and this returns\nnone. ``next_after_sequence`` continues the listing.",
+        "operationId": "list_dispatches_v1_execution_dispatches_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "after_sequence",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "title": "After Sequence",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 200,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List Dispatches V1 Execution Dispatches Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Executed dispatches in chain order, with each one's latest effect verdict."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Missing or invalid bearer token."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Role lacks the required capability for this tenant."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Dispatches",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
     "/v1/execution/effects": {
       "post": {
         "description": "One mediated effect, served by the effect domain (NTA-2 phase 3).\n\nThe body carries the lease, the lease-bound capability set, the\ncapability, the resource and the arguments. The effect domain verifies\nthe lease, checks it was dispatched, derives the authority from its own\nToolSpec ceiling and answers REFUSED or EXECUTED; it never raises for a\nrefusal.",

@@ -4343,23 +4343,90 @@ def _computed_postcondition_verdict(
         contract, observed, proposal_id=proposal_id,
         execution_id=execution_id, toolspec_hash=toolspec_hash,
         verifier_identity=verifier_identity)
-    if (pre_state_revision and source_revision
-            and pre_state_revision == source_revision
-            and computed.status in (EffectStatus.VERIFIED, EffectStatus.MISMATCH)):
-        # The object did not change across the dispatch, so whatever it holds
-        # is not attributable to this call (NEGATIVE_RESULTS §85, narrowed
-        # for systems that expose revisions).
+    unchanged = bool(pre_state_revision and source_revision
+                     and pre_state_revision == source_revision)
+    if unchanged and computed.status is EffectStatus.VERIFIED:
+        # The object did not change across the dispatch, so the expected
+        # values it holds are not attributable to this call (NEGATIVE_RESULTS
+        # §85, narrowed for systems that expose revisions).
         computed = dataclasses.replace(computed, status=EffectStatus.UNOBSERVABLE,
                            reason_code="postcondition_no_attributable_change",
                            detail=("pre-state and observed revisions are equal "
                                    f"({source_revision}); no change is "
                                    "attributable to this dispatch"))
+    elif unchanged and computed.status is EffectStatus.MISMATCH:
+        # The object did not change and does not hold the declared delta: the
+        # effect is absent. That needs no attribution, since the claim is
+        # about the post-state. Until 2026-11-06 this read UNOBSERVABLE, so a
+        # write the system acknowledged and never applied was "unknown".
+        computed = dataclasses.replace(computed,
+                           reason_code="postcondition_effect_absent",
+                           detail=("pre-state and observed revisions are equal "
+                                   f"({source_revision}) and the object does "
+                                   "not hold the declared delta: "
+                                   + computed.detail))
     return computed
 
 
 def _current_state(events: list[dict[str, Any]],
                    dispatch: dict[str, Any] | None) -> str:
     return _current_state_impl(events, dispatch)
+
+
+@router.get("/dispatches", responses={
+    200: {"description": "Executed dispatches in chain order, with each one's "
+                         "latest effect verdict."},
+    **_AUTH_RESPONSES,
+})
+def list_dispatches(request: Request, after_sequence: int = 0,
+                    limit: int = 200) -> dict[str, Any]:
+    """Every ``execution_result`` in this tenant's chain after a sequence number.
+
+    For an effect verifier in another control domain (AACP G): it needs to
+    find every dispatch to verify without being told which ones by the agent
+    or the executor. Read capability only, tenant-scoped, identities and
+    hashes only: the chain holds no arguments or results, and this returns
+    none. ``next_after_sequence`` continues the listing.
+    """
+    tenant, role, _principal = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "read")
+    limit = max(1, min(int(limit), 500))
+    entries = _CHAIN.entries(tenant)
+    tools: dict[str, str] = {}
+    verdicts: dict[str, str] = {}
+    for entry in entries:
+        payload = entry.payload
+        pid = str(payload.get("proposal_id") or "")
+        if payload.get("event") == "assessed" and pid:
+            tools[pid] = str(payload.get("tool_name") or "")
+        elif payload.get("event") == "effect_verified" and pid:
+            verdicts[pid] = str(payload.get("status") or "")
+    rows: list[dict[str, Any]] = []
+    last = after_sequence
+    for entry in entries:
+        if entry.sequence_no <= after_sequence:
+            continue
+        payload = entry.payload
+        if payload.get("event") != "execution_result":
+            continue
+        pid = str(payload.get("proposal_id") or "")
+        rows.append({
+            "sequence_no": entry.sequence_no,
+            "recorded_at": entry.timestamp,
+            "proposal_id": pid,
+            "tool_name": tools.get(pid, ""),
+            "executed": bool(payload.get("tool_executed")),
+            "state_unknown": bool(payload.get("state_unknown")),
+            "grant_jti": str(payload.get("grant_jti") or ""),
+            "tool_call_hash": str(payload.get("tool_call_hash") or ""),
+            "effect_status": verdicts.get(pid),
+        })
+        last = entry.sequence_no
+        if len(rows) >= limit:
+            break
+    return {"dispatches": rows, "next_after_sequence": last}
 
 
 @router.get("/proposals/{proposal_id}", responses={
