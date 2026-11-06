@@ -10946,9 +10946,9 @@
     },
     "pyproject.toml": {
       "concepts": [],
-      "git_blob": "471d496c6ff06ecb6f94a18d4094de87565d0fd3",
+      "git_blob": "989864805446fcebda19302d2fe9c3fa5d9b688d",
       "mode": "100644",
-      "sha256": "11bb7ef34c99ee05b7fc33c83f1d789d4ed35d308320120a83dba34c26f9a96f"
+      "sha256": "71bd311c4230c139a16b74b778b0267821c0b2373a1cc3663d4c3b1b6f03f748"
     },
     "remora/README.md": {
       "concepts": [],
@@ -12048,9 +12048,9 @@
     },
     "remora/enforcement/cumulative_limits.py": {
       "concepts": [],
-      "git_blob": "12ded4800618b0e4d5400c3681273adf66f33216",
+      "git_blob": "f665ae097104197060312df70785cdba1e031e14",
       "mode": "100644",
-      "sha256": "d09893af265f09a395640ad6754bd5304b49f99d8e54aa9cafbae32975ae2295"
+      "sha256": "a1fe3726cd3bdc77dac65d99352f63d94645b96d4e793e4b701f0014cc3c5537"
     },
     "remora/enforcement/custody.py": {
       "concepts": [
@@ -17436,6 +17436,12 @@
       "git_blob": "3c41454c5a8f8a2df53cc3fe5adc4bfcbb07823e",
       "mode": "100644",
       "sha256": "af436efc751200d0842484401a25fcef19a29b4b40d5880038436581f7783dfc"
+    },
+    "tests/limits/test_limits_exempt_while_safe.py": {
+      "concepts": [],
+      "git_blob": "37e4d4408322d7b47eb3b028501c30790abb583c",
+      "mode": "100644",
+      "sha256": "f878d7a085b3898d3b2df74ccc86462bdbfad0fd25a5a18f29cc8e0a748d6cef"
     },
     "tests/limits/test_limits_idempotency.py": {
       "concepts": [],
@@ -22981,7 +22987,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "853c582a6ddeba3dfecab32a735622871c454db6a2cdc2c4a1ca6a5176dd18ad",
+  "register_sha256": "cf98947bdfac1bdc3b85bb2d89fc67628164f6b08dc22b98485cf2ce40ca06e9",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

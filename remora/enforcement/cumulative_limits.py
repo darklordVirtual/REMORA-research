@@ -244,6 +244,14 @@ class Meter:
     #: plant must always be able to go to its safe state through the governed
     #: path. Moving away from it again is charged as any move.
     safe_values: Mapping[str, int] = dataclass_field(default_factory=dict)
+    #: Per resource, another resource of this meter whose declared safe value
+    #: puts the plant in its safe state (an observed change meter only). While
+    #: the plant reports that other resource at its safe value, a move of this
+    #: resource is charged nothing, before or after the fact: with delivery
+    #: stopped, a dependent setpoint is parked or prepared for the restart.
+    #: The fence still applies, and once the other resource leaves its safe
+    #: value every move is charged again.
+    exempt_while_safe: Mapping[str, str] = dataclass_field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, tool: str, raw: Any) -> Meter:
@@ -287,6 +295,25 @@ class Meter:
                         f"tool {tool!r}: safe value for {resource_id!r} is not a number at "
                         f"scale {scale}")
                 safe[resource_id] = scaled
+        exempt_raw = raw.get("exempt_while_safe")
+        exempt: dict[str, str] = {}
+        if exempt_raw is not None:
+            if kind != "change" or not observed:
+                raise LimitPolicyError(
+                    f"tool {tool!r}: exempt_while_safe is for observed change meters only")
+            if not isinstance(exempt_raw, Mapping) or not exempt_raw:
+                raise LimitPolicyError(
+                    f"tool {tool!r}: exempt_while_safe is a non-empty object of resource to "
+                    "resource")
+            for resource_id, other in exempt_raw.items():
+                if not isinstance(resource_id, str) or not resource_id or _SEP in resource_id:
+                    raise LimitPolicyError(
+                        f"tool {tool!r}: an exempt_while_safe key names a resource")
+                if not isinstance(other, str) or other not in safe or other == resource_id:
+                    raise LimitPolicyError(
+                        f"tool {tool!r}: exempt_while_safe for {resource_id!r} must name another "
+                        "resource with a declared safe value")
+                exempt[resource_id] = other
         return cls(
             quantity=_text(raw.get("quantity"), f"tool {tool!r} quantity"), kind=kind,
             argument=argument, scale=scale,
@@ -298,7 +325,7 @@ class Meter:
                                                                    "resource_argument"),
             observed=observed,
             previous_field=None if previous is None else _text(previous, "previous_field"),
-            safe_values=safe)
+            safe_values=safe, exempt_while_safe=exempt)
 
 
 @dataclass(frozen=True)
@@ -446,6 +473,15 @@ class LimitPolicy:
         """Quantities whose change is measured from an observed value."""
         return frozenset(m.quantity for meters in self.meters.values() for m in meters
                          if m.observed)
+
+    def exempting_resource(self, quantity: str, resource: str) -> tuple[str, int, int] | None:
+        """(other resource, its scaled safe value, the meter's scale) that exempts this one."""
+        for meters in self.meters.values():
+            for m in meters:
+                if m.quantity == quantity and resource in m.exempt_while_safe:
+                    other = m.exempt_while_safe[resource]
+                    return other, m.safe_values[other], m.scale
+        return None
 
     def safe_value(self, quantity: str, resource: str) -> int | None:
         """The scaled value declared safe for this quantity and resource, or None."""
@@ -949,6 +985,7 @@ class LimitGuard:
     def _plan(self, conn: Any, *, tenant: str, principal: str,
               readings: list[Reading], operation_id: str, request_hash: str,
               now: float, observed: Mapping[int, Decimal] | None = None,
+              exempt: frozenset[int] = frozenset(),
               ) -> tuple[bool, list[tuple[Limit, str, int]], list[tuple[str, int, str]],
                          list[tuple[str, Decimal, int]]]:
         """Charges and value updates for this call, checked against every limit.
@@ -964,7 +1001,7 @@ class LimitGuard:
             m = reading.meter
             amount: int | None = reading.value
             to_safe = (m.kind == "change" and reading.resource is not None
-                       and m.safe_values.get(reading.resource) == reading.value)
+                       and m.safe_values.get(reading.resource) == reading.value) or index in exempt
             if m.kind == "change" and m.observed:
                 resource = reading.resource or ""
                 value_key = "\x1f".join((tenant, m.quantity, resource))
@@ -1106,6 +1143,9 @@ class LimitGuard:
                     if seen is None:
                         return OBSERVATION_UNAVAILABLE
                     observed[index] = seen
+            exempt = frozenset(index for index, reading in enumerate(readings)
+                               if self._exempt_now(tenant, reading.meter.quantity,
+                                                   reading.resource or ""))
             at = _epoch(now)
             op_key = self.operation_key(tenant, tool_name, arguments)
             with self.ledger.transaction() as conn:
@@ -1119,7 +1159,7 @@ class LimitGuard:
                 done, charges, values, seen_at = self._plan(
                     conn, tenant=tenant, principal=principal, readings=readings,
                     operation_id=operation_id, request_hash=request_hash, now=at,
-                    observed=observed)
+                    observed=observed, exempt=exempt)
                 if write and not done:
                     for lim, key, amount in charges:
                         self.ledger.record(conn, key, lim.binding, operation_id,
@@ -1329,6 +1369,18 @@ class LimitGuard:
         return next(m.scale for meters in self.policy.meters.values() for m in meters
                     if m.quantity == quantity)
 
+    def _exempt_now(self, tenant: str, quantity: str, resource: str) -> bool:
+        """Whether the plant reports the resource that exempts this one at its safe value.
+
+        Unreadable is not safe: an observation that fails leaves the move charged.
+        """
+        exempting = self.policy.exempting_resource(quantity, resource)
+        if exempting is None:
+            return False
+        other, safe, scale = exempting
+        seen = self._observe(tenant, quantity, other, scale)
+        return seen is not None and seen == safe
+
     def fence(self, operation_id: str) -> str | None:
         """Read each observed resource again just before the write.
 
@@ -1390,6 +1442,8 @@ class LimitGuard:
         for record in records:
             if self.policy.safe_value(record["quantity"], record["resource"]) == record["target"]:
                 continue  # a move to the safe state is charged nothing, after the fact either
+            if self._exempt_now(record["tenant"], record["quantity"], record["resource"]):
+                continue  # nor a move made while the plant is in its safe state
             field = fields.get(record["quantity"])
             previous = result.get(field) if field else None
             if isinstance(previous, bool) or not isinstance(previous, int | float):
