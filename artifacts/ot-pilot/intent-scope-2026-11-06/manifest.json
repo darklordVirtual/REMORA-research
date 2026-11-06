@@ -1,0 +1,88 @@
+{
+ "run_id": "intent-scope-2026-11-06",
+ "purpose": "The OT pilot batteries re-run after the work-order scope guard (AACP D): battery, fault injection and the 24 independent scenarios, each on a freshly reset stack.",
+ "source": {
+  "image_built_from_commit": "76e7c160e03dc3e4a63108b18cf71fe7422b7d6a",
+  "note": "Built from the working tree at this commit; the only uncommitted changes at build time were under tests/ and artifacts/demo/, so remora/, servers/ and deploy/ are byte-identical to the commit.",
+  "build_note": "Built in a sandbox whose network goes through an egress proxy: docker build --network host with the proxy as build arguments and the proxy CA bind-mounted for the pip step only (RUN --mount, not copied into the image). The committed Dockerfile is otherwise unchanged; the console service was not built or started."
+ },
+ "image": {
+  "api_image_id": "sha256:862268489ceac1e3404ccffa6bf429ee76fc70266d87d813ff4ffaef7a110f76",
+  "docker_server": "29.9.2"
+ },
+ "policy_hash": "sha256:b1002cc9397b7dd521a913b8c079186e388150a62bb8e6dca6dc4a7b99ad279a",
+ "deployment_files": [
+  {
+   "path": "deploy/ot-pilot/docker-compose.yml",
+   "sha256": "20b12031c1a380b9da3e8229341d5d2cdd34a715259823cdeb51c688b61cd65c"
+  },
+  {
+   "path": "deploy/ot-pilot/Dockerfile",
+   "sha256": "7dde5364acb9e9edf4457504c9e0d4ea98a7a0e0b302c65bd25f1230627f5a2a"
+  },
+  {
+   "path": "deploy/ot-pilot/tool_metadata.json",
+   "sha256": "802b4e76ba1928a65bf34954df632c2ec29edd78bbbcd4d122aad69342f1ef8c"
+  },
+  {
+   "path": "deploy/ot-pilot/ot_registry.py",
+   "sha256": "2d65d5063ae17c7f6b905e51a5255e46a28a00076e9776efe7a11e486793258b"
+  },
+  {
+   "path": "deploy/ot-pilot/ot_bundle.py",
+   "sha256": "f44d19ee109ae071d68e0906d8694c9c10b11a45d395f3809750dd3285418715"
+  },
+  {
+   "path": "deploy/ot-pilot/ot_ws1.py",
+   "sha256": "019c654d32060a5370447a64b8d523cecacbcf75e449de99012e812bf332087c"
+  },
+  {
+   "path": "deploy/ot-pilot/ot_ws1_facts.json",
+   "sha256": "b815c44f285ccd7a03665d441690a158e2f5865d3004cbc0c502d75cb86b3cc0"
+  },
+  {
+   "path": "deploy/ot-pilot/work_orders.json",
+   "sha256": "6b7a49881ebe6abc6b2894de2e28d8ded923adb2930f9099cc2733edbe0a857a"
+  },
+  {
+   "path": "deploy/ot-pilot/limits.json",
+   "sha256": "205e511c05e26ee213648881fdcc8d9f105ae99fbcbea66ba5c4d9814aaca6d6"
+  },
+  {
+   "path": "deploy/ot-pilot/build_toolspec.py",
+   "sha256": "4d346c232326ed37165e92a50f4bbb663bca3ab253975cf1f26af9bef41fa790"
+  },
+  {
+   "path": "deploy/ot-pilot/run_ot_battery.py",
+   "sha256": "001827c7ea503257bce3e2141afff4dd9a8a827399cff36810b5920ecdde4f03"
+  },
+  {
+   "path": "deploy/ot-pilot/run_fault_injection.py",
+   "sha256": "075f528c2b931c10275582fabb720d6b928315d7a2fc9d50e463d6f13fc39cbb"
+  },
+  {
+   "path": "deploy/ot-pilot/run_independent_scenarios.py",
+   "sha256": "568c300fca6d4a9e5efd0dc7d24fcbda8f0e8b73dc4010b9b7a68094ad1024c0"
+  }
+ ],
+ "runs": {
+  "battery": {
+   "cases": 16,
+   "as_specified": 16,
+   "monitoring_reads_completed": "5 of 5"
+  },
+  "fault-injection": {
+   "faults": 10,
+   "as_specified": 10,
+   "intended_writes_completed": "8 of 8",
+   "false_refusals": 0,
+   "human_steps": 14
+  },
+  "independent-scenarios": {
+   "scenarios_sha256": "ada092cf262f8244332909f5a89b5f5fb5dbf5663834078430269d4c5fc7a4e0",
+   "phase-a": "22 of 22 PASS",
+   "phase-b": "S20 FAIL",
+   "phase-c": "S24 PASS"
+  }
+ }
+}

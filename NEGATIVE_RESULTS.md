@@ -6063,6 +6063,20 @@ restart (525 writes, `artifacts/ot-pilot/limits-holdout-v3/`).
 
 This finding stays open.
 
+Update 2026-11-06, later still: one measurement of the protective cost. The
+independent scenario S20 makes two moves of +0.30 bar on PIC-101 within an
+hour and expects the second to be refused at the 0.50 cap it assumes. It
+passed on 2026-11-05, when the cap was 50 units at scale 100. On the rebuilt
+pilot with the recalibrated cap of 160, both moves ran
+(`artifacts/ot-pilot/intent-scope-2026-11-06/independent-scenarios/phase-b.json`).
+The work-order scope guard added on the same build is not the cause: WO-1201
+names PIC-101. The limits are not changed in response. This is one scenario,
+written before the recalibration, and it shows the looser bound letting
+through a sequence an earlier reading called unsafe. How far a runaway agent
+gets under the new bounds is still not measured as a rate.
+
+This finding stays open.
+
 ## §98 The review path handed back an unspent grant when the admission refused (2026-10-24)
 <!-- finding-status: open -->
 

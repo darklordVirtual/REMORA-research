@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "16bb04e04ac2e6e71de1f2144a5607edf4882c8d",
+      "git_blob": "4d23c5045311deccc8d292c36d3ec03590b2c74f",
       "mode": "100644",
-      "sha256": "866909ad6172f39aaef80625a61ac35b850330623835529adea81fb160bbf53e"
+      "sha256": "8f3ef7104071c69ae45e6a91604c6ef74324dc3833f5586663c423c566d97500"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -369,9 +369,9 @@
     },
     "NEGATIVE_RESULTS.md": {
       "concepts": [],
-      "git_blob": "0efb9a3b74c3c7edd8c583e8a5c56adabfb8405e",
+      "git_blob": "f17068b48a2c859abba0ded840e26a0277efe74a",
       "mode": "100644",
-      "sha256": "aa9b52edddf567d20f8424afe70ff0bb676c50517c85de67784d52bc4bbb2e41"
+      "sha256": "21310b003d852d75c666067c71d715c788c22cd67edf23ff26f0c2ac6bfed61d"
     },
     "NOTICE": {
       "concepts": [],
@@ -729,9 +729,9 @@
     },
     "artifacts/demo/whatif_presets_v1.json": {
       "concepts": [],
-      "git_blob": "3b37c060f317aababea7d820091fc2ebcf5bd7c1",
+      "git_blob": "c68d2e334ec7ec051400c3e459d0f64b4a01b690",
       "mode": "100644",
-      "sha256": "7d7dd3f5803e5887c462f60158670e82b6ef7f7858c55f13d68cdbf64746fac3"
+      "sha256": "ed6c7c7b6d2d0b2cb465475f4f7b3f2fb4fba587f720f3d7c19c82b83437a3a9"
     },
     "artifacts/docker/Dockerfile": {
       "concepts": [],
@@ -3458,6 +3458,102 @@
       "git_blob": "2f254e8da9fab47fe8827e072a3b36443f8c557c",
       "mode": "100644",
       "sha256": "3ad25de2066b71eab45c2f127383eed8d8e8d71c09894cb0df54953eed98eb50"
+    },
+    "artifacts/ot-pilot/intent-scope-2026-11-06/README.md": {
+      "concepts": [],
+      "git_blob": "0de6d66d58732cc7c409d83cdf853c0d45dedac0",
+      "mode": "100644",
+      "sha256": "fb3df813d13d791e23da4d0bcc93f039dcfdbe213a14af6b0579ad9a15ac3efb"
+    },
+    "artifacts/ot-pilot/intent-scope-2026-11-06/aacp-assessment-v0.2.json": {
+      "concepts": [],
+      "git_blob": "d7119b46c70667b7f68ec72e9189ddd1c2f90bf1",
+      "mode": "100644",
+      "sha256": "fad7e439913f5f5986e3c3c9382adec9a9624f6c402f8d6acc7003b67ae4781c"
+    },
+    "artifacts/ot-pilot/intent-scope-2026-11-06/battery/chain-verification.json": {
+      "concepts": [],
+      "git_blob": "ecb99af4c3d1873cac57a750b199ce5f2fcf04e1",
+      "mode": "100644",
+      "sha256": "567256a1f9b95f615e712ac6f3aaaf7911df6a9e3758fcd1279263f60d02378d"
+    },
+    "artifacts/ot-pilot/intent-scope-2026-11-06/battery/manifest.json": {
+      "concepts": [],
+      "git_blob": "1f4bc2cea70b8083f061249da0c3bd64b29c011c",
+      "mode": "100644",
+      "sha256": "6b73bd92d8f7ffaaf12839c843aadb77dc8c612c5bb7991eb9d3c8347ee5a080"
+    },
+    "artifacts/ot-pilot/intent-scope-2026-11-06/battery/metrics.json": {
+      "concepts": [],
+      "git_blob": "f3d44f666168738c75a785e74c291b59fcbefba9",
+      "mode": "100644",
+      "sha256": "56b4b03081b33a9255cc5f3338e411d713d5dcad4ac2065b3181a2130864b791"
+    },
+    "artifacts/ot-pilot/intent-scope-2026-11-06/battery/report.txt": {
+      "concepts": [],
+      "git_blob": "85b934466490a28bb2d96b2d8f491ffbba08da02",
+      "mode": "100644",
+      "sha256": "ee2f0c5166c7b55c2610134e09e0c9709dbef80b30f717df8f97c8903240fe3a"
+    },
+    "artifacts/ot-pilot/intent-scope-2026-11-06/battery/results.json": {
+      "concepts": [],
+      "git_blob": "4896c494d3057a0bcb30ed8114cb282fefbeb607",
+      "mode": "100644",
+      "sha256": "2d8fda05f0fb9f673a00be4ceb6c47de62f6e6fd11f737a696577a16e5ee25a3"
+    },
+    "artifacts/ot-pilot/intent-scope-2026-11-06/fault-injection/chain-verification.json": {
+      "concepts": [],
+      "git_blob": "d434dbbe268bb520e9f9d862fb2579175fbe0ccd",
+      "mode": "100644",
+      "sha256": "67f0a4d5475e25b668d6a3932c856f7dc051609c6838b78fc4685d6f18f8f81f"
+    },
+    "artifacts/ot-pilot/intent-scope-2026-11-06/fault-injection/manifest.json": {
+      "concepts": [],
+      "git_blob": "e832a47048f1bf4b653741586bdf33ca4d474eee",
+      "mode": "100644",
+      "sha256": "6c97b5de0f24f64d190650074c7f0b67011ac93a795959e98d0e6e780c94afc8"
+    },
+    "artifacts/ot-pilot/intent-scope-2026-11-06/fault-injection/metrics.json": {
+      "concepts": [],
+      "git_blob": "9e26dfeeb6e641a33dae4961196235bdb965b21b",
+      "mode": "100644",
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    "artifacts/ot-pilot/intent-scope-2026-11-06/fault-injection/report.txt": {
+      "concepts": [],
+      "git_blob": "50224974231fdb60f7c7b0633c08b1d3e0a78ce5",
+      "mode": "100644",
+      "sha256": "cfb936830364a9c5da6477a3df1ca0fd3e6425d51e1489174bc919178506ec44"
+    },
+    "artifacts/ot-pilot/intent-scope-2026-11-06/fault-injection/results.json": {
+      "concepts": [],
+      "git_blob": "8a957061b152445b24dcb5180a6c8b18a450240b",
+      "mode": "100644",
+      "sha256": "27b5df815f5cdc78af15379c83d84fdced9349b6ec7f5cc28e4fbb8e3d62aa92"
+    },
+    "artifacts/ot-pilot/intent-scope-2026-11-06/independent-scenarios/phase-a.json": {
+      "concepts": [],
+      "git_blob": "ab2352772c3d9bdb8807cf44da4a368755e11701",
+      "mode": "100644",
+      "sha256": "9abd8198bd7a49f7a4154750742c0796c9635e2c2888a7b735d03d33fb69feaa"
+    },
+    "artifacts/ot-pilot/intent-scope-2026-11-06/independent-scenarios/phase-b.json": {
+      "concepts": [],
+      "git_blob": "5a85a191605d017844b7c95fbfa682eb8a0de7de",
+      "mode": "100644",
+      "sha256": "ecb1581846285bb7670c993ee2815409b6c1bdbf1f55457de93c234ba60b62dc"
+    },
+    "artifacts/ot-pilot/intent-scope-2026-11-06/independent-scenarios/phase-c.json": {
+      "concepts": [],
+      "git_blob": "a06fd80b101e6aa72e940278575edf6ab46aefc7",
+      "mode": "100644",
+      "sha256": "10d55db3f4fc00f447104886296134029e1c79770fc841e06a70607d11dc13d2"
+    },
+    "artifacts/ot-pilot/intent-scope-2026-11-06/manifest.json": {
+      "concepts": [],
+      "git_blob": "1ff4a7d9d0a59c5d6b8a46e5b23473a6cbe30b34",
+      "mode": "100644",
+      "sha256": "235c4da9e52c35cb38e08b94800f988d1c862099664e0949844e6ea3e62cedbc"
     },
     "artifacts/ot-pilot/limits-holdout-v1/author-brief.md": {
       "concepts": [],
@@ -6849,9 +6945,9 @@
     },
     "docs/assurance/ws1_utility_test_plan_v1.md": {
       "concepts": [],
-      "git_blob": "7cf5b424903fab5dca7f71d4b5a4dd312c4a82bb",
+      "git_blob": "31c79e5e4b34a964d315bb81f7cb54cf039b56d2",
       "mode": "100644",
-      "sha256": "7461e9cc40437a5c35f58be4e8a6ae2be6c36fdaed55ed9ef6b0d2f34560bd80"
+      "sha256": "fa7f89a00bc1e33fd2f125989c9c853e931040a9d9dab91aa9ca7d02a7d19156"
     },
     "docs/assurance/ws2_monitor_question_verifier_coverage_dev_v1.2.md": {
       "concepts": [
@@ -17781,9 +17877,9 @@
     },
     "tests/test_aacp_ot_pilot_assessment.py": {
       "concepts": [],
-      "git_blob": "c96492207435b9605725042aadde5dc9ff3621d5",
+      "git_blob": "ba19f3c2227b02ea66fc8b5af20019f9215ee02d",
       "mode": "100644",
-      "sha256": "c0a54d5470f3d18091f1cd2cd49b7f41e11c4af089f75f892bd00f887298a6e7"
+      "sha256": "eb4957eb664e497558f68173cae8887b4eb52d51d3c3c3639e02a5a1ae37a18f"
     },
     "tests/test_ablation_v2.py": {
       "concepts": [],
@@ -22549,9 +22645,9 @@
     },
     "tests/verification/test_monitor_discharge_properties.py": {
       "concepts": [],
-      "git_blob": "c8dcd6bcb62b7194d0eebb998788eee181523fe4",
+      "git_blob": "7e8d7a1ee7fcad2482852749d710e167ddb13f57",
       "mode": "100644",
-      "sha256": "5744dde4c4ddeb6b251f79c937f6ece94f910538bea94fcde2275d6b29c7a204"
+      "sha256": "d1de4e3c648c3819800f5b8c9c46613d9e5ef42fb6d33554e229f8dd6190adae"
     },
     "tests/verification/test_planner.py": {
       "concepts": [],
@@ -23065,7 +23161,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "6ac470a19d03bc35cb8f5f9f147e48ddd9a8913e9f5896df5a99ef64dad94c00",
+  "register_sha256": "58ac9d2db2ff6fa47ee2b22854c1a7ca73fe6062dfc99614696a6219415e0958",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
