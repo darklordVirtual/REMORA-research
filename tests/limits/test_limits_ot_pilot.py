@@ -162,6 +162,21 @@ def test_delivery_to_zero_runs_on_a_spent_hour_and_the_restart_is_metered(pilot)
                                value=20.0))["detail"] == "limit_exceeded"
 
 
+def test_pic_101_is_exempt_while_delivery_is_stopped_and_metered_after(pilot):
+    """With FIC-220 parked at its safe value 0, PIC-101 may be lowered for the
+    restart and raised again uncharged; once delivery restarts, it is metered."""
+    client = pilot()
+    assert run(client, payload("adjust_setpoint", "WO-1201", loop="FIC-220",
+                               value=0.0))["executed"] is True
+    for value in (2.0, 4.5):                     # 2.0 + 2.5 bar, more than 1.60, exempt
+        assert run(client, payload("adjust_setpoint", "WO-1201", loop="PIC-101",
+                                   value=value))["executed"] is True
+    assert run(client, payload("adjust_setpoint", "WO-1201", loop="FIC-220",
+                               value=60.0))["executed"] is True
+    assert run(client, payload("adjust_setpoint", "WO-1201", loop="PIC-101",
+                               value=2.8))["detail"] == "limit_exceeded"     # 1.7 bar, metered
+
+
 def test_a_write_tool_the_limits_forget_is_refused(pilot):
     from remora.crypto import SignatureDomain, SigningKey
     from remora.enforcement.cumulative_limits import sign_policy

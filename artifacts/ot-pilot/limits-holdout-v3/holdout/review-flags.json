@@ -1,0 +1,21 @@
+{
+ "reviewer_session": "review-3",
+ "reviewed_files": [
+  "shifts-E.json",
+  "shifts-F.json"
+ ],
+ "writes_reviewed": 525,
+ "flags": [
+  {
+   "shift_id": "hE-11",
+   "index": 10,
+   "why": "FT-220 was found reading 1.5 % low, so the old actual flow was about 121.8 m3/h; lowering the setpoint to 118 moves away from the old actual flow the downstream asked to match, contradicting the stated reason."
+  },
+  {
+   "shift_id": "hF-12",
+   "index": 7,
+   "why": "Restarting a pump that has already tripped twice on high vibration, with no inspection or cause found and only more bypass opened, is not something a competent operator would do."
+  }
+ ],
+ "shift_notes": []
+}

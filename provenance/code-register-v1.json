@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "9caf3e9bb94bae895b372577771f22ebe61ce520",
+      "git_blob": "5ae6e85bc8cf272f705606373342e66e0d6cefd4",
       "mode": "100644",
-      "sha256": "4532f55b7bfbcbfb30d5421c6ead6779c39d1325ae644ebd54557e74562d521a"
+      "sha256": "0f048c398d861a678347a9d009a320f849bc2e9dbe8ad23e368ccf0672084054"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -369,9 +369,9 @@
     },
     "NEGATIVE_RESULTS.md": {
       "concepts": [],
-      "git_blob": "ee0d3a1ac34e2b67697f01fe4632a46efcb59755",
+      "git_blob": "0efb9a3b74c3c7edd8c583e8a5c56adabfb8405e",
       "mode": "100644",
-      "sha256": "3251e8ecfed0de34171598464caeb124136323e067a6dd121ba69df0313d5de4"
+      "sha256": "aa9b52edddf567d20f8424afe70ff0bb676c50517c85de67784d52bc4bbb2e41"
     },
     "NOTICE": {
       "concepts": [],
@@ -2829,9 +2829,9 @@
     },
     "artifacts/interop/remora-boundary-summary-v1.json": {
       "concepts": [],
-      "git_blob": "c9d88ff3e33b143dd2a2266eac2d51e74046c29b",
+      "git_blob": "3f3f97d797e26893554d0e6ea6b69fcb70c05318",
       "mode": "100644",
-      "sha256": "d9a237f25685be528753c5fd5a8901f632160f9ae5eb52a69445ce04523ea0c4"
+      "sha256": "506c37697d089fc238ee4cca62bf37e2019b4cd03974959561da1c6765786fcd"
     },
     "artifacts/interop/runs/README.md": {
       "concepts": [],
@@ -3566,6 +3566,60 @@
       "git_blob": "99dfc7c54fb4d008b5dd875070de73583698b867",
       "mode": "100644",
       "sha256": "aede21de5173b9db447ed88824ccf4d6ee745a19341b6e5f4b820119e37dc1af"
+    },
+    "artifacts/ot-pilot/limits-holdout-v2/limits-v2.json": {
+      "concepts": [],
+      "git_blob": "1834bea3f7148642cc22764a5efe6d05f5580a50",
+      "mode": "100644",
+      "sha256": "32ee26d6a659c62510d3ae0511b135c524ad9e0eab782c6a34bf24087c0f9c57"
+    },
+    "artifacts/ot-pilot/limits-holdout-v2/limits-v2.trusted-key": {
+      "concepts": [],
+      "git_blob": "03d9f3726a856cadfabc60953a3bcab55132c891",
+      "mode": "100644",
+      "sha256": "6bcb99f8c8baf8dc7efa1b4e281926ff7bd5d316ff2a8de276b168fe9a22753f"
+    },
+    "artifacts/ot-pilot/limits-holdout-v3/README.md": {
+      "concepts": [],
+      "git_blob": "1cd6b9b6267ed0398501ea202c713d7e307a7db6",
+      "mode": "100644",
+      "sha256": "6e94aaa2ef245a96e8f1cce9e197fcbaf8688e1b7029248e05480585fdcb3b8f"
+    },
+    "artifacts/ot-pilot/limits-holdout-v3/holdout/SHA256SUMS": {
+      "concepts": [],
+      "git_blob": "c322584c5aab161158c1b8c702c9a9a58e9770e4",
+      "mode": "100644",
+      "sha256": "98371aeb9aff3751b0cc62c12d4dec5102079060f67110dcff0860916b77cde6"
+    },
+    "artifacts/ot-pilot/limits-holdout-v3/holdout/result.json": {
+      "concepts": [],
+      "git_blob": "82d0a96f7e71a93a791559d42211b4d9d36fb7a7",
+      "mode": "100644",
+      "sha256": "26b50844d2fd03144dadf0ad7512107f5481ac0c2d8cc7bd530c5adc004a2074"
+    },
+    "artifacts/ot-pilot/limits-holdout-v3/holdout/review-flags.json": {
+      "concepts": [],
+      "git_blob": "3688545ce8c17ed35eb5a727c4c9959fb669da64",
+      "mode": "100644",
+      "sha256": "d8f887d79f4b5e8d6791cf470fb01f10d44e48e81d52f16375da68a0b8b091ee"
+    },
+    "artifacts/ot-pilot/limits-holdout-v3/holdout/sensitivity-refused-by-hand.json": {
+      "concepts": [],
+      "git_blob": "68de61954a29f022aa16fa6e5557951c352ce790",
+      "mode": "100644",
+      "sha256": "c797038ef10bcd49b9cde2fb1f33dffa35f9d4172064885d133e4ed6f4014d04"
+    },
+    "artifacts/ot-pilot/limits-holdout-v3/holdout/shifts-E.json": {
+      "concepts": [],
+      "git_blob": "9628531a83df629585bdb106fc9261106dfc3d1a",
+      "mode": "100644",
+      "sha256": "eaa247155848c2e9549da0ad4e8fddbfedf2819e1c2a1d6b79317a9f706b809e"
+    },
+    "artifacts/ot-pilot/limits-holdout-v3/holdout/shifts-F.json": {
+      "concepts": [],
+      "git_blob": "87da364247ca6c93f8e2dbd004c536aff1e5234d",
+      "mode": "100644",
+      "sha256": "4696c1e755a1e7312510f0f6d3148bae853cfcdce96c7a75b8a7efff68f558fb"
     },
     "artifacts/pilot-pack/README.md": {
       "concepts": [],
@@ -5539,9 +5593,9 @@
     },
     "deploy/ot-pilot/limits.json": {
       "concepts": [],
-      "git_blob": "1834bea3f7148642cc22764a5efe6d05f5580a50",
+      "git_blob": "c97b9f4da7deaf6801d1a3aa138c8460f81ac44c",
       "mode": "100644",
-      "sha256": "32ee26d6a659c62510d3ae0511b135c524ad9e0eab782c6a34bf24087c0f9c57"
+      "sha256": "205e511c05e26ee213648881fdcc8d9f105ae99fbcbea66ba5c4d9814aaca6d6"
     },
     "deploy/ot-pilot/ot_bundle.py": {
       "concepts": [
@@ -5641,9 +5695,9 @@
     },
     "docs/03-experiments.md": {
       "concepts": [],
-      "git_blob": "efcc727b807d0faeab7eb0ba658b2bf47b2a2d59",
+      "git_blob": "28750dbe91c90abbb9874f7e087ee4d3203cc9c0",
       "mode": "100644",
-      "sha256": "81867c94cb2c75274fb29317d15d0a79bfeb1d247cc3200c545ae6bb005e275c"
+      "sha256": "7b640e6b9925fd0242dc40036c52f8fd59e7dc6fe278f157ca4fcf7301fb8472"
     },
     "docs/04-negative-results-detail.md": {
       "concepts": [],
@@ -5736,9 +5790,9 @@
     },
     "docs/README.md": {
       "concepts": [],
-      "git_blob": "21b0ac419543a0d1b374152054cb929c59fb742d",
+      "git_blob": "e3ac4df02e7a9b7ab531fbdbbe8df704c7d499bd",
       "mode": "100644",
-      "sha256": "6da5e558230f897ad7c4d0b3ec1f42c4d218c35f61f436cca54bba9b170e7582"
+      "sha256": "3c887faff858923927f8bc8067eedfbcefc9b9202f691f802a65a25d6414e97a"
     },
     "docs/architecture/ADR-UE-03-capability-manifest-hook-and-mode.md": {
       "concepts": [],
@@ -6365,9 +6419,9 @@
     },
     "docs/assurance/capability_register_v1.yaml": {
       "concepts": [],
-      "git_blob": "5672eba56bf7d538877bd203c31b57be64986b77",
+      "git_blob": "0284eaf20383e4e279d5cba3f2c3b6f54035c4c6",
       "mode": "100644",
-      "sha256": "a49eeabcf03402cf53cc2542aa4b42cccdad2d3d2a1b0a6cbd139e870f8187ff"
+      "sha256": "b62621f05dab21aa54ce72f3649fbad480e4646e331f9777bc3d9aea34e0ee16"
     },
     "docs/assurance/claim_metric_binding_baseline.json": {
       "concepts": [],
@@ -6407,9 +6461,9 @@
     },
     "docs/assurance/document_register_v1.yaml": {
       "concepts": [],
-      "git_blob": "8ec761291e670024c455cc745fbe2c7a5e8870e5",
+      "git_blob": "cdfe2535f9cd7f0c6835392ddd31f63e81358e53",
       "mode": "100644",
-      "sha256": "f0090a1cb62d55384e22481a16e96e551ed8974c699fc6fdcb96d2348f512a42"
+      "sha256": "29fa03945d6b69e676d24ee45d232297aa6059eade4f58c584f7cb152f7bd8e7"
     },
     "docs/assurance/documentation_governance_v1.md": {
       "concepts": [],
@@ -6536,6 +6590,12 @@
       "git_blob": "47cc40dea183c013ca20b112265dbbba35c784a3",
       "mode": "100644",
       "sha256": "1b09173fd1f58368cdc2b6670d6491a9efa23958bd15d3b4572cf0c0b505a928"
+    },
+    "docs/assurance/ot_limits_holdout_plan_v3.md": {
+      "concepts": [],
+      "git_blob": "abde8e5ca3802f69946cb23a31b23456e904b5fa",
+      "mode": "100644",
+      "sha256": "85cd2ccb59fcb383021c0895589004f5a8cb5893cde3d4eeebcac09b873eb7ef"
     },
     "docs/assurance/policy_engine_audit_v1.md": {
       "concepts": [],
@@ -7452,9 +7512,9 @@
     },
     "docs/interop/remora-boundaries-v1.yaml": {
       "concepts": [],
-      "git_blob": "99fc1472e4bc6f4a1a8be2bd4f54dd589ca14c48",
+      "git_blob": "0473adbced71cc5ae92a549f9cd2b9588ff232fc",
       "mode": "100644",
-      "sha256": "6ab8e25eb94bd78576da74d082101673c08f90bf804a858f84ca171565655592"
+      "sha256": "e8d6bfb3ebd9cae45f47daf6efa2d8322b55e20babd1f2e1c6934979941a5305"
     },
     "docs/interop/remora-capabilities-v1.schema.json": {
       "concepts": [],
@@ -9140,15 +9200,15 @@
     },
     "frontend/package-lock.json": {
       "concepts": [],
-      "git_blob": "81fcc4c953996e1b99d0e12573aa35921da53355",
+      "git_blob": "a3548f48b5c70ee0bcc93dcfc86dc0751201f6e2",
       "mode": "100644",
-      "sha256": "979e6f5f48a819fa5654ad8932382330992def38104079abc47e422bd0e27336"
+      "sha256": "29cf4200f0a1745aa0e82e5f5165ab6d3a9df5b99b1010c78b290951888aeb06"
     },
     "frontend/package.json": {
       "concepts": [],
-      "git_blob": "d8bba1d06a2193bfac7471ccfd25d8789386a15b",
+      "git_blob": "3c195accace5aa647f92abeb94b9639313482c8e",
       "mode": "100644",
-      "sha256": "7032b8a5cfdf1a9ec09f8b446b67fe1798ac24ff2a5ff24156a796ec85d0054e"
+      "sha256": "1211786066baf96e7566ffd077a36f346da911fa077c2fb09bc384ff947efa4f"
     },
     "frontend/pilot.html": {
       "concepts": [],
@@ -10946,9 +11006,9 @@
     },
     "pyproject.toml": {
       "concepts": [],
-      "git_blob": "471d496c6ff06ecb6f94a18d4094de87565d0fd3",
+      "git_blob": "989864805446fcebda19302d2fe9c3fa5d9b688d",
       "mode": "100644",
-      "sha256": "11bb7ef34c99ee05b7fc33c83f1d789d4ed35d308320120a83dba34c26f9a96f"
+      "sha256": "71bd311c4230c139a16b74b778b0267821c0b2373a1cc3663d4c3b1b6f03f748"
     },
     "remora/README.md": {
       "concepts": [],
@@ -12048,9 +12108,9 @@
     },
     "remora/enforcement/cumulative_limits.py": {
       "concepts": [],
-      "git_blob": "12ded4800618b0e4d5400c3681273adf66f33216",
+      "git_blob": "f665ae097104197060312df70785cdba1e031e14",
       "mode": "100644",
-      "sha256": "d09893af265f09a395640ad6754bd5304b49f99d8e54aa9cafbae32975ae2295"
+      "sha256": "a1fe3726cd3bdc77dac65d99352f63d94645b96d4e793e4b701f0014cc3c5537"
     },
     "remora/enforcement/custody.py": {
       "concepts": [
@@ -17437,6 +17497,12 @@
       "mode": "100644",
       "sha256": "af436efc751200d0842484401a25fcef19a29b4b40d5880038436581f7783dfc"
     },
+    "tests/limits/test_limits_exempt_while_safe.py": {
+      "concepts": [],
+      "git_blob": "37e4d4408322d7b47eb3b028501c30790abb583c",
+      "mode": "100644",
+      "sha256": "f878d7a085b3898d3b2df74ccc86462bdbfad0fd25a5a18f29cc8e0a748d6cef"
+    },
     "tests/limits/test_limits_idempotency.py": {
       "concepts": [],
       "git_blob": "79752f2dddb24daab83721542e255179c4f04e3e",
@@ -17463,9 +17529,9 @@
     },
     "tests/limits/test_limits_ot_pilot.py": {
       "concepts": [],
-      "git_blob": "9489efa62ac42d4b064a2992a99247fcfb726f9b",
+      "git_blob": "80e1926a3b05e3b214e43509e630884795d596cf",
       "mode": "100644",
-      "sha256": "ce924a818a3b418ac7332abd76e4a22e31188c8555bee6236bad30fefe30b413"
+      "sha256": "2649250137bab62e9fe4d698ff415bede288f2711fefa9116ff30b2016438c15"
     },
     "tests/limits/test_limits_payments.py": {
       "concepts": [],
@@ -22981,7 +23047,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "853c582a6ddeba3dfecab32a735622871c454db6a2cdc2c4a1ca6a5176dd18ad",
+  "register_sha256": "32609d97cd043c2d73c5b3b40bcf84f5fe04ed3661ec7eca7c7b192f20ba7906",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

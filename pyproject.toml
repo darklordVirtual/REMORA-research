@@ -534,6 +534,7 @@ pytest_add_cli_args_test_selection = [
     # 2026-10-24 without its tests, so every covered-line mutant in it was
     # measured against a runner that never exercised it.
     "tests/limits/test_limits_binding.py",
+    "tests/limits/test_limits_exempt_while_safe.py",
     "tests/limits/test_limits_mutation_contract.py",
     "tests/limits/test_limits_idempotency.py",
     "tests/limits/test_limits_ledger_topology.py",
