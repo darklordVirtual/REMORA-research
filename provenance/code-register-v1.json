@@ -12204,9 +12204,9 @@
     },
     "remora/enforcement/cumulative_limits.py": {
       "concepts": [],
-      "git_blob": "4e6fbfb828c201d5f143a0f317ac023e4a2544cb",
+      "git_blob": "a757b8109fdfdd1cc6a3c2db416174361b9a442d",
       "mode": "100644",
-      "sha256": "5f3906296e4187243d13296e561158f8135996e13a4119f1e89bd5b6c3fd7353"
+      "sha256": "b6a0d4685678b6fd2db275d69398a7f553008a02e2fda41f144489330c9863f5"
     },
     "remora/enforcement/custody.py": {
       "concepts": [
@@ -23173,7 +23173,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "fc81721a0efead77f816edbe0e0cbedaadf9add102acb6698e91574cdd25537d",
+  "register_sha256": "8a46295facdfa15c2ebd538c6a6314e7532e74031f5acf71f9e9c25533cd5893",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

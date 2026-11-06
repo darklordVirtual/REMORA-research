@@ -1048,8 +1048,9 @@ class LimitGuard:
                     seen = (observed or {})[index]
                     amount = math.ceil(abs(reading.value - seen))
                     if resource in m.free_toward_safe:
-                        safe = m.safe_values[resource]
-                        if min(seen, safe) <= reading.value <= max(seen, safe):
+                        safe = Decimal(m.safe_values[resource])
+                        low, high = (seen, safe) if seen <= safe else (safe, seen)
+                        if low <= reading.value <= high:
                             to_safe = True  # towards the safe value: charged nothing
                             amount = 0  # and recorded so, for the after-the-fact check
                     seen_at.append((value_key, seen, amount))
@@ -1488,7 +1489,8 @@ class LimitGuard:
             ended = record["observed"] if record["observed"] is not None else record["target"]
             before = Decimal(str(previous)) * scale
             toward = self.policy.free_toward_safe(record["quantity"], record["resource"])
-            if toward is not None and min(before, toward) <= ended <= max(before, toward):
+            if toward is not None and (min(before, Decimal(toward)) <= ended
+                                       <= max(before, Decimal(toward))):
                 continue  # the plant's actual move went towards the safe value: free
             actual = math.ceil(abs(Decimal(ended) - before))
             charged = charged_at.get("\x1f".join((record["tenant"], record["quantity"],
