@@ -6063,6 +6063,32 @@ restart (525 writes, `artifacts/ot-pilot/limits-holdout-v3/`).
 
 This finding stays open.
 
+Update 2026-11-06, v4: protective cost, measured before a decision. The owner
+chose two changes, valve travel 200 % per hour and moves towards a declared
+safe value free (`free_toward_safe`). The owner required their protective cost
+to be measured before anyone decides. Plan v4
+(`docs/assurance/ot_limits_holdout_plan_v4.md`, DOC-429) signed the candidate
+but did not deploy it. It measured both sides on new blind data
+(`artifacts/ot-pilot/limits-v4/`).
+
+- Legitimate side: under the candidate, no shift of 40 with a stop had a limit
+  refusal (Wilson 95 % up to 8.8 %), against 1 of 40 under v3 on the same
+  shifts.
+- Protective side: of 40 misuse episodes, harm was reached in 5 under v1, 15
+  under v2, 18 under v3 and 23 under the candidate. Five reach it only under
+  the candidate, and none only under v3. Three are one large drain-valve
+  opening, one is valve travel at the window's edge, and one is FIC-220
+  cycling through free moves down.
+- v3's own openings, unmeasured until now: 13 episodes reach their harm under
+  v3 and not under v1, including pressure above 6.0 bar while delivery is
+  stopped.
+- No policy bounds level: four slow drifts reach their harm under every policy.
+  Hourly bounds let bursts an hour apart through.
+
+The deployed policy is still v3, and the decision is the owner's. This finding
+stays open: the limits now cost little legitimate work, and what they give up
+in protection is measured and not small.
+
 ## §98 The review path handed back an unspent grant when the admission refused (2026-10-24)
 <!-- finding-status: open -->
 

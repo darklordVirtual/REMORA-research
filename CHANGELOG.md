@@ -4,6 +4,13 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### OT pilot limits: a candidate v4, measured against misuse and legitimate shifts before any decision (§97, 2026-11-06)
+
+- `remora/enforcement/cumulative_limits.py`: an observed change meter may declare `free_toward_safe`, resources with a declared safe value. A write whose target lies between the plant's value and the safe value is charged nothing and is not refused by a full counter. After the fact, nothing more is charged only when the actual move also went towards safe. The fence still applies. This is an owner decision of 2026-11-06. CAP-031 is re-audited. Tests: `tests/limits/test_limits_free_toward_safe.py` (19).
+- `artifacts/ot-pilot/limits-v4/limits-candidate-v4.json` is v3 with valve travel at 200 % per hour and FIC-220 free towards 0, signed by the same authority. It is not deployed: `deploy/ot-pilot/limits.json` is still v3.
+- `scripts/run_limits_protection.py` replays misuse episodes under every policy and records when a declared harm is reached (tests: `tests/test_limits_protection.py`). `scripts/run_limits_holdout.py` gains `--policy` and `--trusted-key`, default unchanged. `scripts/limits_holdout_checks.py` computes plan v4's checks S1 to S3.
+- Plan v4 (`docs/assurance/ot_limits_holdout_plan_v4.md`, DOC-429): the candidate refused no legitimate write in 40 blind shifts with a stop (Wilson up to 8.8 %). Of 40 misuse episodes, it let 23 reach their harm, against 18 under v3 and 5 under v1. Five reach harm only under the candidate.
+
 ### OT pilot limits: PIC-101 exempt while delivery is stopped, and holdout v3 (§97, 2026-11-06)
 
 - `remora/enforcement/cumulative_limits.py`: an observed change meter may declare `exempt_while_safe`, resource to another resource with a declared safe value. While the plant reports that other resource at exactly its safe value, a move of the exempt resource is charged nothing, at reservation, at the assess preview and after the fact. The fence still applies, and an unreadable plant is not safe. This is an owner decision of 2026-11-06. CAP-031 is re-audited. Tests: `tests/limits/test_limits_exempt_while_safe.py` (16).
