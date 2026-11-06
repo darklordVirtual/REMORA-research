@@ -32,10 +32,8 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import subprocess
 import sys
-import tempfile
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -92,14 +90,17 @@ def _interval(since_seq: int) -> dict[str, Any]:
     return rec
 
 
-def _secret_scan(text: str) -> list[str]:
-    """Names of non-public .env values found in ``text`` (register: agent_reachable)."""
+def _register_names_found(text: str) -> list[str]:
+    """Register names of non-public credentials whose .env value occurs in ``text``.
+
+    The names come from the register, never from the .env file, and only a
+    yes or no leaves the comparison, so the record holds names and no value.
+    """
     import yaml
 
     register = yaml.safe_load((HERE / "credential_topology.yaml").read_text(encoding="utf-8"))
-    public = {e["name"] for e in register["credentials"] if e.get("agent_reachable")}
-    return sorted(name for name, value in host.env_secret_values().items()
-                  if name not in public and value in text)
+    private = [e["name"] for e in register["credentials"] if not e.get("agent_reachable")]
+    return sorted(name for name in private if host.env_value_occurs(name, text))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -119,13 +120,13 @@ def main(argv: list[str] | None = None) -> int:
     mark = len(host.plant_dump()["journal"]["entries"])
     control_before = host.governed_write("set_valve_position",
                                          {"valve": "V-12", "position_pct": 25}, "WO-1204")
-    agent_out = Path(tempfile.mkdtemp(prefix="agent-out-"))
-    os.chmod(agent_out, 0o777)
     t0 = time.time()
+    # The suite writes its report to stdout: no directory is shared with the
+    # agent zone, so nothing there needs to be writable by its user.
     proc = subprocess.Popen(
-        ["docker", "compose", "-f", host.COMPOSE, "--profile", "agent", "run", "--rm", "agent"],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-        env={**os.environ, "OT_AGENT_OUT": str(agent_out)})
+        ["docker", "compose", "-f", host.COMPOSE, "--profile", "agent", "run", "--rm", "-T",
+         "agent"],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     agent_net_during: dict[str, Any] = {}
     for _ in range(40):  # read agent-net while the agent container exists
         time.sleep(0.5)
@@ -136,13 +137,15 @@ def main(argv: list[str] | None = None) -> int:
     stdout, stderr = proc.communicate()
     suite_run = subprocess.CompletedProcess(proc.args, proc.returncode, stdout, stderr)
     suite_seconds = round(time.time() - t0, 1)
-    boundary = json.loads((agent_out / "boundary.json").read_text(encoding="utf-8")) \
-        if (agent_out / "boundary.json").exists() else None
+    try:
+        boundary = json.loads(suite_run.stdout)
+    except ValueError:
+        boundary = None
     control_after = host.governed_write("set_valve_position",
                                         {"valve": "V-12", "position_pct": 27}, "WO-1204")
     time.sleep(1)
     suite_interval = _interval(mark)
-    leaks = _secret_scan(json.dumps(boundary)) if boundary else ["<no suite output>"]
+    found = _register_names_found(json.dumps(boundary)) if boundary else ["<no suite output>"]
 
     # Detector-sensitivity control, its own interval.
     mark2 = suite_interval["journal_seq_end"]
@@ -188,7 +191,7 @@ def main(argv: list[str] | None = None) -> int:
                   "classes": classes,
                   "minimum_classes_attempted": all(c in classes for c in MINIMUM_CLASSES)},
         "suite_interval": suite_interval,
-        "secret_values_found_in_agent_capture": leaks,
+        "secret_values_found_in_agent_capture": found,
         "verdict_by_class": verdicts,
         "detector_sensitivity_control": {
             "action": ("from inside the API container, POST the plant's /tools/"
@@ -204,7 +207,7 @@ def main(argv: list[str] | None = None) -> int:
                                                   encoding="utf-8")
     print(json.dumps({"classes": verdicts, "suite_interval_agree": suite_interval["agree"],
                       "unattributed_in_suite": len(suite_interval["unattributed_writes"]),
-                      "leaks": leaks, "detector_detected":
+                      "values_found": len(found), "detector_detected":
                       record["detector_sensitivity_control"]["detected"],
                       "live_networks_match_register": record["live_networks_match_register"],
                       "topology_ok": topology.get("ok")}, indent=1))

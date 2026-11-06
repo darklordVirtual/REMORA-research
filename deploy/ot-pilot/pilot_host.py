@@ -155,12 +155,14 @@ def wait_healthy(timeout_s: int = 120) -> bool:
     return False
 
 
-def env_secret_values() -> dict[str, str]:
-    """Every value of 16+ characters in deploy/ot-pilot/.env, by name."""
-    values: dict[str, str] = {}
+def env_value_occurs(name: str, text: str) -> bool:
+    """Whether the value deploy/ot-pilot/.env holds for ``name`` occurs in ``text``.
+
+    Values shorter than 16 characters are not compared: they cannot be told
+    from ordinary text. Only the yes or no leaves this function.
+    """
     for line in (HERE / ".env").read_text(encoding="utf-8").splitlines():
-        if "=" in line and not line.startswith("#"):
-            name, value = line.split("=", 1)
-            if len(value.strip()) >= 16:
-                values[name.strip()] = value.strip()
-    return values
+        if line.startswith(f"{name}="):
+            value = line.split("=", 1)[1].strip()
+            return len(value) >= 16 and value in text
+    return False

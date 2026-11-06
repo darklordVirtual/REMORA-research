@@ -42,7 +42,7 @@ COMPOSE = PILOT / "docker-compose.yml"
 _SECRET_NAME = re.compile(r"TOKEN|KEY|SEED|SECRET|PASSWORD|DSN|FAULTS")
 #: The agent service's whole declared shape.
 _AGENT_KEYS = frozenset({"image", "pull_policy", "profiles", "command", "environment",
-                         "volumes", "networks"})
+                         "networks"})
 #: Settings that widen what a container can reach, on any service.
 _ESCALATING_KEYS = frozenset({"privileged", "pid", "ipc", "network_mode", "cap_add",
                               "devices", "userns_mode", "security_opt"})
@@ -136,10 +136,7 @@ def check() -> tuple[list[str], dict[str, Any]]:
     if extra:
         problems.append(f"agent zone service sets undeclared keys {sorted(extra)}")
     for volume in agent_spec.get("volumes") or []:
-        target = str(volume).rsplit(":", 1)[-1] if isinstance(volume, str) else \
-            (volume or {}).get("target")
-        if target != zone.get("output_mount", "/out"):
-            problems.append(f"agent zone mounts {volume!r}; only its output directory is declared")
+        problems.append(f"agent zone mounts {volume!r}; it is declared to mount nothing")
     if agent not in services:
         problems.append(f"agent zone service {agent!r} is not in the compose file")
     for name, entry in declared.items():

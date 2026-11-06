@@ -38,6 +38,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from plant_model import TOOL_TARGETS, Plant, PlantRefused  # noqa: E402
 
+__all__ = ["PLANT", "PLANT_STARTED_AT", "PlantUnavailable", "acknowledge_alarm",
+           "adjust_setpoint", "check_limit_evidence", "close_work_order", "create_work_order",
+           "observe_limit_value", "read_sensor", "register_tools", "set_valve_position"]
+
 _TIMEOUT_S = 5.0
 
 

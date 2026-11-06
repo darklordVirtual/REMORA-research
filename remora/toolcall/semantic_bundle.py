@@ -228,7 +228,8 @@ class IntentScopeValidator(Protocol):
         tool_name: str,
         arguments: dict[str, Any],
         tenant: str,
-    ) -> IntentScopeResult: ...
+    ) -> IntentScopeResult:
+        """The scope verdict for one proposed call."""
 
 
 class ArgumentScopeValidator(Protocol):

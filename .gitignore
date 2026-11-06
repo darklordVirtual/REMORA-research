@@ -50,8 +50,6 @@ hotpotqa_yesno.json
 # OT pilot: authored per deployment by deploy/ot-pilot/build_toolspec.py
 deploy/ot-pilot/toolspec-bundle.json
 deploy/ot-pilot/.toolspec-seed
-# OT pilot: the boundary suite's output from the agent container (run_boundary_suite.py)
-deploy/ot-pilot/.agent-out/
 .env.vars
 .claude/settings.local.json
 frontend/.lovable/

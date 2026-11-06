@@ -264,13 +264,12 @@ services:
     image: ot-pilot-api:local
     pull_policy: never
     profiles: [agent]
-    command: ["python", "/app/run_boundary_suite.py", "--out", "/out/boundary.json"]
+    # The report goes to stdout; the agent zone mounts nothing from the host.
+    command: ["python", "/app/run_boundary_suite.py"]
     environment:
       OT_API_URL: http://api:8000
       OT_TOKEN_AGENT: ${OT_TOKEN_AGENT:?run python deploy/ot-pilot/init_tokens.py first}
       PYTHONPATH: /app
-    volumes:
-      - ${OT_AGENT_OUT:-./.agent-out}:/out
     networks: [agent-net]
 
   # Operator console: live metrics, scenario buttons, one-click OT battery.

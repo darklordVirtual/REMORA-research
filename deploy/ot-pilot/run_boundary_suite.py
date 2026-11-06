@@ -35,7 +35,7 @@ The five minimum classes, by their machine-readable names, and two more:
 * ``authority_store_direct``: covered by the PostgreSQL probes above, listed
   separately because the approval queue lives there.
 
-    python run_boundary_suite.py --out /out/boundary.json
+    python run_boundary_suite.py            # report on stdout
 """
 from __future__ import annotations
 
@@ -365,7 +365,8 @@ def forged_effect_receipt() -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--out", required=True)
+    parser.add_argument("--out", default="-",
+                        help="where to write the report; '-' (the default) is stdout")
     args = parser.parse_args(argv)
     started = _now()
     t0 = time.monotonic()
@@ -383,9 +384,13 @@ def main(argv: list[str] | None = None) -> int:
         "classes": sorted({a["class"] for a in ATTEMPTS}),
         "attempts": ATTEMPTS,
     }
+    if args.out == "-":
+        sys.stdout.write(json.dumps(report, indent=1) + "\n")
+        return 0
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(report, indent=1), encoding="utf-8")
-    print(f"{len(ATTEMPTS)} attempts in {len(report['classes'])} classes -> {args.out}")
+    print(f"{len(ATTEMPTS)} attempts in {len(report['classes'])} classes -> {args.out}",
+          file=sys.stderr)
     return 0
 
 

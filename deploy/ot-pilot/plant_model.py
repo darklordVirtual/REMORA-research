@@ -185,6 +185,7 @@ class Plant:
                 "credential": credential, "dispatch_ref": str(dispatch_ref or ""),
                 "source": source,
             }
+            changed = False
             try:
                 if tool not in TOOL_TARGETS or not TOOL_TARGETS[tool][2]:
                     raise PlantRefused(404, f"unknown write tool {tool!r}")

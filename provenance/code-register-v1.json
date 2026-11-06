@@ -273,9 +273,9 @@
     },
     ".gitignore": {
       "concepts": [],
-      "git_blob": "df53d4bae508e92eba3d00b8475a6200b2a34a29",
+      "git_blob": "8602d2e5e986915855ec797300641d9578bae06c",
       "mode": "100644",
-      "sha256": "13b39ed168002471961e4e69bc467416c13f6be5aa4f76a9de448e38a27d8ae5"
+      "sha256": "8e8b0a593cc45dc2069889928458b75a014a73db5b7453ba22d0650cfa4914fc"
     },
     ".gitleaks.toml": {
       "concepts": [],
@@ -5803,15 +5803,15 @@
     },
     "deploy/ot-pilot/credential_topology.yaml": {
       "concepts": [],
-      "git_blob": "a05c124e6d14cf35ca371b110708042d7fae9411",
+      "git_blob": "1bc27e948cc8994520a1d12c13977d4c664aea99",
       "mode": "100644",
-      "sha256": "df9587a6a0d0ebbfcf5898597119e4d23c8225af15e90f788db47ca0661758ee"
+      "sha256": "5562feef4a95e164bfab54604d121a9219ef1ad65195178e4d65fff4ef5ed9e4"
     },
     "deploy/ot-pilot/docker-compose.yml": {
       "concepts": [],
-      "git_blob": "114e4065bac7d1095ff5bd65f1601054a74e79c9",
+      "git_blob": "e7683eb81c56f4fd44a1840d82d2b4bbd954e92d",
       "mode": "100644",
-      "sha256": "28ecad2b33d1c56db309e3a728fc2b3fc32133078cf5cfb78c44aa758d1e4b45"
+      "sha256": "51db7f87ebd6bbae984aa4ef42e8a1e4b72cba66fa59bfc6620e20d58668ea94"
     },
     "deploy/ot-pilot/effect_verifier.py": {
       "concepts": [],
@@ -5841,9 +5841,9 @@
     },
     "deploy/ot-pilot/ot_registry.py": {
       "concepts": [],
-      "git_blob": "95b27a462ea4d7769a51afb88487a132f57ef0c6",
+      "git_blob": "5f911e19a5ae84dce8069ae5faf077fbeb4825be",
       "mode": "100644",
-      "sha256": "b081a1d33b93a1b2d45117573f5b942889cd00336d0c1fcbfdaeb71f553bccb8"
+      "sha256": "10a982aca634ced842ab7c6567431d43303505cf3bd50662402d8adac83fc629"
     },
     "deploy/ot-pilot/ot_ws1.py": {
       "concepts": [
@@ -5861,9 +5861,9 @@
     },
     "deploy/ot-pilot/pilot_host.py": {
       "concepts": [],
-      "git_blob": "21663e5a4f44e73ee988a7246708752aa0c889dd",
+      "git_blob": "452c24948e51f91b77632f15f7e36c65611a2d87",
       "mode": "100644",
-      "sha256": "a1233096bed4b336cb5fabf76cfebac37c1cfe969bb522ca85acdc3e136a5dda"
+      "sha256": "256a8ba4114288085f0be537f7faa7dd8fa814eb6a2fb5983c92267017935eb4"
     },
     "deploy/ot-pilot/plant/Dockerfile": {
       "concepts": [],
@@ -5879,9 +5879,9 @@
     },
     "deploy/ot-pilot/plant_model.py": {
       "concepts": [],
-      "git_blob": "ff9a775e0aedf77363b90c0af5bb854335987ff8",
+      "git_blob": "0b0d48cd821e9589935fa66a0a0376105b7ddaef",
       "mode": "100644",
-      "sha256": "5fa0adb833b7c16a4e3817d0496b6b938796f6f8308b553e32ff687b53ef704d"
+      "sha256": "85cbb8d847e7cfe8daecb2f82926ed6bd19e368f86830c77e3f894b9fe5bb553"
     },
     "deploy/ot-pilot/plant_service.py": {
       "concepts": [],
@@ -5897,15 +5897,15 @@
     },
     "deploy/ot-pilot/run_boundary_assessment.py": {
       "concepts": [],
-      "git_blob": "38038e6ba908536a8f2848ecfb8cb06112a20ef3",
+      "git_blob": "979c06dbaebd4c0aa1761c54f73045bf026eb483",
       "mode": "100644",
-      "sha256": "570331e16e7f6db35c2bce6e5859d1eec6d7f90b3c2a9b03af342da256fed815"
+      "sha256": "a1ce8a1ab635f67c5df40fbb4b7adcdc357e0ddb579cdf9bea6afeb90721426d"
     },
     "deploy/ot-pilot/run_boundary_suite.py": {
       "concepts": [],
-      "git_blob": "86458534e4705840fa523002d9306ba87337de4c",
+      "git_blob": "9b9cba1c730d93274676154299d1e6fba8621ff9",
       "mode": "100644",
-      "sha256": "cf5cdf6321e439d962f85900087280de6a2b11770ba705901c5b358486f52b97"
+      "sha256": "f15ffc3243159829b4cb2769d9f479c14d9aa1074f0c4f92ef63b45d1298b67c"
     },
     "deploy/ot-pilot/run_effect_verification.py": {
       "concepts": [],
@@ -14402,9 +14402,9 @@
     },
     "remora/toolcall/semantic_bundle.py": {
       "concepts": [],
-      "git_blob": "a0cf0e93121e7259199a0c4eed9730d97320b2c1",
+      "git_blob": "969801b57d9f2bc4c8c78c277cb7a0cca520d925",
       "mode": "100644",
-      "sha256": "452dc58f999ffc7d2d284a637675a784318b1451c18e11089a4bce3afa9a7f05"
+      "sha256": "070332f00c2abecea706e374ef57199f466802e23e6c14c8bf92a0d72c329a01"
     },
     "remora/toolcall/signed_surface_runtime.py": {
       "concepts": [],
@@ -16189,9 +16189,9 @@
     },
     "scripts/check_ot_pilot_topology.py": {
       "concepts": [],
-      "git_blob": "5d278a28df1877468a2784ddc3f9ff2fb29fa63f",
+      "git_blob": "abae101a212f6d86b254b28afabf44acc5003b1e",
       "mode": "100644",
-      "sha256": "b878af6917a4108b3053324185451188f7d73be719e1b4a3b0997da3136409ad"
+      "sha256": "1e63cab4204770e1eeab137988e0d487ff935c322355f8187bcb3056578caed6"
     },
     "scripts/check_outbound_provenance.py": {
       "concepts": [],
@@ -21010,15 +21010,15 @@
     },
     "tests/test_ot_pilot_intent_scope.py": {
       "concepts": [],
-      "git_blob": "e414b63f1b5e3d57022422238dfc25d6014628bf",
+      "git_blob": "c3034bfdaa97142d1f18eb6099685cda13578774",
       "mode": "100644",
-      "sha256": "e0f1ebee2b1f5f7a95b7198518666664fdd0e1f3021e2348ab5fce8ee2b0486c"
+      "sha256": "9b964baa2951f4943b11723789c60bc5ea8cc89f2a2b01adfc785554382a970f"
     },
     "tests/test_ot_pilot_plant_boundary.py": {
       "concepts": [],
-      "git_blob": "1a9c235f8ff692d99cb6da0dd24ef73e98dd6dda",
+      "git_blob": "18a6651e74d4e27ddafc821984631e0d7804d552",
       "mode": "100644",
-      "sha256": "4473efa40f8295e64d6c22a423a20f72af8c36653d363f9087862f1eebc0fcb2"
+      "sha256": "2296c914a3e8d75dce6b22436f9bfec1b65bebeedbc6bda8b7002f209d780c85"
     },
     "tests/test_ot_pilot_tool_metadata.py": {
       "concepts": [
@@ -23371,7 +23371,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "dad879022b33f47507125300b4f7ed62e4d28035074f8d3ebae8afdb8932385e",
+  "register_sha256": "ba0a88bd0a7fbce5c5493cefc0a6b1d27307d90fbdb8889670cde1144a6cf432",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
