@@ -3591,6 +3591,12 @@
       "mode": "100644",
       "sha256": "98371aeb9aff3751b0cc62c12d4dec5102079060f67110dcff0860916b77cde6"
     },
+    "artifacts/ot-pilot/limits-holdout-v3/holdout/review-flags.json": {
+      "concepts": [],
+      "git_blob": "3688545ce8c17ed35eb5a727c4c9959fb669da64",
+      "mode": "100644",
+      "sha256": "d8f887d79f4b5e8d6791cf470fb01f10d44e48e81d52f16375da68a0b8b091ee"
+    },
     "artifacts/ot-pilot/limits-holdout-v3/holdout/shifts-E.json": {
       "concepts": [],
       "git_blob": "9628531a83df629585bdb106fc9261106dfc3d1a",
@@ -23029,7 +23035,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "3209ed4511dd1cca325c54981ed85b2786b6de93051ea8d94fbf35bef02bebb9",
+  "register_sha256": "7985af03608ff6804cfd0ff16d154cda0a13ddcfa7b025cbf9f6cda37a147b20",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
