@@ -6022,6 +6022,29 @@ same 26 shifts (post hoc, `holdout/sensitivity-refused-by-hand.json`). An
 independent review reproduced the result and agreed with the replay on every
 write. The review's caveats are recorded in the plan.
 
+Update 2026-11-06: the recalibrated policy on a new holdout. The pilot's
+policy was recalibrated by a rule fixed beforehand (the development set and
+the brief's operating bands, never holdout v1), and its signing authority was
+replaced. FIC-220 = 0 is now a declared safe value: a write of exactly that is
+never charged or refused (`remora/enforcement/cumulative_limits.py`,
+`tests/limits/test_limits_safe_values.py`). Plan v2
+(`docs/assurance/ot_limits_holdout_plan_v2.md`, DOC-427) measured it on 40 new
+blind shifts, 363 writes (`artifacts/ot-pilot/limits-holdout-v2/`).
+
+- A legitimate write was refused in 3 of 40 shifts (7.5 %, Wilson 95 % 2.6 to
+  19.9 %) and 7 of 363 writes. That is inconclusive under the plan's 10 %:
+  the point estimate is below it, and the interval is not.
+- All three moves of delivery to zero ran. The remaining refusals are PIC-101
+  movement (5) and valve travel (2). Five of them are in one shift, where the
+  pressure setpoint is lowered for a stop and brought back.
+- The bounds are looser, which is the cost: FIC-220 may move 180 m3/h per
+  hour where it moved 10. How much further a runaway agent gets under the new
+  bounds was not measured.
+
+This finding stays open. The utility cost is much smaller on this evidence,
+the interval does not settle it, and the protective cost of the looser bounds
+is unmeasured.
+
 ## §98 The review path handed back an unspent grant when the admission refused (2026-10-24)
 <!-- finding-status: open -->
 

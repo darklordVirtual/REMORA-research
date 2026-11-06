@@ -328,8 +328,8 @@ def f_spent_grant_stays_spent_across_restart(rec: dict) -> bool:
 
 
 def f_limits_survive_restart(rec: dict) -> bool:
-    # valve-travel allows 60 % of travel per hour across every valve. 50 now,
-    # a restart, then 11 more must refuse; 10 more must not.
+    # valve-travel allows 70 % of travel per hour per valve (recalibrated
+    # 2026-11-06). 50 now, a restart, then 21 more must refuse; 20 more must not.
     tc = tool_call("set_valve_position", {"valve": "V-12", "position_pct": 65}, "WO-1204")
     item = approved_item(tc)
     s1, b1 = execute(item, tc)
@@ -337,9 +337,9 @@ def f_limits_survive_restart(rec: dict) -> bool:
     rec["api_back"] = wait_healthy()
     # The simulated plant restarted at V-12 = 15, so movement is measured from 15.
     over_status, over = propose(tool_call("set_valve_position",
-                                          {"valve": "V-12", "position_pct": 26}, "WO-1204"))
+                                          {"valve": "V-12", "position_pct": 36}, "WO-1204"))
     under_status, _ = propose(tool_call("set_valve_position",
-                                        {"valve": "V-12", "position_pct": 25}, "WO-1204"))
+                                        {"valve": "V-12", "position_pct": 35}, "WO-1204"))
     rec.update(first_move_executed=executed(b1), over_cap=over_status,
                over_cap_reason=(over or {}).get("detail"), under_cap=under_status)
     rec["completed_writes"] = int(executed(b1) is True)

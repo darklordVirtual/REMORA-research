@@ -123,23 +123,43 @@ def test_the_battery_writes_still_run(pilot):
 
 def test_small_setpoint_moves_cannot_add_up(pilot):
     client = pilot()
-    # 0.50 bar of PIC-101 movement per hour: 4.00 -> 3.80 -> 4.00 -> 3.90 is 0.50.
-    for value in (3.8, 4.0, 3.9):
+    # 1.60 bar of PIC-101 movement per hour (recalibrated 2026-11-06, plan v2):
+    # 4.00 -> 3.60 -> 4.00 -> 3.60 -> 4.00 is 1.60, and one more 0.10 is past it.
+    for value in (3.6, 4.0, 3.6, 4.0):
         assert run(client, payload("adjust_setpoint", "WO-1201", loop="PIC-101",
                                    value=value))["executed"] is True
     assert run(client, payload("adjust_setpoint", "WO-1201", loop="PIC-101",
-                               value=3.8)) == {"stage": "assess", "status": 409,
+                               value=3.9)) == {"stage": "assess", "status": 409,
                                                "detail": "limit_exceeded"}
 
 
 def test_valve_strokes_cannot_add_up(pilot):
     client = pilot()
-    # 60 percent of travel per valve per hour: 15 -> 35 -> 15 -> 35 is 60.
-    for position in (35, 15, 35):
+    # 70 percent of travel per valve per hour: 15 -> 50 -> 15 is 70.
+    for position in (50, 15):
         assert run(client, payload("set_valve_position", "WO-1204", valve="V-12",
                                    position_pct=position))["executed"] is True
     assert run(client, payload("set_valve_position", "WO-1204", valve="V-12",
-                               position_pct=30))["detail"] == "limit_exceeded"
+                               position_pct=16))["detail"] == "limit_exceeded"
+
+
+def test_delivery_to_zero_runs_on_a_spent_hour_and_the_restart_is_metered(pilot):
+    """FIC-220 = 0 is the pilot's declared safe value. After the hour's 180 m3/h
+    of movement is spent, the stop still runs and is charged nothing; moving
+    away from zero again is charged, and refused while the hour is spent."""
+    client = pilot()
+    import ot_registry
+
+    for value in (160.0, 80.0, 140.0):          # 40 + 80 + 60 = 180, the hour's limit
+        assert run(client, payload("adjust_setpoint", "WO-1201", loop="FIC-220",
+                                   value=value))["executed"] is True
+    assert run(client, payload("adjust_setpoint", "WO-1201", loop="FIC-220",
+                               value=141.0))["detail"] == "limit_exceeded"
+    assert run(client, payload("adjust_setpoint", "WO-1201", loop="FIC-220",
+                               value=0.0))["executed"] is True
+    assert ot_registry.PLANT["loops"]["FIC-220"]["setpoint"] == 0.0
+    assert run(client, payload("adjust_setpoint", "WO-1201", loop="FIC-220",
+                               value=20.0))["detail"] == "limit_exceeded"
 
 
 def test_a_write_tool_the_limits_forget_is_refused(pilot):
@@ -162,8 +182,8 @@ def test_an_outside_change_at_the_plant_is_measured_not_assumed(pilot):
     client = pilot()
     import ot_registry
 
-    ot_registry.PLANT["loops"]["PIC-101"]["setpoint"] = 3.5  # changed at the plant
-    # 3.50 -> 4.00 is 0.50 of movement at the plant: the whole hour's limit.
+    ot_registry.PLANT["loops"]["PIC-101"]["setpoint"] = 2.4  # changed at the plant
+    # 2.40 -> 4.00 is 1.60 of movement at the plant: the whole hour's limit.
     assert run(client, payload("adjust_setpoint", "WO-1201", loop="PIC-101",
                                value=4.0))["executed"] is True
     assert run(client, payload("adjust_setpoint", "WO-1201", loop="PIC-101",
