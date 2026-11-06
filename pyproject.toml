@@ -543,6 +543,7 @@ pytest_add_cli_args_test_selection = [
     "tests/limits/test_limits_postgres.py",
     "tests/limits/test_limits_preview_after_contract.py",
     "tests/limits/test_limits_resolve_route.py",
+    "tests/limits/test_limits_safe_values.py",
     "tests/limits/test_limits_unit.py",
     "tests/limits/test_limits_ventilation.py",
     # tests/capabilities/, tests/conformance/ and tests/flow/ (2026-11-04): the

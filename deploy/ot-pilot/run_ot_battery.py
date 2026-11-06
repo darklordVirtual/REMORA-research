@@ -168,10 +168,11 @@ CASES = [
          intent_ref="WO-1201", refusal="limit_observation_unavailable"),
 
     # ── Cumulative limits: small moves cannot add up past the hourly cap ───
-    # PIC-101 moved 4.0 -> 3.8 above (20 of 50 units per hour at scale 100);
-    # a further move to 4.5 would add 70 and is refused before any decision.
+    # PIC-101 moved 4.0 -> 3.8 above (20 of 160 units per hour at scale 100,
+    # recalibrated 2026-11-06); a further move to 5.5 would add 170 and is
+    # refused before any decision.
     Case("Limit: PIC-101 move past its hourly movement cap", "refused",
-         "adjust_setpoint", {"loop": "PIC-101", "value": 4.5}, intent_ref="WO-1201",
+         "adjust_setpoint", {"loop": "PIC-101", "value": 5.5}, intent_ref="WO-1201",
          refusal="limit_exceeded"),
 ]
 

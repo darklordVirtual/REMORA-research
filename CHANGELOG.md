@@ -4,6 +4,12 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### OT pilot limits: safe values, a recalibrated signed policy, and holdout v2 (§97, 2026-11-06)
+
+- `remora/enforcement/cumulative_limits.py`: a change meter may declare `safe_values` per resource. A write of exactly that value is never refused by a movement limit and is charged nothing, at reservation or after the fact, and the fence does not stop it. Moving away from it is charged as any move. CAP-031 is re-audited. Tests: `tests/limits/test_limits_safe_values.py` (18).
+- `deploy/ot-pilot/limits.json` is recalibrated by a rule fixed beforehand: PIC-101 1.60 bar per hour, FIC-220 180 m3/h, valve travel 70 %, 6 acknowledgements per alarm. It declares FIC-220 = 0 safe and is signed by a new limit authority, whose seed is outside the repository. This loosens the pilot's limits, as the owner decided on 2026-11-06. The v1 policy is kept with its key, so holdout v1 reproduces.
+- Holdout v2 (`docs/assurance/ot_limits_holdout_plan_v2.md`, DOC-427) gave a refusal in 3 of 40 new blind shifts (7.5 %, Wilson 2.6 to 19.9 %) and 7 of 363 writes. That is inconclusive under the plan's 10 %. All three moves of delivery to zero ran, and the protective cost of the looser bounds is unmeasured.
+
 ### OT pilot limits: the first holdout of legitimate writes is a negative result (§97, 2026-11-05)
 
 - `docs/assurance/ot_limits_holdout_plan_v1.md` (DOC-426) fixed the measurement before any data. Separate sessions, blind to `limits.json`, wrote 40 operator shifts (392 writes) from `artifacts/ot-pilot/limits-holdout-v1/author-brief.md`. A further session flagged none as implausible, and the shifts were sealed by SHA-256 before the replay read them. `scripts/run_limits_holdout.py` replays them through the pilot's signed policy and the API's own `LimitGuard` with the shift's clock (tests: `tests/test_limits_holdout_replay.py`, 17).
