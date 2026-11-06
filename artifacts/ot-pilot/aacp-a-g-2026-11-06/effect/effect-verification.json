@@ -1,6 +1,6 @@
 {
  "schema": "ot-pilot-effect-verification/v1",
- "started_at": "2026-11-06T16:01:21.669060+00:00",
+ "started_at": "2026-11-06T16:19:06.596698+00:00",
  "honest": {
   "cases": [
    {
@@ -16,7 +16,7 @@
      "reasons": [
       "evidence_insufficient"
      ],
-     "proposal_id": "c877fdce-dc80-4e44-8cff-92e902b4719f",
+     "proposal_id": "4cae7ce7-8d6b-49f7-a3e1-ecd32b872fe3",
      "detail": null,
      "approve_status": 200,
      "execute_status": 200,
@@ -37,7 +37,7 @@
       "scope": "declared_delta_only",
       "verdict_source": "computed",
       "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
-      "verified_at": "2026-11-06T16:02:02.808514+00:00",
+      "verified_at": "2026-11-06T16:19:47.602724+00:00",
       "effect_state": "EFFECT_VERIFIED"
      },
      "history": [
@@ -45,7 +45,7 @@
        "status": "EFFECT_VERIFIED",
        "reason_code": "postcondition_verified",
        "vantage": "independent",
-       "verified_at": "2026-11-06T16:02:02.808514+00:00"
+       "verified_at": "2026-11-06T16:19:47.602724+00:00"
       }
      ]
     },
@@ -66,7 +66,7 @@
      "reasons": [
       "evidence_insufficient"
      ],
-     "proposal_id": "36e11e3c-798d-4db0-87ba-162b05a23012",
+     "proposal_id": "22a35aef-3a2d-41ba-904a-5564a28c8b26",
      "detail": null,
      "approve_status": 200,
      "execute_status": 200,
@@ -87,7 +87,7 @@
       "scope": "declared_delta_only",
       "verdict_source": "computed",
       "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
-      "verified_at": "2026-11-06T16:02:04.900271+00:00",
+      "verified_at": "2026-11-06T16:19:49.709167+00:00",
       "effect_state": "EFFECT_VERIFIED"
      },
      "history": [
@@ -95,7 +95,7 @@
        "status": "EFFECT_VERIFIED",
        "reason_code": "postcondition_verified",
        "vantage": "independent",
-       "verified_at": "2026-11-06T16:02:04.900271+00:00"
+       "verified_at": "2026-11-06T16:19:49.709167+00:00"
       }
      ]
     },
@@ -115,7 +115,7 @@
      "reasons": [
       "evidence_insufficient"
      ],
-     "proposal_id": "1a20f7b4-2ab3-4c15-b1bf-1f6bef9fb60b",
+     "proposal_id": "1368e48c-7959-477e-bfda-1263df7b4938",
      "detail": null,
      "approve_status": 200,
      "execute_status": 200,
@@ -135,7 +135,7 @@
       "scope": "declared_delta_only",
       "verdict_source": "computed",
       "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
-      "verified_at": "2026-11-06T16:02:06.991023+00:00",
+      "verified_at": "2026-11-06T16:19:51.805691+00:00",
       "effect_state": "EFFECT_VERIFIED"
      },
      "history": [
@@ -143,7 +143,7 @@
        "status": "EFFECT_VERIFIED",
        "reason_code": "postcondition_verified",
        "vantage": "independent",
-       "verified_at": "2026-11-06T16:02:06.991023+00:00"
+       "verified_at": "2026-11-06T16:19:51.805691+00:00"
       }
      ]
     },
@@ -163,7 +163,7 @@
      "reasons": [
       "evidence_insufficient"
      ],
-     "proposal_id": "7852adbf-fb7c-48bb-86ba-cd49628621bc",
+     "proposal_id": "7c35e98c-d356-4c9b-b7d6-0bc1af26bec9",
      "detail": null,
      "approve_status": 200,
      "execute_status": 200,
@@ -183,7 +183,7 @@
       "scope": "declared_delta_only",
       "verdict_source": "computed",
       "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
-      "verified_at": "2026-11-06T16:02:09.080508+00:00",
+      "verified_at": "2026-11-06T16:19:53.903676+00:00",
       "effect_state": "EFFECT_VERIFIED"
      },
      "history": [
@@ -191,7 +191,7 @@
        "status": "EFFECT_VERIFIED",
        "reason_code": "postcondition_verified",
        "vantage": "independent",
-       "verified_at": "2026-11-06T16:02:09.080508+00:00"
+       "verified_at": "2026-11-06T16:19:53.903676+00:00"
       }
      ]
     },
@@ -211,7 +211,7 @@
      "reasons": [
       "evidence_insufficient"
      ],
-     "proposal_id": "f1f5d003-0207-4fda-8caa-4ffd44e00aeb",
+     "proposal_id": "b885b2a8-ee5d-4fd0-8f9b-9d34a18dcdd1",
      "detail": null,
      "approve_status": 200,
      "execute_status": 200,
@@ -231,7 +231,7 @@
       "scope": "declared_delta_only",
       "verdict_source": "computed",
       "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
-      "verified_at": "2026-11-06T16:02:11.159725+00:00",
+      "verified_at": "2026-11-06T16:19:55.997814+00:00",
       "effect_state": "EFFECT_VERIFIED"
      },
      "history": [
@@ -239,7 +239,7 @@
        "status": "EFFECT_VERIFIED",
        "reason_code": "postcondition_verified",
        "vantage": "independent",
-       "verified_at": "2026-11-06T16:02:11.159725+00:00"
+       "verified_at": "2026-11-06T16:19:55.997814+00:00"
       }
      ]
     },
@@ -252,7 +252,7 @@
    "plant_faults": {},
    "results": [
     {
-     "proposal_id": "1a20f7b4-2ab3-4c15-b1bf-1f6bef9fb60b",
+     "proposal_id": "1368e48c-7959-477e-bfda-1263df7b4938",
      "tool_name": "acknowledge_alarm",
      "http": 200,
      "status": "EFFECT_VERIFIED",
@@ -270,7 +270,7 @@
      "attempts": 1
     },
     {
-     "proposal_id": "36e11e3c-798d-4db0-87ba-162b05a23012",
+     "proposal_id": "22a35aef-3a2d-41ba-904a-5564a28c8b26",
      "tool_name": "set_valve_position",
      "http": 200,
      "status": "EFFECT_VERIFIED",
@@ -288,25 +288,7 @@
      "attempts": 1
     },
     {
-     "proposal_id": "7852adbf-fb7c-48bb-86ba-cd49628621bc",
-     "tool_name": "create_work_order",
-     "http": 200,
-     "status": "EFFECT_VERIFIED",
-     "reason_code": "postcondition_verified",
-     "vantage": "independent",
-     "detail": null,
-     "observed": {
-      "id": "WO-1310",
-      "kind": "work_order",
-      "revision": 1,
-      "status": "open"
-     },
-     "source_revision": "1",
-     "pre_state_revision": "0",
-     "attempts": 1
-    },
-    {
-     "proposal_id": "c877fdce-dc80-4e44-8cff-92e902b4719f",
+     "proposal_id": "4cae7ce7-8d6b-49f7-a3e1-ecd32b872fe3",
      "tool_name": "adjust_setpoint",
      "http": 200,
      "status": "EFFECT_VERIFIED",
@@ -324,7 +306,25 @@
      "attempts": 1
     },
     {
-     "proposal_id": "f1f5d003-0207-4fda-8caa-4ffd44e00aeb",
+     "proposal_id": "7c35e98c-d356-4c9b-b7d6-0bc1af26bec9",
+     "tool_name": "create_work_order",
+     "http": 200,
+     "status": "EFFECT_VERIFIED",
+     "reason_code": "postcondition_verified",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "WO-1310",
+      "kind": "work_order",
+      "revision": 1,
+      "status": "open"
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    },
+    {
+     "proposal_id": "b885b2a8-ee5d-4fd0-8f9b-9d34a18dcdd1",
      "tool_name": "close_work_order",
      "http": 200,
      "status": "EFFECT_VERIFIED",
@@ -424,7 +424,7 @@
      "reasons": [
       "evidence_insufficient"
      ],
-     "proposal_id": "c4bc2620-6fbe-42eb-9efe-2a6d9b07cef9",
+     "proposal_id": "4a22c5b5-7599-4806-b95b-cc9d514b7fe1",
      "detail": null,
      "approve_status": 200,
      "execute_status": 200,
@@ -445,7 +445,7 @@
       "scope": "declared_delta_only",
       "verdict_source": "computed",
       "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
-      "verified_at": "2026-11-06T16:02:53.882178+00:00",
+      "verified_at": "2026-11-06T16:20:37.635628+00:00",
       "effect_state": "EFFECT_MISMATCH"
      },
      "history": [
@@ -453,7 +453,7 @@
        "status": "EFFECT_MISMATCH",
        "reason_code": "postcondition_field_mismatch",
        "vantage": "independent",
-       "verified_at": "2026-11-06T16:02:53.882178+00:00"
+       "verified_at": "2026-11-06T16:20:37.635628+00:00"
       }
      ]
     },
@@ -474,7 +474,7 @@
      "reasons": [
       "evidence_insufficient"
      ],
-     "proposal_id": "55a99c45-a743-4cc2-a48d-fa4b033dde5f",
+     "proposal_id": "e36320e8-415a-4dd9-9e1a-92c5ee310d9f",
      "detail": null,
      "approve_status": 200,
      "execute_status": 200,
@@ -495,7 +495,7 @@
       "scope": "declared_delta_only",
       "verdict_source": "computed",
       "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
-      "verified_at": "2026-11-06T16:02:55.977456+00:00",
+      "verified_at": "2026-11-06T16:20:39.734581+00:00",
       "effect_state": "EFFECT_MISMATCH"
      },
      "history": [
@@ -503,7 +503,7 @@
        "status": "EFFECT_MISMATCH",
        "reason_code": "postcondition_effect_absent",
        "vantage": "independent",
-       "verified_at": "2026-11-06T16:02:55.977456+00:00"
+       "verified_at": "2026-11-06T16:20:39.734581+00:00"
       }
      ]
     },
@@ -523,7 +523,7 @@
      "reasons": [
       "evidence_insufficient"
      ],
-     "proposal_id": "7cca7265-c157-497c-9d1a-129ed65fc593",
+     "proposal_id": "96830997-583b-4e45-9f95-1e74a74a6195",
      "detail": null,
      "approve_status": 200,
      "execute_status": 200,
@@ -543,7 +543,7 @@
       "scope": "declared_delta_only",
       "verdict_source": "computed",
       "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
-      "verified_at": "2026-11-06T16:03:02.218264+00:00",
+      "verified_at": "2026-11-06T16:20:45.975549+00:00",
       "effect_state": "EFFECT_UNKNOWN"
      },
      "history": [
@@ -551,19 +551,19 @@
        "status": "EFFECT_UNOBSERVABLE",
        "reason_code": "postcondition_object_absent",
        "vantage": "independent",
-       "verified_at": "2026-11-06T16:02:58.064283+00:00"
+       "verified_at": "2026-11-06T16:20:41.828996+00:00"
       },
       {
        "status": "EFFECT_UNOBSERVABLE",
        "reason_code": "postcondition_object_absent",
        "vantage": "independent",
-       "verified_at": "2026-11-06T16:03:00.137812+00:00"
+       "verified_at": "2026-11-06T16:20:43.900889+00:00"
       },
       {
        "status": "EFFECT_UNOBSERVABLE",
        "reason_code": "postcondition_object_absent",
        "vantage": "independent",
-       "verified_at": "2026-11-06T16:03:02.218264+00:00"
+       "verified_at": "2026-11-06T16:20:45.975549+00:00"
       }
      ]
     },
@@ -583,7 +583,7 @@
      "reasons": [
       "evidence_insufficient"
      ],
-     "proposal_id": "3c62bca8-986a-4e05-ba97-098ba72398f7",
+     "proposal_id": "7e8be0a0-a034-4713-ac17-06ff482d99a1",
      "detail": null,
      "approve_status": 200,
      "execute_status": 200,
@@ -603,7 +603,7 @@
       "scope": "declared_delta_only",
       "verdict_source": "computed",
       "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
-      "verified_at": "2026-11-06T16:03:10.369538+00:00",
+      "verified_at": "2026-11-06T16:20:54.147786+00:00",
       "effect_state": "EFFECT_VERIFIED"
      },
      "history": [
@@ -611,7 +611,7 @@
        "status": "EFFECT_VERIFIED",
        "reason_code": "postcondition_verified",
        "vantage": "independent",
-       "verified_at": "2026-11-06T16:03:10.369538+00:00"
+       "verified_at": "2026-11-06T16:20:54.147786+00:00"
       }
      ]
     },
@@ -637,7 +637,25 @@
    },
    "results": [
     {
-     "proposal_id": "3c62bca8-986a-4e05-ba97-098ba72398f7",
+     "proposal_id": "4a22c5b5-7599-4806-b95b-cc9d514b7fe1",
+     "tool_name": "set_valve_position",
+     "http": 200,
+     "status": "EFFECT_MISMATCH",
+     "reason_code": "postcondition_field_mismatch",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "V-12",
+      "kind": "valve",
+      "pct": 20,
+      "revision": 1
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    },
+    {
+     "proposal_id": "7e8be0a0-a034-4713-ac17-06ff482d99a1",
      "tool_name": "close_work_order",
      "http": 200,
      "status": "EFFECT_VERIFIED",
@@ -655,7 +673,20 @@
      "attempts": 1
     },
     {
-     "proposal_id": "55a99c45-a743-4cc2-a48d-fa4b033dde5f",
+     "proposal_id": "96830997-583b-4e45-9f95-1e74a74a6195",
+     "tool_name": "acknowledge_alarm",
+     "http": 200,
+     "status": "EFFECT_UNOBSERVABLE",
+     "reason_code": "postcondition_object_absent",
+     "vantage": "independent",
+     "detail": null,
+     "observed": null,
+     "source_revision": "",
+     "pre_state_revision": "0",
+     "attempts": 3
+    },
+    {
+     "proposal_id": "e36320e8-415a-4dd9-9e1a-92c5ee310d9f",
      "tool_name": "adjust_setpoint",
      "http": 200,
      "status": "EFFECT_MISMATCH",
@@ -669,37 +700,6 @@
       "setpoint": 4.0
      },
      "source_revision": "0",
-     "pre_state_revision": "0",
-     "attempts": 1
-    },
-    {
-     "proposal_id": "7cca7265-c157-497c-9d1a-129ed65fc593",
-     "tool_name": "acknowledge_alarm",
-     "http": 200,
-     "status": "EFFECT_UNOBSERVABLE",
-     "reason_code": "postcondition_object_absent",
-     "vantage": "independent",
-     "detail": null,
-     "observed": null,
-     "source_revision": "",
-     "pre_state_revision": "0",
-     "attempts": 3
-    },
-    {
-     "proposal_id": "c4bc2620-6fbe-42eb-9efe-2a6d9b07cef9",
-     "tool_name": "set_valve_position",
-     "http": 200,
-     "status": "EFFECT_MISMATCH",
-     "reason_code": "postcondition_field_mismatch",
-     "vantage": "independent",
-     "detail": null,
-     "observed": {
-      "id": "V-12",
-      "kind": "valve",
-      "pct": 20,
-      "revision": 1
-     },
-     "source_revision": "1",
      "pre_state_revision": "0",
      "attempts": 1
     }
@@ -727,118 +727,118 @@
   },
   "plant_journal": [
    {
-    "at": 1793980967.7946253,
+    "at": 1793982031.5500052,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /journal",
     "seq": 1,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980967.7967305,
+    "at": 1793982031.5520859,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /digest",
     "seq": 2,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980969.8154202,
+    "at": 1793982033.57217,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /journal",
     "seq": 3,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980969.817162,
+    "at": 1793982033.5745897,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /digest",
     "seq": 4,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980971.8445053,
+    "at": 1793982035.5947893,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /journal",
     "seq": 5,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980971.8471951,
+    "at": 1793982035.596865,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /digest",
     "seq": 6,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980972.5449326,
+    "at": 1793982036.4795892,
     "credential": "writer",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /observe/valve_travel/V-12",
     "seq": 7,
-    "source": "172.21.0.3",
+    "source": "172.19.0.3",
     "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980973.1888227,
+    "at": 1793982037.1921494,
     "credential": "writer",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /observe/valve_travel/V-12",
     "seq": 8,
-    "source": "172.21.0.3",
+    "source": "172.19.0.3",
     "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980973.2541687,
+    "at": 1793982037.2491343,
     "credential": "writer",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /observe/valve_travel/V-12",
     "seq": 9,
-    "source": "172.21.0.3",
+    "source": "172.19.0.3",
     "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
     "status": 200,
     "tool": null
@@ -848,9 +848,9 @@
      "position_pct": 30,
      "valve": "V-12"
     },
-    "at": 1793980973.2588956,
+    "at": 1793982037.2540932,
     "credential": "writer",
-    "dispatch_ref": "c4bc2620-6fbe-42eb-9efe-2a6d9b07cef9",
+    "dispatch_ref": "4a22c5b5-7599-4806-b95b-cc9d514b7fe1",
     "fault": [
      "clamp",
      20
@@ -865,123 +865,123 @@
     "rev_after": 1,
     "rev_before": 0,
     "seq": 10,
-    "source": "172.21.0.3",
+    "source": "172.19.0.3",
     "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
     "tool": "set_valve_position"
    },
    {
-    "at": 1793980973.264667,
+    "at": 1793982037.2607188,
     "credential": "writer",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /observe/valve_travel/V-12",
     "seq": 11,
-    "source": "172.21.0.3",
+    "source": "172.19.0.3",
     "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980973.8797739,
+    "at": 1793982037.6328123,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /journal",
     "seq": 12,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980973.8816912,
+    "at": 1793982037.6350021,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /objects/valve/V-12",
     "seq": 13,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980973.9395714,
+    "at": 1793982037.6943283,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /digest",
     "seq": 14,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980974.4386525,
+    "at": 1793982038.4409935,
     "credential": "writer",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /observe/setpoint_movement/PIC-101",
     "seq": 15,
-    "source": "172.21.0.3",
+    "source": "172.19.0.3",
     "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980974.4402752,
+    "at": 1793982038.4430852,
     "credential": "writer",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /observe/setpoint_movement/FIC-220",
     "seq": 16,
-    "source": "172.21.0.3",
+    "source": "172.19.0.3",
     "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980974.9938695,
+    "at": 1793982039.0187678,
     "credential": "writer",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /observe/setpoint_movement/PIC-101",
     "seq": 17,
-    "source": "172.21.0.3",
+    "source": "172.19.0.3",
     "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980974.9956594,
+    "at": 1793982039.0205953,
     "credential": "writer",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /observe/setpoint_movement/FIC-220",
     "seq": 18,
-    "source": "172.21.0.3",
+    "source": "172.19.0.3",
     "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980975.011668,
+    "at": 1793982039.0387712,
     "credential": "writer",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /observe/setpoint_movement/PIC-101",
     "seq": 19,
-    "source": "172.21.0.3",
+    "source": "172.19.0.3",
     "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
     "status": 200,
     "tool": null
@@ -991,9 +991,9 @@
      "loop": "PIC-101",
      "value": 3.9
     },
-    "at": 1793980975.0159855,
+    "at": 1793982039.0438275,
     "credential": "writer",
-    "dispatch_ref": "55a99c45-a743-4cc2-a48d-fa4b033dde5f",
+    "dispatch_ref": "e36320e8-415a-4dd9-9e1a-92c5ee310d9f",
     "fault": [
      "drop",
      null
@@ -1008,71 +1008,71 @@
     "rev_after": 0,
     "rev_before": 0,
     "seq": 20,
-    "source": "172.21.0.3",
+    "source": "172.19.0.3",
     "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
     "tool": "adjust_setpoint"
    },
    {
-    "at": 1793980975.022669,
+    "at": 1793982039.049926,
     "credential": "writer",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /observe/setpoint_movement/PIC-101",
     "seq": 21,
-    "source": "172.21.0.3",
+    "source": "172.19.0.3",
     "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980975.027133,
+    "at": 1793982039.0542984,
     "credential": "writer",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /observe/setpoint_movement/FIC-220",
     "seq": 22,
-    "source": "172.21.0.3",
+    "source": "172.19.0.3",
     "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980975.9749215,
+    "at": 1793982039.7322316,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /journal",
     "seq": 23,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980975.9768696,
+    "at": 1793982039.7341714,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /objects/loop/PIC-101",
     "seq": 24,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980976.0255094,
+    "at": 1793982039.787264,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /digest",
     "seq": 25,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
     "status": 200,
     "tool": null
@@ -1081,9 +1081,9 @@
     "arguments": {
      "alarm_id": "LT-410-HI"
     },
-    "at": 1793980976.8133893,
+    "at": 1793982040.794999,
     "credential": "writer",
-    "dispatch_ref": "7cca7265-c157-497c-9d1a-129ed65fc593",
+    "dispatch_ref": "96830997-583b-4e45-9f95-1e74a74a6195",
     "fault": [
      "hide",
      null
@@ -1097,201 +1097,201 @@
     "rev_after": 1,
     "rev_before": 0,
     "seq": 26,
-    "source": "172.21.0.3",
+    "source": "172.19.0.3",
     "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
     "tool": "acknowledge_alarm"
    },
    {
-    "at": 1793980978.0615835,
+    "at": 1793982041.826671,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /journal",
     "seq": 27,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980978.0636408,
+    "at": 1793982041.8285122,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "refused",
     "reason": "unknown alarm 'LT-410-HI'",
     "request": "GET /objects/alarm/LT-410-HI",
     "seq": 28,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
     "status": 404,
     "tool": null
    },
    {
-    "at": 1793980978.1167843,
+    "at": 1793982041.8760533,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /digest",
     "seq": 29,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980980.1354647,
+    "at": 1793982043.8985293,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /journal",
     "seq": 30,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980980.137205,
+    "at": 1793982043.900361,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "refused",
     "reason": "unknown alarm 'LT-410-HI'",
     "request": "GET /objects/alarm/LT-410-HI",
     "seq": 31,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
     "status": 404,
     "tool": null
    },
    {
-    "at": 1793980980.1889894,
+    "at": 1793982043.9489157,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /digest",
     "seq": 32,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980982.2159111,
+    "at": 1793982045.9729726,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /journal",
     "seq": 33,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980982.2176785,
+    "at": 1793982045.9749975,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "refused",
     "reason": "unknown alarm 'LT-410-HI'",
     "request": "GET /objects/alarm/LT-410-HI",
     "seq": 34,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
     "status": 404,
     "tool": null
    },
    {
-    "at": 1793980982.2618155,
+    "at": 1793982046.0377367,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /digest",
     "seq": 35,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980984.279941,
+    "at": 1793982048.0562148,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /journal",
     "seq": 36,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980984.2825923,
+    "at": 1793982048.058746,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /digest",
     "seq": 37,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980986.3039622,
+    "at": 1793982050.0766146,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /journal",
     "seq": 38,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980986.3061707,
+    "at": 1793982050.0792332,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /digest",
     "seq": 39,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980988.3239915,
+    "at": 1793982052.1024394,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /journal",
     "seq": 40,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980988.326175,
+    "at": 1793982052.1063075,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /digest",
     "seq": 41,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
     "status": 200,
     "tool": null
@@ -1300,9 +1300,9 @@
     "arguments": {
      "wo_id": "WO-1201"
     },
-    "at": 1793980989.8940148,
+    "at": 1793982053.936779,
     "credential": "writer",
-    "dispatch_ref": "3c62bca8-986a-4e05-ba97-098ba72398f7",
+    "dispatch_ref": "7e8be0a0-a034-4713-ac17-06ff482d99a1",
     "fault": null,
     "object": "work_order:WO-1201",
     "outcome": "applied",
@@ -1313,45 +1313,45 @@
     "rev_after": 1,
     "rev_before": 0,
     "seq": 42,
-    "source": "172.21.0.3",
+    "source": "172.19.0.3",
     "state_digest": "ab14060e3e0db021d14b89cc12aaf6e85200dedbc2e0573af3dd43c8eb930385",
     "tool": "close_work_order"
    },
    {
-    "at": 1793980990.3670385,
+    "at": 1793982054.145553,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /journal",
     "seq": 43,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "ab14060e3e0db021d14b89cc12aaf6e85200dedbc2e0573af3dd43c8eb930385",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980990.369,
+    "at": 1793982054.147289,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /objects/work_order/WO-1201",
     "seq": 44,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "ab14060e3e0db021d14b89cc12aaf6e85200dedbc2e0573af3dd43c8eb930385",
     "status": 200,
     "tool": null
    },
    {
-    "at": 1793980990.424982,
+    "at": 1793982054.1911907,
     "credential": "reader",
     "dispatch_ref": "",
     "outcome": "read",
     "reason": "",
     "request": "GET /digest",
     "seq": 45,
-    "source": "172.21.0.4",
+    "source": "172.19.0.4",
     "state_digest": "ab14060e3e0db021d14b89cc12aaf6e85200dedbc2e0573af3dd43c8eb930385",
     "status": 200,
     "tool": null
@@ -1359,7 +1359,7 @@
   ],
   "all_as_expected": true
  },
- "finished_at": "2026-11-06T16:03:11.623638+00:00",
+ "finished_at": "2026-11-06T16:20:55.633854+00:00",
  "summary": {
   "honest_as_expected": "5 of 5",
   "faults_as_expected": "4 of 4",

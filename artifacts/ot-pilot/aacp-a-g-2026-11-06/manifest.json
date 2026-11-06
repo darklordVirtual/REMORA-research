@@ -2,22 +2,22 @@
  "run_id": "aacp-a-g-2026-11-06",
  "purpose": "The OT pilot after the plant moved to its own trust domain and an independent effect verifier was added: battery, fault injection, the 24 independent scenarios, the E boundary procedure and the G effect-verification run, each on a stack reset with down -v.",
  "source": {
-  "image_built_from_commit": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
-  "note": "Built from the working tree at this commit with no uncommitted change in remora/, servers/ or deploy/.",
+  "image_built_from_commit": "5bcbdaa8ebf9ab50927cf0645aaa81f1578e56e8",
+  "note": "Images built from the working tree at 5bcbdaa8. The host-side runners ran from 564a553b, which differs from it only in deploy/ot-pilot/run_boundary_assessment.py (the record keeps a count of leaked credential values instead of names) and a test; neither file is in an image.",
   "build_note": "Built in a sandbox behind an egress proxy. The API image: docker build --network host, the proxy as build arguments, its CA bind-mounted for the pip step only (RUN --mount, not copied into the image). Docker Hub answered 429 to the base image's metadata request, so python:3.12-slim was pulled from mirror.gcr.io/library/python:3.12-slim and tagged locally; its digest is in images.base_image_digest. The console was not built or started.",
   "toolspec_note": "The ToolSpec bundle was re-signed (build_toolspec.py --force) after ot_registry.py changed. A first run on this build used the bundle signed before that change: REMORA refused the changed callables (toolspec_callable_digest_mismatch, HTTP 500 at execute) and nothing ran. That run is not used here; the re-signed run is."
  },
  "images": {
-  "api_image_id": "sha256:b0024efec4df5c91f6b6bc72e3847ff535ce41c70b39108a3cf4084bb2bf61b7",
-  "plant_image_id": "sha256:0656abe96162b8e09f5a0f618dc0dcecef79a00b418efca27300e320d6ff62db",
+  "api_image_id": "sha256:fb871ffa550910c87f959b64516865b9929bc25a9e21bab21ba0f592c690c8f1",
+  "plant_image_id": "sha256:cacff62edfee42c815e27d666b268d8c2ba374c40c37082f24ce00d1894669b2",
   "base_image_digest": "python@sha256:4840d514c583a4d3d8cad3940e68dee6f0f6f3635c12fcd0a3d74c21a5b93a54",
   "docker_server": "29.9.2"
  },
- "policy_hash": "sha256:6c7077ac84bae8e7ae8064215ea1f8b7a49519459b8538addda33defbd423dfd",
+ "policy_hash": "sha256:8043af3265e8ec143f47ad56d15c4ec4f2a182e4c458972665fcbf471311b088",
  "deployment_files": [
   {
    "path": "deploy/ot-pilot/docker-compose.yml",
-   "sha256": "28ecad2b33d1c56db309e3a728fc2b3fc32133078cf5cfb78c44aa758d1e4b45"
+   "sha256": "51db7f87ebd6bbae984aa4ef42e8a1e4b72cba66fa59bfc6620e20d58668ea94"
   },
   {
    "path": "deploy/ot-pilot/Dockerfile",
@@ -29,7 +29,7 @@
   },
   {
    "path": "deploy/ot-pilot/credential_topology.yaml",
-   "sha256": "df9587a6a0d0ebbfcf5898597119e4d23c8225af15e90f788db47ca0661758ee"
+   "sha256": "5562feef4a95e164bfab54604d121a9219ef1ad65195178e4d65fff4ef5ed9e4"
   },
   {
    "path": "deploy/ot-pilot/tool_metadata.json",
@@ -45,7 +45,7 @@
   },
   {
    "path": "deploy/ot-pilot/ot_registry.py",
-   "sha256": "b081a1d33b93a1b2d45117573f5b942889cd00336d0c1fcbfdaeb71f553bccb8"
+   "sha256": "10a982aca634ced842ab7c6567431d43303505cf3bd50662402d8adac83fc629"
   },
   {
    "path": "deploy/ot-pilot/ot_bundle.py",
@@ -61,7 +61,7 @@
   },
   {
    "path": "deploy/ot-pilot/plant_model.py",
-   "sha256": "5fa0adb833b7c16a4e3817d0496b6b938796f6f8308b553e32ff687b53ef704d"
+   "sha256": "85cbb8d847e7cfe8daecb2f82926ed6bd19e368f86830c77e3f894b9fe5bb553"
   },
   {
    "path": "deploy/ot-pilot/plant_service.py",
@@ -89,7 +89,7 @@
   },
   {
    "path": "deploy/ot-pilot/pilot_host.py",
-   "sha256": "a1233096bed4b336cb5fabf76cfebac37c1cfe969bb522ca85acdc3e136a5dda"
+   "sha256": "256a8ba4114288085f0be537f7faa7dd8fa814eb6a2fb5983c92267017935eb4"
   },
   {
    "path": "deploy/ot-pilot/run_ot_battery.py",
@@ -105,11 +105,11 @@
   },
   {
    "path": "deploy/ot-pilot/run_boundary_suite.py",
-   "sha256": "cf5cdf6321e439d962f85900087280de6a2b11770ba705901c5b358486f52b97"
+   "sha256": "f15ffc3243159829b4cb2769d9f479c14d9aa1074f0c4f92ef63b45d1298b67c"
   },
   {
    "path": "deploy/ot-pilot/run_boundary_assessment.py",
-   "sha256": "570331e16e7f6db35c2bce6e5859d1eec6d7f90b3c2a9b03af342da256fed815"
+   "sha256": "b469bced60077c9ed4384dbb222df8058772844049d17e204fe1e5efced7e268"
   },
   {
    "path": "deploy/ot-pilot/run_effect_verification.py",
@@ -117,7 +117,7 @@
   },
   {
    "path": "scripts/check_ot_pilot_topology.py",
-   "sha256": "b878af6917a4108b3053324185451188f7d73be719e1b4a3b0997da3136409ad"
+   "sha256": "1e63cab4204770e1eeab137988e0d487ff935c322355f8187bcb3056578caed6"
   }
  ],
  "runs": {

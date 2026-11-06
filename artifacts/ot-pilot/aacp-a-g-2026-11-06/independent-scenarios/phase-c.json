@@ -1,6 +1,6 @@
 {
   "schema": "remora-independent-scenario-run/v1",
-  "run_at": "2026-11-06T16:00:32.987676+00:00",
+  "run_at": "2026-11-06T16:18:17.685594+00:00",
   "phase": "c",
   "scenarios_file": "scenarios_v1.json",
   "scenarios_sha256": "ada092cf262f8244332909f5a89b5f5fb5dbf5663834078430269d4c5fc7a4e0",
@@ -8,19 +8,19 @@
     "health": {
       "status": "ok",
       "version": "0.12.0",
-      "uptime_seconds": 9.9,
+      "uptime_seconds": 10.0,
       "oracle_count": null
     },
     "policy_version": {
       "policy_version": "RemoraDecisionEngine-v6",
-      "policy_hash": "sha256:6c7077ac84bae8e7ae8064215ea1f8b7a49519459b8538addda33defbd423dfd",
+      "policy_hash": "sha256:8043af3265e8ec143f47ad56d15c4ec4f2a182e4c458972665fcbf471311b088",
       "risk_profile_hash": "sha256:30d350f4a937fe3b113d9a383a604713cf89526e34be15139447b0bd4af64e45",
       "schema_hash": "sha256:299c2deb548681cd7eed6bbef9e88ede6fc73f927e2889d9d3e3bb6852dcaf99",
-      "tool_registry_hash": "sha256:bb27685c76a9be26cb3d17356cd16b8c7a63af85f566a1cb7a5e597e28b99936",
+      "tool_registry_hash": "sha256:30b07e4dcc6d8fe1867094abfa835a7b8208b14bee9b6a2f6521ac1a2fc1e3db",
       "opa_policy_hash": null,
       "policy_hash_by_surface": {
-        "execution": "sha256:6c7077ac84bae8e7ae8064215ea1f8b7a49519459b8538addda33defbd423dfd",
-        "assess": "sha256:0fa50eb142d429f4e43ae1f8588a44df700bfb93559f9f1cc0746eec87466c65"
+        "execution": "sha256:8043af3265e8ec143f47ad56d15c4ec4f2a182e4c458972665fcbf471311b088",
+        "assess": "sha256:69f6d1be94a40e3feba52b39052c1f30f92f676a987431fc093acd35f92092bb"
       },
       "engine_mode_flags": {
         "low_consequence_accept": false,
@@ -82,8 +82,8 @@
             "outcome": null,
             "executed": null,
             "tool_result": null,
-            "review_item_id": "a1132866-ad42-43ab-b58b-68f926cc41ce",
-            "proposal_id": "70d3116d-4836-416f-96de-b5d59f5478b5",
+            "review_item_id": "4581fc56-c057-441a-af5e-927ecfa8c6f7",
+            "proposal_id": "5d45d29f-a19b-45f1-82c1-17fac60128b5",
             "execution_token_present": false,
             "ws1": {
               "mode": "shadow",
@@ -98,7 +98,7 @@
           "method": "POST",
           "path": "/v1/execution/approve",
           "request": {
-            "item_id": "a1132866-ad42-43ab-b58b-68f926cc41ce",
+            "item_id": "4581fc56-c057-441a-af5e-927ecfa8c6f7",
             "approval_ttl_seconds": 600
           },
           "response": {
@@ -110,7 +110,7 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "70d3116d-4836-416f-96de-b5d59f5478b5",
+            "proposal_id": "5d45d29f-a19b-45f1-82c1-17fac60128b5",
             "execution_token_present": false,
             "ws1": null
           }
@@ -121,7 +121,7 @@
           "method": "POST",
           "path": "/v1/execution/execute",
           "request": {
-            "item_id": "a1132866-ad42-43ab-b58b-68f926cc41ce",
+            "item_id": "4581fc56-c057-441a-af5e-927ecfa8c6f7",
             "tool_call": {
               "tool_name": "set_valve_position",
               "arguments": {
@@ -145,7 +145,7 @@
               "valve": "V-12"
             },
             "review_item_id": null,
-            "proposal_id": "70d3116d-4836-416f-96de-b5d59f5478b5",
+            "proposal_id": "5d45d29f-a19b-45f1-82c1-17fac60128b5",
             "execution_token_present": false,
             "ws1": null
           }
@@ -174,8 +174,8 @@
             "outcome": null,
             "executed": null,
             "tool_result": null,
-            "review_item_id": "33af1914-5f70-4a97-9911-1ae1fdd46e61",
-            "proposal_id": "af3921fb-a357-4885-998c-f447581656bd",
+            "review_item_id": "3b53c6b0-32ce-4e27-aa54-765025f60215",
+            "proposal_id": "9dd35d55-1813-40ca-b0b0-e9915147a51c",
             "execution_token_present": false,
             "ws1": {
               "mode": "shadow",

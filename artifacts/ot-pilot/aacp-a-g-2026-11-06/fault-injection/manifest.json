@@ -1,14 +1,14 @@
 {
   "schema_version": "remora-evidence-run-v1",
-  "run_id": "fault-injection-2026-11-06-dd2823bc",
+  "run_id": "fault-injection-2026-11-06-a62ba899",
   "suite_id": "ot-fault-injection-v1",
   "suite_version": "local",
-  "started_at": "2026-11-06T15:56:55Z",
-  "finished_at": "2026-11-06T15:58:24Z",
+  "started_at": "2026-11-06T16:14:42Z",
+  "finished_at": "2026-11-06T16:16:07Z",
   "exit_code": 0,
   "source": {
     "repository": "darklordVirtual/REMORA-research",
-    "commit_sha": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
+    "commit_sha": "5bcbdaa8ebf9ab50927cf0645aaa81f1578e56e8",
     "dirty_worktree": false
   },
   "runtime": {
@@ -102,26 +102,26 @@
           "durable_state": "unavailable"
         }
       },
-      "unhealthy_after_s": 56.4,
+      "unhealthy_after_s": 51.2,
       "ready_after_s": 1.0,
-      "healthy_after_s": 9.3,
+      "healthy_after_s": 9.4,
       "container_before": {
-        "health": "starting",
+        "health": "healthy",
         "running": true,
         "restart_count": 0,
-        "started_at": "2026-11-06T15:57:06.491928296Z"
+        "started_at": "2026-11-06T16:14:53.536250136Z"
       },
       "container_during": {
         "health": "unhealthy",
         "running": true,
         "restart_count": 0,
-        "started_at": "2026-11-06T15:57:06.491928296Z"
+        "started_at": "2026-11-06T16:14:53.536250136Z"
       },
       "container_after": {
         "health": "healthy",
         "running": true,
         "restart_count": 0,
-        "started_at": "2026-11-06T15:57:06.491928296Z"
+        "started_at": "2026-11-06T16:14:53.536250136Z"
       },
       "ok": true
     },
@@ -215,26 +215,26 @@
     "Latencies are from one local Docker host and are not a performance claim."
   ],
   "frozen_configuration": {
-    "commit_sha": "c2ee150c1e1aa0aae81185d52566c771119c73ba",
+    "commit_sha": "5bcbdaa8ebf9ab50927cf0645aaa81f1578e56e8",
     "config_files_modified": false,
     "files": {
-      "deploy/ot-pilot/docker-compose.yml": "28ecad2b33d1c56db309e3a728fc2b3fc32133078cf5cfb78c44aa758d1e4b45",
+      "deploy/ot-pilot/docker-compose.yml": "51db7f87ebd6bbae984aa4ef42e8a1e4b72cba66fa59bfc6620e20d58668ea94",
       "deploy/ot-pilot/Dockerfile": "4467f5141ea109a5f78d50e51c6226c8762b55895f67e46b872df4381f14e6ce",
       "deploy/ot-pilot/limits.json": "205e511c05e26ee213648881fdcc8d9f105ae99fbcbea66ba5c4d9814aaca6d6",
       "deploy/ot-pilot/work_orders.json": "6b7a49881ebe6abc6b2894de2e28d8ded923adb2930f9099cc2733edbe0a857a",
-      "deploy/ot-pilot/ot_registry.py": "b081a1d33b93a1b2d45117573f5b942889cd00336d0c1fcbfdaeb71f553bccb8",
+      "deploy/ot-pilot/ot_registry.py": "10a982aca634ced842ab7c6567431d43303505cf3bd50662402d8adac83fc629",
       "deploy/ot-pilot/ot_bundle.py": "f44d19ee109ae071d68e0906d8694c9c10b11a45d395f3809750dd3285418715",
-      "deploy/ot-pilot/plant_model.py": "5fa0adb833b7c16a4e3817d0496b6b938796f6f8308b553e32ff687b53ef704d",
+      "deploy/ot-pilot/plant_model.py": "85cbb8d847e7cfe8daecb2f82926ed6bd19e368f86830c77e3f894b9fe5bb553",
       "deploy/ot-pilot/plant_service.py": "544abf4d2b00284c392339e331d2f5d248520ae68f098fde81d158ea46f66e98",
       "deploy/ot-pilot/plant/Dockerfile": "c69da34a583caeb7298e1209c26d5b3fcebf0c58bdd2f5907ea70a55645da100",
       "deploy/ot-pilot/effect_verifier.py": "1a44ae3993fc00eca4c75c2cb1f11cf9727e62a91d636cb877c989d9ae2a18f7"
     },
-    "image_id": "b0024efec4df5c91f6b6bc72e3847ff535ce41c70b39108a3cf4084bb2bf61b7",
-    "policy_hash": "sha256:6c7077ac84bae8e7ae8064215ea1f8b7a49519459b8538addda33defbd423dfd",
+    "image_id": "fb871ffa550910c87f959b64516865b9929bc25a9e21bab21ba0f592c690c8f1",
+    "policy_hash": "sha256:8043af3265e8ec143f47ad56d15c4ec4f2a182e4c458972665fcbf471311b088",
     "runtime_mode": "production",
     "manifest_loaded": false,
     "manifest_digest": null,
-    "fingerprint_sha256": "6446cd8d04defbcefcf3704caa442767ded4d5e9c4441f14f655a34e3d130bff"
+    "fingerprint_sha256": "b01606ccba9a3ca65468dc7513070f081093da429426e335a8b33cb6ab88099d"
   },
   "operations": {
     "intended_writes": 8,
@@ -253,108 +253,108 @@
   "latency_ms": {
     "GET /v1/audit/chain/verify": {
       "calls": 1,
-      "p50_ms": 14.1,
-      "p95_ms": 14.1,
-      "max_ms": 14.1,
-      "mean_ms": 14.1
+      "p50_ms": 16.5,
+      "p95_ms": 16.5,
+      "max_ms": 16.5,
+      "mean_ms": 16.5
     },
     "GET /v1/execution/audit/verify": {
       "calls": 1,
-      "p50_ms": 38.4,
-      "p95_ms": 38.4,
-      "max_ms": 38.4,
-      "mean_ms": 38.4
+      "p50_ms": 48.6,
+      "p95_ms": 48.6,
+      "max_ms": 48.6,
+      "mean_ms": 48.6
     },
     "GET /v1/execution/limits/unresolved": {
       "calls": 2,
-      "p50_ms": 3.0,
-      "p95_ms": 3.8,
-      "max_ms": 3.8,
-      "mean_ms": 3.4
+      "p50_ms": 3.6,
+      "p95_ms": 4.6,
+      "max_ms": 4.6,
+      "mean_ms": 4.1
     },
     "GET /v1/execution/proposals/{id}": {
       "calls": 1,
-      "p50_ms": 28.9,
-      "p95_ms": 28.9,
-      "max_ms": 28.9,
-      "mean_ms": 28.9
+      "p50_ms": 31.3,
+      "p95_ms": 31.3,
+      "max_ms": 31.3,
+      "mean_ms": 31.3
     },
     "GET /v1/policy/version": {
       "calls": 1,
-      "p50_ms": 4.8,
-      "p95_ms": 4.8,
-      "max_ms": 4.8,
-      "mean_ms": 4.8
+      "p50_ms": 5.9,
+      "p95_ms": 5.9,
+      "max_ms": 5.9,
+      "mean_ms": 5.9
     },
     "GET /v1/system/capabilities": {
       "calls": 1,
-      "p50_ms": 2.4,
-      "p95_ms": 2.4,
-      "max_ms": 2.4,
-      "mean_ms": 2.4
+      "p50_ms": 3.1,
+      "p95_ms": 3.1,
+      "max_ms": 3.1,
+      "mean_ms": 3.1
     },
     "POST /v1/execution/approve": {
       "calls": 10,
-      "p50_ms": 102.2,
-      "p95_ms": 119.3,
-      "max_ms": 119.3,
-      "mean_ms": 101.8
+      "p50_ms": 104.4,
+      "p95_ms": 133.7,
+      "max_ms": 133.7,
+      "mean_ms": 109.6
     },
     "POST /v1/execution/assess": {
       "calls": 12,
-      "p50_ms": 123.8,
-      "p95_ms": 193.3,
-      "max_ms": 193.3,
-      "mean_ms": 132.6
+      "p50_ms": 132.4,
+      "p95_ms": 216.1,
+      "max_ms": 216.1,
+      "mean_ms": 142.0
     },
     "POST /v1/execution/execute": {
       "calls": 18,
-      "p50_ms": 388.8,
-      "p95_ms": 586.7,
-      "max_ms": 586.7,
-      "mean_ms": 391.2
+      "p50_ms": 499.5,
+      "p95_ms": 726.9,
+      "max_ms": 726.9,
+      "mean_ms": 437.5
     },
     "POST /v1/execution/limits/resolve": {
       "calls": 1,
-      "p50_ms": 24.3,
-      "p95_ms": 24.3,
-      "max_ms": 24.3,
-      "mean_ms": 24.3
+      "p50_ms": 35.6,
+      "p95_ms": 35.6,
+      "max_ms": 35.6,
+      "mean_ms": 35.6
     },
     "POST /v1/execution/resume": {
       "calls": 1,
-      "p50_ms": 86.5,
-      "p95_ms": 86.5,
-      "max_ms": 86.5,
-      "mean_ms": 86.5
+      "p50_ms": 88.6,
+      "p95_ms": 88.6,
+      "max_ms": 88.6,
+      "mean_ms": 88.6
     },
     "POST /v1/execution/revoke-principal": {
       "calls": 2,
-      "p50_ms": 2.7,
-      "p95_ms": 42.8,
-      "max_ms": 42.8,
-      "mean_ms": 22.7
+      "p50_ms": 3.3,
+      "p95_ms": 52.2,
+      "max_ms": 52.2,
+      "mean_ms": 27.7
     },
     "POST /v1/execution/stop": {
       "calls": 1,
-      "p50_ms": 97.0,
-      "p95_ms": 97.0,
-      "max_ms": 97.0,
-      "mean_ms": 97.0
+      "p50_ms": 109.3,
+      "p95_ms": 109.3,
+      "max_ms": 109.3,
+      "mean_ms": 109.3
     },
     "[fault window] POST /v1/execution/assess": {
       "calls": 1,
-      "p50_ms": 19.1,
-      "p95_ms": 19.1,
-      "max_ms": 19.1,
-      "mean_ms": 19.1
+      "p50_ms": 21.2,
+      "p95_ms": 21.2,
+      "max_ms": 21.2,
+      "mean_ms": 21.2
     },
     "[fault window] POST /v1/execution/execute": {
       "calls": 1,
-      "p50_ms": 7.2,
-      "p95_ms": 7.2,
-      "max_ms": 7.2,
-      "mean_ms": 7.2
+      "p50_ms": 7.6,
+      "p95_ms": 7.6,
+      "max_ms": 7.6,
+      "mean_ms": 7.6
     }
   }
 }

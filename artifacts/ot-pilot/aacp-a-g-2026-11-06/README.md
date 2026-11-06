@@ -1,6 +1,6 @@
 # OT pilot assessed on A to G (2026-11-06)
 
-This folder records the pilot after three changes on one branch: the work-order scope guard (D), the plant in its own trust domain (E), and an independent effect verifier (G). The images were built from commit `c2ee150c`, after the fixes from an adversarial review of the change set (below). `manifest.json` has the image ids, the base image digest, the policy hash and the SHA-256 of every deployment file and runner. Each run started on a stack reset with `down -v`.
+This folder records the pilot after three changes on one branch: the work-order scope guard (D), the plant in its own trust domain (E), and an independent effect verifier (G). The images were built from commit `5bcbdaa8`, after the fixes from an adversarial review of the change set and from CodeQL on the PR (below); the host-side runners ran from `564a553b`. `manifest.json` has the image ids, the base image digest, the policy hash and the SHA-256 of every deployment file and runner. Each run started on a stack reset with `down -v`.
 
 | Run | Result |
 |---|---|
@@ -65,6 +65,12 @@ An adversarial review of the whole change set, by a reviewer that was not given 
 - **The dispatch listing exposed every principal's grant ids.** The agent's own role could read it. It now needs `verify_effect`.
 - **The reconciliation could miss two cases.** A reused dispatch reference and a tool mismatch were not caught; both are now. The topology check also fails on `env_file`, privilege settings and agent mounts. Active plant faults are reported.
 
+CodeQL on PR #1194 then raised three findings in the assessor's runner, all fixed before these runs:
+
+- **Credential-derived data in the record.** The record and the console held data derived from credentials. They now hold only a count of leaked values.
+- **A world-writable directory shared with the agent zone.** The agent now reports on stdout and mounts nothing, and the topology check fails on any agent mount.
+- **Five smaller findings.** These are fixed as well. A sixth, a function-level import of `servers.api` that 38 other routes also use, is left as it is, with the reason on its thread.
+
 ## AACP v0.2 assessment
 
 `aacp-assessment-v0.2.json` validates against `schema/assessment-v0.2.schema.json` of agent-authority-conformance at `30a5982`. It is a self-assessment (BCR-0, SELF) and carries no score. The two earlier records are unchanged: `../execution-path-reproduction-2026-11-05/` keeps D as FAIL, and `../intent-scope-2026-11-06/` keeps E as UNTESTED and G as NOT_ESTABLISHED, for the builds they assessed.
@@ -91,7 +97,7 @@ An adversarial review of the whole change set, by a reviewer that was not given 
 ## Reproduce
 
 ```
-git checkout c2ee150c
+git checkout 564a553b
 python deploy/ot-pilot/init_tokens.py --force
 python deploy/ot-pilot/build_toolspec.py --force
 set -a; . deploy/ot-pilot/.env; set +a

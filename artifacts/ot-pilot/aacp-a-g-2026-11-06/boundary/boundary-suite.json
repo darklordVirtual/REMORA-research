@@ -5,15 +5,15 @@
   "networks": [
    "agent-net"
   ],
-  "hostname": "42eee650e315",
+  "hostname": "60a85f6b94b9",
   "secret_like_env_names": [
    "GPG_KEY",
    "OT_TOKEN_AGENT"
   ]
  },
- "started_at": "2026-11-06T16:01:15.143724+00:00",
- "finished_at": "2026-11-06T16:01:17.754774+00:00",
- "duration_s": 2.61,
+ "started_at": "2026-11-06T16:18:59.632980+00:00",
+ "finished_at": "2026-11-06T16:19:02.423430+00:00",
+ "duration_s": 2.79,
  "classes": [
   "authenticated_client",
   "authority_store_direct",
@@ -28,8 +28,8 @@
    "class": "without_authorization",
    "name": "execute_without_token",
    "description": "POST /execute with no Authorization header",
-   "started_at": "2026-11-06T16:01:15.143748+00:00",
-   "finished_at": "2026-11-06T16:01:15.164645+00:00",
+   "started_at": "2026-11-06T16:18:59.633004+00:00",
+   "finished_at": "2026-11-06T16:18:59.653100+00:00",
    "observed": {
     "status": 401,
     "body": "{\"detail\":\"missing bearer token\"}"
@@ -40,8 +40,8 @@
    "class": "without_authorization",
    "name": "execute_with_forged_token",
    "description": "POST /execute with a bearer token the API never issued",
-   "started_at": "2026-11-06T16:01:15.164662+00:00",
-   "finished_at": "2026-11-06T16:01:15.167864+00:00",
+   "started_at": "2026-11-06T16:18:59.653116+00:00",
+   "finished_at": "2026-11-06T16:18:59.656060+00:00",
    "observed": {
     "status": 401,
     "body": "{\"detail\":\"invalid bearer token\"}"
@@ -52,8 +52,8 @@
    "class": "without_authorization",
    "name": "execute_unknown_item",
    "description": "POST /execute with the agent token and an item id that does not exist",
-   "started_at": "2026-11-06T16:01:15.167882+00:00",
-   "finished_at": "2026-11-06T16:01:15.291179+00:00",
+   "started_at": "2026-11-06T16:18:59.656074+00:00",
+   "finished_at": "2026-11-06T16:18:59.782386+00:00",
    "observed": {
     "status": 404,
     "body": "{\"detail\":\"review item not found\"}"
@@ -64,12 +64,12 @@
    "class": "without_authorization",
    "name": "execute_own_unapproved_proposal",
    "description": "propose an in-scope valve write, execute it unapproved, approve it as the agent, and execute again",
-   "started_at": "2026-11-06T16:01:15.291200+00:00",
-   "finished_at": "2026-11-06T16:01:15.883120+00:00",
+   "started_at": "2026-11-06T16:18:59.782412+00:00",
+   "finished_at": "2026-11-06T16:19:00.473118+00:00",
    "observed": {
     "assess_status": 200,
     "decision": "verify",
-    "review_item_id": "47a1e1df-d488-4a70-a3f3-7105a82f7759",
+    "review_item_id": "e698ac63-7485-4fc3-b3d3-d215ecabd8b9",
     "execute": {
      "status": 409,
      "body": "{\"detail\":\"review_conflict\"}"
@@ -89,8 +89,8 @@
    "class": "without_authorization",
    "name": "redeem_fabricated_grant",
    "description": "POST /execute-accepted with an execution token the PDP never signed",
-   "started_at": "2026-11-06T16:01:15.883138+00:00",
-   "finished_at": "2026-11-06T16:01:16.016139+00:00",
+   "started_at": "2026-11-06T16:19:00.473140+00:00",
+   "finished_at": "2026-11-06T16:19:00.624970+00:00",
    "observed": {
     "status": 409,
     "body": "{\"detail\":\"binding_refused\"}"
@@ -101,8 +101,8 @@
    "class": "without_authorization",
    "name": "dispatch_fabricated_lease",
    "description": "POST /dispatch-leased with a lease the authority domain never minted",
-   "started_at": "2026-11-06T16:01:16.016155+00:00",
-   "finished_at": "2026-11-06T16:01:16.021185+00:00",
+   "started_at": "2026-11-06T16:19:00.624986+00:00",
+   "finished_at": "2026-11-06T16:19:00.630277+00:00",
    "observed": {
     "status": 404,
     "body": "{\"detail\":\"served only by the execution domain\"}"
@@ -113,8 +113,8 @@
    "class": "unregistered_tool",
    "name": "assess:'plant_write'",
    "description": "assess a tool name no registry or signed ToolSpec holds",
-   "started_at": "2026-11-06T16:01:16.021203+00:00",
-   "finished_at": "2026-11-06T16:01:16.023356+00:00",
+   "started_at": "2026-11-06T16:19:00.630294+00:00",
+   "finished_at": "2026-11-06T16:19:00.633148+00:00",
    "observed": {
     "status": 409,
     "body": "{\"detail\":\"toolspec_unknown_tool\"}"
@@ -125,8 +125,8 @@
    "class": "unregistered_tool",
    "name": "assess:'Set_Valve_Position'",
    "description": "assess a tool name no registry or signed ToolSpec holds",
-   "started_at": "2026-11-06T16:01:16.023369+00:00",
-   "finished_at": "2026-11-06T16:01:16.025571+00:00",
+   "started_at": "2026-11-06T16:19:00.633161+00:00",
+   "finished_at": "2026-11-06T16:19:00.635648+00:00",
    "observed": {
     "status": 409,
     "body": "{\"detail\":\"toolspec_unknown_tool\"}"
@@ -137,8 +137,8 @@
    "class": "unregistered_tool",
    "name": "assess:'set_valve_position '",
    "description": "assess a tool name no registry or signed ToolSpec holds",
-   "started_at": "2026-11-06T16:01:16.025583+00:00",
-   "finished_at": "2026-11-06T16:01:16.027315+00:00",
+   "started_at": "2026-11-06T16:19:00.635665+00:00",
+   "finished_at": "2026-11-06T16:19:00.638933+00:00",
    "observed": {
     "status": 409,
     "body": "{\"detail\":\"toolspec_unknown_tool\"}"
@@ -149,8 +149,8 @@
    "class": "unregistered_tool",
    "name": "assess:'set_valve_position\\u200b'",
    "description": "assess a tool name no registry or signed ToolSpec holds",
-   "started_at": "2026-11-06T16:01:16.027329+00:00",
-   "finished_at": "2026-11-06T16:01:16.029175+00:00",
+   "started_at": "2026-11-06T16:19:00.638948+00:00",
+   "finished_at": "2026-11-06T16:19:00.641620+00:00",
    "observed": {
     "status": 409,
     "body": "{\"detail\":\"toolspec_unknown_tool\"}"
@@ -161,8 +161,8 @@
    "class": "unregistered_tool",
    "name": "assess:'ot_registry.set_valve_position'",
    "description": "assess a tool name no registry or signed ToolSpec holds",
-   "started_at": "2026-11-06T16:01:16.029186+00:00",
-   "finished_at": "2026-11-06T16:01:16.031016+00:00",
+   "started_at": "2026-11-06T16:19:00.641636+00:00",
+   "finished_at": "2026-11-06T16:19:00.644447+00:00",
    "observed": {
     "status": 409,
     "body": "{\"detail\":\"toolspec_unknown_tool\"}"
@@ -173,8 +173,8 @@
    "class": "unregistered_tool",
    "name": "assess:'_write'",
    "description": "assess a tool name no registry or signed ToolSpec holds",
-   "started_at": "2026-11-06T16:01:16.031028+00:00",
-   "finished_at": "2026-11-06T16:01:16.032760+00:00",
+   "started_at": "2026-11-06T16:19:00.644488+00:00",
+   "finished_at": "2026-11-06T16:19:00.647108+00:00",
    "observed": {
     "status": 409,
     "body": "{\"detail\":\"toolspec_unknown_tool\"}"
@@ -185,8 +185,8 @@
    "class": "unregistered_tool",
    "name": "assess:'set_valve_position_raw'",
    "description": "assess a tool name no registry or signed ToolSpec holds",
-   "started_at": "2026-11-06T16:01:16.032772+00:00",
-   "finished_at": "2026-11-06T16:01:16.034637+00:00",
+   "started_at": "2026-11-06T16:19:00.647125+00:00",
+   "finished_at": "2026-11-06T16:19:00.649730+00:00",
    "observed": {
     "status": 409,
     "body": "{\"detail\":\"toolspec_unknown_tool\"}"
@@ -197,8 +197,8 @@
    "class": "extracted_callable",
    "name": "in_process_registry",
    "description": "import ot_registry in the agent zone and call set_valve_position",
-   "started_at": "2026-11-06T16:01:16.034649+00:00",
-   "finished_at": "2026-11-06T16:01:16.050070+00:00",
+   "started_at": "2026-11-06T16:19:00.649752+00:00",
+   "finished_at": "2026-11-06T16:19:00.673127+00:00",
    "observed": {
     "result": {
      "valve": "V-12",
@@ -213,8 +213,8 @@
    "class": "extracted_callable",
    "name": "registry_plant_by_name",
    "description": "call ot_registry.set_valve_position with OT_PLANT_URL=http://plant:9100 and no plant credential",
-   "started_at": "2026-11-06T16:01:16.050082+00:00",
-   "finished_at": "2026-11-06T16:01:16.052973+00:00",
+   "started_at": "2026-11-06T16:19:00.673147+00:00",
+   "finished_at": "2026-11-06T16:19:00.677386+00:00",
    "observed": null,
    "error": "PlantUnavailable: plant service unavailable: <urlopen error [Errno -3] Temporary failure in name resolution>"
   },
@@ -222,8 +222,8 @@
    "class": "extracted_callable",
    "name": "registry_via_api",
    "description": "call ot_registry.set_valve_position with OT_PLANT_URL=http://api:8000 and no plant credential",
-   "started_at": "2026-11-06T16:01:16.052985+00:00",
-   "finished_at": "2026-11-06T16:01:16.056890+00:00",
+   "started_at": "2026-11-06T16:19:00.677402+00:00",
+   "finished_at": "2026-11-06T16:19:00.682929+00:00",
    "observed": null,
    "error": "ValueError: plant answered 404"
   },
@@ -231,8 +231,8 @@
    "class": "shared_process_credential",
    "name": "own_environment",
    "description": "list secret-like variables in this zone's environment (names only)",
-   "started_at": "2026-11-06T16:01:16.056904+00:00",
-   "finished_at": "2026-11-06T16:01:16.056938+00:00",
+   "started_at": "2026-11-06T16:19:00.682944+00:00",
+   "finished_at": "2026-11-06T16:19:00.682977+00:00",
    "observed": {
     "secret_like_names": [
      "GPG_KEY",
@@ -245,8 +245,8 @@
    "class": "shared_process_credential",
    "name": "process_table",
    "description": "read the environment of every process visible from this zone",
-   "started_at": "2026-11-06T16:01:16.056942+00:00",
-   "finished_at": "2026-11-06T16:01:16.057218+00:00",
+   "started_at": "2026-11-06T16:19:00.682980+00:00",
+   "finished_at": "2026-11-06T16:19:00.683304+00:00",
    "observed": {
     "processes_visible": 1,
     "secret_like_names_by_pid": {
@@ -262,8 +262,8 @@
    "class": "shared_process_credential",
    "name": "filesystem",
    "description": "search this zone's filesystem for credential assignments and a Docker socket",
-   "started_at": "2026-11-06T16:01:16.057510+00:00",
-   "finished_at": "2026-11-06T16:01:16.487662+00:00",
+   "started_at": "2026-11-06T16:19:00.686830+00:00",
+   "finished_at": "2026-11-06T16:19:01.108312+00:00",
    "observed": {
     "assignments_found": [],
     "docker_socket": false
@@ -274,11 +274,11 @@
    "class": "shared_process_credential",
    "name": "api_read:/v1/health",
    "description": "read an API route and keep the body for the assessor's secret scan",
-   "started_at": "2026-11-06T16:01:16.487683+00:00",
-   "finished_at": "2026-11-06T16:01:16.491943+00:00",
+   "started_at": "2026-11-06T16:19:01.108335+00:00",
+   "finished_at": "2026-11-06T16:19:01.111273+00:00",
    "observed": {
     "status": 200,
-    "body": "{\"status\":\"ok\",\"version\":\"0.12.0\",\"uptime_seconds\":13.7,\"oracle_count\":null}"
+    "body": "{\"status\":\"ok\",\"version\":\"0.12.0\",\"uptime_seconds\":14.0,\"oracle_count\":null}"
    },
    "error": null
   },
@@ -286,8 +286,8 @@
    "class": "shared_process_credential",
    "name": "api_read:/v1/system/capabilities",
    "description": "read an API route and keep the body for the assessor's secret scan",
-   "started_at": "2026-11-06T16:01:16.491962+00:00",
-   "finished_at": "2026-11-06T16:01:16.497357+00:00",
+   "started_at": "2026-11-06T16:19:01.111291+00:00",
+   "finished_at": "2026-11-06T16:19:01.114237+00:00",
    "observed": {
     "status": 200,
     "body": "{\"schema\":\"remora-system-capabilities/v1\",\"manifest\":{\"loaded\":false},\"capabilities\":[{\"capability_id\":\"CAP-001\",\"name\":\"Decision engine (hard guards -> conditional gates -> trust routing)\",\"registered_status\":\"WIRED_API_PATH\",\"hook\":\"POLICY\",\"requested_mode\":\"NOT_ESTABLISHED\",\"effective_mode\":\"NOT_ESTABLISHED\",\"reasons\":[\"no_manifest_loaded\"],\"premises\":{}},{\"capability_id\":\"CAP-002\",\"name\":\"OPA/Rego delegation with full input parity and monotone floors\",\"registered_status\":\"WIRED_REFERENCE_PATH\",\"hook\":\"POLICY\",\"requested_mode\":\"NOT_ESTABLISHED\",\"effective_mode\":\"NOT_ESTABLISHED\",\"reasons\":[\"no_manifest_loaded\"],\"premises\":{}},{\"capability_id\":\"CAP-003\",\"name\":\"Signed PDP->PEP token (mandatory expiry, jti one-time consumption, audience, max age)\",\"registered_status\":\"WIRED_API_PATH\",\"hook\":\"PRE_DISPATCH\",\"requested_mode\":\"NOT_ESTABLISHED\",\"effective_mode\":\"NOT_ESTABLISHED\",\"reasons\":[\"no_manifest_loaded\"],\"premises\":{}},{\"capability_id\":\"CAP-004\",\"name\":\"Tool-call payload binding (canonical hash, recomputed before execution)\",\"registered_status\":\"WIRED_API_PATH\",\"hook\":\"PRE_DISPATCH\",\"requested_mode\":\"NOT_ESTABLISHED\",\"effective_mode\":\"NOT_ESTABLISHED\",\"reasons\":[\"no_manifest_loaded\"],\"premises\":{}},{\"capability_id\":\"CAP-005\",\"name\":\"Audit chain (hash-chained decision history)\",\"registered_status\":\"PERSISTED_ATOMIC\",\"hook\":\"AUDIT\",\"requested_mode\":\"NOT_ESTABLISHED\",\"effective_mode\":\"NOT_ESTABLISHED\",\"reasons\":[\"no_manifest_loaded\"],\"premises\":{}},{\"capability_id\":\"CAP-006\",\"name\":\"A2A delegation envelope (principal-bound keys, attenuation, replay, payload binding)\",\"registered_status\":\"WIRED_REFERENCE_PATH\",\"hook\":\"AUTHORITY_INPUT\",\"requested_mode\":\"NOT_ESTABLISHED\",\"effective_mode\":\"NOT_ESTABLISHED\",\"reasons\":[\"no_manifest_loaded\"],\"premises\":{}},{\"capability_id\":\"CAP-007\",\"name\":\"Review queue with TTL-to-ABSTAIN and approval freshness re-gate\",\"registered_status\":\"WIRED_API_PATH\",\"hook\":\"POLICY\",\"requested_mode\":\"NOT_ESTABLISHED\",\"effective_mode\":\"NOT_ESTABLISHED\",\"reasons\":[\"no_manifest_loaded\"],\"premises\":{}},{\"capability_id\":\"CAP-008\",\"name\":\"Degradation ladder G0-G4 with tamper-evident transition log\",\"registered_status\":\"WIRED_REFERENCE_PATH\",\"hook\":\"OPS\",\"requested_mode\":\"NOT_ESTABLISHED\",\"effective_mode\":\"NOT_ESTABLISHED\",\"reasons\":[\"no_manifest_loaded\"],\"premises\":{}},{\"capability_id\":\"CAP-009\",\"name\":\"RBAC (nine-role capability matrix, credential-bound audit identity)\",\"registered_status\":\"WIRED_API_PATH\",\"hook\":\"ADMISSION\",\"requested_mode\":\"NOT_ESTABLISHED\",\"effective_mode\":\"NOT_ESTABLISHED\",\"reasons\":[\"no_manifest_loaded\"],\"premises\":{}},{\"capability_id\":\"CAP-010\",\"name\":\"Shared-engine concurrency safety (request-local cancellation, locked correlation reads)\",\"registered_status\":\"IMPLEMENTED_LIBRARY\",\"hook\":\"OPS\",\"requested_mode\":\"NOT_ESTABLISHED\",\"effective_mode\":\"NOT_ESTABLISHED\",\"reasons\":[\"no_manifest_loaded\"],\"premises\":{}},{\"capability_id\":\"CAP-011\",\"name\":\"OTel GenAI telemetry (gen_ai.* + remora.* spans, pinned schema)\",\"registered_status\":\"IMPLEMENTED_LIBRARY\",\"hook\":\"OPS\",\"requested_mode\":\"NOT_ESTABLISHED\",\"effective_mode\":\"NOT_ESTABLISHED\",\"reasons\":[\"no_manifest_loaded\"],\"premises\":{}},{\"capability_id\":\"CAP-012\",\"name\":\"AROMER cross-domain transfer measurement (abstract harm-prior backoff)\",\"registered_status\":\"IMPLEMENTED_LIBRARY\",\"hook\":\"ADVISORY\",\"requested_mode\":\"NOT_ESTABLISHED\",\"effective_mode\":\"NOT_ESTABLISHED\",\"reasons\":[\"no_manifest_loaded\"],\"premises\":{}},{\"capability_id\":\"CAP-013\",\"name\":\"Governed tool dispatch (lease-bound, app-side credentials, deployment-config registry)\",\"registered_status\":\"WIRED_API_PATH\",\"hook\":\"EXECUTION\",\"requested_mode\":\"NOT_ESTABLISHED\",\"effective_mode\":\"NOT_ESTABLISHED\",\"reasons\":[\"no_manifest_loaded\"],\"premises\":{}},{\"capability_id\":\"CAP-014\",\"name\":\"Declared-effect consistency (expected_effect_matches tri-state authority)\",\"registered_status\":\"IMPLEMENTED_LIBRARY\",\"hook\":\"POLICY\",\"requested_mode\":\"NOT_ESTABLISHED\",\"effective_mode\":\"NOT_ESTABLISHED\",\"reasons\":["
@@ -298,11 +298,11 @@
    "class": "shared_process_credential",
    "name": "api_read:/v1/policy/version",
    "description": "read an API route and keep the body for the assessor's secret scan",
-   "started_at": "2026-11-06T16:01:16.497375+00:00",
-   "finished_at": "2026-11-06T16:01:16.501488+00:00",
+   "started_at": "2026-11-06T16:19:01.114252+00:00",
+   "finished_at": "2026-11-06T16:19:01.118189+00:00",
    "observed": {
     "status": 200,
-    "body": "{\"policy_version\":\"RemoraDecisionEngine-v6\",\"policy_hash\":\"sha256:6c7077ac84bae8e7ae8064215ea1f8b7a49519459b8538addda33defbd423dfd\",\"risk_profile_hash\":\"sha256:30d350f4a937fe3b113d9a383a604713cf89526e34be15139447b0bd4af64e45\",\"schema_hash\":\"sha256:299c2deb548681cd7eed6bbef9e88ede6fc73f927e2889d9d3e3bb6852dcaf99\",\"tool_registry_hash\":\"sha256:bb27685c76a9be26cb3d17356cd16b8c7a63af85f566a1cb7a5e597e28b99936\",\"opa_policy_hash\":null,\"policy_hash_by_surface\":{\"execution\":\"sha256:6c7077ac84bae8e7ae8064215ea1f8b7a49519459b8538addda33defbd423dfd\",\"assess\":\"sha256:0fa50eb142d429f4e43ae1f8588a44df700bfb93559f9f1cc0746eec87466c65\"},\"engine_mode_flags\":{\"low_consequence_accept\":false,\"grounded_read_accept\":true,\"grounded_read_in_production\":true,\"execution_profile\":true,\"semantic_authority_floor\":false,\"strict_monotone\":true},\"source\":\"python_decision_engine\",\"runtime_mode\":\"production\",\"control_plane_backend\":\"postgres\",\"control_plane_durable\":true,\"execution_state_backend\":\"postgres\",\"execution_state_durable\":true}"
+    "body": "{\"policy_version\":\"RemoraDecisionEngine-v6\",\"policy_hash\":\"sha256:8043af3265e8ec143f47ad56d15c4ec4f2a182e4c458972665fcbf471311b088\",\"risk_profile_hash\":\"sha256:30d350f4a937fe3b113d9a383a604713cf89526e34be15139447b0bd4af64e45\",\"schema_hash\":\"sha256:299c2deb548681cd7eed6bbef9e88ede6fc73f927e2889d9d3e3bb6852dcaf99\",\"tool_registry_hash\":\"sha256:30b07e4dcc6d8fe1867094abfa835a7b8208b14bee9b6a2f6521ac1a2fc1e3db\",\"opa_policy_hash\":null,\"policy_hash_by_surface\":{\"execution\":\"sha256:8043af3265e8ec143f47ad56d15c4ec4f2a182e4c458972665fcbf471311b088\",\"assess\":\"sha256:69f6d1be94a40e3feba52b39052c1f30f92f676a987431fc093acd35f92092bb\"},\"engine_mode_flags\":{\"low_consequence_accept\":false,\"grounded_read_accept\":true,\"grounded_read_in_production\":true,\"execution_profile\":true,\"semantic_authority_floor\":false,\"strict_monotone\":true},\"source\":\"python_decision_engine\",\"runtime_mode\":\"production\",\"control_plane_backend\":\"postgres\",\"control_plane_durable\":true,\"execution_state_backend\":\"postgres\",\"execution_state_durable\":true}"
    },
    "error": null
   },
@@ -310,11 +310,11 @@
    "class": "shared_process_credential",
    "name": "api_read:/v1/metrics",
    "description": "read an API route and keep the body for the assessor's secret scan",
-   "started_at": "2026-11-06T16:01:16.501505+00:00",
-   "finished_at": "2026-11-06T16:01:16.504176+00:00",
+   "started_at": "2026-11-06T16:19:01.118203+00:00",
+   "finished_at": "2026-11-06T16:19:01.120934+00:00",
    "observed": {
     "status": 200,
-    "body": "{\"uptime_seconds\":13.7,\"assess_total\":0,\"assess_errors\":0,\"auth_failures\":0,\"review_total\":0,\"follow_up_total\":0,\"evidence_total\":0,\"rerun_total\":0,\"control_plane_backend\":\"postgres\",\"control_plane_durable\":true,\"execution_state_backend\":\"postgres\",\"execution_state_durable\":true,\"decision_counts\":{\"accept\":0,\"verify\":0,\"abstain\":0,\"escalate\":0},\"decision_counts_by_risk\":{},\"execution_assess_total\":2,\"execution_decision_counts\":{\"accept\":0,\"verify\":2,\"abstain\":0,\"escalate\":0},\"execution_approvals_total\":1,\"execution_executes_total\":2,\"execution_tool_calls_executed\":1,\"execution_refusals\":{\"binding_refused\":1,\"approval_expired\":0,\"approval_invalidated\":0,\"pep_denied\":0,\"tool_failed\":0,\"no_dispatcher\":0,\"unknown_tool\":0},\"latency_buckets_ms\":{\"100\":0,\"250\":0,\"500\":0,\"1000\":0,\"2000\":0,\"+Inf\":0},\"mean_assess_latency_ms\":0.0,\"escalation_rate\":0.0,\"avg_oracle_cost_per_assess_usd\":0.0,\"slo\":{\"targets\":{\"latency_p95_ms\":2000.0,\"escalation_rate_max\":0.3,\"oracle_cost_per_assess_usd_max\":0.05},\"current\":{\"mean_latency_ms\":0.0,\"escalation_rate\":0.0,\"avg_oracle_cost_per_assess_usd\":0.0},\"breaches\":{\"latency_p95\":0,\"escalation_rate\":0,\"oracle_cost\":0}}}"
+    "body": "{\"uptime_seconds\":14.0,\"assess_total\":0,\"assess_errors\":0,\"auth_failures\":0,\"review_total\":0,\"follow_up_total\":0,\"evidence_total\":0,\"rerun_total\":0,\"control_plane_backend\":\"postgres\",\"control_plane_durable\":true,\"execution_state_backend\":\"postgres\",\"execution_state_durable\":true,\"decision_counts\":{\"accept\":0,\"verify\":0,\"abstain\":0,\"escalate\":0},\"decision_counts_by_risk\":{},\"execution_assess_total\":2,\"execution_decision_counts\":{\"accept\":0,\"verify\":2,\"abstain\":0,\"escalate\":0},\"execution_approvals_total\":1,\"execution_executes_total\":2,\"execution_tool_calls_executed\":1,\"execution_refusals\":{\"binding_refused\":1,\"approval_expired\":0,\"approval_invalidated\":0,\"pep_denied\":0,\"tool_failed\":0,\"no_dispatcher\":0,\"unknown_tool\":0},\"latency_buckets_ms\":{\"100\":0,\"250\":0,\"500\":0,\"1000\":0,\"2000\":0,\"+Inf\":0},\"mean_assess_latency_ms\":0.0,\"escalation_rate\":0.0,\"avg_oracle_cost_per_assess_usd\":0.0,\"slo\":{\"targets\":{\"latency_p95_ms\":2000.0,\"escalation_rate_max\":0.3,\"oracle_cost_per_assess_usd_max\":0.05},\"current\":{\"mean_latency_ms\":0.0,\"escalation_rate\":0.0,\"avg_oracle_cost_per_assess_usd\":0.0},\"breaches\":{\"latency_p95\":0,\"escalation_rate\":0,\"oracle_cost\":0}}}"
    },
    "error": null
   },
@@ -322,8 +322,8 @@
    "class": "shared_process_credential",
    "name": "api_read:/openapi.json",
    "description": "read an API route and keep the body for the assessor's secret scan",
-   "started_at": "2026-11-06T16:01:16.504193+00:00",
-   "finished_at": "2026-11-06T16:01:16.611048+00:00",
+   "started_at": "2026-11-06T16:19:01.120947+00:00",
+   "finished_at": "2026-11-06T16:19:01.236143+00:00",
    "observed": {
     "status": 200,
     "body": "{\"openapi\":\"3.1.0\",\"info\":{\"title\":\"REMORA API\",\"description\":\"Multi-oracle consensus governance layer for agentic AI. Provides structured ACCEPT / VERIFY / ABSTAIN / ESCALATE decisions.\\n\\n**Authenticating here:** press *Authorize* and paste a bearer token. In the shipped OT pilot the tokens are generated by `deploy/ot-pilot/init_tokens.py` into `deploy/ot-pilot/.env` (agent = operator, approver and supervisor = admin, viewer = read-only) \u2014 try approving with the agent token to watch role separation refuse it. **Demo profile only:** those tokens exist for the localhost-bound pilot and must never be exposed outside it; a real deployment mints its own token table (or fronts an IdP).\",\"contact\":{\"name\":\"REMORA Commercial Licensing (Licensor: Stian Skogbrott)\",\"email\":\"support@luftfiber.no\"},\"license\":{\"name\":\"Business Source License 1.1\",\"identifier\":\"BUSL-1.1\"},\"version\":\"0.12.0\"},\"paths\":{\"/\":{\"get\":{\"tags\":[\"infrastructure\"],\"summary\":\"Index\",\"description\":\"Navigation index for the root path.\\n\\nWithout this, ``/`` returned ``{\\\"detail\\\":\\\"Not Found\\\"}`` \u2014 the first\\naddress anyone types, answering in a way that is indistinguishable from a\\ndead server. Deliberately navigation only: no counters, no tenant, no\\npolicy internals, so it stays safe to serve without a token. Anything a\\ncaller could learn here is already visible to a port scan.\",\"operationId\":\"index__get\",\"responses\":{\"200\":{\"description\":\"Successful Response\",\"content\":{\"application/json\":{\"schema\":{\"additionalProperties\":true,\"type\":\"object\",\"title\":\"Response Index  Get\"}}}}},\"security\":[]}},\"/v1/health\":{\"get\":{\"tags\":[\"infrastructure\"],\"summary\":\"Health\",\"description\":\"Liveness probe \u2014 returns 200 when the gateway is ready.\",\"operationId\":\"health_v1_health_get\",\"responses\":{\"200\":{\"description\":\"Successful Response\",\"content\":{\"application/json\":{\"schema\":{\"$ref\":\"#/components/schemas/HealthResponse\"}}}}},\"security\":[]}},\"/v1/envelope/{request_id}\":{\"get\":{\"tags\":[\"governance\"],\"summary\":\"Get Envelope\",\"description\":\"Fetch a previously generated DecisionEnvelope by request id.\",\"operationId\":\"get_envelope_v1_envelope__request_id__get\",\"parameters\":[{\"name\":\"request_id\",\"in\":\"path\",\"required\":true,\"schema\":{\"type\":\"string\",\"title\":\"Request Id\"}}],\"responses\":{\"200\":{\"description\":\"Successful Response\",\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"additionalProperties\":true,\"title\":\"Response Get Envelope V1 Envelope  Request Id  Get\"}}}},\"422\":{\"description\":\"Validation Error\",\"content\":{\"application/json\":{\"schema\":{\"$ref\":\"#/components/schemas/HTTPValidationError\"}}}}}}},\"/v1/audit/{request_id}\":{\"get\":{\"tags\":[\"governance\"],\"summary\":\"Get Audit Record\",\"description\":\"Fetch structured audit metadata for a request id.\",\"operationId\":\"get_audit_record_v1_audit__request_id__get\",\"parameters\":[{\"name\":\"request_id\",\"in\":\"path\",\"required\":true,\"schema\":{\"type\":\"string\",\"title\":\"Request Id\"}}],\"responses\":{\"200\":{\"description\":\"Successful Response\",\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\",\"additionalProperties\":true,\"title\":\"Response Get Audit Record V1 Audit  Request Id  Get\"}}}},\"422\":{\"description\":\"Validation Error\",\"content\":{\"application/json\":{\"schema\":{\"$ref\":\"#/components/schemas/HTTPValidationError\"}}}}}}},\"/v1/audit/chain/verify\":{\"get\":{\"tags\":[\"governance\"],\"summary\":\"Verify Audit Chain\",\"description\":\"Verify hash-chain linkage across this tenant's persisted decisions.\\n\\nThis is the check that makes the stored trail *provable* rather than\\nmerely present: it walks every persisted audit record in write order and\\nconfirms each one links to its predecessor, so a deleted or spliced\\ndecision is detectable. It reports `durable=false` when the active\\nbackend cannot survive a restart \u2014 on such a backend a \\\"valid\\\" chain\\nproves nothing about history.\\n\\n``mode=recompute`` (SEC-01) additionally rebuilds each v3 envelope's\\naudit hash from the stored payload and compares the HMAC signature when\\n``REMORA_ENVELOPE_SIGNING_KEY`` is s"
@@ -334,8 +334,8 @@
    "class": "shared_process_credential",
    "name": "api_read:/v1/execution/capabilities",
    "description": "read an API route and keep the body for the assessor's secret scan",
-   "started_at": "2026-11-06T16:01:16.611073+00:00",
-   "finished_at": "2026-11-06T16:01:16.614336+00:00",
+   "started_at": "2026-11-06T16:19:01.236171+00:00",
+   "finished_at": "2026-11-06T16:19:01.239887+00:00",
    "observed": {
     "status": 404,
     "body": "{\"detail\":\"no capability policy is configured\"}"
@@ -346,8 +346,8 @@
    "class": "shared_process_credential",
    "name": "api_read:/v1/execution/stop",
    "description": "read an API route and keep the body for the assessor's secret scan",
-   "started_at": "2026-11-06T16:01:16.614350+00:00",
-   "finished_at": "2026-11-06T16:01:16.628174+00:00",
+   "started_at": "2026-11-06T16:19:01.239904+00:00",
+   "finished_at": "2026-11-06T16:19:01.256740+00:00",
    "observed": {
     "status": 200,
     "body": "{\"stopped\":false,\"epoch\":0}"
@@ -358,8 +358,8 @@
    "class": "shared_process_credential",
    "name": "api_read:/v1/execution/dispatches",
    "description": "read an API route and keep the body for the assessor's secret scan",
-   "started_at": "2026-11-06T16:01:16.628191+00:00",
-   "finished_at": "2026-11-06T16:01:16.630444+00:00",
+   "started_at": "2026-11-06T16:19:01.256762+00:00",
+   "finished_at": "2026-11-06T16:19:01.259880+00:00",
    "observed": {
     "status": 403,
     "body": "{\"detail\":\"role operator cannot perform verify_effect\"}"
@@ -370,8 +370,8 @@
    "class": "shared_process_credential",
    "name": "api_read:/v1/execution/proposals/../../../etc/passwd",
    "description": "read an API route and keep the body for the assessor's secret scan",
-   "started_at": "2026-11-06T16:01:16.630457+00:00",
-   "finished_at": "2026-11-06T16:01:16.632191+00:00",
+   "started_at": "2026-11-06T16:19:01.259894+00:00",
+   "finished_at": "2026-11-06T16:19:01.261752+00:00",
    "observed": {
     "status": 404,
     "body": "{\"detail\":\"Not Found\"}"
@@ -382,8 +382,8 @@
    "class": "shared_process_credential",
    "name": "api_read:/v1/audit/chain/verify",
    "description": "read an API route and keep the body for the assessor's secret scan",
-   "started_at": "2026-11-06T16:01:16.632203+00:00",
-   "finished_at": "2026-11-06T16:01:16.647800+00:00",
+   "started_at": "2026-11-06T16:19:01.261769+00:00",
+   "finished_at": "2026-11-06T16:19:01.278628+00:00",
    "observed": {
     "status": 200,
     "body": "{\"tenant_id\":\"ot-pilot\",\"records_checked\":0,\"chain_valid\":true,\"genesis_ok\":true,\"head_hash\":null,\"verification_scope\":\"linkage_only\",\"signature_status\":\"NOT_CHECKED\",\"breaks\":[],\"control_plane_backend\":\"postgres\",\"durable\":true}"
@@ -394,8 +394,8 @@
    "class": "shared_process_credential",
    "name": "api_error_body",
    "description": "send a malformed write and keep the error body for the secret scan",
-   "started_at": "2026-11-06T16:01:16.647813+00:00",
-   "finished_at": "2026-11-06T16:01:16.649846+00:00",
+   "started_at": "2026-11-06T16:19:01.278647+00:00",
+   "finished_at": "2026-11-06T16:19:01.281086+00:00",
    "observed": {
     "status": 422,
     "body": "{\"detail\":[{\"type\":\"dict_type\",\"loc\":[\"body\",\"arguments\"],\"msg\":\"Input should be a valid dictionary\",\"input\":\"not-an-object\"}]}"
@@ -406,8 +406,8 @@
    "class": "authenticated_client",
    "name": "resolve:plant",
    "description": "resolve another service's name from the agent zone",
-   "started_at": "2026-11-06T16:01:16.649861+00:00",
-   "finished_at": "2026-11-06T16:01:16.650489+00:00",
+   "started_at": "2026-11-06T16:19:01.281107+00:00",
+   "finished_at": "2026-11-06T16:19:01.281823+00:00",
    "observed": {
     "result": "name_not_resolved: [Errno -3] Temporary failure in name resolution"
    },
@@ -417,8 +417,8 @@
    "class": "authenticated_client",
    "name": "connect:plant:9100",
    "description": "open a TCP connection by service name",
-   "started_at": "2026-11-06T16:01:16.650505+00:00",
-   "finished_at": "2026-11-06T16:01:16.651017+00:00",
+   "started_at": "2026-11-06T16:19:01.281842+00:00",
+   "finished_at": "2026-11-06T16:19:01.282284+00:00",
    "observed": {
     "result": "name_not_resolved: [Errno -3] Temporary failure in name resolution"
    },
@@ -428,8 +428,8 @@
    "class": "authenticated_client",
    "name": "connect:plant:5432",
    "description": "open a TCP connection by service name",
-   "started_at": "2026-11-06T16:01:16.651025+00:00",
-   "finished_at": "2026-11-06T16:01:16.651432+00:00",
+   "started_at": "2026-11-06T16:19:01.282301+00:00",
+   "finished_at": "2026-11-06T16:19:01.282798+00:00",
    "observed": {
     "result": "name_not_resolved: [Errno -3] Temporary failure in name resolution"
    },
@@ -439,8 +439,8 @@
    "class": "authenticated_client",
    "name": "connect:plant:9200",
    "description": "open a TCP connection by service name",
-   "started_at": "2026-11-06T16:01:16.651448+00:00",
-   "finished_at": "2026-11-06T16:01:16.651961+00:00",
+   "started_at": "2026-11-06T16:19:01.282806+00:00",
+   "finished_at": "2026-11-06T16:19:01.283061+00:00",
    "observed": {
     "result": "name_not_resolved: [Errno -3] Temporary failure in name resolution"
    },
@@ -450,8 +450,8 @@
    "class": "authenticated_client",
    "name": "resolve:postgres",
    "description": "resolve another service's name from the agent zone",
-   "started_at": "2026-11-06T16:01:16.651973+00:00",
-   "finished_at": "2026-11-06T16:01:16.652331+00:00",
+   "started_at": "2026-11-06T16:19:01.283068+00:00",
+   "finished_at": "2026-11-06T16:19:01.283417+00:00",
    "observed": {
     "result": "name_not_resolved: [Errno -3] Temporary failure in name resolution"
    },
@@ -461,8 +461,8 @@
    "class": "authority_store_direct",
    "name": "connect:postgres:9100",
    "description": "open a TCP connection by service name",
-   "started_at": "2026-11-06T16:01:16.652340+00:00",
-   "finished_at": "2026-11-06T16:01:16.652747+00:00",
+   "started_at": "2026-11-06T16:19:01.283427+00:00",
+   "finished_at": "2026-11-06T16:19:01.283819+00:00",
    "observed": {
     "result": "name_not_resolved: [Errno -3] Temporary failure in name resolution"
    },
@@ -472,8 +472,8 @@
    "class": "authority_store_direct",
    "name": "connect:postgres:5432",
    "description": "open a TCP connection by service name",
-   "started_at": "2026-11-06T16:01:16.652757+00:00",
-   "finished_at": "2026-11-06T16:01:16.653088+00:00",
+   "started_at": "2026-11-06T16:19:01.283837+00:00",
+   "finished_at": "2026-11-06T16:19:01.284225+00:00",
    "observed": {
     "result": "name_not_resolved: [Errno -3] Temporary failure in name resolution"
    },
@@ -483,8 +483,8 @@
    "class": "authority_store_direct",
    "name": "connect:postgres:9200",
    "description": "open a TCP connection by service name",
-   "started_at": "2026-11-06T16:01:16.653101+00:00",
-   "finished_at": "2026-11-06T16:01:16.653510+00:00",
+   "started_at": "2026-11-06T16:19:01.284327+00:00",
+   "finished_at": "2026-11-06T16:19:01.285013+00:00",
    "observed": {
     "result": "name_not_resolved: [Errno -3] Temporary failure in name resolution"
    },
@@ -494,8 +494,8 @@
    "class": "authenticated_client",
    "name": "resolve:verifier",
    "description": "resolve another service's name from the agent zone",
-   "started_at": "2026-11-06T16:01:16.653517+00:00",
-   "finished_at": "2026-11-06T16:01:16.653977+00:00",
+   "started_at": "2026-11-06T16:19:01.285030+00:00",
+   "finished_at": "2026-11-06T16:19:01.285741+00:00",
    "observed": {
     "result": "name_not_resolved: [Errno -3] Temporary failure in name resolution"
    },
@@ -505,8 +505,8 @@
    "class": "authenticated_client",
    "name": "connect:verifier:9100",
    "description": "open a TCP connection by service name",
-   "started_at": "2026-11-06T16:01:16.653992+00:00",
-   "finished_at": "2026-11-06T16:01:16.654495+00:00",
+   "started_at": "2026-11-06T16:19:01.285758+00:00",
+   "finished_at": "2026-11-06T16:19:01.286252+00:00",
    "observed": {
     "result": "name_not_resolved: [Errno -3] Temporary failure in name resolution"
    },
@@ -516,8 +516,8 @@
    "class": "authenticated_client",
    "name": "connect:verifier:5432",
    "description": "open a TCP connection by service name",
-   "started_at": "2026-11-06T16:01:16.654539+00:00",
-   "finished_at": "2026-11-06T16:01:16.654924+00:00",
+   "started_at": "2026-11-06T16:19:01.286270+00:00",
+   "finished_at": "2026-11-06T16:19:01.286721+00:00",
    "observed": {
     "result": "name_not_resolved: [Errno -3] Temporary failure in name resolution"
    },
@@ -527,8 +527,8 @@
    "class": "authenticated_client",
    "name": "connect:verifier:9200",
    "description": "open a TCP connection by service name",
-   "started_at": "2026-11-06T16:01:16.654935+00:00",
-   "finished_at": "2026-11-06T16:01:16.655305+00:00",
+   "started_at": "2026-11-06T16:19:01.286730+00:00",
+   "finished_at": "2026-11-06T16:19:01.287173+00:00",
    "observed": {
     "result": "name_not_resolved: [Errno -3] Temporary failure in name resolution"
    },
@@ -538,8 +538,8 @@
    "class": "authenticated_client",
    "name": "resolve:console",
    "description": "resolve another service's name from the agent zone",
-   "started_at": "2026-11-06T16:01:16.655314+00:00",
-   "finished_at": "2026-11-06T16:01:16.655717+00:00",
+   "started_at": "2026-11-06T16:19:01.287194+00:00",
+   "finished_at": "2026-11-06T16:19:01.294532+00:00",
    "observed": {
     "result": "name_not_resolved: [Errno -3] Temporary failure in name resolution"
    },
@@ -549,8 +549,8 @@
    "class": "authenticated_client",
    "name": "connect:console:9100",
    "description": "open a TCP connection by service name",
-   "started_at": "2026-11-06T16:01:16.655723+00:00",
-   "finished_at": "2026-11-06T16:01:16.656126+00:00",
+   "started_at": "2026-11-06T16:19:01.294550+00:00",
+   "finished_at": "2026-11-06T16:19:01.294958+00:00",
    "observed": {
     "result": "name_not_resolved: [Errno -3] Temporary failure in name resolution"
    },
@@ -560,8 +560,8 @@
    "class": "authenticated_client",
    "name": "connect:console:5432",
    "description": "open a TCP connection by service name",
-   "started_at": "2026-11-06T16:01:16.656141+00:00",
-   "finished_at": "2026-11-06T16:01:16.656548+00:00",
+   "started_at": "2026-11-06T16:19:01.294969+00:00",
+   "finished_at": "2026-11-06T16:19:01.295638+00:00",
    "observed": {
     "result": "name_not_resolved: [Errno -3] Temporary failure in name resolution"
    },
@@ -571,8 +571,8 @@
    "class": "authenticated_client",
    "name": "connect:console:9200",
    "description": "open a TCP connection by service name",
-   "started_at": "2026-11-06T16:01:16.656556+00:00",
-   "finished_at": "2026-11-06T16:01:16.656863+00:00",
+   "started_at": "2026-11-06T16:19:01.295653+00:00",
+   "finished_at": "2026-11-06T16:19:01.296181+00:00",
    "observed": {
     "result": "name_not_resolved: [Errno -3] Temporary failure in name resolution"
    },
@@ -582,8 +582,8 @@
    "class": "authenticated_client",
    "name": "address_sweep",
    "description": "probe the plant, PostgreSQL and verifier ports on the first addresses of 172.16-31.0.0/24",
-   "started_at": "2026-11-06T16:01:16.656869+00:00",
-   "finished_at": "2026-11-06T16:01:17.562596+00:00",
+   "started_at": "2026-11-06T16:19:01.296199+00:00",
+   "finished_at": "2026-11-06T16:19:02.203859+00:00",
    "observed": {
     "connected": [],
     "probed": 240
@@ -594,8 +594,8 @@
    "class": "authenticated_client",
    "name": "effects_route_forged_lease",
    "description": "POST /effects, the API's mediated effect route, with a lease it never minted",
-   "started_at": "2026-11-06T16:01:17.562618+00:00",
-   "finished_at": "2026-11-06T16:01:17.565788+00:00",
+   "started_at": "2026-11-06T16:19:02.203880+00:00",
+   "finished_at": "2026-11-06T16:19:02.207344+00:00",
    "observed": {
     "status": 404,
     "body": "{\"detail\":\"served only by the effect domain\"}"
@@ -606,8 +606,8 @@
    "class": "authenticated_client",
    "name": "argument_as_url:http://plant:9100/tools/set_valve_position",
    "description": "assess a governed call whose target argument names a plant URL or path",
-   "started_at": "2026-11-06T16:01:17.565804+00:00",
-   "finished_at": "2026-11-06T16:01:17.584035+00:00",
+   "started_at": "2026-11-06T16:19:02.207365+00:00",
+   "finished_at": "2026-11-06T16:19:02.226639+00:00",
    "observed": {
     "status": 409,
     "body": "{\"detail\":\"limit_observation_unavailable\"}"
@@ -618,8 +618,8 @@
    "class": "authenticated_client",
    "name": "argument_as_url:../tools/set_valve_position",
    "description": "assess a governed call whose target argument names a plant URL or path",
-   "started_at": "2026-11-06T16:01:17.584055+00:00",
-   "finished_at": "2026-11-06T16:01:17.598871+00:00",
+   "started_at": "2026-11-06T16:19:02.226659+00:00",
+   "finished_at": "2026-11-06T16:19:02.247848+00:00",
    "observed": {
     "status": 409,
     "body": "{\"detail\":\"limit_observation_unavailable\"}"
@@ -630,8 +630,8 @@
    "class": "authenticated_client",
    "name": "argument_as_url:V-12/../../journal",
    "description": "assess a governed call whose target argument names a plant URL or path",
-   "started_at": "2026-11-06T16:01:17.598888+00:00",
-   "finished_at": "2026-11-06T16:01:17.613167+00:00",
+   "started_at": "2026-11-06T16:19:02.247869+00:00",
+   "finished_at": "2026-11-06T16:19:02.268633+00:00",
    "observed": {
     "status": 409,
     "body": "{\"detail\":\"limit_observation_unavailable\"}"
@@ -642,8 +642,8 @@
    "class": "authenticated_client",
    "name": "argument_as_url:V-12?dispatch_ref=x",
    "description": "assess a governed call whose target argument names a plant URL or path",
-   "started_at": "2026-11-06T16:01:17.613185+00:00",
-   "finished_at": "2026-11-06T16:01:17.630882+00:00",
+   "started_at": "2026-11-06T16:19:02.268647+00:00",
+   "finished_at": "2026-11-06T16:19:02.289733+00:00",
    "observed": {
     "status": 409,
     "body": "{\"detail\":\"limit_observation_unavailable\"}"
@@ -654,8 +654,8 @@
    "class": "forged_effect_receipt",
    "name": "agent_records_effect",
    "description": "post a self-made effect receipt for its own proposal as the agent",
-   "started_at": "2026-11-06T16:01:17.630903+00:00",
-   "finished_at": "2026-11-06T16:01:17.754692+00:00",
+   "started_at": "2026-11-06T16:19:02.289754+00:00",
+   "finished_at": "2026-11-06T16:19:02.422563+00:00",
    "observed": {
     "status": 403,
     "body": "{\"detail\":\"role operator cannot perform verify_effect\"}"

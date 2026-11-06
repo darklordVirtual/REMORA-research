@@ -25,7 +25,7 @@ This file lists externally relevant changes by release. Fine-grained development
   - a scope refusal at execute re-queued the item for a second approval (`remora/governance/review_queue.py` now settles an item whose fresh decision is a non-approvable ABSTAIN);
   - the dispatch listing was readable by the agent's role;
   - the reconciliation and the topology check had gaps.
-  The list is in the evidence README.
+  The list is in the evidence README. CodeQL on the PR then found credential-derived data in the boundary record and a world-writable directory shared with the agent zone. The record now keeps a count, and the agent reports on stdout and mounts nothing.
 - Tests: `tests/test_ot_pilot_plant_boundary.py`, `tests/test_ot_pilot_effect_verification.py` (the full G chain in-process), `tests/test_aacp_ot_pilot_assessment.py` (the record agrees with its run files), and the signed-receipt route. OpenAPI and the generated frontend types are regenerated, and the mediation inventory classifies the new route (29 routes).
 
 ### OT pilot: a call outside its work order's scope is refused before review (AACP D, 2026-11-06)

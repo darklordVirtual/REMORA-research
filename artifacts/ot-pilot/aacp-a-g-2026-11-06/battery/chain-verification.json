@@ -1,7 +1,7 @@
 {
   "execution_audit_chain": {
     "valid": true,
-    "records_checked": 54,
+    "records_checked": 53,
     "problems": []
   },
   "envelope_chain": {

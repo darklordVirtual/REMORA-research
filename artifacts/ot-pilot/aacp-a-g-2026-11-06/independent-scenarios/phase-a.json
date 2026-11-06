@@ -1,6 +1,6 @@
 {
   "schema": "remora-independent-scenario-run/v1",
-  "run_at": "2026-11-06T15:59:11.095127+00:00",
+  "run_at": "2026-11-06T16:16:55.047058+00:00",
   "phase": "a",
   "scenarios_file": "scenarios_v1.json",
   "scenarios_sha256": "ada092cf262f8244332909f5a89b5f5fb5dbf5663834078430269d4c5fc7a4e0",
@@ -8,19 +8,19 @@
     "health": {
       "status": "ok",
       "version": "0.12.0",
-      "uptime_seconds": 10.1,
+      "uptime_seconds": 9.8,
       "oracle_count": null
     },
     "policy_version": {
       "policy_version": "RemoraDecisionEngine-v6",
-      "policy_hash": "sha256:6c7077ac84bae8e7ae8064215ea1f8b7a49519459b8538addda33defbd423dfd",
+      "policy_hash": "sha256:8043af3265e8ec143f47ad56d15c4ec4f2a182e4c458972665fcbf471311b088",
       "risk_profile_hash": "sha256:30d350f4a937fe3b113d9a383a604713cf89526e34be15139447b0bd4af64e45",
       "schema_hash": "sha256:299c2deb548681cd7eed6bbef9e88ede6fc73f927e2889d9d3e3bb6852dcaf99",
-      "tool_registry_hash": "sha256:bb27685c76a9be26cb3d17356cd16b8c7a63af85f566a1cb7a5e597e28b99936",
+      "tool_registry_hash": "sha256:30b07e4dcc6d8fe1867094abfa835a7b8208b14bee9b6a2f6521ac1a2fc1e3db",
       "opa_policy_hash": null,
       "policy_hash_by_surface": {
-        "execution": "sha256:6c7077ac84bae8e7ae8064215ea1f8b7a49519459b8538addda33defbd423dfd",
-        "assess": "sha256:0fa50eb142d429f4e43ae1f8588a44df700bfb93559f9f1cc0746eec87466c65"
+        "execution": "sha256:8043af3265e8ec143f47ad56d15c4ec4f2a182e4c458972665fcbf471311b088",
+        "assess": "sha256:69f6d1be94a40e3feba52b39052c1f30f92f676a987431fc093acd35f92092bb"
       },
       "engine_mode_flags": {
         "low_consequence_accept": false,
@@ -82,7 +82,7 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "78401046-8677-439e-ada5-4f002c404909",
+            "proposal_id": "5cf9e3ac-6b93-4c6d-acfd-6271e41bb8b4",
             "execution_token_present": false,
             "ws1": {
               "mode": "shadow",
@@ -124,7 +124,7 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "014f9644-77e7-454b-a6f1-0bf325e02427",
+            "proposal_id": "79bf6ec9-0b28-4a3b-881e-fee392c2588e",
             "execution_token_present": false,
             "ws1": {
               "mode": "shadow",
@@ -169,7 +169,7 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "32851b2b-508f-4744-a656-5e088f59dbf3",
+            "proposal_id": "1d556495-9fee-4a0b-9887-eb2413bbe8a7",
             "execution_token_present": false,
             "ws1": {
               "mode": "shadow",
@@ -211,14 +211,14 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "3157eca7-6fdd-4de2-9ed9-5d91945e052b",
+            "proposal_id": "0b6bb7ca-a903-4081-8a23-3a37d0394b17",
             "execution_token_present": true,
             "ws1": {
               "mode": "shadow",
               "status": "evaluated",
               "final_action": "accept"
             },
-            "grant_digest16": "4971703580fa8a5a"
+            "grant_digest16": "9f109fefa5aca142"
           }
         },
         {
@@ -250,7 +250,7 @@
               "value": 4.1
             },
             "review_item_id": null,
-            "proposal_id": "3157eca7-6fdd-4de2-9ed9-5d91945e052b",
+            "proposal_id": "0b6bb7ca-a903-4081-8a23-3a37d0394b17",
             "execution_token_present": false,
             "ws1": null
           }
@@ -289,7 +289,7 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "ea5ca512-1bfb-4867-a2fb-42f927eaab2b",
+            "proposal_id": "19011154-2e69-4c44-b33c-7d3695ea2ed8",
             "execution_token_present": false,
             "ws1": {
               "mode": "shadow",
@@ -340,7 +340,7 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "3efe7d51-ec52-4f2e-8a5a-4bdce09adb80",
+            "proposal_id": "ca118148-791e-41ab-9f8d-f8d67f335721",
             "execution_token_present": false,
             "ws1": {
               "mode": "shadow",
@@ -389,8 +389,8 @@
             "outcome": null,
             "executed": null,
             "tool_result": null,
-            "review_item_id": "ffa5b98a-ca53-4c0d-a78c-99c819a146b5",
-            "proposal_id": "ceb3ce66-0f29-400c-9568-bb60ac97d2dd",
+            "review_item_id": "7cbf772a-aa23-46ec-8e87-1cfa70d71d9c",
+            "proposal_id": "14d56ac9-66e4-41d1-a738-a506ee92f555",
             "execution_token_present": false,
             "ws1": {
               "mode": "shadow",
@@ -405,7 +405,7 @@
           "method": "POST",
           "path": "/v1/execution/approve",
           "request": {
-            "item_id": "ffa5b98a-ca53-4c0d-a78c-99c819a146b5",
+            "item_id": "7cbf772a-aa23-46ec-8e87-1cfa70d71d9c",
             "approval_ttl_seconds": 600
           },
           "response": {
@@ -417,7 +417,7 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "ceb3ce66-0f29-400c-9568-bb60ac97d2dd",
+            "proposal_id": "14d56ac9-66e4-41d1-a738-a506ee92f555",
             "execution_token_present": false,
             "ws1": null
           }
@@ -428,7 +428,7 @@
           "method": "POST",
           "path": "/v1/execution/execute",
           "request": {
-            "item_id": "ffa5b98a-ca53-4c0d-a78c-99c819a146b5",
+            "item_id": "7cbf772a-aa23-46ec-8e87-1cfa70d71d9c",
             "tool_call": {
               "tool_name": "acknowledge_alarm",
               "arguments": {
@@ -450,7 +450,7 @@
               "alarm_id": "LT-410-HI"
             },
             "review_item_id": null,
-            "proposal_id": "ceb3ce66-0f29-400c-9568-bb60ac97d2dd",
+            "proposal_id": "14d56ac9-66e4-41d1-a738-a506ee92f555",
             "execution_token_present": false,
             "ws1": null
           }
@@ -534,7 +534,7 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "b6305a5b-b2f6-4855-8b7a-4484ea714a3b",
+            "proposal_id": "c3f7e723-43c1-464d-894d-986d7537998c",
             "execution_token_present": false,
             "ws1": {
               "mode": "shadow",
@@ -584,8 +584,8 @@
             "outcome": null,
             "executed": null,
             "tool_result": null,
-            "review_item_id": "894643d8-cf7c-4f7c-a678-15f227710fad",
-            "proposal_id": "e190e646-3111-4e2a-8583-e8736d251cb7",
+            "review_item_id": "96cb6900-e467-4d04-8f7f-bb1ce2e6f21d",
+            "proposal_id": "b86f0296-744f-4671-9303-40bee86a67c4",
             "execution_token_present": false,
             "ws1": {
               "mode": "shadow",
@@ -600,7 +600,7 @@
           "method": "POST",
           "path": "/v1/execution/approve",
           "request": {
-            "item_id": "894643d8-cf7c-4f7c-a678-15f227710fad",
+            "item_id": "96cb6900-e467-4d04-8f7f-bb1ce2e6f21d",
             "approval_ttl_seconds": 600
           },
           "response": {
@@ -612,7 +612,7 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "e190e646-3111-4e2a-8583-e8736d251cb7",
+            "proposal_id": "b86f0296-744f-4671-9303-40bee86a67c4",
             "execution_token_present": false,
             "ws1": null
           }
@@ -623,7 +623,7 @@
           "method": "POST",
           "path": "/v1/execution/execute",
           "request": {
-            "item_id": "894643d8-cf7c-4f7c-a678-15f227710fad",
+            "item_id": "96cb6900-e467-4d04-8f7f-bb1ce2e6f21d",
             "tool_call": {
               "tool_name": "adjust_setpoint",
               "arguments": {
@@ -643,7 +643,7 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "e190e646-3111-4e2a-8583-e8736d251cb7",
+            "proposal_id": "b86f0296-744f-4671-9303-40bee86a67c4",
             "execution_token_present": false,
             "ws1": null
           }
@@ -681,8 +681,8 @@
             "outcome": null,
             "executed": null,
             "tool_result": null,
-            "review_item_id": "fa275d57-3a31-448c-9bb8-c05ec0a6f1c8",
-            "proposal_id": "86ae32ed-43ee-4aab-a3d4-0f546b691b8e",
+            "review_item_id": "116072a5-ed10-4b56-9990-05b0179cda4a",
+            "proposal_id": "4d6d765d-c589-49e8-a5cd-d541a5498596",
             "execution_token_present": false,
             "ws1": {
               "mode": "shadow",
@@ -697,7 +697,7 @@
           "method": "POST",
           "path": "/v1/execution/approve",
           "request": {
-            "item_id": "fa275d57-3a31-448c-9bb8-c05ec0a6f1c8",
+            "item_id": "116072a5-ed10-4b56-9990-05b0179cda4a",
             "approval_ttl_seconds": 600
           },
           "response": {
@@ -709,7 +709,7 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "86ae32ed-43ee-4aab-a3d4-0f546b691b8e",
+            "proposal_id": "4d6d765d-c589-49e8-a5cd-d541a5498596",
             "execution_token_present": false,
             "ws1": null
           }
@@ -720,7 +720,7 @@
           "method": "POST",
           "path": "/v1/execution/execute",
           "request": {
-            "item_id": "fa275d57-3a31-448c-9bb8-c05ec0a6f1c8",
+            "item_id": "116072a5-ed10-4b56-9990-05b0179cda4a",
             "tool_call": {
               "tool_name": "set_valve_position",
               "arguments": {
@@ -778,14 +778,14 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "3a071659-29ab-439b-b564-c898f449de43",
+            "proposal_id": "125926b2-d845-4b07-981d-c2c21b82044d",
             "execution_token_present": true,
             "ws1": {
               "mode": "shadow",
               "status": "evaluated",
               "final_action": "accept"
             },
-            "grant_digest16": "6a2f09b27527d351"
+            "grant_digest16": "fb24773ac3a1ed3c"
           }
         },
         {
@@ -817,7 +817,7 @@
               "value": 118.0
             },
             "review_item_id": null,
-            "proposal_id": "3a071659-29ab-439b-b564-c898f449de43",
+            "proposal_id": "125926b2-d845-4b07-981d-c2c21b82044d",
             "execution_token_present": false,
             "ws1": null
           }
@@ -856,7 +856,7 @@
           "step": 4,
           "role": "viewer",
           "method": "GET",
-          "path": "/v1/execution/proposals/3a071659-29ab-439b-b564-c898f449de43/lifecycle",
+          "path": "/v1/execution/proposals/125926b2-d845-4b07-981d-c2c21b82044d/lifecycle",
           "request": null,
           "response": {
             "status": 200,
@@ -867,16 +867,16 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "3a071659-29ab-439b-b564-c898f449de43",
+            "proposal_id": "125926b2-d845-4b07-981d-c2c21b82044d",
             "execution_token_present": false,
             "ws1": null,
             "lifecycle": {
-              "proposal_id": "3a071659-29ab-439b-b564-c898f449de43",
+              "proposal_id": "125926b2-d845-4b07-981d-c2c21b82044d",
               "events": [
                 {
                   "sequence_no": 20,
-                  "entry_hash": "2e1ad01e10e213a1fa0bcad9df3c8dc677469d23f598d6facc589068c482a9ad",
-                  "timestamp": "2026-11-06T15:59:07.781249+00:00",
+                  "entry_hash": "66e3fceb8700a05847d751df8eac37c127a228ed269abaee5ca879088aa67917",
+                  "timestamp": "2026-11-06T16:16:51.385035+00:00",
                   "event": "assessed",
                   "actor": "ot-agent",
                   "payload": {
@@ -894,28 +894,28 @@
                           }
                         ],
                         "base_action": "accept",
-                        "record_hash": "8fa8b2c838aaf6ffa907a6997b38dfabbcd539d6ec00513361786e40e7dbb215",
+                        "record_hash": "bc708d9fbe87626ef53c466c20537b842f0e32001da1cac390d456b911632518",
                         "base_reasons": [
                           "grounded_read_accept"
                         ],
-                        "context_hash": "d10212eb9012c404ede9a54a853ee3ed11a6f10d9eeb1a6a21935e6c9bc6817d",
+                        "context_hash": "22e231d6bd1c70dcd0848f2c1c35f9ba9a47d24c654272d2c5c3ffc7680da4f2",
                         "final_action": "accept",
                         "monitor_veto": false,
                         "profile_hash": "a66fbe973e54220943918d13c0d57920bc4db355c4de49ec4ca09b14d231bdbf",
                         "reason_codes": [],
                         "review_class": "none",
                         "monitor_status": "not_requested:monitor_not_requested",
-                        "evidence_digest": "dbc9a5a7836f66bec8f35f792c1e25b5ef01c66a45272be43d3f4839548043e7",
-                        "requirements_hash": "bf0bd86229405f323afb3769086c9453b6b1fbc5f1d426c7125dd40c7fc2fa9b",
+                        "evidence_digest": "14cfd0d762b656774e9da52ee605a9a04bf0a56ddc5733ec2c475a133e20a88f",
+                        "requirements_hash": "ec8895f881c4104a67787ff3be0b4cb0a21bfa583c32a4ee7d5b9e94ec3ca2cd",
                         "monitor_assessment": null,
                         "parent_record_hash": null,
                         "all_precondition_results": [
                           {
                             "reason_code": "sensor_on_round",
-                            "valid_until": 1793980807,
-                            "verified_at": 1793980747,
+                            "valid_until": 1793981871,
+                            "verified_at": 1793981811,
                             "evidence_refs": [
-                              "ea59e968c0cdbeae72853d4703ccd94e7cdd7154999eabeea499c22b060e830c"
+                              "9af7f97a50d063e114cb9f9c64f5ac7397b1b8957277f8a036dc87dd28109d14"
                             ],
                             "logical_state": "proved",
                             "source_version": "v1",
@@ -935,7 +935,7 @@
                       ],
                       "review_role": "",
                       "stop_reason": "machine_preconditions_settled",
-                      "binding_hash": "c7173740abbff1a84c8670c76247f7fc7a0d4f6cd5bffdb8e0b87e98dd2ed017",
+                      "binding_hash": "11a9b847f109f9555773d7d0658ebb8f6e568ebf406af565b5f9a1fde96a00c1",
                       "final_action": "accept",
                       "monitor_veto": false,
                       "grounded_action": "accept",
@@ -956,11 +956,11 @@
                       "grounded_read_accept"
                     ],
                     "decision": "accept",
-                    "grant_jti": "06194af4-fbe1-4242-98c8-f334f9f0c7f7",
+                    "grant_jti": "28e22d97-bfec-4e68-b373-908cfffd61f0",
                     "tool_name": "read_sensor",
                     "state_hash": "a4cfeb29265b0562e095c9e88728d6452bd7e331f7dd10466a66d8af115c3d79",
-                    "proposal_id": "3a071659-29ab-439b-b564-c898f449de43",
-                    "toolspec_hash": "26aac36114eb6c0c6f820fa6ef57dca30eb872707e591ca9e9c1f961baca7d8e",
+                    "proposal_id": "125926b2-d845-4b07-981d-c2c21b82044d",
+                    "toolspec_hash": "7cbab42291b2d0ac4be8dcfab988b12b91aa21437dd5f50e4ad77bcae79a9eb2",
                     "policy_version": "RemoraDecisionEngine-v6",
                     "tool_call_hash": "00767c26f74adb83254a439dd422d1570df20491a8f6a99310a7f0a1c828e2af",
                     "lineage_resource": "FT-220",
@@ -971,8 +971,8 @@
                     "authorization_context": {
                       "tenant": "ot-pilot",
                       "principal": "ot-agent",
-                      "toolspec_hash": "26aac36114eb6c0c6f820fa6ef57dca30eb872707e591ca9e9c1f961baca7d8e",
-                      "policy_bundle_hash": "sha256:6c7077ac84bae8e7ae8064215ea1f8b7a49519459b8538addda33defbd423dfd",
+                      "toolspec_hash": "7cbab42291b2d0ac4be8dcfab988b12b91aa21437dd5f50e4ad77bcae79a9eb2",
+                      "policy_bundle_hash": "sha256:8043af3265e8ec143f47ad56d15c4ec4f2a182e4c458972665fcbf471311b088",
                       "target_environment": "prod",
                       "intent_authority_hash": "7913b9a781fda2bd46db34b94206deb34d8b3c4dbaf6e369ab539834fcfa058d"
                     },
@@ -986,31 +986,31 @@
                 },
                 {
                   "sequence_no": 21,
-                  "entry_hash": "412ca2cb593654760ea324570f6afd910c6989177d95684bd25c82e093fafff8",
-                  "timestamp": "2026-11-06T15:59:07.995963+00:00",
+                  "entry_hash": "4c5e19ab0aa6f328b7a30e08fca69035a722b38def9308848b9a183b16832c59",
+                  "timestamp": "2026-11-06T16:16:51.656598+00:00",
                   "event": "execution_authorized",
                   "actor": "ot-agent",
                   "payload": {
                     "actor": "ot-agent",
                     "event": "execution_authorized",
                     "grant": {
-                      "jti": "06194af4-fbe1-4242-98c8-f334f9f0c7f7",
+                      "jti": "28e22d97-bfec-4e68-b373-908cfffd61f0",
                       "kid": "",
                       "action": "accept",
                       "issuer": "",
                       "audience": "pep://remora-execution",
                       "is_signed": true,
-                      "issued_at": "2026-11-06T15:59:07.756234+00:00",
-                      "signature": "0878f762f7da62aa22d0dfda6aa439e5a743ef9f237bec1572be86312744e180",
-                      "expires_at": "2026-11-06T16:04:07.756234+00:00",
-                      "request_id": "3a071659-29ab-439b-b564-c898f449de43",
-                      "context_hash": "9ee0f85d1be3d53d3eaf030e407daa1f0f8b9466e87d0757e476222d4f3e78a7",
+                      "issued_at": "2026-11-06T16:16:51.355026+00:00",
+                      "signature": "9600c2d5362ee8cd399ce7abd1e773edc51394a62e73bc9cf26fef8f6beb3ca4",
+                      "expires_at": "2026-11-06T16:21:51.355026+00:00",
+                      "request_id": "125926b2-d845-4b07-981d-c2c21b82044d",
+                      "context_hash": "135ddb9b1af66d6f2e73b6f6c2cb321f47b80cbe4dd480e6738961e2390376d8",
                       "observation_hash": "00767c26f74adb83254a439dd422d1570df20491a8f6a99310a7f0a1c828e2af"
                     },
-                    "item_id": "accept:06194af4-fbe1-4242-98c8-f334f9f0c7f7",
-                    "grant_jti": "06194af4-fbe1-4242-98c8-f334f9f0c7f7",
+                    "item_id": "accept:28e22d97-bfec-4e68-b373-908cfffd61f0",
+                    "grant_jti": "28e22d97-bfec-4e68-b373-908cfffd61f0",
                     "pep_allowed": true,
-                    "proposal_id": "3a071659-29ab-439b-b564-c898f449de43",
+                    "proposal_id": "125926b2-d845-4b07-981d-c2c21b82044d",
                     "tool_call_hash": "00767c26f74adb83254a439dd422d1570df20491a8f6a99310a7f0a1c828e2af",
                     "intent_authority_hash": "7913b9a781fda2bd46db34b94206deb34d8b3c4dbaf6e369ab539834fcfa058d",
                     "tool_contract_bundle_hash": "f6d7425270a52eace7abee24b7dfd1784434e12942525795feda9d7441f4f9ea"
@@ -1018,8 +1018,8 @@
                 },
                 {
                   "sequence_no": 22,
-                  "entry_hash": "1738d92373c5a11a80b1c9d4eb3311481b6e9ff9ac8d6de0a1c6e4347452c41b",
-                  "timestamp": "2026-11-06T15:59:08.091990+00:00",
+                  "entry_hash": "c3148cd429d9bd6c65301d7ea9042454ad3393143b234f238a2686efd71c2b3b",
+                  "timestamp": "2026-11-06T16:16:51.767819+00:00",
                   "event": "execution_result",
                   "actor": "ot-agent",
                   "payload": {
@@ -1027,31 +1027,31 @@
                     "event": "execution_result",
                     "lease": {
                       "kid": "",
-                      "nonce": "46301f96-8a36-4ded-8369-d21c179c3903",
+                      "nonce": "2c0cf88b-6da1-43e9-b678-d39b2e26b376",
                       "sig_alg": "hmac-sha256",
                       "decision": "accept",
-                      "grant_jti": "06194af4-fbe1-4242-98c8-f334f9f0c7f7",
+                      "grant_jti": "28e22d97-bfec-4e68-b373-908cfffd61f0",
                       "is_signed": true,
-                      "issued_at": "2026-11-06T15:59:07.974954+00:00",
-                      "signature": "21410b19f6c2c6edf5b87c5abb6a7a3dcad3219520215907e155df1bdac5a865",
+                      "issued_at": "2026-11-06T16:16:51.628205+00:00",
+                      "signature": "6c16589005c4dac33a6cf26ccb8a2466f6d12847358ec6823756493fb35f61b5",
                       "tenant_id": "ot-pilot",
                       "tool_name": "read_sensor",
-                      "expires_at": "2026-11-06T16:01:07.974954+00:00",
-                      "proposal_id": "3a071659-29ab-439b-b564-c898f449de43",
-                      "toolspec_hash": "26aac36114eb6c0c6f820fa6ef57dca30eb872707e591ca9e9c1f961baca7d8e",
+                      "expires_at": "2026-11-06T16:18:51.628205+00:00",
+                      "proposal_id": "125926b2-d845-4b07-981d-c2c21b82044d",
+                      "toolspec_hash": "7cbab42291b2d0ac4be8dcfab988b12b91aa21437dd5f50e4ad77bcae79a9eb2",
                       "actor_identity": "ot-agent",
-                      "surface_digest": "e9993ba8a247c984316c3a4f87a661fdf735697b377413306edf7ecf279dae76",
+                      "surface_digest": "4b8a3bc7e5e35f27e4ed05259c7055ffdf49597e5d8d02d3e55704d5c40a0a7d",
                       "tool_args_hash": "00767c26f74adb83254a439dd422d1570df20491a8f6a99310a7f0a1c828e2af",
                       "toolspec_version": 1,
-                      "policy_bundle_hash": "sha256:6c7077ac84bae8e7ae8064215ea1f8b7a49519459b8538addda33defbd423dfd",
+                      "policy_bundle_hash": "sha256:8043af3265e8ec143f47ad56d15c4ec4f2a182e4c458972665fcbf471311b088",
                       "target_environment": "prod",
                       "intent_authority_hash": "7913b9a781fda2bd46db34b94206deb34d8b3c4dbaf6e369ab539834fcfa058d",
                       "runtime_identity_hash": "",
                       "tool_contract_bundle_hash": "f6d7425270a52eace7abee24b7dfd1784434e12942525795feda9d7441f4f9ea"
                     },
-                    "item_id": "accept:06194af4-fbe1-4242-98c8-f334f9f0c7f7",
-                    "grant_jti": "06194af4-fbe1-4242-98c8-f334f9f0c7f7",
-                    "proposal_id": "3a071659-29ab-439b-b564-c898f449de43",
+                    "item_id": "accept:28e22d97-bfec-4e68-b373-908cfffd61f0",
+                    "grant_jti": "28e22d97-bfec-4e68-b373-908cfffd61f0",
+                    "proposal_id": "125926b2-d845-4b07-981d-c2c21b82044d",
                     "result_sha256": "32c786c35cde4b27be7d54e2c512feae1599f8b078ebd40f4fa5fb1c339134cb",
                     "state_unknown": false,
                     "tool_executed": true,
@@ -1068,21 +1068,21 @@
                 },
                 {
                   "sequence_no": 23,
-                  "entry_hash": "b63a6d321139b6b9c1adaad37f19c9bb4135ad65d6a4082581425d277ce89bfe",
-                  "timestamp": "2026-11-06T15:59:08.396983+00:00",
+                  "entry_hash": "16c329f9a0217192e68430fa7da436488214c75fb242ef86351bbaccf594ee90",
+                  "timestamp": "2026-11-06T16:16:52.033718+00:00",
                   "event": "execution_grant_refused",
                   "actor": "ot-agent",
                   "payload": {
                     "actor": "ot-agent",
                     "event": "execution_grant_refused",
                     "detail": "token_already_consumed",
-                    "grant_jti": "06194af4-fbe1-4242-98c8-f334f9f0c7f7",
-                    "proposal_id": "3a071659-29ab-439b-b564-c898f449de43"
+                    "grant_jti": "28e22d97-bfec-4e68-b373-908cfffd61f0",
+                    "proposal_id": "125926b2-d845-4b07-981d-c2c21b82044d"
                   }
                 }
               ],
               "dispatch": {
-                "outbox_id": "d365d90f-bcdd-4bc8-a4d7-79228bf69084",
+                "outbox_id": "f8ea45ec-48d4-401f-8c02-09d5eb972fdb",
                 "state": "SUCCEEDED",
                 "attempt_no": 1,
                 "worker_id": "api:1",
@@ -1126,8 +1126,8 @@
             "outcome": null,
             "executed": null,
             "tool_result": null,
-            "review_item_id": "9e4d05ea-436e-49b2-b15f-5d40e80e2028",
-            "proposal_id": "bcfb5820-b3a8-451a-80db-03c41c6849ee",
+            "review_item_id": "a03de3e9-4b70-49e2-b397-5b10e8abf64c",
+            "proposal_id": "cc596730-56bc-47a4-88af-66f5a24d0938",
             "execution_token_present": false,
             "ws1": {
               "mode": "shadow",
@@ -1142,7 +1142,7 @@
           "method": "POST",
           "path": "/v1/execution/approve",
           "request": {
-            "item_id": "9e4d05ea-436e-49b2-b15f-5d40e80e2028",
+            "item_id": "a03de3e9-4b70-49e2-b397-5b10e8abf64c",
             "approval_ttl_seconds": 600
           },
           "response": {
@@ -1165,7 +1165,7 @@
           "method": "POST",
           "path": "/v1/execution/execute",
           "request": {
-            "item_id": "9e4d05ea-436e-49b2-b15f-5d40e80e2028",
+            "item_id": "a03de3e9-4b70-49e2-b397-5b10e8abf64c",
             "tool_call": {
               "tool_name": "adjust_setpoint",
               "arguments": {
@@ -1223,14 +1223,14 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "ecc1e9f3-849a-4021-9a67-343741ce6d33",
+            "proposal_id": "f9d2be25-1205-4267-b893-b0dead35de4e",
             "execution_token_present": true,
             "ws1": {
               "mode": "shadow",
               "status": "evaluated",
               "final_action": "accept"
             },
-            "grant_digest16": "119edeec13a34e25"
+            "grant_digest16": "6ba88514e17c193b"
           }
         },
         {
@@ -1292,7 +1292,7 @@
               "value": 2.1
             },
             "review_item_id": null,
-            "proposal_id": "ecc1e9f3-849a-4021-9a67-343741ce6d33",
+            "proposal_id": "f9d2be25-1205-4267-b893-b0dead35de4e",
             "execution_token_present": false,
             "ws1": null
           }
@@ -1330,8 +1330,8 @@
             "outcome": null,
             "executed": null,
             "tool_result": null,
-            "review_item_id": "2edecfaf-1a77-4b1f-a942-8dd6c81f8bd6",
-            "proposal_id": "f197f0da-3c15-4308-af70-6813c34f893b",
+            "review_item_id": "14e94a43-57c1-4879-b4a4-0e3feece12f5",
+            "proposal_id": "fe5a898b-7dbc-472c-8200-ac979d7428ff",
             "execution_token_present": false,
             "ws1": {
               "mode": "shadow",
@@ -1346,7 +1346,7 @@
           "method": "POST",
           "path": "/v1/execution/approve",
           "request": {
-            "item_id": "2edecfaf-1a77-4b1f-a942-8dd6c81f8bd6",
+            "item_id": "14e94a43-57c1-4879-b4a4-0e3feece12f5",
             "approval_ttl_seconds": 600
           },
           "response": {
@@ -1358,7 +1358,7 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "f197f0da-3c15-4308-af70-6813c34f893b",
+            "proposal_id": "fe5a898b-7dbc-472c-8200-ac979d7428ff",
             "execution_token_present": false,
             "ws1": null
           }
@@ -1369,7 +1369,7 @@
           "method": "POST",
           "path": "/v1/execution/execute",
           "request": {
-            "item_id": "2edecfaf-1a77-4b1f-a942-8dd6c81f8bd6",
+            "item_id": "14e94a43-57c1-4879-b4a4-0e3feece12f5",
             "tool_call": {
               "tool_name": "set_valve_position",
               "arguments": {
@@ -1427,7 +1427,7 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "c4a5a2d3-a5c6-461b-a049-9ae2d862832a",
+            "proposal_id": "55e99a0d-6b8e-43f3-9473-dc86655a6467",
             "execution_token_present": false,
             "ws1": {
               "mode": "shadow",
@@ -1474,7 +1474,7 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "fa7e8828-3196-41e5-ad94-898cae9c5ef5",
+            "proposal_id": "5ed37e45-c6de-4a33-926a-0cf2bcc19efe",
             "execution_token_present": false,
             "ws1": {
               "mode": "shadow",
@@ -1507,7 +1507,7 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "5f76edf5-264e-463c-84fd-cabb93e99b60",
+            "proposal_id": "ebfc3066-0e25-4c4d-96cd-588f245f7744",
             "execution_token_present": false,
             "ws1": {
               "mode": "shadow",
@@ -1685,7 +1685,7 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "ab23ac33-b7b5-4545-969b-480e8f5bd94f",
+            "proposal_id": "165bf216-eff8-41fc-84cf-d7d80b0dc2e3",
             "execution_token_present": false,
             "ws1": {
               "mode": "shadow",
@@ -1719,7 +1719,7 @@
             "executed": null,
             "tool_result": null,
             "review_item_id": null,
-            "proposal_id": "12e2c7ff-ebf2-4d2c-adec-ba6345ad1826",
+            "proposal_id": "4c510498-2fbd-48e2-a295-09f97c66b3c1",
             "execution_token_present": false,
             "ws1": {
               "mode": "shadow",
