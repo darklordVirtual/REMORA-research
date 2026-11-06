@@ -3504,7 +3504,19 @@ documents:
   - researchers
   - evaluators
   last_reviewed: '2026-11-06'
+- id: DOC-428
+  path: docs/assurance/ot_limits_holdout_plan_v3.md
+  status: proposal
+  topic: docs_assurance_ot_limits_holdout_plan_v3_md
+  code_synced: unreviewed
+  verdict: pending
+  owner: darklordVirtual
+  audience:
+  - researchers
+  - evaluators
+  last_reviewed: '2026-11-06'
 topics:
+- docs_assurance_ot_limits_holdout_plan_v3_md
 - docs_assurance_ot_limits_holdout_plan_v2_md
 - docs_assurance_ot_limits_holdout_plan_v1_md
 - docs_assurance_ws1_utility_test_plan_v1_md
