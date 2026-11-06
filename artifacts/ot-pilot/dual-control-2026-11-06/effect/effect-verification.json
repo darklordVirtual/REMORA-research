@@ -1,0 +1,1368 @@
+{
+ "schema": "ot-pilot-effect-verification/v1",
+ "started_at": "2026-11-06T21:09:54.248513+00:00",
+ "honest": {
+  "cases": [
+   {
+    "write": {
+     "tool": "adjust_setpoint",
+     "arguments": {
+      "loop": "PIC-101",
+      "value": 3.9
+     },
+     "intent_ref": "WO-1201",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "085511b1-520c-4223-bf35-a0fea8723ba8",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "loop": "PIC-101",
+      "new_setpoint": 3.9,
+      "old_setpoint": 4.0
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_VERIFIED",
+     "effect": {
+      "status": "EFFECT_VERIFIED",
+      "reason_code": "postcondition_verified",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T21:10:34.446431+00:00",
+      "effect_state": "EFFECT_VERIFIED"
+     },
+     "history": [
+      {
+       "status": "EFFECT_VERIFIED",
+       "reason_code": "postcondition_verified",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T21:10:34.446431+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_VERIFIED",
+    "expected_reason": null,
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "set_valve_position",
+     "arguments": {
+      "valve": "V-12",
+      "position_pct": 30
+     },
+     "intent_ref": "WO-1204",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "2cf7f820-9072-4ea1-be7d-a861bc5877a3",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "new_pct": 30,
+      "old_pct": 15,
+      "valve": "V-12"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_VERIFIED",
+     "effect": {
+      "status": "EFFECT_VERIFIED",
+      "reason_code": "postcondition_verified",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T21:10:36.542225+00:00",
+      "effect_state": "EFFECT_VERIFIED"
+     },
+     "history": [
+      {
+       "status": "EFFECT_VERIFIED",
+       "reason_code": "postcondition_verified",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T21:10:36.542225+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_VERIFIED",
+    "expected_reason": null,
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "acknowledge_alarm",
+     "arguments": {
+      "alarm_id": "LT-410-HI"
+     },
+     "intent_ref": "WO-1202",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "8f41e470-4bc1-4f65-ae24-653b7f4232ed",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "acked": true,
+      "alarm_id": "LT-410-HI"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_VERIFIED",
+     "effect": {
+      "status": "EFFECT_VERIFIED",
+      "reason_code": "postcondition_verified",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T21:10:38.627507+00:00",
+      "effect_state": "EFFECT_VERIFIED"
+     },
+     "history": [
+      {
+       "status": "EFFECT_VERIFIED",
+       "reason_code": "postcondition_verified",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T21:10:38.627507+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_VERIFIED",
+    "expected_reason": null,
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "create_work_order",
+     "arguments": {
+      "wo_id": "WO-1310"
+     },
+     "intent_ref": "WO-1205",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "4b4918bc-9a1d-496a-80e6-9c4d5610bab6",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "status": "open",
+      "wo_id": "WO-1310"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_VERIFIED",
+     "effect": {
+      "status": "EFFECT_VERIFIED",
+      "reason_code": "postcondition_verified",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T21:10:40.724891+00:00",
+      "effect_state": "EFFECT_VERIFIED"
+     },
+     "history": [
+      {
+       "status": "EFFECT_VERIFIED",
+       "reason_code": "postcondition_verified",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T21:10:40.724891+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_VERIFIED",
+    "expected_reason": null,
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "close_work_order",
+     "arguments": {
+      "wo_id": "WO-1201"
+     },
+     "intent_ref": "WO-1203",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "f809b79b-6115-439f-bcc0-d3677fa7beea",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "status": "closed",
+      "wo_id": "WO-1201"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_VERIFIED",
+     "effect": {
+      "status": "EFFECT_VERIFIED",
+      "reason_code": "postcondition_verified",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T21:10:42.808547+00:00",
+      "effect_state": "EFFECT_VERIFIED"
+     },
+     "history": [
+      {
+       "status": "EFFECT_VERIFIED",
+       "reason_code": "postcondition_verified",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T21:10:42.808547+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_VERIFIED",
+    "expected_reason": null,
+    "as_expected": true
+   }
+  ],
+  "verifier_report": {
+   "plant_faults": {},
+   "results": [
+    {
+     "proposal_id": "085511b1-520c-4223-bf35-a0fea8723ba8",
+     "tool_name": "adjust_setpoint",
+     "http": 200,
+     "status": "EFFECT_VERIFIED",
+     "reason_code": "postcondition_verified",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "PIC-101",
+      "kind": "loop",
+      "revision": 1,
+      "setpoint": 3.9
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    },
+    {
+     "proposal_id": "2cf7f820-9072-4ea1-be7d-a861bc5877a3",
+     "tool_name": "set_valve_position",
+     "http": 200,
+     "status": "EFFECT_VERIFIED",
+     "reason_code": "postcondition_verified",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "V-12",
+      "kind": "valve",
+      "pct": 30,
+      "revision": 1
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    },
+    {
+     "proposal_id": "4b4918bc-9a1d-496a-80e6-9c4d5610bab6",
+     "tool_name": "create_work_order",
+     "http": 200,
+     "status": "EFFECT_VERIFIED",
+     "reason_code": "postcondition_verified",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "WO-1310",
+      "kind": "work_order",
+      "revision": 1,
+      "status": "open"
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    },
+    {
+     "proposal_id": "8f41e470-4bc1-4f65-ae24-653b7f4232ed",
+     "tool_name": "acknowledge_alarm",
+     "http": 200,
+     "status": "EFFECT_VERIFIED",
+     "reason_code": "postcondition_verified",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "acked": true,
+      "id": "LT-410-HI",
+      "kind": "alarm",
+      "revision": 1
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    },
+    {
+     "proposal_id": "f809b79b-6115-439f-bcc0-d3677fa7beea",
+     "tool_name": "close_work_order",
+     "http": 200,
+     "status": "EFFECT_VERIFIED",
+     "reason_code": "postcondition_verified",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "WO-1201",
+      "kind": "work_order",
+      "revision": 1,
+      "status": "closed"
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    }
+   ],
+   "anomalies": [],
+   "reconciliation": {
+    "since_seq": 0,
+    "journal_entries": 34,
+    "applied_writes": 5,
+    "reads": 29,
+    "refused_requests": 0,
+    "refused_by_credential": {},
+    "executed_write_dispatches": 5,
+    "unattributed_writes": [],
+    "tool_mismatches": [],
+    "dispatches_named_twice": [],
+    "dispatches_without_plant_record": [],
+    "journal_complete": true,
+    "agree": true
+   },
+   "errors": [],
+   "verifier_kid": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd"
+  },
+  "all_as_expected": true
+ },
+ "receipt_controls": [
+  {
+   "control": "unregistered_key",
+   "http": 409,
+   "detail": "effect receipt refused (receipt_signature_unknown_kid): the receipt signature does not verify under REMORA/EFFECT-RECEIPT/v1 (unknown_kid)",
+   "verdict_before": "EFFECT_VERIFIED",
+   "verdict_after": "EFFECT_VERIFIED",
+   "refused_and_unchanged": true
+  },
+  {
+   "control": "agent_token",
+   "http": 403,
+   "detail": "role operator cannot perform verify_effect",
+   "verdict_before": "EFFECT_VERIFIED",
+   "verdict_after": "EFFECT_VERIFIED",
+   "refused_and_unchanged": true
+  },
+  {
+   "control": "arguments_not_the_dispatched_call",
+   "http": 409,
+   "detail": "effect receipt refused (arguments_not_the_dispatched_call): the arguments do not hash to the dispatched call",
+   "verdict_before": "EFFECT_VERIFIED",
+   "verdict_after": "EFFECT_VERIFIED",
+   "refused_and_unchanged": true
+  },
+  {
+   "control": "replay_after_settled_verdict",
+   "http": 409,
+   "detail": "effect receipt refused (receipt_replayed): this dispatch already has a settled verdict (EFFECT_VERIFIED); a second would overwrite evidence",
+   "verdict_before": "EFFECT_VERIFIED",
+   "verdict_after": "EFFECT_VERIFIED",
+   "refused_and_unchanged": true
+  }
+ ],
+ "faults": {
+  "declared": {
+   "valve:V-12": [
+    "clamp",
+    20
+   ],
+   "loop:PIC-101": [
+    "drop"
+   ],
+   "alarm:LT-410-HI": [
+    "hide"
+   ]
+  },
+  "cases": [
+   {
+    "write": {
+     "tool": "set_valve_position",
+     "arguments": {
+      "valve": "V-12",
+      "position_pct": 30
+     },
+     "intent_ref": "WO-1204",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "f28052d0-0c6e-4572-b5f2-cc6128662294",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "new_pct": 30,
+      "old_pct": 15,
+      "valve": "V-12"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_MISMATCH",
+     "effect": {
+      "status": "EFFECT_MISMATCH",
+      "reason_code": "postcondition_field_mismatch",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T21:11:24.077964+00:00",
+      "effect_state": "EFFECT_MISMATCH"
+     },
+     "history": [
+      {
+       "status": "EFFECT_MISMATCH",
+       "reason_code": "postcondition_field_mismatch",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T21:11:24.077964+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_MISMATCH",
+    "expected_reason": "postcondition_field_mismatch",
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "adjust_setpoint",
+     "arguments": {
+      "loop": "PIC-101",
+      "value": 3.9
+     },
+     "intent_ref": "WO-1201",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "91240b16-7914-4631-ac35-ae5f0a13467c",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "loop": "PIC-101",
+      "new_setpoint": 3.9,
+      "old_setpoint": 4.0
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_MISMATCH",
+     "effect": {
+      "status": "EFFECT_MISMATCH",
+      "reason_code": "postcondition_effect_absent",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T21:11:26.162179+00:00",
+      "effect_state": "EFFECT_MISMATCH"
+     },
+     "history": [
+      {
+       "status": "EFFECT_MISMATCH",
+       "reason_code": "postcondition_effect_absent",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T21:11:26.162179+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_MISMATCH",
+    "expected_reason": "postcondition_effect_absent",
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "acknowledge_alarm",
+     "arguments": {
+      "alarm_id": "LT-410-HI"
+     },
+     "intent_ref": "WO-1202",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "bdfe2569-8e85-445a-845d-de44642f78c3",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "acked": true,
+      "alarm_id": "LT-410-HI"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_UNKNOWN",
+     "effect": {
+      "status": "EFFECT_UNOBSERVABLE",
+      "reason_code": "postcondition_object_absent",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T21:11:32.366665+00:00",
+      "effect_state": "EFFECT_UNKNOWN"
+     },
+     "history": [
+      {
+       "status": "EFFECT_UNOBSERVABLE",
+       "reason_code": "postcondition_object_absent",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T21:11:28.242093+00:00"
+      },
+      {
+       "status": "EFFECT_UNOBSERVABLE",
+       "reason_code": "postcondition_object_absent",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T21:11:30.299997+00:00"
+      },
+      {
+       "status": "EFFECT_UNOBSERVABLE",
+       "reason_code": "postcondition_object_absent",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T21:11:32.366665+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_UNOBSERVABLE",
+    "expected_reason": "postcondition_object_absent",
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "close_work_order",
+     "arguments": {
+      "wo_id": "WO-1201"
+     },
+     "intent_ref": "WO-1203",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "91565887-4ac5-41c6-9cde-20ec64a1a70b",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "status": "closed",
+      "wo_id": "WO-1201"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_VERIFIED",
+     "effect": {
+      "status": "EFFECT_VERIFIED",
+      "reason_code": "postcondition_verified",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T21:11:40.524051+00:00",
+      "effect_state": "EFFECT_VERIFIED"
+     },
+     "history": [
+      {
+       "status": "EFFECT_VERIFIED",
+       "reason_code": "postcondition_verified",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T21:11:40.524051+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_VERIFIED",
+    "expected_reason": "postcondition_verified",
+    "as_expected": true
+   }
+  ],
+  "verifier_report": {
+   "plant_faults": {
+    "alarm:LT-410-HI": [
+     "hide",
+     null
+    ],
+    "loop:PIC-101": [
+     "drop",
+     null
+    ],
+    "valve:V-12": [
+     "clamp",
+     20
+    ]
+   },
+   "results": [
+    {
+     "proposal_id": "91240b16-7914-4631-ac35-ae5f0a13467c",
+     "tool_name": "adjust_setpoint",
+     "http": 200,
+     "status": "EFFECT_MISMATCH",
+     "reason_code": "postcondition_effect_absent",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "PIC-101",
+      "kind": "loop",
+      "revision": 0,
+      "setpoint": 4.0
+     },
+     "source_revision": "0",
+     "pre_state_revision": "0",
+     "attempts": 1
+    },
+    {
+     "proposal_id": "91565887-4ac5-41c6-9cde-20ec64a1a70b",
+     "tool_name": "close_work_order",
+     "http": 200,
+     "status": "EFFECT_VERIFIED",
+     "reason_code": "postcondition_verified",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "WO-1201",
+      "kind": "work_order",
+      "revision": 1,
+      "status": "closed"
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    },
+    {
+     "proposal_id": "bdfe2569-8e85-445a-845d-de44642f78c3",
+     "tool_name": "acknowledge_alarm",
+     "http": 200,
+     "status": "EFFECT_UNOBSERVABLE",
+     "reason_code": "postcondition_object_absent",
+     "vantage": "independent",
+     "detail": null,
+     "observed": null,
+     "source_revision": "",
+     "pre_state_revision": "0",
+     "attempts": 3
+    },
+    {
+     "proposal_id": "f28052d0-0c6e-4572-b5f2-cc6128662294",
+     "tool_name": "set_valve_position",
+     "http": 200,
+     "status": "EFFECT_MISMATCH",
+     "reason_code": "postcondition_field_mismatch",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "V-12",
+      "kind": "valve",
+      "pct": 20,
+      "revision": 1
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    }
+   ],
+   "anomalies": [],
+   "reconciliation": {
+    "since_seq": 0,
+    "journal_entries": 42,
+    "applied_writes": 4,
+    "reads": 35,
+    "refused_requests": 3,
+    "refused_by_credential": {
+     "reader": 3
+    },
+    "executed_write_dispatches": 4,
+    "unattributed_writes": [],
+    "tool_mismatches": [],
+    "dispatches_named_twice": [],
+    "dispatches_without_plant_record": [],
+    "journal_complete": true,
+    "agree": true
+   },
+   "errors": [],
+   "verifier_kid": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd"
+  },
+  "plant_journal": [
+   {
+    "at": 1793999477.998412,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 1,
+    "source": "172.21.0.4",
+    "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999478.000245,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 2,
+    "source": "172.21.0.4",
+    "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999480.019089,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 3,
+    "source": "172.21.0.4",
+    "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999480.021348,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 4,
+    "source": "172.21.0.4",
+    "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999482.040353,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 5,
+    "source": "172.21.0.4",
+    "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999482.042297,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 6,
+    "source": "172.21.0.4",
+    "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999482.990135,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/valve_travel/V-12",
+    "seq": 7,
+    "source": "172.21.0.3",
+    "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999483.5711825,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/valve_travel/V-12",
+    "seq": 8,
+    "source": "172.21.0.3",
+    "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999483.6288366,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/valve_travel/V-12",
+    "seq": 9,
+    "source": "172.21.0.3",
+    "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "arguments": {
+     "position_pct": 30,
+     "valve": "V-12"
+    },
+    "at": 1793999483.6322086,
+    "credential": "writer",
+    "dispatch_ref": "f28052d0-0c6e-4572-b5f2-cc6128662294",
+    "fault": [
+     "clamp",
+     20
+    ],
+    "object": "valve:V-12",
+    "outcome": "applied",
+    "result": {
+     "new_pct": 30,
+     "old_pct": 15,
+     "valve": "V-12"
+    },
+    "rev_after": 1,
+    "rev_before": 0,
+    "seq": 10,
+    "source": "172.21.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "tool": "set_valve_position"
+   },
+   {
+    "at": 1793999483.6371195,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/valve_travel/V-12",
+    "seq": 11,
+    "source": "172.21.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999484.07583,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 12,
+    "source": "172.21.0.4",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999484.0775332,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /objects/valve/V-12",
+    "seq": 13,
+    "source": "172.21.0.4",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999484.1232975,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 14,
+    "source": "172.21.0.4",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999484.7965796,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/setpoint_movement/PIC-101",
+    "seq": 15,
+    "source": "172.21.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999484.7981231,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/setpoint_movement/FIC-220",
+    "seq": 16,
+    "source": "172.21.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999485.3114436,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/setpoint_movement/PIC-101",
+    "seq": 17,
+    "source": "172.21.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999485.3131046,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/setpoint_movement/FIC-220",
+    "seq": 18,
+    "source": "172.21.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999485.3268273,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/setpoint_movement/PIC-101",
+    "seq": 19,
+    "source": "172.21.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "arguments": {
+     "loop": "PIC-101",
+     "value": 3.9
+    },
+    "at": 1793999485.3302896,
+    "credential": "writer",
+    "dispatch_ref": "91240b16-7914-4631-ac35-ae5f0a13467c",
+    "fault": [
+     "drop",
+     null
+    ],
+    "object": "loop:PIC-101",
+    "outcome": "applied",
+    "result": {
+     "loop": "PIC-101",
+     "new_setpoint": 3.9,
+     "old_setpoint": 4.0
+    },
+    "rev_after": 0,
+    "rev_before": 0,
+    "seq": 20,
+    "source": "172.21.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "tool": "adjust_setpoint"
+   },
+   {
+    "at": 1793999485.3355484,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/setpoint_movement/PIC-101",
+    "seq": 21,
+    "source": "172.21.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999485.3400419,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/setpoint_movement/FIC-220",
+    "seq": 22,
+    "source": "172.21.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999486.16005,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 23,
+    "source": "172.21.0.4",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999486.1616976,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /objects/loop/PIC-101",
+    "seq": 24,
+    "source": "172.21.0.4",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999486.2055156,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 25,
+    "source": "172.21.0.4",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "arguments": {
+     "alarm_id": "LT-410-HI"
+    },
+    "at": 1793999486.9799955,
+    "credential": "writer",
+    "dispatch_ref": "bdfe2569-8e85-445a-845d-de44642f78c3",
+    "fault": [
+     "hide",
+     null
+    ],
+    "object": "alarm:LT-410-HI",
+    "outcome": "applied",
+    "result": {
+     "acked": true,
+     "alarm_id": "LT-410-HI"
+    },
+    "rev_after": 1,
+    "rev_before": 0,
+    "seq": 26,
+    "source": "172.21.0.3",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "tool": "acknowledge_alarm"
+   },
+   {
+    "at": 1793999488.2398412,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 27,
+    "source": "172.21.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999488.2415392,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "refused",
+    "reason": "unknown alarm 'LT-410-HI'",
+    "request": "GET /objects/alarm/LT-410-HI",
+    "seq": 28,
+    "source": "172.21.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 404,
+    "tool": null
+   },
+   {
+    "at": 1793999488.2802544,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 29,
+    "source": "172.21.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999490.2978683,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 30,
+    "source": "172.21.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999490.2994738,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "refused",
+    "reason": "unknown alarm 'LT-410-HI'",
+    "request": "GET /objects/alarm/LT-410-HI",
+    "seq": 31,
+    "source": "172.21.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 404,
+    "tool": null
+   },
+   {
+    "at": 1793999490.345453,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 32,
+    "source": "172.21.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999492.3640058,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 33,
+    "source": "172.21.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999492.3660355,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "refused",
+    "reason": "unknown alarm 'LT-410-HI'",
+    "request": "GET /objects/alarm/LT-410-HI",
+    "seq": 34,
+    "source": "172.21.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 404,
+    "tool": null
+   },
+   {
+    "at": 1793999492.4157007,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 35,
+    "source": "172.21.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999494.437068,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 36,
+    "source": "172.21.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999494.439133,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 37,
+    "source": "172.21.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999496.457367,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 38,
+    "source": "172.21.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999496.4593875,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 39,
+    "source": "172.21.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999498.4845617,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 40,
+    "source": "172.21.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999498.4873226,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 41,
+    "source": "172.21.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "arguments": {
+     "wo_id": "WO-1201"
+    },
+    "at": 1793999500.0584502,
+    "credential": "writer",
+    "dispatch_ref": "91565887-4ac5-41c6-9cde-20ec64a1a70b",
+    "fault": null,
+    "object": "work_order:WO-1201",
+    "outcome": "applied",
+    "result": {
+     "status": "closed",
+     "wo_id": "WO-1201"
+    },
+    "rev_after": 1,
+    "rev_before": 0,
+    "seq": 42,
+    "source": "172.21.0.3",
+    "state_digest": "ab14060e3e0db021d14b89cc12aaf6e85200dedbc2e0573af3dd43c8eb930385",
+    "tool": "close_work_order"
+   },
+   {
+    "at": 1793999500.5217488,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 43,
+    "source": "172.21.0.4",
+    "state_digest": "ab14060e3e0db021d14b89cc12aaf6e85200dedbc2e0573af3dd43c8eb930385",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999500.5235512,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /objects/work_order/WO-1201",
+    "seq": 44,
+    "source": "172.21.0.4",
+    "state_digest": "ab14060e3e0db021d14b89cc12aaf6e85200dedbc2e0573af3dd43c8eb930385",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793999500.5673056,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 45,
+    "source": "172.21.0.4",
+    "state_digest": "ab14060e3e0db021d14b89cc12aaf6e85200dedbc2e0573af3dd43c8eb930385",
+    "status": 200,
+    "tool": null
+   }
+  ],
+  "all_as_expected": true
+ },
+ "finished_at": "2026-11-06T21:11:41.693075+00:00",
+ "summary": {
+  "honest_as_expected": "5 of 5",
+  "faults_as_expected": "4 of 4",
+  "receipt_controls_refused": "4 of 4"
+ }
+}

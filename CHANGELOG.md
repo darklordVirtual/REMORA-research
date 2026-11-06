@@ -4,6 +4,20 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Cumulative limits: a second tier that needs two approvers; S20 on the OT pilot (2026-11-06)
+
+- `remora/enforcement/cumulative_limits.py`: a limit may declare `dual_control_above` below its `max`. A call that would take the window's total past it runs only on the authority of two distinct approver identities, neither of them the proposer; `max` still refuses whatever the approvals. The reservation at dispatch checks the tier in the same transaction as the charge and refuses `limit_dual_control_unmet` on fewer than two. The tier is not a term of the limit's binding, so a limit that gains it keeps its ledger history.
+- `remora/enforcement/lease.py`: the lease signs `approver_count` when two or more approved; the dispatcher passes the signed count, and 0 for an unsigned lease, to the reservation.
+- `remora/governance/review_queue.py`, `remora/execution/`: an item past a tier is enqueued for two approvers, and an engine ACCEPT becomes ESCALATE. A first approval answers `approval_recorded` and leaves the item pending. The same approver twice is refused, and so is the proposer, in every profile. `/execute` before the second approval is 409 `dual_control_second_approval_required`. Approvals count together only under one approval requirement, and each must still hold at execution. A revocation of either voids the quorum, at the re-gate and in atomic admission.
+- OT pilot: PIC-101 keeps its cap of 1.60 bar per hour and gets a tier at 0.50 bar, the bound the independent scenario S20 assumes. The policy is signed by a second limit authority, trusted beside the owner's (owner decision); v3's sealed policy is kept with its key and reproduces v3 exactly. A replay of the 130 shifts written so far (`artifacts/ot-pilot/dual-control-2026-11-06/replay/`) gives every write its v3 outcome with two approvers. 28 of 130 shifts need a second approver for at least one write. The tier was not fitted to them.
+- An adversarial review of the change found four faults, fixed before the evidence runs. With the tier in the binding, a pilot with ledger history would have refused every PIC-101 move. Outside production the proposer could be one of the two. The first approval was not checked against the requirement in force. Admission checked only the last approver for revocation.
+- Tests: `tests/limits/test_limits_dual_control.py`, `tests/limits/test_limits_dual_control_api.py`, `tests/test_review_queue_dual_control.py`, the lease-completeness and pilot-limit tests, and the holdout replay. `deploy/ot-pilot/run_dual_control_check.py` checks the tier on the running stack.
+- Measured on the rebuilt stack (`artifacts/ot-pilot/dual-control-2026-11-06/`):
+  - scenarios 24 of 24: S20 passes, because the scenario's one approver cannot release the second move (409 `dual_control_second_approval_required`);
+  - the tier on the running stack 4 of 4: one approver, two approvers, a total that grew after approval, the hard cap;
+  - battery 16 of 16 with 6 of 6 writes verified independently, fault injection 10 of 10, E (53 attempts, all blocked, the interval reconciles) and G (5 of 5, 4 of 4, 4 of 4) as before.
+  S20's sequence still runs on two approvals, as legitimate shifts with the same moves do. The pilot's second approver is the supervisor token, which also holds execute (NEGATIVE_RESULTS §97, still open).
+
 ### OT pilot: the plant in its own trust domain and an independent effect verifier; A to G assessed (AACP E, G, 2026-11-06)
 
 - `deploy/ot-pilot/plant_service.py` runs the simulated plant as its own service and image, using only the standard library. Its write token is carried only by the API container and its read token only by the effect verifier. It journals every request it answers (writes, reads and refusals) with the credential it presented, and keeps each object's state per revision. `ot_registry.py` writes to it over HTTP and refuses an in-process plant in production. The compose file puts PostgreSQL, the plant and the agent zone on separate internal networks; the `agent` service reaches only the API.
