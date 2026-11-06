@@ -6849,9 +6849,9 @@
     },
     "docs/assurance/ws1_utility_test_plan_v1.md": {
       "concepts": [],
-      "git_blob": "7bdb6f0c6733f54efeb01b7bc9c006043a958516",
+      "git_blob": "7cf5b424903fab5dca7f71d4b5a4dd312c4a82bb",
       "mode": "100644",
-      "sha256": "70ab0767d380d0fc9c19de2a042511cf43c6d7db7365b03f6e9bc218dc53c7a4"
+      "sha256": "7461e9cc40437a5c35f58be4e8a6ae2be6c36fdaed55ed9ef6b0d2f34560bd80"
     },
     "docs/assurance/ws2_monitor_question_verifier_coverage_dev_v1.2.md": {
       "concepts": [
@@ -23065,7 +23065,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "0becb4fe00fec56c48562ecf4ec3ca8956066f9815e08a04f90537e33a2a8d71",
+  "register_sha256": "6ac470a19d03bc35cb8f5f9f147e48ddd9a8913e9f5896df5a99ef64dad94c00",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
