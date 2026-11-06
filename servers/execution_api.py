@@ -92,6 +92,11 @@ from remora.policy.decision_engine import RemoraDecisionEngine
 from remora.policy.observation import PolicyObservation, canonical_tool_call_hash
 from remora.policy.report import DecisionAction
 from remora.toolcall.deployment_registry import resolve_tool_metadata
+from remora.toolcall.intent_scope import (
+    UNBOUND,
+    IntentScopeResult,
+    normalise_scope_result,
+)
 from remora.toolcall.semantic_bundle import (
     IntentResolver,
     SemanticBundle,
@@ -101,11 +106,6 @@ from remora.toolcall.semantic_bundle import (
     load_intent_resolver,
     load_intent_scope_validator,
     load_semantic_bundle,
-)
-from remora.toolcall.intent_scope import (
-    UNBOUND,
-    IntentScopeResult,
-    normalise_scope_result,
 )
 from remora.toolcall.toolspec import ToolSpecBundle, ToolSpecRefused
 
@@ -2540,7 +2540,7 @@ def _intent_scope_result(
         return None
     try:
         answer = validator(intent_ref, tool_name, dict(arguments), tenant)
-    except Exception:  # noqa: BLE001 - any failure is fail-closed
+    except Exception:  # any failure is fail-closed: the call is recorded as unbound
         _LOGGER.warning("intent scope validator raised; call recorded as unbound",
                      exc_info=True)
         return IntentScopeResult(UNBOUND, ("validator_error",))
