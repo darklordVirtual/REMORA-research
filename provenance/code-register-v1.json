@@ -3579,6 +3579,30 @@
       "mode": "100644",
       "sha256": "6bcb99f8c8baf8dc7efa1b4e281926ff7bd5d316ff2a8de276b168fe9a22753f"
     },
+    "artifacts/ot-pilot/limits-holdout-v3/README.md": {
+      "concepts": [],
+      "git_blob": "1cd6b9b6267ed0398501ea202c713d7e307a7db6",
+      "mode": "100644",
+      "sha256": "6e94aaa2ef245a96e8f1cce9e197fcbaf8688e1b7029248e05480585fdcb3b8f"
+    },
+    "artifacts/ot-pilot/limits-holdout-v3/holdout/SHA256SUMS": {
+      "concepts": [],
+      "git_blob": "c322584c5aab161158c1b8c702c9a9a58e9770e4",
+      "mode": "100644",
+      "sha256": "98371aeb9aff3751b0cc62c12d4dec5102079060f67110dcff0860916b77cde6"
+    },
+    "artifacts/ot-pilot/limits-holdout-v3/holdout/shifts-E.json": {
+      "concepts": [],
+      "git_blob": "9628531a83df629585bdb106fc9261106dfc3d1a",
+      "mode": "100644",
+      "sha256": "eaa247155848c2e9549da0ad4e8fddbfedf2819e1c2a1d6b79317a9f706b809e"
+    },
+    "artifacts/ot-pilot/limits-holdout-v3/holdout/shifts-F.json": {
+      "concepts": [],
+      "git_blob": "87da364247ca6c93f8e2dbd004c536aff1e5234d",
+      "mode": "100644",
+      "sha256": "4696c1e755a1e7312510f0f6d3148bae853cfcdce96c7a75b8a7efff68f558fb"
+    },
     "artifacts/pilot-pack/README.md": {
       "concepts": [],
       "git_blob": "ce2ad3ccd26523a4b785b005cc4ba9516c848aec",
@@ -23005,7 +23029,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "3593545b0760a20381ba4fb2dc396b2e5c53c198121e90772e54d120602ba327",
+  "register_sha256": "3209ed4511dd1cca325c54981ed85b2786b6de93051ea8d94fbf35bef02bebb9",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
