@@ -491,6 +491,7 @@ pytest_add_cli_args_test_selection = [
     # Replays operator shifts through cumulative_limits with the pilot's signed
     # policy (docs/assurance/ot_limits_holdout_plan_v1.md); synthetic shifts only.
     "tests/test_limits_holdout_replay.py",
+    "tests/test_limits_protection.py",
     "tests/test_limits_holdout_sensitivity.py",
     "tests/test_nonce_store_consumed.py",
     "tests/test_plan_binding.py",
