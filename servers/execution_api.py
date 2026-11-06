@@ -195,6 +195,8 @@ MEDIATION_NO_TOOL_RESULT = frozenset({
     ("POST", "/v1/execution/effects/close"),
     # readers and evidence: records of what happened, never a live result
     ("GET", "/v1/execution/capabilities"),
+    # identities and hashes of executed dispatches, for the effect verifier
+    ("GET", "/v1/execution/dispatches"),
     ("GET", "/v1/execution/proposals/{proposal_id}"),
     ("GET", "/v1/execution/proposals/{proposal_id}/semantic-assessment"),
     ("POST", "/v1/execution/proposals/{proposal_id}/effect"),

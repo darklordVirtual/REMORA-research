@@ -7178,9 +7178,9 @@
     },
     "docs/design/derived-information-flow-control-v1-status.md": {
       "concepts": [],
-      "git_blob": "f9bf1453963bee3c9a15575426100c5981ceaab9",
+      "git_blob": "49399cfa460f1eebfb6f5f39af9dc0981095b1de",
       "mode": "100644",
-      "sha256": "33db699ad6cb5445298c9f8d5d1ed92fd9da271f84bb23a82bc12ba7f3075b3c"
+      "sha256": "e246e6e4784500d87c7c616ddc593817d468996c33d18446cce045c6a773e6f3"
     },
     "docs/design/derived-information-flow-control-v1.md": {
       "concepts": [],
@@ -17099,9 +17099,9 @@
       "concepts": [
         "PROV-18"
       ],
-      "git_blob": "2bd1d1dd765f1205eddffb0310e086102223c432",
+      "git_blob": "6a37b85ce6a3c537e8ab8b046342fa82d67db451",
       "mode": "100644",
-      "sha256": "430acf7f0e5126d0bdba0f3949ba47ec793c39237ed81fd6fce0cc5c502f8f32"
+      "sha256": "34a3d47691f604d38e79cae70b322c2f0d5e52a34b7acb8b0ccb2c47adfa0ebe"
     },
     "servers/execution_contracts.py": {
       "concepts": [],
@@ -23245,7 +23245,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "6ec1059791cb0c6bf578729e4e22a7ebd1d2a337cce3e3119cde7341b2413aed",
+  "register_sha256": "5128cdd3205d0ec625b590399fbbaa0f102eb0d62fd07d19c0cb0f4b26d1d5a0",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
