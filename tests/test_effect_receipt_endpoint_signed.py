@@ -235,6 +235,19 @@ def test_an_unchanged_revision_is_not_an_attributable_effect(api) -> None:
     assert r.json()["reason_code"] == "postcondition_no_attributable_change"
 
 
+def test_an_unchanged_revision_without_the_delta_is_an_absent_effect(api) -> None:
+    """Revision unchanged and the declared delta not there: the write never
+    landed. That is a MISMATCH (the post-state is wrong), not UNOBSERVABLE;
+    until 2026-11-06 an acknowledged, unapplied write read as unknown."""
+    client, _ = api
+    pid, dispatch = _executed(client)
+    r = _post(client, pid, dispatch, observed={"artifact_id": "rec-1", "content": {"n": 0}},
+              source_revision="r7", pre_state_revision="r7")
+    assert r.status_code == 200, r.text
+    assert r.json()["status"] == "EFFECT_MISMATCH"
+    assert r.json()["reason_code"] == "postcondition_effect_absent"
+
+
 def test_arguments_other_than_the_dispatched_call_are_refused(api) -> None:
     client, _ = api
     pid, dispatch = _executed(client)

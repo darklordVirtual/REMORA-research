@@ -5243,6 +5243,19 @@ field, or a target-side operation id or revision that the dispatch returns
 and the reader confirms. Until then, causal attribution is NOT_ESTABLISHED
 for every effect REMORA verifies.
 
+Update 2026-11-06: narrowed on the OT pilot, not closed. The pilot's plant is
+a separate service that revisions every object and journals every write with
+the credential that made it and the dispatch it names
+(`deploy/ot-pilot/plant_service.py`). The effect verifier sends the object's
+revision before the dispatch (from that journal entry) with its read-back. An
+unchanged revision is therefore not VERIFIED. With the delta absent it is now
+EFFECT_MISMATCH `postcondition_effect_absent` (it was UNOBSERVABLE), so a write
+acknowledged and never applied is reported as absent. Who wrote is answered by
+the plant's journal and the journal-to-chain reconciliation, not by the
+verdict (`artifacts/ot-pilot/aacp-a-g-2026-11-06/`). The library verdict still
+has no writer field, and a deployment without revisions keeps this limit as
+stated above.
+
 ## §86 The Worker edge collapsed repeated JSON members before the API could refuse them (2026-10-18)
 <!-- finding-status: accepted -->
 
@@ -6060,6 +6073,20 @@ restart (525 writes, `artifacts/ot-pilot/limits-holdout-v3/`).
   are valve travel: a full stroke for maintenance does not fit 70 % per hour.
   Two are restarts of FIC-220, where a ramp down to a stop and back within an
   hour passes 180 m3/h.
+
+This finding stays open.
+
+Update 2026-11-06, later still: one measurement of the protective cost. The
+independent scenario S20 makes two moves of +0.30 bar on PIC-101 within an
+hour and expects the second to be refused at the 0.50 cap it assumes. It
+passed on 2026-11-05, when the cap was 50 units at scale 100. On the rebuilt
+pilot with the recalibrated cap of 160, both moves ran
+(`artifacts/ot-pilot/intent-scope-2026-11-06/independent-scenarios/phase-b.json`).
+The work-order scope guard added on the same build is not the cause: WO-1201
+names PIC-101. The limits are not changed in response. This is one scenario,
+written before the recalibration, and it shows the looser bound letting
+through a sequence an earlier reading called unsafe. How far a runaway agent
+gets under the new bounds is still not measured as a rate.
 
 This finding stays open.
 

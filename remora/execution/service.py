@@ -402,6 +402,10 @@ def assess_proposal(
         "state_hash": semantic["state_hash"],
         "intent_authority_hash": semantic["intent_authority_hash"],
         "intent_resolution_status": obs.intent_resolution_status,
+        # Property D: the work-order scope verdict and the dimensions it
+        # refused (names only). None when the deployment declares no scope.
+        "intent_scope_status": obs.intent_scope_status,
+        "intent_scope_violations": list(obs.intent_scope_violations),
         "toolspec_hash": toolspec_identity["hash"],
         "toolspec_version": toolspec_identity["version"],
     }

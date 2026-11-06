@@ -16,8 +16,9 @@ Field mapping (the scenario file's ``assumptions.field_names`` allows it):
 ``approval_ttl_seconds``; the re-presented call is sent under ``tool_call``;
 the lifecycle path takes the assess response's ``proposal_id``.
 
-Plant state is in the API process's memory and is not observable from
-outside, so the scenarios' simulator read-backs are recorded as
+The scenarios do not read the plant: since 2026-11-06 it is a separate
+service on an internal network, and its read-back is the effect verifier's
+job (run_effect_verification.py). The simulator read-backs are recorded as
 ``not_observed``; ``executed`` flags carry the verdict instead. Where a later
 successful write on the same resource returns ``old_setpoint`` or
 ``old_pct`` it is recorded as the value the plant held.

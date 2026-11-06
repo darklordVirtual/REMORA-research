@@ -74,9 +74,13 @@ def receipts(draw):
     tamper = draw(st.booleans())
     receipt = DischargeReceipt(**fields)
     signature = sign(SignatureDomain.MONITOR_DISCHARGE_RECEIPT, receipt.payload(), key)
-    if tamper:
+    # Tampering sets the state to PROVED after signing. On a receipt that was
+    # already PROVED that changes nothing, the signature still covers every
+    # byte, and the receipt is honest: the oracle must not call it forged.
+    tampered = tamper and receipt.state is not LogicalState.PROVED
+    if tampered:
         receipt = replace(receipt, state=LogicalState.PROVED)
-    return SignedReceipt(receipt, signature), key is RECEIPT_KEY and not tamper
+    return SignedReceipt(receipt, signature), key is RECEIPT_KEY and not tampered
 
 
 def _exact(signed: SignedReceipt) -> bool:

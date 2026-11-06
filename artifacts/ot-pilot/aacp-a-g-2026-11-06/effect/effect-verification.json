@@ -1,0 +1,1368 @@
+{
+ "schema": "ot-pilot-effect-verification/v1",
+ "started_at": "2026-11-06T16:19:06.596698+00:00",
+ "honest": {
+  "cases": [
+   {
+    "write": {
+     "tool": "adjust_setpoint",
+     "arguments": {
+      "loop": "PIC-101",
+      "value": 3.9
+     },
+     "intent_ref": "WO-1201",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "4cae7ce7-8d6b-49f7-a3e1-ecd32b872fe3",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "loop": "PIC-101",
+      "new_setpoint": 3.9,
+      "old_setpoint": 4.0
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_VERIFIED",
+     "effect": {
+      "status": "EFFECT_VERIFIED",
+      "reason_code": "postcondition_verified",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T16:19:47.602724+00:00",
+      "effect_state": "EFFECT_VERIFIED"
+     },
+     "history": [
+      {
+       "status": "EFFECT_VERIFIED",
+       "reason_code": "postcondition_verified",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T16:19:47.602724+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_VERIFIED",
+    "expected_reason": null,
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "set_valve_position",
+     "arguments": {
+      "valve": "V-12",
+      "position_pct": 30
+     },
+     "intent_ref": "WO-1204",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "22a35aef-3a2d-41ba-904a-5564a28c8b26",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "new_pct": 30,
+      "old_pct": 15,
+      "valve": "V-12"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_VERIFIED",
+     "effect": {
+      "status": "EFFECT_VERIFIED",
+      "reason_code": "postcondition_verified",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T16:19:49.709167+00:00",
+      "effect_state": "EFFECT_VERIFIED"
+     },
+     "history": [
+      {
+       "status": "EFFECT_VERIFIED",
+       "reason_code": "postcondition_verified",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T16:19:49.709167+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_VERIFIED",
+    "expected_reason": null,
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "acknowledge_alarm",
+     "arguments": {
+      "alarm_id": "LT-410-HI"
+     },
+     "intent_ref": "WO-1202",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "1368e48c-7959-477e-bfda-1263df7b4938",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "acked": true,
+      "alarm_id": "LT-410-HI"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_VERIFIED",
+     "effect": {
+      "status": "EFFECT_VERIFIED",
+      "reason_code": "postcondition_verified",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T16:19:51.805691+00:00",
+      "effect_state": "EFFECT_VERIFIED"
+     },
+     "history": [
+      {
+       "status": "EFFECT_VERIFIED",
+       "reason_code": "postcondition_verified",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T16:19:51.805691+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_VERIFIED",
+    "expected_reason": null,
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "create_work_order",
+     "arguments": {
+      "wo_id": "WO-1310"
+     },
+     "intent_ref": "WO-1205",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "7c35e98c-d356-4c9b-b7d6-0bc1af26bec9",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "status": "open",
+      "wo_id": "WO-1310"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_VERIFIED",
+     "effect": {
+      "status": "EFFECT_VERIFIED",
+      "reason_code": "postcondition_verified",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T16:19:53.903676+00:00",
+      "effect_state": "EFFECT_VERIFIED"
+     },
+     "history": [
+      {
+       "status": "EFFECT_VERIFIED",
+       "reason_code": "postcondition_verified",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T16:19:53.903676+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_VERIFIED",
+    "expected_reason": null,
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "close_work_order",
+     "arguments": {
+      "wo_id": "WO-1201"
+     },
+     "intent_ref": "WO-1203",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "b885b2a8-ee5d-4fd0-8f9b-9d34a18dcdd1",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "status": "closed",
+      "wo_id": "WO-1201"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_VERIFIED",
+     "effect": {
+      "status": "EFFECT_VERIFIED",
+      "reason_code": "postcondition_verified",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T16:19:55.997814+00:00",
+      "effect_state": "EFFECT_VERIFIED"
+     },
+     "history": [
+      {
+       "status": "EFFECT_VERIFIED",
+       "reason_code": "postcondition_verified",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T16:19:55.997814+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_VERIFIED",
+    "expected_reason": null,
+    "as_expected": true
+   }
+  ],
+  "verifier_report": {
+   "plant_faults": {},
+   "results": [
+    {
+     "proposal_id": "1368e48c-7959-477e-bfda-1263df7b4938",
+     "tool_name": "acknowledge_alarm",
+     "http": 200,
+     "status": "EFFECT_VERIFIED",
+     "reason_code": "postcondition_verified",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "acked": true,
+      "id": "LT-410-HI",
+      "kind": "alarm",
+      "revision": 1
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    },
+    {
+     "proposal_id": "22a35aef-3a2d-41ba-904a-5564a28c8b26",
+     "tool_name": "set_valve_position",
+     "http": 200,
+     "status": "EFFECT_VERIFIED",
+     "reason_code": "postcondition_verified",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "V-12",
+      "kind": "valve",
+      "pct": 30,
+      "revision": 1
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    },
+    {
+     "proposal_id": "4cae7ce7-8d6b-49f7-a3e1-ecd32b872fe3",
+     "tool_name": "adjust_setpoint",
+     "http": 200,
+     "status": "EFFECT_VERIFIED",
+     "reason_code": "postcondition_verified",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "PIC-101",
+      "kind": "loop",
+      "revision": 1,
+      "setpoint": 3.9
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    },
+    {
+     "proposal_id": "7c35e98c-d356-4c9b-b7d6-0bc1af26bec9",
+     "tool_name": "create_work_order",
+     "http": 200,
+     "status": "EFFECT_VERIFIED",
+     "reason_code": "postcondition_verified",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "WO-1310",
+      "kind": "work_order",
+      "revision": 1,
+      "status": "open"
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    },
+    {
+     "proposal_id": "b885b2a8-ee5d-4fd0-8f9b-9d34a18dcdd1",
+     "tool_name": "close_work_order",
+     "http": 200,
+     "status": "EFFECT_VERIFIED",
+     "reason_code": "postcondition_verified",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "WO-1201",
+      "kind": "work_order",
+      "revision": 1,
+      "status": "closed"
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    }
+   ],
+   "anomalies": [],
+   "reconciliation": {
+    "since_seq": 0,
+    "journal_entries": 34,
+    "applied_writes": 5,
+    "reads": 29,
+    "refused_requests": 0,
+    "refused_by_credential": {},
+    "executed_write_dispatches": 5,
+    "unattributed_writes": [],
+    "tool_mismatches": [],
+    "dispatches_named_twice": [],
+    "dispatches_without_plant_record": [],
+    "journal_complete": true,
+    "agree": true
+   },
+   "errors": [],
+   "verifier_kid": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd"
+  },
+  "all_as_expected": true
+ },
+ "receipt_controls": [
+  {
+   "control": "unregistered_key",
+   "http": 409,
+   "detail": "effect receipt refused (receipt_signature_unknown_kid): the receipt signature does not verify under REMORA/EFFECT-RECEIPT/v1 (unknown_kid)",
+   "verdict_before": "EFFECT_VERIFIED",
+   "verdict_after": "EFFECT_VERIFIED",
+   "refused_and_unchanged": true
+  },
+  {
+   "control": "agent_token",
+   "http": 403,
+   "detail": "role operator cannot perform verify_effect",
+   "verdict_before": "EFFECT_VERIFIED",
+   "verdict_after": "EFFECT_VERIFIED",
+   "refused_and_unchanged": true
+  },
+  {
+   "control": "arguments_not_the_dispatched_call",
+   "http": 409,
+   "detail": "effect receipt refused (arguments_not_the_dispatched_call): the arguments do not hash to the dispatched call",
+   "verdict_before": "EFFECT_VERIFIED",
+   "verdict_after": "EFFECT_VERIFIED",
+   "refused_and_unchanged": true
+  },
+  {
+   "control": "replay_after_settled_verdict",
+   "http": 409,
+   "detail": "effect receipt refused (receipt_replayed): this dispatch already has a settled verdict (EFFECT_VERIFIED); a second would overwrite evidence",
+   "verdict_before": "EFFECT_VERIFIED",
+   "verdict_after": "EFFECT_VERIFIED",
+   "refused_and_unchanged": true
+  }
+ ],
+ "faults": {
+  "declared": {
+   "valve:V-12": [
+    "clamp",
+    20
+   ],
+   "loop:PIC-101": [
+    "drop"
+   ],
+   "alarm:LT-410-HI": [
+    "hide"
+   ]
+  },
+  "cases": [
+   {
+    "write": {
+     "tool": "set_valve_position",
+     "arguments": {
+      "valve": "V-12",
+      "position_pct": 30
+     },
+     "intent_ref": "WO-1204",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "4a22c5b5-7599-4806-b95b-cc9d514b7fe1",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "new_pct": 30,
+      "old_pct": 15,
+      "valve": "V-12"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_MISMATCH",
+     "effect": {
+      "status": "EFFECT_MISMATCH",
+      "reason_code": "postcondition_field_mismatch",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T16:20:37.635628+00:00",
+      "effect_state": "EFFECT_MISMATCH"
+     },
+     "history": [
+      {
+       "status": "EFFECT_MISMATCH",
+       "reason_code": "postcondition_field_mismatch",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T16:20:37.635628+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_MISMATCH",
+    "expected_reason": "postcondition_field_mismatch",
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "adjust_setpoint",
+     "arguments": {
+      "loop": "PIC-101",
+      "value": 3.9
+     },
+     "intent_ref": "WO-1201",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "e36320e8-415a-4dd9-9e1a-92c5ee310d9f",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "loop": "PIC-101",
+      "new_setpoint": 3.9,
+      "old_setpoint": 4.0
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_MISMATCH",
+     "effect": {
+      "status": "EFFECT_MISMATCH",
+      "reason_code": "postcondition_effect_absent",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T16:20:39.734581+00:00",
+      "effect_state": "EFFECT_MISMATCH"
+     },
+     "history": [
+      {
+       "status": "EFFECT_MISMATCH",
+       "reason_code": "postcondition_effect_absent",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T16:20:39.734581+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_MISMATCH",
+    "expected_reason": "postcondition_effect_absent",
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "acknowledge_alarm",
+     "arguments": {
+      "alarm_id": "LT-410-HI"
+     },
+     "intent_ref": "WO-1202",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "96830997-583b-4e45-9f95-1e74a74a6195",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "acked": true,
+      "alarm_id": "LT-410-HI"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_UNKNOWN",
+     "effect": {
+      "status": "EFFECT_UNOBSERVABLE",
+      "reason_code": "postcondition_object_absent",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T16:20:45.975549+00:00",
+      "effect_state": "EFFECT_UNKNOWN"
+     },
+     "history": [
+      {
+       "status": "EFFECT_UNOBSERVABLE",
+       "reason_code": "postcondition_object_absent",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T16:20:41.828996+00:00"
+      },
+      {
+       "status": "EFFECT_UNOBSERVABLE",
+       "reason_code": "postcondition_object_absent",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T16:20:43.900889+00:00"
+      },
+      {
+       "status": "EFFECT_UNOBSERVABLE",
+       "reason_code": "postcondition_object_absent",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T16:20:45.975549+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_UNOBSERVABLE",
+    "expected_reason": "postcondition_object_absent",
+    "as_expected": true
+   },
+   {
+    "write": {
+     "tool": "close_work_order",
+     "arguments": {
+      "wo_id": "WO-1201"
+     },
+     "intent_ref": "WO-1203",
+     "assess_status": 200,
+     "decision": "verify",
+     "reasons": [
+      "evidence_insufficient"
+     ],
+     "proposal_id": "7e8be0a0-a034-4713-ac17-06ff482d99a1",
+     "detail": null,
+     "approve_status": 200,
+     "execute_status": 200,
+     "outcome": "execute",
+     "executed": true,
+     "tool_result": {
+      "status": "closed",
+      "wo_id": "WO-1201"
+     }
+    },
+    "verdict": {
+     "current_state": "EFFECT_VERIFIED",
+     "effect": {
+      "status": "EFFECT_VERIFIED",
+      "reason_code": "postcondition_verified",
+      "vantage": "independent",
+      "scope": "declared_delta_only",
+      "verdict_source": "computed",
+      "verifier_identity": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd",
+      "verified_at": "2026-11-06T16:20:54.147786+00:00",
+      "effect_state": "EFFECT_VERIFIED"
+     },
+     "history": [
+      {
+       "status": "EFFECT_VERIFIED",
+       "reason_code": "postcondition_verified",
+       "vantage": "independent",
+       "verified_at": "2026-11-06T16:20:54.147786+00:00"
+      }
+     ]
+    },
+    "expected_status": "EFFECT_VERIFIED",
+    "expected_reason": "postcondition_verified",
+    "as_expected": true
+   }
+  ],
+  "verifier_report": {
+   "plant_faults": {
+    "alarm:LT-410-HI": [
+     "hide",
+     null
+    ],
+    "loop:PIC-101": [
+     "drop",
+     null
+    ],
+    "valve:V-12": [
+     "clamp",
+     20
+    ]
+   },
+   "results": [
+    {
+     "proposal_id": "4a22c5b5-7599-4806-b95b-cc9d514b7fe1",
+     "tool_name": "set_valve_position",
+     "http": 200,
+     "status": "EFFECT_MISMATCH",
+     "reason_code": "postcondition_field_mismatch",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "V-12",
+      "kind": "valve",
+      "pct": 20,
+      "revision": 1
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    },
+    {
+     "proposal_id": "7e8be0a0-a034-4713-ac17-06ff482d99a1",
+     "tool_name": "close_work_order",
+     "http": 200,
+     "status": "EFFECT_VERIFIED",
+     "reason_code": "postcondition_verified",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "WO-1201",
+      "kind": "work_order",
+      "revision": 1,
+      "status": "closed"
+     },
+     "source_revision": "1",
+     "pre_state_revision": "0",
+     "attempts": 1
+    },
+    {
+     "proposal_id": "96830997-583b-4e45-9f95-1e74a74a6195",
+     "tool_name": "acknowledge_alarm",
+     "http": 200,
+     "status": "EFFECT_UNOBSERVABLE",
+     "reason_code": "postcondition_object_absent",
+     "vantage": "independent",
+     "detail": null,
+     "observed": null,
+     "source_revision": "",
+     "pre_state_revision": "0",
+     "attempts": 3
+    },
+    {
+     "proposal_id": "e36320e8-415a-4dd9-9e1a-92c5ee310d9f",
+     "tool_name": "adjust_setpoint",
+     "http": 200,
+     "status": "EFFECT_MISMATCH",
+     "reason_code": "postcondition_effect_absent",
+     "vantage": "independent",
+     "detail": null,
+     "observed": {
+      "id": "PIC-101",
+      "kind": "loop",
+      "revision": 0,
+      "setpoint": 4.0
+     },
+     "source_revision": "0",
+     "pre_state_revision": "0",
+     "attempts": 1
+    }
+   ],
+   "anomalies": [],
+   "reconciliation": {
+    "since_seq": 0,
+    "journal_entries": 42,
+    "applied_writes": 4,
+    "reads": 35,
+    "refused_requests": 3,
+    "refused_by_credential": {
+     "reader": 3
+    },
+    "executed_write_dispatches": 4,
+    "unattributed_writes": [],
+    "tool_mismatches": [],
+    "dispatches_named_twice": [],
+    "dispatches_without_plant_record": [],
+    "journal_complete": true,
+    "agree": true
+   },
+   "errors": [],
+   "verifier_kid": "ed25519-8f6047c7f60892017bf8ec5f5e19c8027efae052a7e1dbff3e5a9c94aafb73dd"
+  },
+  "plant_journal": [
+   {
+    "at": 1793982031.5500052,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 1,
+    "source": "172.19.0.4",
+    "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982031.5520859,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 2,
+    "source": "172.19.0.4",
+    "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982033.57217,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 3,
+    "source": "172.19.0.4",
+    "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982033.5745897,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 4,
+    "source": "172.19.0.4",
+    "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982035.5947893,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 5,
+    "source": "172.19.0.4",
+    "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982035.596865,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 6,
+    "source": "172.19.0.4",
+    "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982036.4795892,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/valve_travel/V-12",
+    "seq": 7,
+    "source": "172.19.0.3",
+    "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982037.1921494,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/valve_travel/V-12",
+    "seq": 8,
+    "source": "172.19.0.3",
+    "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982037.2491343,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/valve_travel/V-12",
+    "seq": 9,
+    "source": "172.19.0.3",
+    "state_digest": "d8a818884019d749c52ab62532d25048dd5ce1c34c31526fae2d769ce9cd9487",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "arguments": {
+     "position_pct": 30,
+     "valve": "V-12"
+    },
+    "at": 1793982037.2540932,
+    "credential": "writer",
+    "dispatch_ref": "4a22c5b5-7599-4806-b95b-cc9d514b7fe1",
+    "fault": [
+     "clamp",
+     20
+    ],
+    "object": "valve:V-12",
+    "outcome": "applied",
+    "result": {
+     "new_pct": 30,
+     "old_pct": 15,
+     "valve": "V-12"
+    },
+    "rev_after": 1,
+    "rev_before": 0,
+    "seq": 10,
+    "source": "172.19.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "tool": "set_valve_position"
+   },
+   {
+    "at": 1793982037.2607188,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/valve_travel/V-12",
+    "seq": 11,
+    "source": "172.19.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982037.6328123,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 12,
+    "source": "172.19.0.4",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982037.6350021,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /objects/valve/V-12",
+    "seq": 13,
+    "source": "172.19.0.4",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982037.6943283,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 14,
+    "source": "172.19.0.4",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982038.4409935,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/setpoint_movement/PIC-101",
+    "seq": 15,
+    "source": "172.19.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982038.4430852,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/setpoint_movement/FIC-220",
+    "seq": 16,
+    "source": "172.19.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982039.0187678,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/setpoint_movement/PIC-101",
+    "seq": 17,
+    "source": "172.19.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982039.0205953,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/setpoint_movement/FIC-220",
+    "seq": 18,
+    "source": "172.19.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982039.0387712,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/setpoint_movement/PIC-101",
+    "seq": 19,
+    "source": "172.19.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "arguments": {
+     "loop": "PIC-101",
+     "value": 3.9
+    },
+    "at": 1793982039.0438275,
+    "credential": "writer",
+    "dispatch_ref": "e36320e8-415a-4dd9-9e1a-92c5ee310d9f",
+    "fault": [
+     "drop",
+     null
+    ],
+    "object": "loop:PIC-101",
+    "outcome": "applied",
+    "result": {
+     "loop": "PIC-101",
+     "new_setpoint": 3.9,
+     "old_setpoint": 4.0
+    },
+    "rev_after": 0,
+    "rev_before": 0,
+    "seq": 20,
+    "source": "172.19.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "tool": "adjust_setpoint"
+   },
+   {
+    "at": 1793982039.049926,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/setpoint_movement/PIC-101",
+    "seq": 21,
+    "source": "172.19.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982039.0542984,
+    "credential": "writer",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /observe/setpoint_movement/FIC-220",
+    "seq": 22,
+    "source": "172.19.0.3",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982039.7322316,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 23,
+    "source": "172.19.0.4",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982039.7341714,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /objects/loop/PIC-101",
+    "seq": 24,
+    "source": "172.19.0.4",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982039.787264,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 25,
+    "source": "172.19.0.4",
+    "state_digest": "d4231cfb218549dac0d99ed8ef047775d60ed6e01b75e4263532829a98f9c514",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "arguments": {
+     "alarm_id": "LT-410-HI"
+    },
+    "at": 1793982040.794999,
+    "credential": "writer",
+    "dispatch_ref": "96830997-583b-4e45-9f95-1e74a74a6195",
+    "fault": [
+     "hide",
+     null
+    ],
+    "object": "alarm:LT-410-HI",
+    "outcome": "applied",
+    "result": {
+     "acked": true,
+     "alarm_id": "LT-410-HI"
+    },
+    "rev_after": 1,
+    "rev_before": 0,
+    "seq": 26,
+    "source": "172.19.0.3",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "tool": "acknowledge_alarm"
+   },
+   {
+    "at": 1793982041.826671,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 27,
+    "source": "172.19.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982041.8285122,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "refused",
+    "reason": "unknown alarm 'LT-410-HI'",
+    "request": "GET /objects/alarm/LT-410-HI",
+    "seq": 28,
+    "source": "172.19.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 404,
+    "tool": null
+   },
+   {
+    "at": 1793982041.8760533,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 29,
+    "source": "172.19.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982043.8985293,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 30,
+    "source": "172.19.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982043.900361,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "refused",
+    "reason": "unknown alarm 'LT-410-HI'",
+    "request": "GET /objects/alarm/LT-410-HI",
+    "seq": 31,
+    "source": "172.19.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 404,
+    "tool": null
+   },
+   {
+    "at": 1793982043.9489157,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 32,
+    "source": "172.19.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982045.9729726,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 33,
+    "source": "172.19.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982045.9749975,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "refused",
+    "reason": "unknown alarm 'LT-410-HI'",
+    "request": "GET /objects/alarm/LT-410-HI",
+    "seq": 34,
+    "source": "172.19.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 404,
+    "tool": null
+   },
+   {
+    "at": 1793982046.0377367,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 35,
+    "source": "172.19.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982048.0562148,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 36,
+    "source": "172.19.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982048.058746,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 37,
+    "source": "172.19.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982050.0766146,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 38,
+    "source": "172.19.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982050.0792332,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 39,
+    "source": "172.19.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982052.1024394,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 40,
+    "source": "172.19.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982052.1063075,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 41,
+    "source": "172.19.0.4",
+    "state_digest": "9eaff8e7af5dc1ff357e94ee847a288d025ecf0bf671a4d8501405068884331d",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "arguments": {
+     "wo_id": "WO-1201"
+    },
+    "at": 1793982053.936779,
+    "credential": "writer",
+    "dispatch_ref": "7e8be0a0-a034-4713-ac17-06ff482d99a1",
+    "fault": null,
+    "object": "work_order:WO-1201",
+    "outcome": "applied",
+    "result": {
+     "status": "closed",
+     "wo_id": "WO-1201"
+    },
+    "rev_after": 1,
+    "rev_before": 0,
+    "seq": 42,
+    "source": "172.19.0.3",
+    "state_digest": "ab14060e3e0db021d14b89cc12aaf6e85200dedbc2e0573af3dd43c8eb930385",
+    "tool": "close_work_order"
+   },
+   {
+    "at": 1793982054.145553,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /journal",
+    "seq": 43,
+    "source": "172.19.0.4",
+    "state_digest": "ab14060e3e0db021d14b89cc12aaf6e85200dedbc2e0573af3dd43c8eb930385",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982054.147289,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /objects/work_order/WO-1201",
+    "seq": 44,
+    "source": "172.19.0.4",
+    "state_digest": "ab14060e3e0db021d14b89cc12aaf6e85200dedbc2e0573af3dd43c8eb930385",
+    "status": 200,
+    "tool": null
+   },
+   {
+    "at": 1793982054.1911907,
+    "credential": "reader",
+    "dispatch_ref": "",
+    "outcome": "read",
+    "reason": "",
+    "request": "GET /digest",
+    "seq": 45,
+    "source": "172.19.0.4",
+    "state_digest": "ab14060e3e0db021d14b89cc12aaf6e85200dedbc2e0573af3dd43c8eb930385",
+    "status": 200,
+    "tool": null
+   }
+  ],
+  "all_as_expected": true
+ },
+ "finished_at": "2026-11-06T16:20:55.633854+00:00",
+ "summary": {
+  "honest_as_expected": "5 of 5",
+  "faults_as_expected": "4 of 4",
+  "receipt_controls_refused": "4 of 4"
+ }
+}
