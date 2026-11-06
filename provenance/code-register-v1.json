@@ -9200,15 +9200,15 @@
     },
     "frontend/package-lock.json": {
       "concepts": [],
-      "git_blob": "81fcc4c953996e1b99d0e12573aa35921da53355",
+      "git_blob": "a3548f48b5c70ee0bcc93dcfc86dc0751201f6e2",
       "mode": "100644",
-      "sha256": "979e6f5f48a819fa5654ad8932382330992def38104079abc47e422bd0e27336"
+      "sha256": "29cf4200f0a1745aa0e82e5f5165ab6d3a9df5b99b1010c78b290951888aeb06"
     },
     "frontend/package.json": {
       "concepts": [],
-      "git_blob": "d8bba1d06a2193bfac7471ccfd25d8789386a15b",
+      "git_blob": "3c195accace5aa647f92abeb94b9639313482c8e",
       "mode": "100644",
-      "sha256": "7032b8a5cfdf1a9ec09f8b446b67fe1798ac24ff2a5ff24156a796ec85d0054e"
+      "sha256": "1211786066baf96e7566ffd077a36f346da911fa077c2fb09bc384ff947efa4f"
     },
     "frontend/pilot.html": {
       "concepts": [],
@@ -23047,7 +23047,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "2009a82c11979542f6a1c892c22019fd6bbdfed3d11e96c71213fabec6b933ed",
+  "register_sha256": "32609d97cd043c2d73c5b3b40bcf84f5fe04ed3661ec7eca7c7b192f20ba7906",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
