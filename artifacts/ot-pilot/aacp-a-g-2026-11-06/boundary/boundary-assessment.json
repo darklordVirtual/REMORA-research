@@ -1,17 +1,24 @@
 {
  "schema": "ot-pilot-boundary-assessment/v1",
- "started_at": "2026-11-06T16:18:57.128090+00:00",
- "finished_at": "2026-11-06T16:19:06.024734+00:00",
- "evaluation_scope": "ot-pilot/agent-container-zone/plant-state/single-host/2026-11-06T16:18:57.128090+00:00/2026-11-06T16:19:06.024752+00:00",
+ "started_at": "2026-11-06T16:23:47.538289+00:00",
+ "finished_at": "2026-11-06T16:23:56.292379+00:00",
+ "evaluation_scope": "ot-pilot/agent-container-zone/plant-state/single-host/2026-11-06T16:23:47.538289+00:00/2026-11-06T16:23:56.292398+00:00",
  "agent_zone": {
   "service": "agent",
   "networks": [
    "agent-net"
   ],
-  "carried_secret_names": [
-   "GPG_KEY",
-   "OT_TOKEN_AGENT"
-  ]
+  "reported_by_suite": {
+   "service": "agent",
+   "networks": [
+    "agent-net"
+   ],
+   "hostname": "f37b6d8eaf4b",
+   "secret_like_env_names": [
+    "GPG_KEY",
+    "OT_TOKEN_AGENT"
+   ]
+  }
  },
  "topology_check": {
   "register": "deploy/ot-pilot/credential_topology.yaml",
@@ -214,7 +221,7 @@
    "reasons": [
     "evidence_insufficient"
    ],
-   "proposal_id": "f7e53ba3-601b-4328-aa47-da816ba5c62a",
+   "proposal_id": "4b3f791c-0618-4022-91ca-32921d5d032b",
    "detail": null,
    "approve_status": 200,
    "execute_status": 200,
@@ -238,7 +245,7 @@
    "reasons": [
     "evidence_insufficient"
    ],
-   "proposal_id": "7b31b061-c46a-4ecd-ba05-2d03cb37d1a5",
+   "proposal_id": "0b66ff9f-fb96-400f-90df-50a89004fb4e",
    "detail": null,
    "approve_status": 200,
    "execute_status": 200,
@@ -253,8 +260,8 @@
  ],
  "suite": {
   "exit_code": 0,
-  "seconds": 3.8,
-  "stderr_tail": " Container ot-pilot-agent-run-43c67520a72e Creating \n Container ot-pilot-agent-run-43c67520a72e Created \n",
+  "seconds": 3.6,
+  "stderr_tail": " Container ot-pilot-agent-run-78fc476678ff Creating \n Container ot-pilot-agent-run-78fc476678ff Created \n",
   "attempt_count": 53,
   "classes": [
    "authenticated_client",

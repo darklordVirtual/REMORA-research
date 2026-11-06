@@ -3,7 +3,7 @@
  "purpose": "The OT pilot after the plant moved to its own trust domain and an independent effect verifier was added: battery, fault injection, the 24 independent scenarios, the E boundary procedure and the G effect-verification run, each on a stack reset with down -v.",
  "source": {
   "image_built_from_commit": "5bcbdaa8ebf9ab50927cf0645aaa81f1578e56e8",
-  "note": "Images built from the working tree at 5bcbdaa8. The host-side runners ran from 564a553b, which differs from it only in deploy/ot-pilot/run_boundary_assessment.py (the record keeps a count of leaked credential values instead of names) and a test; neither file is in an image.",
+  "note": "Images built from the working tree at 5bcbdaa8. The host-side runners ran from 0860d55b. It differs from the image commit only in deploy/ot-pilot/run_boundary_assessment.py, which is not in an image, and in tests; the E run (boundary/) was repeated at 0860d55b on the same images after that runner changed.",
   "build_note": "Built in a sandbox behind an egress proxy. The API image: docker build --network host, the proxy as build arguments, its CA bind-mounted for the pip step only (RUN --mount, not copied into the image). Docker Hub answered 429 to the base image's metadata request, so python:3.12-slim was pulled from mirror.gcr.io/library/python:3.12-slim and tagged locally; its digest is in images.base_image_digest. The console was not built or started.",
   "toolspec_note": "The ToolSpec bundle was re-signed (build_toolspec.py --force) after ot_registry.py changed. A first run on this build used the bundle signed before that change: REMORA refused the changed callables (toolspec_callable_digest_mismatch, HTTP 500 at execute) and nothing ran. That run is not used here; the re-signed run is."
  },
@@ -109,7 +109,7 @@
   },
   {
    "path": "deploy/ot-pilot/run_boundary_assessment.py",
-   "sha256": "b469bced60077c9ed4384dbb222df8058772844049d17e204fe1e5efced7e268"
+   "sha256": "ff13f9b7b0866dac386d19821f5d4ace9069ad56bf8bae58f8554cafb211662e"
   },
   {
    "path": "deploy/ot-pilot/run_effect_verification.py",
@@ -124,7 +124,7 @@
   "battery": "16 of 16 as specified; 5 of 5 monitoring reads; 6 of 6 writes EFFECT_VERIFIED, vantage independent; journal and chain agree",
   "fault-injection": "10 of 10; 8 of 8 intended writes; 0 false refusals; 14 human steps",
   "independent-scenarios": "23 of 24 (S20 fails on the recalibrated PIC-101 cap, NEGATIVE_RESULTS section 97)",
-  "boundary": "7 attempt classes, 53 attempts from the agent container; no applied write in the interval but the two governed controls, no request refused at the plant; the interval reconciles; 0 secrets in the agent capture; the detector-sensitivity control is detected; live networks match the register",
+  "boundary": "7 attempt classes, 53 attempts from the agent container; the plant applied only the two governed control writes and refused no request in the interval; the interval reconciles; 0 credential values in the agent capture; the detector-sensitivity control is detected; live networks match the register",
   "effect": "honest 5 of 5, faults 4 of 4, receipt controls refused 4 of 4"
  }
 }

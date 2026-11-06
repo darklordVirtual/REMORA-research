@@ -1,6 +1,6 @@
 # OT pilot assessed on A to G (2026-11-06)
 
-This folder records the pilot after three changes on one branch: the work-order scope guard (D), the plant in its own trust domain (E), and an independent effect verifier (G). The images were built from commit `5bcbdaa8`, after the fixes from an adversarial review of the change set and from CodeQL on the PR (below); the host-side runners ran from `564a553b`. `manifest.json` has the image ids, the base image digest, the policy hash and the SHA-256 of every deployment file and runner. Each run started on a stack reset with `down -v`.
+This folder records the pilot after three changes on one branch: the work-order scope guard (D), the plant in its own trust domain (E), and an independent effect verifier (G). The images were built from commit `5bcbdaa8`, after the fixes from an adversarial review of the change set and from CodeQL on the PR (below). The host-side runners ran from `0860d55b`, where the E run was repeated on the same images. `manifest.json` has the image ids, the base image digest, the policy hash and the SHA-256 of every deployment file and runner. Each run started on a stack reset with `down -v`.
 
 | Run | Result |
 |---|---|
@@ -97,7 +97,7 @@ CodeQL on PR #1194 then raised three findings in the assessor's runner, all fixe
 ## Reproduce
 
 ```
-git checkout 564a553b
+git checkout 0860d55b
 python deploy/ot-pilot/init_tokens.py --force
 python deploy/ot-pilot/build_toolspec.py --force
 set -a; . deploy/ot-pilot/.env; set +a

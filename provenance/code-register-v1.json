@@ -3119,15 +3119,15 @@
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/README.md": {
       "concepts": [],
-      "git_blob": "24ea199de3c13e2c5d48e2979d95e5432a7d7609",
+      "git_blob": "c61c1cf0bd82006cf4da5bf08223e5e8cadda6b6",
       "mode": "100644",
-      "sha256": "3856b999afdf9bdc6308806817277e661efdf2e4f0c4830963728e456ef73fb7"
+      "sha256": "363b28c20d1da61ccc960074021ac1f47f35658ff472993be7c62387d4946b5a"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/aacp-assessment-v0.2.json": {
       "concepts": [],
-      "git_blob": "06cbdcb777710e1be88d700aa57302a36f588510",
+      "git_blob": "b1e92b6c1b070b727a4c3f86f5d1f0654551b318",
       "mode": "100644",
-      "sha256": "7b7d6fa1d8cb579d23cba61e2395784e513d3ec988118101ac74496c803f21ee"
+      "sha256": "3f44106a1b69e584a48b9d604052f1568ca9baf252b3696b9465f35138bb93ad"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/battery/chain-verification.json": {
       "concepts": [],
@@ -3167,15 +3167,15 @@
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/boundary/boundary-assessment.json": {
       "concepts": [],
-      "git_blob": "d865f177afebdf52a1adbdfb620f62d7d14feef4",
+      "git_blob": "9e9f82a8c85ba8e22196898aea999937454db93e",
       "mode": "100644",
-      "sha256": "0f05cff88d59c197871b28a320e22d2aeb00b24e8c4fef23607a020cbd1b1b6c"
+      "sha256": "2aca38f04d51149892527c8c06c6c0e41da85eb2e7e0d25980092b293e36b1bd"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/boundary/boundary-suite.json": {
       "concepts": [],
-      "git_blob": "dce8ec6d68c82debf8077596a40e505c863eaf91",
+      "git_blob": "9094fa47c6629c528a1d4c467f5ea585cc9e38f4",
       "mode": "100644",
-      "sha256": "7ecfe9cd41ae610c9cb33646e33e61ea3fa114f4994a823ab7fb283c64153d2b"
+      "sha256": "a6b440f0631f0709abf91889c5ae098ed237844e8b884fe7866c0f9424ef5e3d"
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/boundary/topology-check.json": {
       "concepts": [],
@@ -3239,9 +3239,9 @@
     },
     "artifacts/ot-pilot/aacp-a-g-2026-11-06/manifest.json": {
       "concepts": [],
-      "git_blob": "1838d605a78a4b21f59918b9fa25b85622b6fd8c",
+      "git_blob": "c3d2c680e69d74d9d78f7081e21bd6907bcb15c2",
       "mode": "100644",
-      "sha256": "8762ad76599565ccf6386ae4121dadf571a320c23746a293066e94961a2abf76"
+      "sha256": "66b23f020e0c934ee8fceff10aedc79570a9d63a5c58bb29411ece4a4b36c335"
     },
     "artifacts/ot-pilot/execution-path-reproduction-2026-11-05/README.md": {
       "concepts": [],
@@ -23371,7 +23371,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "7051dba0856206d981e334d94702a4f7c2178d7e295420ae62d1a54922f504da",
+  "register_sha256": "981811d4944950befada548ee32b66c9f44e56fdabea6224e9d0181b951913bb",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
