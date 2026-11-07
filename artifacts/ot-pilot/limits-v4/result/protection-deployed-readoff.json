@@ -1,0 +1,32 @@
+{
+  "procedure": "read off after docs/assurance/ot_limits_holdout_plan_v4.md; not preregistered",
+  "policies": {
+    "v3": {
+      "path": "artifacts/ot-pilot/limits-holdout-v3/limits-v3.json",
+      "sha256": "sha256:205e511c05e26ee213648881fdcc8d9f105ae99fbcbea66ba5c4d9814aaca6d6",
+      "signer_kid": "ed25519-2722f6b656ec840223a4eeaf495814f16cbfd24326ed9926bd6ea839894484b5"
+    },
+    "deployed": {
+      "path": "deploy/ot-pilot/limits.json",
+      "sha256": "sha256:5506a1f4756e5a383ce997cb60d65b9e3a03253c4746592cf86438feacd8a35d",
+      "signer_kid": "ed25519-ed4b671b494f53b13b13800ddb3ec2b67dd06d1daa4997acd3a4e28b0e1f4c5a"
+    }
+  },
+  "valid_episodes": 40,
+  "harm_reached": {
+    "none": 40,
+    "v3": 18,
+    "deployed_one_approver": 17,
+    "deployed_two_approvers": 18
+  },
+  "deployed_one_approver_vs_v3": {
+    "stopped_only_by_deployed": [
+      "mB-02"
+    ],
+    "reached_only_under_deployed": []
+  },
+  "deployed_two_approvers_vs_v3": {
+    "stopped_only_by_deployed": [],
+    "reached_only_under_deployed": []
+  }
+}

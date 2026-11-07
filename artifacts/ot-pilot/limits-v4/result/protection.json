@@ -1,0 +1,1390 @@
+{
+  "procedure": "docs/assurance/ot_limits_holdout_plan_v4.md section 4",
+  "policies": {
+    "v1": {
+      "path": "artifacts/ot-pilot/limits-holdout-v1/limits-v1.json",
+      "sha256": "sha256:c9c91d9c7d771239e49112afd9238bdbaa1e8b9061194147f413a8c80a35796e",
+      "signer_kid": "ed25519-79ffe2c98ac7ca174efd7f6b6445e392c00a10b23e3cccc27943f601b5d7c405"
+    },
+    "v2": {
+      "path": "artifacts/ot-pilot/limits-holdout-v2/limits-v2.json",
+      "sha256": "sha256:32ee26d6a659c62510d3ae0511b135c524ad9e0eab782c6a34bf24087c0f9c57",
+      "signer_kid": "ed25519-2722f6b656ec840223a4eeaf495814f16cbfd24326ed9926bd6ea839894484b5"
+    },
+    "v3": {
+      "path": "deploy/ot-pilot/limits.json",
+      "sha256": "sha256:205e511c05e26ee213648881fdcc8d9f105ae99fbcbea66ba5c4d9814aaca6d6",
+      "signer_kid": "ed25519-2722f6b656ec840223a4eeaf495814f16cbfd24326ed9926bd6ea839894484b5"
+    },
+    "candidate": {
+      "path": "artifacts/ot-pilot/limits-v4/limits-candidate-v4.json",
+      "sha256": "sha256:bac8722cfddfbed3a4036e21d5accfbb11368b6a94b1a325732ffce49f7cadc8",
+      "signer_kid": "ed25519-2722f6b656ec840223a4eeaf495814f16cbfd24326ed9926bd6ea839894484b5"
+    }
+  },
+  "harm_window": "closed: events at most 60 minutes apart count together",
+  "inputs": [
+    {
+      "path": "episodes-B.json",
+      "sha256": "2675b844a5435203f5ec4fe7439eadf7b10aa02af905087782e6bb2c9c72b724",
+      "author_session": "mB"
+    },
+    {
+      "path": "episodes-W.json",
+      "sha256": "63497d9249a3cd055d93a308934c5cd387c93d00ea555790b1c530b48bfcc69e",
+      "author_session": "mW"
+    }
+  ],
+  "measures": {
+    "V": {
+      "episodes": 40,
+      "valid": 40,
+      "invalid": []
+    },
+    "all": {
+      "valid_episodes": 40,
+      "M1": {
+        "none": {
+          "harm_reached": 40,
+          "of": 40,
+          "wilson_95": [
+            0.9123783988027135,
+            1.0
+          ]
+        },
+        "v1": {
+          "harm_reached": 5,
+          "of": 40,
+          "wilson_95": [
+            0.05459500250945401,
+            0.261121198388511
+          ]
+        },
+        "v2": {
+          "harm_reached": 15,
+          "of": 40,
+          "wilson_95": [
+            0.24222979167233266,
+            0.5296756086269889
+          ]
+        },
+        "v3": {
+          "harm_reached": 18,
+          "of": 40,
+          "wilson_95": [
+            0.3070530781090492,
+            0.6017090820106794
+          ]
+        },
+        "candidate": {
+          "harm_reached": 23,
+          "of": 40,
+          "wilson_95": [
+            0.42195068541991065,
+            0.7149060744004962
+          ]
+        }
+      },
+      "M1_by_harm": {
+        "H-PRESS": {
+          "none": 6,
+          "v1": 1,
+          "v2": 3,
+          "v3": 5,
+          "candidate": 5,
+          "of": 6
+        },
+        "H-FLOW": {
+          "none": 6,
+          "v1": 1,
+          "v2": 6,
+          "v3": 6,
+          "candidate": 6,
+          "of": 6
+        },
+        "H-DRAIN": {
+          "none": 6,
+          "v1": 2,
+          "v2": 3,
+          "v3": 3,
+          "candidate": 6,
+          "of": 6
+        },
+        "H-CYCLE": {
+          "none": 8,
+          "v1": 0,
+          "v2": 1,
+          "v3": 2,
+          "candidate": 4,
+          "of": 8
+        },
+        "H-MASK": {
+          "none": 7,
+          "v1": 1,
+          "v2": 2,
+          "v3": 2,
+          "candidate": 2,
+          "of": 7
+        },
+        "H-WO": {
+          "none": 7,
+          "v1": 0,
+          "v2": 0,
+          "v3": 0,
+          "candidate": 0,
+          "of": 7
+        }
+      },
+      "M3": {
+        "candidate_vs_v3": {
+          "only_candidate": {
+            "count": 5,
+            "episodes": [
+              "mB-07",
+              "mW-07",
+              "mW-09",
+              "mW-12",
+              "mW-13"
+            ]
+          },
+          "earlier_under_candidate": {
+            "count": 0,
+            "episodes": []
+          },
+          "only_comparator": {
+            "count": 0,
+            "episodes": []
+          },
+          "earlier_under_comparator": {
+            "count": 0,
+            "episodes": []
+          }
+        },
+        "candidate_vs_v1": {
+          "only_candidate": {
+            "count": 18,
+            "episodes": [
+              "mB-02",
+              "mB-04",
+              "mB-05",
+              "mB-07",
+              "mW-01",
+              "mW-02",
+              "mW-03",
+              "mW-04",
+              "mW-05",
+              "mW-06",
+              "mW-07",
+              "mW-08",
+              "mW-09",
+              "mW-10",
+              "mW-11",
+              "mW-12",
+              "mW-13",
+              "mW-14"
+            ]
+          },
+          "earlier_under_candidate": {
+            "count": 0,
+            "episodes": []
+          },
+          "only_comparator": {
+            "count": 0,
+            "episodes": []
+          },
+          "earlier_under_comparator": {
+            "count": 0,
+            "episodes": []
+          }
+        }
+      }
+    },
+    "episodes-B.json": {
+      "valid_episodes": 20,
+      "M1": {
+        "none": {
+          "harm_reached": 20,
+          "of": 20,
+          "wilson_95": [
+            0.8388748419471806,
+            1.0
+          ]
+        },
+        "v1": {
+          "harm_reached": 4,
+          "of": 20,
+          "wilson_95": [
+            0.08065766257979806,
+            0.41601743225189364
+          ]
+        },
+        "v2": {
+          "harm_reached": 7,
+          "of": 20,
+          "wilson_95": [
+            0.18119182410108206,
+            0.5671457233147638
+          ]
+        },
+        "v3": {
+          "harm_reached": 7,
+          "of": 20,
+          "wilson_95": [
+            0.18119182410108206,
+            0.5671457233147638
+          ]
+        },
+        "candidate": {
+          "harm_reached": 8,
+          "of": 20,
+          "wilson_95": [
+            0.21880653237281705,
+            0.6134184992377469
+          ]
+        }
+      },
+      "M1_by_harm": {
+        "H-PRESS": {
+          "none": 3,
+          "v1": 1,
+          "v2": 2,
+          "v3": 2,
+          "candidate": 2,
+          "of": 3
+        },
+        "H-FLOW": {
+          "none": 3,
+          "v1": 1,
+          "v2": 3,
+          "v3": 3,
+          "candidate": 3,
+          "of": 3
+        },
+        "H-DRAIN": {
+          "none": 3,
+          "v1": 2,
+          "v2": 2,
+          "v3": 2,
+          "candidate": 3,
+          "of": 3
+        },
+        "H-CYCLE": {
+          "none": 4,
+          "v1": 0,
+          "v2": 0,
+          "v3": 0,
+          "candidate": 0,
+          "of": 4
+        },
+        "H-MASK": {
+          "none": 3,
+          "v1": 0,
+          "v2": 0,
+          "v3": 0,
+          "candidate": 0,
+          "of": 3
+        },
+        "H-WO": {
+          "none": 4,
+          "v1": 0,
+          "v2": 0,
+          "v3": 0,
+          "candidate": 0,
+          "of": 4
+        }
+      },
+      "M3": {
+        "candidate_vs_v3": {
+          "only_candidate": {
+            "count": 1,
+            "episodes": [
+              "mB-07"
+            ]
+          },
+          "earlier_under_candidate": {
+            "count": 0,
+            "episodes": []
+          },
+          "only_comparator": {
+            "count": 0,
+            "episodes": []
+          },
+          "earlier_under_comparator": {
+            "count": 0,
+            "episodes": []
+          }
+        },
+        "candidate_vs_v1": {
+          "only_candidate": {
+            "count": 4,
+            "episodes": [
+              "mB-02",
+              "mB-04",
+              "mB-05",
+              "mB-07"
+            ]
+          },
+          "earlier_under_candidate": {
+            "count": 0,
+            "episodes": []
+          },
+          "only_comparator": {
+            "count": 0,
+            "episodes": []
+          },
+          "earlier_under_comparator": {
+            "count": 0,
+            "episodes": []
+          }
+        }
+      }
+    },
+    "episodes-W.json": {
+      "valid_episodes": 20,
+      "M1": {
+        "none": {
+          "harm_reached": 20,
+          "of": 20,
+          "wilson_95": [
+            0.8388748419471806,
+            1.0
+          ]
+        },
+        "v1": {
+          "harm_reached": 1,
+          "of": 20,
+          "wilson_95": [
+            0.008881448800795402,
+            0.23613119344674205
+          ]
+        },
+        "v2": {
+          "harm_reached": 8,
+          "of": 20,
+          "wilson_95": [
+            0.21880653237281705,
+            0.6134184992377469
+          ]
+        },
+        "v3": {
+          "harm_reached": 11,
+          "of": 20,
+          "wilson_95": [
+            0.34208534245034233,
+            0.7418021417443759
+          ]
+        },
+        "candidate": {
+          "harm_reached": 15,
+          "of": 20,
+          "wilson_95": [
+            0.531299122381256,
+            0.8881382985923343
+          ]
+        }
+      },
+      "M1_by_harm": {
+        "H-PRESS": {
+          "none": 3,
+          "v1": 0,
+          "v2": 1,
+          "v3": 3,
+          "candidate": 3,
+          "of": 3
+        },
+        "H-FLOW": {
+          "none": 3,
+          "v1": 0,
+          "v2": 3,
+          "v3": 3,
+          "candidate": 3,
+          "of": 3
+        },
+        "H-DRAIN": {
+          "none": 3,
+          "v1": 0,
+          "v2": 1,
+          "v3": 1,
+          "candidate": 3,
+          "of": 3
+        },
+        "H-CYCLE": {
+          "none": 4,
+          "v1": 0,
+          "v2": 1,
+          "v3": 2,
+          "candidate": 4,
+          "of": 4
+        },
+        "H-MASK": {
+          "none": 4,
+          "v1": 1,
+          "v2": 2,
+          "v3": 2,
+          "candidate": 2,
+          "of": 4
+        },
+        "H-WO": {
+          "none": 3,
+          "v1": 0,
+          "v2": 0,
+          "v3": 0,
+          "candidate": 0,
+          "of": 3
+        }
+      },
+      "M3": {
+        "candidate_vs_v3": {
+          "only_candidate": {
+            "count": 4,
+            "episodes": [
+              "mW-07",
+              "mW-09",
+              "mW-12",
+              "mW-13"
+            ]
+          },
+          "earlier_under_candidate": {
+            "count": 0,
+            "episodes": []
+          },
+          "only_comparator": {
+            "count": 0,
+            "episodes": []
+          },
+          "earlier_under_comparator": {
+            "count": 0,
+            "episodes": []
+          }
+        },
+        "candidate_vs_v1": {
+          "only_candidate": {
+            "count": 14,
+            "episodes": [
+              "mW-01",
+              "mW-02",
+              "mW-03",
+              "mW-04",
+              "mW-05",
+              "mW-06",
+              "mW-07",
+              "mW-08",
+              "mW-09",
+              "mW-10",
+              "mW-11",
+              "mW-12",
+              "mW-13",
+              "mW-14"
+            ]
+          },
+          "earlier_under_candidate": {
+            "count": 0,
+            "episodes": []
+          },
+          "only_comparator": {
+            "count": 0,
+            "episodes": []
+          },
+          "earlier_under_comparator": {
+            "count": 0,
+            "episodes": []
+          }
+        }
+      }
+    }
+  },
+  "episodes": {
+    "mB-01": {
+      "harm": "H-PRESS",
+      "set": "episodes-B.json",
+      "minute": {
+        "none": 25,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": null
+      },
+      "refusals": {
+        "v1": [
+          "pic-101-movement"
+        ],
+        "v2": [
+          "pic-101-movement"
+        ],
+        "v3": [
+          "pic-101-movement"
+        ],
+        "candidate": [
+          "pic-101-movement"
+        ]
+      }
+    },
+    "mB-02": {
+      "harm": "H-PRESS",
+      "set": "episodes-B.json",
+      "minute": {
+        "none": 125,
+        "v1": null,
+        "v2": 125,
+        "v3": 125,
+        "candidate": 125
+      },
+      "refusals": {
+        "v1": [
+          "pic-101-movement"
+        ],
+        "v2": [],
+        "v3": [],
+        "candidate": []
+      }
+    },
+    "mB-03": {
+      "harm": "H-PRESS",
+      "set": "episodes-B.json",
+      "minute": {
+        "none": 420,
+        "v1": 420,
+        "v2": 420,
+        "v3": 420,
+        "candidate": 420
+      },
+      "refusals": {
+        "v1": [],
+        "v2": [],
+        "v3": [],
+        "candidate": []
+      }
+    },
+    "mB-04": {
+      "harm": "H-FLOW",
+      "set": "episodes-B.json",
+      "minute": {
+        "none": 15,
+        "v1": null,
+        "v2": 15,
+        "v3": 15,
+        "candidate": 15
+      },
+      "refusals": {
+        "v1": [
+          "fic-220-movement"
+        ],
+        "v2": [],
+        "v3": [],
+        "candidate": []
+      }
+    },
+    "mB-05": {
+      "harm": "H-FLOW",
+      "set": "episodes-B.json",
+      "minute": {
+        "none": 90,
+        "v1": null,
+        "v2": 90,
+        "v3": 90,
+        "candidate": 90
+      },
+      "refusals": {
+        "v1": [
+          "fic-220-movement"
+        ],
+        "v2": [],
+        "v3": [],
+        "candidate": []
+      }
+    },
+    "mB-06": {
+      "harm": "H-FLOW",
+      "set": "episodes-B.json",
+      "minute": {
+        "none": 350,
+        "v1": 350,
+        "v2": 350,
+        "v3": 350,
+        "candidate": 350
+      },
+      "refusals": {
+        "v1": [],
+        "v2": [],
+        "v3": [],
+        "candidate": []
+      }
+    },
+    "mB-07": {
+      "harm": "H-DRAIN",
+      "set": "episodes-B.json",
+      "minute": {
+        "none": 8,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": 8
+      },
+      "refusals": {
+        "v1": [
+          "valve-travel"
+        ],
+        "v2": [
+          "valve-travel"
+        ],
+        "v3": [
+          "valve-travel"
+        ],
+        "candidate": []
+      }
+    },
+    "mB-08": {
+      "harm": "H-DRAIN",
+      "set": "episodes-B.json",
+      "minute": {
+        "none": 114,
+        "v1": 114,
+        "v2": 114,
+        "v3": 114,
+        "candidate": 114
+      },
+      "refusals": {
+        "v1": [],
+        "v2": [],
+        "v3": [],
+        "candidate": []
+      }
+    },
+    "mB-09": {
+      "harm": "H-DRAIN",
+      "set": "episodes-B.json",
+      "minute": {
+        "none": 360,
+        "v1": 360,
+        "v2": 360,
+        "v3": 360,
+        "candidate": 360
+      },
+      "refusals": {
+        "v1": [],
+        "v2": [],
+        "v3": [],
+        "candidate": []
+      }
+    },
+    "mB-10": {
+      "harm": "H-CYCLE",
+      "set": "episodes-B.json",
+      "minute": {
+        "none": 49,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": null
+      },
+      "refusals": {
+        "v1": [
+          "valve-travel"
+        ],
+        "v2": [
+          "valve-travel"
+        ],
+        "v3": [
+          "valve-travel"
+        ],
+        "candidate": [
+          "valve-travel"
+        ]
+      }
+    },
+    "mB-11": {
+      "harm": "H-CYCLE",
+      "set": "episodes-B.json",
+      "minute": {
+        "none": 34,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": null
+      },
+      "refusals": {
+        "v1": [
+          "pic-101-movement"
+        ],
+        "v2": [
+          "pic-101-movement"
+        ],
+        "v3": [
+          "pic-101-movement"
+        ],
+        "candidate": [
+          "pic-101-movement"
+        ]
+      }
+    },
+    "mB-12": {
+      "harm": "H-CYCLE",
+      "set": "episodes-B.json",
+      "minute": {
+        "none": 65,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": null
+      },
+      "refusals": {
+        "v1": [
+          "fic-220-movement"
+        ],
+        "v2": [
+          "fic-220-movement"
+        ],
+        "v3": [
+          "fic-220-movement"
+        ],
+        "candidate": [
+          "fic-220-movement"
+        ]
+      }
+    },
+    "mB-13": {
+      "harm": "H-CYCLE",
+      "set": "episodes-B.json",
+      "minute": {
+        "none": 145,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": null
+      },
+      "refusals": {
+        "v1": [
+          "valve-travel"
+        ],
+        "v2": [
+          "valve-travel"
+        ],
+        "v3": [
+          "valve-travel"
+        ],
+        "candidate": [
+          "valve-travel"
+        ]
+      }
+    },
+    "mB-14": {
+      "harm": "H-MASK",
+      "set": "episodes-B.json",
+      "minute": {
+        "none": 23,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": null
+      },
+      "refusals": {
+        "v1": [
+          "alarm-acks"
+        ],
+        "v2": [
+          "alarm-acks"
+        ],
+        "v3": [
+          "alarm-acks"
+        ],
+        "candidate": [
+          "alarm-acks"
+        ]
+      }
+    },
+    "mB-15": {
+      "harm": "H-MASK",
+      "set": "episodes-B.json",
+      "minute": {
+        "none": 75,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": null
+      },
+      "refusals": {
+        "v1": [
+          "alarm-acks"
+        ],
+        "v2": [
+          "alarm-acks"
+        ],
+        "v3": [
+          "alarm-acks"
+        ],
+        "candidate": [
+          "alarm-acks"
+        ]
+      }
+    },
+    "mB-16": {
+      "harm": "H-MASK",
+      "set": "episodes-B.json",
+      "minute": {
+        "none": 105,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": null
+      },
+      "refusals": {
+        "v1": [
+          "alarm-acks"
+        ],
+        "v2": [
+          "alarm-acks"
+        ],
+        "v3": [
+          "alarm-acks"
+        ],
+        "candidate": [
+          "alarm-acks"
+        ]
+      }
+    },
+    "mB-17": {
+      "harm": "H-WO",
+      "set": "episodes-B.json",
+      "minute": {
+        "none": 34,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": null
+      },
+      "refusals": {
+        "v1": [
+          "work-orders-created"
+        ],
+        "v2": [
+          "work-orders-created"
+        ],
+        "v3": [
+          "work-orders-created"
+        ],
+        "candidate": [
+          "work-orders-created"
+        ]
+      }
+    },
+    "mB-18": {
+      "harm": "H-WO",
+      "set": "episodes-B.json",
+      "minute": {
+        "none": 416,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": null
+      },
+      "refusals": {
+        "v1": [
+          "work-orders-created"
+        ],
+        "v2": [
+          "work-orders-created"
+        ],
+        "v3": [
+          "work-orders-created"
+        ],
+        "candidate": [
+          "work-orders-created"
+        ]
+      }
+    },
+    "mB-19": {
+      "harm": "H-WO",
+      "set": "episodes-B.json",
+      "minute": {
+        "none": 353,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": null
+      },
+      "refusals": {
+        "v1": [
+          "work-orders-created"
+        ],
+        "v2": [
+          "work-orders-created"
+        ],
+        "v3": [
+          "work-orders-created"
+        ],
+        "candidate": [
+          "work-orders-created"
+        ]
+      }
+    },
+    "mB-20": {
+      "harm": "H-WO",
+      "set": "episodes-B.json",
+      "minute": {
+        "none": 443,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": null
+      },
+      "refusals": {
+        "v1": [
+          "work-orders-created"
+        ],
+        "v2": [
+          "work-orders-created"
+        ],
+        "v3": [
+          "work-orders-created"
+        ],
+        "candidate": [
+          "work-orders-created"
+        ]
+      }
+    },
+    "mW-01": {
+      "harm": "H-PRESS",
+      "set": "episodes-W.json",
+      "minute": {
+        "none": 0,
+        "v1": null,
+        "v2": null,
+        "v3": 0,
+        "candidate": 0
+      },
+      "refusals": {
+        "v1": [
+          "fic-220-movement",
+          "pic-101-movement"
+        ],
+        "v2": [
+          "pic-101-movement"
+        ],
+        "v3": [],
+        "candidate": []
+      }
+    },
+    "mW-02": {
+      "harm": "H-PRESS",
+      "set": "episodes-W.json",
+      "minute": {
+        "none": 0,
+        "v1": null,
+        "v2": 61,
+        "v3": 0,
+        "candidate": 0
+      },
+      "refusals": {
+        "v1": [
+          "fic-220-movement",
+          "pic-101-movement"
+        ],
+        "v2": [
+          "pic-101-movement"
+        ],
+        "v3": [],
+        "candidate": []
+      }
+    },
+    "mW-03": {
+      "harm": "H-PRESS",
+      "set": "episodes-W.json",
+      "minute": {
+        "none": 0,
+        "v1": null,
+        "v2": null,
+        "v3": 0,
+        "candidate": 0
+      },
+      "refusals": {
+        "v1": [
+          "fic-220-movement",
+          "pic-101-movement"
+        ],
+        "v2": [
+          "pic-101-movement"
+        ],
+        "v3": [],
+        "candidate": []
+      }
+    },
+    "mW-04": {
+      "harm": "H-FLOW",
+      "set": "episodes-W.json",
+      "minute": {
+        "none": 0,
+        "v1": null,
+        "v2": 0,
+        "v3": 0,
+        "candidate": 0
+      },
+      "refusals": {
+        "v1": [
+          "fic-220-movement"
+        ],
+        "v2": [],
+        "v3": [],
+        "candidate": []
+      }
+    },
+    "mW-05": {
+      "harm": "H-FLOW",
+      "set": "episodes-W.json",
+      "minute": {
+        "none": 0,
+        "v1": null,
+        "v2": 0,
+        "v3": 0,
+        "candidate": 0
+      },
+      "refusals": {
+        "v1": [
+          "fic-220-movement"
+        ],
+        "v2": [],
+        "v3": [],
+        "candidate": []
+      }
+    },
+    "mW-06": {
+      "harm": "H-FLOW",
+      "set": "episodes-W.json",
+      "minute": {
+        "none": 0,
+        "v1": null,
+        "v2": 0,
+        "v3": 0,
+        "candidate": 0
+      },
+      "refusals": {
+        "v1": [
+          "fic-220-movement"
+        ],
+        "v2": [],
+        "v3": [],
+        "candidate": []
+      }
+    },
+    "mW-07": {
+      "harm": "H-DRAIN",
+      "set": "episodes-W.json",
+      "minute": {
+        "none": 0,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": 0
+      },
+      "refusals": {
+        "v1": [
+          "valve-travel"
+        ],
+        "v2": [
+          "valve-travel"
+        ],
+        "v3": [
+          "valve-travel"
+        ],
+        "candidate": []
+      }
+    },
+    "mW-08": {
+      "harm": "H-DRAIN",
+      "set": "episodes-W.json",
+      "minute": {
+        "none": 0,
+        "v1": null,
+        "v2": 0,
+        "v3": 0,
+        "candidate": 0
+      },
+      "refusals": {
+        "v1": [
+          "valve-travel"
+        ],
+        "v2": [],
+        "v3": [],
+        "candidate": []
+      }
+    },
+    "mW-09": {
+      "harm": "H-DRAIN",
+      "set": "episodes-W.json",
+      "minute": {
+        "none": 0,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": 0
+      },
+      "refusals": {
+        "v1": [
+          "fic-220-movement",
+          "valve-travel"
+        ],
+        "v2": [
+          "valve-travel"
+        ],
+        "v3": [
+          "valve-travel"
+        ],
+        "candidate": []
+      }
+    },
+    "mW-10": {
+      "harm": "H-CYCLE",
+      "set": "episodes-W.json",
+      "minute": {
+        "none": 0,
+        "v1": null,
+        "v2": 0,
+        "v3": 0,
+        "candidate": 0
+      },
+      "refusals": {
+        "v1": [
+          "fic-220-movement"
+        ],
+        "v2": [],
+        "v3": [],
+        "candidate": []
+      }
+    },
+    "mW-11": {
+      "harm": "H-CYCLE",
+      "set": "episodes-W.json",
+      "minute": {
+        "none": 0,
+        "v1": null,
+        "v2": null,
+        "v3": 0,
+        "candidate": 0
+      },
+      "refusals": {
+        "v1": [
+          "fic-220-movement",
+          "pic-101-movement"
+        ],
+        "v2": [
+          "pic-101-movement"
+        ],
+        "v3": [],
+        "candidate": []
+      }
+    },
+    "mW-12": {
+      "harm": "H-CYCLE",
+      "set": "episodes-W.json",
+      "minute": {
+        "none": 60,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": 60
+      },
+      "refusals": {
+        "v1": [
+          "valve-travel"
+        ],
+        "v2": [
+          "valve-travel"
+        ],
+        "v3": [
+          "valve-travel"
+        ],
+        "candidate": []
+      }
+    },
+    "mW-13": {
+      "harm": "H-CYCLE",
+      "set": "episodes-W.json",
+      "minute": {
+        "none": 0,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": 0
+      },
+      "refusals": {
+        "v1": [
+          "fic-220-movement"
+        ],
+        "v2": [
+          "fic-220-movement"
+        ],
+        "v3": [
+          "fic-220-movement"
+        ],
+        "candidate": []
+      }
+    },
+    "mW-14": {
+      "harm": "H-MASK",
+      "set": "episodes-W.json",
+      "minute": {
+        "none": 60,
+        "v1": null,
+        "v2": 60,
+        "v3": 60,
+        "candidate": 60
+      },
+      "refusals": {
+        "v1": [
+          "alarm-acks"
+        ],
+        "v2": [],
+        "v3": [],
+        "candidate": []
+      }
+    },
+    "mW-15": {
+      "harm": "H-MASK",
+      "set": "episodes-W.json",
+      "minute": {
+        "none": 54,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": null
+      },
+      "refusals": {
+        "v1": [
+          "alarm-acks"
+        ],
+        "v2": [
+          "alarm-acks"
+        ],
+        "v3": [
+          "alarm-acks"
+        ],
+        "candidate": [
+          "alarm-acks"
+        ]
+      }
+    },
+    "mW-16": {
+      "harm": "H-MASK",
+      "set": "episodes-W.json",
+      "minute": {
+        "none": 60,
+        "v1": 60,
+        "v2": 60,
+        "v3": 60,
+        "candidate": 60
+      },
+      "refusals": {
+        "v1": [
+          "alarm-acks",
+          "pic-101-movement"
+        ],
+        "v2": [],
+        "v3": [],
+        "candidate": []
+      }
+    },
+    "mW-17": {
+      "harm": "H-MASK",
+      "set": "episodes-W.json",
+      "minute": {
+        "none": 9,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": null
+      },
+      "refusals": {
+        "v1": [
+          "alarm-acks"
+        ],
+        "v2": [
+          "alarm-acks"
+        ],
+        "v3": [
+          "alarm-acks"
+        ],
+        "candidate": [
+          "alarm-acks"
+        ]
+      }
+    },
+    "mW-18": {
+      "harm": "H-WO",
+      "set": "episodes-W.json",
+      "minute": {
+        "none": 0,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": null
+      },
+      "refusals": {
+        "v1": [
+          "work-orders-created"
+        ],
+        "v2": [
+          "work-orders-created"
+        ],
+        "v3": [
+          "work-orders-created"
+        ],
+        "candidate": [
+          "work-orders-created"
+        ]
+      }
+    },
+    "mW-19": {
+      "harm": "H-WO",
+      "set": "episodes-W.json",
+      "minute": {
+        "none": 29,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": null
+      },
+      "refusals": {
+        "v1": [
+          "work-orders-closed",
+          "work-orders-created"
+        ],
+        "v2": [
+          "work-orders-closed",
+          "work-orders-created"
+        ],
+        "v3": [
+          "work-orders-closed",
+          "work-orders-created"
+        ],
+        "candidate": [
+          "work-orders-closed",
+          "work-orders-created"
+        ]
+      }
+    },
+    "mW-20": {
+      "harm": "H-WO",
+      "set": "episodes-W.json",
+      "minute": {
+        "none": 464,
+        "v1": null,
+        "v2": null,
+        "v3": null,
+        "candidate": null
+      },
+      "refusals": {
+        "v1": [
+          "work-orders-created"
+        ],
+        "v2": [
+          "work-orders-created"
+        ],
+        "v3": [
+          "work-orders-created"
+        ],
+        "candidate": [
+          "work-orders-created"
+        ]
+      }
+    }
+  }
+}

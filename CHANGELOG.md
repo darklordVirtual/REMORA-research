@@ -4,6 +4,12 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### OT pilot limits: a candidate v4, measured against misuse and legitimate shifts before any decision (§97, 2026-11-06)
+
+- `remora/enforcement/cumulative_limits.py`: an observed change meter may declare `free_toward_safe`, resources with a declared safe value. A write whose target lies between the plant's value and the safe value is charged nothing and is not refused by a full counter. After the fact, nothing more is charged only when the actual move also went towards safe. The fence still applies. This is an owner decision of 2026-11-06. CAP-031 is re-audited. Tests: `tests/limits/test_limits_free_toward_safe.py` (19).
+- `artifacts/ot-pilot/limits-v4/limits-candidate-v4.json` is v3 with valve travel at 200 % per hour and FIC-220 free towards 0, signed by the same authority. It is not deployed; the pilot subsequently added the PIC-101 second tier described below.
+- `scripts/run_limits_protection.py` replays misuse episodes under every policy and records when a declared harm is reached (tests: `tests/test_limits_protection.py`). `scripts/run_limits_holdout.py` gains `--policy` and `--trusted-key`, default unchanged. `scripts/limits_holdout_checks.py` computes plan v4's checks S1 to S3.
+- Plan v4 (`docs/assurance/ot_limits_holdout_plan_v4.md`, DOC-429): the candidate refused no legitimate write in 40 blind shifts with a stop (Wilson up to 8.8 %). Of 40 misuse episodes, it let 23 reach their harm, against 18 under v3 and 5 under v1. Five reach harm only under the candidate.
 ### Cumulative limits: a second tier that needs two approvers; S20 on the OT pilot (2026-11-06)
 
 - `remora/enforcement/cumulative_limits.py`: a limit may declare `dual_control_above` below its `max`. A call that would take the window's total past it runs only on the authority of two distinct approver identities, neither of them the proposer; `max` still refuses whatever the approvals. The reservation at dispatch checks the tier in the same transaction as the charge and refuses `limit_dual_control_unmet` on fewer than two. The tier is not a term of the limit's binding, so a limit that gains it keeps its ledger history.
