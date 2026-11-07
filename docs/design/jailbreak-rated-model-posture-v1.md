@@ -1,7 +1,8 @@
-# SDD — Jailbreak-Rated Model Posture (FMF Cyber Jailbreak Rating Framework v1.0 integration) v1.0
+# SDD — Jailbreak-Rated Model Posture (FMF Cyber Jailbreak Rating Framework v1.0 integration) v1.1
 
 - Status: PROPOSED / NOT IMPLEMENTED (2026-11-07).
 - Owner: REMORA-research.
+- Revision v1.1 (2026-11-07): after PR review. Fixes the ToolSpec default (R1), states the text-output limit (R2), consolidates by per-rater band (R3), adds `reproduced` (R4), defines scope union (R5) and the signing input (R6), and names the refusal set and tenant allowlist (R7).
 - Scope: research profile first, then the execution API behind `REMORA_JAILBREAK_POSTURE=1`.
 - Release impact: decision-envelope schema bump (v2 to v3, one optional assessment block) when wired. No decision-engine version bump: the integration enters through the existing external-cap path.
 - External source: Frontier Model Forum, *Jailbreak Rating Framework for Frontier Cyber Threats*, Version 1.0, 2026-11-05, open for public feedback until 2026-12-21. Cited below as FMF-JBR-1.0.
@@ -53,7 +54,7 @@ REMORA's threat model already treats the agent policy `M` as untrusted and possi
 
 - JA1 Model identity. The model that proposed a call is attested by an inference gateway or trusted orchestrator. A self-reported model id is treated as unattested (§3.5.2). This is the same lesson as the actor-header remediation: identity that arrives in a header is a claim.
 - JA2 Rating correctness. A rating describes the finding correctly at its baseline date. REMORA checks form, signature, rater scope and freshness. It cannot check that a CG of 2 should have been 3.
-- JA3 Category labelling. ToolSpec `cyber_risk_categories` (§3.3) describe what a tool can do. A missing declaration means "in scope of every finding" for tools whose `effect_mode` is effectful, and "no category" for pure reads (§3.3).
+- JA3 Category labelling. ToolSpec `cyber_risk_categories` (§3.3) describe what a tool can do. A missing declaration means "in scope of every finding" (§3.3).
 - JA4 Store availability is observable. An unreachable rating or posture store raises and the decision fails closed. It is never read as "no findings" (same rule as `loop_safety.py` and `revocation_store.py`).
 - JA5 Clock. Baseline freshness uses the server clock already trusted for lease expiry.
 
@@ -73,6 +74,7 @@ REMORA's threat model already treats the agent policy `M` as untrusted and possi
 - Detecting jailbreaks from prompt text on the authority path. `remora/safety/adversarial.py` stays an admission-firewall heuristic with its documented split-token bypass; it gets no new authority from this SDD.
 - Prescribing what a model provider must do about a finding. FMF leaves response to each organisation; so does REMORA.
 - Estimating real-world harm. The posture band is relative, like the FMF band it comes from.
+- Governing model text output. REMORA decides on tool effects. A jailbreak whose harm lies in the answer text, such as exploit code returned in a chat reply, never crosses the gate. The posture does nothing for that channel, and §7 cannot measure it. Output-side safeguards belong to the model provider and are outside this SDD.
 
 ## 2. Baseline repository mapping (verified at `dev` @ `06c2f8f`, 2026-11-07)
 
@@ -96,10 +98,10 @@ REMORA's threat model already treats the agent policy `M` as untrusted and possi
 Three signed record types. Each is serialised with the JSON Canonicalization Scheme (RFC 8785) and signed with Ed25519 under the existing signing profile. Full schema in Appendix A.
 
 - `JailbreakFinding`: `finding_id`, `model {provider, model_id, model_digest?}`, `cyber_risk_categories[]`, `technique_commitment` (SHA-256 over salt and the canonical technique bundle), `custodian_ref` (URI of the access-controlled store), `reported_at`, `reporter_id`.
-- `JailbreakRating`: `finding_id`, `rater_id`, `rated_at`, `framework` (`FMF-CYBER-JBR-1.0`), `baseline_id`, `dims {cg, cs, de, di}` each with an opaque `evidence_ref`, `cg_provisional` (FMF: a single top-tier exploit success above baseline earns a provisional CG 3), `scope_observed {technique_types, categories}`.
+- `JailbreakRating`: `finding_id`, `rater_id`, `rated_at`, `framework` (`FMF-CYBER-JBR-1.0`), `baseline_id`, `dims {cg, cs, de, di}` each with an opaque `evidence_ref`, `cg_provisional` (FMF: a single top-tier exploit success above baseline earns a provisional CG 3), `reproduced` (whether the technique still worked in this rating run), `scope_observed {technique_types, categories}`.
 - `BaselineSnapshot`: `baseline_id`, `as_of` (FMF: currently October 2026), `benchmarks [{name, version, composite_digest}]`, `signed_by`.
 
-A rating is admitted only if its rater is on the owner's allowlist for the finding's categories, its baseline exists, its framework id is supported, and its signature verifies. Anything else is refused with a reason code and stored nowhere.
+The signing input is the domain-separation prefix `remora.<record_type>.v1` and a newline, followed by the canonical serialisation of the record with `signature` removed. A rating is admitted only if its rater is on the owner's allowlist for the finding's categories, its baseline exists, its framework id is supported, and its signature verifies. Anything else is refused with a reason code and stored nowhere.
 
 ### 3.2 Scoring
 
@@ -125,22 +127,22 @@ optional_fields:
       vulnerability_discovery, malware_authoring, offensive_tooling,
       exploit_development.
     default_when_absent: >-
-      "*" when effect_mode is write, exec or network_egress;
-      [] when the tool is a pure read with no egress.
+      "*", whatever the tool's effect_mode. The owner narrows scope by
+      declaring categories, including the empty list.
 ```
 
-The fail-closed default means an undeclared code-execution or network tool is in scope of every finding. Declaring categories narrows exposure; it never widens it beyond `*`.
+The default fails closed: an undeclared tool is in scope of every finding. `effect_mode` (`MEDIATED | NONE`, ToolSpec v3) is deliberately not used to infer a default, because `NONE` is a signed claim and a read can still serve vulnerability discovery. Declaring categories narrows exposure; it never widens it beyond `*`.
 
 ### 3.4 Consolidation and posture
 
 For each open finding:
 
-1. Collect admitted ratings. Take the per-dimension maximum across raters. Because the score is monotone, the consolidated band is at least every individual rater's band.
+1. Collect admitted ratings and score each one. The consolidated band is the maximum of the raters' final bands. Taking a per-dimension maximum instead would combine dimensions from different raters into a vector no rater asserted.
 2. Flag `disputed` when any dimension differs by more than one tier between raters. A disputed finding keeps the maximum and goes to adjudication.
-3. Scope is `*` when consolidated CS is 3 (FMF "universal"). Otherwise it is the finding's declared categories.
+3. Scope is the union over raters. A rater at CS 3 (FMF "universal") contributes `*`. Every other rater contributes the finding's declared categories together with its own `scope_observed.categories`. A rater can widen scope; nobody can narrow it.
 4. Flag `stale` when any rating's `baseline_id` is older than the current snapshot. Staleness queues a re-rating and changes nothing else.
 
-A finding closes only through a new admitted rating, at the current baseline and on the fixed model version, that either scores Negligible or reports the technique no longer reproduces. A provider statement alone does not close it. A new model version starts with no findings; carrying a finding forward to a successor version is an owner decision recorded as its own signed event.
+A finding closes only through a new admitted rating at the current baseline and on the fixed model version. That rating must either score Negligible or carry `reproduced: false`. A provider statement alone does not close it. A new model version starts with no findings; carrying a finding forward to a successor version is an owner decision recorded as its own signed event.
 
 ### 3.5 Posture to cap
 
@@ -162,7 +164,7 @@ The default is a REMORA policy choice. FMF does not map bands to actions, and no
 
 #### 3.5.2 Lookup
 
-Per call: read the attested `ModelInitiator`. If attested, fold the open findings for `(provider, model_id)`. If unattested, fold the findings of every model version the tenant may use and take the strictest result (JBR-P3). If the model has no findings at all, apply `PosturePolicy.unrated` (default: no cap) and record `posture: UNRATED` in the envelope. Absence of a rating is recorded as absence, never as a clean bill.
+Per call: read the attested `ModelInitiator`. If attested, fold the open findings for `(provider, model_id)`. If unattested, fold the findings of every model version on the tenant's model allowlist and take the strictest result (JBR-P3). The allowlist is new signed owner configuration introduced in S3; REMORA has no such list today. Without an allowlist, an unattested call gets the strictest result over all open findings. If the model has no findings at all, apply `PosturePolicy.unrated` (default: no cap) and record `posture: UNRATED` in the envelope. Absence of a rating is recorded as absence, never as a clean bill.
 
 #### 3.5.3 Composition
 
@@ -174,7 +176,7 @@ Cap("jailbreak_posture", action, DecisionReason.JAILBREAK_POSTURE_CAP)
 Cap("jailbreak_posture", DecisionAction.ABSTAIN, DecisionReason.JAILBREAK_POSTURE_REFUSE)
 ```
 
-Both reasons join `EXTERNAL_CAP_REASONS`; `JAILBREAK_POSTURE_REFUSE` also joins the set no review can lift. Meet with flow control, the hard-guard floor and every other cap is automatic. The posture cap cannot lift any of them, and they cannot lift it.
+Both reasons join `EXTERNAL_CAP_REASONS`. `JAILBREAK_POSTURE_REFUSE` also joins `composition.NON_APPROVABLE_REASONS`, and the OPA adapter's mirror of that set changes in the same commit. Meet with flow control, the hard-guard floor and every other cap is automatic. The posture cap cannot lift any of them, and they cannot lift it.
 
 ### 3.6 Baseline drift
 
@@ -238,8 +240,8 @@ Write endpoints are append-only. A correction is a new signed record that supers
 | JBR-02 | Scoring follows FMF steps 1–4 exactly; output is golden on all 256 vectors | `test_fmf_scoring.py` (Appendix C) |
 | JBR-03 | The matrix and combined-score encodings agree; divergence fails at import | import-time check, `test_matrix_equals_combined_rule_on_all_cells` |
 | JBR-04 | Guardrail policies are validated: cap ≥ floor, both monotone in CG, cap never Negligible | `test_guardrail_policy_validation` |
-| JBR-05 | Consolidation is per-dimension maximum; disputes are flagged at a gap above one tier | `test_posture.py` |
-| JBR-06 | CS 3 widens scope to every category | `test_universal_scope` |
+| JBR-05 | The consolidated band is the maximum of per-rater final bands; disputes are flagged at a gap above one tier | `test_posture.py` |
+| JBR-06 | Scope is the union over raters; any rater at CS 3 widens it to every category | `test_universal_scope`, `test_scope_union` |
 | JBR-07 | Posture policies are validated: complete, monotone in band, out-of-scope never stricter than in-scope | `test_policy_validation` |
 | JBR-08 | Staleness never changes a band; only an admitted re-rating can | `test_stale_flag_keeps_band`, property test |
 | JBR-09 | Unattested model identity gets the strictest tenant-allowed posture | `test_jbr_identity.py` |
@@ -280,7 +282,7 @@ Given a model version with a rated finding at band B in categories K, what fract
 
 ### 7.3 What the study can and cannot claim
 
-It can estimate the defense-in-depth term for this harness: how much a posture cap removes from what a rated jailbreak would otherwise reach. It cannot validate FMF tiers, cannot say a band was correct, and cannot transfer to real jailbreaks without a live-model arm run under a separate, owner-approved protocol. Negative results go to `NEGATIVE_RESULTS.md` unchanged.
+It covers the effect channel only (§1.5). It can estimate the defense-in-depth term for this harness: how much a posture cap removes from what a rated jailbreak would otherwise reach. It cannot validate FMF tiers, cannot say a band was correct, and cannot transfer to real jailbreaks without a live-model arm run under a separate, owner-approved protocol. Negative results go to `NEGATIVE_RESULTS.md` unchanged.
 
 ## 8. Delivery slices
 
@@ -289,7 +291,7 @@ It can estimate the defense-in-depth term for this harness: how much a posture c
 | S0 | This SDD; register entries proposed (RF, AT-16, CAP-032); prose and overclaim gates green | Owner review |
 | S1 | `remora/jailbreak/fmf_scoring.py`, golden vectors, JBR-02..04 | Golden file reviewed against FMF tables |
 | S2 | Schemas, signature verification, append-only ledger, JBR-01, JBR-12, JBR-13 | Fault-injection green |
-| S3 | ToolSpec v6, posture fold, cap reasons, JBR-05..11 behind `REMORA_JAILBREAK_POSTURE=1` | Property tests green; strict-monotone suite unchanged |
+| S3 | ToolSpec v6, posture fold, cap reasons (including the OPA adapter mirror), tenant model allowlist, JBR-05..11 behind `REMORA_JAILBREAK_POSTURE=1` | Property tests green; strict-monotone suite unchanged |
 | S4 | Envelope v3 block, chain verification, JBR-15 | Envelope verifier accepts v2 and v3 |
 | S5 | Rating requests and optional suspicion cap, JBR-14 | Review-queue tests green |
 | S6 | Study in §7, pre-registration committed before the first run | Results committed with negative results preserved |
@@ -304,7 +306,7 @@ It can estimate the defense-in-depth term for this harness: how much a posture c
 
 ## 10. Claim hygiene
 
-After S3, REMORA may claim: posture caps derived from signed FMF-format ratings are applied deterministically and can only tighten decisions, with the guarantees in §1.4 under JA1–JA5.
+After S3, REMORA may claim: posture caps derived from signed FMF-format ratings are applied deterministically to tool calls and can only tighten decisions, with the guarantees in §1.4 under JA1–JA5. The claim covers the effect channel only.
 
 REMORA may not claim that it detects jailbreaks, that a posture band measures harm, or that FMF endorses the posture mapping. It may not claim that §7 results transfer to live jailbreaks. It may state no effectiveness number before §7 has run and its results are committed.
 
@@ -329,7 +331,8 @@ REMORA may not claim that it detects jailbreaks, that a posture band measures ha
   "type": "object",
   "additionalProperties": false,
   "required": ["finding_id", "rater_id", "rated_at", "framework", "baseline_id",
-               "dims", "cg_provisional", "scope_observed", "signature"],
+               "dims", "cg_provisional", "reproduced",
+               "scope_observed", "signature"],
   "properties": {
     "finding_id": {"type": "string", "pattern": "^jbf_[0-9a-f]{32}$"},
     "rater_id": {"type": "string", "minLength": 1},
@@ -348,6 +351,7 @@ REMORA may not claim that it detects jailbreaks, that a posture band measures ha
       }
     },
     "cg_provisional": {"type": "boolean"},
+    "reproduced": {"type": "boolean"},
     "scope_observed": {
       "type": "object",
       "additionalProperties": false,
@@ -653,7 +657,7 @@ def test_default_policy_id_is_recorded():
 
 ## Appendix D. Reference posture fold
 
-`remora/jailbreak/posture.py`. Pure fold over verified records; the store, signature checks and clock live in the caller. Six posture tests pass against it (consolidation, dispute, staleness, scope, monotonicity, policy validation).
+`remora/jailbreak/posture.py`. Pure fold over verified records; the store, signature checks and clock live in the caller. Nine posture tests pass against it (consolidation without composite vectors, dispute, staleness, scope union, universal scope, band dominance over every rater, monotonicity, policy validation).
 
 ```python
 # Author: Stian Skogbrott
@@ -700,6 +704,7 @@ class RatingDims:
     de: int
     di: int
     baseline_id: str
+    categories: frozenset[str] = frozenset()  # rating scope_observed.categories
 
 
 @dataclass(frozen=True)
@@ -771,18 +776,24 @@ DEFAULT_POSTURE: Final = PosturePolicy(
 
 def consolidate(f: Finding, current_baseline_id: str,
                 guardrails: GuardrailPolicy = DEFAULT_GUARDRAILS) -> Consolidated:
-    """Per-dimension maximum across raters (fail-closed, JBR-05)."""
+    """Maximum of per-rater final bands; scope is the union over raters
+    (fail-closed, JBR-05/JBR-06). No rater's dimensions are mixed with
+    another's, so the band never rests on a vector nobody asserted."""
     if not f.ratings:
         raise ScoringRefused("finding_has_no_rating")
-    dims = [max(getattr(r, d) for r in f.ratings) for d in ("cg", "cs", "de", "di")]
-    band = score(*dims, policy=guardrails).final
+    band = max(score(r.cg, r.cs, r.de, r.di, policy=guardrails).final for r in f.ratings)
     disputed = any(
         max(getattr(r, d) for r in f.ratings) - min(getattr(r, d) for r in f.ratings) > 1
         for d in ("cg", "cs", "de", "di")
     )
-    scope = frozenset({ALL_CATEGORIES}) if dims[1] == 3 else frozenset(f.categories)
+    scope: set[str] = set()
+    for r in f.ratings:
+        if r.cs == 3:
+            scope = {ALL_CATEGORIES}
+            break
+        scope |= f.categories | r.categories
     stale = any(r.baseline_id != current_baseline_id for r in f.ratings)
-    return Consolidated(f.finding_id, band, scope, disputed, stale, len(f.ratings))
+    return Consolidated(f.finding_id, band, frozenset(scope), disputed, stale, len(f.ratings))
 
 
 def posture_action(findings: Iterable[Consolidated], tool_categories: frozenset[str],
