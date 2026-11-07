@@ -935,12 +935,13 @@ Works that appear only in [docs/09-related-work.md](../09-related-work.md): no c
 | `microsoft-2026-agent-governance-toolkit` | none | [docs/09-related-work.md](../../docs/09-related-work.md) §4b | Agent Governance Toolkit (announced 2026-04-02) | Broader-surface comparator; no identifier recorded because the source is a product announcement, not a paper. |
 | `patel-2026-bitter-lesson` | arxiv:2608.06370 | [docs/09-related-work.md](../../docs/09-related-work.md) §4a | The Bitter Lesson of Tool Calling (arXiv:2608.06370) | The PTC source behind the GPTC planning layer (RF-11, SCOPED). It is cited in remora/toolcall/ptc/__init__.py, so it also appears under code_identifiers; it carries no REMORA number, because the ablation that would produce one has not been run. |
 
-### Citation identifiers found in the package (23)
+### Citation identifiers found in the package (24)
 
 Reverse scan: every `arXiv:` and `RFC` identifier appearing in `remora/**/*.py`, with the files that carry it. The generator fails on an identifier that is in the code but not here, and on one that is here but no longer in the code. Presence is a citation, never an implementation claim - several of these are cited precisely to record what REMORA does **not** do.
 
 | Identifier | Work | Code | Recorded as | Note |
 |------------|------|------|-------------|------|
+| RFC 2104 | Krawczyk, Bellare & Canetti (1997), HMAC: Keyed-Hashing for Message Authentication | [`remora/governance/a2a_envelope.py`](../../remora/governance/a2a_envelope.py) | none | Cited for HMAC's key preprocessing only (a key longer than the block is hashed, every key is zero-padded to the block), which the A2A envelope applies before comparing link keys so that keys HMAC treats as one are refused as shared (RES-027). A format reference, not a mechanism source. |
 | RFC 3161 | Time-Stamp Protocol | [`remora/audit/hash_chain.py`](../../remora/audit/hash_chain.py), [`remora/audit/merkle.py`](../../remora/audit/merkle.py), [`remora/governance/envelope.py`](../../remora/governance/envelope.py) | `rfc-3161-timestamping` | none |
 | RFC 6901 | JavaScript Object Notation (JSON) Pointer | [`remora/policy/verification_plan_v2.py`](../../remora/policy/verification_plan_v2.py) | none | Cited as the syntax of a VerificationPlan v2 target pointer. A format reference, not a mechanism source: the module is library-only until S4 wires it. |
 | RFC 6962 | Laurie, Langley & Kasper (2013), Certificate Transparency | [`remora/interop/acta_e6/consumer.py`](../../remora/interop/acta_e6/consumer.py) | none | Cited for its Merkle tree hash only (leaf 0x00, node 0x01, split at the largest power of two below the count), which the VeritasActa/e6-fixture README names as the receipt range root. No transparency-log property is claimed. |
