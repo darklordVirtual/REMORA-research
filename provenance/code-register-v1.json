@@ -307,9 +307,9 @@
         "PROV-05",
         "PROV-17"
       ],
-      "git_blob": "0bf65179d4e5692a04966470684093a13353dbcb",
+      "git_blob": "435a7ab862d61dc5e80d44daace8b90dcce04b72",
       "mode": "100644",
-      "sha256": "005af428f463316c023cc8ae8420c908fdd2dce3715b9e6181122a8e8e01810f"
+      "sha256": "05321da709607c21a51e0d33fef4af6ff40883b4fdc420117b363daa8a1c2e53"
     },
     "CHANGELOG.md": {
       "concepts": [],
@@ -11570,9 +11570,9 @@
     },
     "pyproject.toml": {
       "concepts": [],
-      "git_blob": "27c69010a9fef73b8dbdde7d384699692b6f6564",
+      "git_blob": "e87fc329101408937b9189af939ecd23b3dac97e",
       "mode": "100644",
-      "sha256": "1e83c69e61e2070d33417a052ae617356826bc87dde990b93b3ecd8a3e6b4c9b"
+      "sha256": "a20b0d621f79bcdf00df1404da0006cc6ad527fc748005dafd018430ead9f982"
     },
     "remora/README.md": {
       "concepts": [],
@@ -13625,6 +13625,18 @@
       "git_blob": "044b91f422640b5bdfa1570e502d2a8f74d6b670",
       "mode": "100644",
       "sha256": "821a5cdfde814d797f4c3d6e966f5d98ace6ce7c83916f4eeaae8c357621e06d"
+    },
+    "remora/jailbreak/__init__.py": {
+      "concepts": [],
+      "git_blob": "5510f92939761cc5d3c5558a80ec37730799de53",
+      "mode": "100644",
+      "sha256": "2d1b782ab3b7aec4377d9f4336775c10849c84c9926122a4e867eeb31477a05a"
+    },
+    "remora/jailbreak/fmf_scoring.py": {
+      "concepts": [],
+      "git_blob": "bd40ad31997332737678210ef736c2153fd16744",
+      "mode": "100644",
+      "sha256": "d39157c4b3dddcf9b6aaa9817611c946c37bb78db73e9d50fa73e10b0f691c49"
     },
     "remora/knowledge_domains/__init__.py": {
       "concepts": [],
@@ -16787,6 +16799,12 @@
       "mode": "100644",
       "sha256": "3ad20315711f21f4469b2eedd9148e00f77f64431059dff0c1f178cb30aead7d"
     },
+    "scripts/generate_fmf_scoring_golden.py": {
+      "concepts": [],
+      "git_blob": "e4ae0599635ff3c0b4852f0a1eaab9ff30a916f6",
+      "mode": "100644",
+      "sha256": "558d5e951876206c3117eea08a3b2a8ba615c31d78bbd15c9d8e678bcbc741a2"
+    },
     "scripts/generate_n1000_figures.py": {
       "concepts": [],
       "git_blob": "8ede07cec6ee3ce2ceb1d15cd49fca5e120e8077",
@@ -17772,6 +17790,12 @@
       "git_blob": "e8f3ea93be2716879078ced82147ec73735a0f3d",
       "mode": "100644",
       "sha256": "e01b90dc7c0132bf5676e5eae7db5e7010e9f49bec7d0d16ef6fb6c46dd691cb"
+    },
+    "tests/data/jailbreak/fmf_scoring_golden_v1.json": {
+      "concepts": [],
+      "git_blob": "5e6c993167af98190be574288905af5662d90bca",
+      "mode": "100644",
+      "sha256": "0f392b38e3d0ab68d586eb54dc9e644a8f080a02883a40be38626a5d68f77270"
     },
     "tests/data/mutation_equivalent_dispatch.txt": {
       "concepts": [],
@@ -20467,6 +20491,12 @@
       "git_blob": "085ab06a60efabf5ee0b5049c1ba2165d0ff7a44",
       "mode": "100644",
       "sha256": "9c13749cb532b0794026992f08492450929a5912793c77f98ae669b039b252e0"
+    },
+    "tests/test_fmf_scoring.py": {
+      "concepts": [],
+      "git_blob": "ebf26089afa231d046b94a60eb8a68d4cc6bcdd0",
+      "mode": "100644",
+      "sha256": "eab4353248da0a7425093a6610ed61c837026eaea5bf11e6e631331a00d195f8"
     },
     "tests/test_formal_assurance_sdd_docs.py": {
       "concepts": [],
@@ -23713,7 +23743,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "2af45d4a16cca4fe815e84b9b3782de0df6a891e9c88a3dad5cd9f91bf6bacd4",
+  "register_sha256": "2ca74ab3a24cab8899e59ddc6e6c8240054d958388c3ebd8cacfceb3fbdcb0e9",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
