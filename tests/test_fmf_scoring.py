@@ -165,3 +165,18 @@ def test_package_reexports_and_has_no_decision_side_effects():
     from remora.policy import composition
     names = {r.name for r in composition.EXTERNAL_CAP_REASONS}
     assert not any("JAILBREAK" in n for n in names)  # S1 wires nothing
+
+
+def test_no_decision_path_module_imports_jailbreak_in_s1():
+    """S1-R1: the package is library-only until S3 wires it on purpose."""
+    import re
+    pattern = re.compile(r"^\s*(from|import)\s+remora\.jailbreak\b", re.MULTILINE)
+    offenders = []
+    for base in ("remora", "servers"):
+        for path in (ROOT / base).rglob("*.py"):
+            rel = path.relative_to(ROOT).as_posix()
+            if rel.startswith("remora/jailbreak/"):
+                continue
+            if pattern.search(path.read_text(encoding="utf-8", errors="replace")):
+                offenders.append(rel)
+    assert offenders == []

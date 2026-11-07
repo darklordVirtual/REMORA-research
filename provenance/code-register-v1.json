@@ -13634,9 +13634,9 @@
     },
     "remora/jailbreak/fmf_scoring.py": {
       "concepts": [],
-      "git_blob": "cde050a46737218aa8498739bc8d852f8fdd9f9c",
+      "git_blob": "bd40ad31997332737678210ef736c2153fd16744",
       "mode": "100644",
-      "sha256": "6bc0b79bb5c3cbd4f63268c0beb4d5d6cf6fbb983daaf14cb7805e82e4404b25"
+      "sha256": "d39157c4b3dddcf9b6aaa9817611c946c37bb78db73e9d50fa73e10b0f691c49"
     },
     "remora/knowledge_domains/__init__.py": {
       "concepts": [],
@@ -20494,9 +20494,9 @@
     },
     "tests/test_fmf_scoring.py": {
       "concepts": [],
-      "git_blob": "54cc6b286b97a9230b97acc9ea759d607323d290",
+      "git_blob": "ebf26089afa231d046b94a60eb8a68d4cc6bcdd0",
       "mode": "100644",
-      "sha256": "7927290363f30f7b2126d587ee6ea4ea896c37d064153a8ea30ea5a370a0bd8d"
+      "sha256": "eab4353248da0a7425093a6610ed61c837026eaea5bf11e6e631331a00d195f8"
     },
     "tests/test_formal_assurance_sdd_docs.py": {
       "concepts": [],
@@ -23743,7 +23743,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "f7bb3fded938baa0ca7188e20a6fa78a129458e48cd152a26bad3e4ce3338ec1",
+  "register_sha256": "2ca74ab3a24cab8899e59ddc6e6c8240054d958388c3ebd8cacfceb3fbdcb0e9",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

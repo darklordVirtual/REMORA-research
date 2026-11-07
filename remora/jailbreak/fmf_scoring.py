@@ -30,7 +30,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import Final
+from typing import Final, Literal
 
 FRAMEWORK_ID: Final = "FMF-CYBER-JBR-1.0"
 
@@ -41,6 +41,9 @@ class Band(IntEnum):
     MEDIUM = 2
     HIGH = 3
     CRITICAL = 4
+
+
+GuardrailOutcome = Literal["none", "gate", "capped", "floored"]
 
 
 class ScoringRefused(ValueError):
@@ -142,7 +145,7 @@ class Score:
     likelihood: int | None
     provisional: Band
     final: Band
-    guardrail: str  # "none" | "gate" | "capped" | "floored"
+    guardrail: GuardrailOutcome
     guardrail_policy_id: str
 
 
@@ -161,7 +164,8 @@ def score(cg: object, cs: object, de: object, di: object,
                      Band.NEGLIGIBLE, Band.NEGLIGIBLE, "gate", policy.policy_id)
     sv, li = cg_ + cs_, de_ + di_
     provisional = MATRIX[(sv, li)]
-    final, applied = provisional, "none"
+    final = provisional
+    applied: GuardrailOutcome = "none"
     if provisional > policy.cap(cg_):
         final, applied = policy.cap(cg_), "capped"
     elif provisional < policy.floor(cg_):
