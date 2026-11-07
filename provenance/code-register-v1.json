@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "c5a5418f3a0a18ff9f806f86de75782938f2a5b7",
+      "git_blob": "2a9b0d4587867c2b0a6c10dfddbbdc2678762b3e",
       "mode": "100644",
-      "sha256": "d809398e7f199dacfe7b5f5830c66bab71357d4ef5f9462c1f951470513e0f49"
+      "sha256": "93e24eaeced31bbb4c0c890ba80277c8377d5fe33300b59f830085d37743b1ce"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -6312,9 +6312,9 @@
     },
     "docs/12-agentharm-validation.md": {
       "concepts": [],
-      "git_blob": "77fcd6d9fd3975d3c0cf1aae0b7ffbb3ff0dfb75",
+      "git_blob": "0dbfa4a07aba6342bc02b59e199a960a632e772d",
       "mode": "100644",
-      "sha256": "fa982e0b5b47d7d71c12d763ba7f2be3897ffbb30de72dce3c5a27e73812288f"
+      "sha256": "aeb8598c666965690c56ec322d870d676dfd46b06180573fdf66c152b43f2d22"
     },
     "docs/13-research-frontier-roadmap.md": {
       "concepts": [],
@@ -7241,9 +7241,9 @@
     },
     "docs/assurance/results_manifest_v1.yaml": {
       "concepts": [],
-      "git_blob": "1b21b1aab98aee5d7ffd589ed7db2859bb0e42b7",
+      "git_blob": "b368c2eef52756f83390ecba971c138d26a3a3a5",
       "mode": "100644",
-      "sha256": "12596cf5ab3dc3c6e96ae9bc1dbe9bd10ef4347763fc49a5f0c9c0ed332f8a19"
+      "sha256": "744c073b2e27d036f634ed6b048165bd5fbf955d48b747aa7389ba0be64e15a6"
     },
     "docs/assurance/reviews/2026-10-07-272b6c56/ASSURANCE_MATRIX.md": {
       "concepts": [],
@@ -7313,9 +7313,9 @@
     },
     "docs/assurance/skip_reason_allowlist_v1.yaml": {
       "concepts": [],
-      "git_blob": "24241896cde7f6671c5d397add839bb5319c0964",
+      "git_blob": "aa8e04c8676f8704ab9916d249166526d230185e",
       "mode": "100644",
-      "sha256": "e2cfe827b907872823a6a8f4ffd3542bae55e10ee4de9abe1c4684607acc96a3"
+      "sha256": "7ac9ea9a1f4745775fe36433cc924fc885cd84cc3d53a60fe5d8bb3676440414"
     },
     "docs/assurance/spec_mutation_baseline_evidence_sufficiency_v1.txt": {
       "concepts": [],
@@ -8570,9 +8570,9 @@
     },
     "experiments/agentharm/INTERCEPTION_NOTES.md": {
       "concepts": [],
-      "git_blob": "76a47a0f40a77958791976f5519b1e8827b10938",
+      "git_blob": "b62cfd3daca5ed260d41f108c9cfdc06fde218b2",
       "mode": "100644",
-      "sha256": "24765ed94b59e9614b30abb6b6c1ac1a6d315e7a390746aba1e4a82e26ebd50e"
+      "sha256": "9bef228411957d30dc01fbb4b27c2b997bf584ecbcd6b79b1b90375bb5f31c81"
     },
     "experiments/agentharm/PREREGISTERED.md": {
       "concepts": [],
@@ -8582,9 +8582,9 @@
     },
     "experiments/agentharm/README.md": {
       "concepts": [],
-      "git_blob": "7ff0ea270f7b960f9acf16103ff107a2995d3a59",
+      "git_blob": "19bb8a19df5e47af53bbb95c7b923953263c7f0d",
       "mode": "100644",
-      "sha256": "3ba483fa22d61837038155846504d57dcf2b6b4e39489866fc6354e6d5b20e7b"
+      "sha256": "630cdc9351ae0b2671a09f1e81e826a0ea6fec89c6018b1e5f0c673d256d2103"
     },
     "experiments/agentharm/cf_compat.py": {
       "concepts": [],
@@ -8630,9 +8630,9 @@
     },
     "experiments/agentharm/remora_mediated_solver.py": {
       "concepts": [],
-      "git_blob": "2a7fec41e3eb76b30b4edaf41a343d448ee75538",
+      "git_blob": "887f40e63f3ee758bd1814feda5cbfdc1a4e225c",
       "mode": "100644",
-      "sha256": "f1f703ebc20780c6e672f451f6e9607ca8ae1498486d8ff64c5385c93c66801d"
+      "sha256": "10fc7d4ac4334829391c0c00cf5b3982e3cb11b710e04fe9b1a05308b8808a30"
     },
     "experiments/agentharm/rescore_with_protocols.py": {
       "concepts": [],
@@ -11330,9 +11330,9 @@
     },
     "paper/remora_paper.md": {
       "concepts": [],
-      "git_blob": "4d0eaa826e5e243e10c8204957f8f9e0725e7cd8",
+      "git_blob": "24e82b036e1c34cbbf80a508c03602d1c7b496c0",
       "mode": "100644",
-      "sha256": "180e951e0d52733372a6fc65ddcc24515302eea585279f7a6167d6cc25234873"
+      "sha256": "4e639d0387eeb61544b403afa3f08b92f8780ed21864e43fed09b54a1127605e"
     },
     "paper/remora_paper.pdf": {
       "concepts": [],
@@ -11342,9 +11342,9 @@
     },
     "paper/remora_paper.tex": {
       "concepts": [],
-      "git_blob": "104d102701eef2a7bc6859bf28a33ca00a57f247",
+      "git_blob": "01473935b884bd6b0d855116e6929db7256bb258",
       "mode": "100644",
-      "sha256": "641cf4a873aee39a249049a01096076dd8c95a759b75c2c1bcbf251e53023079"
+      "sha256": "c21ae0c56dda9a113980b88c4af8fd8574ebb516be91e26a0dba766c6f25ddaf"
     },
     "provenance/AUTHORS.yaml": {
       "concepts": [],
@@ -14971,6 +14971,12 @@
       "mode": "100644",
       "sha256": "927377b79afb13d85ec8aa6ac43c452e3ed8dc6f69b69426ceafc3ec1cfdb77c"
     },
+    "results/agentharm/tool_probe.json": {
+      "concepts": [],
+      "git_blob": "abc0e80e4baf5c289944f1dac1615c385dd5071f",
+      "mode": "100644",
+      "sha256": "1a7660362b7c2c344cca9e9eae195d6667d3e929525bcd2c55aa58fe8b208b95"
+    },
     "results/agentharm_discrimination_diagnostic_v1.json": {
       "concepts": [],
       "git_blob": "20f909c00d8dd5a5b24edea0f6a9ea708b166364",
@@ -18540,6 +18546,12 @@
       "git_blob": "5c52d0b3fdc45bfece330ffcac3251865dca8725",
       "mode": "100644",
       "sha256": "728f9807dff8d5ef0ccc90611f6ebfe345d04e45b4df02e03362954cf6f2cfe7"
+    },
+    "tests/test_agentharm_tool_interception.py": {
+      "concepts": [],
+      "git_blob": "6282151040873b28b076d7877b40be546f8ab24c",
+      "mode": "100644",
+      "sha256": "19a6a0589b91cc9d77d54a0a022b6c9afc701c00a862b2b46a4d278ccbf02507"
     },
     "tests/test_ai_governance_provider.py": {
       "concepts": [],
@@ -23701,7 +23713,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "5c4280d90282f4959ba558742f2d3b8d75f2ad42b3332a6b93fe6f82537cea49",
+  "register_sha256": "2af45d4a16cca4fe815e84b9b3782de0df6a891e9c88a3dad5cd9f91bf6bacd4",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

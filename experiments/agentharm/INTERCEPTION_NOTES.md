@@ -1,5 +1,22 @@
 # AgentHarm x REMORA interception notes
 
+## Update 2026-11-06: the interceptor exists; no run has used it
+
+Path 1 below is implemented: `gate_tool` in `remora_mediated_solver.py`
+replaces every tool on `TaskState.tools` with a wrapper that calls the gate
+with the model's arguments and runs the original tool only on ACCEPT. The
+probe reports `tools_beyond_submit_exposed: true`
+(`results/agentharm/tool_probe.json`). `tests/test_agentharm_tool_interception.py`
+verifies with Inspect's mock model that refused calls do not execute. CI does
+not install the agentharm extra, so that test skips there; run it where
+`inspect-ai` is installed.
+
+Allowed now, in addition to the list at the end: "the AgentHarm harness gates
+each tool call before it executes (verified offline)". Still forbidden: any
+blocking or execution rate on AgentHarm, until the full splits have run
+through the interceptor and been scored. The sections below are kept as the
+diagnosis that led here.
+
 Status: reviewer-safe diagnosis. Do not claim true PreToolUse tool-call gating
 until the probe confirms it and a working interception path is merged.
 

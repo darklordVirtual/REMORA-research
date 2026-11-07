@@ -69,6 +69,9 @@ entries:
   - pattern: "could not import 'agentdojo'.*"
     class: optional_dependency
     note: "The control-evaluation run environment (experiments/control_eval/requirements.txt: agentdojo, pinned anthropic) is kept out of the job's install set. Only the end-to-end AgentDojo smoke test skips; every harness part it drives is unit-tested without AgentDojo in tests/test_control_eval_g2.py."
+  - pattern: "could not import 'inspect_(ai|evals)(\\.[a-z_.]+)?'.*"
+    class: optional_dependency
+    note: "The agentharm extra (inspect-ai, inspect-evals) is not in the job's install set. Only tests/test_agentharm_tool_interception.py skips (inspect-ai, or inspect-evals for its real-tool case); it drives Inspect's real tool loop with its mock model; the gate, the solvers and the scoring are unit-tested against a stand-in Inspect in the other tests/test_agentharm_*.py files. Known gap: CI does not verify the call-level interception."
   - pattern: "Hugging Face datasets is not installed"
     class: optional_dependency
     note: "Standard benchmarks need the datasets extra."
