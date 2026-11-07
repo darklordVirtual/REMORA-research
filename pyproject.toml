@@ -241,6 +241,7 @@ module = [
     "remora.enforcement.*",
     "remora.execution.*",
     "remora.governance.*",
+    "remora.jailbreak.*",
     "servers.*",
 ]
 disallow_untyped_defs = true
