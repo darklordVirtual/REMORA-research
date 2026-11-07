@@ -141,3 +141,19 @@ These were not preregistered measures. They are read off the per-episode results
 - The authors were sessions of the same assistant, started from this checkout, and blind by instruction only.
 
 **The decision is the owner's.** `deploy/ot-pilot/limits.json` is still v3.
+
+## Update after #1196 (2026-11-07)
+
+#1196 added a second tier to the pilot's PIC-101 limit after this plan was sealed: `dual_control_above` 0.50 bar under the unchanged 1.60 cap, so a call past it needs two approvers. Since then `deploy/ot-pilot/limits.json` is no longer v3. v3 as this plan named it is kept as `artifacts/ot-pilot/limits-holdout-v3/limits-v3.json`, byte for byte, and `scripts/run_limits_protection.py` now reads it from there. The recorded `result/protection.json` reproduces exactly from it; only the path the record names changed.
+
+Read off afterwards, not preregistered: the deployed policy on the same 40 episodes (`result/protection-deployed-readoff.json`).
+
+| Policy | Episodes reaching their harm, of 40 |
+|---|---|
+| v3 | 18 |
+| Deployed, two approvers per write | 18, the same episodes |
+| Deployed, one approver per write | 17: the tier stops mB-02 |
+| Candidate | 23 |
+
+The candidate as signed has no tier. Deploying it as it is would drop the tier and with it S20's protection. `tests/limits/test_limits_ot_pilot.py` fails on a shipped policy without the PIC-101 tier. A candidate meant for deployment needs the tier added and a new signature.
+

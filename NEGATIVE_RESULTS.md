@@ -6102,7 +6102,12 @@ but did not deploy it. It measured both sides on new blind data
 
 At this measurement the deployed policy was v3, and the decision on the v4
 candidate remains the owner's. The later pilot policy adds the PIC-101 second
-tier described below; it was not evaluated in the v4 study. This finding stays
+tier described below. It is not in the v4 study's measures. Read off afterwards
+on the same episodes, it reaches 18 of 40 harms with two approvers per write,
+as v3 does, and 17 with one: the tier stops mB-02. The candidate as signed has
+no tier, so deploying it as it is would drop the tier and S20 would fail
+again (`artifacts/ot-pilot/limits-v4/result/protection-deployed-readoff.json`).
+This finding stays
 open: the limits cost little legitimate work in that study, and what they give
 up in protection is measured and not small.
 

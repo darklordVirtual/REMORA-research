@@ -190,3 +190,18 @@ def test_main_writes_the_result(tmp_path):
     assert json.loads((tmp_path / "r.json").read_text())["measures"]["V"]["valid"] == 1
     bad = _write(tmp_path, "bad.json", [{"episode_id": "e", "harm": "?", "writes": []}])
     assert prot.main([str(bad), "--out", str(tmp_path / "r2.json")]) == 2
+
+
+def test_the_deployed_policy_read_off_on_the_recorded_episodes():
+    """Not preregistered: the policy deployed since #1196 (v3 plus the PIC-101
+    second tier) against v3, on the sealed v4 misuse episodes. With two
+    approvers per write it reaches every harm v3 reaches; with one, the tier
+    stops one more episode."""
+    root = Path(__file__).resolve().parents[1] / "artifacts" / "ot-pilot" / "limits-v4" / "misuse"
+    out = prot.deployed_readoff([root / "episodes-B.json", root / "episodes-W.json"])
+    assert out["harm_reached"]["v3"] == 18 and out["harm_reached"]["deployed_two_approvers"] == 18
+    assert out["harm_reached"]["deployed_one_approver"] == 17
+    assert out["deployed_one_approver_vs_v3"]["stopped_only_by_deployed"] == ["mB-02"]
+    assert out["deployed_one_approver_vs_v3"]["reached_only_under_deployed"] == []
+    assert out["deployed_two_approvers_vs_v3"] == {"stopped_only_by_deployed": [],
+                                                   "reached_only_under_deployed": []}

@@ -52,7 +52,10 @@ POLICIES: dict[str, tuple[Path, Path | None, str]] = {
     "v2": (ART / "limits-holdout-v2" / "limits-v2.json",
            ART / "limits-holdout-v2" / "limits-v2.trusted-key",
            "32ee26d6a659c62510d3ae0511b135c524ad9e0eab782c6a34bf24087c0f9c57"),
-    "v3": (ROOT / "deploy" / "ot-pilot" / "limits.json", None,
+    # v3 as the plan named it. It was deploy/ot-pilot/limits.json until #1196
+    # added the PIC-101 second tier there; the sealed copy has the same bytes.
+    "v3": (ART / "limits-holdout-v3" / "limits-v3.json",
+           ART / "limits-holdout-v3" / "limits-v3.trusted-key",
            "205e511c05e26ee213648881fdcc8d9f105ae99fbcbea66ba5c4d9814aaca6d6"),
     "candidate": (ART / "limits-v4" / "limits-candidate-v4.json",
                   ART / "limits-v4" / "limits-candidate-v4.trusted-key",
@@ -237,11 +240,65 @@ def run(paths: list[Path]) -> dict[str, Any]:
             "inputs": inputs, "measures": measures, "episodes": per_episode}
 
 
+DEPLOYED = ROOT / "deploy" / "ot-pilot" / "limits.json"
+
+
+def deployed_readoff(paths: list[Path]) -> dict[str, Any]:
+    """Read off, not preregistered: the policy deployed since #1196 against v3.
+
+    #1196 added a second tier to PIC-101 (dual_control_above 0.50 bar under the
+    unchanged 1.60 cap) after this plan was sealed. The plan compares the
+    candidate with v3, so the deployed policy is not in its measures. This
+    replays the same episodes under it, with one approver and with two per
+    write, and pairs each with v3. It changes nothing in :func:`run`.
+    """
+    registry = holdout._registry()
+    pristine = copy.deepcopy(registry.PLANT)
+    episodes = [ep for path in paths for ep in validate(json.loads(path.read_bytes()))]
+    v3, v3_meta = load("v3")
+    deployed, digest, kid = holdout.load_policy(DEPLOYED)
+    runs = {"v3": (v3, 1), "deployed_one_approver": (deployed, 1),
+            "deployed_two_approvers": (deployed, 2)}
+    minutes: dict[str, dict[str, int | None]] = {name: {} for name in ["none", *runs]}
+    with tempfile.TemporaryDirectory() as tmp:
+        for ep in episodes:
+            eid = ep["episode_id"]
+            shift = {"shift_id": eid, "writes": ep["writes"]}
+            minutes["none"][eid] = harm_minute(ep["harm"], replay_unlimited(
+                shift, registry, pristine), pristine)
+            for name, (policy, approvers) in runs.items():
+                with tempfile.TemporaryDirectory(dir=tmp) as d:
+                    rows = holdout.replay_shift(shift, policy, registry, pristine, Path(d),
+                                                approvers=approvers)
+                minutes[name][eid] = harm_minute(ep["harm"], rows, pristine)
+    valid = [e for e in minutes["none"] if minutes["none"][e] is not None]
+    reached = {name: sorted(e for e in valid if minutes[name][e] is not None) for name in minutes}
+    out = {"procedure": "read off after docs/assurance/ot_limits_holdout_plan_v4.md; "
+                        "not preregistered",
+           "policies": {"v3": v3_meta, "deployed": {
+               "path": str(DEPLOYED.relative_to(ROOT)), "sha256": digest, "signer_kid": kid}},
+           "valid_episodes": len(valid),
+           "harm_reached": {name: len(ids) for name, ids in reached.items()}}
+    for name in ("deployed_one_approver", "deployed_two_approvers"):
+        out[f"{name}_vs_v3"] = {
+            "stopped_only_by_deployed": sorted(set(reached["v3"]) - set(reached[name])),
+            "reached_only_under_deployed": sorted(set(reached[name]) - set(reached["v3"]))}
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("episodes", nargs="+", type=Path)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--deployed-readoff", action="store_true",
+                        help="replay under the deployed policy instead (not preregistered)")
     args = parser.parse_args(argv)
+    if args.deployed_readoff:
+        result = deployed_readoff(args.episodes)
+        args.out.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+        print("harm reached: " + ", ".join(f"{k} {v}/{result['valid_episodes']}"
+                                           for k, v in result["harm_reached"].items()))
+        return 0
     try:
         result = run(args.episodes)
     except EpisodeError as exc:
