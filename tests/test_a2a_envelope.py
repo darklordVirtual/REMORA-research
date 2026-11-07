@@ -623,6 +623,8 @@ def test_strict_is_the_default_and_refuses_an_unchecked_envelope() -> None:
         "strict_missing_expected_tool_call_hash",
         "strict_missing_link_keys",
         "strict_missing_replay_guard",
+        "strict_missing_expected_roots",
+        "strict_unbound_parent_at_link:1",
     }
 
 
@@ -651,10 +653,8 @@ def test_strict_passes_when_every_check_is_supplied() -> None:
         "orch-2026": RegisteredKey(key=orch_key, principal="agent://orchestrator/01"),
     }
     root, hop = _chain()
-    chain = (
-        sign_delegation_link(root, key=coe_key, kid="coe-2026"),
-        sign_delegation_link(hop, key=orch_key, kid="orch-2026"),
-    )
+    root = sign_delegation_link(root, key=coe_key, kid="coe-2026")
+    chain = (root, sign_delegation_link(hop, key=orch_key, kid="orch-2026", parent=root))
     tool_call_hash = "d" * 64
     env = _issue(delegation_chain=chain, tool_call_hash=tool_call_hash)
     result = env.verify(
@@ -664,6 +664,7 @@ def test_strict_passes_when_every_check_is_supplied() -> None:
         expected_tool_call_hash=tool_call_hash,
         link_keys=registry,
         replay_guard=lambda _nonce: False,
+        expected_roots={"operator-coe"},
     )
     assert result.valid, result.failures
 

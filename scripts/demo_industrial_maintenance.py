@@ -177,17 +177,18 @@ def issue_envelope(capability: str, tool_call_hash: str | None = None) -> A2AGov
     from datetime import datetime, timezone
 
     now = datetime.now(timezone.utc).isoformat()
-    chain = (
-        sign_delegation_link(
-            DelegationLink(
-                delegator="operator-coe",
-                delegatee="agent://orchestrator/01",
-                scope=("telemetry:read", "docs:read",
-                       "workorder:propose_change", "workorder:read"),
-                issued_at=now,
-            ),
-            key=COE_KEY, kid="coe-2026",
+    root = sign_delegation_link(
+        DelegationLink(
+            delegator="operator-coe",
+            delegatee="agent://orchestrator/01",
+            scope=("telemetry:read", "docs:read",
+                   "workorder:propose_change", "workorder:read"),
+            issued_at=now,
         ),
+        key=COE_KEY, kid="coe-2026",
+    )
+    chain = (
+        root,
         sign_delegation_link(
             DelegationLink(
                 delegator="agent://orchestrator/01",
@@ -195,7 +196,7 @@ def issue_envelope(capability: str, tool_call_hash: str | None = None) -> A2AGov
                 scope=DELEGATED_SCOPE,  # attenuated: workorder:read dropped
                 issued_at=now,
             ),
-            key=ORCH_KEY, kid="orch-2026",
+            key=ORCH_KEY, kid="orch-2026", parent=root,
         ),
     )
     return A2AGovernanceEnvelope.issue(
@@ -228,7 +229,7 @@ def delegation_check(
     result = envelope.verify(
         signing_key=ENVELOPE_KEY,
         expected_audience=AUDIENCE,
-        link_keys=LINK_KEYS,
+        link_keys=LINK_KEYS, expected_roots={"operator-coe"},
         expected_tool_call_hash=tool_call_hash,
         replay_guard=_replay_guard,
     )
@@ -452,12 +453,12 @@ def main() -> int:
     envelope = issue_envelope("telemetry:read", tool_call_hash=telemetry_hash)
     first = envelope.verify(
         signing_key=ENVELOPE_KEY, expected_audience=AUDIENCE,
-        link_keys=LINK_KEYS, expected_tool_call_hash=telemetry_hash,
+        link_keys=LINK_KEYS, expected_roots={"operator-coe"}, expected_tool_call_hash=telemetry_hash,
         replay_guard=_replay_guard,
     )
     replayed = envelope.verify(
         signing_key=ENVELOPE_KEY, expected_audience=AUDIENCE,
-        link_keys=LINK_KEYS, expected_tool_call_hash=telemetry_hash,
+        link_keys=LINK_KEYS, expected_roots={"operator-coe"}, expected_tool_call_hash=telemetry_hash,
         replay_guard=_replay_guard,
     )
     other_payload = canonical_tool_call_hash(
@@ -467,7 +468,7 @@ def main() -> int:
     )
     rebound = envelope.verify(
         signing_key=ENVELOPE_KEY, expected_audience=AUDIENCE,
-        link_keys=LINK_KEYS, expected_tool_call_hash=other_payload,
+        link_keys=LINK_KEYS, expected_roots={"operator-coe"}, expected_tool_call_hash=other_payload,
     )
 
     def check(label: str, result, want_valid: bool) -> None:

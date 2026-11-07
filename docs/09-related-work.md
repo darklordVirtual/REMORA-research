@@ -706,6 +706,18 @@ name is disabled, and a premise that fails or cannot be verified gives a
 disabled or blocked mode, never allow. The manifest's digest is signed into
 each lease. No shipped deployment loads a manifest yet.
 
+## 19. Delegated Authority Across Trust Domains
+
+That a delegated grant may only narrow is old. SPKI certificates (Ellison et
+al., 1999, RFC 2693) intersect the authorisation of each certificate along a
+chain. Macaroons (Birgisson et al., 2014) let each holder add caveats that
+every later presentation must satisfy, and never remove one. REMORA's A2A
+envelope applies the same discipline to agent-to-agent delegation. Each link
+narrows the scope before it, and may add signed conditions on the call's
+arguments. The chain must start at an authority the verifier names. The
+envelope is a reference path with no receiving route, and nothing in it is
+claimed as new.
+
 ## Positioning Statement
 
 REMORA is a nested governance control plane for long-running agentic AI:

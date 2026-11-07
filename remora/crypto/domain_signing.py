@@ -91,6 +91,10 @@ class SignatureDomain(str, Enum):
     #: A cumulative-limit policy (remora.enforcement.cumulative_limits), signed
     #: by the authority that sets the budgets; REMORA holds only the public key.
     LIMIT_POLICY = "REMORA/LIMIT-POLICY/v1"
+    #: One link of an A2A delegation chain (remora.governance.a2a_envelope),
+    #: signed by the delegator, so a verifier holding only public keys cannot
+    #: write a link in anyone's name.
+    A2A_DELEGATION_LINK = "REMORA/A2A-DELEGATION-LINK/v1"
 
     #: Friction-optimizer threshold proposals (SEC-07, SR-07): a signed
     #: proposal names its adjustments and the hash of the holdout evidence it
