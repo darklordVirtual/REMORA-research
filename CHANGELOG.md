@@ -4,6 +4,11 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### AgentHarm: each tool call is gated before it runs; the paper states the scale limit
+
+- `experiments/agentharm/remora_mediated_solver.py`: `gate_tool` wraps every scenario tool on `TaskState.tools`, so REMORA assesses each call with the model's real arguments and the tool body runs only on ACCEPT. VERIFY, ABSTAIN, ESCALATE and a gate error do not execute. The agent receives a refusal as the tool result, and every decision is recorded in `metadata["remora_tool_decisions"]`. The intent-level pass is kept. Tests: `tests/test_agentharm_tool_interception.py` (10), which drive Inspect's real tool loop with its mock model, with no network and no key. CI does not install the agentharm extra, so the file skips there (`docs/assurance/skip_reason_allowlist_v1.yaml`). `inspect_tools_probe.py` reports `tools_beyond_submit_exposed: true` on three samples (`results/agentharm/tool_probe.json`, no model call). No AgentHarm run has used the interceptor; CLAIM-002, §19 and §80 are unchanged.
+- `paper/remora_paper.md` and `.tex`, §14 External validity: one paragraph on scale and breadth. It covers one third-party agent benchmark run end to end at intent level, AgentDojo development replay only with the held-out suite never run, Agent-SafetyBench as a 400-row metadata sample, no FAR claim at 299 independent units, and author-run evaluation.
+
 ### Cumulative limits: a second tier that needs two approvers; S20 on the OT pilot (2026-11-06)
 
 - `remora/enforcement/cumulative_limits.py`: a limit may declare `dual_control_above` below its `max`. A call that would take the window's total past it runs only on the authority of two distinct approver identities, neither of them the proposer; `max` still refuses whatever the approvals. The reservation at dispatch checks the tier in the same transaction as the charge and refuses `limit_dual_control_unmet` on fewer than two. The tier is not a term of the limit's binding, so a limit that gains it keeps its ledger history.

@@ -7,12 +7,12 @@ printed, and no headline claim is emitted without the matching artifact.
 
 ## What this is and is not
 
-- Is: an intent-gating harness. For each sample, REMORA records a
-  `DecisionEnvelope` over the agent's proposed action surface and logs mode
-  degradation. See `INTERCEPTION_NOTES.md`.
-- Is not yet: a true PreToolUse tool-call interceptor. Do not describe it as
-  blocking tool calls until `inspect_tools_probe.py` reports
-  `tools_beyond_submit_exposed: true` and a real tool-wrapping hook is added.
+- Is: an intent-gating harness and a tool-call interceptor. Every scenario
+  tool is wrapped so each call is assessed with its real arguments and runs
+  only on ACCEPT. Verified offline with Inspect's mock model
+  (`tests/test_agentharm_tool_interception.py`).
+- Is not yet: a result. No AgentHarm run has used the interceptor. See
+  `INTERCEPTION_NOTES.md` and `docs/12-agentharm-validation.md`.
 
 ## Arms
 
