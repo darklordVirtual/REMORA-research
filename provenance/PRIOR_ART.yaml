@@ -113,6 +113,11 @@ sources:
     kind: external_specification
     locator: https://modelcontextprotocol.io
     covers: "MCP tool descriptions: server-supplied, unsigned tool metadata; the contrast case for PROV-02"
+  - id: PA-SRC-026
+    kind: external_specification
+    locator: "Frontier Model Forum (2026-11-05), Jailbreak Rating Framework for Frontier Cyber Threats, Version 1.0; https://www.frontiermodelforum.org/uploads/2026/11/PDF-FMF-Version-1.0-Cyber-Jailbreak-Framework.pdf"
+    covers: "the jailbreak rating method REMORA implements in remora/jailbreak/ (dimensions, tier scale, capability-gain gate, Severity and Likelihood sums, band thresholds, guardrail intent); third-party origin, not a REMORA concept"
+    note: "Copyright 2026, the Frontier Model Forum. All Rights Reserved. Not vendored or excerpted; see legal/THIRD_PARTY_NOTICES.md. Any concept record for jailbreak-rated posture must cite this source as prior art."
 
 # First review round: 2026-10-04, one review per concept. Reviewer is an
 # AI-assisted pass directed by the maintainer; per docs/AI_USE.md the text is

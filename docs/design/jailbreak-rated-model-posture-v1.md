@@ -1,7 +1,8 @@
-# SDD — Jailbreak-Rated Model Posture (FMF Cyber Jailbreak Rating Framework v1.0 integration) v1.1
+# SDD — Jailbreak-Rated Model Posture (FMF Cyber Jailbreak Rating Framework v1.0 integration) v1.2
 
 - Status: PROPOSED / NOT IMPLEMENTED (2026-11-07).
 - Owner: REMORA-research.
+- Revision v1.2 (2026-11-07): adds §12 (third-party material and attribution) and OPEN-6; rewords two phrases that overlapped the source text.
 - Revision v1.1 (2026-11-07): after PR review. Fixes the ToolSpec default (R1), states the text-output limit (R2), consolidates by per-rater band (R3), adds `reproduced` (R4), defines scope union (R5) and the signing input (R6), and names the refusal set and tenant allowlist (R7).
 - Scope: research profile first, then the execution API behind `REMORA_JAILBREAK_POSTURE=1`.
 - Release impact: decision-envelope schema bump (v2 to v3, one optional assessment block) when wired. No decision-engine version bump: the integration enters through the existing external-cap path.
@@ -20,7 +21,7 @@
 | Likelihood | Ease of Deployment (DE) | How much skill and manual work each use needs |
 | Likelihood | Ease of Discovery (DI) | What it costs to find the technique, up to "public" |
 
-A CG of 0 stops scoring at Negligible. Otherwise Severity is CG plus CS, Likelihood is DE plus DI, a matrix gives one of four bands, and CG then caps and floors the band. FMF rates relative risk. It does not estimate harm, and it does not prescribe a response.
+A CG of 0 stops scoring at Negligible. Otherwise Severity is CG plus CS, Likelihood is DE plus DI, a matrix gives one of four bands, and CG then caps and floors the band. FMF rates relative risk. It estimates no harm and leaves the response to each organisation.
 
 **What FMF leaves open, and REMORA can supply.** FMF says the impact of a jailbreak depends on the other defenses in the system. A high score says nothing on its own about the risk the whole system carries. REMORA is such a defense: it sits at the effect boundary and decides whether a model's proposed tool call executes. The two compose cleanly:
 
@@ -98,7 +99,7 @@ REMORA's threat model already treats the agent policy `M` as untrusted and possi
 Three signed record types. Each is serialised with the JSON Canonicalization Scheme (RFC 8785) and signed with Ed25519 under the existing signing profile. Full schema in Appendix A.
 
 - `JailbreakFinding`: `finding_id`, `model {provider, model_id, model_digest?}`, `cyber_risk_categories[]`, `technique_commitment` (SHA-256 over salt and the canonical technique bundle), `custodian_ref` (URI of the access-controlled store), `reported_at`, `reporter_id`.
-- `JailbreakRating`: `finding_id`, `rater_id`, `rated_at`, `framework` (`FMF-CYBER-JBR-1.0`), `baseline_id`, `dims {cg, cs, de, di}` each with an opaque `evidence_ref`, `cg_provisional` (FMF: a single top-tier exploit success above baseline earns a provisional CG 3), `reproduced` (whether the technique still worked in this rating run), `scope_observed {technique_types, categories}`.
+- `JailbreakRating`: `finding_id`, `rater_id`, `rated_at`, `framework` (`FMF-CYBER-JBR-1.0`), `baseline_id`, `dims {cg, cs, de, di}` each with an opaque `evidence_ref`, `cg_provisional` (set when CG 3 rests on one top-tier benchmark result, which FMF treats as provisional), `reproduced` (whether the technique still worked in this rating run), `scope_observed {technique_types, categories}`.
 - `BaselineSnapshot`: `baseline_id`, `as_of` (FMF: currently October 2026), `benchmarks [{name, version, composite_digest}]`, `signed_by`.
 
 The signing input is the domain-separation prefix `remora.<record_type>.v1` and a newline, followed by the canonical serialisation of the record with `signature` removed. A rating is admitted only if its rater is on the owner's allowlist for the finding's categories, its baseline exists, its framework id is supported, and its signature verifies. Anything else is refused with a reason code and stored nowhere.
@@ -303,12 +304,26 @@ It covers the effect channel only (§1.5). It can estimate the defense-in-depth 
 - OPEN-3 Unrated default. No cap for unrated versions keeps REMORA usable with models nobody has rated. A conservative alternative (VERIFY on `*` tools for unrated models) is cheap to configure and should be measured in §7 as an extra arm.
 - OPEN-4 Rater accreditation. Who may rate which categories is an owner decision today. An external accreditation scheme, if FMF or a national institute offers one, would plug into the allowlist.
 - OPEN-5 Model digest. `model_id` strings are coarse. Where the inference gateway can attest a weights or deployment digest, posture should key on it.
+- OPEN-6 Rights confirmation. REMORA is offered under BUSL-1.1 with a commercial licence. Implementing a published method should not need permission, but a short written confirmation from FMF that the scoring method may be implemented in source-available software removes doubt. The comment window (until 2026-12-21) is a natural channel.
 
 ## 10. Claim hygiene
 
 After S3, REMORA may claim: posture caps derived from signed FMF-format ratings are applied deterministically to tool calls and can only tighten decisions, with the guarantees in §1.4 under JA1–JA5. The claim covers the effect channel only.
 
 REMORA may not claim that it detects jailbreaks, that a posture band measures harm, or that FMF endorses the posture mapping. It may not claim that §7 results transfer to live jailbreaks. It may state no effectiveness number before §7 has run and its results are committed.
+
+## 12. Third-party material and attribution
+
+FMF-JBR-1.0 is a third-party publication. Copyright 2026, the Frontier Model Forum. All Rights Reserved. The FMF website terms limit its documents to informational, non-commercial or personal use and forbid modifying or redistributing them.
+
+REMORA's use stays outside the document itself:
+
+- The repository contains no copy, excerpt, table or figure from the document. It links to the publisher's URL.
+- The SDD describes the rating method in its own words. A six-token overlap scan of this SDD and of the S1 code against the document text, run on 2026-11-07, found only dimension and category names.
+- The code implements the scoring method (dimensions, tier scale, gate, axis sums, band thresholds, guardrail intent) as independently written REMORA code. A method is not protected expression; the code's own expression is REMORA's.
+- Dimension, band and category names are used as identifiers so that ratings stay comparable with FMF's. `FMF-CYBER-JBR-1.0` names the framework a rating follows. Neither implies endorsement by the Frontier Model Forum or its members.
+
+The record of this boundary is `legal/THIRD_PARTY_NOTICES.md` (publications row) and `provenance/PRIOR_ART.yaml` (PA-SRC-026). No PROV concept claims the scoring method as REMORA's. Any later concept record for the posture mechanism must list PA-SRC-026 as prior art. This section states the repository's position. It is not legal advice; written confirmation from FMF is OPEN-6.
 
 ## 11. References
 
