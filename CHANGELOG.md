@@ -4,6 +4,24 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Delegated authority across agents: signed argument conditions, anchored roots, origin-verifiable links (2026-11-07)
+
+- Four questions were asked of both REMORA paths: an intermediary widening its scope, an intermediary changing what the authority allowed, replay after a restart or at another verifier, and a signed chain used for another task (`artifacts/assurance/delegated-authority-2026-11-07/`). The A2A envelope at `dea40402` stopped only the first, with every strict argument supplied (NEGATIVE_RESULTS §103).
+- `remora/governance/a2a_envelope.py` now refuses the rest:
+  - a link may carry argument `conditions` (the vocabulary of `remora/capabilities/constraints.py`), and every link's conditions hold together;
+  - `expected_roots` anchors the chain, and strict mode requires it;
+  - a link signed with an HMAC key registered for two principals never verifies;
+  - links may be signed with Ed25519 (`REMORA/A2A-DELEGATION-LINK/v1`) against a registry entry that holds only the public key;
+  - `durable_replay_guard` keeps nonces in the durable nonce store;
+  - a link may bind its task, which later links keep;
+  - strict mode fails a bound task or declared operation the verifier did not check;
+  - a link after the first signs its parent's digest, and strict mode requires it, so a looser parent cannot be put in front of a bound link;
+  - a link's HMAC key is compared with other principals' keys and with the envelope key as HMAC uses them (zero padding, long keys hashed).
+  A link or envelope without the new fields signs and serialises its earlier bytes. Strict mode now also requires `expected_roots` and a parent-bound chain, so a strict caller of a multi-link chain must re-sign its links with `parent`.
+- `remora/capabilities/constraints.py`: a condition's `argument` or `state` is a non-empty string; `eq`, `ne`, `in` and `not_in` no longer treat `True` as 1 or `False` as 0; a numeric bound is never met by NaN or infinity. This applies to capability conditions at dispatch too (adversarial review, §103). A second review found and fixed two regressions in that change: an int past about 1e308 raised instead of being refused, and `ne`/`not_in` admitted a bool equal to a listed number. A deny-list now refuses on either equality, and equality is type-strict at every depth and in `equals_state`. An Ed25519 link signature verifies only in canonical base64, and an empty envelope key neither signs nor verifies.
+- `remora/toolcall/intent_scope.py`: a work order's scope may bound the call's arguments (`"arguments": [{"lte": 250, "argument": "amount"}]`). A call past them is refused at assess as `intent_scope_mismatch`, with no review.
+- Research matrix RES-027 records the track, its classic prior art (SPKI, caveats) and its open questions; docs/09-related-work.md §19 and docs/security/non-transitivity-of-authority.md describe it. Tests: `tests/test_delegated_authority_propagation.py` (cases over both paths, with the adversarial review's).
+
 ### OT pilot limits: a candidate v4, measured against misuse and legitimate shifts before any decision (§97, 2026-11-06)
 
 - `remora/enforcement/cumulative_limits.py`: an observed change meter may declare `free_toward_safe`, resources with a declared safe value. A write whose target lies between the plant's value and the safe value is charged nothing and is not refused by a full counter. After the fact, nothing more is charged only when the actual move also went towards safe. The fence still applies. This is an owner decision of 2026-11-06. CAP-031 is re-audited. Tests: `tests/limits/test_limits_free_toward_safe.py` (19).
