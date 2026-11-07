@@ -44,7 +44,7 @@ Question 1 was stopped. Question 2 was accepted in three forms, question 3 whene
 - **Bound parent.** A link after the first signs the digest of the link before it, and strict mode requires it. A looser link from the same origin put in front of a link issued under a bounded one is refused as `parent_mismatch_at_link`.
 - **Distinct keys, as HMAC sees them.** A link's HMAC key is compared with other principals' keys and with the envelope key after RFC 2104's padding and hashing, so `k` and `k + b"\0"` are one key.
 
-An adversarial review of the first version of this change found the last two gaps, plus four smaller ones: a non-string condition argument raised instead of failing, `True` met `eq 1`, infinity met a one-sided bound, and `expected_roots` as a bare string was read as its characters. Each now has a `test_review_*` case. NEGATIVE_RESULTS §103 records them.
+An adversarial review of the first version of this change found the last two gaps. It also found four smaller ones. A non-string condition argument raised instead of failing. `True` met `eq 1`, and infinity met a one-sided bound. `expected_roots` as a bare string was read as its characters. Each now has a `test_review_*` case. NEGATIVE_RESULTS §103 records them.
 
 **The execution API.** Question 2 now applies to work orders as well: `IntentScope` takes `arguments` conditions. Through the API, the pilot's WO-1201 with a bound on the setpoint value refuses a larger move at assess, with no review item. The answers to the other questions were already in place, and are cited rather than re-proved:
 

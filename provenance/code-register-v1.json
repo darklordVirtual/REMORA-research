@@ -543,9 +543,9 @@
     },
     "artifacts/assurance/delegated-authority-2026-11-07/README.md": {
       "concepts": [],
-      "git_blob": "891c758f3b5a75d828422ff8747a8c8de60f8cfa",
+      "git_blob": "f2d43994b857e07509c015cae7ee7b68eb197e71",
       "mode": "100644",
-      "sha256": "48e041c9df432a15b41b8ab7597f7428c70ec3699d8c654895b6ec63dfdd2c84"
+      "sha256": "c3b3ea6a258ea67793c7b65c2f1b4d7b406bb195e21b71bc56947e2bbcfd312a"
     },
     "artifacts/assurance/delegated-authority-2026-11-07/baseline.json": {
       "concepts": [],
@@ -23701,7 +23701,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "10788e65bb427fc1e8cc56d31b1c3979002451097e9804595e91d449f597983d",
+  "register_sha256": "47aa7717d9c1166b835286a377dfaaddab63ddbbc83efdbf4a82f4c8b719705b",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
