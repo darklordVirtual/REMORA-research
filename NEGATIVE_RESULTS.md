@@ -6646,6 +6646,21 @@ ways through it. All are now refused, each with a test (`test_review_*`):
 - **`expected_roots` as a bare string** was read as a set of its characters.
   It now raises.
 
+A second, independent review found that two of those fixes made things worse
+in ways of their own. Both are now fixed and tested (`test_review2_*`):
+
+- **A huge integer raised.** The finiteness check converted an int to a
+  float. A 400-digit amount, which strict JSON admits, raised
+  `OverflowError` at assess, dispatch and in `verify`, where the code before
+  refused it. An int is now finite by type.
+- **Deny-lists admitted bools.** Keeping `True` apart from `1` in `ne` and
+  `not_in` let `force=True` past `not_in [1]`, which the code before refused.
+  A tool may read `True` as 1, so a deny-list now refuses on either
+  equality. Equality is type-strict at every depth, and in `equals_state` too.
+- **One Ed25519 signature, many spellings.** Unused base64 padding bits
+  gave a link many digests. Only the canonical encoding verifies.
+- **An empty envelope key** signed and verified. It no longer does either.
+
 Limits:
 
 - The envelope is a reference path: no route receives one, and its own

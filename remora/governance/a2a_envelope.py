@@ -97,6 +97,7 @@ envelopes can be created (development mode) but never verify as valid.
 """
 from __future__ import annotations
 
+import base64
 import hashlib
 import hmac
 import json
@@ -377,6 +378,8 @@ class A2AGovernanceEnvelope:
         key = signing_key if signing_key is not None else _get_signing_key()
         if key is None:
             return envelope
+        if not key:
+            raise ValueError("an empty key signs nothing: anyone can compute its MAC")
         signature = hmac.new(key, envelope._signable_payload(), hashlib.sha256).hexdigest()
         return dataclass_replace(envelope, signature=signature, is_signed=True)
 
@@ -506,7 +509,8 @@ class A2AGovernanceEnvelope:
         key = signing_key if signing_key is not None else _get_signing_key()
         if not self.is_signed or not self.signature:
             failures.append("unsigned_envelope")
-        elif key is None:
+        elif not key:
+            # An empty key signs nothing: anyone can compute its MAC.
             failures.append("no_verification_key")
         else:
             expected = hmac.new(key, self._signable_payload(), hashlib.sha256).hexdigest()
@@ -940,6 +944,15 @@ def _link_signature_ok(link: DelegationLink, registered: RegisteredKey) -> bool:
         # The entry decides the algorithm: an HMAC signature never passes
         # against a public key, and an Ed25519 one never against an HMAC key.
         if not link.signature.startswith(ED25519_PREFIX):
+            return False
+        encoded = link.signature[len(ED25519_PREFIX):]
+        try:
+            canonical = base64.b64encode(base64.b64decode(encoded, validate=True)).decode()
+        except (ValueError, TypeError):
+            return False
+        if canonical != encoded:
+            # Unused padding bits would give one signature many spellings, and
+            # the link many digests (link_digest names one issued instance).
             return False
         from remora.crypto import ALGORITHM, Signature, SignatureDomain
         from remora.crypto import verify as ed25519_verify

@@ -51,13 +51,31 @@ def _number(value: Any) -> bool:
 
 
 def _finite(value: Any) -> bool:
-    """A number a bound can be met by: not a bool, not NaN or infinite."""
-    return _number(value) and math.isfinite(value)
+    """A number a bound can be met by: not a bool, not NaN or infinite.
+
+    An int is always finite. ``math.isfinite`` would convert it to a float
+    and raise on one past about 1e308, which strict JSON admits."""
+    return _number(value) and (isinstance(value, int) or math.isfinite(value))
 
 
 def _same(a: Any, b: Any) -> bool:
-    """Equality that keeps ``True`` apart from ``1`` and ``False`` from ``0``."""
-    return isinstance(a, bool) == isinstance(b, bool) and bool(a == b)
+    """Equality that keeps ``True`` apart from ``1`` and ``False`` from ``0``,
+    at every depth of a list, tuple or mapping."""
+    if isinstance(a, bool) or isinstance(b, bool):
+        return isinstance(a, bool) and isinstance(b, bool) and a is b
+    if isinstance(a, (list, tuple)) or isinstance(b, (list, tuple)):
+        return (type(a) is type(b) and len(a) == len(b)
+                and all(_same(x, y) for x, y in zip(a, b, strict=True)))
+    if isinstance(a, Mapping) or isinstance(b, Mapping):
+        return (isinstance(a, Mapping) and isinstance(b, Mapping) and a.keys() == b.keys()
+                and all(_same(a[k], b[k]) for k in a))
+    return bool(a == b)
+
+
+def _loose(a: Any, b: Any) -> bool:
+    """Equal by strict or by Python's equality. A deny-list refuses on either,
+    so ``ne 0`` still refuses ``False``: a tool may read it as 0."""
+    return _same(a, b) or bool(a == b)
 
 
 @dataclass(frozen=True)
@@ -157,7 +175,7 @@ def _holds(condition: Condition, value: Any, reader: StateReader | None,
            arguments: Mapping[str, Any]) -> bool:
     op, operand = condition.operator, condition.operand
     if op == "equals_state":
-        return bool(value == _read(reader, operand, arguments))
+        return _same(value, _read(reader, operand, arguments))
     if op == "within":
         from remora.capabilities.resource import resource_within
 
@@ -165,11 +183,11 @@ def _holds(condition: Condition, value: Any, reader: StateReader | None,
     if op == "eq":
         return _same(value, operand)
     if op == "ne":
-        return not _same(value, operand)
+        return not _loose(value, operand)
     if op == "in":
         return any(_same(value, item) for item in operand)
     if op == "not_in":
-        return not any(_same(value, item) for item in operand)
+        return not any(_loose(value, item) for item in operand)
     if not _finite(value):
         return False  # a numeric bound is never met by a non-number, NaN or infinity
     return {"lt": value < operand, "lte": value <= operand,

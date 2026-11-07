@@ -444,6 +444,102 @@ def test_review_the_parent_binding_round_trips_through_json():
     assert _verify(again, call_hash, arguments).valid
 
 
+# ── second review 2026-11-07 ────────────────────────────────────────────────
+
+HUGE = json.loads("1" + "0" * 400)   # strict JSON admits it; float() overflows
+
+
+def test_review2_a_huge_integer_is_refused_by_a_bound_and_never_raises():
+    from remora.capabilities.constraints import (
+        CapabilityRefusal,
+        Condition,
+        ToolConstraint,
+        evaluate_constraint,
+    )
+    from remora.toolcall.intent_scope import IntentScope
+
+    bound = ToolConstraint(conditions=(Condition.from_dict({"lte": 250, "argument": "amount"}),))
+    assert evaluate_constraint(bound, {"amount": HUGE}) is CapabilityRefusal.ARGUMENT_MISMATCH
+    floor = ToolConstraint(conditions=(Condition.from_dict({"gte": 1, "argument": "amount"}),))
+    assert evaluate_constraint(floor, {"amount": HUGE}) is None    # an int is finite
+    envelope, call_hash, arguments = _envelope(_chain(_origin(conditions=AMOUNT_250)))
+    assert "argument_outside_delegation:0:amount" in _verify(
+        envelope, call_hash, {**arguments, "amount": HUGE}).failures
+    scope = IntentScope.from_dict({"tools": ["release_payment"], "effects": ["update"],
+                                   "arguments": [{"lte": 250, "argument": "amount"}]})
+    assert scope.check("release_payment", {"amount": HUGE}, effect="update",
+                       target_arguments=[]).status == \
+        "out_of_scope"
+
+
+@pytest.mark.parametrize(("condition", "value"), [
+    ({"ne": 0, "argument": "dry_run"}, False),
+    ({"ne": 1, "argument": "force"}, True),
+    ({"not_in": [1], "argument": "force"}, True),
+    ({"not_in": [0, 2], "argument": "dry_run"}, False),
+])
+def test_review2_a_deny_list_still_refuses_the_bool_a_tool_reads_as_its_number(condition, value):
+    from remora.capabilities.constraints import Condition, ToolConstraint, evaluate_constraint
+
+    constraint = ToolConstraint(conditions=(Condition.from_dict(condition),))
+    assert evaluate_constraint(constraint, {condition["argument"]: value}) is not None
+
+
+@pytest.mark.parametrize(("condition", "value"), [
+    ({"eq": [1], "argument": "x"}, [True]),
+    ({"in": [[0]], "argument": "x"}, [False]),
+    ({"eq": {"a": 1}, "argument": "x"}, {"a": True}),
+    ({"eq": [1], "argument": "x"}, (1,)),
+])
+def test_review2_equality_keeps_bools_apart_at_every_depth(condition, value):
+    from remora.capabilities.constraints import Condition, ToolConstraint, evaluate_constraint
+
+    constraint = ToolConstraint(conditions=(Condition.from_dict(condition),))
+    assert evaluate_constraint(constraint, {"x": value}) is not None
+    assert evaluate_constraint(constraint, {"x": json.loads(json.dumps(condition.get(
+        "eq", (condition.get("in") or [None])[0])))}) is None
+
+
+def test_review2_equals_state_keeps_a_bool_apart_from_a_number():
+    from remora.capabilities.constraints import Condition, ToolConstraint, evaluate_constraint
+
+    constraint = ToolConstraint(conditions=(
+        Condition.from_dict({"equals_state": "flag", "argument": "x"}),))
+    assert evaluate_constraint(constraint, {"x": 1}, reader=lambda src, args: True) is not None
+    assert evaluate_constraint(constraint, {"x": True}, reader=lambda src, args: True) is None
+
+
+def test_review2_an_ed25519_signature_has_one_spelling(origin_ed25519):
+    """Unused low bits of the last base64 character changed the link's digest
+    without breaking its signature."""
+    import base64
+
+    vk = origin_ed25519.verification_key()
+    registry = {vk.kid: RegisteredKey(b"", "origin", verification_key=vk),
+                "k-mid": RegisteredKey(MID_KEY, "mid")}
+    origin = _link("origin", "mid", ("payment:release",), signing_key=origin_ed25519)
+    encoded = origin.signature.removeprefix("ed25519:")
+    alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    stem, last = encoded.rstrip("="), encoded.rstrip("=")[-1]
+    variant = alphabet[alphabet.index(last) ^ 1]
+    respelled = stem[:-1] + variant + "=" * (len(encoded) - len(stem))
+    assert base64.b64decode(respelled) == base64.b64decode(encoded)
+    twin = DelegationLink(**{**origin.__dict__, "signature": "ed25519:" + respelled})
+    assert _verify(*_envelope(_chain(origin)), registry=registry).valid
+    assert "link_signature_mismatch:0" in _verify(
+        *_envelope(_chain(twin)), registry=registry).failures
+
+
+def test_review2_an_empty_envelope_key_neither_signs_nor_verifies():
+    envelope, call_hash, arguments = _envelope(_chain(_origin()))
+    with pytest.raises(ValueError):
+        A2AGovernanceEnvelope.issue(
+            identity=AgentIdentity("worker", "1", "org", "org"),
+            delegation_chain=envelope.delegation_chain, requested_scope=("payment:release",),
+            policy_version="p1", audience=AUDIENCE, signing_key=b"")
+    assert "no_verification_key" in envelope.verify(signing_key=b"", strict=False).failures
+
+
 # ── compatibility ────────────────────────────────────────────────────────────
 
 
