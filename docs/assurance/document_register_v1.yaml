@@ -3526,6 +3526,19 @@ documents:
   - researchers
   - evaluators
   last_reviewed: '2026-11-06'
+- id: DOC-430
+  path: docs/design/jailbreak-rated-model-posture-v1.md
+  status: canonical
+  topic: docs_design_jailbreak-rated-model-posture-v1_md
+  code_synced: verified
+  verdict: current
+  owner: darklordVirtual
+  audience:
+  - maintainers
+  - researchers
+  last_reviewed: '2026-11-07'
+  validates_against: []
+  claims: []
 topics:
 - docs_assurance_ot_limits_holdout_plan_v4_md
 - docs_assurance_ot_limits_holdout_plan_v3_md
@@ -3876,3 +3889,4 @@ topics:
 - docs_architecture_ADR-UE-03-capability-manifest-hook-and-mode_md
 - docs_architecture_ADR-pilot-readiness-owner-decision_md
 - docs_assurance_fault_scenario_crosswalk_v1_md
+- docs_design_jailbreak-rated-model-posture-v1_md

@@ -33,6 +33,12 @@ and `frontend/package-lock.json` for the exact resolved versions).
 | Business Source License text | MariaDB Corporation Ab | License text in `LICENSE` / `LICENSES/BUSL-1.1.txt` | Used under MariaDB's permission subject to the Covenants of Licensor |
 | Model outputs (Groq/Cloudflare-hosted Llama, Qwen, Mistral) | Respective providers | Stored oracle responses in committed result artifacts | Provider terms of service; review before commercial redistribution |
 
+## Publications and specifications implemented
+
+| Material | Source | Use in REMORA | Original terms |
+|---|---|---|---|
+| Jailbreak Rating Framework for Frontier Cyber Threats, Version 1.0 | Frontier Model Forum, 2026-11-05, https://www.frontiermodelforum.org/uploads/2026/11/PDF-FMF-Version-1.0-Cyber-Jailbreak-Framework.pdf | The rating method is implemented as independently written code in `remora/jailbreak/` and described in REMORA's own words in `docs/design/jailbreak-rated-model-posture-v1.md` (§12). Dimension, band and category names are used as identifiers for comparability. No copy, excerpt, table or figure of the document is included; the repository links to it | Copyright 2026, the Frontier Model Forum. All Rights Reserved. Website terms: informational, non-commercial or personal use; no modification or redistribution. Not relicensed. Use of the name implies no endorsement by the Frontier Model Forum or its members |
+
 Rows referencing an upstream project's own license describe THAT
 project's license; they do not make any part of REMORA available under
 that license.
