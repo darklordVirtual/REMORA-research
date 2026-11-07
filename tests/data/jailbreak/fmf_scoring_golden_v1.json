@@ -2820,5 +2820,6 @@
  "framework": "FMF-CYBER-JBR-1.0",
  "generator": "scripts/generate_fmf_scoring_golden.py",
  "guardrail_policy_id": "fmf-1.0-literal-v1",
+ "notice": "Outcomes computed by REMORA from the published rating method. The method is third-party (Copyright 2026, the Frontier Model Forum. All Rights Reserved); this file contains no text from that document and implies no endorsement. See legal/THIRD_PARTY_NOTICES.md and provenance/PRIOR_ART.yaml (PA-SRC-026).",
  "source": "Frontier Model Forum, Jailbreak Rating Framework for Frontier Cyber Threats, Version 1.0, 2026-11-05"
 }

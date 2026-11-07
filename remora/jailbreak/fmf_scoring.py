@@ -6,6 +6,13 @@ Source: Frontier Model Forum, "Jailbreak Rating Framework for Frontier Cyber
 Threats", Version 1.0 (open for public feedback), 2026-11-05.
 Design: docs/design/jailbreak-rated-model-posture-v1.md §3.2 (JBR-02).
 
+Third-party method: the rating method is the Frontier Model Forum's
+(Copyright 2026, the Frontier Model Forum. All Rights Reserved). This file is
+independently written REMORA code; it contains no text, table or figure from
+that document, and the framework's names are used only as identifiers. No
+endorsement by the Frontier Model Forum is implied. See
+legal/THIRD_PARTY_NOTICES.md and provenance/PRIOR_ART.yaml (PA-SRC-026).
+
 The function is pure: no I/O, no clock, no randomness. Every input outside
 the declared domain raises; nothing is coerced.
 

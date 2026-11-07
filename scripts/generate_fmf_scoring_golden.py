@@ -6,8 +6,15 @@
 Deliberately independent of ``remora.jailbreak.fmf_scoring``: this script
 does not import it. It derives every outcome from the FMF combined-score
 table (SV + LI banding) and the literal step-4 guardrail reading, while the
-module uses the transcribed SV x LI matrix. The test compares the two, so a
-transcription error in either encoding fails the suite.
+module uses its own encoding of the SV x LI band grid. The test compares the two, so a
+slip in either encoding fails the suite.
+
+Third-party method: the rating method is the Frontier Model Forum's
+(Copyright 2026, the Frontier Model Forum. All Rights Reserved). This file is
+independently written REMORA code; it contains no text, table or figure from
+that document, and the framework's names are used only as identifiers. No
+endorsement by the Frontier Model Forum is implied. See
+legal/THIRD_PARTY_NOTICES.md and provenance/PRIOR_ART.yaml (PA-SRC-026).
 
 Usage::
 
@@ -68,6 +75,12 @@ def build() -> dict[str, object]:
                   "Cyber Threats, Version 1.0, 2026-11-05",
         "guardrail_policy_id": POLICY_ID,
         "generator": "scripts/generate_fmf_scoring_golden.py",
+        "notice": "Outcomes computed by REMORA from the published rating method. "
+                  "The method is third-party (Copyright 2026, the Frontier Model "
+                  "Forum. All Rights Reserved); this file contains no text from "
+                  "that document and implies no endorsement. See "
+                  "legal/THIRD_PARTY_NOTICES.md and provenance/PRIOR_ART.yaml "
+                  "(PA-SRC-026).",
         "cases": cases,
     }
 
