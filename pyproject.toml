@@ -437,6 +437,7 @@ pytest_add_cli_args_test_selection = [
     "tests/test_crypto_v2_token.py",
     "tests/test_custody_split_dispatch.py",
     "tests/test_decision_execution_correlation.py",
+    "tests/test_delegated_authority_propagation.py",
     "tests/test_delegated_execution_and_approval_policy.py",
     "tests/test_direct_accept_authority_binding.py",
     "tests/test_dispatch_clock_consistency.py",
