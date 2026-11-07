@@ -477,6 +477,10 @@ refused a legitimate write in 3 (7.5 %, Wilson 2.6 to 19.9 %). Under the same
 With PIC-101 exempt while delivery is stopped, 40 blind shifts with a stop had
 no PIC-101 refusal. Six had a valve-travel or restart refusal (15 %), which is
 negative under the same 10 % (plan v3, DOC-428).
+A candidate with valve travel at 200 % per hour and free moves towards safe
+refused no legitimate write in 40 new shifts with a stop (Wilson up to 8.8 %).
+Against misuse it let 23 of 40 episodes reach their harm, where v3 let 18
+and v1 5 (plan v4, DOC-429). It is not deployed.
 
 > **Note:** author's runs on one host against a simulated plant; not an
 > independent reproduction and not OT deployment validation. The same

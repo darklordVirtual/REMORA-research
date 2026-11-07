@@ -177,6 +177,43 @@ def test_the_result_holds_no_aggregate_key(tmp_path):
     assert {"score", "overall", "total", "grade", "aggregate"}.isdisjoint(keys(result))
 
 
+CANDIDATE = ROOT / "artifacts" / "ot-pilot" / "limits-v4" / "limits-candidate-v4.json"
+CANDIDATE_KEY = ROOT / "artifacts" / "ot-pilot" / "limits-v4" / "limits-candidate-v4.trusted-key"
+
+
+def test_another_signed_policy_can_be_named_with_its_key(tmp_path):
+    stroke = {"t_min": 0, "tool": "set_valve_position",
+              "args": {"valve": "V-12", "position_pct": 100}}   # 85 points
+    path = tmp_path / "shifts.json"
+    path.write_text(json.dumps({"shifts": [{"shift_id": "s", "writes": [stroke]}]}),
+                    encoding="utf-8")
+    under_v1 = H.run([path])
+    assert _outcomes(under_v1) == [("refused", "limit_exceeded")]
+    under_candidate = H.run([path], None, CANDIDATE, CANDIDATE_KEY)
+    assert _outcomes(under_candidate) == [("ran", None)]
+    assert under_candidate["limits_policy"]["path"] == \
+        "artifacts/ot-pilot/limits-v4/limits-candidate-v4.json"
+    assert under_candidate["limits_policy"]["sha256"] == (
+        "sha256:bac8722cfddfbed3a4036e21d5accfbb11368b6a94b1a325732ffce49f7cadc8")
+
+
+@pytest.mark.parametrize("policy, key", [(CANDIDATE, None), (None, CANDIDATE_KEY)])
+def test_a_policy_and_its_key_go_together(tmp_path, policy, key):
+    path = tmp_path / "shifts.json"
+    path.write_text(json.dumps({"shifts": []}), encoding="utf-8")
+    with pytest.raises(SystemExit, match="go together"):
+        H.run([path], None, policy, key)
+
+
+@pytest.mark.parametrize("key", [str(CANDIDATE_KEY), CANDIDATE_KEY.read_text().strip()])
+def test_command_line_accepts_key_file_and_inline_key(tmp_path, key):
+    shifts = tmp_path / "shifts.json"
+    shifts.write_text(json.dumps({"shifts": []}), encoding="utf-8")
+    out = tmp_path / "result.json"
+    assert H.main([str(shifts), "--out", str(out), "--policy", str(CANDIDATE),
+                   "--trusted-key", key, "--approvers", "2"]) == 0
+    assert json.loads(out.read_text(encoding="utf-8"))["limits_policy"]["path"] == \
+        "artifacts/ot-pilot/limits-v4/limits-candidate-v4.json"
 # ── the pilot's tiered policy: a second approver past half a bar ─────────────
 
 

@@ -262,6 +262,13 @@ class Meter:
     #: The fence still applies, and once the other resource leaves its safe
     #: value every move is charged again.
     exempt_while_safe: Mapping[str, str] = dataclass_field(default_factory=dict)
+    #: Resources with a declared safe value whose moves towards it are free (an
+    #: observed change meter only). A write whose target lies between the value
+    #: the plant reports and the safe value, both included, is charged nothing and
+    #: is not refused by a full counter: a ramp down to a stop costs nothing, and
+    #: only the ramp back is charged. A move past the safe value or away from it
+    #: is charged as any move, and the fence still applies.
+    free_toward_safe: frozenset[str] = frozenset()
 
     @classmethod
     def from_dict(cls, tool: str, raw: Any) -> Meter:
@@ -324,6 +331,22 @@ class Meter:
                         f"tool {tool!r}: exempt_while_safe for {resource_id!r} must name another "
                         "resource with a declared safe value")
                 exempt[resource_id] = other
+        toward_raw = raw.get("free_toward_safe")
+        toward: frozenset[str] = frozenset()
+        if toward_raw is not None:
+            if kind != "change" or not observed:
+                raise LimitPolicyError(
+                    f"tool {tool!r}: free_toward_safe is for observed change meters only")
+            if (not isinstance(toward_raw, list) or not toward_raw
+                    or len(set(map(str, toward_raw))) != len(toward_raw)):
+                raise LimitPolicyError(
+                    f"tool {tool!r}: free_toward_safe is a non-empty list of resources")
+            for resource_id in toward_raw:
+                if not isinstance(resource_id, str) or resource_id not in safe:
+                    raise LimitPolicyError(
+                        f"tool {tool!r}: a free_toward_safe entry names a resource with a "
+                        "declared safe value")
+            toward = frozenset(toward_raw)
         return cls(
             quantity=_text(raw.get("quantity"), f"tool {tool!r} quantity"), kind=kind,
             argument=argument, scale=scale,
@@ -335,7 +358,7 @@ class Meter:
                                                                    "resource_argument"),
             observed=observed,
             previous_field=None if previous is None else _text(previous, "previous_field"),
-            safe_values=safe, exempt_while_safe=exempt)
+            safe_values=safe, exempt_while_safe=exempt, free_toward_safe=toward)
 
 
 @dataclass(frozen=True)
@@ -510,6 +533,14 @@ class LimitPolicy:
                 if m.quantity == quantity and resource in m.exempt_while_safe:
                     other = m.exempt_while_safe[resource]
                     return other, m.safe_values[other], m.scale
+        return None
+
+    def free_toward_safe(self, quantity: str, resource: str) -> int | None:
+        """The safe value a move of this resource is free towards, if it declares one."""
+        for meters in self.meters.values():
+            for m in meters:
+                if m.quantity == quantity and resource in m.free_toward_safe:
+                    return m.safe_values[resource]
         return None
 
     def safe_value(self, quantity: str, resource: str) -> int | None:
@@ -1047,6 +1078,12 @@ class LimitGuard:
                     # and one REMORA made is. Rounded up: never under-counted.
                     seen = (observed or {})[index]
                     amount = math.ceil(abs(reading.value - seen))
+                    if resource in m.free_toward_safe:
+                        safe = Decimal(m.safe_values[resource])
+                        low, high = (seen, safe) if seen <= safe else (safe, seen)
+                        if low <= reading.value <= high:
+                            to_safe = True  # towards the safe value: charged nothing
+                            amount = 0  # and recorded so, for the after-the-fact check
                     seen_at.append((value_key, seen, amount))
                 values.append((value_key, reading.value, "observed"))
             elif m.kind == "change":
@@ -1526,7 +1563,12 @@ class LimitGuard:
                 continue
             scale = self._scale_of(record["quantity"])
             ended = record["observed"] if record["observed"] is not None else record["target"]
-            actual = math.ceil(abs(Decimal(ended) - Decimal(str(previous)) * scale))
+            before = Decimal(str(previous)) * scale
+            toward = self.policy.free_toward_safe(record["quantity"], record["resource"])
+            if toward is not None and (min(before, Decimal(toward)) <= ended
+                                       <= max(before, Decimal(toward))):
+                continue  # the plant's actual move went towards the safe value: free
+            actual = math.ceil(abs(Decimal(ended) - before))
             charged = charged_at.get("\x1f".join((record["tenant"], record["quantity"],
                                                    record["resource"])), 0)
             record["actual_movement"] = actual
