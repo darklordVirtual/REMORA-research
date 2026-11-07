@@ -32,6 +32,14 @@ case folding, trimming or prefix match, so ``"wo-1201 "`` is not ``WO-1201``
 and ``"WO-1201\\n---\\n..."`` is not either. Argument values that are not
 strings never match a target. Violations name the dimension, never the value,
 so a hostile string is not echoed back into a review or audit record.
+
+A scope may also bound the call's arguments: ``"arguments": [{"lte": 250,
+"argument": "amount"}]`` in the vocabulary of
+:mod:`remora.capabilities.constraints`. A work order for a payment of 250 then
+does not cover a call for 25000, whoever proposes it and whoever approves it.
+A bound on an argument the call does not carry is a violation, as is a
+non-numeric value against a numeric bound. Argument conditions only: a scope
+is a fact about the authority, and reads no other state.
 """
 from __future__ import annotations
 
@@ -97,13 +105,15 @@ class IntentScope:
     tools: frozenset[str]
     effects: frozenset[str]
     targets: Mapping[str, frozenset[str]] = field(default_factory=dict)
+    #: Conditions on the call's arguments (canonical Condition dicts).
+    arguments: tuple[Mapping[str, Any], ...] = ()
 
     @classmethod
     def from_dict(cls, data: Any) -> IntentScope:
         """Parse a declared scope, strictly. Anything malformed raises."""
         if not isinstance(data, Mapping):
             raise ValueError("scope must be an object")
-        unknown = set(data) - {"tools", "effects", "targets"}
+        unknown = set(data) - {"tools", "effects", "targets", "arguments"}
         if unknown:
             raise ValueError(f"scope has unknown keys {sorted(unknown)}")
         tools = _str_set(data.get("tools"), "scope.tools")
@@ -115,7 +125,20 @@ class IntentScope:
             raise ValueError("scope.targets must be an object")
         targets = {str(arg): _str_set(ids, f"scope.targets.{arg}")
                    for arg, ids in raw_targets.items()}
-        return cls(tools=tools, effects=effects, targets=targets)
+        raw_arguments = data.get("arguments", [])
+        if isinstance(raw_arguments, (str, bytes)) or not isinstance(raw_arguments, Iterable):
+            raise ValueError("scope.arguments must be a list of conditions")
+        from remora.capabilities.constraints import Condition
+
+        arguments = []
+        for raw in raw_arguments:
+            if not isinstance(raw, Mapping):
+                raise ValueError("each scope.arguments entry is a condition object")
+            condition = Condition.from_dict(raw)  # raises on anything malformed
+            if condition.argument is None or condition.needs_state:
+                raise ValueError("scope.arguments conditions name an argument and read no state")
+            arguments.append(condition.canonical())
+        return cls(tools=tools, effects=effects, targets=targets, arguments=tuple(arguments))
 
     def check(
         self,
@@ -140,6 +163,18 @@ class IntentScope:
             value = arguments.get(arg)
             if allowed is None or not isinstance(value, str) or value not in allowed:
                 violations.append(f"target:{arg}")
+        if self.arguments:
+            from remora.capabilities.constraints import (
+                Condition,
+                ToolConstraint,
+                evaluate_constraint,
+            )
+
+            args = arguments if isinstance(arguments, Mapping) else {}
+            for raw in self.arguments:
+                condition = Condition.from_dict(raw)
+                if evaluate_constraint(ToolConstraint(conditions=(condition,)), args) is not None:
+                    violations.append(f"argument:{condition.argument}")
         if violations:
             return IntentScopeResult(OUT_OF_SCOPE, tuple(violations))
         return IntentScopeResult(IN_SCOPE)

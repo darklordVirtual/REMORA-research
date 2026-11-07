@@ -1,0 +1,20 @@
+{
+ "S1_scope_widened": [
+  "scope_widened_at_link:1:vendor:add"
+ ],
+ "S2_amount_altered": "VALID",
+ "S2b_rerooted_at_intermediary": "VALID",
+ "S2c_shared_key_forged_origin": "VALID",
+ "S3_first": "VALID",
+ "S3_replay_same_guard": [
+  "replay_detected"
+ ],
+ "S3_replay_after_restart_in_memory_guard": "VALID",
+ "S3_other_audience": [
+  "audience_mismatch"
+ ],
+ "S4_other_task_verifier_checks": [
+  "task_mismatch"
+ ],
+ "S4_other_task_verifier_does_not_check": "VALID"
+}

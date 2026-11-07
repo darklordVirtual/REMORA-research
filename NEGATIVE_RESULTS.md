@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-11-03: **38 `open`**, **33 `accepted`**, **31 `superseded`**.
+Counts as of 2026-11-07: **39 `open`**, **33 `accepted`**, **31 `superseded`**.
 
 ## The actual backlog
 
@@ -204,6 +204,13 @@ cites only `open` sections and that no `open` section is missing a theme.
    point rule. The 14 blocked benign calls were 12 writes and 2 reads, with
    payload integrity the main cause. Open until a redesigned arm passes a
    development gate or SAP v8 is withdrawn.
+
+23. **Delegated authority across agents is checked in a reference path only** (§103):
+   the A2A envelope accepted an intermediary's changed amount, a chain
+   re-rooted at the intermediary and a shared-key forgery, with every strict
+   argument supplied. Signed per-link argument conditions, an anchored root
+   and shared-key refusal now refuse all three. Open while no route receives
+   an envelope and no implementation but the author's has run the cases.
 
 <!-- backlog-end -->
 
@@ -2715,6 +2722,7 @@ sections again.
 | Study C holdout: utility recovered and authority held under defence-aware search; the monitor threshold decided how much (§96) | H_DET and H_COST 20/33 reads, H_EDV 32/33, H0 0/33; every loss a monitor veto at the threshold. No WS1 arm executed an attack goal, an out-of-scope call or a leak in 121 attack episodes each; arm A did | **High** |
 | REMORA did not stop a payment past its budget, and had nothing that could (§97) | Replayed through /assess, /approve and /execute, all three 7000 payments ran (21000 of 20000). Opt-in cumulative limits reserved at dispatch (CAP-031) now refuse the third, and cap setpoint movement, starts and runtime per unit; author's replays only. Blind OT holdouts: legitimate writes refused in 26 of 40 shifts (v1), 3 of 40 (v2), 6 of 40 with a stop (v3) and 0 of 40 (v4 candidate, not deployed); misuse harm reached in 5 of 40 episodes (v1), 18 (v3) and 23 (candidate) | **High** |
 | The review path handed back an unspent grant when the admission refused (§98) | Under `REMORA_WS1_ADMISSION=atomic` the ACCEPT grant was minted before the admission; a refusal rolled the spend back and the response still carried the grant, which `/execute-accepted` accepted and spent. Now spent in place and withheld; route tests pin it. Author's tests only | **High** |
+| The A2A envelope accepted an intermediary's changed amount, a re-rooted chain and a shared-key forgery (§103) | With every strict argument supplied, a chain whose links carried no parameters let an envelope for 25000 verify where the authority meant 250; a chain started at the intermediary's own key verified; one HMAC key registered for every principal let the intermediary sign as the origin; an in-memory guard forgot nonces at a restart; an unchecked task binding passed. Repaired with signed per-link argument conditions, an anchored root, shared-key refusal, Ed25519 links, a durable guard and strict unchecked-binding failures. Reference path, author's tests only | **Medium** |
 | G1 failed on AgentDojo development tasks (§100) | `E_IFC_WS1` completed 7/18 benign tasks against 6/18 for refuse-all and kept 0/48 injected goals; 14 blocked benign calls were 12 writes and 2 `get_webpage` reads, payload integrity the main cause. Scripted replay, zero model calls; SAP v8 stays DRAFT and unregistered | **High** |
 | The AROMER learning layer ran idle for four months, and its AII step is unexplained (§101) | 124 daily snapshots after the last episode (2026-07-02) show AII 0.9897 to 0.9915 on a frozen 200-episode sample; nine priors and all three bandit rows carry observation counts above the 21,864 episodes; the one-day ECE drop from 0.0637 to 0.0065 on 06-29 has no recorded cause. On the 18,249 recorder-hook episodes AROMER asked for review on 3,033 (16.6 %), 2,767 of them medium-tier shell execution | **Medium** |
 | Study B holdout: the monitor-directed arm lost utility, and the attack search was barely adaptive (§95) | H_EDV 15/45 reads against H_DET 28/45; it vetoed all 43 benign port reads. 55 of 60 final injections were the fixed template. No unauthorized dispatch in any WS1 arm | **High** |
@@ -6565,3 +6573,87 @@ Limits:
   utility; `E_IFC` happens to reach that ceiling here.
 - The intent extractor's 0 of 18 is a property of this extractor on these
   texts, not a statement about intent resolution in general.
+
+## §103 The A2A envelope accepted an intermediary's changed amount, a re-rooted chain and a shared-key forgery (2026-11-07)
+<!-- finding-status: open -->
+
+**Status:** repaired in the reference path with tests
+(`tests/test_delegated_authority_propagation.py`, CAP-006). Open: the
+envelope has no receiving route, and every case is the author's.
+
+An external analysis of delegated authorization in multi-agent systems
+separated two things: a delegation chain that is cryptographically intact,
+and one that still carries what the original authority allowed. That prompted
+four questions of REMORA's A2A envelope (`remora/governance/a2a_envelope.py`).
+The probe that asked them is kept at `dea40402`, the commit before the repair
+(`artifacts/assurance/delegated-authority-2026-11-07/`). A two-hop chain was
+used, and every strict argument was supplied.
+
+- **An intermediary widens the scope.** Refused, `scope_widened_at_link`.
+- **An intermediary changes the amount from 250 to 25000.** This verified in
+  three forms. No link carried the authority's parameters. A chain started
+  at the intermediary's own registered key verified, because nothing named
+  who may start a chain. One HMAC key registered for every principal let the
+  intermediary sign a link as the origin.
+- **Replay.** Refused with the same guard. Accepted after a restart that
+  emptied an in-memory guard: REMORA left the guard to the caller and shipped
+  no durable one for the envelope.
+- **Another task.** Refused when the verifier asked. Accepted when it did
+  not, because strict mode did not require the check.
+
+The repair:
+
+- A link carries argument `conditions`. Every link's conditions hold
+  together, and each sits in a link its delegator signed. The 25000 envelope
+  is refused as `argument_outside_delegation`.
+- `expected_roots` names who may start a chain, and strict mode requires it.
+- A link signed with an HMAC key registered for more than one principal never
+  verifies.
+- A link may be signed with Ed25519, against a registry entry that holds only
+  the public key.
+- `durable_replay_guard` keeps nonces in the durable nonce store, so a replay
+  is refused after a restart and by every process sharing the store.
+- In strict mode, a bound task or declared operation that the verifier did
+  not check fails. A link's task binding cannot be changed further down the
+  chain.
+
+The execution API already answered three of the four questions. The fourth
+gap, a work order that could not bound an amount, is closed by `arguments`
+conditions on `IntentScope`. A call past them is refused at assess with no
+review.
+
+An adversarial review of that first repair, the same day, found six more
+ways through it. All are now refused, each with a test (`test_review_*`):
+
+- **Parent substitution.** A link signed only its own fields. A holder of two
+  links from the origin could put the unbounded one in front of a link issued
+  under the bounded one, and drop its amount bound and task. A link after the
+  first now signs its parent's digest (`parent_digest`), and strict mode
+  requires it (`strict_unbound_parent_at_link`).
+- **Keys HMAC treats as one.** The shared-key check compared raw bytes. A key
+  with trailing zero bytes, or a key longer than 64 bytes and its SHA-256,
+  produce the same MACs and passed as two keys. Keys are now compared as HMAC
+  uses them.
+- **A link key equal to the envelope key** was accepted, so the holder of the
+  envelope key could write the origin's link. It is refused.
+- **A condition on a non-string argument** made `verify` and
+  `IntentScope.check` raise instead of fail. A condition's subject must now be
+  a non-empty string.
+- **`True` met `eq 1`, and infinity met a one-sided bound**, in the shared
+  condition vocabulary. Equality now keeps booleans apart from numbers, and a
+  numeric bound is never met by NaN or infinity. This also applies to
+  capability conditions at dispatch.
+- **`expected_roots` as a bare string** was read as a set of its characters.
+  It now raises.
+
+Limits:
+
+- The envelope is a reference path: no route receives one, and its own
+  signature is still symmetric. The requested scope and the call binding rest
+  on that key's custody. The delegators' decisions rest on their link
+  signatures.
+- The conditions bind the arguments the verifier passes, not a value read
+  from trusted state.
+- Every case was written by the author. No external implementation has run
+  them.
+

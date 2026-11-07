@@ -28,6 +28,7 @@ that needs state when no reader is bound, or whose read fails, refuses as
 """
 from __future__ import annotations
 
+import math
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Any
@@ -49,6 +50,16 @@ def _number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
+def _finite(value: Any) -> bool:
+    """A number a bound can be met by: not a bool, not NaN or infinite."""
+    return _number(value) and math.isfinite(value)
+
+
+def _same(a: Any, b: Any) -> bool:
+    """Equality that keeps ``True`` apart from ``1`` and ``False`` from ``0``."""
+    return isinstance(a, bool) == isinstance(b, bool) and bool(a == b)
+
+
 @dataclass(frozen=True)
 class Condition:
     """One comparison. Exactly one of ``argument`` or ``state`` names the subject."""
@@ -61,6 +72,11 @@ class Condition:
     def __post_init__(self) -> None:
         if (self.argument is None) == (self.state is None):
             raise ValueError("a condition names exactly one of argument or state")
+        for subject in (self.argument, self.state):
+            if subject is not None and (not isinstance(subject, str) or not subject):
+                # A list or other value here would raise at evaluation instead
+                # of refusing (adversarial review 2026-11-07).
+                raise ValueError("a condition's argument or state is a non-empty string")
         if self.operator not in _OPERATORS:
             raise ValueError(f"unknown operator {self.operator!r}")
         if self.operator in _NUMERIC and not _number(self.operand):
@@ -147,15 +163,15 @@ def _holds(condition: Condition, value: Any, reader: StateReader | None,
 
         return resource_within(value, operand)
     if op == "eq":
-        return bool(value == operand)
+        return _same(value, operand)
     if op == "ne":
-        return bool(value != operand)
+        return not _same(value, operand)
     if op == "in":
-        return value in operand
+        return any(_same(value, item) for item in operand)
     if op == "not_in":
-        return value not in operand
-    if not _number(value):
-        return False  # a numeric bound is never met by a non-number
+        return not any(_same(value, item) for item in operand)
+    if not _finite(value):
+        return False  # a numeric bound is never met by a non-number, NaN or infinity
     return {"lt": value < operand, "lte": value <= operand,
             "gt": value > operand, "gte": value >= operand}[op]
 

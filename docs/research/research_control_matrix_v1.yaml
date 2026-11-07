@@ -70,7 +70,7 @@
 # is documented, not invisible.
 
 schema_version: "1"
-updated: "2026-10-26"
+updated: "2026-11-07"
 
 maturity_levels:
   - implemented_and_tested
@@ -1502,6 +1502,81 @@ entries:
     in_code_citation: false
     compendium_refs:
       - saltzer-schroeder-1975
+
+  - id: RES-027
+    title: "Delegated authority across trust domains: attenuation, anchored roots and signed argument conditions in multi-hop agent chains"
+    source:
+      citation: "Ellison, C., Frantz, B., Lampson, B., Rivest, R., Thomas, B. & Ylonen, T. (1999). SPKI Certificate Theory. RFC 2693, IETF."
+      sections:
+        - "Authorisation tuple reduction: a chain grants only the intersection of what each certificate grants"
+      builds_on:
+        - "Birgisson, A., Politz, J. G., Erlingsson, U., Taly, A., Vrable, M. & Lentczner, M. (2014). Macaroons: Cookies with Contextual Caveats for Decentralized Authorization in the Cloud. NDSS 2014 (caveats a holder may add and never remove)."
+        - "REMORA internal: NTA-1 (docs/security/non-transitivity-of-authority.md) and the in-process capability delegation of RES-020."
+    concepts:
+      - authority_narrows_across_hops
+      - origin_decision_carried_in_signed_link
+      - anchored_delegation_root
+      - principal_bound_link_keys
+      - replay_across_restart_and_verifiers
+      - task_carried_by_the_chain
+    controls:
+      - link_scope_attenuation
+      - signed_link_argument_conditions
+      - expected_roots
+      - shared_hmac_key_refusal
+      - ed25519_link_signatures
+      - durable_a2a_replay_guard
+      - strict_unchecked_binding_failures
+      - work_order_argument_bounds
+    capabilities:
+      - CAP-006
+    code:
+      - remora/governance/a2a_envelope.py
+      - remora/crypto/domain_signing.py
+      - remora/enforcement/nonce_store.py
+      - remora/toolcall/intent_scope.py
+      - remora/capabilities/constraints.py
+    tests:
+      - tests/test_delegated_authority_propagation.py
+      - tests/test_a2a_envelope.py
+      - tests/test_a2a_declared_operation.py
+      - tests/test_task_bound_lease_and_envelope.py
+      - tests/test_intent_scope.py
+    evidence: >-
+      Four questions asked of both paths
+      (artifacts/assurance/delegated-authority-2026-11-07/): an intermediary
+      widening its scope, an intermediary changing what the authority allowed
+      (a payment of 250 into one of 25000), replay after a restart or at another
+      verifier, and a signed chain used for another task. At dea40402 the A2A
+      envelope stopped only the first, with every strict argument supplied
+      (baseline.json, NEGATIVE_RESULTS.md section 103). With the change each
+      is refused: argument_outside_delegation, untrusted_delegation_root,
+      shared_link_key_at_link, replay_detected through the durable store
+      after a restart and from a second process, task_outside_delegation and
+      strict_unchecked_task_binding. An honest two-hop chain with a bounded
+      amount still verifies. On the execution API the replay and task
+      questions were already answered by the durable grant and lease ledgers
+      and the work-order scope guard. A work order now bounds arguments as
+      well, and a call past them is refused at assess with no review item.
+    maturity: implemented_and_tested
+    scope_boundary: >-
+      The A2A envelope is a reference path: no /v1/execution/* route receives
+      one, CAP-006 stays WIRED_REFERENCE_PATH, and its own signature is still
+      symmetric, so the requested scope and the call binding rest on that
+      key's custody while the delegators' decisions rest on their link
+      signatures. Link conditions read arguments only, never trusted state,
+      and bind the arguments the verifier passes. No proof of possession. Open
+      questions for this track, not built: an asymmetric envelope signature
+      and a receiving route; whether the original authority's intent (not
+      only its parameters) can be carried without the agent constructing it;
+      replay semantics across verifiers that share no store; and an
+      implementation-neutral delegation probe set for AACP property B, which
+      today ships portable cases for C, F and G only. Every case here was
+      written by the author.
+    related_work_section: "docs/09-related-work.md §19"
+    in_code_citation: false
+    compendium_refs: []
+    compendium_note: "Classic prior art cited for the mechanism class; nothing is claimed as new. Prompted by an external analysis of delegated authorization in agent-to-agent systems, which is not cited, quoted or used as data here."
 
 landscape:
   source: "docs/researchpapers/kompendium_ai_assurance_3utgave.md"

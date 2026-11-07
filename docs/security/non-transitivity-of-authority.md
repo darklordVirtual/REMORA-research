@@ -91,6 +91,37 @@ purpose, cannot outlive its parent, and lives at most
 `MAX_DELEGATION_TTL_SECONDS` (300 s). Revoking any ancestor revokes every set
 derived from it.
 
+### Across domains: the A2A envelope
+
+A chain that crosses organisations cannot share one process's capability
+sets. Each hop then signs a `DelegationLink` in the envelope
+(`remora/governance/a2a_envelope.py`), and the receiving side checks the same
+three forms on what the links carry:
+
+- **Reachability.** A link's scope is a subset of the scope before it, and
+  the requested scope lies inside what the chain grants.
+- **Argument authority.** A link may carry `conditions` on the call's
+  arguments, in the vocabulary of `remora/capabilities/constraints.py`. The
+  conditions of every link hold together, so a later hop can add one and
+  cannot drop or loosen one. Each condition sits in the link its delegator
+  signed. An intermediary that can sign the envelope itself still cannot
+  issue it for arguments an earlier link excludes.
+- **Delegation transitivity.** The chain must start at an authority the
+  verifier names (`expected_roots`). A link may bind the task it delegates
+  for. A later link keeps that task, and the envelope must name it. Each
+  link after the first signs the digest of its parent, so a looser link from
+  the same delegator cannot be put in its place.
+
+A link is signed either with an HMAC key bound to one principal, or with
+that principal's Ed25519 key (`REMORA/A2A-DELEGATION-LINK/v1`). An HMAC key
+registered for two principals binds neither, so a link signed with it never
+verifies, and neither does one whose key is the envelope key. Keys are
+compared as HMAC uses them, after padding and hashing. With Ed25519 the verifier's registry holds only public keys, and
+whoever holds the registry cannot write a link in the delegator's name.
+`durable_replay_guard` consumes each envelope's nonce in the same durable
+store as lease nonces, under the verifier's own namespace, so a replay is
+refused after a restart and by every verifier process that shares the store.
+
 ## NTA-2: implementation reachability
 
 ```text
@@ -164,6 +195,9 @@ unspent. Revocation is read from the epoch source the deployment binds
 | A derived set is bound to its delegatee | `principal_id` of the child set, checked at dispatch (`capability_principal_mismatch`) |
 | The chain cannot be rewritten | `parent_digest` and `ancestor_ids` enter the child's digest (`remora/capabilities/model.py`) |
 | Revoking a parent revokes its descendants | `revocation_refusal()` walks `ancestor_ids` in `remora/capabilities/revocation.py` |
+| Across domains, scope only narrows and argument conditions only accumulate | `A2AGovernanceEnvelope.verify` in `remora/governance/a2a_envelope.py` (`scope_widened_at_link`, `argument_outside_delegation`, `link_conditions_unchecked`) |
+| Across domains, a chain starts at a named authority and keeps its task | `expected_roots` (`untrusted_delegation_root`), `task_changed_at_link`, `task_outside_delegation` |
+| A work order bounds the arguments it authorizes | `arguments` in `IntentScope` (`remora/toolcall/intent_scope.py`), a violation `argument:<name>` refused at assess with no review |
 
 ## Evidence
 
@@ -266,7 +300,14 @@ the class, not how often the pattern occurs in real systems.
    later reads under its own, separately granted authority, each call is
    authorized on its own terms. Multi-step and data-flow analysis is the open
    gap G-2 in `docs/14-remora-prime-architecture.md`.
-6. The evidence is author-run. 24 conformance vectors and 4 study
+6. The A2A envelope is a reference path. No `/v1/execution/*` route receives
+   one, so its checks run where a deployment calls `verify()`. The envelope's
+   own signature is still a symmetric HMAC key. The requested scope, the call
+   binding and the envelope's task are only as strong as that key's custody.
+   What the delegators decided is protected by their link signatures instead.
+   The conditions bind the arguments the verifier passes; computing those and
+   the call hash from the same call is the verifier's job.
+7. The evidence is author-run. 24 conformance vectors and 4 study
    proposals, all written by the authors. No external implementation has run
    the suite and no external replication exists.
 

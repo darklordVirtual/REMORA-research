@@ -48,6 +48,32 @@ alongside any A2A request:
   lie inside the declaration. A declaration only narrows; an absent one
   never widens, because the observed action must still be authorized.
 
+- **Argument conditions and task, signed per link** — a link may carry
+  ``conditions`` on the call's arguments, in the vocabulary of
+  :mod:`remora.capabilities.constraints` (``lte``, ``in``, ``eq`` ...), and
+  the task it delegates for. The conditions of every link hold together, so
+  a later hop can add a condition and cannot drop or loosen one: each sits in
+  a link signed by the delegator who set it. An intermediary that holds the
+  envelope key can therefore still issue an envelope, but not for arguments
+  an earlier link excludes.
+- **Anchored root** — ``expected_roots`` names the principals that may start
+  a chain. Without it, any holder of a registered key could start a chain of
+  its own and grant itself any scope.
+- **No shared link keys** — the same symmetric key registered for two
+  principals lets either sign as the other, so a link signed with such a key
+  never verifies.
+- **Bound parent** — a link after the first signs the digest of the link
+  before it (``parent_digest``, set by :func:`sign_delegation_link` with
+  ``parent``). Without it, a holder of two links from the same delegator
+  could put the looser one in front of a link issued under the stricter one,
+  and drop its conditions or task. Strict mode requires it.
+- **Distinct keys** — a link's HMAC key is never the envelope key, nor a key
+  HMAC treats as equal to it (zero padding, or a long key and its SHA-256).
+- **Origin-verifiable links** — a link may be signed with the delegator's
+  Ed25519 key (:func:`sign_delegation_link` with ``signing_key``). Its
+  registry entry then holds only the public key, so the verifier, and anyone
+  who copies the registry, cannot write a link in the delegator's name.
+
 Scope strings are opaque capability names (e.g. ``"workorder:read"``,
 ``"workorder:propose_change"``). Hierarchical wildcard matching is
 deliberately NOT supported — a wildcard grant cannot be attenuated safely,
@@ -56,12 +82,14 @@ reason.
 
 Trust-model scope (stated plainly)
 ----------------------------------
-This reference implementation uses symmetric HMAC keys: envelope-level with
-``REMORA_A2A_SIGNING_KEY`` (or an explicit per-counterparty key), link-level
-via a ``kid`` → key registry. That demonstrates the *structure* of the trust
-chain — per-link attestation, attenuation, revocation-by-registry — but a
-symmetric key shared between issuer and verifier proves integrity, not
-third-party origin. A production deployment should replace the HMAC layer
+The envelope itself is signed with a symmetric HMAC key
+(``REMORA_A2A_SIGNING_KEY`` or an explicit per-counterparty key). Links are
+signed with a ``kid`` from a verifier-owned registry: an HMAC key bound to a
+principal, or that principal's Ed25519 public key. A symmetric key shared
+between issuer and verifier proves integrity, not third-party origin, so the
+envelope's own fields (requested scope, call binding) are only as strong as
+the custody of that key. What a delegator decided is carried in its signed
+link, and that is what the conditions and the anchored root rest on. A production deployment should replace the HMAC layer
 with asymmetric signatures (JWS with key ids, published verification keys,
 and rotation, as A2A-style agent-card specifications define) without
 changing the envelope's field contract or verification semantics. Unsigned
@@ -81,6 +109,10 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Collection, Mapping
+    from typing import Any
+
+    from remora.crypto import SigningKey, VerificationKey
     from remora.governance.task_identity import TaskIdentity
 
 PROTOCOL_VERSION = "remora-a2a-governance/v1"
@@ -129,15 +161,73 @@ class DelegationLink:
     expires_at: str | None = None
     kid: str | None = None
     signature: str = ""
+    #: Conditions on the call's arguments, each a canonical
+    #: :class:`remora.capabilities.constraints.Condition` (``{"lte": 250,
+    #: "argument": "amount"}``). Argument conditions only: a verifier on a
+    #: trust boundary has no trusted state to read.
+    conditions: tuple[dict, ...] = ()
+    #: The task this link delegates for, both halves or neither.
+    context_id: str | None = None
+    task_id: str | None = None
+    #: :func:`link_digest` of the link before this one, so the delegator's
+    #: signature fixes which parent it delegated under.
+    parent_digest: str | None = None
 
-    def signable_payload(self) -> bytes:
+    def _canonical(self, *, with_signature: bool) -> bytes:
         data = asdict(self)
-        data.pop("signature", None)
+        if not with_signature:
+            data.pop("signature", None)
+        # Left out when absent, so a link without them signs the bytes it
+        # signed before they existed.
+        if not data.get("conditions"):
+            data.pop("conditions", None)
+        for key in ("context_id", "task_id", "parent_digest"):
+            if data.get(key) is None:
+                data.pop(key, None)
         return json.dumps(data, sort_keys=True, separators=(",", ":"), default=str).encode()
 
+    def signable_payload(self) -> bytes:
+        return self._canonical(with_signature=False)
 
-def sign_delegation_link(link: DelegationLink, *, key: bytes, kid: str) -> DelegationLink:
-    """Return a copy of *link* signed by the delegator's key (named *kid*)."""
+
+def link_digest(link: DelegationLink) -> str:
+    """SHA-256 of a signed link, signature included: one issued instance."""
+    return "sha256:" + hashlib.sha256(link._canonical(with_signature=True)).hexdigest()
+
+
+#: The prefix of a link signature made with an Ed25519 key.
+ED25519_PREFIX = "ed25519:"
+
+
+def sign_delegation_link(link: DelegationLink, *, key: bytes | None = None,
+                         kid: str | None = None,
+                         signing_key: SigningKey | None = None,
+                         parent: DelegationLink | None = None) -> DelegationLink:
+    """Return a copy of *link* signed by the delegator.
+
+    With ``key`` and ``kid``, an HMAC-SHA256 signature under that registry
+    key. With ``signing_key``, an Ed25519 signature in the
+    ``REMORA/A2A-DELEGATION-LINK/v1`` domain, whose ``kid`` is the key's
+    derived id. Which one a verifier accepts is decided by its registry entry,
+    never by the link. ``parent``, the signed link this one delegates under,
+    is bound by its digest (``parent_digest``).
+    """
+    if (key is None) == (signing_key is None):
+        raise ValueError("sign with exactly one of key (HMAC) or signing_key (Ed25519)")
+    if parent is not None:
+        if not parent.signature:
+            raise ValueError("a parent link is bound once it is signed")
+        link = dataclass_replace(link, parent_digest=link_digest(parent))
+    if signing_key is not None:
+        from remora.crypto import SignatureDomain
+        from remora.crypto import sign as ed25519_sign
+
+        stamped = dataclass_replace(link, kid=signing_key.kid, signature="")
+        sig = ed25519_sign(SignatureDomain.A2A_DELEGATION_LINK, stamped.signable_payload(),
+                           signing_key)
+        return dataclass_replace(stamped, signature=ED25519_PREFIX + sig.value)
+    if not kid or key is None:
+        raise ValueError("an HMAC-signed link names its registry kid")
     stamped = dataclass_replace(link, kid=kid, signature="")
     signature = hmac.new(key, stamped.signable_payload(), hashlib.sha256).hexdigest()
     return dataclass_replace(stamped, signature=signature)
@@ -174,6 +264,14 @@ class RegisteredKey:
     key: bytes
     principal: str
     revoked: bool = False
+    #: The principal's Ed25519 public key, for links it signs with
+    #: ``signing_key``. Exactly one of ``key`` and this is set: an entry with
+    #: a public key holds no material that can sign.
+    verification_key: VerificationKey | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.key, (bytes, bytearray)):
+            raise TypeError("a registry key is bytes (use b'' for an Ed25519-only entry)")
 
 
 @dataclass(frozen=True)
@@ -301,6 +399,8 @@ class A2AGovernanceEnvelope:
         strict: bool = True,
         expected_task_identity: TaskIdentity | None = None,
         actual_operation: tuple[str, str] | None = None,
+        expected_roots: Collection[str] | None = None,
+        actual_arguments: Mapping[str, Any] | None = None,
     ) -> VerificationResult:
         """Verify integrity, accountability, and delegation attenuation.
 
@@ -341,8 +441,9 @@ class A2AGovernanceEnvelope:
             The task the receiving side is executing. When given, the envelope
             must have been issued under exactly that task: ``task_unbound``
             when it names none, ``task_mismatch`` when it names another. Not
-            part of ``strict``, because no caller supplies a task identity
-            yet; a malformed identity (one half only) fails regardless.
+            required by ``strict`` for an envelope and chain that bind no
+            task; ``strict`` fails one that binds a task this was not given
+            for (below). A malformed identity (one half only) fails regardless.
         actual_operation:
             ``(action, resource)`` the receiving side is about to perform.
             With a declaration it must lie inside it
@@ -351,7 +452,30 @@ class A2AGovernanceEnvelope:
             (``actual_operation_exceeds_authority``). A declared action outside
             the requested or delegated scope fails whether or not this is
             given (``declared_operation_exceeds_authority``).
+        expected_roots:
+            The principals whose authority a chain may start from. The first
+            link's delegator must be one of them
+            (``untrusted_delegation_root``). Required by ``strict``: without
+            it, any holder of a registered key can start a chain of its own.
+            A collection of names; a bare string raises ``TypeError``.
+        actual_arguments:
+            The arguments of the call being authorised, the same call
+            ``expected_tool_call_hash`` was computed from. Every link's
+            conditions must hold on them (``argument_outside_delegation``).
+            A chain with conditions and no arguments to check them against
+            fails (``link_conditions_unchecked``), in every mode.
+
+        In ``strict`` mode a binding the envelope carries but the caller did
+        not ask to check fails: a task bound in the envelope or a link without
+        ``expected_task_identity`` (``strict_unchecked_task_binding``), and a
+        declared operation without ``actual_operation``
+        (``strict_unchecked_declared_operation``). An unchecked binding must
+        not read as a checked one. So does a link after the first that does
+        not bind its parent (``strict_unbound_parent_at_link``).
         """
+        if isinstance(expected_roots, (str, bytes)):
+            # A string would be read as a set of its characters.
+            raise TypeError("expected_roots is a collection of principal names")
         failures: list[str] = []
 
         # 0. Strict mode: an omitted argument is a skipped check, and a
@@ -365,6 +489,18 @@ class A2AGovernanceEnvelope:
                 failures.append("strict_missing_link_keys")
             if replay_guard is None:
                 failures.append("strict_missing_replay_guard")
+            if expected_roots is None:
+                failures.append("strict_missing_expected_roots")
+            binds_task = self.context_id is not None or self.task_id is not None or any(
+                link.context_id is not None or link.task_id is not None
+                for link in self.delegation_chain)
+            if binds_task and expected_task_identity is None:
+                failures.append("strict_unchecked_task_binding")
+            if self.declared_operation is not None and actual_operation is None:
+                failures.append("strict_unchecked_declared_operation")
+            for i, link in enumerate(self.delegation_chain[1:], start=1):
+                if link.parent_digest is None:
+                    failures.append(f"strict_unbound_parent_at_link:{i}")
 
         # 1. Signature — unsigned never verifies.
         key = signing_key if signing_key is not None else _get_signing_key()
@@ -458,7 +594,19 @@ class A2AGovernanceEnvelope:
                 failures.append("actual_operation_exceeds_authority")
 
         # 8. Delegation chain attenuation (+ per-link signatures if registry given).
-        failures.extend(self._verify_delegation_chain(link_keys))
+        failures.extend(self._verify_delegation_chain(link_keys, envelope_key=key))
+
+        # 8b. Anchored root: the chain starts at an authority the verifier names.
+        if expected_roots is not None and self.delegation_chain:
+            root = self.delegation_chain[0].delegator
+            if root not in set(expected_roots):
+                failures.append(f"untrusted_delegation_root:{root}")
+
+        # 8c. The task the chain delegates for, as its links signed it.
+        failures.extend(self._verify_chain_task(bound_task_or_none(self)))
+
+        # 8d. Argument conditions of every link, together.
+        failures.extend(self._verify_link_conditions(actual_arguments))
 
         # 9. Requested scope must be covered by the effective delegated scope.
         effective = self.effective_scope()
@@ -506,7 +654,8 @@ class A2AGovernanceEnvelope:
         return VerificationResult(valid=not failures, failures=tuple(failures))
 
     def _verify_delegation_chain(
-        self, link_keys: dict[str, RegisteredKey] | None = None
+        self, link_keys: dict[str, RegisteredKey] | None = None,
+        *, envelope_key: bytes | None = None,
     ) -> list[str]:
         failures: list[str] = []
         if not self.delegation_chain:
@@ -514,7 +663,16 @@ class A2AGovernanceEnvelope:
             return failures
         previous_scope: set[str] | None = None
         previous_delegatee: str | None = None
+        shared = _shared_hmac_kids(link_keys) if link_keys is not None else set()
+        envelope_hmac = _hmac_equivalent(envelope_key) if envelope_key else None
         for i, link in enumerate(self.delegation_chain):
+            if link.parent_digest is not None:
+                # The delegator signed which link it delegated under.
+                if i == 0:
+                    failures.append("parent_digest_on_root_link")
+                elif not isinstance(link.parent_digest, str) or not hmac.compare_digest(
+                        link.parent_digest, link_digest(self.delegation_chain[i - 1])):
+                    failures.append(f"parent_mismatch_at_link:{i}")
             if link_keys is not None:
                 if not link.kid or not link.signature:
                     failures.append(f"unsigned_delegation_link:{i}")
@@ -531,13 +689,18 @@ class A2AGovernanceEnvelope:
                             f"kid_principal_mismatch_at_link:{i}:"
                             f"{link.kid}!={link.delegator}"
                         )
-                    else:
-                        unsigned = dataclass_replace(link, signature="")
-                        expected = hmac.new(
-                            registered.key, unsigned.signable_payload(), hashlib.sha256
-                        ).hexdigest()
-                        if not hmac.compare_digest(expected, link.signature):
-                            failures.append(f"link_signature_mismatch:{i}")
+                    elif bool(registered.key) == (registered.verification_key is not None):
+                        failures.append(f"malformed_registry_entry_at_link:{i}:{link.kid}")
+                    elif link.kid in shared:
+                        # One symmetric key registered for two principals lets
+                        # either sign as the other: it binds no principal.
+                        failures.append(f"shared_link_key_at_link:{i}:{link.kid}")
+                    elif registered.key and envelope_hmac is not None and \
+                            _hmac_equivalent(registered.key) == envelope_hmac:
+                        # Whoever holds the envelope key could sign this link.
+                        failures.append(f"link_key_is_envelope_key_at_link:{i}:{link.kid}")
+                    elif not _link_signature_ok(link, registered):
+                        failures.append(f"link_signature_mismatch:{i}")
             if not link.scope:
                 failures.append(f"empty_scope_at_link:{i}")
             if any("*" in capability for capability in link.scope):
@@ -555,6 +718,62 @@ class A2AGovernanceEnvelope:
         final = self.delegation_chain[-1]
         if final.delegatee != self.identity.agent_id:
             failures.append("final_delegatee_is_not_acting_agent")
+        return failures
+
+    def _verify_chain_task(self, envelope_task: TaskIdentity | None) -> list[str]:
+        """Links may bind the task they delegate for; a later link keeps it."""
+        from remora.governance.task_identity import TaskIdentity
+
+        failures: list[str] = []
+        chain_task: TaskIdentity | None = None
+        for i, link in enumerate(self.delegation_chain):
+            if link.context_id is None and link.task_id is None:
+                continue
+            try:
+                task = TaskIdentity.from_fields(
+                    {"context_id": link.context_id, "task_id": link.task_id})
+            except (TypeError, ValueError):
+                failures.append(f"malformed_link_task:{i}")
+                continue
+            if task is None:
+                continue
+            if chain_task is None:
+                chain_task = task
+            elif not chain_task.matches(task):
+                failures.append(f"task_changed_at_link:{i}")
+        if chain_task is not None and (envelope_task is None
+                                       or not chain_task.matches(envelope_task)):
+            failures.append("task_outside_delegation")
+        return failures
+
+    def _verify_link_conditions(self, arguments: Mapping[str, Any] | None) -> list[str]:
+        """Every link's conditions, together, on the actual arguments."""
+        from remora.capabilities.constraints import (
+            Condition,
+            ToolConstraint,
+            evaluate_constraint,
+        )
+
+        failures: list[str] = []
+        parsed: list[tuple[int, Condition]] = []
+        for i, link in enumerate(self.delegation_chain):
+            for raw in link.conditions or ():
+                try:
+                    condition = Condition.from_dict(raw)
+                except (TypeError, ValueError, AttributeError):
+                    failures.append(f"malformed_link_condition:{i}")
+                    continue
+                if condition.needs_state or condition.argument is None:
+                    failures.append(f"malformed_link_condition:{i}")
+                    continue
+                parsed.append((i, condition))
+        if not parsed or failures:
+            return failures
+        if arguments is None:
+            return ["link_conditions_unchecked"]
+        for i, condition in parsed:
+            if evaluate_constraint(ToolConstraint(conditions=(condition,)), arguments) is not None:
+                failures.append(f"argument_outside_delegation:{i}:{condition.argument}")
         return failures
 
     def effective_scope(self) -> set[str]:
@@ -620,15 +839,20 @@ class A2AGovernanceEnvelope:
                 for key in ("delegator", "delegatee", "issued_at"):
                     if not isinstance(link.get(key), str):
                         raise TypeError(f"link.{key} must be a string")
-                for key in ("expires_at", "kid"):
+                for key in ("expires_at", "kid", "context_id", "task_id", "parent_digest"):
                     if key in link and link[key] is not None and not isinstance(link[key], str):
                         raise TypeError(f"link.{key} must be a string or null")
+                conditions = link.get("conditions", [])
+                if not isinstance(conditions, list) or not all(
+                        isinstance(c, dict) for c in conditions):
+                    raise TypeError("link.conditions must be a list of objects")
                 if "signature" in link and not isinstance(link["signature"], str):
                     raise TypeError("link.signature must be a string")
             chain = tuple(
                 DelegationLink(**{
                     **link,
                     "scope": tuple(_require_str_list(link.get("scope"), "link.scope")),
+                    "conditions": tuple(dict(c) for c in link.get("conditions", [])),
                 })
                 for link in chain_data
             )
@@ -665,11 +889,93 @@ class A2AGovernanceEnvelope:
             raise ValueError(f"malformed_envelope:{exc}") from exc
 
 
+def durable_replay_guard(store: Any, *, verifier: str) -> Callable[[str], bool]:
+    """A ``replay_guard`` over a durable nonce store, for one verifier identity.
+
+    ``store`` is a :class:`remora.enforcement.nonce_store.DurableNonceStore`
+    (SQLite file, PostgreSQL or the state endpoint). A nonce is consumed by an
+    atomic insert, so it is refused after a restart and by every verifier
+    process sharing the store. ``verifier`` should be the audience the
+    verifier checks: nonces are kept per verifier identity, in a namespace of
+    their own beside the lease nonces. A store that cannot answer raises; the
+    envelope is then not verified at all, rather than verified as fresh.
+    """
+    if not verifier:
+        raise ValueError("a replay guard names the verifier it consumes nonces for")
+    scope = f"a2a:{verifier}"
+
+    def seen(nonce: str) -> bool:
+        return not store.try_consume(nonce, tenant_id=scope)
+
+    return seen
+
+
+_HMAC_BLOCK = 64  # SHA-256's block size, in bytes
+
+
+def _hmac_equivalent(key: bytes) -> bytes:
+    """The key HMAC-SHA256 actually uses (RFC 2104): a key longer than the
+    block is replaced by its hash, and every key is zero-padded to the block.
+    Two keys with the same result produce the same MACs."""
+    raw = bytes(key)
+    if len(raw) > _HMAC_BLOCK:
+        raw = hashlib.sha256(raw).digest()
+    return raw.ljust(_HMAC_BLOCK, b"\0")
+
+
+def _shared_hmac_kids(link_keys: Mapping[str, RegisteredKey]) -> set[str]:
+    """Kids whose HMAC key, as HMAC uses it, is registered for more than one principal."""
+    owners: dict[bytes, set[str]] = {}
+    for entry in link_keys.values():
+        if entry.key:
+            owners.setdefault(_hmac_equivalent(entry.key), set()).add(entry.principal)
+    return {kid for kid, entry in link_keys.items()
+            if entry.key and len(owners.get(_hmac_equivalent(entry.key), set())) > 1}
+
+
+def _link_signature_ok(link: DelegationLink, registered: RegisteredKey) -> bool:
+    """The link's signature under the registry entry's own algorithm."""
+    unsigned = dataclass_replace(link, signature="")
+    if registered.verification_key is not None:
+        # The entry decides the algorithm: an HMAC signature never passes
+        # against a public key, and an Ed25519 one never against an HMAC key.
+        if not link.signature.startswith(ED25519_PREFIX):
+            return False
+        from remora.crypto import ALGORITHM, Signature, SignatureDomain
+        from remora.crypto import verify as ed25519_verify
+
+        signature = Signature(ALGORITHM, SignatureDomain.A2A_DELEGATION_LINK.value,
+                              str(link.kid), link.signature[len(ED25519_PREFIX):])
+        return ed25519_verify(SignatureDomain.A2A_DELEGATION_LINK, unsigned.signable_payload(),
+                              signature, [registered.verification_key]).ok
+    if link.signature.startswith(ED25519_PREFIX):
+        return False
+    expected = hmac.new(registered.key, unsigned.signable_payload(), hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, link.signature)
+
+
+def bound_task_or_none(envelope: A2AGovernanceEnvelope) -> TaskIdentity | None:
+    """The envelope's task, or None when it names none or a malformed one."""
+    try:
+        return envelope.task_identity()
+    except (TypeError, ValueError):
+        return None
+
+
 def _drop_absent_task(data: dict) -> None:
     """Remove None-valued optional signed fields in place (see ``context_id``)."""
     for key in ("context_id", "task_id", "declared_operation"):
         if data.get(key) is None:
             data.pop(key, None)
+    # The links' optional fields too, so a chain without them serialises and
+    # signs as it did before they existed.
+    for link in data.get("delegation_chain") or ():
+        if isinstance(link, dict):
+            if not link.get("conditions"):
+                link.pop("conditions", None)
+            for key in ("context_id", "task_id", "parent_digest"):
+                if link.get(key) is None:
+                    link.pop(key, None)
 
 
 def _parse_iso_or_none(value: str) -> datetime | None:
