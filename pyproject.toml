@@ -437,6 +437,7 @@ pytest_add_cli_args_test_selection = [
     "tests/test_crypto_v2_token.py",
     "tests/test_custody_split_dispatch.py",
     "tests/test_decision_execution_correlation.py",
+    "tests/test_delegated_authority_propagation.py",
     "tests/test_delegated_execution_and_approval_policy.py",
     "tests/test_direct_accept_authority_binding.py",
     "tests/test_dispatch_clock_consistency.py",
@@ -491,6 +492,7 @@ pytest_add_cli_args_test_selection = [
     # Replays operator shifts through cumulative_limits with the pilot's signed
     # policy (docs/assurance/ot_limits_holdout_plan_v1.md); synthetic shifts only.
     "tests/test_limits_holdout_replay.py",
+    "tests/test_limits_protection.py",
     "tests/test_limits_holdout_sensitivity.py",
     "tests/test_nonce_store_consumed.py",
     "tests/test_plan_binding.py",
@@ -537,6 +539,7 @@ pytest_add_cli_args_test_selection = [
     "tests/limits/test_limits_dual_control.py",
     "tests/limits/test_limits_dual_control_api.py",
     "tests/limits/test_limits_exempt_while_safe.py",
+    "tests/limits/test_limits_free_toward_safe.py",
     "tests/limits/test_limits_mutation_contract.py",
     "tests/limits/test_limits_idempotency.py",
     "tests/limits/test_limits_ledger_topology.py",

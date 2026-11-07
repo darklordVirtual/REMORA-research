@@ -4,6 +4,36 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Delegated authority across agents: signed argument conditions, anchored roots, origin-verifiable links (2026-11-07)
+
+- Four questions were asked of both REMORA paths: an intermediary widening its scope, an intermediary changing what the authority allowed, replay after a restart or at another verifier, and a signed chain used for another task (`artifacts/assurance/delegated-authority-2026-11-07/`). The A2A envelope at `dea40402` stopped only the first, with every strict argument supplied (NEGATIVE_RESULTS §103).
+- `remora/governance/a2a_envelope.py` now refuses the rest:
+  - a link may carry argument `conditions` (the vocabulary of `remora/capabilities/constraints.py`), and every link's conditions hold together;
+  - `expected_roots` anchors the chain, and strict mode requires it;
+  - a link signed with an HMAC key registered for two principals never verifies;
+  - links may be signed with Ed25519 (`REMORA/A2A-DELEGATION-LINK/v1`) against a registry entry that holds only the public key;
+  - `durable_replay_guard` keeps nonces in the durable nonce store;
+  - a link may bind its task, which later links keep;
+  - strict mode fails a bound task or declared operation the verifier did not check;
+  - a link after the first signs its parent's digest, and strict mode requires it, so a looser parent cannot be put in front of a bound link;
+  - a link's HMAC key is compared with other principals' keys and with the envelope key as HMAC uses them (zero padding, long keys hashed).
+  A link or envelope without the new fields signs and serialises its earlier bytes. Strict mode now also requires `expected_roots` and a parent-bound chain, so a strict caller of a multi-link chain must re-sign its links with `parent`.
+- `remora/capabilities/constraints.py`: a condition's `argument` or `state` is a non-empty string; `eq`, `ne`, `in` and `not_in` no longer treat `True` as 1 or `False` as 0; a numeric bound is never met by NaN or infinity. This applies to capability conditions at dispatch too (adversarial review, §103). A second review found and fixed two regressions in that change: an int past about 1e308 raised instead of being refused, and `ne`/`not_in` admitted a bool equal to a listed number. A deny-list now refuses on either equality, and equality is type-strict at every depth and in `equals_state`. An Ed25519 link signature verifies only in canonical base64, and an empty envelope key neither signs nor verifies.
+- `remora/toolcall/intent_scope.py`: a work order's scope may bound the call's arguments (`"arguments": [{"lte": 250, "argument": "amount"}]`). A call past them is refused at assess as `intent_scope_mismatch`, with no review.
+- Research matrix RES-027 records the track, its classic prior art (SPKI, caveats) and its open questions; docs/09-related-work.md §19 and docs/security/non-transitivity-of-authority.md describe it. Tests: `tests/test_delegated_authority_propagation.py` (cases over both paths, with the adversarial review's).
+
+### AgentHarm: each tool call is gated before it runs; the paper states the scale limit
+
+- `experiments/agentharm/remora_mediated_solver.py`: `gate_tool` wraps every scenario tool on `TaskState.tools`, so REMORA assesses each call with the model's real arguments and the tool body runs only on ACCEPT. VERIFY, ABSTAIN, ESCALATE and a gate error do not execute. The agent receives a refusal as the tool result, and every decision is recorded in `metadata["remora_tool_decisions"]`. The intent-level pass is kept. Tests: `tests/test_agentharm_tool_interception.py` (10), which drive Inspect's real tool loop with its mock model, with no network and no key. CI does not install the agentharm extra, so the file skips there (`docs/assurance/skip_reason_allowlist_v1.yaml`). `inspect_tools_probe.py` reports `tools_beyond_submit_exposed: true` on three samples (`results/agentharm/tool_probe.json`, no model call). No AgentHarm run has used the interceptor; CLAIM-002, §19 and §80 are unchanged.
+- `paper/remora_paper.md` and `.tex`, §14 External validity: one paragraph on scale and breadth. It covers one third-party agent benchmark run end to end at intent level, AgentDojo development replay only with the held-out suite never run, Agent-SafetyBench as a 400-row metadata sample, no FAR claim at 299 independent units, and author-run evaluation.
+
+### OT pilot limits: a candidate v4, measured against misuse and legitimate shifts before any decision (§97, 2026-11-06)
+
+- `remora/enforcement/cumulative_limits.py`: an observed change meter may declare `free_toward_safe`, resources with a declared safe value. A write whose target lies between the plant's value and the safe value is charged nothing and is not refused by a full counter. After the fact, nothing more is charged only when the actual move also went towards safe. The fence still applies. This is an owner decision of 2026-11-06. CAP-031 is re-audited. Tests: `tests/limits/test_limits_free_toward_safe.py` (19).
+- `artifacts/ot-pilot/limits-v4/limits-candidate-v4.json` is v3 with valve travel at 200 % per hour and FIC-220 free towards 0, signed by the same authority. It is not deployed; the pilot subsequently added the PIC-101 second tier described below.
+- `scripts/run_limits_protection.py` replays misuse episodes under every policy and records when a declared harm is reached (tests: `tests/test_limits_protection.py`). `scripts/run_limits_holdout.py` gains `--policy` and `--trusted-key`, default unchanged. `scripts/limits_holdout_checks.py` computes plan v4's checks S1 to S3.
+- Plan v4 (`docs/assurance/ot_limits_holdout_plan_v4.md`, DOC-429): the candidate refused no legitimate write in 40 blind shifts with a stop (Wilson up to 8.8 %). Of 40 misuse episodes, it let 23 reach their harm, against 18 under v3 and 5 under v1. Five reach harm only under the candidate.
+
 ### Cumulative limits: a second tier that needs two approvers; S20 on the OT pilot (2026-11-06)
 
 - `remora/enforcement/cumulative_limits.py`: a limit may declare `dual_control_above` below its `max`. A call that would take the window's total past it runs only on the authority of two distinct approver identities, neither of them the proposer; `max` still refuses whatever the approvals. The reservation at dispatch checks the tier in the same transaction as the charge and refuses `limit_dual_control_unmet` on fewer than two. The tier is not a term of the limit's binding, so a limit that gains it keeps its ledger history.

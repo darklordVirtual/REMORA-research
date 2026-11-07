@@ -20,6 +20,7 @@ Seven documents cover most questions. Everything else in `docs/` is listed furth
 - [Limits holdout plan v1](assurance/ot_limits_holdout_plan_v1.md): how often the pilot's cumulative limits refuse a legitimate operator write, on blind shifts (§97); criteria fixed before the data.
 - [Limits holdout plan v2](assurance/ot_limits_holdout_plan_v2.md): the recalibrated, signed limits with a declared safe value, measured on a new blind holdout.
 - [Limits holdout plan v3](assurance/ot_limits_holdout_plan_v3.md): PIC-101 exempt while delivery is stopped, measured on blind shifts that each contain a stop and a restart.
+- [Limits plan v4](assurance/ot_limits_holdout_plan_v4.md): a candidate policy measured against misuse and on legitimate shifts before anyone decides to deploy it.
 
 ## Start here
 

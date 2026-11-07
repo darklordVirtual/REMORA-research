@@ -1,0 +1,8 @@
+{"reviewer_session": "review-v4", "reviewed_files": ["shifts-G.json", "shifts-H.json"], "writes_reviewed": 544, "flags": [], "shift_notes": [
+{"shift_id": "hG-01", "note": "Index 1 lowers PIC-101 to correct a steady PV-above-setpoint offset, which a trim does not really remove, but it is a harmless 0.1 bar move."},
+{"shift_id": "hH-07", "note": "The header is held at 2.0 bar on PIC-101 while the flange gasket is replaced, which is only acceptable because the reason says the leaking section was isolated in the field."},
+{"shift_id": "hH-10", "note": "Index 9 runs at 140 m3/h, above the normal rate, before the overload trip has been checked; this is borderline but plausible because the pump ran cleanly at 140 earlier in the shift."},
+{"shift_id": "hH-11", "note": "Indexes 0 and 2 raise the PIC-101 setpoint against a suction-limited pressure sag, which does little and can wind the loop up, but an operator who did not yet know the cause could plausibly try it."},
+{"shift_id": "hH-16", "note": "Index 4 restarts the pump once after a trip of unknown cause, which is a judgement call that is common practice for a single attempt."},
+{"shift_id": "hH-18", "note": "The pump restarts at reduced rate once the bearing has cooled, with no maintenance done; this is consistent with handing over an open problem under close watch."}
+]}

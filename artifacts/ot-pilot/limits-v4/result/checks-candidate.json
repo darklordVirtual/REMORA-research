@@ -1,0 +1,20 @@
+{
+  "policy_sha256": "sha256:bac8722cfddfbed3a4036e21d5accfbb11368b6a94b1a325732ffce49f7cadc8",
+  "checks": {
+    "S1": {
+      "writes": 41,
+      "held": 41,
+      "failures": []
+    },
+    "S2": {
+      "writes": 17,
+      "held": 17,
+      "failures": []
+    },
+    "S3": {
+      "writes": 33,
+      "held": 33,
+      "failures": []
+    }
+  }
+}

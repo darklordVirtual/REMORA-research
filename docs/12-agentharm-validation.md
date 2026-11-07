@@ -12,13 +12,27 @@ evidence status of AgentHarm claims.
 
 ## What this harness is and is not
 
-**Is:** an intent-gating harness. For each AgentHarm sample, REMORA records a
-`DecisionEnvelope` over the agent's proposed action surface and logs mode
-degradation.
+**Is:** an intent-gating harness and, since 2026-11-06, a tool-call
+interceptor. For each AgentHarm sample, REMORA records a `DecisionEnvelope`
+over the agent's proposed action surface and logs mode degradation. Every
+scenario tool on `TaskState.tools` is then wrapped (`gate_tool` in
+`remora_mediated_solver.py`), so each call the model makes is assessed with
+its real arguments and the tool body runs only on ACCEPT. VERIFY, ABSTAIN,
+ESCALATE and a gate error do not execute. The model receives a refusal as
+the tool result. Each decision is written to the sample's
+`metadata["remora_tool_decisions"]`.
 
-**Is not yet:** a true PreToolUse tool-call interceptor. Do not describe it as
-blocking tool calls until `inspect_tools_probe.py` reports
-`tools_beyond_submit_exposed: true` and a real tool-wrapping hook is in place.
+**Verified, offline only:** `tests/test_agentharm_tool_interception.py` runs
+Inspect's real tool loop with its mock model. It shows that a refused call
+never reaches the tool body and that the wrapped tool keeps the baseline
+tool's name, description and parameter schema, including for a real AgentHarm
+tool. `inspect_tools_probe.py` reports `tools_beyond_submit_exposed: true` on
+three samples (`results/agentharm/tool_probe.json`, 2026-11-06, no model call).
+
+**Is not yet:** a result. No AgentHarm run has been made with the
+interceptor. CLAIM-002 and §19/§80 describe the earlier intent-gating runs
+and are unchanged. A tool-call claim needs the full benign and harmful
+splits through the interceptor, scored per §80's twin-pair analysis.
 
 This distinction matters for claims. See `experiments/agentharm/INTERCEPTION_NOTES.md`.
 

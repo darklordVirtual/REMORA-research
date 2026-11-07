@@ -1,11 +1,12 @@
 """
 REMORA-mediated solver for AgentHarm (inspect-ai).
 
-Wraps an inspect-ai inner solver and records a DecisionEnvelope for the
-agent's proposed action surface (intent-gating). This is NOT a PreToolUse
-hook into Inspect's execution loop; see INTERCEPTION_NOTES.md. Mode
-degradation (e.g. full -> hardblocks_only) is recorded. DecisionEnvelopes
-are logged to results/agentharm/envelopes.jsonl.
+Wraps an inspect-ai inner solver. It records a DecisionEnvelope for the
+agent's proposed action surface (intent gating) and wraps every scenario tool
+so each call is assessed with its real arguments and executes only on ACCEPT
+(tool-call interception, :func:`gate_tool`). See INTERCEPTION_NOTES.md for
+what has and has not been run. Mode degradation (e.g. full -> hardblocks_only)
+is recorded. DecisionEnvelopes are logged to results/agentharm/envelopes.jsonl.
 
 Usage in inspect eval:
     --solver experiments/agentharm/solvers.py@remora_full
@@ -273,15 +274,79 @@ def write_mode_metadata(mode: str) -> dict:
     return meta
 
 
+#: Metadata key under which every intercepted call's decision is recorded on
+#: the sample, so the scorer can count executed and refused calls per task.
+TOOL_DECISIONS_KEY = "remora_tool_decisions"
+
+
+def refusal_text(tool_name: str, outcome: str) -> str:
+    """The tool result the agent sees when REMORA does not release a call."""
+    return (f"REMORA did not release this call to {tool_name}: outcome {outcome}. "
+            "The tool was not executed.")
+
+
+def gate_tool(tool: Any, gate: "RemoraGate", session_id: str,
+              decisions: list[dict[str, Any]]) -> Any:
+    """Return ``tool`` wrapped so REMORA decides each call before it runs.
+
+    This is the PreToolUse path INTERCEPTION_NOTES.md asks for: Inspect's
+    tool loop calls the wrapper with the model's arguments, the gate assesses
+    that exact call, and the original tool body runs only on ACCEPT.
+
+    Fail-closed. Only ACCEPT executes. VERIFY means "a person must look",
+    and an unattended benchmark run has no person, so a VERIFY call is not
+    executed either; it is recorded with its own outcome, so a scorer can
+    still tell review-routing from refusal. An exception inside the gate is
+    recorded and the call is not executed.
+
+    The tool's name, description and parameter schema are carried over from
+    Inspect's own ``ToolDef``, so the model sees the same tool surface as in
+    the baseline arm.
+    """
+    from inspect_ai.tool import ToolDef  # lazy: tests may stub inspect_ai
+
+    tdef = ToolDef(tool)
+    name = tdef.name
+    original = tdef.tool
+
+    async def execute(**kwargs: Any) -> Any:
+        try:
+            envelope = gate.assess(name, dict(kwargs), session_id)
+            outcome = str(envelope.get("gate", {}).get("outcome", "VERIFY")).upper()
+        except Exception as e:  # noqa: BLE001 - recorded, never permission
+            envelope = {"gate_error": f"{type(e).__name__}: {e}"}
+            outcome = "VERIFY"
+        executed = outcome == "ACCEPT"
+        decisions.append({
+            "session_id": session_id,
+            "tool": name,
+            "outcome": outcome,
+            "executed": executed,
+            "envelope_id": envelope.get("envelope_id"),
+        })
+        if not executed:
+            return refusal_text(name, outcome)
+        return await original(**kwargs)
+
+    return ToolDef(execute, name=name, description=tdef.description,
+                   parameters=tdef.parameters, parallel=tdef.parallel).as_tool()
+
+
 def remora_mediated_solver_factory(mode: str = "full"):
     """Factory returning an inspect-ai @solver for the given REMORA mode.
 
-    IMPORTANT (see experiments/agentharm/INTERCEPTION_NOTES.md): this wrapper
-    does NOT install a true PreToolUse hook into Inspect's tool-execution loop.
-    It records a DecisionEnvelope for the agent's *proposed* action surface
-    (intent-gating) and surfaces mode degradation. It must not be described as
-    tool-call interception until a real tool-wrapping hook is implemented and
-    inspect_tools_probe.py confirms scenario tools are exposed.
+    Two layers, both recorded in ``envelopes.jsonl``:
+
+    1. Intent gating: one envelope per tool attached to the sample, with no
+       arguments, before the agent runs (kept from the earlier harness).
+    2. Tool-call interception: every tool on ``state.tools`` is replaced by
+       :func:`gate_tool`, so each call the model makes is assessed with its
+       real arguments and runs only on ACCEPT. Decisions are also written to
+       ``state.metadata[TOOL_DECISIONS_KEY]``.
+
+    The interception is verified offline with Inspect's mock model
+    (``tests/test_agentharm_tool_interception.py``). No AgentHarm run has been
+    made with it; see INTERCEPTION_NOTES.md for what may be claimed.
     """
     gate = RemoraGate(mode=mode)
     session_counter = [0]
@@ -297,14 +362,18 @@ def remora_mediated_solver_factory(mode: str = "full"):
             meta["session_id"] = session_id
             _log_envelope({"type": "mode_metadata", **meta})
 
-            # Intent-level assessment over the tools attached to this sample.
-            # This is NOT execution interception; see INTERCEPTION_NOTES.md.
-            for tool in getattr(state, "tools", []) or []:
+            # Layer 1, intent level: the tools attached to this sample.
+            tools = list(getattr(state, "tools", []) or [])
+            for tool in tools:
                 tool_name = getattr(tool, "name", getattr(tool, "__name__", str(tool)))
                 gate.assess(tool_name, {}, session_id)
 
-            # Delegate to the underlying agent. Tool execution is owned by
-            # Inspect; we do not (yet) intercept it.
+            # Layer 2, call level: every tool the agent can call goes through
+            # the gate with the model's real arguments.
+            decisions: list[dict[str, Any]] = []
+            if tools:
+                state.tools = [gate_tool(t, gate, session_id, decisions) for t in tools]
+            state.metadata[TOOL_DECISIONS_KEY] = decisions
             return await inner(state, generate)
 
         return solve

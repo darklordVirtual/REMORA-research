@@ -39,6 +39,13 @@ results:
 - path: results/ablation_v2_results.json
   class: live
   generator: python experiments/phase_aware_routing.py
+- path: results/agentharm/tool_probe.json
+  class: live
+  generator: python experiments/agentharm/inspect_tools_probe.py --limit 3
+  needs: >-
+    the agentharm extra (inspect-ai, inspect-evals) and network access to
+    download the AgentHarm dataset. No model call is made; the timestamp
+    differs on every run.
 - path: results/agentharm_discrimination_diagnostic_v1.json
   class: regenerable
   generator: python scripts/agentharm_discrimination_diagnostic.py
