@@ -988,6 +988,12 @@
             "title": "Hash Chain Status",
             "type": "string"
           },
+          "integrity_scope": {
+            "default": "LOCAL_DATABASE_CONSISTENCY",
+            "description": "EXTERNALLY_ANCHORED when the chain was also checked against a signed head anchor kept outside its store (REMORA_AUDIT_ANCHOR_PATH), else LOCAL_DATABASE_CONSISTENCY: a store rewritten as a whole, head included, still verifies locally.",
+            "title": "Integrity Scope",
+            "type": "string"
+          },
           "problems": {
             "items": {
               "type": "string"

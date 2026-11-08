@@ -420,19 +420,28 @@ TOOL_REGISTRY: dict[str, dict[str, Any]] = {
 
 def _build_chain() -> Any:
     """Durable chain when configured (REM-034): REMORA_PG_DSN -> Postgres,
-    REMORA_CHAIN_DB -> SQLite file; otherwise the in-process reference."""
+    REMORA_CHAIN_DB -> SQLite file; otherwise the in-process reference.
+
+    REMORA_AUDIT_ANCHOR_PATH with REMORA_AUDIT_ANCHOR_KEY adds a signed
+    external head anchor to a durable chain (remora.governance.chain_anchor);
+    a path without a key refuses to start. The in-process chain is never
+    anchored: it does not survive a restart, so there is nothing to anchor.
+    """
     import os as _os
 
+    from remora.governance.chain_anchor import anchor_from_env
     from remora.governance.tenant_chain import (
         PostgresTenantChain,
         SQLiteTenantChain,
     )
+    anchor = anchor_from_env()
+    chain_id = _os.environ.get("REMORA_AUDIT_ANCHOR_CHAIN_ID", "").strip() or None
     dsn = _os.environ.get("REMORA_PG_DSN", "").strip()
     if dsn:
-        return PostgresTenantChain(dsn)
+        return PostgresTenantChain(dsn, anchor=anchor, anchor_chain_id=chain_id)
     db = _os.environ.get("REMORA_CHAIN_DB", "").strip()
     if db:
-        return SQLiteTenantChain(db)
+        return SQLiteTenantChain(db, anchor=anchor, anchor_chain_id=chain_id)
     return TenantAuditChain()
 
 
@@ -5206,8 +5215,13 @@ def audit_verify(request: Request) -> dict[str, Any]:
     ok, problems = _CHAIN.verify(tenant)
     entries = _CHAIN.entries(tenant)
     records_checked = len(entries)
-    from remora.governance.tenant_chain import verification_statuses
+    from remora.governance.tenant_chain import (
+        INTEGRITY_SCOPE_ANCHORED,
+        INTEGRITY_SCOPE_LOCAL,
+        verification_statuses,
+    )
 
+    anchored = getattr(_CHAIN, "_anchor", None) is not None
     return {
         "tenant": tenant,
         "valid": ok,
@@ -5216,6 +5230,9 @@ def audit_verify(request: Request) -> dict[str, Any]:
         # must be able to tell "verified history" from "nothing to verify".
         "records_checked": records_checked,
         "empty": records_checked == 0,
+        # SDD-RMR-AACP-X R1: whether the chain was compared with a signed
+        # anchor kept outside its store, or only with itself.
+        "integrity_scope": INTEGRITY_SCOPE_ANCHORED if anchored else INTEGRITY_SCOPE_LOCAL,
         # RMR-CR-007: "valid" alone read as intact even when no signature was
         # compared. These say which checks ran.
         **verification_statuses(entries, problems),
