@@ -85,7 +85,7 @@ def _configure(monkeypatch, **env: str) -> None:
 
 def _token(call: dict[str, Any]) -> dict[str, Any]:
     from remora.enforcement.token import PolicyDecisionToken
-    from remora.execution.service import authorization_context
+    from remora.execution.service import authorization_context, plan_hash_of
 
     exec_mod = _mod()
     obs, semantic = exec_mod._observation_with_context(exec_mod.ToolCallRequest(**call), "acme")
@@ -102,6 +102,9 @@ def _token(call: dict[str, Any]) -> dict[str, Any]:
             toolspec_hash=str(exec_mod._resolve_toolspec(
                 call["tool_name"], call["arguments"],
                 call.get("target_environment", "") or "")["hash"]),
+            # As the ACCEPT branch of /assess mints it: the plan is bound
+            # (AACP-F-01, tests/security/test_aacp_cy11_f01b.py).
+            plan_hash=plan_hash_of(exec_mod.ToolCallRequest(**call)),
         )).to_dict()
 
 

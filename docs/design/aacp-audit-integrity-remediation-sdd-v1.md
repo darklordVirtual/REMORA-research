@@ -329,3 +329,71 @@ Each check was removed alone (truncation, mismatch, absence, signature,
 monotonic file, backwards record, SQLite write, SQLite check, JSONL check,
 missing key) and every removal failed the tests.
 
+## 9. Findings of the catalog v1.3.0 run (CY-11, F-01 on ACCEPT)
+
+AACP binding `remora-428b823` (catalog v1.3.0, dev `428b8236`) observed two
+gaps that this section closes.
+
+### 9.1 CY-11: the measured bytes were not the bytes that ran
+
+A signed ToolSpec pins `callable_digest`. `source_digest` hashed
+`inspect.getsource(fn)` and `closure_members` hashed each module file, both
+read from disk, while dispatch runs the code object compiled at import. With
+other bytes imported and the pinned bytes put back on disk,
+`SignedSurfaceRuntime.register` accepted the swapped callable and it
+dispatched (P-CY-11a/b).
+
+- C1. Before measuring, the text that is hashed is compiled, and the
+  callable's own code object must be among the code objects it compiles to.
+  For the closure digest the same holds for every function and one level of
+  methods that a followed, loaded module defines in that file. Otherwise
+  `CallableSourceMismatch` (`toolspec_callable_source_mismatch`) refuses.
+- C2. Comparison is by code-object equality (bytecode, constants including
+  nested code, names, line tables), not by marshal output, which depends on
+  reference counts.
+- C3. The digest values are unchanged, so bundles already signed still
+  verify. A file edited after import now refuses registration instead of
+  attesting code that does not run; reloading the module restores a match.
+- C4. A stale `.pyc` reused after a same-size rewrite also refuses, because
+  the code that runs is not what the file says.
+
+Limit: the check binds the running code to the file at the moment of
+measurement. It does not re-measure at every dispatch, and it does not cover
+code loaded from other sources (C extensions, `exec`'d text).
+
+### 9.2 F-01 on the ACCEPT path: the token did not bind the plan
+
+An approval binds the plan through its proposal envelope; an ACCEPT token had
+no envelope and its call hash does not cover the plan. A token decided while
+the plan read revision 7 executed after the state moved, when the caller
+presented a plan reading 8 (P-F-01b).
+
+- P1. `AuthorizationContext.plan_hash` carries `PlanBinding.digest()` of the
+  plan the call carried; `/assess` signs it into the grant and
+  `/execute-accepted` recomputes it. A plan rewritten, added or dropped after
+  the decision is refused as `context_mismatch`, before the grant is spent.
+- P2. Omitted from the hash when empty: a call without a plan hashes exactly
+  as before, so existing tokens keep verifying.
+- P3. The review and worker paths are unchanged; they already bind the plan.
+
+### 9.3 Acceptance
+
+`tests/security/test_aacp_cy11_f01b.py` (13 tests):
+
+- swapped bytes are refused at registration and at measurement, for both
+  digest kinds; digest values are unchanged;
+- the research registry still measures; a wrapped callable and a helper
+  swapped in memory are handled;
+- an honest token with its plan executes; a rewritten, added or dropped plan
+  is refused unspent;
+- a token minted by `/assess` itself binds the plan, and a call without a
+  plan hashes as before. Removing each
+check alone (source check, closure check, the comparison, plan binding at
+mint, at redemption, in the hash) fails these tests. Three closure tests and
+the ws7 plan tests were updated: the first now expect a refusal while the old
+code is loaded and a moved digest after a reload, the second mint as `/assess`
+does.
+
+E-01 (single-process deployment) is not changed: REMORA claims custody only
+for the process split, which the binding does not exercise.
+

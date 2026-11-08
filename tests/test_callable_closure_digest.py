@@ -12,6 +12,7 @@ fails verification.
 from __future__ import annotations
 
 import importlib
+from pathlib import Path
 import secrets
 import sys
 import textwrap
@@ -27,7 +28,19 @@ from remora.toolcall.signed_surface_runtime import (
     closure_members,
     source_digest,
 )
+from remora.toolcall.callable_digest import CallableSourceMismatch
 from remora.toolcall.toolspec import ToolSpecRefused, sign_bundle
+
+
+def _fresh_reload(*modules):
+    """Reload from source: a same-size rewrite within one second would
+    otherwise load the stale .pyc, which the measurement rightly refuses."""
+    import shutil
+    for m in modules:
+        cache = Path(m.__file__).parent / "__pycache__"
+        shutil.rmtree(cache, ignore_errors=True)
+    importlib.invalidate_caches()
+    return [importlib.reload(m) for m in modules][-1]
 
 
 @pytest.fixture()
@@ -62,13 +75,18 @@ class TestTheClosure:
         assert members["json"].startswith("stdlib:")
 
     def test_changing_a_dependency_moves_the_closure_digest(self, package):
-        _, root, module = package
+        name, root, module = package
         before = closure_digest(module.run)
         source_before = source_digest(module.run)
         (root / "helper.py").write_text("def scale(x):\n    return x * 3\n")
-        assert closure_digest(module.run) != before
+        # The loaded helper is no longer what the file compiles to: measuring
+        # the file would attest code that does not run (AACP-CY-11).
+        with pytest.raises(CallableSourceMismatch):
+            closure_digest(module.run)
         assert source_digest(module.run) == source_before, (
             "the v1 source-span digest cannot see this change; that is the gap")
+        module = _fresh_reload(sys.modules[f"{name}.helper"], module)
+        assert closure_digest(module.run) != before
 
     def test_an_unrelated_module_does_not_move_it(self, package):
         _, root, module = package
@@ -112,9 +130,15 @@ class TestRegistrationVerifiesTheClosure:
         runtime.register(observed, module.run)
 
     def test_a_dependency_changed_after_signing_is_refused(self, package):
-        _, root, module = package
+        name, root, module = package
         runtime, observed = _runtime(module.run, closure_digest(module.run))
         (root / "helper.py").write_text("def scale(x):\n    return x * 3\n")
+        # Still running the old helper: the file no longer describes it.
+        with pytest.raises(ToolSpecRefused) as refusal:
+            runtime.register(observed, module.run)
+        assert refusal.value.reason_code == "toolspec_callable_source_mismatch"
+        # Reloaded: the code runs what the file says, and that is not what was signed.
+        module = _fresh_reload(sys.modules[f"{name}.helper"], module)
         with pytest.raises(ToolSpecRefused) as refusal:
             runtime.register(observed, module.run)
         assert refusal.value.reason_code == "toolspec_callable_digest_mismatch"
@@ -230,6 +254,12 @@ class TestDeploymentSiblings:
         _, pkg, module = deployment
         before = closure_digest(module.tool)
         (pkg / "act.py").write_text("def act(a):\n    return {'applied': a, 'more': 1}\n")
+        loaded_act = [m for n, m in sys.modules.items()
+                      if getattr(m, "__file__", None) and Path(m.__file__) == pkg / "act.py"]
+        if loaded_act:
+            with pytest.raises(CallableSourceMismatch):
+                closure_digest(module.tool)
+            module = _fresh_reload(loaded_act[0], module)
         assert closure_digest(module.tool) != before
 
     def test_an_installed_distribution_is_still_named_by_version(self, deployment, tmp_path,
