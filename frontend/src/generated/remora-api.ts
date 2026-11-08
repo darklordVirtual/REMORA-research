@@ -1626,6 +1626,12 @@ export interface components {
              * @description INTACT or BROKEN: whether every record links to its predecessor and its hash recomputes. Says nothing about who wrote the records.
              */
             hash_chain_status: string;
+            /**
+             * Integrity Scope
+             * @description EXTERNALLY_ANCHORED when the chain was also checked against a signed head anchor kept outside its store (REMORA_AUDIT_ANCHOR_PATH), else LOCAL_DATABASE_CONSISTENCY: a store rewritten as a whole, head included, still verifies locally.
+             * @default LOCAL_DATABASE_CONSISTENCY
+             */
+            integrity_scope: string;
             /** Problems */
             problems: string[];
             /** Records Checked */

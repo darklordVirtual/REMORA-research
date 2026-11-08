@@ -10328,9 +10328,9 @@
     },
     "frontend/src/generated/remora-api.ts": {
       "concepts": [],
-      "git_blob": "9eb24fe7a27ab25bd4a1197bf7b808e356376408",
+      "git_blob": "191b6bad245c257958ee6d9c558d7598cabba260",
       "mode": "100644",
-      "sha256": "f4f11397054b9febddeb9b24bfe6b0620306570d786e771c6c445f1dc2d1f0e1"
+      "sha256": "35c714d2e9424c5981650824c2d2605e5ba61b3e0075cf4970ceff8d900661f1"
     },
     "frontend/src/hooks/use-mobile.tsx": {
       "concepts": [],
@@ -23761,7 +23761,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "b4d5c8a5aaa41d0d4dcf4e8720203ef4401ea142eb5ba06885ac69060855d716",
+  "register_sha256": "f5180365e90b682cecd970d4fda45ad4efe20568fda101efe39267a60cbc8fca",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
