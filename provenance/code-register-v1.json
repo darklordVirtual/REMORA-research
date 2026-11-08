@@ -7007,9 +7007,9 @@
     },
     "docs/assurance/credential_topology.yaml": {
       "concepts": [],
-      "git_blob": "2ce4209967381bc955ee39ef8ecff286990d1bfc",
+      "git_blob": "26ffb9af32cccdea04464aafa6306a6c64e8de50",
       "mode": "100644",
-      "sha256": "f0a447a21794dd2c59ec0de20fc9cfcced71e6997beb56f2798c1b9e3c7af69c"
+      "sha256": "ccf3da7ac0d7e64b1cfc1c8bd9d0c05936c4e82e63c6ddbb50426a4ab4671f9c"
     },
     "docs/assurance/development_review_log_v1.md": {
       "concepts": [],
@@ -23773,7 +23773,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "a6827ef3676802f05ae0ab48798be1ed38230e0bcab7ccbf6be995bb2bb02942",
+  "register_sha256": "789f4951a406b4a9c9a3a81abc3e137ec6cf1f1be80f5d9057ab091695c421e8",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
