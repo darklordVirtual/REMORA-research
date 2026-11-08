@@ -22,6 +22,11 @@ jobs:
     name: Generate SHA-bound review handoff
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    outputs:
+      # Digests of the two attestation files, passed to the sign job through
+      # the job-output channel rather than inside the artifact they describe.
+      attestation_sha256: ${{ steps.digests.outputs.attestation_sha256 }}
+      report_sha256: ${{ steps.digests.outputs.report_sha256 }}
 
     steps:
       - name: Checkout
@@ -94,6 +99,15 @@ jobs:
           sys.exit(1 if problems else 0)
           EOF
 
+      - name: Record digests of the verified attestation files
+        # Only reached when the commit binding and gate: PASS checks above
+        # succeeded, so the sign job never signs a FAIL or unbound file.
+        id: digests
+        run: |
+          set -euo pipefail
+          echo "attestation_sha256=$(sha256sum artifacts/credibility-pack/test-attestation.json | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          echo "report_sha256=$(sha256sum artifacts/credibility-pack/test-report.txt | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
       - name: Upload SHA-bound review handoff bundle
         # Success-only: this single artifact (code SHA + governance pack +
         # credibility pack + attestation) is the formal REM-021 handoff.
@@ -118,3 +132,58 @@ jobs:
             artifacts/credibility-pack/test-attestation.json
             artifacts/credibility-pack/test-report.txt
           if-no-files-found: error
+
+  sign:
+    # AACP observation (reports/remora-06c2f8f in agent-authority-conformance):
+    # the test attestation was unsigned, so its only authority was the Actions
+    # run, and a file with gate: PASS could be produced anywhere. This job
+    # gives it a Sigstore build-provenance attestation, as release.yml does for
+    # the wheel, so a consumer can check which workflow, ref and commit
+    # produced it:
+    #   gh attestation verify test-attestation.json --repo darklordVirtual/REMORA-research
+    # Scope: the signature names the producer; it is not an independent
+    # review, and it does not show the suite tests the right things. As in
+    # release.yml (SR-11), the signing identity lives in a job that installs
+    # nothing, and the files are checked against the digests the attest job
+    # emitted before signing.
+    name: Sigstore provenance for the test attestation
+    runs-on: ubuntu-latest
+    needs: attest
+    permissions:
+      contents: read
+      id-token: write      # Sigstore OIDC identity
+      attestations: write  # store attestations
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: review-test-attestation
+          path: signed/
+
+      - name: Check the files are the ones the attest job verified
+        working-directory: signed
+        env:
+          ATTESTATION_SHA256: ${{ needs.attest.outputs.attestation_sha256 }}
+          REPORT_SHA256: ${{ needs.attest.outputs.report_sha256 }}
+        run: |
+          set -euo pipefail
+          if [ -z "${ATTESTATION_SHA256}" ] || [ -z "${REPORT_SHA256}" ]; then
+            echo "attest job emitted no digests" >&2; exit 1
+          fi
+          printf '%s  test-attestation.json\n%s  test-report.txt\n' \
+            "${ATTESTATION_SHA256}" "${REPORT_SHA256}" | sha256sum -c --strict -
+
+      - name: Attest build provenance (test attestation and report)
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            signed/test-attestation.json
+            signed/test-report.txt
+
+      - name: Verify the attestation we just produced
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for f in signed/test-attestation.json signed/test-report.txt; do
+            gh attestation verify "$f" --repo "${GITHUB_REPOSITORY}"
+          done

@@ -18,7 +18,11 @@ def test_single_leaf_root_equals_leaf_hash():
 
 
 def test_two_leaves_root_is_hash_of_pair():
-    tree = build_merkle_tree([b"a", b"b"])
+    # The v1 (legacy) node rule: SHA-256 over the children's concatenated hex.
+    # v2 is the default since AACP-X-02 and is covered in
+    # tests/security/test_aacp_x02_assurance_merkle_v2.py.
+    from remora.assurance.merkle import MERKLE_V1
+    tree = build_merkle_tree([b"a", b"b"], version=MERKLE_V1)
     import hashlib
     expected = hashlib.sha256((tree.leaves[0] + tree.leaves[1]).encode("utf-8")).hexdigest()
     assert tree.root == expected
