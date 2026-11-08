@@ -7223,9 +7223,9 @@
     },
     "docs/assurance/remediation_register.yaml": {
       "concepts": [],
-      "git_blob": "c1e622dfad35b0b24e6003c3d9c4ef2ea7b0d7c7",
+      "git_blob": "9efcb8254933bacbaeb183eb8cca775a6b475690",
       "mode": "100644",
-      "sha256": "4f4589ab10e5331b1a5e18704257bcb4342fb9545c47e1b8c3e4110c0c720971"
+      "sha256": "80ab0e6cfe281c6bab340616c400715ba42b97f2935badb0460fae6415c02dd4"
     },
     "docs/assurance/reproducibility_scorecard_v1.md": {
       "concepts": [],
@@ -7544,9 +7544,9 @@
     },
     "docs/design/aacp-audit-integrity-remediation-sdd-v1.md": {
       "concepts": [],
-      "git_blob": "2492ffd02d53a5089deb639d51071dcce182fae3",
+      "git_blob": "4fa3a746743306ccda58d29ca713482380ac6120",
       "mode": "100644",
-      "sha256": "1c8ae19fe7f55c559a81f56d795e3b70f719cf0a6c9d45fed8db01f1cb59661c"
+      "sha256": "1d8f928af6bba17c13107a80b2eca31293e3aef4dd30c7c7a70d803f833ec1ec"
     },
     "docs/design/aps-authority-profile-v0.md": {
       "concepts": [],
@@ -15099,9 +15099,9 @@
     },
     "results/end_to_end_n500_v2.json": {
       "concepts": [],
-      "git_blob": "200e63f6c96b12c1f586aa65a7056ba69a80f630",
+      "git_blob": "0c7ed6dfd7d968eda753bd7d989349bc026ba365",
       "mode": "100644",
-      "sha256": "5472087ba0f53017e26fd2e009a03f6bb137dad03d4ef7e18f0fd6f5c64b075a"
+      "sha256": "aa0ea2beda948d848550d99c41a50492849b4db9282f7cb8014bc60468b485df"
     },
     "results/end_to_end_n500_v3.json": {
       "concepts": [],
@@ -23749,7 +23749,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "ce4763983563916fff446df0384f6b52fab0a55ab5415985403508791d8173ac",
+  "register_sha256": "3ee418b16a62784ae4db5c054570965665c05c8b85c1c126ec5606f3f5a3ecb8",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

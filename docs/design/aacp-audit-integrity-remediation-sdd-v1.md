@@ -59,11 +59,13 @@ evidence of tampering.
 
 ### 2.3 Acceptance
 
-`tests/security/test_aacp_x04_jsonl_reload.py`: three appends verify after
-reload; the baseline fixture verifies; each edited field, a swap, a removed
-middle or first record fails; a removed last record verifies locally and fails
-against the saved head; truncated JSON, each missing field, a non-object
-record and non-object metadata fail without rewriting the file.
+`tests/security/test_aacp_x04_jsonl_reload.py`:
+
+- three appends verify after reload, and the baseline fixture verifies;
+- each edited field, a swap, a removed middle or first record fails;
+- a removed last record verifies locally and fails against the saved head;
+- truncated JSON, each missing field, a non-object record and non-object
+  metadata fail without rewriting the file.
 
 ## 3. F2: SQLite tenant chain head (AACP-X-01)
 
@@ -123,13 +125,17 @@ same limit.
 
 ### 3.5 Acceptance
 
-`tests/security/test_aacp_x01_sqlite_chain_head.py`: one and several deleted
-newest entries, all entries deleted, restart persistence, per-tenant heads,
-append after truncation, missing, malformed and outdated heads, an
-interrupted append and `append_once`, 6 threads x 15 appends, the
-rewritten-together limit, migration of a pre-fix database (baseline origin,
-history unchanged, truncation after migration detected, migration once,
-concurrent first open). `tests/test_governance_review_round2.py` asserted
+`tests/security/test_aacp_x01_sqlite_chain_head.py`:
+
+- one, several and all newest entries deleted;
+- restart persistence, per-tenant heads, append after truncation;
+- missing, malformed and outdated heads;
+- an interrupted append and `append_once`, and 6 threads x 15 appends;
+- the rewritten-together limit;
+- migration of a pre-fix database: baseline origin, history unchanged,
+  truncation after migration detected, migration once, concurrent first open.
+
+`tests/test_governance_review_round2.py` asserted
 the defect as a "known limit"; it now asserts the stored head detects it.
 
 ## 4. F3: assurance Merkle tree (AACP-X-02)
@@ -169,23 +175,33 @@ nobody mistakes v1 verification for the v2 guarantee. The deprecated
 `research_attic/zkp.py` shim now copies the trace's standard instead of
 hard-coding v1.
 
+`results/end_to_end_n500_v2.json` is a regenerable result whose 544 items each
+carry an `assurance_root`. Regenerated with v2, those 544 values change and
+no other field does: decisions, scores and aggregates are identical. The file
+is regenerated in this change. Its earlier roots were v1 roots and remain in
+git history and in the frozen code snapshots under `provenance/manifests/`.
+
 ### 4.4 Acceptance
 
-`tests/security/test_aacp_x02_assurance_merkle_v2.py`: `[a,b,c]` vs
-`[a,b,c,c]` and the duplicate-last case for 1-11 leaves; node-as-leaf in three
-encodings; proofs for 1-17 leaves; tampered leaf, wrong index, wrong count,
-extra or missing siblings, eight malformed sibling shapes, non-integer index,
-malformed root, unsupported versions, version mismatch; the baseline v1
-fixture verifies under v1 only; v1 and v2 traces are told apart, and an
-unknown standard is rejected. `tests/test_assurance_merkle.py` asserted the
+`tests/security/test_aacp_x02_assurance_merkle_v2.py`:
+
+- `[a,b,c]` vs `[a,b,c,c]`, and the duplicate-last case for 1-11 leaves;
+- node-as-leaf in three encodings, and proofs for 1-17 leaves;
+- tampered leaf, wrong index, wrong count, extra or missing siblings;
+- eight malformed sibling shapes, non-integer index, malformed root;
+- unsupported versions and version mismatch;
+- the baseline v1 fixture verifies under v1 only, v1 and v2 traces are told
+  apart, and an unknown standard is rejected.
+
+`tests/test_assurance_merkle.py` asserted the
 v1 node rule against the default tree; it now names v1.
 
 ## 5. Test attestation provenance
 
 `attestation.yml` uploaded an unsigned `test-attestation.json`. A new `sign`
-job, which installs nothing and alone holds `id-token: write`, downloads the
-attestation, checks both files against digests the `attest` job emitted
-after its commit and `gate: PASS` checks, and signs them with
+job installs nothing and alone holds `id-token: write`. It downloads the
+attestation and checks both files against digests the `attest` job emitted
+after its commit and `gate: PASS` checks. It then signs them with
 `actions/attest-build-provenance` (same pin as `release.yml`). A FAIL run
 never reaches it. The signature shows which workflow, ref and commit
 produced the files. It is the producer's signature, not an independent

@@ -1945,6 +1945,7 @@ items:
       - tests/security/test_aacp_x02_assurance_merkle_v2.py
       - tests/security/fixtures/assurance_merkle_v1_06c2f8f.json
       - tests/test_assurance_merkle.py
+      - results/end_to_end_n500_v2.json
       - docs/design/aacp-audit-integrity-remediation-sdd-v1.md
     notes: >
       remora/assurance/merkle.py gave [a,b,c] and [a,b,c,c] one root and let
@@ -1955,6 +1956,8 @@ items:
       named (fixture from the 06c2f8f code), and an unknown version or
       standard is rejected. v1 remains ambiguous by construction (SDD R5).
       remora/audit/merkle.py was already correct by default and is unchanged.
+      results/end_to_end_n500_v2.json (regenerable) was regenerated: only its
+      544 assurance_root values change, from v1 to v2 roots.
       The attestation workflow gains a Sigstore provenance job for the test
       attestation (AACP observation, not a finding); that is the producer's
       signature, not independent review.
