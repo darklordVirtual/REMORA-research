@@ -175,11 +175,24 @@ nobody mistakes v1 verification for the v2 guarantee. The deprecated
 `research_attic/zkp.py` shim now copies the trace's standard instead of
 hard-coding v1.
 
-`results/end_to_end_n500_v2.json` is a regenerable result whose 544 items each
-carry an `assurance_root`. Regenerated with v2, those 544 values change and
-no other field does: decisions, scores and aggregates are identical. The file
-is regenerated in this change. Its earlier roots were v1 roots and remain in
-git history and in the frozen code snapshots under `provenance/manifests/`.
+`results/end_to_end_n500_v2.json` is a regenerable result with 544
+assurance roots. Regeneration under v2 changes all 544 root values and adds
+a top-level `assurance_trace_standard: REMORA-Assurance-Trace-v2` plus a
+`leaf_count` for each item. The generator reads both directly from each
+runtime assurance trace; it fails rather than emitting an unversioned or
+malformed commitment. Existing decisions, question text, routing fields and
+final values are unchanged. The `v2` in the filename refers to the
+experiment, not the Merkle construction; the explicit standard prevents
+that ambiguity for consumers.
+
+The JSON includes a root commitment and its leaf count, **not** the canonical
+leaves or inclusion proofs. Consumers must obtain the corresponding trace
+to verify its contents; this result file alone is not an independently
+verifiable inclusion proof. Historical v1 result bytes remain retrievable
+from Git history. Frozen code snapshots in `provenance/manifests/`
+record the former result file's Git blob SHA and SHA-256, **not** the 544
+historical root values themselves. Retrieve the pinned historical blob to
+inspect the old roots.
 
 ### 4.4 Acceptance
 
@@ -191,7 +204,10 @@ git history and in the frozen code snapshots under `provenance/manifests/`.
 - eight malformed sibling shapes, non-integer index, malformed root;
 - unsupported versions and version mismatch;
 - the baseline v1 fixture verifies under v1 only, v1 and v2 traces are told
-  apart, and an unknown standard is rejected.
+  apart, and an unknown standard is rejected;
+- `tests/test_aacp_x02_n500_artifact_contract.py` requires a declared v2
+  construction and per-item leaf counts, while deterministic CI regenerates
+  all 544 values from the actual trace.
 
 `tests/test_assurance_merkle.py` asserted the
 v1 node rule against the default tree; it now names v1.

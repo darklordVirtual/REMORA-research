@@ -9,8 +9,9 @@ Loads the locked N500 benchmark, runs REMORA with:
   enable_assurance_trace=True
   enable_counterfactual_v2=True
 
-Writes per-item decisions + aggregate metrics to
-results/end_to_end_n500_v2.json.
+Writes per-item decisions and assurance roots to
+results/end_to_end_n500_v2.json. The top-level Merkle construction standard
+and per-item leaf counts come from the runtime trace, never decision text.
 """
 from __future__ import annotations
 
@@ -45,6 +46,7 @@ def main() -> None:
 
     from remora.engine import Remora
     from remora.genome import Genome
+    from remora.assurance.trace import TRACE_STANDARD_V2
 
     genome = Genome()
     genome.enable_conformal_guardrail = True
@@ -89,11 +91,23 @@ def main() -> None:
             continue
         state = engine.run(q)
         report = engine.report(state)
+        trace = report.get("assurance_trace")
+        if (
+            not isinstance(trace, dict)
+            or trace.get("signature_standard") != TRACE_STANDARD_V2
+            or type(trace.get("leaf_count")) is not int
+            or trace["leaf_count"] < 1
+            or not isinstance(trace.get("root_hash"), str)
+            or len(trace["root_hash"]) != 64
+            or any(ch not in "0123456789abcdef" for ch in trace["root_hash"])
+        ):
+            raise RuntimeError("N500: missing or invalid v2 assurance trace; refusing unversioned roots")
         per_item.append({
             "question": q,
             "decisions": report.get("decisions"),
             "require_rag": report.get("require_rag"),
-            "assurance_root": (report.get("assurance_trace") or {}).get("root_hash"),
+            "assurance_root": trace["root_hash"],
+            "leaf_count": trace["leaf_count"],
             "final_V": report.get("final_V"),
         })
 
@@ -101,6 +115,7 @@ def main() -> None:
         "benchmark": str(args.benchmark),
         "baseline": str(args.baseline),
         "n_evaluated": len(per_item),
+        "assurance_trace_standard": TRACE_STANDARD_V2,
         "items": per_item,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)

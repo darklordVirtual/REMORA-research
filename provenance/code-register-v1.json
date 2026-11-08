@@ -7223,9 +7223,9 @@
     },
     "docs/assurance/remediation_register.yaml": {
       "concepts": [],
-      "git_blob": "3caaab03484c9cd79b44c9c40ab73aaf466b890f",
+      "git_blob": "84c174215f5031706fb6827039923b9c5dfb8c75",
       "mode": "100644",
-      "sha256": "2c5b1f6ca9bc5e940c3f32d1d68835db84b6315274a09a3534702218a8a169ae"
+      "sha256": "722c243abc1c0232b271f2512c159aa20c281c01fddedb673ffe7a1abcb093e0"
     },
     "docs/assurance/reproducibility_scorecard_v1.md": {
       "concepts": [],
@@ -7544,9 +7544,9 @@
     },
     "docs/design/aacp-audit-integrity-remediation-sdd-v1.md": {
       "concepts": [],
-      "git_blob": "d14acbb07db5a2a85671721bfc4baab61041d442",
+      "git_blob": "a30d44c42d75379f4863579a157404c923e9cb65",
       "mode": "100644",
-      "sha256": "6241f2401b66bc0072f3ebbbe74c2608a1ac8dbcd4a4e36890b678ea7f92f711"
+      "sha256": "8ae1a977ef3476b25836170d99bfc6373b6af979893b0907be895b7cbb55ec9f"
     },
     "docs/design/aps-authority-profile-v0.md": {
       "concepts": [],
@@ -8924,9 +8924,9 @@
     },
     "experiments/end_to_end_n500_v2.py": {
       "concepts": [],
-      "git_blob": "ea0501df73deb15ff20d14fe0014ed23a166f597",
+      "git_blob": "efe3dc86805a13558b77ca4bb9264a664ad698f9",
       "mode": "100644",
-      "sha256": "976564c88d7b8f8701bb2575d40db6ad674ef076227851436996daeabbdefada"
+      "sha256": "da8e9c5a3bde96cdd0bf8fba74e685678c1c0fbc4e62b0dc96557c78ab5be44a"
     },
     "experiments/end_to_end_n500_v3.py": {
       "concepts": [],
@@ -15105,9 +15105,9 @@
     },
     "results/end_to_end_n500_v2.json": {
       "concepts": [],
-      "git_blob": "0c7ed6dfd7d968eda753bd7d989349bc026ba365",
+      "git_blob": "fd86211b30880418d699fdfcd7fe6936e170c8af",
       "mode": "100644",
-      "sha256": "aa0ea2beda948d848550d99c41a50492849b4db9282f7cb8014bc60468b485df"
+      "sha256": "a5ac2304deac0ef32fd1d2359c217a390ae50bd2e2db3def96da4ed971427c62"
     },
     "results/end_to_end_n500_v3.json": {
       "concepts": [],
@@ -18438,6 +18438,12 @@
       "git_blob": "af4ceb22efb59a84c796ca43e6809eebd823e65d",
       "mode": "100644",
       "sha256": "6a7e5dfbdd7338c3cd0493fe18a576c9f1a6ad05f40dfee69de0d78cf303f300"
+    },
+    "tests/test_aacp_x02_n500_artifact_contract.py": {
+      "concepts": [],
+      "git_blob": "e4b4fd5bec05c75812fdcc4cb949714f947051da",
+      "mode": "100644",
+      "sha256": "a39b7391a4933e8e9505475a7570270e1af75a8f7327a50402410ccef1e64241"
     },
     "tests/test_ablation_v2.py": {
       "concepts": [],
@@ -23761,7 +23767,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "f5180365e90b682cecd970d4fda45ad4efe20568fda101efe39267a60cbc8fca",
+  "register_sha256": "5a6bc16debff0b123c852a8ad1ce656d1538ba6b0a2848ecc9faada96147fc22",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
