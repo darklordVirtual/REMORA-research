@@ -1995,3 +1995,65 @@ items:
       required for this change (owner decision 2026-11-08); the AACP runs
       remain AUTHOR_RUN.
 
+  - id: REM-071
+    section: "aacp-controls-2026-11"
+    title: "AACP-CY-11: callable digest measured the file on disk, not the code that runs"
+    gate: P1
+    status: DONE
+    completed: "2026-11-08"
+    artifacts:
+      - remora/toolcall/callable_digest.py
+      - tests/security/test_aacp_cy11_f01b.py
+      - tests/test_callable_closure_digest.py
+      - docs/design/aacp-audit-integrity-remediation-sdd-v1.md
+    notes: >
+      AACP binding remora-428b823 (catalog v1.3.0): with other bytes imported
+      and the pinned bytes back on disk, SignedSurfaceRuntime.register accepted
+      the swapped callable and it dispatched, for both source and closure
+      digests. Measurement now requires the hashed text to compile to the
+      running code object (toolspec_callable_source_mismatch). Digest values
+      are unchanged; a file edited after import now refuses until reloaded.
+
+  - id: REM-072
+    section: "aacp-controls-2026-11"
+    title: "AACP-F-01 (ACCEPT path): execution token did not bind the plan premises"
+    gate: P1
+    status: DONE
+    completed: "2026-11-08"
+    artifacts:
+      - remora/enforcement/token.py
+      - remora/execution/service.py
+      - tests/security/test_aacp_cy11_f01b.py
+      - tests/test_ws7_server_path.py
+      - docs/design/aacp-audit-integrity-remediation-sdd-v1.md
+    notes: >
+      An ACCEPT token decided while a plan read one revision executed after the
+      state moved, when presented with a plan reading the new revision. The
+      plan digest is now signed into the authorization context at /assess and
+      recomputed at /execute-accepted (context_mismatch, unspent). Omitted when
+      empty, so plan-less tokens hash as before.
+
+  - id: REM-073
+    section: "aacp-controls-2026-11"
+    title: "AACP-E-01 (split): a same-user custody split let the agent read the executor's credential"
+    gate: P1
+    status: DONE
+    completed: "2026-11-08"
+    artifacts:
+      - remora/enforcement/custody.py
+      - remora/scaffold.py
+      - scripts/reproduce_custody.py
+      - tests/conformance/test_custody_guard.py
+      - tests/conformance/test_custody_effect_domain.py
+      - tests/test_effect_mediation_policy.py
+      - docs/deployment/execution-quickstart.md
+      - docs/design/aacp-audit-integrity-remediation-sdd-v1.md
+    notes: >
+      An AACP assessor harness ran the custody split as three processes of one
+      OS user. The agent read the executor's effect credential with ps eww and
+      reached the effect without a lease, and custody accepted the layout.
+      Custody rule 4 now requires the credential holder to declare its
+      isolation (REMORA_EXECUTION_ISOLATION). os_user is checked against
+      REMORA_AGENT_OS_UIDS and refuses root. container and host are declared.
+      same_user is accepted only under review. Separate uids in a container
+      defeated every attempt.

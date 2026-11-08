@@ -465,6 +465,11 @@ def init_review(
     effect = shared + [
         ("REMORA_EXECUTION_DOMAIN_ROLE", "effect"),
         (effect_credential_name, effect_credential),
+        # Custody rule 4 (AACP-E-01): these three processes run as one OS
+        # user, which reads this process's environment. Run the effect domain
+        # as another user and set os_user plus REMORA_AGENT_OS_UIDS, or put it
+        # in its own container or host; controlled_pilot refuses same_user.
+        ("REMORA_EXECUTION_ISOLATION", "same_user"),
         ("REMORA_LEASE_VERIFY_KEY_ED25519_PUBLIC", verify_key),
         ("REMORA_LEASE_SIGNING_KID", kid),
         ("REMORA_API_TOKENS", effect_api_tokens),

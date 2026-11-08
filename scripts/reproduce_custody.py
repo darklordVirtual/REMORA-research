@@ -39,6 +39,8 @@ def _worker(request: dict) -> dict:
     os.environ["REMORA_RUNTIME_PROFILE"] = "review"
     os.environ["REMORA_EXECUTION_DOMAIN_ROLE"] = role
     os.environ["REMORA_EFFECT_CREDENTIAL_ENV_NAMES"] = "REPRO_EFFECT_CREDENTIAL"
+    # Same OS user by construction, so it is declared as such (custody rule 4).
+    os.environ["REMORA_EXECUTION_ISOLATION"] = "same_user"
     os.environ["REMORA_RUNTIME_KIND"] = request.get("runtime_kind", "custody-reproduction")
     now = datetime.now(UTC)
     if role == "authority":

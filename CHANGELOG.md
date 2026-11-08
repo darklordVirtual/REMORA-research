@@ -4,6 +4,12 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Custody: the credential holder declares its isolation from agent code (AACP E-01, 2026-11-08)
+
+- An AACP assessor harness ran the authority/execution split as processes of one OS user. The agent process read the executor's effect credential from its launch environment (`ps eww`; `/proc/<pid>/environ` on Linux) and reached the effect without a lease. The custody guard accepted that layout.
+- Custody rule 4 (`remora/enforcement/custody.py`): under a strict profile the process holding the effect credentials must set `REMORA_EXECUTION_ISOLATION`. `os_user` is checked against `REMORA_AGENT_OS_UIDS` and refuses root. `container` and `host` are declared. `same_user` makes no custody claim and is accepted only under `review`. **Breaking for strict deployments:** an executor or effect domain without the variable no longer starts. `remora init-review` writes `same_user`.
+- Tests: `tests/conformance/test_custody_guard.py` K20 to K27. Design and limits: SDD §10, REM-073.
+
 ### Delegated authority across agents: signed argument conditions, anchored roots, origin-verifiable links (2026-11-07)
 
 - Four questions were asked of both REMORA paths: an intermediary widening its scope, an intermediary changing what the authority allowed, replay after a restart or at another verifier, and a signed chain used for another task (`artifacts/assurance/delegated-authority-2026-11-07/`). The A2A envelope at `dea40402` stopped only the first, with every strict argument supplied (NEGATIVE_RESULTS §103).

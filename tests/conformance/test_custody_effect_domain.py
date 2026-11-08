@@ -43,6 +43,7 @@ def _effect(m: pytest.MonkeyPatch) -> None:
     m.setenv("REMORA_EXECUTION_DOMAIN_ROLE", "effect")
     m.setenv("REMORA_LEASE_VERIFY_KEY_ED25519_PUBLIC", PUBLIC_KEY)
     m.setenv(EFFECT, "the-real-downstream-secret")
+    m.setenv("REMORA_EXECUTION_ISOLATION", "same_user")
 
 
 def _worker(m: pytest.MonkeyPatch) -> None:
@@ -126,6 +127,7 @@ def test_k19_the_two_domain_executor_is_unchanged(three) -> None:
     with pytest.raises(CustodyViolation, match="missing effect credential"):
         assert_custody_split()
     three.setenv(EFFECT, "secret")
+    three.setenv("REMORA_EXECUTION_ISOLATION", "same_user")
     assert assert_custody_split() == "executor"
     assert_may_hold_effect_executors()
 

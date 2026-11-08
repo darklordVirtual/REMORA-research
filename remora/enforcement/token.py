@@ -231,6 +231,14 @@ class AuthorizationContext:
     #: recomputes it from a fresh WS1 re-gate, so a moved requirement or a
     #: precondition no longer proved refuses as context_mismatch.
     ws1_binding_hash: str = ""
+    #: Digest of the plan premises a call carried (Q7.5,
+    #: :meth:`remora.governance.plan_binding.PlanBinding.digest`). Bound only
+    #: on the ACCEPT path, where no approval envelope covers the plan
+    #: (AACP-F-01): a token decided while a plan read one revision is refused,
+    #: unspent, when its call is presented with a plan rewritten to read
+    #: another. Omitted from the hash when empty, so a call without a plan
+    #: hashes exactly as before.
+    plan_hash: str = ""
 
     def hash(self) -> str:
         # The optional fields are omitted rather than defaulted to "" (see
@@ -273,6 +281,7 @@ class AuthorizationContext:
                 "request_ref_hash",
                 "delegated_executor",
                 "ws1_binding_hash",
+                "plan_hash",
             )
             if (getattr(self, name) or "") != (getattr(other, name) or "")
         ]
@@ -292,7 +301,8 @@ class AuthorizationContext:
             "toolspec_hash": self.toolspec_hash or "",
         }
         for name in ("context_id", "task_id", "execution_context_hash",
-                     "request_ref_hash", "delegated_executor", "ws1_binding_hash"):
+                     "request_ref_hash", "delegated_executor", "ws1_binding_hash",
+                     "plan_hash"):
             if getattr(self, name):
                 out[name] = getattr(self, name)
         return out

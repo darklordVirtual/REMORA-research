@@ -527,6 +527,7 @@ def assess_proposal(
             delegated_executor=delegate,
             ws1_binding_hash=(ws1.binding_hash
                               if ws1 is not None and ws1.mode == "enforce" else ""),
+            plan_hash=plan_hash_of(proposal),
         )
         token = PolicyDecisionToken.issue(
             action="accept",
@@ -2173,6 +2174,7 @@ def authorization_context(
     request_ref: RequestRef | None = None,
     delegated_executor: str = "",
     ws1_binding_hash: str = "",
+    plan_hash: str = "",
 ) -> AuthorizationContext:
     """The conditions a decision is made under, in one place.
 
@@ -2206,6 +2208,11 @@ def authorization_context(
 
     ``ws1_binding_hash`` is the WS1 binding (issue #953), present only under
     WS1 enforce. Redemption recomputes it from a fresh WS1 re-gate.
+
+    ``plan_hash`` is the digest of the plan premises the call carries
+    (:func:`plan_hash_of`), passed on the ACCEPT path only: an approval binds
+    the plan through its proposal envelope, a token has no envelope
+    (AACP-F-01). It enters the hash only when present.
     """
 
     return AuthorizationContext(
@@ -2221,7 +2228,22 @@ def authorization_context(
         request_ref_hash=request_ref.digest() if request_ref is not None else "",
         delegated_executor=delegated_executor or "",
         ws1_binding_hash=ws1_binding_hash or "",
+        plan_hash=plan_hash or "",
     )
+
+
+def plan_hash_of(tool_call: Any) -> str:
+    """Digest of the plan a call carries, or "" when it carries none.
+
+    A malformed plan also yields "": the redemption path refuses it through
+    :func:`plan_binding_of` before anything is dispatched, so binding a
+    placeholder here would add no refusal.
+    """
+    try:
+        plan = plan_binding_of(tool_call)
+    except ValueError:
+        return ""
+    return plan.digest() if plan is not None else ""
 
 
 def task_identity_of(tool_call: Any) -> TaskIdentity | None:
@@ -2440,6 +2462,7 @@ def redeem_accept_token(
         request_ref=request_ref,
         delegated_executor=delegated_executor_of(tool_call),
         ws1_binding_hash=ws1.binding_hash if ws1 is not None else "",
+        plan_hash=plan_hash_of(tool_call),
     )
     request_ref_fields = (
         {"request_ref_hash": request_ref.digest()} if request_ref is not None else {})

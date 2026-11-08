@@ -58,6 +58,8 @@ def strict(monkeypatch: pytest.MonkeyPatch):
         "REMORA_LEASE_SIGNING_KEY",
         "REMORA_PDP_SIGNING_KEY",
         "REMORA_LEASE_VERIFY_KEY_ED25519_PUBLIC",
+        "REMORA_EXECUTION_ISOLATION",
+        "REMORA_AGENT_OS_UIDS",
     ):
         monkeypatch.delenv(name, raising=False)
     return monkeypatch
@@ -71,6 +73,8 @@ def _executor(strict: pytest.MonkeyPatch) -> None:
     strict.setenv("REMORA_EXECUTION_DOMAIN_ROLE", "executor")
     strict.setenv("REMORA_LEASE_VERIFY_KEY_ED25519_PUBLIC", PUBLIC_KEY)
     strict.setenv(EFFECT, "the-real-downstream-secret")
+    # Rule 4: review accepts a declared same-user layout with no custody claim.
+    strict.setenv("REMORA_EXECUTION_ISOLATION", "same_user")
 
 
 def test_k1_unset_role_is_refused_under_a_strict_profile(strict) -> None:
@@ -209,3 +213,74 @@ def test_k11_unknown_role_is_refused_rather_than_guessed(strict) -> None:
     with pytest.raises(CustodyViolation) as caught:
         assert_custody_split()
     assert "excutor" in str(caught.value)
+
+
+# -- rule 4: the credential holder's isolation from agent code (AACP-E-01) ----
+#
+# AACP binding remora-eed92c8 showed that two processes of one OS user are no
+# custody split: the agent process read the executor's effect credential with
+# `ps eww` and reached the effect with it. These cases pin the refusal.
+
+
+def test_k20_credential_holder_without_an_isolation_declaration_is_refused(strict) -> None:
+    _executor(strict)
+    strict.delenv("REMORA_EXECUTION_ISOLATION")
+    with pytest.raises(CustodyViolation, match="REMORA_EXECUTION_ISOLATION"):
+        assert_custody_split()
+
+
+def test_k21_same_user_is_refused_under_controlled_pilot(strict) -> None:
+    _executor(strict)
+    strict.setenv("REMORA_RUNTIME_PROFILE", "controlled_pilot")
+    with pytest.raises(CustodyViolation, match="same_user"):
+        assert_custody_split()
+
+
+def test_k22_os_user_refuses_an_executor_running_as_an_agent_uid(strict) -> None:
+    _executor(strict)
+    strict.setenv("REMORA_EXECUTION_ISOLATION", "os_user")
+    strict.setattr("os.getuid", lambda: 1201)
+    strict.setenv("REMORA_AGENT_OS_UIDS", "1200,1201")
+    with pytest.raises(CustodyViolation, match="uid 1201"):
+        assert_custody_split()
+
+
+def test_k23_os_user_accepts_an_executor_under_another_uid(strict) -> None:
+    _executor(strict)
+    strict.setenv("REMORA_RUNTIME_PROFILE", "controlled_pilot")
+    strict.setenv("REMORA_EXECUTION_ISOLATION", "os_user")
+    strict.setattr("os.getuid", lambda: 1300)
+    strict.setenv("REMORA_AGENT_OS_UIDS", "1200")
+    assert assert_custody_split() == "executor"
+
+
+@pytest.mark.parametrize("uids", ["", " , ", "agent", "12,x"])
+def test_k24_os_user_needs_a_well_formed_agent_uid_list(strict, uids: str) -> None:
+    _executor(strict)
+    strict.setenv("REMORA_EXECUTION_ISOLATION", "os_user")
+    strict.setattr("os.getuid", lambda: 1300)
+    strict.setenv("REMORA_AGENT_OS_UIDS", uids)
+    with pytest.raises(CustodyViolation, match="REMORA_AGENT_OS_UIDS"):
+        assert_custody_split()
+
+
+def test_k25_os_user_refuses_a_root_credential_holder(strict) -> None:
+    _executor(strict)
+    strict.setenv("REMORA_EXECUTION_ISOLATION", "os_user")
+    strict.setattr("os.getuid", lambda: 0)
+    strict.setenv("REMORA_AGENT_OS_UIDS", "1200")
+    with pytest.raises(CustodyViolation, match="root"):
+        assert_custody_split()
+
+
+@pytest.mark.parametrize("value", ["container", "host"])
+def test_k26_declared_container_or_host_isolation_is_accepted(strict, value: str) -> None:
+    _executor(strict)
+    strict.setenv("REMORA_RUNTIME_PROFILE", "controlled_pilot")
+    strict.setenv("REMORA_EXECUTION_ISOLATION", value)
+    assert assert_custody_split() == "executor"
+
+
+def test_k27_an_authority_needs_no_isolation_declaration(strict) -> None:
+    _authority(strict)
+    assert assert_custody_split() == "authority"

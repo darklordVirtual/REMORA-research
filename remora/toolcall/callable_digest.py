@@ -11,6 +11,16 @@ Two kinds, as the spec attests:
   plus the name and installed version of each third-party distribution it
   imports. A changed dependency then fails verification at registration.
 
+Both measure what runs (AACP-CY-11). A digest is taken from source text, and
+the code that runs is a code object compiled earlier, possibly from other
+bytes: a file rewritten after import, or put back after a different version
+was imported, would otherwise attest the bytes on disk while the swapped code
+dispatches. Before measuring, the source text that is hashed is compiled and
+the result must contain the callable's own code object (and, for the closure
+digest, that of every function the followed modules define in that file);
+otherwise :class:`CallableSourceMismatch` is raised and registration refuses.
+The digest values are unchanged, so bundles already signed still verify.
+
 Split out of ``signed_surface_runtime`` (2026-10-13) so the CORE registration
 path in ``remora.execution.authorization`` can measure a callable without
 importing the EXPERIMENTAL reference runtime. Neither digest measures an
@@ -23,14 +33,16 @@ import hashlib
 import importlib.util
 import inspect
 import json
+import linecache
 import sys
+import types
 from pathlib import Path
 from typing import Any, Callable
 
-from remora.toolcall.toolspec import ToolSpec
+from remora.toolcall.toolspec import ToolSpec, ToolSpecRefused
 
-__all__ = ["CLOSURE_PREFIX", "callable_digest_for", "closure_digest",
-           "closure_members", "source_digest"]
+__all__ = ["CLOSURE_PREFIX", "CallableSourceMismatch", "callable_digest_for",
+           "closure_digest", "closure_members", "source_digest"]
 
 
 def _canonical_json(value: object) -> str:
@@ -40,7 +52,72 @@ def _canonical_json(value: object) -> str:
                       ensure_ascii=False, allow_nan=False)
 
 
+class CallableSourceMismatch(ToolSpecRefused):
+    """The code that runs was not compiled from the source being measured."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__("toolspec_callable_source_mismatch", message)
+
+
+def _code_objects(code: types.CodeType):
+    yield code
+    for const in code.co_consts:
+        if isinstance(const, types.CodeType):
+            yield from _code_objects(const)
+
+
+def _function_code(obj: Any) -> types.CodeType | None:
+    obj = getattr(obj, "__func__", obj)  # bound and class methods
+    obj = inspect.unwrap(obj) if callable(obj) else obj
+    code = getattr(obj, "__code__", None)
+    return code if isinstance(code, types.CodeType) else None
+
+
+def _require_compiled_from(codes: list[types.CodeType], source: str, filename: str) -> None:
+    """Every code object in ``codes`` must be one ``source`` compiles to."""
+    if not codes:
+        return
+    try:
+        compiled = compile(source, filename, "exec", dont_inherit=True)
+    except (SyntaxError, ValueError) as exc:
+        raise CallableSourceMismatch(f"{filename} does not compile ({exc})") from exc
+    # Code-object equality compares bytecode, constants (nested code
+    # included), names and line tables; marshal output is not used because it
+    # depends on reference counts.
+    available = list(_code_objects(compiled))
+    for code in codes:
+        if not any(code == candidate for candidate in available):
+            raise CallableSourceMismatch(
+                f"{code.co_qualname} in {filename} is not the code that source "
+                "compiles to; the file changed after it was loaded")
+
+
+def _defined_in(module: Any, filename: str) -> list[types.CodeType]:
+    """Code of the functions (and one level of methods) ``module`` defines in ``filename``."""
+    codes: list[types.CodeType] = []
+    for value in list(vars(module).values()):
+        members = [value]
+        if inspect.isclass(value) and getattr(value, "__module__", None) == module.__name__:
+            members += list(vars(value).values())
+        for member in members:
+            code = _function_code(member)
+            if code is not None and code.co_filename == filename:
+                codes.append(code)
+    return codes
+
+
 def source_digest(fn: Callable[..., Any]) -> str:
+    # inspect.getsource unwraps decorators, so the code checked is the
+    # unwrapped function's, read from that function's own file.
+    code = _function_code(fn)
+    filename = code.co_filename if code is not None else ""
+    if code is not None and filename and not filename.startswith("<"):
+        # Read the file now, not a cached copy, and check that what runs is
+        # what this text compiles to; the digest is then of that same text.
+        linecache.checkcache(filename)
+        module = sys.modules.get(getattr(inspect.unwrap(getattr(fn, "__func__", fn)), "__module__", "") or "")
+        lines = linecache.getlines(filename, vars(module) if module else None)
+        _require_compiled_from([code], "".join(lines), filename)
     return "sha256:" + hashlib.sha256(inspect.getsource(fn).encode("utf-8")).hexdigest()
 
 
@@ -148,7 +225,20 @@ def closure_members(fn: Callable[..., Any]) -> dict[str, str]:
             members[name] = "no-source"
             continue
         path = Path(origin)
-        members[name] = "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
+        raw = path.read_bytes()
+        loaded = sys.modules.get(name)
+        loaded_file = getattr(loaded, "__file__", None) if loaded is not None else None
+        if loaded is not None and loaded_file:
+            # The bytes hashed here are the bytes the loaded functions must
+            # have been compiled from (AACP-CY-11).
+            codes = _defined_in(loaded, str(Path(loaded_file)))
+            if name == root.__name__:
+                own = _function_code(fn)
+                if own is not None:
+                    codes.append(own)
+            _require_compiled_from(codes, importlib.util.decode_source(raw),
+                                   codes[0].co_filename if codes else str(path))
+        members[name] = "sha256:" + hashlib.sha256(raw).hexdigest()
         package = name if path.name == "__init__.py" else name.rpartition(".")[0]
         pending.extend(_imported_names(path, package))
     return members
