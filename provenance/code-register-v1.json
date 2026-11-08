@@ -6348,9 +6348,9 @@
     },
     "docs/README.md": {
       "concepts": [],
-      "git_blob": "44912925d90dbce5b8ce3c7a4a2a0d7d7c628bcf",
+      "git_blob": "607ba9344bb6dcf7ac0150e63b8944ea2fc52e92",
       "mode": "100644",
-      "sha256": "e67da8416bb347919cf620dd2b62cfa07e0312e3b346ffc645c882c63613dbef"
+      "sha256": "7f0246770511bffd87c2fbf84801e3aa31273dcf5d1e76e09b0236ddd06db0b2"
     },
     "docs/architecture/ADR-UE-03-capability-manifest-hook-and-mode.md": {
       "concepts": [],
@@ -7223,9 +7223,9 @@
     },
     "docs/assurance/remediation_register.yaml": {
       "concepts": [],
-      "git_blob": "84c174215f5031706fb6827039923b9c5dfb8c75",
+      "git_blob": "355bc5a940a18f7f2d805a1f2916bcdd9c4e987e",
       "mode": "100644",
-      "sha256": "722c243abc1c0232b271f2512c159aa20c281c01fddedb673ffe7a1abcb093e0"
+      "sha256": "9c95ee0f077648b9ce0aefd40dcd55abfd7b6758ffd029ae4b9dba515676301a"
     },
     "docs/assurance/reproducibility_scorecard_v1.md": {
       "concepts": [],
@@ -7544,9 +7544,9 @@
     },
     "docs/design/aacp-audit-integrity-remediation-sdd-v1.md": {
       "concepts": [],
-      "git_blob": "a30d44c42d75379f4863579a157404c923e9cb65",
+      "git_blob": "9a267dbafdb23011aaae7a7f89c9b76884f9ccaf",
       "mode": "100644",
-      "sha256": "8ae1a977ef3476b25836170d99bfc6373b6af979893b0907be895b7cbb55ec9f"
+      "sha256": "aea513e0256778f16aef7a63110b213d1e226b43b2ecea74343b1b04a7fd3116"
     },
     "docs/design/aps-authority-profile-v0.md": {
       "concepts": [],
@@ -23767,7 +23767,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "5a6bc16debff0b123c852a8ad1ce656d1538ba6b0a2848ecc9faada96147fc22",
+  "register_sha256": "319c5cc55265e512baf00e53e23cfd232af1ea0297d89499b7d282fc25f575a0",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

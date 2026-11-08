@@ -3,7 +3,7 @@
 | Metadata | Value |
 | --- | --- |
 | Document ID | SDD-RMR-AACP-X-2026-11-08 |
-| Status | IMPLEMENTED on branch `fix/aacp-x01-x02-x04`; not merged, no independent review |
+| Status | IMPLEMENTED; merged to dev in #1204 (`dbb4bf29`) and #1205 (`49a80ae3`) |
 | Date | 2026-11-08 |
 | Baseline | dev `06c2f8f038d9d24668158ce24cbd444e89fd306a` (the revision AACP assessed) |
 | Source of findings | agent-authority-conformance PR #28: `reports/remora-06c2f8f/REPORT.md`, `docs/REMORA-CONTROL-INSPECTION.md` |
@@ -261,12 +261,15 @@ made them fail (exit 1). The script and output are in the PR.
   writing to the same file.
 - R5. v1 assurance traces remain ambiguous when verified; their root and
   `leaf_count` must be compared together, as `reporting.py` already records.
-- R6. The AACP result for this fix is an author run (`AUTHOR_RUN`), not an
-  independent review. NOT_OBSERVED is not PASS.
+- R6. Withdrawn 2026-11-08. This item read as if a second-person review
+  were still required; the owner decided that none is required for this
+  change. What stays true: the AACP result is an author run (`AUTHOR_RUN`),
+  nobody other than the author has reviewed the change, and NOT_OBSERVED is
+  not PASS.
 
 ## 8. External head anchor (R1, R3)
 
-Added on branch `feat/audit-chain-anchor`, stacked on this fix.
+Added in #1205 (`feat/audit-chain-anchor`), merged to dev after this fix.
 `remora/governance/chain_anchor.py` writes one HMAC-signed line per committed
 head to `REMORA_AUDIT_ANCHOR_PATH`, keyed by `REMORA_AUDIT_ANCHOR_KEY` (at
 least 32 bytes). `SQLiteTenantChain`, `PostgresTenantChain` and `JSONLAudit`

@@ -1990,6 +1990,8 @@ items:
       /audit/verify reports integrity_scope. The anchor is only as strong as
       its storage: whoever can also rewrite the anchor file defeats it (a test
       asserts this), and HMAC verification shares a secret with verifiers.
-      R2 (pre-migration history), R5 (v1 ambiguity) and R6 (no independent
-      review) are not closable in code and stay open.
+      R2 (pre-migration history) and R5 (v1 ambiguity) are not closable in
+      code and stay open. R6 is withdrawn: no second-person review is
+      required for this change (owner decision 2026-11-08); the AACP runs
+      remain AUTHOR_RUN.
 
