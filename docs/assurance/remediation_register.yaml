@@ -1966,3 +1966,30 @@ items:
       The attestation workflow gains a Sigstore provenance job for the test
       attestation (AACP observation, not a finding); that is the producer's
       signature, not independent review.
+
+  - id: REM-070
+    section: "aacp-controls-2026-11"
+    title: "Signed external chain-head anchor (SDD-RMR-AACP-X R1 and R3)"
+    gate: P2
+    status: DONE
+    completed: "2026-11-08"
+    artifacts:
+      - remora/governance/chain_anchor.py
+      - remora/governance/tenant_chain.py
+      - remora/adapters/audit/jsonl.py
+      - servers/execution_api.py
+      - tests/security/test_audit_chain_anchor.py
+      - docs/design/aacp-audit-integrity-remediation-sdd-v1.md
+    notes: >
+      REM-067/068 left two gaps: a head stored with the entries does not stop
+      someone who rewrites entries and head together (R1), and JSONL kept no
+      head (R3). An opt-in HMAC-signed anchor file (REMORA_AUDIT_ANCHOR_PATH,
+      _KEY) now records every committed head for SQLite, Postgres and JSONL,
+      and verify fails on anchor_truncated, anchor_mismatch_at and
+      anchor_absent; a lagging anchor is reported, never ahead of the store.
+      /audit/verify reports integrity_scope. The anchor is only as strong as
+      its storage: whoever can also rewrite the anchor file defeats it (a test
+      asserts this), and HMAC verification shares a secret with verifiers.
+      R2 (pre-migration history), R5 (v1 ambiguity) and R6 (no independent
+      review) are not closable in code and stay open.
+

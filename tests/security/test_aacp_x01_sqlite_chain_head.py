@@ -257,6 +257,8 @@ def test_verify_report_names_what_was_checked(tmp_path):
         "integrity_scope": INTEGRITY_SCOPE_LOCAL,
         "head_origin": HEAD_ORIGIN_APPEND,
         "baseline_sequence": -1,
+        "anchored_sequence": None,
+        "anchor_lag": None,
     }
     assert chain.verify_report(T, expected_head=chain.stored_head(T))["integrity_scope"] == \
         INTEGRITY_SCOPE_ANCHORED

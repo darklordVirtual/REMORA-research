@@ -249,11 +249,13 @@ made them fail (exit 1). The script and output are in the PR.
 
 - R1. Local heads (SQLite and Postgres) do not resist an attacker with write
   access to the whole store. Only an `expected_head` kept elsewhere does, and
-  no caller in the execution path supplies one yet.
+  no caller in the execution path supplies one yet. Status: mitigated when
+  `REMORA_AUDIT_ANCHOR_PATH` is configured (§8); the default stays local.
 - R2. Legacy SQLite history before migration is baselined as found;
   truncation before the upgrade is undetectable without a prior anchor.
 - R3. JSONL logs have no stored head; tail truncation is detected only with
-  an external `expected_head`.
+  an external `expected_head`. Status: mitigated with a configured anchor
+  (§8), which JSONL picks up from the same environment.
 - R4. A JSONL log with an unreadable record refuses appends until an operator
   sets it aside. That is fail-closed by design and can stop a shadow replay
   writing to the same file.
@@ -261,3 +263,66 @@ made them fail (exit 1). The script and output are in the PR.
   `leaf_count` must be compared together, as `reporting.py` already records.
 - R6. The AACP result for this fix is an author run (`AUTHOR_RUN`), not an
   independent review. NOT_OBSERVED is not PASS.
+
+## 8. External head anchor (R1, R3)
+
+Added on branch `feat/audit-chain-anchor`, stacked on this fix.
+`remora/governance/chain_anchor.py` writes one HMAC-signed line per committed
+head to `REMORA_AUDIT_ANCHOR_PATH`, keyed by `REMORA_AUDIT_ANCHOR_KEY` (at
+least 32 bytes). `SQLiteTenantChain`, `PostgresTenantChain` and `JSONLAudit`
+use it when it is configured, and `/v1/execution/audit/verify` reports
+`integrity_scope`.
+
+### 8.1 Invariants
+
+- A1. A line binds `(chain_id, tenant_id, sequence_no, entry_hash)` under a
+  domain-separated HMAC. Reading checks every line. A malformed line, a line
+  signed with another key, or a tenant's head moving backwards or forking
+  makes the whole anchor invalid (`anchor_invalid`), never partly trusted.
+- A2. The anchor is written after the entry commits. A failed write is logged
+  and leaves the anchor behind. It is never ahead of what was committed.
+- A3. `verify` fails when the anchored entry is missing (`anchor_truncated`)
+  or has another hash (`anchor_mismatch_at`), and when a non-empty chain has
+  no anchor (`anchor_absent`). A chain longer than its anchor is not a
+  failure: the excess is reported as `anchor_lag` and is protected only
+  locally.
+- A4. The anchor is read before the entries, so a concurrent append cannot
+  look like truncation.
+- A5. A path without a key refuses to start; an unsigned anchor would be as
+  rewritable as the store.
+
+### 8.2 Enabling on an existing chain
+
+An existing chain has no anchor, so `verify` reports `anchor_absent` until an
+operator records one with `anchor_head(tenant)` (JSONL: `ChainAnchor.record`
+with `head()`). That first anchor covers history as found, like the SQLite
+migration baseline, and detects only what happens after it.
+
+### 8.3 Limit
+
+The anchor file is protected only by where it is stored. Whoever can rewrite
+or truncate it together with the chain store defeats it; the test
+`test_truncated_anchor_file_is_the_documented_limit` asserts that. The
+deployment must put it on append-only storage the chain's writer cannot
+rewrite. The code cannot check that placement. An HMAC anchor also shares a
+secret with every verifier. Third-party verification needs an asymmetric
+signature or a transparency log, which this change does not add.
+
+### 8.4 Acceptance
+
+`tests/security/test_audit_chain_anchor.py` (20 tests):
+
+- every commit is anchored, and the report says `EXTERNALLY_ANCHORED`;
+- the R1 attack (tail and head rewritten together) and a re-linked forged
+  history are detected; without the anchor both verify, as R1 states;
+- a failed anchor write leaves a committed entry with `anchor_lag` 1;
+- an absent, deleted, edited, foreign-key or rolled-back anchor fails;
+- tenants are anchored separately, and 4 threads x 10 appends end at lag 0;
+- JSONL tail truncation is detected with an anchor, and an existing log fails
+  until it is baselined;
+- `/audit/verify` reports the scope, and a path without a key is refused.
+
+Each check was removed alone (truncation, mismatch, absence, signature,
+monotonic file, backwards record, SQLite write, SQLite check, JSONL check,
+missing key) and every removal failed the tests.
+

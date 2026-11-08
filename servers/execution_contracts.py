@@ -224,6 +224,13 @@ class ExecutionAuditVerifyResponse(BaseModel):
         description="none, v1, v2 or v1+v2: the signature formats the records "
                     "carry. A chain that crossed its AUDIT_VERSION_TRANSITION "
                     "record shows v1+v2; v1 history is never re-signed (CR-011).")
+    integrity_scope: str = Field(
+        default="LOCAL_DATABASE_CONSISTENCY",
+        description="EXTERNALLY_ANCHORED when the chain was also checked "
+                    "against a signed head anchor kept outside its store "
+                    "(REMORA_AUDIT_ANCHOR_PATH), else "
+                    "LOCAL_DATABASE_CONSISTENCY: a store rewritten as a whole, "
+                    "head included, still verifies locally.")
 
 
 _AUTH_RESPONSES: dict[int | str, dict[str, Any]] = {

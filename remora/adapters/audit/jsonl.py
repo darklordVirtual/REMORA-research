@@ -16,13 +16,16 @@ on-disk format is unchanged; logs written before the fix verify unmodified.
 What ``verify`` shows. Records link and their hashes match, and the first
 record is a genesis record. It cannot show that newest records were not cut
 off: pass ``expected_head`` (from :meth:`JSONLAudit.head`, kept outside this
-file) for that. A record that cannot be read is reported in
+file), or configure a signed chain anchor (``anchor=`` or
+``REMORA_AUDIT_ANCHOR_PATH``/``_KEY``, :mod:`remora.governance.chain_anchor`)
+so every append is anchored and ``verify`` checks the log against it. A record that cannot be read is reported in
 ``load_problems``; the log then never verifies and refuses further appends.
 Nothing here repairs or rewrites the file.
 """
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -33,6 +36,9 @@ from remora.audit.hash_chain import AuditHashChain, HashChainEntry
 #: Fields every record must carry for its hash to be recomputed.
 _REQUIRED = ("timestamp", "question_hash", "action", "trust_score", "phase",
              "entry_hash", "oracle_count", "verdict", "policy_version")
+
+
+_FROM_ENV: Any = object()
 
 
 class JSONLAuditIntegrityError(RuntimeError):
@@ -63,7 +69,8 @@ class JSONLAudit(AuditAdapter):
         Path to the JSONL file. Created if it does not exist.
     """
 
-    def __init__(self, path: str = "audit.jsonl"):
+    def __init__(self, path: str = "audit.jsonl", *, anchor: Any = _FROM_ENV,
+                 anchor_chain_id: str | None = None):
         # SEC-6: Validate path to prevent directory traversal.
         # Resolve to absolute path and reject any attempt to write outside
         # the working directory using '..' components.
@@ -81,6 +88,12 @@ class JSONLAudit(AuditAdapter):
                 )
         self._path = resolved
         self._path.parent.mkdir(parents=True, exist_ok=True)
+        if anchor is _FROM_ENV:
+            from remora.governance.chain_anchor import anchor_from_env
+            anchor = anchor_from_env()
+        self._anchor = anchor
+        #: One anchor file can serve many logs; the resolved path tells them apart.
+        self._anchor_chain_id = anchor_chain_id or f"jsonl:{resolved}"
         self._chain = AuditHashChain()
         self._load_existing_chain()
 
@@ -139,6 +152,17 @@ class JSONLAudit(AuditAdapter):
             ),
         )
 
+    def anchor_problems(self) -> list[str]:
+        """Problems against the configured anchor; empty when none is configured."""
+        if self._anchor is None:
+            return []
+        from remora.governance.chain_anchor import ChainAnchorInvalid, anchor_problems
+        try:
+            latest = self._anchor.latest(self._anchor_chain_id, "-")
+        except (ChainAnchorInvalid, OSError) as exc:
+            return [f"anchor_invalid:{type(exc).__name__}"]
+        return anchor_problems(self._chain.entries(), latest)
+
     @property
     def load_problems(self) -> tuple[str, ...]:
         """Records that could not be read when the log was opened."""
@@ -191,6 +215,15 @@ class JSONLAudit(AuditAdapter):
         }
         with open(self._path, "a") as f:
             f.write(json.dumps(record, sort_keys=True, separators=(",", ":")) + "\n")
+        if self._anchor is not None:
+            # After the line is written: a failed anchor write leaves the
+            # anchor behind the log, never ahead of it.
+            index = len(self._chain.entries()) - 1
+            try:
+                self._anchor.record(self._anchor_chain_id, "-", index, chain_entry.entry_hash)
+            except Exception:
+                logging.getLogger("remora.adapters.audit.jsonl").exception(
+                    "chain anchor write failed for %s at %d", self._path, index)
 
     def query(self, *, since: datetime | None = None, action: str | None = None, limit: int = 100) -> list[AuditEntry]:
         if not self._path.exists():
@@ -238,6 +271,9 @@ class JSONLAudit(AuditAdapter):
         local consistency, not an externally anchored check.
         """
         if self._load_problems:
+            return False
+        anchor_problems = self.anchor_problems()  # read before the entries
+        if anchor_problems:
             return False
         entries = self._chain.entries()
         if entries and entries[0].previous_hash is not None:

@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import os
 import sqlite3
 import threading
@@ -473,7 +474,86 @@ def _verify_generic(
     return (not problems, problems)
 
 
-class SQLiteTenantChain:
+_LOG = logging.getLogger("remora.governance.tenant_chain")
+#: chain_id the durable adapters anchor under unless told otherwise.
+DEFAULT_ANCHOR_CHAIN_ID = "tenant_chain"
+
+
+class _Anchored:
+    """External head anchoring shared by the durable adapters (SDD R1).
+
+    With a :class:`~remora.governance.chain_anchor.ChainAnchor`, every commit
+    is followed by a signed anchor line, and ``verify`` checks the chain
+    against the newest anchor for the tenant. The anchor is written after the
+    commit: a failed write is logged and leaves the anchor behind (reported
+    as ``anchor_lag``), never ahead of what was committed.
+    """
+
+    _anchor: Any = None
+    _anchor_chain_id: str = DEFAULT_ANCHOR_CHAIN_ID
+
+    def _set_anchor(self, anchor: Any, chain_id: str | None) -> None:
+        self._anchor = anchor
+        self._anchor_chain_id = chain_id or DEFAULT_ANCHOR_CHAIN_ID
+
+    def _anchor_after_commit(self, entry: ChainEntry | None) -> None:
+        if self._anchor is None or entry is None:
+            return
+        try:
+            self._anchor.record(self._anchor_chain_id, entry.tenant_id,
+                                entry.sequence_no, entry.entry_hash)
+        except Exception:  # the entry is committed; the anchor only lags
+            _LOG.exception("chain anchor write failed for tenant %r at %d; the entry is "
+                           "committed and protected only locally until the next anchor",
+                           entry.tenant_id, entry.sequence_no)
+
+    def anchor_head(self, tenant_id: str) -> tuple[int, str] | None:
+        """Record the tenant's current last entry as an anchor (operator step).
+
+        Used once when anchoring is enabled on an existing chain. The anchor
+        covers the history as found: it detects later rollback, and verifies
+        nothing that happened before it.
+        """
+        if self._anchor is None:
+            raise RuntimeError("no chain anchor is configured")
+        entries = self.entries(tenant_id)  # type: ignore[attr-defined]
+        if not entries:
+            return None
+        last = entries[-1]
+        self._anchor.record(self._anchor_chain_id, tenant_id, last.sequence_no, last.entry_hash)
+        return (last.sequence_no, last.entry_hash)
+
+    def _anchor_fetch(self, tenant_id: str) -> tuple[Any, str | None]:
+        """The newest anchor, read BEFORE the entries.
+
+        An anchor is written only after its entry commits, so an anchor read
+        first can never be ahead of entries read afterwards; read the other
+        way round, a concurrent append could look like a truncation.
+        """
+        if self._anchor is None:
+            return (None, None)
+        from remora.governance.chain_anchor import ChainAnchorInvalid
+        try:
+            return (self._anchor.latest(self._anchor_chain_id, tenant_id), None)
+        except (ChainAnchorInvalid, OSError) as exc:
+            return (None, f"anchor_invalid:{type(exc).__name__}")
+
+    def _anchor_report(self, fetched: tuple[Any, str | None],
+                       entries: Sequence[ChainEntry]) -> dict[str, Any]:
+        """Problems and status from a fetched anchor; empty when none is configured."""
+        if self._anchor is None:
+            return {"problems": [], "checked": False,
+                    "anchored_sequence": None, "anchor_lag": None}
+        from remora.governance.chain_anchor import anchor_problems, anchor_status
+        latest, error = fetched
+        if error is not None:
+            return {"problems": [error], "checked": True,
+                    "anchored_sequence": None, "anchor_lag": None}
+        return {"problems": anchor_problems(entries, latest), "checked": True,
+                **anchor_status(entries, latest)}
+
+
+class SQLiteTenantChain(_Anchored):
     """Durable single-node adapter: same hash contract, atomic via
     ``BEGIN IMMEDIATE`` (the write lock covers predecessor read + insert),
     so concurrent appends serialise and can never fork. Survives restart.
@@ -497,10 +577,12 @@ class SQLiteTenantChain:
     :meth:`verify_report` states which was checked.
     """
 
-    def __init__(self, db_path: str, now_fn: Callable[[], datetime] | None = None) -> None:
+    def __init__(self, db_path: str, now_fn: Callable[[], datetime] | None = None, *,
+                 anchor: Any = None, anchor_chain_id: str | None = None) -> None:
         self._db_path = db_path
         self._now_fn = now_fn or (lambda: datetime.now(UTC))
         self._local = threading.local()
+        self._set_anchor(anchor, anchor_chain_id)
         conn = self._conn()
         conn.executescript(_SQLITE_DDL)
         self._migrate_head_tracking(conn)
@@ -587,6 +669,7 @@ class SQLiteTenantChain:
         except BaseException:
             conn.execute("ROLLBACK")
             raise
+        self._anchor_after_commit(entry)
         return entry
 
     def append_once(
@@ -616,6 +699,7 @@ class SQLiteTenantChain:
         except BaseException:
             conn.execute("ROLLBACK")
             raise
+        self._anchor_after_commit(entry)
         return entry
 
     def _append_in_transaction(
@@ -725,11 +809,13 @@ class SQLiteTenantChain:
         migration. Reads run in one transaction so a concurrent append cannot
         appear as a head mismatch.
         """
+        fetched = self._anchor_fetch(tenant_id)
         conn = self._conn()
         conn.execute("BEGIN")
         try:
             status, head = self._head_row(conn, tenant_id)
             _ok, problems = _verify_generic(self, tenant_id, expected_head)
+            anchored = self._anchor_report(fetched, self.entries(tenant_id))
             head_problems: list[str] = []
             if status == "malformed":
                 head_problems.append("stored_head_malformed")
@@ -739,26 +825,31 @@ class SQLiteTenantChain:
                 head_problems.append("stored_head_missing")
         finally:
             conn.execute("COMMIT")
-        problems = head_problems + problems
+        problems = head_problems + problems + anchored["problems"]
         return {
             "ok": not problems,
             "problems": problems,
-            "integrity_scope": (INTEGRITY_SCOPE_ANCHORED if expected_head is not None
+            "integrity_scope": (INTEGRITY_SCOPE_ANCHORED
+                                if expected_head is not None or anchored["checked"]
                                 else INTEGRITY_SCOPE_LOCAL),
             "head_origin": head[2] if status == "ok" else None,
             "baseline_sequence": int(head[3]) if status == "ok" else None,
+            "anchored_sequence": anchored["anchored_sequence"],
+            "anchor_lag": anchored["anchor_lag"],
         }
 
 
-class PostgresTenantChain:
+class PostgresTenantChain(_Anchored):
     """Multi-node durable adapter: implements the POSTGRES_DDL contract with
     ``SELECT ... FOR UPDATE`` on the per-tenant head row inside one
     transaction. Requires ``psycopg`` and a DSN; contract-tested when
     REMORA_PG_DSN is set (skipped otherwise)."""
 
-    def __init__(self, dsn: str, now_fn: Callable[[], datetime] | None = None) -> None:
+    def __init__(self, dsn: str, now_fn: Callable[[], datetime] | None = None, *,
+                 anchor: Any = None, anchor_chain_id: str | None = None) -> None:
         import psycopg  # type: ignore[import-not-found]
 
+        self._set_anchor(anchor, anchor_chain_id)
         self._psycopg = psycopg
         self._dsn = dsn
         self._now_fn = now_fn or (lambda: datetime.now(UTC))
@@ -770,6 +861,7 @@ class PostgresTenantChain:
         with self._psycopg.connect(self._dsn) as conn:
             with conn.transaction():
                 entry = self._append_in_transaction(conn, tenant_id, payload)
+        self._anchor_after_commit(entry)
         return entry
 
     def append_once(
@@ -790,6 +882,7 @@ class PostgresTenantChain:
                 if claimed is None:
                     return None
                 entry = self._append_in_transaction(conn, tenant_id, payload)
+        self._anchor_after_commit(entry)
         return entry
 
     def _append_in_transaction(
@@ -871,4 +964,10 @@ class PostgresTenantChain:
     def verify(
         self, tenant_id: str, expected_head: tuple[int, str] | None = None
     ) -> tuple[bool, list[str]]:
-        return _verify_generic(self, tenant_id, expected_head)
+        fetched = self._anchor_fetch(tenant_id)
+        entries = self.entries(tenant_id)
+        _ok, problems = _verify_generic(self, tenant_id, expected_head)
+        # Anchor checked against the entries read after it (see _anchor_fetch);
+        # _verify_generic re-reads, which can only see more.
+        problems = problems + self._anchor_report(fetched, entries)["problems"]
+        return (not problems, problems)
