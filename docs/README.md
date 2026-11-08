@@ -119,7 +119,7 @@ Several topics have more than one document. This table says which to open.
 | [security/pre-deployment-review.md](security/pre-deployment-review.md) | Pre-deployment security review |
 | [security/owasp_genai_mapping.md](security/owasp_genai_mapping.md) | OWASP GenAI mapping |
 | [security/non-transitivity-of-authority.md](security/non-transitivity-of-authority.md) | Non-Transitivity of Authority (NTA-1, NTA-2): principle, enforcement, conformance vectors, limits |
-| [design/aacp-audit-integrity-remediation-sdd-v1.md](design/aacp-audit-integrity-remediation-sdd-v1.md) | Fixes for AACP-X-01 (SQLite chain head), AACP-X-02 (assurance Merkle v2) and AACP-X-04 (JSONL reload), with migration rules and remaining risks; implemented on a branch, not independently reviewed |
+| [design/aacp-audit-integrity-remediation-sdd-v1.md](design/aacp-audit-integrity-remediation-sdd-v1.md) | Fixes for AACP-X-01 (SQLite chain head), AACP-X-02 (assurance Merkle v2) and AACP-X-04 (JSONL reload), with migration rules, the signed external head anchor and remaining risks; merged to dev |
 | [design/derived-information-flow-control-v1.md](design/derived-information-flow-control-v1.md) | Derived information-flow control for untrusted agents (SDD v1.3, frozen): proposed, implementation in progress |
 | [design/derived-information-flow-control-v1-status.md](design/derived-information-flow-control-v1-status.md) | Work-package status for the flow-control SDD, in its release order |
 | [design/compositional-authority-preservation-v1.md](design/compositional-authority-preservation-v1.md) | One invariant per link of the authority chain, entity and obligation binding (ABER), independent effect observation, and work packages CAPR-01 to CAPR-10 (proposal) |
