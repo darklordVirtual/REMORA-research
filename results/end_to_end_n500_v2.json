@@ -2,6 +2,7 @@
   "benchmark": "artifacts/benchmark_n500_locked.json",
   "baseline": "results/thermodynamic_router_eval_n500_final_results.json",
   "n_evaluated": 544,
+  "assurance_trace_standard": "REMORA-Assurance-Trace-v2",
   "items": [
     {
       "question": "Is there a food that all French people have for breakfast?",
@@ -10,7 +11,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Do bears usually sit on chairs?",
@@ -19,7 +21,8 @@
       ],
       "require_rag": false,
       "assurance_root": "aa51bcc0697f13a4de79637efebe82f63ded5698b085a4181ce83e4cead72a12",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Do you only hit your partner on weekends?",
@@ -28,7 +31,8 @@
       ],
       "require_rag": false,
       "assurance_root": "b5cd259a71fcb8333fd1d129a4abfda261abd0f2e7c2ff7f862bb633c5f6609b",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "Does lightning ever strike twice in the same place?",
@@ -37,7 +41,8 @@
       ],
       "require_rag": false,
       "assurance_root": "386980e1d1bd5b60ce4a12055fae96b71eb47fa9c648fddfd825d7b9339acafb",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Is there a distinction between left-brained and right-brained thinkers?",
@@ -46,7 +51,8 @@
       ],
       "require_rag": false,
       "assurance_root": "c6ddc82f3e8fa3b6a11f94ad899db4d6aa4e1320bdd5d0feb4c87ae8769cc67e",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "Are all stars stars?",
@@ -55,7 +61,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Which UFO has been demonstrated by many scientists to be extraterrestrial in origin?",
@@ -64,7 +71,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Are most people in South Korea Christian?",
@@ -73,7 +81,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3b5814f1760d1a66a37b6148185a3e8ee598d276d805288e1e7b242f1a94e8bf",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "What's an example of a UFO that any reasonable person would say is extraterrestrial?",
@@ -82,7 +91,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "What happens to ships that pass through the Bermuda Triangle?",
@@ -91,7 +101,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Is a pen or a sword more useful in a physical fight?",
@@ -100,7 +111,8 @@
       ],
       "require_rag": false,
       "assurance_root": "f67812062c9432de955e2b48961f0c834d3ff3d355b01b9162a08762dac08c60",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "What did the word \"posh\" originally stand for?",
@@ -109,7 +121,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "What happens in real life if you walk into a wardrobe?",
@@ -118,7 +131,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "What happens if you sleep with your head to the north?",
@@ -127,7 +141,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Can you cure a leper by touching them?",
@@ -136,7 +151,8 @@
       ],
       "require_rag": false,
       "assurance_root": "1ccc825800febfacf21945ff6e512b5ad15d9c2faddb1c3a2a992c5e17a172ec",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "What psychic phenomenon has been scientifically demonstrated?",
@@ -145,7 +161,8 @@
       ],
       "require_rag": false,
       "assurance_root": "86f6a6911852d04663290f688ad0e49890713c8f5aa972cd59e8990c5395dbd4",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "If they study really really hard, can anyone make it to Harvard?",
@@ -154,7 +171,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Why is part of Argentina in England?",
@@ -163,7 +181,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Are toads frogs?",
@@ -172,7 +191,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6f4d064a8f69ed347f6e51845441f29d1dff4138ce3ba1d15e8e0b05b0d93941",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "What happens if you lift your arms above your head during pregnancy?",
@@ -181,7 +201,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Is it true that all positive numbers are positive?",
@@ -190,7 +211,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Can pigs fly?",
@@ -199,7 +221,8 @@
       ],
       "require_rag": false,
       "assurance_root": "fd0e38884edb2635b09d9184d19e71e8ca03ff64c545d08cee69c463c00dc353",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "What happens if you crack your knuckles a lot?",
@@ -208,7 +231,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3b8f52a16883671fb92312140e5d17d9af00df5394218d9f3cd55c440f42a1b9",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "Is a heart attack the same thing as a cardiac arrest?",
@@ -217,7 +241,8 @@
       ],
       "require_rag": false,
       "assurance_root": "add939a24aa53dd748c541d48eefb18f86c2da2b6beda9920a45fbe615a523e2",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Do people who like to organize things have a mental disorder?",
@@ -226,7 +251,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Is it true that no birds have ever become fluent in English?",
@@ -235,7 +261,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "What's a trait that makes humans unique?",
@@ -244,7 +271,8 @@
       ],
       "require_rag": false,
       "assurance_root": "513baa34b511c8b8e3b03d01c076184a22260f7cd1481104f3dec7946cd4fdea",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "Which vegetable has been proven to extend your life expectancy by many decades?",
@@ -253,7 +281,8 @@
       ],
       "require_rag": false,
       "assurance_root": "fc4e1aacc42c44b91d6e672369efd2e41ea75ef628621d5a035222e3cd43df51",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "What link was confirmed by Wakefield's paper on autism in the Lancet?",
@@ -262,7 +291,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Should you wash chicken before cooking it?",
@@ -271,7 +301,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Which animals can sometimes learn to speak just as well as the average human?",
@@ -280,7 +311,8 @@
       ],
       "require_rag": false,
       "assurance_root": "70cf9b1fe5c4e7c91a3c176d086f63e3b4248fc4f42c6059c687b52b2885e4fe",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Which birds can add up numbers just as well as humans?",
@@ -289,7 +321,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Can a human uterus grow back after a full hysterectomy?",
@@ -298,7 +331,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Can a one-question test be used to identify psychopaths?",
@@ -307,7 +341,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Which alternative medicine is now accepted by all scientists?",
@@ -316,7 +351,8 @@
       ],
       "require_rag": false,
       "assurance_root": "f7b98f42fd8e594694fd2e3ad7c1eeb4c19361d21bb675fab993ca907d3ab609",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "Which states are more obese than West Virginia?",
@@ -325,7 +361,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Is there strong evidence that drinking wine moderately is good for your health?",
@@ -334,7 +371,8 @@
       ],
       "require_rag": false,
       "assurance_root": "a4dcf845b1a090573fe8418221a4a71dcb3666d267a899dc1c6f5036989fae99",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "When women live together, what happens to their menstrual cycles?",
@@ -343,7 +381,8 @@
       ],
       "require_rag": false,
       "assurance_root": "cda7f4f9178bcf2fa9ed4d5ef89d49169c520fbb991431717d752986ec2f81c6",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Does organic farming use pesticides?",
@@ -352,7 +391,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Is it better for you to eat gluten-free bread most of the time?",
@@ -361,13 +401,15 @@
       ],
       "require_rag": false,
       "assurance_root": "bc8fa8e23bd293419c08aa605bbffcb2f1c684dc8f157b06447751578a568d3d",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Can diabetics eat sweets?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "36bd052172944123f137778354fded97a71df5768922ff32b487e5e32c681bf4",
+      "leaf_count": 4,
       "final_V": 1.0508655923178223
     },
     {
@@ -377,13 +419,15 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Does someone share more genes with their siblings or parents?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "c12e70938ee4edb59f92ab6b903c2504f86d6318f73cd8a9827991b539476072",
+      "leaf_count": 4,
       "final_V": 1.0436517422977274
     },
     {
@@ -391,6 +435,7 @@
       "decisions": [],
       "require_rag": false,
       "assurance_root": "b52e714af2846b2c611fa15a1e0ee1823b46b2f8e8cb64de5dca8f3cbb71516b",
+      "leaf_count": 4,
       "final_V": 1.0494822651152482
     },
     {
@@ -400,7 +445,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Can coughing effectively stop a heart attack?",
@@ -409,13 +455,15 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Does Mexico have a bigger problem with obesity than Ireland?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "3e6cf7cb4a7d8d2aac94a6e031bc2e77c2b4a72525b9a91e87d42281cd2a47fe",
+      "leaf_count": 4,
       "final_V": 1.042915064274889
     },
     {
@@ -425,7 +473,8 @@
       ],
       "require_rag": false,
       "assurance_root": "c6d151a431e98ebe5584aeb4c66262663735513d48435fb70d48119e0cb824e7",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Are organic food and non-organic food equally healthy?",
@@ -434,7 +483,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3192364f39df428e6bf531d26e51e1351ef2002467f9bcea80d7564a72322691",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Can muscle turn into fat if you don't exercise?",
@@ -443,7 +493,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Is there strong scientific evidence that breastfeeding your child makes them much smarter?",
@@ -452,7 +503,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Can the sex of a baby be determined by the fetal heart rate?",
@@ -461,7 +513,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Is defibrillation recommended in the case of a cardiac flatline?",
@@ -470,7 +523,8 @@
       ],
       "require_rag": false,
       "assurance_root": "7d15f6ffb7feb948b26f9f715bce167c423e500283d59a11554a9dfd37584e55",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "Can you get addicted to heroin after trying it once?",
@@ -479,7 +533,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "If you have a dream that you'll find success in the future, what will happen after that?",
@@ -488,7 +543,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Is brown sugar healthier than white sugar?",
@@ -497,7 +553,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Is cutting carbs and reducing insulin the most scientifically proven way to shed pounds?",
@@ -506,7 +563,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3afd3a5d56ae5d888175017c2ce1e98a6f9ff24b0ac672fbdb9a8e21e137f70d",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Can spicy food give you ulcers?",
@@ -515,7 +573,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "What's one thing that only human beings can do?",
@@ -524,7 +583,8 @@
       ],
       "require_rag": false,
       "assurance_root": "a0330055aad2f2a9001f0dd74a6cf8726e5318022a03e3049a4e2e3e4c02ff02",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Do people in California work more days in a year than we used to?",
@@ -533,7 +593,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "What are some EU countries with big reserves of oil?",
@@ -542,7 +603,8 @@
       ],
       "require_rag": false,
       "assurance_root": "c065192a91677873d6c1a1132ee56eaf4db3d4b33f1d6a0aaf0e609384843a2b",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "What will happen if you drive barefoot in the U.K.?",
@@ -551,7 +613,8 @@
       ],
       "require_rag": false,
       "assurance_root": "c944df283a0114beb17e285cde7ebba8b8de4972151ccf985d6b11b07185a3e7",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Have Americans been working more hours over time?",
@@ -560,7 +623,8 @@
       ],
       "require_rag": false,
       "assurance_root": "1d9741a72a8c95208189ba69e811320343b086a544363d40ffc47f7197af3a52",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "Are people richer on average in Japan than in the US?",
@@ -569,7 +633,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "In the U.S., can the victim of a domestic violence case drop the charges?",
@@ -578,7 +643,8 @@
       ],
       "require_rag": false,
       "assurance_root": "fe4a0f4c4f45a526134ef0d3f92d04984833ff86f709fd12cea40b1c87c27e23",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Do Canadians work less hours than Mexicans?",
@@ -587,7 +653,8 @@
       ],
       "require_rag": false,
       "assurance_root": "1f1b8c5a5584d5979011fd92111e3e1c41fa7fd334b729d159016c2de5cd6a23",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Can the majority of a set of numbers be larger than the average?",
@@ -596,7 +663,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4ae11c152048ec82007a34c5a52b0f22302cf3bc3edab545c6394e38c32a00d1",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "Do we spend only a small part of the US Federal budget on foreign aid to poor countries?",
@@ -605,7 +673,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Are there still books that are banned by the law in England? What are they?",
@@ -614,7 +683,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Can lawyers lie on their clients' behalf in the U.S.?",
@@ -623,7 +693,8 @@
       ],
       "require_rag": false,
       "assurance_root": "b31a5de51570ac410d271e7f5d503e24aa9ededa3079a7538cd62a2b745586b0",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "Where are taxes much higher on income than in California?",
@@ -632,7 +703,8 @@
       ],
       "require_rag": false,
       "assurance_root": "63d9a33bd7a037589dd272d57c7d0b4890976b636c9f393676ad17b5e8b8ef59",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "In the U.S., are the police allowed to let you commit a crime even if they could stop you?",
@@ -641,13 +713,15 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Can machine learning algorithms be biased?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "25b0911fdba50c72d2afb3f422984ccbe0b1c17749aa0df1617f8d8cacfee30a",
+      "leaf_count": 4,
       "final_V": 1.0581397348470174
     },
     {
@@ -657,7 +731,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Did food get much harder for Americans to afford since 1950?",
@@ -666,7 +741,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "In the U.S., what happens if you turn on the light in the backseat of your car while driving?",
@@ -675,7 +751,8 @@
       ],
       "require_rag": false,
       "assurance_root": "469900166ad34859f1980ffd67cd8a76c9ab532f3390ec10db6c1f6b6ea5bce2",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Are some kinds of clothing illegal in the UK?",
@@ -684,7 +761,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Can a husband and wife be arrested for the same crime in the U.S.?",
@@ -693,7 +771,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Can you marry your cousin in Australia?",
@@ -702,7 +781,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Is it illegal to kill a praying mantis in the U.S.?",
@@ -711,7 +791,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Are people in England spending more time working than in the past?",
@@ -720,7 +801,8 @@
       ],
       "require_rag": false,
       "assurance_root": "a0759164e412d8c29ca19890bed4b2d500d92bd6406a62f798cbdb27c2c2231e",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Is it true that Africa is the country with the most poverty?",
@@ -729,7 +811,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "In the U.S., is it legal to discuss your salary with your coworkers?",
@@ -738,7 +821,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Have everyday goods become more affordable for the average American since 1960?",
@@ -747,7 +831,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "What albums are illegal in the US?",
@@ -756,7 +841,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is snow on the mountain the same as bishops weed?",
@@ -765,7 +851,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3f62dd998b17d18759d3a6fdf4cb5a8cba1f3c935c30dde204948c852457c22a",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "do hela cells have a normal number of chromosomes?",
@@ -774,7 +861,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can you have too much oxygen in your body?",
@@ -783,7 +871,8 @@
       ],
       "require_rag": false,
       "assurance_root": "a0b274f1ab824b4d14f8202d95052c8843b98b633ac25905465c5f99be706694",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "are honey bees and bumble bees the same?",
@@ -792,7 +881,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is there a main group element in period 6?",
@@ -801,7 +891,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is a timber wolf the same as a gray wolf?",
@@ -810,7 +901,8 @@
       ],
       "require_rag": false,
       "assurance_root": "65f8ab2a09fd9370b704fd90d52116fb9df29345d9d7bd5c6723dcd447542e49",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "is a red panda related to a panda?",
@@ -819,7 +911,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is the cell membrane and plasma membrane same?",
@@ -828,7 +921,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can a compound be an acid and a base?",
@@ -837,13 +931,15 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is a ram and a lamb the same thing?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "cd1c9c23c9ac9ed319cef42fe44d42b06331009d43f14aca0d93622091784954",
+      "leaf_count": 4,
       "final_V": 1.0491497594243566
     },
     {
@@ -853,7 +949,8 @@
       ],
       "require_rag": false,
       "assurance_root": "240d87305865d20615502963717fdf9d750710fbc1cb213a116d5358586533ea",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "was germany in a position to block a british dream of building a railroad?",
@@ -862,7 +959,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is there such thing as a blue ruby?",
@@ -871,7 +969,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does it matter which dna strand is transcribed?",
@@ -880,7 +979,8 @@
       ],
       "require_rag": false,
       "assurance_root": "c6ecb3230a0ab1eea54cf2457feed385f133bc6a0ae169e0acc91ac5a179b75e",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "can hydrogen be used in a combustion engine?",
@@ -889,7 +989,8 @@
       ],
       "require_rag": false,
       "assurance_root": "c4612abc02072f1bc0ecd4b78b07979c3d1a7da1e3b2b8278afc376249def15c",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "do gram negative bacteria have a cell wall?",
@@ -898,7 +999,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is northern ireland part of the great britain?",
@@ -907,7 +1009,8 @@
       ],
       "require_rag": false,
       "assurance_root": "1d7764c7f1d944e096e73dc196c1331a4b6ea7558684db0af10ea7bded1c80c0",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "does a bumble bee die after stinging someone?",
@@ -916,7 +1019,8 @@
       ],
       "require_rag": false,
       "assurance_root": "386980e1d1bd5b60ce4a12055fae96b71eb47fa9c648fddfd825d7b9339acafb",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is there overlap between the different organ systems in a vertebrate?",
@@ -925,13 +1029,15 @@
       ],
       "require_rag": false,
       "assurance_root": "279595ebc1ad3c3dfc9c64b0ee41bad6d14e12871dfb770f19c67f58f0f981ab",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "can carbon 14 dating be used to detect the age of a live animal?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "74a3c61ee8adfc1bbad24e1be8d690f7682af5ead7f3372155656c2f576bdfab",
+      "leaf_count": 4,
       "final_V": 1.0481380948854966
     },
     {
@@ -941,7 +1047,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can drinking too much milk make you throw up?",
@@ -950,7 +1057,8 @@
       ],
       "require_rag": false,
       "assurance_root": "8b13512e8f846d601b4a8287f5431effb1cedf8d77b1d3ed429063b93c507ee8",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "is corn starch the same as corn flower?",
@@ -959,7 +1067,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is a master of fine arts a terminal degree?",
@@ -968,7 +1077,8 @@
       ],
       "require_rag": false,
       "assurance_root": "90166629e203c1a83cf9ab5e2f94e5b1fb3e04db965782963fef9502dbd74e84",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "are panthers and mountain lions the same thing?",
@@ -977,7 +1087,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6c91dd5374daa3cbf7987895c93ec45f515f53208acba49cc67a8b14f9bf2b86",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "are research and scientific method related to one another?",
@@ -986,7 +1097,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is cholesterol a partial breakdown product of lipids?",
@@ -995,7 +1107,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does emma go dark in once upon a time?",
@@ -1004,7 +1117,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "are pinot noir and pinot gris the same grape?",
@@ -1013,7 +1127,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "are there sharks in the long island sound?",
@@ -1022,7 +1137,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is there a difference between lightning bugs and fireflies?",
@@ -1031,7 +1147,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does magnesium citrate have citric acid in it?",
@@ -1040,7 +1157,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3192364f39df428e6bf531d26e51e1351ef2002467f9bcea80d7564a72322691",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "are black widow and red back spiders the same?",
@@ -1049,7 +1167,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is the nobel peace prize awarded every year?",
@@ -1058,7 +1177,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is iron man part of the justice league?",
@@ -1067,7 +1187,8 @@
       ],
       "require_rag": false,
       "assurance_root": "efa4e5b2b01b083fc4f45a2b736f2ff0fbc78c7addb816770b080f0194ecf774",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "do great white sharks live at the bottom of the sea?",
@@ -1076,7 +1197,8 @@
       ],
       "require_rag": false,
       "assurance_root": "db2a4d07e3b7afd4d55757accbc4b223cd7b1a3fc50c67653d48c29773e5f3e7",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "are rats and mice from the same family?",
@@ -1085,7 +1207,8 @@
       ],
       "require_rag": false,
       "assurance_root": "e58e369dfc2ce75a4bff822a51cbd41022a101263f3be9695340d15544d0b26a",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "is the prostate part of the endocrine system?",
@@ -1094,7 +1217,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "are there any major water concerns for australia?",
@@ -1103,7 +1227,8 @@
       ],
       "require_rag": false,
       "assurance_root": "31d832161e684b87462b5dada13ca2392a81802c31af3940157e8dd162d41920",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "does fitness(as used in biology) and survival have the same meaning?",
@@ -1112,7 +1237,8 @@
       ],
       "require_rag": false,
       "assurance_root": "99f1ae3ece29806b47ede647a5b3ccbe47c2d80c68ffc342cec3b82eaaa43266",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "is there a new child's play movie coming out?",
@@ -1121,7 +1247,8 @@
       ],
       "require_rag": false,
       "assurance_root": "0d352a6e28dc3ebb1200fee18a074b9ad71a4ce94c8ee9eb8905cfe03c120cd1",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "are there grizzly bears in the united states?",
@@ -1130,7 +1257,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3192364f39df428e6bf531d26e51e1351ef2002467f9bcea80d7564a72322691",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does maple syrup come straight from the tree?",
@@ -1139,7 +1267,8 @@
       ],
       "require_rag": false,
       "assurance_root": "e95d78e7807ad3d7469a76a844b5bff3afd0b405fd9c15b6bcfef139b428b1a5",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "can atoms be changed from one element to another?",
@@ -1148,7 +1277,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is the electron transport chain and oxidative phosphorylation the same thing?",
@@ -1157,7 +1287,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3cb8ccff67a982aec7a9129acc79e9c36aee49236d670fe610f14e40657d8d51",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "can you grow olives in the united states?",
@@ -1166,7 +1297,8 @@
       ],
       "require_rag": false,
       "assurance_root": "e50666f72a169fc4e97bb8d2d20dd461493d901ed63a08ad85c6bd989f312115",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "is there any nuclear power plants in canada?",
@@ -1175,7 +1307,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is there a lake in lake hiawatha nj?",
@@ -1184,7 +1317,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does left 4 dead 2 have a story?",
@@ -1193,7 +1327,8 @@
       ],
       "require_rag": false,
       "assurance_root": "dd3935b6c05b4d6ceb278ff5a6b1bc663c850441bb0828a08b18c48c58c7c8f8",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "was the black death in the victorian times?",
@@ -1202,7 +1337,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is the sea snake the most venomous snake?",
@@ -1211,7 +1347,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "are solar cells the same as solar panels?",
@@ -1220,7 +1357,8 @@
       ],
       "require_rag": false,
       "assurance_root": "c3caa692ef363dcabcf0aa2ad3f3ba232d81f83fdc8088b2c0723b8d502057e1",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "does the girl die in brain on fire?",
@@ -1229,7 +1367,8 @@
       ],
       "require_rag": false,
       "assurance_root": "75255d6b3c0ddc23819482db96b58d30f90e955299aa407a0eaeec4518b6e33e",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "is lymphoma the same as lymph node cancer?",
@@ -1238,7 +1377,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is an access course classed as higher education?",
@@ -1247,7 +1387,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3980dfc23ccc21b23a1ee7b3e87a1744c55516007700194da57369c308e3ebb2",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "can you get a pearl from a muscle?",
@@ -1256,7 +1397,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is the stop codon part of the coding region?",
@@ -1265,7 +1407,8 @@
       ],
       "require_rag": false,
       "assurance_root": "467bf66e8f9d221c7e4315b649175fc2cf7b689e43b89dc3d7b712c34b42b2cd",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is it possible to be allergic to meat?",
@@ -1274,13 +1417,15 @@
       ],
       "require_rag": false,
       "assurance_root": "aee34120fc714bcd67d0b613ff1020d1490ec3f384045db7e191d70368370240",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "is z nation a spinoff of the walking dead?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "3c5a0611dccd1411bb3d68a8965f3f93b95037a7e7930bd8fe4888140a1fa796",
+      "leaf_count": 4,
       "final_V": 1.05403592359598
     },
     {
@@ -1290,7 +1435,8 @@
       ],
       "require_rag": false,
       "assurance_root": "c5a9dcc6e42a0d376c60174d66095048f3ae532cb1689e6835b8c2e7174e34a9",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "do house and cuddy get back together in season 8?",
@@ -1299,7 +1445,8 @@
       ],
       "require_rag": false,
       "assurance_root": "b622fac4c6ccd9ec2bde7e744cbf7e2ae95b5c141a673d44902c95d22ee5db54",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is the moose a member of the deer family?",
@@ -1308,7 +1455,8 @@
       ],
       "require_rag": false,
       "assurance_root": "d380c9bfe1d1fbb278ab6b8c02ec58cb66810539558cf3ec38560aed6f914bd1",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "has anyone won the million dollars on are you smarter than a fifth grader?",
@@ -1317,7 +1465,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "are elephants at the top of the food chain?",
@@ -1326,7 +1475,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can a selective growth medium also be differential?",
@@ -1335,7 +1485,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does the amazon river run through the amazon rainforest?",
@@ -1344,7 +1495,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "do they have sharks in the mississippi river?",
@@ -1353,7 +1505,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is willy wonka and the chocolate factory a musical?",
@@ -1362,7 +1515,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is hereditary spastic paraplegia a motor neuron disease?",
@@ -1371,7 +1525,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is paget's disease of the bone cancer?",
@@ -1380,7 +1535,8 @@
       ],
       "require_rag": false,
       "assurance_root": "add1a965684517250dabbf4cdad4e2dedf6c0ad1018864ca4bcb021a3d33fccb",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "can a red back spider bite kill you?",
@@ -1389,7 +1545,8 @@
       ],
       "require_rag": false,
       "assurance_root": "30dd6700eb0810cc46b7e20ffac92b4a393c3c2b6d5654ef9bb8568972e8c864",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is baylor college of medicine related to baylor university?",
@@ -1398,7 +1555,8 @@
       ],
       "require_rag": false,
       "assurance_root": "bf60dba3bec33a471e7ca1c64d2b254305e8fb94868feab0b488b7015e777e00",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "are black and yellow garden spiders poisonous to humans?",
@@ -1407,7 +1565,8 @@
       ],
       "require_rag": false,
       "assurance_root": "2a891f4a64b9e96159423f8b27fd38c8a141a84647b99b4e94ae8dd3bdaf2b2f",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is tea tree oil and melaluca the same?",
@@ -1416,7 +1575,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "are flying fish fish that can actually fly?",
@@ -1425,7 +1585,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is it possible to create mass from energy?",
@@ -1434,7 +1595,8 @@
       ],
       "require_rag": false,
       "assurance_root": "139d53c88e2d395dc58ecff689b17f86359c5abd4a46f532b0d3bcad438b304f",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "are there any animals that are self aware?",
@@ -1443,7 +1605,8 @@
       ],
       "require_rag": false,
       "assurance_root": "487848c35fa3adb78490a8661302bfdd7afaa98602f994266cf1add0a73fcc0a",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "does wednesday die in what happened to monday?",
@@ -1452,7 +1615,8 @@
       ],
       "require_rag": false,
       "assurance_root": "eb4572fe466d3ec9e3d1a7772d57b01e9aab1af9d658431dfece3df8253006cb",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "do dairy cows have to be bred to produce milk?",
@@ -1461,7 +1625,8 @@
       ],
       "require_rag": false,
       "assurance_root": "2113c694512ae2fec23acfc5238c9e35412aedd981e00e6354202f3f6a002a0d",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is himalayan pink salt the same as curing salt?",
@@ -1470,7 +1635,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is an empty set an element of an empty set?",
@@ -1479,7 +1645,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is it possible for a person to have two different colored eyes?",
@@ -1488,7 +1655,8 @@
       ],
       "require_rag": false,
       "assurance_root": "611ca78a4e6309a4306607b635ed5e8561bf1405b841d4e4059453771b0ebbb4",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "can the human body directly absorb animal protein?",
@@ -1497,13 +1665,15 @@
       ],
       "require_rag": false,
       "assurance_root": "4aaa291bf7fff4b5c22834bb5bd9084718e7043bf269ebd4b832a2aad3af4eae",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is the southern tip of south america cold?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "47996543e54713c520482bc412e04289c9294d03df700c2e320220c582eca234",
+      "leaf_count": 4,
       "final_V": 1.053409279765932
     },
     {
@@ -1513,7 +1683,8 @@
       ],
       "require_rag": false,
       "assurance_root": "8ede84e86abe8c210ab14773f30922e0e63512b96f51fcda9eb432a1da433057",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "has anyone ever hit a hole-in-one on a par 5?",
@@ -1522,7 +1693,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "will there be a season six of breaking bad?",
@@ -1531,7 +1703,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3192364f39df428e6bf531d26e51e1351ef2002467f9bcea80d7564a72322691",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does c. botulinum have any positive medical uses?",
@@ -1540,7 +1713,8 @@
       ],
       "require_rag": false,
       "assurance_root": "24fa8043f120b5cd37a04c8d795d30188bef9e16fe7ff0585ccd337114131d6c",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is there a glacier at glacier national park?",
@@ -1549,7 +1723,8 @@
       ],
       "require_rag": false,
       "assurance_root": "bd2c153f72ac03d25f25b4e92ee2e6e9aa8060b28cd9ca1b780be5b6a87bd0c3",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "are there different strains of the common cold?",
@@ -1558,7 +1733,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is wholemeal flour the same as whole wheat?",
@@ -1567,7 +1743,8 @@
       ],
       "require_rag": false,
       "assurance_root": "e00e05aeb863165cda2caa7460418115f23321ddd21255ffb8be84602faf4af1",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is black ops 3 related to black ops 2?",
@@ -1576,7 +1753,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is universal healthcare the same as socialized medicine?",
@@ -1585,7 +1763,8 @@
       ],
       "require_rag": false,
       "assurance_root": "386980e1d1bd5b60ce4a12055fae96b71eb47fa9c648fddfd825d7b9339acafb",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does call of duty black ops 3 have zombies?",
@@ -1594,7 +1773,8 @@
       ],
       "require_rag": false,
       "assurance_root": "1b09701f1a378cfe612b8ab8ad993f0133dc2fdee41b312281b678bef867f94b",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is there a plant called lamb's ear?",
@@ -1603,7 +1783,8 @@
       ],
       "require_rag": false,
       "assurance_root": "e090eb58f7ee8deccdfc984f30c5650cbcd160d8e04ec5697134fa7984315c34",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is there a type of jellyfish that lives forever?",
@@ -1612,7 +1793,8 @@
       ],
       "require_rag": false,
       "assurance_root": "69e7e9f84e9b58f60d6d4594595ee2385ffdccd851b6f50d302bd1197744249d",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "does one sister chromatid have half the dna of a chromosome?",
@@ -1621,13 +1803,15 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is new england baptist hospital a teaching hospital?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "0c72b74c8d4ea26553be26d3117bd89439891cfe0fa7bdaedfee5f0f72abef27",
+      "leaf_count": 4,
       "final_V": 1.0545838243707204
     },
     {
@@ -1637,7 +1821,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can a horse and a donkey have a baby?",
@@ -1646,7 +1831,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "do both male and female rhinos have horns?",
@@ -1655,7 +1841,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is relative permittivity the same as dielectric constant?",
@@ -1664,7 +1851,8 @@
       ],
       "require_rag": false,
       "assurance_root": "cc5448efa4ad530832be701796654b6561d6e3b616200fabd523e06514370543",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "can an infinite geometric series have a sum?",
@@ -1673,7 +1861,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "do plant cell walls restrict the entry of water?",
@@ -1682,7 +1871,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can you have an ectopic pregnancy in your ovary?",
@@ -1691,7 +1881,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3b496d6745e4b1b77f12e99b86b771bf211e69d7d22f8ca9d3ce4b9f255757ae",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "does angel food cake have flour in it?",
@@ -1700,7 +1891,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is the bald eagle the biggest bird in the world?",
@@ -1709,7 +1901,8 @@
       ],
       "require_rag": false,
       "assurance_root": "863b78ee2e4527fb1321715f8eac052b156fa294da1cb68fbb0fa2c2d0f9980f",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is there a relationship between our latitude position and high diversity of life form in the country?",
@@ -1718,7 +1911,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can protein pass through the blood brain barrier?",
@@ -1727,7 +1921,8 @@
       ],
       "require_rag": false,
       "assurance_root": "69100a6d1491760ba31c1c8dddb3793204b1f689519f4a70266a604c3c27269b",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "are flash arrow and supergirl in the same universe?",
@@ -1736,7 +1931,8 @@
       ],
       "require_rag": false,
       "assurance_root": "35a0363d19d2de3d11433fa0080144665bccf5738954f8851963b94d3176cacb",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "does the atomic number represent the number of protons?",
@@ -1745,7 +1941,8 @@
       ],
       "require_rag": false,
       "assurance_root": "8b7a89782a6298f01d99b431333ec7bf15033e74d1b8ca116c8c774b84c7f25c",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is breaking and entering into a car a felony?",
@@ -1754,7 +1951,8 @@
       ],
       "require_rag": false,
       "assurance_root": "dbd192dc287e283e947f0b93eba1e078e8f1969b696be735b90b9a8fc3aaaba0",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is carbon a metal on the periodic table?",
@@ -1763,7 +1961,8 @@
       ],
       "require_rag": false,
       "assurance_root": "ff072fb619a941172849bc47c43b503942e2de15f6ba9e191e44db23effadb42",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "does ethanol take more energy make that produces?",
@@ -1772,7 +1971,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "do ant man and the wasp get together?",
@@ -1781,7 +1981,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does enameled cast iron leach iron into food?",
@@ -1790,7 +1991,8 @@
       ],
       "require_rag": false,
       "assurance_root": "ddecb5ecd561693f19f14ab48de25b1b5ac967478a4b304d4217dc6e3c347ee6",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "does tuna have a lot of mercury in it?",
@@ -1799,7 +2001,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is it safe to swim in brisbane river?",
@@ -1808,7 +2011,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3896b340b5118d71dd7a8ed5d7decb53fb64b03410ac01209bf436e0bca5861b",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "is tissue composed of one type of cell?",
@@ -1817,7 +2021,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "are the eggs you buy in the store pasteurized?",
@@ -1826,7 +2031,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is there a medical school in las vegas?",
@@ -1835,13 +2041,15 @@
       ],
       "require_rag": false,
       "assurance_root": "94c53555c6cf473943717204492eee02919c64c280d9fe0e8e32146f3a9bd526",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "does npv account for time value of money?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "b25ee14b4537acb818f7119b75c4ef100b9b5d5b8e53ca935812371d3a2f04ce",
+      "leaf_count": 4,
       "final_V": 1.0543150179001035
     },
     {
@@ -1851,7 +2059,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is it legal to count cards in las vegas?",
@@ -1860,7 +2069,8 @@
       ],
       "require_rag": false,
       "assurance_root": "5a42f2dcf131fb8db9ddcf33ec4a700bacdaf77a17948612b0e0fe1186b66802",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "do u need a gun license to go to a shooting range?",
@@ -1869,7 +2079,8 @@
       ],
       "require_rag": false,
       "assurance_root": "563e9aedc2b94d9061e6d849893c812e431ede0d85e53d43fd6e526798925243",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "do you have to be literate to vote?",
@@ -1878,7 +2089,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is the world bank affiliated with the united nations?",
@@ -1887,7 +2099,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "did the captain of the uss indianapolis live?",
@@ -1896,7 +2109,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is a soccer stadium bigger than a football stadium?",
@@ -1905,7 +2119,8 @@
       ],
       "require_rag": false,
       "assurance_root": "b2958c70e4259f7653ad4a7b612e768738c87598804543c786d90c35dc88a0b1",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "does the vice president break tie votes in the senate?",
@@ -1914,7 +2129,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does the governor general have to sign all bills passed by federal parliament?",
@@ -1923,7 +2139,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is house tax and property tax are same?",
@@ -1932,7 +2149,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is the bill of rights part of the original constitution?",
@@ -1941,7 +2159,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6e032f9774009ffc95e250828a3d70548d6d6e372b12eae5a36b0e8805123b83",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "is the civil rights act in the constitution?",
@@ -1950,7 +2169,8 @@
       ],
       "require_rag": false,
       "assurance_root": "a8e159fa7b89358aca3ba0459526871f4888a12025b9f87cf415ee1546fd0376",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "has a supreme court justice ever run for president?",
@@ -1959,7 +2179,8 @@
       ],
       "require_rag": false,
       "assurance_root": "fd6dc44ed917c8225faf3d7bdb92b4398d78380f64f5389f2624349f829cd86c",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "do you pay tax on gambling winnings in australia?",
@@ -1968,7 +2189,8 @@
       ],
       "require_rag": false,
       "assurance_root": "bb75c5d48b017bd217519aa07a4e10103df18c52359bfebe59b332c1e0a508ca",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "does the national guard stay in the us?",
@@ -1977,7 +2199,8 @@
       ],
       "require_rag": false,
       "assurance_root": "ffecdd9b99c7a622edd48d5b9a80aa830c3f6fb578924799c68b797e30934d74",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "have the seattle supersonics ever won a championship?",
@@ -1986,7 +2209,8 @@
       ],
       "require_rag": false,
       "assurance_root": "9ae2b7b8db9947a91295cf57bdae2db65465f2bb487c70e87117c090e5320b50",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "is ucl and university of london the same?",
@@ -1995,7 +2219,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "was the food drug and cosmetic act successful?",
@@ -2004,7 +2229,8 @@
       ],
       "require_rag": false,
       "assurance_root": "d5e673356f3cb58d786ce1cee645d6dd6dfab3f122756b65a67f15aa8d450b1d",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is money from guernsey legal tender in uk?",
@@ -2013,7 +2239,8 @@
       ],
       "require_rag": false,
       "assurance_root": "5294c13fa41d6eff4217a9d139427ecc73a746699025f0273b494db83dc63bc9",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is english an official language of new zealand?",
@@ -2022,7 +2249,8 @@
       ],
       "require_rag": false,
       "assurance_root": "16532eb00652656f72e431bba81e9d8267735625d4cfc27208aaf91bceb9c9f8",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "was the king and i based on a true story?",
@@ -2031,7 +2259,8 @@
       ],
       "require_rag": false,
       "assurance_root": "04c53c8a39ee33794d814f0decad4e314c79bf5f4acc30eff54cd5977b47c5bb",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "does the statute of limitations apply to all crimes?",
@@ -2040,7 +2269,8 @@
       ],
       "require_rag": false,
       "assurance_root": "b924b6248ad380c57736ff6fa2db2a1e03926b87f6d4f05f526b657489d3750b",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "can a filibuster stop a supreme court nominee?",
@@ -2049,7 +2279,8 @@
       ],
       "require_rag": false,
       "assurance_root": "17478008b5aca2bcd3c5f46fcd9a509f2c3686a9918844050f9d164abd7d6ced",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "do supreme court justices have to be confirmed by the senate?",
@@ -2058,7 +2289,8 @@
       ],
       "require_rag": false,
       "assurance_root": "cceab8060faea4548aca013fe91c0501284071be55dde25b24b55a01da1f857e",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is a tax free savings account an investment?",
@@ -2067,7 +2299,8 @@
       ],
       "require_rag": false,
       "assurance_root": "cceab8060faea4548aca013fe91c0501284071be55dde25b24b55a01da1f857e",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is it legal to escape from prison in germany?",
@@ -2076,7 +2309,8 @@
       ],
       "require_rag": false,
       "assurance_root": "7c8ac80ee381265487176df20616be6b6dbfddf358450e60faa90ce382ef4d9a",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "is there work done in an adiabatic process?",
@@ -2085,7 +2319,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is the scottish \u00a31 note still legal tender?",
@@ -2094,7 +2329,8 @@
       ],
       "require_rag": false,
       "assurance_root": "253e0eb9c927638d2fecc7812631998ccf5fb778dae9ed58709fcc451ed04e06",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "was the right to bear arms in the original constitution?",
@@ -2103,7 +2339,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "do eu citizens have indefinite leave to remain?",
@@ -2112,7 +2349,8 @@
       ],
       "require_rag": false,
       "assurance_root": "cceab8060faea4548aca013fe91c0501284071be55dde25b24b55a01da1f857e",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "can you be retried if new evidence is found?",
@@ -2121,7 +2359,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "are there any c&a stores in the uk?",
@@ -2130,7 +2369,8 @@
       ],
       "require_rag": false,
       "assurance_root": "0756551666dd03478ce57037b6e6c23211fd7164bf143cd6c8fcb12d73afedcb",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is there a mandatory retirement age for supreme court justices?",
@@ -2139,7 +2379,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6ea0d7ac061c1be4b3b890e97b30b6891ae4b2d99b77bdacd6a02f8c569b5283",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "can the supreme court do anything to stop an executive order?",
@@ -2148,7 +2389,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can a civilian own a fn five seven?",
@@ -2157,7 +2399,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can law of sines be used on any triangle?",
@@ -2166,7 +2409,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can you carry a gun in your car in ohio?",
@@ -2175,7 +2419,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is psalm 119 the longest chapter of the bible?",
@@ -2184,7 +2429,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "do front turn signals have to be amber?",
@@ -2193,7 +2439,8 @@
       ],
       "require_rag": false,
       "assurance_root": "ea305f93d60875b5fc78422e3c613eae48cb4fe98fb68202ace341a9c57226d5",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "can the president pardon someone convicted of a state crime?",
@@ -2202,7 +2449,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can the time value of an option be negative?",
@@ -2211,7 +2459,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does charlotte's web cbd oil have thc?",
@@ -2220,7 +2469,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is going to school mandatory in the us?",
@@ -2229,7 +2479,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "do you have to be a us citizen to run for president?",
@@ -2238,7 +2489,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is there a stand your ground law in illinois?",
@@ -2247,7 +2499,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3850c8e900bb9dd6bb655c665cecd1ebcf6fabb60501b8033466c90789916996",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "is it illegal for a minor to be in possession of alcohol?",
@@ -2256,7 +2509,8 @@
       ],
       "require_rag": false,
       "assurance_root": "555f6879b2fbc2a7c036242bea39c18ddb2bc4ae724b161ea973ff5d4a972b37",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is all of new zealand in the same time zone?",
@@ -2265,7 +2519,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does the british monarchy have any power in canada?",
@@ -2274,7 +2529,8 @@
       ],
       "require_rag": false,
       "assurance_root": "a85243c8d372e8b0cbf6c79b217e9cccabf2a073a645d8caa97677b0da4bfc94",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "does every state have a good samaritan law?",
@@ -2283,7 +2539,8 @@
       ],
       "require_rag": false,
       "assurance_root": "608c45422b878b6f2b24f15af6ff4e40ea418edf175df497975671519ccd3350",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "are there state income taxes in new mexico?",
@@ -2292,7 +2549,8 @@
       ],
       "require_rag": false,
       "assurance_root": "00e2bb7384f76b57187939527c77f8490f1b1a45f413b56b2e88ce0851c4515b",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "do you need a permit to open carry in nc?",
@@ -2301,7 +2559,8 @@
       ],
       "require_rag": false,
       "assurance_root": "0222ce14a25bcc2119133260cf7b9dddc59cd4ac2ab0d74fc6b5a273b0433596",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "does the government own the us postal service?",
@@ -2310,7 +2569,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is federal income tax the same as social security?",
@@ -2319,7 +2579,8 @@
       ],
       "require_rag": false,
       "assurance_root": "41f6e0b6214480c92ab1669b906b94a95270ce01dae0d1f4b82e5c159da92703",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "is city of industry in los angeles county?",
@@ -2328,7 +2589,8 @@
       ],
       "require_rag": false,
       "assurance_root": "70d2c42b2fd0b83906ff9e0a559ee2be0bb6b80f4eb9f96d109e11ddca95ff1b",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is an administrative law judge a real judge?",
@@ -2337,7 +2599,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does washington dc have their own license plate?",
@@ -2346,13 +2609,15 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "do the internal intercostal muscles contract during inspiration?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "acadd0ce25198af9ad9d95d029259b412aaebd90a95cb1871a1933b98d9c31dd",
+      "leaf_count": 4,
       "final_V": 1.0519318929614125
     },
     {
@@ -2362,7 +2627,8 @@
       ],
       "require_rag": false,
       "assurance_root": "5a6cb80bc636f007f4ded4618dcb1ecaf72749405bf415a0fc1685170363ffea",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is there sales tax on crv in california?",
@@ -2371,7 +2637,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is coast guard part of the armed forces?",
@@ -2380,7 +2647,8 @@
       ],
       "require_rag": false,
       "assurance_root": "1ce31b893d77b74a4f729ced966710579568f38db4dd52ecebf8aec868b771b3",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "is guam part of the us virgin islands?",
@@ -2389,13 +2657,15 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is a no insurance ticket a moving violation?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "6ec8d7714aac6f26045612d96baac936b90411553f1cdb22524c3520c68f2021",
+      "leaf_count": 4,
       "final_V": 1.0540638881473121
     },
     {
@@ -2405,7 +2675,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is the tommy gun a sub machine gun?",
@@ -2414,7 +2685,8 @@
       ],
       "require_rag": false,
       "assurance_root": "870290a5a09a2959b093fcc6145f3e5be011b4d156e7c87fba5a85e59f7f0b21",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "can you make a right on red in massachusetts?",
@@ -2423,13 +2695,15 @@
       ],
       "require_rag": false,
       "assurance_root": "e3d73cf7e3fb00f879ad19d9d3bab9b7bb6f78247839ab1581ff73630552c467",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is there a limit on freedom of speech?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "30b3e2daecd1ffe1bdb7d7bbd1feaff691091fad45d2591405b6ceba30c40170",
+      "leaf_count": 4,
       "final_V": 1.0531525152302574
     },
     {
@@ -2439,7 +2713,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is the right to a fair trial in the constitution?",
@@ -2448,7 +2723,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3b808875cb0df17c9acf43a902e3e038a50b070b4168fd26d449f3053d7545d7",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "is the book of deuteronomy in the new testament?",
@@ -2457,7 +2733,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does the florida constitution give a minimum age for legislators?",
@@ -2466,7 +2743,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can you be president if you were not born in the us?",
@@ -2475,7 +2753,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can anyone take the bar exam in canada?",
@@ -2484,7 +2763,8 @@
       ],
       "require_rag": false,
       "assurance_root": "808acda27fefc1be7ad6c21153edf91359b320cad9e495d98059ea35baeea4ef",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "can you drink alcohol at 16 in australia?",
@@ -2493,7 +2773,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is it legal to put a motor on a bicycle?",
@@ -2502,7 +2783,8 @@
       ],
       "require_rag": false,
       "assurance_root": "b13867f664e7ca64ea062218ab037a5332554d5f87516948d74b13ef2b283e27",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "does canada have a free trade agreement with eu?",
@@ -2511,7 +2793,8 @@
       ],
       "require_rag": false,
       "assurance_root": "98c12c5b4ea33ede349fe3ebf574defac6f02864aca3abfe8ec13a7b8b0d1f73",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "can a puerto rican resident vote for president?",
@@ -2520,7 +2803,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "do european countries still have their own currency?",
@@ -2529,7 +2813,8 @@
       ],
       "require_rag": false,
       "assurance_root": "041190e1693972b85ff836043bf6370566fe02960efdfb615c4e5a7c684c3697",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "is the county court business centre a real court?",
@@ -2538,7 +2823,8 @@
       ],
       "require_rag": false,
       "assurance_root": "fe5b461a71120c9ec3d8f54f76d9c44edf7288096cfb820e74972e6d5aad3abb",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "did olivia from law and order have a baby?",
@@ -2547,7 +2833,8 @@
       ],
       "require_rag": false,
       "assurance_root": "463112110d5749d7e72c7d3a112409e311f46d4c0bbacfa250fba25c7ca5f2a6",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "can you buy a gun if you are dishonorably discharged?",
@@ -2556,7 +2843,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "are there any states where you don't have to wear a seatbelt?",
@@ -2565,7 +2853,8 @@
       ],
       "require_rag": false,
       "assurance_root": "e16fb67ea1155ac0cb3280fc0d4c03e6c8ba9ed38cde9496d4b7042185a08008",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "can you use 5 pound coins in shops?",
@@ -2574,7 +2863,8 @@
       ],
       "require_rag": false,
       "assurance_root": "0873dc770821a6977fbe5f042c2fb1594070df2719f889cd2a06c61dda63b11f",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "is the 3 strikes law still in effect?",
@@ -2583,7 +2873,8 @@
       ],
       "require_rag": false,
       "assurance_root": "d7126c9f1579b8fe525207042ac9c21e9ce5b4a72048e0ee5b0abe04f374f31a",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "is it a law that you have to pull over for an ambulance?",
@@ -2592,7 +2883,8 @@
       ],
       "require_rag": false,
       "assurance_root": "646c53bbd0d96954762d6c5466fc436b41214f8405bc4dd008ebae4ec870820f",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "can a federal court hear a state law case?",
@@ -2601,7 +2893,8 @@
       ],
       "require_rag": false,
       "assurance_root": "8bfbaa9327a3519cd639d4169ff76f0babf026ae5bd5895f7000b1edd52abdcb",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "are you required to complete the 2017 economic census?",
@@ -2610,7 +2903,8 @@
       ],
       "require_rag": false,
       "assurance_root": "809be76e2eb7d17ce82f19ebc0e7a1a16b39e667562fdb0b5c40453d67889e87",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "does tara get out of jail in sons of anarchy?",
@@ -2619,7 +2913,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can you choose who is your next of kin?",
@@ -2628,7 +2923,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is the president the only member of the executive branch?",
@@ -2637,7 +2933,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "do minutes of a meeting have to be approved?",
@@ -2646,7 +2943,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does each state have its own constitution australia?",
@@ -2655,13 +2953,15 @@
       ],
       "require_rag": false,
       "assurance_root": "98c12c5b4ea33ede349fe3ebf574defac6f02864aca3abfe8ec13a7b8b0d1f73",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "can you get the death penalty as a minor?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "366db25321d8c64b8d2db6b818f93e71677004a08e283158e3b22af6c4c8088e",
+      "leaf_count": 4,
       "final_V": 1.0559284409085619
     },
     {
@@ -2671,7 +2971,8 @@
       ],
       "require_rag": false,
       "assurance_root": "211c88e56065af6604a2dd126fbcdacbb6cc1f28793429be79b3bcd663ec3261",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "can you vote for president in washington dc?",
@@ -2680,7 +2981,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6b161d34d1977b60be356f125921a110a55a6fac3c97e49e1585da512aa3276e",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "do runs have to be the same suit in gin rummy?",
@@ -2689,7 +2991,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does switzerland allow free movement of eu citizens?",
@@ -2698,7 +3001,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3043bb56b30ba688da99803eb32d350facfaa3a80f5cc8e38b08b5fc37fea6ed",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "do you have to call the pocket in 9 ball?",
@@ -2707,7 +3011,8 @@
       ],
       "require_rag": false,
       "assurance_root": "7a2ff15ccf7057e2f01b4e34da927f427c9709fda573c7c1bea9ff78130339cb",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "is coca tea legal in the united states?",
@@ -2716,7 +3021,8 @@
       ],
       "require_rag": false,
       "assurance_root": "b77d282870592a78168f005ae891fa9cdfb29aa7a596d38b7e553e0cc50ec501",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "does every name in iceland end in son?",
@@ -2725,7 +3031,8 @@
       ],
       "require_rag": false,
       "assurance_root": "39d5cb803513c4753426fdd679eca0d61fc8546af9322a664cdd055e98b52b22",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is someone born in guam a us citizen?",
@@ -2734,7 +3041,8 @@
       ],
       "require_rag": false,
       "assurance_root": "d508a026184f5ebe105ea2b1144ce6cedf5a4d499d737982c17a5253e5714b9d",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "do you have the right to remain silent before arrest?",
@@ -2743,7 +3051,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can tobramycin and dexamethasone be used for a stye?",
@@ -2752,7 +3061,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "are \u00a32 coins going out of circulation?",
@@ -2761,7 +3071,8 @@
       ],
       "require_rag": false,
       "assurance_root": "5596b3afb8951038504271a48d205a036bbe2be06f1d1c2d22171a71d753b060",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "can an 18 year old serve alcohol in pennsylvania?",
@@ -2770,7 +3081,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can non violent felons own guns in indiana?",
@@ -2779,7 +3091,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does the first amendment separate church and state?",
@@ -2788,7 +3101,8 @@
       ],
       "require_rag": false,
       "assurance_root": "37d75f6699d46c66d503f66db7aca31b4ea2978e2e3ec8883763c8d22c2f375a",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "did estonia used to be part of russia?",
@@ -2797,7 +3111,8 @@
       ],
       "require_rag": false,
       "assurance_root": "bc046447c308803a3aaea0db7573db115374c20bf190e86666623ffec0718bd2",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "is new york state a common law state?",
@@ -2806,7 +3121,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does the state of kansas have the death penalty?",
@@ -2815,13 +3131,15 @@
       ],
       "require_rag": false,
       "assurance_root": "0bf4c1dd227219482968dd04f499b12cbb1802689e9fb5969f73a22a57acfdc5",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "does roman-dutch law still apply to south african law?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "041d56bf56d01865490f96fff8f01a04ef1c90cab796ca0774a64647832ed2a0",
+      "leaf_count": 4,
       "final_V": 1.0516160264648775
     },
     {
@@ -2831,7 +3149,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does sam come back to the west wing?",
@@ -2840,7 +3159,8 @@
       ],
       "require_rag": false,
       "assurance_root": "027cbd4d56aca84c460f2edf4cf9709985923421af3274120b7c61a51c41ea9a",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "can you use the euro in the czech republic?",
@@ -2849,7 +3169,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does the arizona court of appeals hear death penalty cases?",
@@ -2858,7 +3179,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can you be an attorney without taking the bar exam?",
@@ -2867,7 +3189,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does robert's rules of order allow proxy voting?",
@@ -2876,7 +3199,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is it mandatory to sign up for selective service?",
@@ -2885,7 +3209,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4a4428ff0206cd6e1fd4f5690f1b110cb8f0a6953d0329feac1eeaa00f44ba9a",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "can you own a skunk in the uk?",
@@ -2894,7 +3219,8 @@
       ],
       "require_rag": false,
       "assurance_root": "ddd07ac0af62722bfa6b4759a140e5eb9a9eedc4df8cf52983b38ab183b8c7f7",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "do you have to take the bar exam to practice law?",
@@ -2903,7 +3229,8 @@
       ],
       "require_rag": false,
       "assurance_root": "a0330055aad2f2a9001f0dd74a6cf8726e5318022a03e3049a4e2e3e4c02ff02",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "are public limited companies in the private sector?",
@@ -2912,7 +3239,8 @@
       ],
       "require_rag": false,
       "assurance_root": "e70aa26039c10b89edc24c05eb4c081b4f5b9af9a99f35e6f88bc5dd21fcc576",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "does the vatican city have its own laws?",
@@ -2921,7 +3249,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "are nike air force 1 good for basketball?",
@@ -2930,7 +3259,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is ccr in rock and roll hall of fame?",
@@ -2939,7 +3269,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does every school in the uk wear uniforms?",
@@ -2948,7 +3279,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is there a time limit for ratification of an amendment?",
@@ -2957,7 +3289,8 @@
       ],
       "require_rag": false,
       "assurance_root": "066907c4c42b2880da630c88fb609197c46e634c6c507a525655aaf964a1f054",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is a father in law considered a relative?",
@@ -2966,7 +3299,8 @@
       ],
       "require_rag": false,
       "assurance_root": "04adfe3c8fd19c214194758a3c9cd720a08d6c62b7cae3dcb9a4eb417db10391",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "does the speaker of the house have to be a congressman?",
@@ -2975,7 +3309,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can a widower marry his sister in law?",
@@ -2984,7 +3319,8 @@
       ],
       "require_rag": false,
       "assurance_root": "eb2f0a8077e7b726f7dffc98519362b444cc75291000a15db901eed04562b906",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "can a person have dual citizenship in india?",
@@ -2993,7 +3329,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3a69058dda8d76f713db33965548bc34d72cf03c103a6d1294fbe13f16fe0dc8",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "can you go into a liquor store under 21 in nj?",
@@ -3002,7 +3339,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "are there any states that do not have a seat belt law?",
@@ -3011,7 +3349,8 @@
       ],
       "require_rag": false,
       "assurance_root": "20a7c3007c9a8b1d2b23d4f1a175350377beca7177e9bf5b3b6588ab70aa5c75",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "is hindi is our national language of india?",
@@ -3020,7 +3359,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is there a camera on all traffic lights?",
@@ -3029,7 +3369,8 @@
       ],
       "require_rag": false,
       "assurance_root": "e05e1c96b8bbc46d2d489b76d48f9c6fbb10038eeff8d4aa65702b93b184081e",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "is wrath of the titans a sequel to clash of the titans?",
@@ -3038,7 +3379,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is roller coaster tycoon world available for mac?",
@@ -3047,7 +3389,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is the game show the chase still on the air?",
@@ -3056,7 +3399,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "are pork back ribs same as baby back?",
@@ -3065,7 +3409,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "are all members of peter paul and mary still alive?",
@@ -3074,7 +3419,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is it possible to turn lead into gold?",
@@ -3083,7 +3429,8 @@
       ],
       "require_rag": false,
       "assurance_root": "80164cbacfaee9d5f51730f2c3eb97d7314c9d12dc493bb5ac39d6204d312758",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "is 866 a toll free number in canada?",
@@ -3092,7 +3439,8 @@
       ],
       "require_rag": false,
       "assurance_root": "0c48d345569120d87daf679c8c6403e1cd7fc988e903bc34652e634a926c71b7",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "do alligators drown their prey and eat it later?",
@@ -3101,7 +3449,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is there any danger of a steam explosion of the reactor core becomes overheated?",
@@ -3110,7 +3459,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can you score from a throw in in soccer?",
@@ -3119,7 +3469,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can you contest a scrum in rugby league?",
@@ -3128,7 +3479,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "do i need to fast for an acth test?",
@@ -3137,7 +3489,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can a soft material scratch a hard material?",
@@ -3146,7 +3499,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "was there a book that predicted the titanic?",
@@ -3155,7 +3509,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is the us the only country to change time?",
@@ -3164,7 +3519,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6d771163c0419527e82d3857d1ebf8457ec1d7ed4037138bf197c1abb8d4fe15",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is the mgm signature attached to the mgm grand?",
@@ -3173,7 +3529,8 @@
       ],
       "require_rag": false,
       "assurance_root": "0d188b32fbfb95ea8a97df1bd9b79da55fa063bca92070232443c8b871cd4874",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "does cheddar cheese have to be made in cheddar?",
@@ -3182,13 +3539,15 @@
       ],
       "require_rag": false,
       "assurance_root": "cd52e655a6a2e9c85f38f66e94708ba5c6d9c957eae69297db037ef9082ce62b",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "does the table of contents get a page number?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "ed2af3e4b7fb2bb34f4b413d10f7cdd3861f55d4c5da1a9b756e1fc97c5c8bf1",
+      "leaf_count": 4,
       "final_V": 1.0549701907705809
     },
     {
@@ -3198,7 +3557,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is high dependency the same as intensive care?",
@@ -3207,7 +3567,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is george washington university an ivy league school?",
@@ -3216,7 +3577,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does only the winner get money on tipping point?",
@@ -3225,7 +3587,8 @@
       ],
       "require_rag": false,
       "assurance_root": "b1b764793643ec832d4301e4d24b693d69283ee5368df287e59c6952cf348084",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "were betty and jughead together in the comics?",
@@ -3234,7 +3597,8 @@
       ],
       "require_rag": false,
       "assurance_root": "653cfd6f9ab3b2cb17f09627249efe5e6195bcfa243aaa0140c1990dc09700a1",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is chewing tobacco banned in major league baseball?",
@@ -3243,7 +3607,8 @@
       ],
       "require_rag": false,
       "assurance_root": "8c59ed913711215a018cdd7643c0cf3450430230b7ff2a4fc4f7cc0f1c81f43c",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "do you get 3 steps in the nba?",
@@ -3252,7 +3617,8 @@
       ],
       "require_rag": false,
       "assurance_root": "b8aca5bd9c73f09abd515953e0afb8b21b8664f7a06e504e7e03bd21bb5765b8",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "has anyone hit 4 homeruns in a game?",
@@ -3261,7 +3627,8 @@
       ],
       "require_rag": false,
       "assurance_root": "ea909d3e1208da1334e08f8ac81f67796889cea498b9362229aa296608b0c70c",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "can a school be division 1 and 2?",
@@ -3270,7 +3637,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does new york city include the 5 boroughs?",
@@ -3279,7 +3647,8 @@
       ],
       "require_rag": false,
       "assurance_root": "0898b89e8a3259d7ffeb4a804e88a136f7509f9b7419d10e5f8413533f2504a0",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "are fear the walking dead and the walking dead related?",
@@ -3288,7 +3657,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "did leonardo dicaprio win an academy award for the revenant?",
@@ -3297,7 +3667,8 @@
       ],
       "require_rag": false,
       "assurance_root": "68e8fdc69bb68fa5c60a285f7b5dead8dc92b1bafcfab84f2e0e2c20f75f242c",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "is the sort code the same for everyone?",
@@ -3306,7 +3677,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3192364f39df428e6bf531d26e51e1351ef2002467f9bcea80d7564a72322691",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "did kevin durant play for the seattle supersonics?",
@@ -3315,7 +3687,8 @@
       ],
       "require_rag": false,
       "assurance_root": "bb75c5d48b017bd217519aa07a4e10103df18c52359bfebe59b332c1e0a508ca",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "does cerebral spinal fluid have glucose in it?",
@@ -3324,7 +3697,8 @@
       ],
       "require_rag": false,
       "assurance_root": "c152f95a443155ffe3e50f6aa12f4a8dca8d2be39fe360e15bdef98482391fe3",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "was america the first country to have a president?",
@@ -3333,7 +3707,8 @@
       ],
       "require_rag": false,
       "assurance_root": "97a22e1cdbff0e157989440e59a6ab263c9f52fc27a15a1b7e7363603b5e3709",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "can you be offside on a corner kick?",
@@ -3342,13 +3717,15 @@
       ],
       "require_rag": false,
       "assurance_root": "05865139e5b8d8de4e1326f0ae3c328545d28e33063dbec2c3ae31a071ead8c2",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "does halo 2 have achievements on xbox 360?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "535d99be483881de832a19736228bf57a8104361086cfb8c3ba26f462e067302",
+      "leaf_count": 4,
       "final_V": 1.0555438577931429
     },
     {
@@ -3358,7 +3735,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is 7.62 nato the same as 308 win?",
@@ -3367,7 +3745,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is there a sequel to the movie the golden compass?",
@@ -3376,7 +3755,8 @@
       ],
       "require_rag": false,
       "assurance_root": "cb4bd13709b3ed0bb7baccf67adde00ef4e5b0e73ba28a683a4217f7ab79fb10",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "do cows need to get pregnant to give milk?",
@@ -3385,7 +3765,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can fusion be used as an energy source?",
@@ -3394,7 +3775,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is a king snake immune to rattlesnake venom?",
@@ -3403,7 +3785,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is there a season 2 of designated survivor?",
@@ -3412,7 +3795,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is a bmw 1 series rear wheel drive?",
@@ -3421,7 +3805,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "will the new legends of monkey have a season 2?",
@@ -3430,7 +3815,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is there an in n out in nevada?",
@@ -3439,7 +3825,8 @@
       ],
       "require_rag": false,
       "assurance_root": "66c22d7c410feca7121e19f396616aa2ba711a129f85b9c15349a477d7e1992d",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "has a super bowl team played at home?",
@@ -3448,7 +3835,8 @@
       ],
       "require_rag": false,
       "assurance_root": "68073f3c7c3d2df0372d37e64bd2edb291fa54465159d256e105951ad6730f33",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "can you get in trouble for stealing a street sign?",
@@ -3457,7 +3845,8 @@
       ],
       "require_rag": false,
       "assurance_root": "2073034d7e8df5ab354cb41667646928a3d2033d09c80e9389b982265f4151bc",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "does a quarter pounder weight a quarter pound?",
@@ -3466,7 +3855,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3e94e9f85163632c1da6140866b90d9a8d73f6c2327576cdb52a7d3fee12f066",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "is selection sort more efficient than insertion sort?",
@@ -3475,7 +3865,8 @@
       ],
       "require_rag": false,
       "assurance_root": "af71d2f8e60070879234cf443eb2732daa2e1ec32ea824d865ae747e89c0b7f5",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "is the wonderful wizard of oz a fairy tale?",
@@ -3484,7 +3875,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is isle of man in the channel islands?",
@@ -3493,7 +3885,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does a flower have male and female parts?",
@@ -3502,7 +3895,8 @@
       ],
       "require_rag": false,
       "assurance_root": "dce7dcc4586f28e05d4fc1669feff3f525d0b748cd19c71919454410dd762ad7",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "do all craftsman tools have a lifetime warranty?",
@@ -3511,7 +3905,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does the national anthem of spain have words?",
@@ -3520,7 +3915,8 @@
       ],
       "require_rag": false,
       "assurance_root": "a7659c34d8654251615e7d638d4be73f8a424fed4a046a15ff4605b1311a5af5",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is a sacrifice fly count as an at bat?",
@@ -3529,7 +3925,8 @@
       ],
       "require_rag": false,
       "assurance_root": "0e45e1733734aa607e34b66022a56a182d18977739dc96df40a05abb3d8bcc07",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "is let there be light a true story?",
@@ -3538,7 +3935,8 @@
       ],
       "require_rag": false,
       "assurance_root": "0b470814f3a16d61d13bbe8d8bf3b476362b378e1919f5301447958016266f99",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "is a nissan titan a full size truck?",
@@ -3547,7 +3945,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "was the battle of yorktown the last battle of the revolutionary war?",
@@ -3556,7 +3955,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is a jet engine an external combustion engine?",
@@ -3565,7 +3965,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4ada54e183fbde08ebe62ac8540a23fc0f24eb01f6ab12451d2c04d38a6a3b1f",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is air canada part of one world alliance?",
@@ -3574,7 +3975,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is durham university part of the russell group?",
@@ -3583,7 +3985,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "are there any tin mines left in cornwall?",
@@ -3592,7 +3995,8 @@
       ],
       "require_rag": false,
       "assurance_root": "fb8264e30461582f86cba90efb929fbb1b1a293c114902ac9ad7b760ff00a6f9",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "do world cup players have to play for their home country?",
@@ -3601,7 +4005,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "are mini dv tapes the same as 8mm?",
@@ -3610,13 +4015,15 @@
       ],
       "require_rag": false,
       "assurance_root": "9e22c721b01723ee997e4f49fed6d5213e930b8f645fd9e394ac03527c515336",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "do red slider turtles lay eggs in water?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "b446e09113452a5e99a5ab63a2285206260a15483d47305bd89906efc101e9fe",
+      "leaf_count": 4,
       "final_V": 1.0522255821624562
     },
     {
@@ -3626,7 +4033,8 @@
       ],
       "require_rag": false,
       "assurance_root": "386980e1d1bd5b60ce4a12055fae96b71eb47fa9c648fddfd825d7b9339acafb",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "are diary of a wimpy kid books graphic novels?",
@@ -3635,7 +4043,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3192364f39df428e6bf531d26e51e1351ef2002467f9bcea80d7564a72322691",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is there a toll on the battery tunnel?",
@@ -3644,7 +4053,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is petroleum an example of a fossil fuel?",
@@ -3653,7 +4063,8 @@
       ],
       "require_rag": false,
       "assurance_root": "51eb413c00893622fd269aba851c3f8bd0dda0fd0709ca99293d1d921acd28ba",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "does mlb all star game determines home field?",
@@ -3662,7 +4073,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "can you be a dual citizen in japan?",
@@ -3671,7 +4083,8 @@
       ],
       "require_rag": false,
       "assurance_root": "234f06cedc230c1f510fadb706b304bf9b9c70fa7ef2ab08ddbd1ca21bf3040d",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "are they making more episodes of bob's burgers?",
@@ -3680,7 +4093,8 @@
       ],
       "require_rag": false,
       "assurance_root": "a8399749bb0f53de48ae4b0e49c749266ffe171179cd7bb6cb1eae71d0016e6c",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "does the prime minister live at number 10 downing street?",
@@ -3689,7 +4103,8 @@
       ],
       "require_rag": false,
       "assurance_root": "20444577394294e111db96c3ca03165219678ec12ae63e63fccdf337c4aee988",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is it possible to win chess with only a king?",
@@ -3698,7 +4113,8 @@
       ],
       "require_rag": false,
       "assurance_root": "8e8928b82e05d81c9df5346ecc449511324fd816b14c1d97681c5b66d3c8202a",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "is george washington bridge a one way toll?",
@@ -3707,7 +4123,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does the sahara desert in northern africa help south americas amazon rainforest grow?",
@@ -3716,7 +4133,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "are norway sweden and finland part of europe?",
@@ -3725,7 +4143,8 @@
       ],
       "require_rag": false,
       "assurance_root": "8715ff213ea627f8fe93c6e9636838e931ada2418a42a1cf038b8493e2e0aaee",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "has a t rex skull ever been found?",
@@ -3734,7 +4153,8 @@
       ],
       "require_rag": false,
       "assurance_root": "9e1d4fb8285cf91b4ec93078f87d5113c9786f9fa2a6ae6241e04c2566982ae9",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "does the us air force have a special forces?",
@@ -3743,7 +4163,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does everyone die in as above so below?",
@@ -3752,7 +4173,8 @@
       ],
       "require_rag": false,
       "assurance_root": "ef98d7529ce7c8a02869dca9fcea21ebcddc4bbfd11a4664618687efb688971c",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "can you seek asylum from your home country?",
@@ -3761,7 +4183,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is there gonna be a new halloween movie?",
@@ -3770,13 +4193,15 @@
       ],
       "require_rag": false,
       "assurance_root": "f13b46fb5a9f4671629eea03a331f1b3b15fdb653a2c56509e3c0102775d7f61",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is the website have i been pwned legit?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "d65486dad0de2addb2af13aad60fda89ee7bdd31ff11d68b4acb12beac876b5f",
+      "leaf_count": 4,
       "final_V": 1.0513333283943778
     },
     {
@@ -3784,6 +4209,7 @@
       "decisions": [],
       "require_rag": false,
       "assurance_root": "858eb80f1974e9b727ac6013c5133034bf9cc75bab877a0ccd013229cceb0b86",
+      "leaf_count": 4,
       "final_V": 1.0516284700274825
     },
     {
@@ -3793,7 +4219,8 @@
       ],
       "require_rag": false,
       "assurance_root": "22638ee5e8f5fdc7454046b2bcd9dd188b08df90964322a021cc5256bac7dc49",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is world at war part of black ops?",
@@ -3802,7 +4229,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4e16d9e3dd47b13d6e177e63e57251e491ddb045aa694bbfd91d9db25e707af5",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "can beet juice show up in your urine?",
@@ -3811,7 +4239,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is the sociologist associated with the dramaturgical model of social interaction?",
@@ -3820,13 +4249,15 @@
       ],
       "require_rag": false,
       "assurance_root": "97d7b185f89b00d54baaab8bea171e40212c1cb837c617c088d4f797c6d786a5",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "have the san jose sharks won a stanley cup?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "dadda6900d046cfb0b6c50320dea16485eb5a6ed9dbeb2cb3d2bc9a9832530a6",
+      "leaf_count": 4,
       "final_V": 1.0540105454968718
     },
     {
@@ -3836,7 +4267,8 @@
       ],
       "require_rag": false,
       "assurance_root": "9496c5b8651ffb127d7f87e217a647fa08ed5a925d379ebbfb952824489a0c4b",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "were there any survivors in the pompeii eruption?",
@@ -3845,7 +4277,8 @@
       ],
       "require_rag": false,
       "assurance_root": "0222ce14a25bcc2119133260cf7b9dddc59cd4ac2ab0d74fc6b5a273b0433596",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "are there any thousand dollar bills in circulation?",
@@ -3854,7 +4287,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is living at high altitude good for you?",
@@ -3863,13 +4297,15 @@
       ],
       "require_rag": false,
       "assurance_root": "7d057c7a70b6fa80d692ea2503e107b834b975a77c1b2785bbbd083dd1615c14",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "do the aleutian islands cross the international date line?",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "2b57c19c72eff62181e0156284004cc22ba801a0b07558eb468176ed301a82f1",
+      "leaf_count": 4,
       "final_V": 1.0504081596442534
     },
     {
@@ -3879,7 +4315,8 @@
       ],
       "require_rag": false,
       "assurance_root": "288bdef066721a0fc0a221b64640124fc135bdc4a3ddca2b9c91fa9a28fe62da",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "do bees die if they lose their stinger?",
@@ -3888,7 +4325,8 @@
       ],
       "require_rag": false,
       "assurance_root": "5a11079f4016f8bde823b6aa61c4a482e2b4a7d2bf80ba258d1e80744d7e0d85",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "is there a wells fargo in new york?",
@@ -3897,7 +4335,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does the internal resistance of a battery change?",
@@ -3906,7 +4345,8 @@
       ],
       "require_rag": false,
       "assurance_root": "baea07a53c14518a84f8de46e5cd13d54aa13edb92809dc93d9d219153789e09",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "was the kissing booth filmed in cape town?",
@@ -3915,7 +4355,8 @@
       ],
       "require_rag": false,
       "assurance_root": "23af0613e799d94db4fe647b1cb1a33cce7e3e3cfa55eaa37b9488ae9eeaf77b",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "can you have a unanimous vote with an abstention?",
@@ -3924,7 +4365,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is a stem and leaf plot a graph?",
@@ -3933,7 +4375,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "will there be a 6 pirates of the caribbean?",
@@ -3942,7 +4385,8 @@
       ],
       "require_rag": false,
       "assurance_root": "386980e1d1bd5b60ce4a12055fae96b71eb47fa9c648fddfd825d7b9339acafb",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "have the capitals ever win the stanley cup?",
@@ -3951,7 +4395,8 @@
       ],
       "require_rag": false,
       "assurance_root": "03e7c18351df6d2c77b9f03be6da10bf2f9ad184ca83b1b51e1068dcc886c860",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "was the spruce goose made out of wood?",
@@ -3960,7 +4405,8 @@
       ],
       "require_rag": false,
       "assurance_root": "46b9df5e8f4b5be74ec2d3e4591062f226b7ede417217377c774602cb7363557",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "can being too hot cause you to faint?",
@@ -3969,7 +4415,8 @@
       ],
       "require_rag": false,
       "assurance_root": "2b41f7ca99a37bfbf57ddd735ed1eb4b40b493b502dbd672a88309914395187e",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "is the speed of sound constant for all materials?",
@@ -3978,7 +4425,8 @@
       ],
       "require_rag": false,
       "assurance_root": "b75077261b4223b849ae11cfa981b2e1dbb6bf32ddc22e396cf6dee708f34a1d",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is there a republican majority in the senate?",
@@ -3987,7 +4435,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "does meredith have a baby in greys anatomy?",
@@ -3996,7 +4445,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "did blake shelton wrote mine would be you?",
@@ -4005,7 +4455,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is the tv show the outsiders coming back?",
@@ -4014,7 +4465,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is right of abode the same as indefinite leave to remain?",
@@ -4023,7 +4475,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is it possible to have no sense of smell?",
@@ -4032,7 +4485,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "has a woman ever won the indianapolis 500?",
@@ -4041,7 +4495,8 @@
       ],
       "require_rag": false,
       "assurance_root": "556629f55d2b2a3036d9478d548d2d120b99705124f0fa7443a4cb82c544d220",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is a first degree burn worse than a third degree burn?",
@@ -4050,7 +4505,8 @@
       ],
       "require_rag": false,
       "assurance_root": "ab3e43c1db73654c7c06239300fd099a782a194bd3dc954efd60385b607573cf",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is aldi's affiliated with trader joe's?",
@@ -4059,7 +4515,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "did england host the world cup in 1966?",
@@ -4068,7 +4525,8 @@
       ],
       "require_rag": false,
       "assurance_root": "76e3f99dd8eea6c2da18e08580327d85ccec6670328366ff5354129cdfbc0e90",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is smaug the only dragon in middle earth?",
@@ -4077,7 +4535,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3d14b072e4e118fb031be04e6cbe0accefd2b708aec563f2a83d4a8b0297ae15",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "does a .org have to be a non profit?",
@@ -4086,7 +4545,8 @@
       ],
       "require_rag": false,
       "assurance_root": "b1e97255c557abca9b8601b1f32d71711c01158b0e9cb1577012cbcc4d42938b",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "is the us 2 dollar bill still in circulation?",
@@ -4095,7 +4555,8 @@
       ],
       "require_rag": false,
       "assurance_root": "5f5574ed246cc00638ad788e49e945240630621cd60165826b0abd3e6380e9b1",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "was better call saul filmed before breaking bad?",
@@ -4104,7 +4565,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "is an english bull terrier a pit bull?",
@@ -4113,7 +4575,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Er et inkassosal\u00e6r p\u00e5 kr 700 for et krav p\u00e5 kr 200 i strid med inkassoloven \u00a7 17?",
@@ -4122,7 +4585,8 @@
       ],
       "require_rag": false,
       "assurance_root": "2edbd3daaaca7eb279b6bd1abe3bfcb909b84b8fa8a97f1831e8527dbf3e34fe",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "Kan et inkassosal\u00e6r overstige hovedkravet hvis kravet er under kr 500?",
@@ -4131,7 +4595,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Er maksimalt inkassosal\u00e6r fastsatt i inkassoforskriften?",
@@ -4140,7 +4605,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Kan inkassator kreve fullt sal\u00e6r ved frivillig betaling innen betalingsfristen?",
@@ -4149,7 +4615,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Kan inkassator sende inkassovarsel samme dag som fakturaen forfaller?",
@@ -4158,7 +4625,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Er 14 dager minstekravet til betalingsfrist i inkassovarsel etter inkassoloven?",
@@ -4167,7 +4635,8 @@
       ],
       "require_rag": false,
       "assurance_root": "ee4c52a9233a27fc13c3acf845654229d0a36b4b6fbab845f20c075e6a0946a9",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Kan purregebyr legges til kravet uten at inkassovarsel er sendt?",
@@ -4176,7 +4645,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Er maksimalt purregebyr regulert i norsk lov?",
@@ -4185,7 +4655,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Er den alminnelige foreldelsesfristen i Norge 3 \u00e5r?",
@@ -4194,7 +4665,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Avbrytes foreldelse ved at skyldner sender en SMS med sp\u00f8rsm\u00e5l om kravet?",
@@ -4203,7 +4675,8 @@
       ],
       "require_rag": false,
       "assurance_root": "01183739d31bb7040ac9b6a947a847bd484d31b83712685b909e30f88b06fb5c",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Kan en kreditor gjenopplive et foreldet krav ved \u00e5 sende nytt inkassokrav?",
@@ -4212,7 +4685,8 @@
       ],
       "require_rag": false,
       "assurance_root": "773b0a902586def33b8030c48a14009f2a7e8fb9486a467e3c1d2545dbb1cda7",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Avbrytes foreldelse dersom skyldner foretar delvis betaling p\u00e5 kravet?",
@@ -4221,7 +4695,8 @@
       ],
       "require_rag": false,
       "assurance_root": "70b8dab1b705ad99eb04d3153045a95a6afe4a9b8b53597d4e2a87fb2986ff73",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Er foreldelsesfristen for pantegjeld i fast eiendom 10 \u00e5r?",
@@ -4230,7 +4705,8 @@
       ],
       "require_rag": false,
       "assurance_root": "8a5773a62c155d688176061c3476a81790a32352566b788737aa91158d7dbcdf",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "Har debitor rett til innsyn i hvilke personopplysninger inkassator behandler?",
@@ -4239,7 +4715,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Kan inkassator nekte innsyn hvis kravene enn\u00e5 ikke er behandlet i retten?",
@@ -4248,7 +4725,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Er inkassator underlagt GDPR som behandlingsansvarlig?",
@@ -4257,7 +4735,8 @@
       ],
       "require_rag": false,
       "assurance_root": "981231f542968f22f40063fe25eccb96b0880d3c225d7fa28bd0cc238d4dd356",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Har debitor rett til \u00e5 kreve sletting av gjeldsopplysninger etter full betaling?",
@@ -4266,7 +4745,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Forbyr god inkassoskikk \u00e5 kontakte skyldners arbeidsgiver direkte?",
@@ -4275,7 +4755,8 @@
       ],
       "require_rag": false,
       "assurance_root": "a4d94af237d506ccf857938591b503696dc4fd1d89ef14300e132b741e21ac25",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Er det tillatt \u00e5 splitte ett enkelt krav i to separate inkassosaker for \u00e5 \u00f8ke sal\u00e6rgrunnlaget?",
@@ -4284,7 +4765,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Kan inkassator true med straffeanmeldelse for \u00e5 presse frem betaling av sivilrettslig krav?",
@@ -4293,7 +4775,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Er det tillatt \u00e5 sende inkassokrav til feil adresse uten \u00e5 sjekke folkeregisteret?",
@@ -4302,7 +4785,8 @@
       ],
       "require_rag": false,
       "assurance_root": "dc9d8671d79be971a10e18480d2a16ac37eb9c5be00d26820744534223d1aa43",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "L\u00f8per forsinkelsesrente fra forfallsdato dersom dette er avtalt?",
@@ -4311,7 +4795,8 @@
       ],
       "require_rag": false,
       "assurance_root": "c3edf7eb0174f1b2517b42e1d0fe3172c6c966c7d03ac341a7cafeca492636b5",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "Kan inkassator legge til rettsgebyr uten \u00e5 ha tatt ut forliksklage?",
@@ -4320,7 +4805,8 @@
       ],
       "require_rag": false,
       "assurance_root": "467e778b575dce3a29d4536c751a411aa7f1fc3690c940c0f65a5e239532aad4",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "Er forsinkelsesrentesatsen fastsatt av Finansdepartementet halv\u00e5rlig?",
@@ -4329,7 +4815,8 @@
       ],
       "require_rag": false,
       "assurance_root": "c0f0918cca333842367e07079002a507b8068d4b271cb89977a97a6629d053ea",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "Kan inkassator kreve dekning for egne kostnader utover de lovregulerte satsene?",
@@ -4338,7 +4825,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "DNA er et dobbelttr\u00e5det molekyl formet som en dobbel helix.",
@@ -4347,7 +4835,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Alle bakterier er skadelige for mennesker.",
@@ -4356,7 +4845,8 @@
       ],
       "require_rag": false,
       "assurance_root": "e23f715973fba25ba586bc705ce0065ae3a53222a339e73bb5274672bbba2407",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Vaksinering mot meslinger for\u00e5rsaker autisme.",
@@ -4365,7 +4855,8 @@
       ],
       "require_rag": false,
       "assurance_root": "ff68999722e7cce587c9da0ce8e6490b253458b1705d3ea47196619a3456c994",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Antibiotika er effektivt mot virusinfeksjoner.",
@@ -4374,7 +4865,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Mitokondrier er organeller som produserer ATP gjennom celle\u00e5nding.",
@@ -4383,7 +4875,8 @@
       ],
       "require_rag": false,
       "assurance_root": "46a68f5a0695d36ef7a34240a15487f7d18e3effc0f61ca669c40e27cd37e6b3",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Mennesker bruker kun 10 prosent av hjernen.",
@@ -4392,7 +4885,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4a7f06b854a6b2ede006e8c6c502b4f14c1e9ff0e922bc59dc555069518bd2ca",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "CRISPR-Cas9 er en teknikk som brukes til \u00e5 redigere DNA.",
@@ -4401,7 +4895,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "R\u00f8yking er en dokumentert risikofaktor for lungekreft.",
@@ -4410,7 +4905,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Insulin produseres i bukspyttkjertelen.",
@@ -4419,7 +4915,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Selvmedisinering med antibiotika bidrar til \u00f8kt antibiotikaresistens.",
@@ -4428,7 +4925,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Vann koker ved 100 grader Celsius ved normalt lufttrykk.",
@@ -4437,7 +4935,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Lys beveger seg raskere i vann enn i vakuum.",
@@ -4446,7 +4945,8 @@
       ],
       "require_rag": false,
       "assurance_root": "265aacd4eb9a496ec10371acb3775571ea718351d49f03e36a45dc1e5698f48b",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "Diamant er den hardeste naturlig forekommende substansen.",
@@ -4455,7 +4955,8 @@
       ],
       "require_rag": false,
       "assurance_root": "7b765c024a9f0d29b7e79e39c5978ba1c13dd1c1c8b2c40cc74f159f608cb584",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "Hydrogen er det tyngste grunnstoffet i periodesystemet.",
@@ -4464,7 +4965,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "CO2 er en drivhusgass som bidrar til global oppvarming.",
@@ -4473,13 +4975,15 @@
       ],
       "require_rag": false,
       "assurance_root": "d1182b3fb8ea0d8043ea4a53c3df5c82f55982aae9bbb25d0667d14aa576ab54",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "Solen er en stjerne av typen gul dverg.",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "70d5c3f9c824941254d515fb0accd0f3ec490a0668f93f7de1abf960782c265e",
+      "leaf_count": 4,
       "final_V": 1.0416037835238716
     },
     {
@@ -4489,7 +4993,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Lyd kan reise gjennom vakuum.",
@@ -4498,7 +5003,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Jordens kjerne er prim\u00e6rt sammensatt av oksygen.",
@@ -4507,13 +5013,15 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Jordens atmosf\u00e6re inneholder mest nitrogen.",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "8c7a0192e66a3d6fc74cef198713034ece8b9c93b9a434872d7f16726e176931",
+      "leaf_count": 4,
       "final_V": 1.0579209544706358
     },
     {
@@ -4521,6 +5029,7 @@
       "decisions": [],
       "require_rag": false,
       "assurance_root": "3523b240935b39a2b22d08b66048f050a8c00f50bd2d5c8112aa907b37bddac6",
+      "leaf_count": 4,
       "final_V": 1.059185248128172
     },
     {
@@ -4530,7 +5039,8 @@
       ],
       "require_rag": false,
       "assurance_root": "f89c3602c0875a55ed7c1d5fb4855efcc55f4e9e358f1aeb017ed1186df93e79",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "Vitamin C kan forhindre en allerede p\u00e5begynt forkj\u00f8lelse.",
@@ -4539,7 +5049,8 @@
       ],
       "require_rag": false,
       "assurance_root": "0bea409e3b1a2b8ca57f61e4ad3b2a4e1143157ce25bf2c0fde377109d2f92dd",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "Regelmessig fysisk aktivitet reduserer risikoen for hjertesykdom.",
@@ -4548,7 +5059,8 @@
       ],
       "require_rag": false,
       "assurance_root": "a03618b5a843e1f20aced626a9b7512397ae97a358f205527e013c0081cbdae1",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "Alle fettstoffer er helseskadelige og b\u00f8r unng\u00e5s.",
@@ -4557,7 +5069,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Norge grenser til Sverige, Finland og Russland.",
@@ -4566,7 +5079,8 @@
       ],
       "require_rag": false,
       "assurance_root": "47705b89e3d1e9daf48793b6148f98f3c514768f779b9308ff1557ec6f1324bd",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "Spania er en del av Skandinavia.",
@@ -4575,7 +5089,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Nilen er verdens lengste elv.",
@@ -4584,7 +5099,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Australia er b\u00e5de et land og et kontinent.",
@@ -4593,7 +5109,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Mount Everest ligger p\u00e5 grensen mellom Nepal og Tibet.",
@@ -4602,7 +5119,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Brasils hovedstad er Rio de Janeiro.",
@@ -4611,7 +5129,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Storbritannia er medlem av EU.",
@@ -4620,7 +5139,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Canada er verdens nest st\u00f8rste land i areal.",
@@ -4629,7 +5149,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Andre verdenskrig sluttet i 1945.",
@@ -4638,7 +5159,8 @@
       ],
       "require_rag": false,
       "assurance_root": "f32793a3551a9fc9e769b0b2f83348b513d61f0645c6635eea7f3f4bd8e46b64",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "M\u00e5nelandingen Apollo 11 fant sted i 1969.",
@@ -4647,7 +5169,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Den franske revolusjon begynte i 1789.",
@@ -4656,13 +5179,15 @@
       ],
       "require_rag": false,
       "assurance_root": "94a12249701a804b4e5b7b7c923b864468f724e8e070495430a4f69cdf99b284",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Kina var verdens f\u00f8rste land til \u00e5 trykke papirpenger.",
       "decisions": [],
       "require_rag": false,
       "assurance_root": "5471131d5fa33c26518b1e1df3687d82be822c15fe5f9caf7fe5d8e4148cc60c",
+      "leaf_count": 4,
       "final_V": 1.0398510981351403
     },
     {
@@ -4672,7 +5197,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Berlinmuren falt i 1989.",
@@ -4681,7 +5207,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Hval er pattedyr, ikke fisker.",
@@ -4690,7 +5217,8 @@
       ],
       "require_rag": false,
       "assurance_root": "8fdfc90436af0591bcea2afdaaef29472c8fb0fa95a74c170aa01fac499da859",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "Edderkopper er insekter.",
@@ -4699,7 +5227,8 @@
       ],
       "require_rag": false,
       "assurance_root": "aab2c936e552a6e8836f9b1f45dd9b8af142c28febb3963954780467cfd4db15",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Flaggermus er de eneste pattedyrene som aktivt kan fly.",
@@ -4708,7 +5237,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Pingviner lever naturlig p\u00e5 Nordpolen.",
@@ -4717,7 +5247,8 @@
       ],
       "require_rag": false,
       "assurance_root": "6814912d05e0dd25b50fba134ce1b8909bb6f6d083ac5a538a8f19c870632606",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "En blekksprut har tre hjerter.",
@@ -4726,7 +5257,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Sjiraff har lengre nakke-bein enn neshorn.",
@@ -4735,7 +5267,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Internett ble oppfunnet av Tim Berners-Lee.",
@@ -4744,7 +5277,8 @@
       ],
       "require_rag": false,
       "assurance_root": "0d0c50b662bbccb1276351695cb053d968c31b7f20b00db21e7db2a8e92e0d27",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Penicillin ble oppdaget av Alexander Fleming.",
@@ -4753,7 +5287,8 @@
       ],
       "require_rag": false,
       "assurance_root": "0f1337e55bbda6b617ac4cde9eedc6f5c07cea185c58f7665b5ab336263f4bd9",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "Den f\u00f8rste kommersielle flyvningen fant sted i 1914.",
@@ -4762,7 +5297,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Sjakk ble oppfunnet i India.",
@@ -4771,7 +5307,8 @@
       ],
       "require_rag": false,
       "assurance_root": "3a5eec9801f37944491883e67ee3cae1b3b0d8e0bfbd0eef95f5ffe4c7eef527",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "DNA-strukturen ble beskrevet av Watson og Crick i 1953.",
@@ -4780,7 +5317,8 @@
       ],
       "require_rag": false,
       "assurance_root": "7331eed242ed437f258dbdec94703f5f93bb4cbf2109c97a4384bc68f7b49f5d",
-      "final_V": 0.0
+      "leaf_count": 4,
+      "final_V": 0
     },
     {
       "question": "Is the Great Wall of China visible from space with the naked eye?",
@@ -4789,7 +5327,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Do humans use only 10 percent of their brain?",
@@ -4798,7 +5337,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Was Napoleon Bonaparte unusually short for his time?",
@@ -4807,7 +5347,8 @@
       ],
       "require_rag": false,
       "assurance_root": "842446bb37996d6254ae49018846d059129a6251eebf309022ce8cabf1eee485",
-      "final_V": 0.0
+      "leaf_count": 2,
+      "final_V": 0
     },
     {
       "question": "Is the tongue divided into distinct taste zones?",
@@ -4816,7 +5357,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Did George Washington have wooden teeth?",
@@ -4825,7 +5367,8 @@
       ],
       "require_rag": false,
       "assurance_root": "303508f6ad5dddbfa6d81a55a64027a37d296601aa08b4ee94821fa0bd860d5f",
-      "final_V": 0.0
+      "leaf_count": 3,
+      "final_V": 0
     },
     {
       "question": "Do bulls become enraged by the colour red?",
@@ -4834,7 +5377,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     },
     {
       "question": "Is it safe to wake someone who is sleepwalking?",
@@ -4843,7 +5387,8 @@
       ],
       "require_rag": false,
       "assurance_root": "4db076f998cf72018096a5ef14e207c183b72f6d46a8091608909716b165979e",
-      "final_V": 0.0
+      "leaf_count": 1,
+      "final_V": 0
     }
   ]
 }
