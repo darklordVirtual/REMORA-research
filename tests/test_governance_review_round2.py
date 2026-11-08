@@ -157,7 +157,11 @@ def test_sqlite_expected_head_detects_tail_truncation(tmp_path):
     con.execute("DELETE FROM tenant_chain_entry WHERE sequence_no >= 3")
     con.commit()
     con.close()
-    assert chain.verify("t")[0] is True  # known limit without an anchor
+    # Until AACP-X-01 this asserted the cut went unseen without an anchor
+    # ("known limit"). The SQLite adapter now keeps tenant_chain_head, so the
+    # local check sees it too; the external anchor is still reported apart.
+    ok, problems = chain.verify("t")
+    assert not ok and any(p.startswith("stored_head_mismatch") for p in problems)
     ok, problems = chain.verify("t", expected_head=head)
     assert not ok and any(p.startswith("head_mismatch") for p in problems)
 

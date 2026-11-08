@@ -1,0 +1,486 @@
+{
+ "generated_by": "remora/assurance/merkle.py at 06c2f8f038d9d24668158ce24cbd444e89fd306a (v1, before AACP-X-02 fix)",
+ "trace": {
+  "betti_info": {
+   "betti_0": 1,
+   "betti_1": 0
+  },
+  "canonical_leaves": [
+   "{\"D\": 0.0, \"H\": 0.0, \"V\": 0.0, \"t\": 0, \"weighted_support\": 0.5, \"winning_fp\": \"fp0\"}",
+   "{\"D\": 0.0, \"H\": 0.0, \"V\": 0.1, \"t\": 1, \"weighted_support\": 0.5, \"winning_fp\": \"fp1\"}",
+   "{\"D\": 0.0, \"H\": 0.0, \"V\": 0.2, \"t\": 2, \"weighted_support\": 0.5, \"winning_fp\": \"fp2\"}"
+  ],
+  "consensus_log": [
+   {
+    "D": 0.0,
+    "H": 0.0,
+    "V": 0.0,
+    "t": 0,
+    "weighted_support": 0.5,
+    "winning_fp": "fp0"
+   },
+   {
+    "D": 0.0,
+    "H": 0.0,
+    "V": 0.1,
+    "t": 1,
+    "weighted_support": 0.5,
+    "winning_fp": "fp1"
+   },
+   {
+    "D": 0.0,
+    "H": 0.0,
+    "V": 0.2,
+    "t": 2,
+    "weighted_support": 0.5,
+    "winning_fp": "fp2"
+   }
+  ],
+  "final_V": 0.2,
+  "inclusion_proofs": [
+   {
+    "leaf_index": 0,
+    "siblings": [
+     [
+      "d8c5636cf1dfa5a9371c0f38613f4bbf90c4a9733a959ee0b0e095709b76b9e8",
+      "R"
+     ],
+     [
+      "3a985b5b31419875e31429589be7857ddd43fbe0b3bc10128c9373ddbea4ffc7",
+      "R"
+     ]
+    ]
+   },
+   {
+    "leaf_index": 1,
+    "siblings": [
+     [
+      "fe504a82fdb54ad2674315a5c4b3353bb3838f21cdfd606d870823c83fe0c85c",
+      "L"
+     ],
+     [
+      "3a985b5b31419875e31429589be7857ddd43fbe0b3bc10128c9373ddbea4ffc7",
+      "R"
+     ]
+    ]
+   },
+   {
+    "leaf_index": 2,
+    "siblings": [
+     [
+      "81afbfff66e598fce8f939224a7844a8123d9f12e33918683e2e3ca63a6b0d2a",
+      "R"
+     ],
+     [
+      "a02fd5714c63c3737e56cdfacfe0938fb667cc41eb5e5abcbd901d920ffd279e",
+      "L"
+     ]
+    ]
+   }
+  ],
+  "leaf_count": 3,
+  "root_hash": "7d56c7e740bfde7a9edcdbcad10866eb24369f59ef190f2d2c74e9773ebba925",
+  "signature_standard": "REMORA-Assurance-Trace-v1"
+ },
+ "trees": [
+  {
+   "leaves": [
+    "a"
+   ],
+   "proofs": [
+    {
+     "leaf_index": 0,
+     "siblings": []
+    }
+   ],
+   "root": "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb"
+  },
+  {
+   "leaves": [
+    "a",
+    "b"
+   ],
+   "proofs": [
+    {
+     "leaf_index": 0,
+     "siblings": [
+      [
+       "3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d",
+       "R"
+      ]
+     ]
+    },
+    {
+     "leaf_index": 1,
+     "siblings": [
+      [
+       "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb",
+       "L"
+      ]
+     ]
+    }
+   ],
+   "root": "62af5c3cb8da3e4f25061e829ebeea5c7513c54949115b1acc225930a90154da"
+  },
+  {
+   "leaves": [
+    "a",
+    "b",
+    "c"
+   ],
+   "proofs": [
+    {
+     "leaf_index": 0,
+     "siblings": [
+      [
+       "3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d",
+       "R"
+      ],
+      [
+       "d50c873877f38fcbc56dbe836b9d979912efcb587ed8eea919372d403b5c2bd4",
+       "R"
+      ]
+     ]
+    },
+    {
+     "leaf_index": 1,
+     "siblings": [
+      [
+       "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb",
+       "L"
+      ],
+      [
+       "d50c873877f38fcbc56dbe836b9d979912efcb587ed8eea919372d403b5c2bd4",
+       "R"
+      ]
+     ]
+    },
+    {
+     "leaf_index": 2,
+     "siblings": [
+      [
+       "2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6",
+       "R"
+      ],
+      [
+       "62af5c3cb8da3e4f25061e829ebeea5c7513c54949115b1acc225930a90154da",
+       "L"
+      ]
+     ]
+    }
+   ],
+   "root": "0bdf27bf7ec894ca7cadfe491ec1a3ece840f117989e8c5e9bd7086467bf6c38"
+  },
+  {
+   "leaves": [
+    "a",
+    "b",
+    "c",
+    "c"
+   ],
+   "proofs": [
+    {
+     "leaf_index": 0,
+     "siblings": [
+      [
+       "3e23e8160039594a33894f6564e1b1348bbd7a0088d42c4acb73eeaed59c009d",
+       "R"
+      ],
+      [
+       "d50c873877f38fcbc56dbe836b9d979912efcb587ed8eea919372d403b5c2bd4",
+       "R"
+      ]
+     ]
+    },
+    {
+     "leaf_index": 1,
+     "siblings": [
+      [
+       "ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb",
+       "L"
+      ],
+      [
+       "d50c873877f38fcbc56dbe836b9d979912efcb587ed8eea919372d403b5c2bd4",
+       "R"
+      ]
+     ]
+    },
+    {
+     "leaf_index": 2,
+     "siblings": [
+      [
+       "2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6",
+       "R"
+      ],
+      [
+       "62af5c3cb8da3e4f25061e829ebeea5c7513c54949115b1acc225930a90154da",
+       "L"
+      ]
+     ]
+    },
+    {
+     "leaf_index": 3,
+     "siblings": [
+      [
+       "2e7d2c03a9507ae265ecf5b5356885a53393a2029d241394997265a1a25aefc6",
+       "L"
+      ],
+      [
+       "62af5c3cb8da3e4f25061e829ebeea5c7513c54949115b1acc225930a90154da",
+       "L"
+      ]
+     ]
+    }
+   ],
+   "root": "0bdf27bf7ec894ca7cadfe491ec1a3ece840f117989e8c5e9bd7086467bf6c38"
+  },
+  {
+   "leaves": [
+    "leaf-0",
+    "leaf-1",
+    "leaf-2",
+    "leaf-3",
+    "leaf-4"
+   ],
+   "proofs": [
+    {
+     "leaf_index": 0,
+     "siblings": [
+      [
+       "4140bf0e8569ed03ec838871ff2f190e9b3ea86bc083d7e9901049f75f00e855",
+       "R"
+      ],
+      [
+       "ff1eb97a52f05c8334488304b31bec392a979f395e8840ba97c714efbb8a63ac",
+       "R"
+      ],
+      [
+       "7e443e7ce4ca4de649f5b3c62db247f1fabb209db409b5cb45d7cc82841d69a1",
+       "R"
+      ]
+     ]
+    },
+    {
+     "leaf_index": 1,
+     "siblings": [
+      [
+       "d2dbf006f96dd05044a8f63d8f118f23925ba4cc5750f8b6c8e287fd506c8188",
+       "L"
+      ],
+      [
+       "ff1eb97a52f05c8334488304b31bec392a979f395e8840ba97c714efbb8a63ac",
+       "R"
+      ],
+      [
+       "7e443e7ce4ca4de649f5b3c62db247f1fabb209db409b5cb45d7cc82841d69a1",
+       "R"
+      ]
+     ]
+    },
+    {
+     "leaf_index": 2,
+     "siblings": [
+      [
+       "9fde56c376760bd399b82eb8569229a2dff19219411ac71154dfeab2cf502454",
+       "R"
+      ],
+      [
+       "980cf4c37f098c84759e9e66592cd515f70dc326e907370ff2f0715bb763e3cc",
+       "L"
+      ],
+      [
+       "7e443e7ce4ca4de649f5b3c62db247f1fabb209db409b5cb45d7cc82841d69a1",
+       "R"
+      ]
+     ]
+    },
+    {
+     "leaf_index": 3,
+     "siblings": [
+      [
+       "649837ddcb7e1967086d7d35aaef7b975c513815d96fc6e70015e93a2bfe0f9a",
+       "L"
+      ],
+      [
+       "980cf4c37f098c84759e9e66592cd515f70dc326e907370ff2f0715bb763e3cc",
+       "L"
+      ],
+      [
+       "7e443e7ce4ca4de649f5b3c62db247f1fabb209db409b5cb45d7cc82841d69a1",
+       "R"
+      ]
+     ]
+    },
+    {
+     "leaf_index": 4,
+     "siblings": [
+      [
+       "697f943b9ec5f90eddda8ae7473f5eb688187e3467f312fefa8677dde255042c",
+       "R"
+      ],
+      [
+       "1a4b7eec099b3a68b6eaa65c84a2a0549e95d09c1c7745ef834ce4b791c9935b",
+       "R"
+      ],
+      [
+       "a1f8a519d07b6d53d24b4b4d3e61d60bbc52f3360ad15e0ec858c82b5a01ec95",
+       "L"
+      ]
+     ]
+    }
+   ],
+   "root": "fa57cc22cac0962c44e370f83bcc1637a3b93a62bfe42498a67c1fd49690ceba"
+  },
+  {
+   "leaves": [
+    "leaf-0",
+    "leaf-1",
+    "leaf-2",
+    "leaf-3",
+    "leaf-4",
+    "leaf-5",
+    "leaf-6",
+    "leaf-7"
+   ],
+   "proofs": [
+    {
+     "leaf_index": 0,
+     "siblings": [
+      [
+       "4140bf0e8569ed03ec838871ff2f190e9b3ea86bc083d7e9901049f75f00e855",
+       "R"
+      ],
+      [
+       "ff1eb97a52f05c8334488304b31bec392a979f395e8840ba97c714efbb8a63ac",
+       "R"
+      ],
+      [
+       "a5ccf3a614972c8aba8e9de4476e2fcae75646ed2dcae6566ed7b2818c744af7",
+       "R"
+      ]
+     ]
+    },
+    {
+     "leaf_index": 1,
+     "siblings": [
+      [
+       "d2dbf006f96dd05044a8f63d8f118f23925ba4cc5750f8b6c8e287fd506c8188",
+       "L"
+      ],
+      [
+       "ff1eb97a52f05c8334488304b31bec392a979f395e8840ba97c714efbb8a63ac",
+       "R"
+      ],
+      [
+       "a5ccf3a614972c8aba8e9de4476e2fcae75646ed2dcae6566ed7b2818c744af7",
+       "R"
+      ]
+     ]
+    },
+    {
+     "leaf_index": 2,
+     "siblings": [
+      [
+       "9fde56c376760bd399b82eb8569229a2dff19219411ac71154dfeab2cf502454",
+       "R"
+      ],
+      [
+       "980cf4c37f098c84759e9e66592cd515f70dc326e907370ff2f0715bb763e3cc",
+       "L"
+      ],
+      [
+       "a5ccf3a614972c8aba8e9de4476e2fcae75646ed2dcae6566ed7b2818c744af7",
+       "R"
+      ]
+     ]
+    },
+    {
+     "leaf_index": 3,
+     "siblings": [
+      [
+       "649837ddcb7e1967086d7d35aaef7b975c513815d96fc6e70015e93a2bfe0f9a",
+       "L"
+      ],
+      [
+       "980cf4c37f098c84759e9e66592cd515f70dc326e907370ff2f0715bb763e3cc",
+       "L"
+      ],
+      [
+       "a5ccf3a614972c8aba8e9de4476e2fcae75646ed2dcae6566ed7b2818c744af7",
+       "R"
+      ]
+     ]
+    },
+    {
+     "leaf_index": 4,
+     "siblings": [
+      [
+       "fb1ec199d052a3ce6d141a28c2d706a51b99f09c2a8d61243062a046f06b68f1",
+       "R"
+      ],
+      [
+       "8d8caa4e84e79bba886c63224f1520a89fb3e9d6c2800f0615201a618ffc8237",
+       "R"
+      ],
+      [
+       "a1f8a519d07b6d53d24b4b4d3e61d60bbc52f3360ad15e0ec858c82b5a01ec95",
+       "L"
+      ]
+     ]
+    },
+    {
+     "leaf_index": 5,
+     "siblings": [
+      [
+       "697f943b9ec5f90eddda8ae7473f5eb688187e3467f312fefa8677dde255042c",
+       "L"
+      ],
+      [
+       "8d8caa4e84e79bba886c63224f1520a89fb3e9d6c2800f0615201a618ffc8237",
+       "R"
+      ],
+      [
+       "a1f8a519d07b6d53d24b4b4d3e61d60bbc52f3360ad15e0ec858c82b5a01ec95",
+       "L"
+      ]
+     ]
+    },
+    {
+     "leaf_index": 6,
+     "siblings": [
+      [
+       "3c9bcfc57bee1ac26ef0036b1fe72d119a78f09c42bff115d79fc8c212538581",
+       "R"
+      ],
+      [
+       "b33deb4671b032ed4359d0097ccaf72161eb46463ce1ed5fc058795fd47ab027",
+       "L"
+      ],
+      [
+       "a1f8a519d07b6d53d24b4b4d3e61d60bbc52f3360ad15e0ec858c82b5a01ec95",
+       "L"
+      ]
+     ]
+    },
+    {
+     "leaf_index": 7,
+     "siblings": [
+      [
+       "add4b896cb06bf0d24fd68948f1e9f7e0084b19f7b37f3fbc0f4b5d0d58ae277",
+       "L"
+      ],
+      [
+       "b33deb4671b032ed4359d0097ccaf72161eb46463ce1ed5fc058795fd47ab027",
+       "L"
+      ],
+      [
+       "a1f8a519d07b6d53d24b4b4d3e61d60bbc52f3360ad15e0ec858c82b5a01ec95",
+       "L"
+      ]
+     ]
+    }
+   ],
+   "root": "aaba5dcd52c46c81a743ccebecbaa9494ca0b13befaa4b7dbe603104c4e7dea0"
+  }
+ ]
+}

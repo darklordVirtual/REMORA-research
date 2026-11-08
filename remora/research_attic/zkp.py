@@ -60,4 +60,5 @@ def generate_assurance_certificate(
         betti_1=trace.betti_1,
         lyapunov_final_V=trace.lyapunov_final_V,
         total_oracles=trace.leaf_count,
+        signature_standard=trace.signature_standard,
     )

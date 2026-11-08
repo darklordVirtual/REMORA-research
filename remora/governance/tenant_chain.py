@@ -275,6 +275,45 @@ CREATE TABLE IF NOT EXISTS tenant_chain_idempotency (
 );
 """
 
+#: AACP-X-01: per-tenant head, written in the entry's transaction. Kept as
+#: separate statements so ``SQLiteTenantChain`` can create them and run the
+#: one-time migration inside a single ``BEGIN IMMEDIATE``.
+_SQLITE_HEAD_DDL = (
+    """CREATE TABLE IF NOT EXISTS tenant_chain_head (
+    tenant_id         TEXT    PRIMARY KEY,
+    head_hash         TEXT    NOT NULL,
+    head_sequence     INTEGER NOT NULL,
+    head_origin       TEXT    NOT NULL,
+    baseline_sequence INTEGER NOT NULL
+)""",
+    """CREATE TABLE IF NOT EXISTS tenant_chain_schema (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+)""",
+)
+
+#: The head has been written with every entry since the tenant's first one.
+HEAD_ORIGIN_APPEND = "append"
+#: The head was set at migration from history found in the file. Entries up to
+#: ``baseline_sequence`` were never head-tracked: truncation before the
+#: upgrade is not detectable from the database, and nothing about that
+#: history is verified by this baseline.
+HEAD_ORIGIN_LEGACY = "legacy_unanchored_baseline"
+_HEAD_ORIGINS = frozenset({HEAD_ORIGIN_APPEND, HEAD_ORIGIN_LEGACY})
+
+#: What a verification compared the chain against. A head stored in the same
+#: database is defeated by anyone who can rewrite the database; only an
+#: ``expected_head`` kept elsewhere makes truncation detectable against them.
+INTEGRITY_SCOPE_LOCAL = "LOCAL_DATABASE_CONSISTENCY"
+INTEGRITY_SCOPE_ANCHORED = "EXTERNALLY_ANCHORED"
+
+_HEAD_TRACKING_KEY = "head_tracking"
+_HEX64 = frozenset("0123456789abcdef")
+
+
+class ChainHeadInconsistent(RuntimeError):
+    """The stored head cannot be extended without hiding or forking history."""
+
 
 def compute_entry_hash_from_canonical(
     previous_hash: str,
@@ -437,13 +476,34 @@ def _verify_generic(
 class SQLiteTenantChain:
     """Durable single-node adapter: same hash contract, atomic via
     ``BEGIN IMMEDIATE`` (the write lock covers predecessor read + insert),
-    so concurrent appends serialise and can never fork. Survives restart."""
+    so concurrent appends serialise and can never fork. Survives restart.
+
+    Head (AACP-X-01). ``tenant_chain_head`` holds each tenant's newest
+    ``(sequence_no, entry_hash)``, written in the same transaction as the
+    entry, and :meth:`verify` compares it with the last entry, so deleting the
+    newest entries is reported as ``stored_head_mismatch``. A missing or
+    malformed head row is reported, and refuses further appends, rather than
+    being rebuilt from the entries.
+
+    Migration. The first open of a database written before head tracking
+    sets each existing tenant's head to its last entry, marked
+    ``HEAD_ORIGIN_LEGACY`` with that entry as ``baseline_sequence``. This
+    records the history as found; it is not a trusted head and does not
+    verify that history. It runs once (``tenant_chain_schema`` records it).
+
+    Limit. A head in the same file is local consistency only: whoever can
+    rewrite both tables can truncate undetected. Pass an ``expected_head``
+    held outside the database to :meth:`verify` for that;
+    :meth:`verify_report` states which was checked.
+    """
 
     def __init__(self, db_path: str, now_fn: Callable[[], datetime] | None = None) -> None:
         self._db_path = db_path
         self._now_fn = now_fn or (lambda: datetime.now(UTC))
         self._local = threading.local()
-        self._conn().executescript(_SQLITE_DDL)
+        conn = self._conn()
+        conn.executescript(_SQLITE_DDL)
+        self._migrate_head_tracking(conn)
 
     def _conn(self) -> sqlite3.Connection:
         conn = getattr(self._local, "conn", None)
@@ -451,6 +511,72 @@ class SQLiteTenantChain:
             conn = sqlite3.connect(self._db_path, timeout=30, isolation_level=None)
             self._local.conn = conn
         return conn
+
+    def _migrate_head_tracking(self, conn: sqlite3.Connection) -> None:
+        """Create the head tables and baseline pre-existing tenants, once.
+
+        A database that has migrated is recognised by a plain read, so an
+        ordinary open takes no write lock (RMR-SEC-0023: another connection
+        to the same file may hold one while this adapter is constructed).
+        """
+        try:
+            if conn.execute(
+                "SELECT 1 FROM tenant_chain_schema WHERE key = ?", (_HEAD_TRACKING_KEY,)
+            ).fetchone() is not None:
+                return
+        except sqlite3.OperationalError:
+            pass  # no schema table yet: migrate below
+        conn.execute("BEGIN IMMEDIATE")
+        try:
+            for statement in _SQLITE_HEAD_DDL:
+                conn.execute(statement)
+            done = conn.execute(
+                "SELECT value FROM tenant_chain_schema WHERE key = ?", (_HEAD_TRACKING_KEY,)
+            ).fetchone()
+            if done is None:
+                conn.execute(
+                    "INSERT OR IGNORE INTO tenant_chain_head "
+                    "(tenant_id, head_hash, head_sequence, head_origin, baseline_sequence) "
+                    "SELECT e.tenant_id, e.entry_hash, e.sequence_no, ?, e.sequence_no "
+                    "FROM tenant_chain_entry e WHERE e.sequence_no = "
+                    "(SELECT MAX(sequence_no) FROM tenant_chain_entry m "
+                    " WHERE m.tenant_id = e.tenant_id)",
+                    (HEAD_ORIGIN_LEGACY,),
+                )
+                conn.execute(
+                    "INSERT INTO tenant_chain_schema (key, value) VALUES (?, ?)",
+                    (_HEAD_TRACKING_KEY, self._now_fn().isoformat()),
+                )
+            conn.execute("COMMIT")
+        except BaseException:
+            conn.execute("ROLLBACK")
+            raise
+
+    @staticmethod
+    def _head_row(conn: sqlite3.Connection, tenant_id: str) -> tuple[str, Any]:
+        """``("none", None)``, ``("malformed", None)`` or ``("ok", row)``.
+
+        ``row`` is ``(head_sequence, head_hash, head_origin, baseline_sequence)``
+        and has been type-checked; nothing read here is trusted unchecked.
+        """
+        try:
+            row = conn.execute(
+                "SELECT head_sequence, head_hash, head_origin, baseline_sequence "
+                "FROM tenant_chain_head WHERE tenant_id = ?", (tenant_id,),
+            ).fetchone()
+        except sqlite3.DatabaseError:
+            return ("malformed", None)
+        if row is None:
+            return ("none", None)
+        seq, head_hash, origin, baseline = row
+        well_formed = (
+            type(seq) is int and seq >= 0
+            and isinstance(head_hash, str) and len(head_hash) == 64
+            and set(head_hash) <= _HEX64
+            and origin in _HEAD_ORIGINS
+            and type(baseline) is int and baseline >= -1
+        )
+        return ("ok", row) if well_formed else ("malformed", None)
 
     def append(self, tenant_id: str, payload: dict[str, Any]) -> ChainEntry:
         conn = self._conn()
@@ -507,14 +633,38 @@ class SQLiteTenantChain:
             in_v2 = True
         return self._insert(conn, tenant_id, lambda _prev, _seq: payload, key, v2=in_v2)
 
+    def _predecessor(self, conn: sqlite3.Connection, tenant_id: str) -> tuple[str, int]:
+        """``(previous_hash, sequence_no)`` for the next entry, from the head.
+
+        Like Postgres, the head row is the predecessor. After a truncation the
+        next entry links to the head, not to the surviving last entry, so the
+        gap stays visible in verify() instead of being covered by a new head.
+        """
+        status, head = self._head_row(conn, tenant_id)
+        last = conn.execute(
+            "SELECT sequence_no FROM tenant_chain_entry WHERE tenant_id = ? "
+            "ORDER BY sequence_no DESC LIMIT 1", (tenant_id,),
+        ).fetchone()
+        if status == "malformed":
+            raise ChainHeadInconsistent(
+                f"tenant_chain_head row for tenant {tenant_id!r} is malformed; "
+                "refusing to append")
+        if status == "none":
+            if last is not None:
+                raise ChainHeadInconsistent(
+                    f"tenant {tenant_id!r} has entries but no tenant_chain_head row; "
+                    "refusing to append rather than rebuild the head from entries")
+            return (_GENESIS, 0)
+        head_seq, head_hash = int(head[0]), str(head[1])
+        if last is not None and int(last[0]) > head_seq:
+            raise ChainHeadInconsistent(
+                f"tenant {tenant_id!r} has entries past its stored head "
+                f"({last[0]} > {head_seq}); refusing to append")
+        return (head_hash, head_seq + 1)
+
     def _insert(self, conn: sqlite3.Connection, tenant_id: str, payload_at: _PayloadAt,
                 key: bytes, *, v2: bool) -> ChainEntry:
-        row = conn.execute(
-            "SELECT entry_hash, sequence_no FROM tenant_chain_entry "
-            "WHERE tenant_id = ? ORDER BY sequence_no DESC LIMIT 1",
-            (tenant_id,),
-        ).fetchone()
-        previous_hash, sequence_no = (row[0], row[1] + 1) if row else (_GENESIS, 0)
+        previous_hash, sequence_no = self._predecessor(conn, tenant_id)
         payload = payload_at(previous_hash, sequence_no)
         timestamp = self._now_fn().isoformat()
         entry_hash = compute_entry_hash(
@@ -525,6 +675,14 @@ class SQLiteTenantChain:
             "INSERT INTO tenant_chain_entry VALUES (?,?,?,?,?,?,?)",
             (tenant_id, sequence_no, timestamp, _canonical(payload),
              previous_hash, entry_hash, signature),
+        )
+        # Same transaction as the entry: both commit or neither does.
+        conn.execute(
+            "INSERT INTO tenant_chain_head "
+            "(tenant_id, head_hash, head_sequence, head_origin, baseline_sequence) "
+            "VALUES (?, ?, ?, ?, -1) ON CONFLICT (tenant_id) DO UPDATE SET "
+            "head_hash = excluded.head_hash, head_sequence = excluded.head_sequence",
+            (tenant_id, entry_hash, sequence_no, HEAD_ORIGIN_APPEND),
         )
         return ChainEntry(tenant_id, sequence_no, timestamp, payload,
                           previous_hash, entry_hash, signature)
@@ -540,10 +698,56 @@ class SQLiteTenantChain:
             for r in rows
         )
 
+    def stored_head(self, tenant_id: str) -> tuple[int, str] | None:
+        """The per-tenant head row, or None when it is absent or malformed.
+
+        ``verify`` reports which of the two it was; this accessor only
+        returns a head that passed its type checks.
+        """
+        status, head = self._head_row(self._conn(), tenant_id)
+        return (int(head[0]), str(head[1])) if status == "ok" else None
+
     def verify(
         self, tenant_id: str, expected_head: tuple[int, str] | None = None
     ) -> tuple[bool, list[str]]:
-        return _verify_generic(self, tenant_id, expected_head)
+        report = self.verify_report(tenant_id, expected_head)
+        return (report["ok"], report["problems"])
+
+    def verify_report(
+        self, tenant_id: str, expected_head: tuple[int, str] | None = None
+    ) -> dict[str, Any]:
+        """``verify`` plus what it was checked against.
+
+        ``integrity_scope`` is ``INTEGRITY_SCOPE_ANCHORED`` only when an
+        ``expected_head`` from outside the database was compared, else
+        ``INTEGRITY_SCOPE_LOCAL``. ``head_origin`` and ``baseline_sequence``
+        say whether the head has tracked every entry or was baselined at
+        migration. Reads run in one transaction so a concurrent append cannot
+        appear as a head mismatch.
+        """
+        conn = self._conn()
+        conn.execute("BEGIN")
+        try:
+            status, head = self._head_row(conn, tenant_id)
+            _ok, problems = _verify_generic(self, tenant_id, expected_head)
+            head_problems: list[str] = []
+            if status == "malformed":
+                head_problems.append("stored_head_malformed")
+            elif status == "none" and conn.execute(
+                "SELECT 1 FROM tenant_chain_entry WHERE tenant_id = ? LIMIT 1", (tenant_id,),
+            ).fetchone() is not None:
+                head_problems.append("stored_head_missing")
+        finally:
+            conn.execute("COMMIT")
+        problems = head_problems + problems
+        return {
+            "ok": not problems,
+            "problems": problems,
+            "integrity_scope": (INTEGRITY_SCOPE_ANCHORED if expected_head is not None
+                                else INTEGRITY_SCOPE_LOCAL),
+            "head_origin": head[2] if status == "ok" else None,
+            "baseline_sequence": int(head[3]) if status == "ok" else None,
+        }
 
 
 class PostgresTenantChain:

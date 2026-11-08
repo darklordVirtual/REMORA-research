@@ -3,7 +3,7 @@
 # Gate definitions: P0 (critical) → P1 (empirical) → P2 (external) → P3 (reproducibility) → P4 (hardening/roadmap)
 
 schema_version: "1"
-last_updated: "2026-10-28T12:00Z"
+last_updated: "2026-11-08T12:00Z"
 
 items:
   - id: REM-001
@@ -1882,3 +1882,87 @@ items:
       fake-connection cases in tests/test_sec0023_audit_outbox_sqlite_drain.py
       pin the catalog check; the postgres-contract CI job runs the outbox
       suites on a real server.
+
+  - id: REM-067
+    section: "aacp-controls-2026-11"
+    title: "AACP-X-04: JSONL audit log failed verify() after every reload"
+    gate: P1
+    status: DONE
+    completed: "2026-11-08"
+    artifacts:
+      - remora/adapters/audit/jsonl.py
+      - tests/security/test_aacp_x04_jsonl_reload.py
+      - tests/security/fixtures/jsonl_audit_06c2f8f.jsonl
+      - docs/design/aacp-audit-integrity-remediation-sdd-v1.md
+    notes: >
+      AACP control run against dev 06c2f8f (agent-authority-conformance PR
+      #28, AUTHOR_RUN): append() hashed metadata with oracle_count, verdict
+      and policy_version merged in but wrote the caller's metadata, and the
+      reload rebuilt entries from the written metadata, so every reloaded
+      log failed verify(), untouched or not. The reload now applies the same
+      hashed_metadata() rule; the on-disk format is unchanged and a fixture
+      written by the 06c2f8f code verifies. Unreadable or incomplete records
+      are listed in load_problems, never verify and refuse further appends;
+      the first record must be a genesis record. Tail truncation is detected
+      only with an expected_head kept elsewhere (SDD R3). Until this fix a
+      failed JSONL verification was not evidence of tampering.
+
+  - id: REM-068
+    section: "aacp-controls-2026-11"
+    title: "AACP-X-01: SQLite tenant chain did not detect tail truncation"
+    gate: P1
+    status: DONE
+    completed: "2026-11-08"
+    artifacts:
+      - remora/governance/tenant_chain.py
+      - tests/security/test_aacp_x01_sqlite_chain_head.py
+      - tests/test_governance_review_round2.py
+      - docs/design/aacp-audit-integrity-remediation-sdd-v1.md
+    notes: >
+      SQLiteTenantChain kept no head record, so deleting its newest entries
+      left a prefix that verified. It now keeps tenant_chain_head as Postgres
+      does, written in the entry's BEGIN IMMEDIATE transaction; verify()
+      reports stored_head_mismatch, stored_head_missing and
+      stored_head_malformed, and appends after a truncation link to the
+      stored head so the gap stays visible. A pre-fix database is migrated
+      once, its heads marked legacy_unanchored_baseline (history recorded as
+      found, not verified). verify_report() states whether an external
+      expected_head was compared. A head in the same file does not resist an
+      attacker who rewrites both tables (SDD R1, R2).
+      tests/test_governance_review_round2.py asserted the defect as a known
+      limit and now asserts its detection.
+
+  - id: REM-069
+    section: "aacp-controls-2026-11"
+    title: "AACP-X-02: assurance Merkle tree ambiguous (odd-node duplication, no domain separation)"
+    gate: P2
+    status: DONE
+    completed: "2026-11-08"
+    artifacts:
+      - remora/assurance/merkle.py
+      - remora/assurance/trace.py
+      - remora/research_attic/zkp.py
+      - tests/security/test_aacp_x02_assurance_merkle_v2.py
+      - tests/security/fixtures/assurance_merkle_v1_06c2f8f.json
+      - tests/test_assurance_merkle.py
+      - results/end_to_end_n500_v2.json
+      - experiments/end_to_end_n500_v2.py
+      - tests/test_aacp_x02_n500_artifact_contract.py
+      - docs/design/aacp-audit-integrity-remediation-sdd-v1.md
+    notes: >
+      remora/assurance/merkle.py gave [a,b,c] and [a,b,c,c] one root and let
+      an internal node verify as a leaf. v2 (default) hashes leaves as
+      SHA-256(0x00||leaf) and nodes as SHA-256(0x01||L||R) over raw digests,
+      promotes an odd node, and binds a proof to (leaf_index, leaf_count).
+      Traces are REMORA-Assurance-Trace-v2; v1 traces verify only when v1 is
+      named (fixture from the 06c2f8f code), and an unknown version or
+      standard is rejected. v1 remains ambiguous by construction (SDD R5).
+      remora/audit/merkle.py was already correct by default and is unchanged.
+      results/end_to_end_n500_v2.json (regenerable) was regenerated: its
+      544 assurance_root values change from v1 to v2; the artifact adds
+      a top-level assurance_trace_standard and 544 per-item leaf_count values
+      sourced from runtime traces. Historical roots are retrievable from Git
+      history and referenced by blob hash in frozen provenance snapshots.
+      The attestation workflow gains a Sigstore provenance job for the test
+      attestation (AACP observation, not a finding); that is the producer's
+      signature, not independent review.

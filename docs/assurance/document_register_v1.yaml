@@ -3526,7 +3526,21 @@ documents:
   - researchers
   - evaluators
   last_reviewed: '2026-11-06'
+- id: DOC-430
+  path: docs/design/aacp-audit-integrity-remediation-sdd-v1.md
+  status: proposal
+  topic: docs_design_aacp-audit-integrity-remediation-sdd-v1_md
+  code_synced: unreviewed
+  verdict: pending
+  owner: darklordVirtual
+  audience:
+  - maintainers
+  - evaluators
+  last_reviewed: null
+  validates_against: []
+  claims: []
 topics:
+- docs_design_aacp-audit-integrity-remediation-sdd-v1_md
 - docs_assurance_ot_limits_holdout_plan_v4_md
 - docs_assurance_ot_limits_holdout_plan_v3_md
 - docs_assurance_ot_limits_holdout_plan_v2_md

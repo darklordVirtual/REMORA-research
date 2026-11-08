@@ -414,12 +414,18 @@ claims:
       consensus log (each entry canonicalised to JSON with sorted keys and
       rounded floats). Inclusion proofs are generated for every leaf and
       verified via a stdlib-only verify_inclusion function. Any tampered entry
-      breaks the root hash. The construction is standard Bitcoin-style Merkle
-      tree with duplicate-last padding for odd levels. This is a tamper-evident
-      audit log, NOT a zero-knowledge proof.
+      breaks the root hash. Since 2026-11-08 (AACP-X-02, REM-069) new traces
+      are REMORA-Assurance-Trace-v2: leaves SHA-256(0x00||leaf), nodes
+      SHA-256(0x01||L||R), odd node promoted, proofs bound to leaf index and
+      count. Until then the construction was Bitcoin-style with duplicate-last
+      padding and no leaf/node domain separation, which AACP showed to be
+      ambiguous ([a,b,c] and [a,b,c,c] share a root); v1 traces still verify
+      under v1 and keep that ambiguity. This is a tamper-evident audit log,
+      NOT a zero-knowledge proof.
     artifact: remora/assurance/merkle.py
-    test: tests/test_assurance_merkle.py, tests/test_assurance_trace.py
+    test: tests/test_assurance_merkle.py, tests/test_assurance_trace.py, tests/security/test_aacp_x02_assurance_merkle_v2.py
     date: 2026-05-24
+    revised: 2026-11-08
 
   # ── Priority 6: CounterfactualInvarianceTest ──────────────────────────────
 
