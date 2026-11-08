@@ -15099,9 +15099,9 @@
     },
     "results/end_to_end_n500_v2.json": {
       "concepts": [],
-      "git_blob": "96cef59277d53cbbaca4d65b6634454985077ef5",
+      "git_blob": "fd86211b30880418d699fdfcd7fe6936e170c8af",
       "mode": "100644",
-      "sha256": "3eb89d23bc679238738bcfa36d7291b0e80e93a4cc9a4b4f0bec067250bad939"
+      "sha256": "a5ac2304deac0ef32fd1d2359c217a390ae50bd2e2db3def96da4ed971427c62"
     },
     "results/end_to_end_n500_v3.json": {
       "concepts": [],
@@ -23755,7 +23755,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "4f1fd1f878b346685c60bd4028c4224b8b50c44c921e133e46ec5ab03d627da2",
+  "register_sha256": "59529eb5fee06460bc38b98096c3f14119dcc3bcad820dc7ab9d1c8178be38ff",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
