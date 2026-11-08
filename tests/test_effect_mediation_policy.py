@@ -260,6 +260,8 @@ def test_an_executor_holding_the_effect_credential_refuses(executor, monkeypatch
     env, _ = executor
     monkeypatch.delenv("REMORA_EFFECT_ENDPOINT")
     monkeypatch.setenv(env["REMORA_EFFECT_CREDENTIAL_ENV_NAMES"], "demo-credential")
+    # Custody rule 4 is satisfied, so the refusal is mandatory mediation's.
+    monkeypatch.setenv("REMORA_EXECUTION_ISOLATION", "same_user")
     with pytest.raises(RuntimeProfileError, match="REMORA_EFFECT_ENDPOINT"):
         _validate()
 

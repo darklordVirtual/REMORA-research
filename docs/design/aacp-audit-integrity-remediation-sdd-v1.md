@@ -394,6 +394,46 @@ the ws7 plan tests were updated: the first now expect a refusal while the old
 code is loaded and a moved digest after a reload, the second mint as `/assess`
 does.
 
-E-01 (single-process deployment) is not changed: REMORA claims custody only
-for the process split, which the binding does not exercise.
+E-01 (single-process deployment) is not changed by this section: REMORA
+claims custody only for the process split. Section 10 covers the split.
+
+## 10. E: two processes of one OS user are not a custody split
+
+An assessor harness for SPECIFICATION §12.2 (AACP
+`reports/remora-eed92c8/assessor/e_split_bypass.py`) ran REMORA's split as
+three processes of one OS user. The executor held the effect credential and
+the agent process held the signing key, which is what custody rules 1 to 3
+ask for. The agent read the executor's launch environment with `ps eww`
+(macOS; `/proc/<pid>/environ` on Linux), took the credential and wrote to
+the protected effect without a lease. Custody accepted the configuration.
+
+- I1. Custody rule 4 (`remora/enforcement/custody.py`): under a strict
+  profile the process holding the effect credentials must set
+  `REMORA_EXECUTION_ISOLATION`:
+  - `os_user` is checked: `REMORA_AGENT_OS_UIDS` names the uid(s) of
+    agent-controlled code, and the holder must run as none of them and not
+    as root;
+  - `container` and `host` are declared, not observable from inside the
+    process, like the role;
+  - `same_user` makes no custody claim. Only `review` accepts it, for local
+    evaluation; `controlled_pilot` refuses it.
+- I2. `remora init-review` writes `same_user` into `effect.env`, because its
+  three processes run as one user, and says how to move off it.
+- I3. The authority role needs no declaration. It holds no effect credential.
+
+What the guard cannot observe:
+- whether `REMORA_AGENT_OS_UIDS` names the uid the agent actually runs as;
+- whether a declared container or host is real;
+- anything outside the process, such as a shared volume, the network or a
+  debugger running as root.
+
+Acceptance: `tests/conformance/test_custody_guard.py` K20 to K27. Rerun of
+the harness at this revision:
+- refused at startup: no declaration, `same_user` under `controlled_pilot`,
+  and `os_user` naming its own uid;
+- accepted, with the bypass still succeeding and recorded: `same_user` under
+  `review`;
+- every attempt failed and only the leased effect happened: executor and
+  agent as separate uids in a container, under `controlled_pilot` with
+  `os_user`.
 

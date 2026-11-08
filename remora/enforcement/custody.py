@@ -26,6 +26,21 @@ Three rules, applied only under the strict runtime profiles
 3. An **executor** process must hold no lease signing material, and must
    hold the effect credentials it dispatches with. A process that can sign
    its own authorization is not verifying anything.
+4. The process that holds the effect credentials (the executor, or the
+   effect domain when there is one) must declare how it is isolated from
+   agent-controlled code in ``REMORA_EXECUTION_ISOLATION`` (AACP-E-01,
+   RMR-SEC-0024). Two processes of the same OS user are not a custody split:
+   on macOS ``ps eww`` and on Linux ``/proc/<pid>/environ`` hand the
+   executor's launch environment, credential included, to any process of
+   that user. Values:
+
+   - ``os_user``: checked. ``REMORA_AGENT_OS_UIDS`` names the uid(s)
+     agent-controlled code runs as, and this process must run as none of
+     them, and not as root, which every uid can be asked to trust.
+   - ``container`` / ``host``: a separate container or host. Declared, not
+     observable from inside the process, like the role itself.
+   - ``same_user``: no custody claim. Accepted only under ``review``, for
+     local evaluation; ``controlled_pilot`` refuses it.
 
 The deployment declares which environment variables are effect credentials
 via ``REMORA_EFFECT_CREDENTIAL_ENV_NAMES``. Under a strict profile the
@@ -52,7 +67,9 @@ from remora.profiles import STRICT_PROFILES, current_runtime_profile
 __all__ = [
     "DOMAIN_AUTHORITY",
     "DOMAIN_EXECUTOR",
+    "ENV_AGENT_UIDS",
     "ENV_DOMAIN_ROLE",
+    "ENV_ISOLATION",
     "ENV_EFFECT_CREDENTIALS",
     "CustodyViolation",
     "assert_custody_split",
@@ -66,6 +83,11 @@ __all__ = [
 ]
 
 ENV_DOMAIN_ROLE = "REMORA_EXECUTION_DOMAIN_ROLE"
+ENV_ISOLATION = "REMORA_EXECUTION_ISOLATION"
+ENV_AGENT_UIDS = "REMORA_AGENT_OS_UIDS"
+ISOLATION_OS_USER = "os_user"
+ISOLATION_SAME_USER = "same_user"
+_ISOLATIONS = (ISOLATION_OS_USER, "container", "host", ISOLATION_SAME_USER)
 ENV_EFFECT_CREDENTIALS = "REMORA_EFFECT_CREDENTIAL_ENV_NAMES"
 #: Set on the executor when a separate effect domain holds the effect
 #: credentials (NTA-2 phase 3). Its presence is what turns the two-domain split
@@ -150,6 +172,46 @@ def domain_role(*, strict: bool | None = None) -> str:
     return DOMAIN_AUTHORITY
 
 
+def _isolation_problems() -> list[str]:
+    """Rule 4: the credential holder's isolation from agent code."""
+    value = os.environ.get(ENV_ISOLATION, "").strip().lower()
+    if value not in _ISOLATIONS:
+        return [
+            f"the process holding the effect credentials must set {ENV_ISOLATION} "
+            f"to one of {', '.join(map(repr, _ISOLATIONS))}"
+            + (f", not {value!r}" if value else "")
+            + "; another process of the same OS user reads its launch "
+            "environment, credential included"
+        ]
+    if value == ISOLATION_SAME_USER:
+        if current_runtime_profile() != "review":
+            return [
+                f"{ENV_ISOLATION}={ISOLATION_SAME_USER!r} makes no custody claim "
+                "and is accepted only under the review profile"
+            ]
+        return []
+    if value != ISOLATION_OS_USER:
+        return []
+    raw = os.environ.get(ENV_AGENT_UIDS, "")
+    try:
+        agent_uids = {int(part) for part in raw.split(",") if part.strip()}
+    except ValueError:
+        return [f"{ENV_AGENT_UIDS}={raw!r} is not a comma-separated list of uids"]
+    if not agent_uids:
+        return [f"{ENV_ISOLATION}={ISOLATION_OS_USER!r} requires {ENV_AGENT_UIDS}"]
+    getuid = getattr(os, "getuid", None)
+    if getuid is None:
+        return [f"{ENV_ISOLATION}={ISOLATION_OS_USER!r} cannot be checked on this platform"]
+    uid = getuid()
+    if uid == 0:
+        return ["the process holding the effect credentials runs as root, "
+                "so no OS-user separation from agent code is checked"]
+    if uid in agent_uids:
+        return [f"the process holding the effect credentials runs as uid {uid}, "
+                f"which {ENV_AGENT_UIDS} names as an agent uid"]
+    return []
+
+
 def assert_custody_split(*, strict: bool | None = None) -> str:
     """Refuse to proceed unless this process holds only its own secrets.
 
@@ -214,6 +276,7 @@ def assert_custody_split(*, strict: bool | None = None) -> str:
                     + "; it cannot be the only holder of a credential it does "
                     "not have"
                 )
+            problems.extend(_isolation_problems())
 
     if problems:
         raise CustodyViolation(

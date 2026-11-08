@@ -153,6 +153,7 @@ metadata unless these trust prerequisites are present:
 | `REMORA_PDP_SIGNING_KEY` | Signs the short-lived PDP → PEP grant | **required** |
 | `REMORA_ENVELOPE_SIGNING_KEY` | Signs each envelope's audit hash; without it every audit record is written with `signature: null` and the chain is tamper-evident in name only | **required** |
 | `REMORA_EXECUTION_DOMAIN_ROLE` | `authority` or `executor`: which half of the custody split this process is (property E). An unset role is refused, because one process being both halves is what the split removes | **required** |
+| `REMORA_EXECUTION_ISOLATION` | How the process holding the effect credentials is isolated from agent code: `os_user` (checked against `REMORA_AGENT_OS_UIDS`, the agent's uid list; not root), `container` or `host` (declared), or `same_user` (no custody claim; `review` only). Another process of the same OS user reads this process's environment, credential included ([SDD §10](../design/aacp-audit-integrity-remediation-sdd-v1.md)) | **required** on the credential holder |
 | `REMORA_EFFECT_CREDENTIAL_ENV_NAMES` | Comma-separated names of the environment variables that hold downstream effect credentials. The authority domain must not hold them; the executor must. Empty is refused as vacuous | **required** |
 | `REMORA_SEMANTIC_BUNDLE_MODULE` | Module exposing `resolve_intent` (or `resolve_intent_detailed`). Strict profiles require a resolver (property D): without one every call would hard-abstain, so startup refuses instead | **required** |
 
