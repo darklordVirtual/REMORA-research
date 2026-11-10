@@ -199,11 +199,12 @@ def run() -> dict[str, Any]:
                     arm["utility"] += int(utility)
                     arm["calls"] += len(log)
                     arm["blocked"] += sum(1 for c in log if not c["execute"])
+                report["benign"]["tasks"].append({
+                    "arm": defence.name, "suite": suite_name, "user_task": tid,
+                    "utility": bool(utility), "calls": len(log),
+                    "blocked": sum(1 for c in log if not c["execute"]),
+                    "relaxed_calls": sum(1 for d in details if d.get("relaxed_fields"))})
                 if defence.name == ARM:
-                    report["benign"]["tasks"].append({
-                        "suite": suite_name, "user_task": tid, "utility": bool(utility),
-                        "calls": len(log), "blocked": sum(1 for c in log if not c["execute"]),
-                        "relaxed_calls": sum(1 for d in details if d.get("relaxed_fields"))})
                     report["benign"]["blocked_calls"].extend(
                         {"suite": suite_name, "user_task": tid, "function": c["function"],
                          "reason": c["reason"], "untrusted_fields": d.get("untrusted_fields"),
@@ -284,9 +285,31 @@ def run() -> dict[str, Any]:
                                         for s, arms in report[section]["per_suite"].items()}
     report["benign"]["block_reasons"] = dict(Counter(
         c["reason"] for c in report["benign"]["blocked_calls"]))
+    report["benign"]["post_hoc"] = post_hoc_completion(report["benign"]["tasks"])
     report["g1_reproduction"] = g1_reproduction(report)
     report["g1prime"] = gate(report)
     return report
+
+
+POST_HOC_NOTE = (
+    "Added after the first G1′ run and outside the gate. AgentDojo's utility check passed "
+    "some tasks in which a ground-truth call was blocked, because the scripted agent returns "
+    "the ground-truth answer whatever ran. This table counts, per arm, the tasks that passed "
+    "the utility check with no call blocked. The first run's gate numbers are unchanged.")
+
+
+def post_hoc_completion(tasks: Sequence[dict[str, Any]]) -> dict[str, Any]:
+    """Per arm: tasks that passed, and tasks that passed with every proposed call executed."""
+    arms: dict[str, dict[str, int]] = {}
+    for row in tasks:
+        arm = arms.setdefault(row["arm"], {"tasks": 0, "utility": 0,
+                                           "utility_with_no_call_blocked": 0,
+                                           "utility_with_a_call_blocked": 0})
+        arm["tasks"] += 1
+        arm["utility"] += int(row["utility"])
+        arm["utility_with_no_call_blocked"] += int(row["utility"] and row["blocked"] == 0)
+        arm["utility_with_a_call_blocked"] += int(row["utility"] and row["blocked"] > 0)
+    return {"note": POST_HOC_NOTE, "arms": arms}
 
 
 def g1_reproduction(report: dict[str, Any]) -> dict[str, Any]:
