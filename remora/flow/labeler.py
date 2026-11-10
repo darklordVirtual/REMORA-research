@@ -221,9 +221,11 @@ class FlowLabeler:
                         readers |= metadata_readers(name, path)
                 elif r.kind == "resource_acl":
                     resource = resolved_args.get(r.values[0])
-                    readers = (canonical(self._resource_acl(resource))
-                               if self._resource_acl is not None and isinstance(resource, str)
-                               else set())
+                    listed = (self._resource_acl(resource)
+                              if self._resource_acl is not None and isinstance(resource, str)
+                              else ())
+                    # A resolver may answer PUBLIC for a world-readable resource.
+                    readers = PUBLIC if listed is PUBLIC else canonical(listed)
                 elif r.kind == "inherit_args":
                     readers = (args_label.readers if arg_labels else {ctx.user_principal})
                 if readers is not PUBLIC:

@@ -310,7 +310,8 @@ def test_labels_raised_by_the_route_cost_all_four_controls(evaluation):
 def test_adding_the_arm_changed_no_row_of_another_arm(evaluation):
     ev, committed, fresh = evaluation
     assert sum(r["arm"] == ev.RESULT_LABELS_ARM for r in committed["rows"]) == 14
-    assert len(committed["rows"]) == 212
+    assert sum(r["arm"] == ev.RESOURCE_ACL_ARM for r in committed["rows"]) == 14
+    assert len(committed["rows"]) == 226
     assert _rows(committed) == _rows(fresh)
 
 
@@ -321,7 +322,7 @@ def test_counterfactual_a_read_declared_public_lets_the_secret_out(evaluation, m
     ev, _committed, _fresh = evaluation
     from remora.flow.spec import parse_flow
 
-    def public(result_labels=False):
+    def public(result_labels=False, resource_acl=False):
         specs = ev._sink_flow_specs()
         if result_labels:
             specs["read_record"] = parse_flow({
@@ -341,6 +342,65 @@ def test_counterfactual_a_read_declared_public_lets_the_secret_out(evaluation, m
         world = ev.World(tmp_path)
         try:
             measured = case.run(world, ev.RESULT_LABELS_ARM)
+        finally:
+            world.close()
+    assert measured["tool_body_ran"] and measured["secret_reached_sink"]
+
+
+# ── a resource ACL registry on the route (added 2026-11-10) ────────────────
+
+@pytest.mark.parametrize("cls", ["read_exfiltration", "composed_exfiltration"])
+def test_with_a_resource_acl_registry_every_exfiltration_is_still_refused(evaluation, cls):
+    ev, committed, _fresh = evaluation
+    cell = committed["summary"][cls][ev.RESOURCE_ACL_ARM]
+    assert cell["attacks_n"] == 5
+    assert cell["attacks_executed"] == 0 and cell["attacks_secret_reached_sink"] == 0
+
+
+def test_with_a_resource_acl_registry_three_of_four_controls_run(evaluation):
+    """The route now tells a public record from a secret one. The public write
+    and the fetch after a public read run; under static readers none did, and
+    under the harness's own labels the public write was refused for want of a
+    registry. The control still refused is a fetch after the secret was read,
+    which a context-level label refuses by design."""
+    ev, committed, _fresh = evaluation
+    rows = _rows(committed)
+    ran = {cid for (cid, arm), r in rows.items()
+           if arm == ev.RESOURCE_ACL_ARM and r["control"] and r["tool_body_ran"]}
+    refused = {cid for (cid, arm), r in rows.items()
+               if arm == ev.RESOURCE_ACL_ARM and r["control"] and not r["tool_body_ran"]}
+    assert ran == {"read_exfiltration/control_public_fetch_after_public_read",
+                   "composed_exfiltration/control_public_read_then_email_colleague",
+                   "composed_exfiltration/control_public_read_then_write"}
+    assert refused == {"read_exfiltration/control_public_fetch_after_secret_read"}
+    controls = lambda arm: sum(committed["summary"][c][arm]["controls_executed"]  # noqa: E731
+                               for c in ("read_exfiltration", "composed_exfiltration"))
+    assert (controls("remora_flow_enforced"), controls(ev.RESULT_LABELS_ARM),
+            controls(ev.RESOURCE_ACL_ARM)) == (2, 0, 3)
+
+
+def test_the_secret_written_to_a_world_readable_record_is_refused_by_the_registry(evaluation):
+    ev, committed, _fresh = evaluation
+    row = _rows(committed)[("composed_exfiltration/secret_written_to_shared_record",
+                            ev.RESOURCE_ACL_ARM)]
+    assert (row["outcome"], row["reason"]) == ("refused", "approval_invalidated")
+    assert not row["tool_body_ran"] and not row["secret_reached_sink"]
+
+
+def test_counterfactual_a_registry_that_calls_the_secret_public_lets_it_out(
+        evaluation, monkeypatch, tmp_path):
+    """The registry is the deployment's statement, and the decision rests on it."""
+    ev, _committed, _fresh = evaluation
+    from remora.flow.label import PUBLIC
+
+    monkeypatch.setattr(ev, "registry_acl", lambda tenant, resource: PUBLIC)
+    case = next(c for c in ev.catalogue()
+                if (c.attack_class, c.variant) == ("composed_exfiltration",
+                                                   "secret_emailed_outside"))
+    with ev._quiet():
+        world = ev.World(tmp_path)
+        try:
+            measured = case.run(world, ev.RESOURCE_ACL_ARM)
         finally:
             world.close()
     assert measured["tool_body_ran"] and measured["secret_reached_sink"]

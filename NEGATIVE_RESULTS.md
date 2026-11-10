@@ -5499,6 +5499,39 @@ grants (IFC-08), signed flow blocks with MEDIATED effects, and egress
 (IFC-12). Without the first, flow control on this path refuses the secret
 and the public record alike.
 
+**A resource ACL registry on the route, 2026-11-10.** The first item is
+built. A deployment names a registry in `REMORA_FLOW_RESOURCE_ACL_MODULE`.
+`/v1/execution` passes it to the flow check at assess and at dispatch, to
+the approved recipients and to the result labeller. A registry may
+answer PUBLIC for a resource anyone may read. The arm
+`remora_flow_resource_acl` is the route-labels arm with the read's readers
+and the write's recipients taken from the registry:
+
+| Arm | Attacks run | Controls run |
+|---|---|---|
+| `remora_flow_enforced` (harness labels, no registry) | 0/10 | 2/4 |
+| `remora_flow_result_labels` (route labels, static readers) | 0/10 | 0/4 |
+| `remora_flow_resource_acl` (route labels, registry) | 0/10 | 3/4 |
+
+All 10 attacks are still refused and no secret reached a sink, the write
+of the secret to a world-readable record among them. Three controls run:
+the fetch after a public read, the email after a public read, and the
+public write that no earlier arm could run. The control still refused is a
+public fetch after the secret was read. A context-level label refuses that
+by design; lifting it needs per-value labels or a declassification grant.
+A counterfactual in the tests has the registry call the secret record
+public, and the secret is then emailed out. The decision rests on the
+registry, which is the deployment's own statement about its resources.
+REMORA does not check it against the system that holds them.
+
+Limits. The registry here is the harness's, three lines over two records.
+No shipped deployment sets one, and flow control is off by default. An
+unknown resource whose registry answer is an empty list has no recipients,
+and the check then finds no one the data may not reach. A registry must
+therefore answer for every resource it is asked about. Source metadata from the tool
+is still not passed. The finding stays open on IFC-08, signed flow blocks
+and egress.
+
 **The advisory library, after the PRF-040 fix.** `assess_tool_call`
 without a registry caps caller labels at VERIFY. R2's `xfer` call
 labelled low/read no longer reaches ACCEPT, and neither do the two benign

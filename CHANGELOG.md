@@ -4,6 +4,13 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Flow control: a resource ACL registry on the execution route (2026-11-10)
+
+- `REMORA_FLOW_RESOURCE_ACL_MODULE` names a module whose `resource_acl(tenant, resource)` returns the principals that may read a resource, or `remora.flow.label.PUBLIC`. `/v1/execution` passes it to the flow check at assess and dispatch, to the approved recipients and to the result labeller. Unset, nothing changes. Flow control itself is still opt-in.
+- `remora/flow/check.py`: a resource whose ACL is PUBLIC has the recipient `PUBLIC_RECIPIENT`, which only PUBLIC data flows to. `remora/flow/labeler.py`: a read of such a resource is labelled PUBLIC.
+- Measured in `scripts/execution_chain_attack_eval.py`, arm `remora_flow_resource_acl`: 10 of 10 exfiltration attacks refused and 3 of 4 benign controls run, against 0 of 4 with static readers and 2 of 4 with harness labels (NEGATIVE_RESULTS §87). The registry is the harness's; no shipped deployment sets one.
+- Tests: `tests/flow/test_flow_resource_acl_route.py`, `tests/flow/test_flow_check.py`, `tests/flow/test_labeler_handles.py`, `tests/test_execution_chain_attack_eval.py`.
+
 ### Pre-Federation red team: the 36-of-46 count reproduced and listed (2026-11-10)
 
 - NEGATIVE_RESULTS §76 had no artifact for its count. `scripts/reproduce_pre_federation_redteam.py` runs draft PR #744's probes on a worktree of `9a3d321` (36 red, 10 green of 46, as stated), the same probe bytes against today's code (8 red, none a regression) and the repository's probes (54, all pass). Result: `artifacts/assurance/pre-federation-redteam-2026-11-10/`.

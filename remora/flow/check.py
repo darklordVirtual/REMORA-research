@@ -44,10 +44,16 @@ from typing import Any, Final
 from urllib.parse import urlsplit
 
 from remora.capabilities.resource import ResourceRefused, canonical_resource
-from remora.flow.label import Integrity, Label, canonical_bytes, flows_to, join_all
+from remora.flow.label import PUBLIC, Integrity, Label, canonical_bytes, flows_to, join_all
 from remora.flow.spec import FlowSpec
 
-__all__ = ["FlowVerdict", "flow_check", "recipients"]
+__all__ = ["PUBLIC_RECIPIENT", "FlowVerdict", "flow_check", "recipients"]
+
+#: The recipient of a call whose target a resource ACL resolver reports as
+#: world-readable (it answers :data:`remora.flow.label.PUBLIC`). It is not a
+#: canonical resource, so :func:`remora.flow.label.flows_to` admits only
+#: PUBLIC data to it: no reader set, however written, contains it.
+PUBLIC_RECIPIENT: Final = "public://*"
 
 _IBAN: Final = re.compile(r"[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}")
 _DIGEST_DOMAIN: Final = b"REMORA/FLOW-VERDICT/v1\x00"
@@ -137,7 +143,10 @@ def recipients(flow: FlowSpec, resolved_args: Mapping[str, Any], *,
         def acl(value: Any) -> list[str]:
             if resource_acl is None:
                 raise ResourceRefused("no resource ACL resolver")
-            return [canonical_resource(p) for p in resource_acl(canonical_resource(value))]
+            readers = resource_acl(canonical_resource(value))
+            if readers is PUBLIC:
+                return [PUBLIC_RECIPIENT]
+            return [canonical_resource(p) for p in readers]
         add(str(rule.argument), acl)
     elif rule.kind == "static":
         found.update(rule.static)

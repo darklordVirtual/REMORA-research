@@ -748,3 +748,21 @@ def test_a_container_handle_carries_its_own_label_too():
         (h,) = _label(raw=raw, flow=_flow({"path": "$", **narrow},
                                           {"path": child, **public})).handles
         assert h.label == Label({USER}, Integrity.UNTRUSTED)
+
+
+def test_a_read_of_a_world_readable_resource_is_labelled_public():
+    """resource ACL registry, 2026-11-10: the ACL may answer PUBLIC, and the
+    result is then PUBLIC; an ACL with no reader still gives no readers."""
+    from remora.flow.label import PUBLIC
+
+    flow = parse_flow({"provider": "tcb", "arguments": {"path": {"kind": "resource"}},
+                       "sources": {"fields": [{"path": "$", "readers": {"resource_acl": "path"},
+                                               "return_mode": "BY_HANDLE"}]},
+                       "sink": {"recipients": "none"}})
+    labeler = FlowLabeler(resource_acl=lambda r: PUBLIC if r == "res://records/pub-1" else [])
+    (public,) = labeler.label_result(flow, CTX, resolved_args={"path": "res://records/pub-1"},
+                                     arg_labels={"path": BOTTOM}, raw_result="v").handles
+    assert public.label.readers is PUBLIC
+    (closed,) = labeler.label_result(flow, CTX, resolved_args={"path": "res://records/x"},
+                                     arg_labels={"path": BOTTOM}, raw_result="v").handles
+    assert closed.label.readers == frozenset()

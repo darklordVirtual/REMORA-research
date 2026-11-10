@@ -362,3 +362,45 @@ def test_the_digest_format():
                                   + canonical_bytes(verdict.payload_label)).hexdigest()
         assert verdict.digest == expected
     assert _check(flow=DELETE_ALL, ctx=TAINTED_CTX, args={"scope": "all"}).ctrl_viol
+
+
+# ── a world-readable resource (resource ACL registry, 2026-11-10) ──────────
+
+_WRITE = {"provider": "tcb", "arguments": {"path": {"kind": "resource"},
+                                           "body": {"kind": "text"}},
+          "sources": {}, "sink": {"recipients": {"resource_of": "path"}}}
+
+
+def test_a_write_to_a_world_readable_resource_takes_only_public_data():
+    """An ACL that answers PUBLIC names everyone. Restricted data may not go
+    there, and public data may: the check no longer needs a list of everyone."""
+    from remora.flow.check import PUBLIC_RECIPIENT
+
+    write = parse_flow(_WRITE)
+    args = {"path": "res://records/pub-1", "body": "x"}
+    assert recipients(write, args, resource_acl=lambda r: PUBLIC) == (
+        frozenset({PUBLIC_RECIPIENT}), ())
+    secret = flow_check(write, context_label=SECRET, value_labels={}, resolved_args=args,
+                        epoch=0, resource_acl=lambda r: PUBLIC)
+    assert secret.conf_viol == frozenset({PUBLIC_RECIPIENT})
+    public = flow_check(write, context_label=BOTTOM, value_labels={}, resolved_args=args,
+                        epoch=0, resource_acl=lambda r: PUBLIC)
+    assert public.clean
+
+
+def test_the_public_recipient_is_within_no_reader_set_however_it_is_written():
+    from remora.flow.check import PUBLIC_RECIPIENT
+    from remora.flow.label import flows_to
+
+    assert flows_to(BOTTOM, PUBLIC_RECIPIENT)
+    for readers in ({USER}, {"public://anyone"}, {"public://anyone/*"}, {USER, BOB, MODEL}):
+        assert not flows_to(Label(readers, Integrity.TRUSTED), PUBLIC_RECIPIENT), readers
+
+
+def test_an_acl_with_no_reader_still_names_no_one_and_is_not_public():
+    write = parse_flow(_WRITE)
+    verdict = flow_check(write, context_label=BOTTOM, value_labels={},
+                         resolved_args={"path": "res://records/unknown", "body": "x"},
+                         epoch=0, resource_acl=lambda r: [])
+    assert verdict.conf_viol == frozenset() and recipients(
+        write, {"path": "res://records/unknown"}, resource_acl=lambda r: [])[0] == frozenset()
