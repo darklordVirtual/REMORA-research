@@ -140,7 +140,17 @@ def _request_hash(tool: str, args: dict[str, Any]) -> str:
 
 
 def replay_shift(shift: dict[str, Any], policy, registry, pristine: dict[str, Any],
-                 workdir: Path, approvers: int = 1) -> list[dict[str, Any]]:
+                 workdir: Path, approvers: int = 1,
+                 second_approver: Any = None) -> list[dict[str, Any]]:
+    """Replay one shift's writes in time order through the limits.
+
+    ``approvers`` is how many distinct approvers every write has. With
+    ``second_approver`` (plan v6) the count is decided per write instead: a
+    write that would pass a second tier is put to
+    ``second_approver(shift_id, index)``, and has two approvers when that
+    returns true and one when it does not. A write that needs no second
+    approver is never put to it. Without it the replay is unchanged.
+    """
     from remora.enforcement.cumulative_limits import LimitGuard, LimitLedger
 
     registry.PLANT.clear()
@@ -162,10 +172,16 @@ def replay_shift(shift: dict[str, Any], policy, registry, pristine: dict[str, An
                                        tool_name=w["tool"], arguments=w["args"], now=now)
             if needs:
                 row["dual_control"] = list(needs)
+        granted = approvers
+        if second_approver is not None:
+            granted = 1
+            if row.get("dual_control"):
+                row["second_approval"] = bool(second_approver(shift["shift_id"], i))
+                granted = 2 if row["second_approval"] else 1
         refusal = guard.reserve(tenant=TENANT, principal=PRINCIPAL, tool_name=w["tool"],
                                 arguments=w["args"], operation_id=op,
                                 request_hash=_request_hash(w["tool"], w["args"]), now=now,
-                                approvers=approvers)
+                                approvers=granted)
         stage = "reserve"
         if refusal is None:
             refusal, stage = guard.begin(op), "begin"
@@ -186,6 +202,43 @@ def replay_shift(shift: dict[str, Any], policy, registry, pristine: dict[str, An
         guard.settle(op, True, result=result, now=now)
         rows.append({**row, "outcome": "ran"})
     return rows
+
+
+class Approvals:
+    """Second-approver decisions keyed by ``<shift_id>:<index>``, read from a file.
+
+    Called per write past a second tier. A write with no decision on file is
+    not approved; it is recorded in ``undecided``, since the approver was
+    never asked about it.
+    """
+
+    def __init__(self, decisions: dict[str, bool]) -> None:
+        self._decisions = decisions
+        self.asked: list[str] = []
+        self.undecided: list[str] = []
+
+    def __call__(self, shift_id: str, index: int) -> bool:
+        key = f"{shift_id}:{index}"
+        self.asked.append(key)
+        if key not in self._decisions:
+            self.undecided.append(key)
+            return False
+        return self._decisions[key]
+
+    def summary(self, path: Path) -> dict[str, Any]:
+        return {"path": path.name, "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+                "asked": len(self.asked),
+                "approved": sum(self._decisions.get(k, False) for k in self.asked),
+                "undecided_and_so_not_approved": sorted(self.undecided)}
+
+
+def load_approvals(path: Path) -> Approvals:
+    document = json.loads(path.read_text(encoding="utf-8"))
+    decisions = document.get("decisions") if isinstance(document, dict) else None
+    if not isinstance(decisions, dict) or not all(
+            isinstance(k, str) and isinstance(v, bool) for k, v in decisions.items()):
+        raise ShiftError("an approvals file is {\"decisions\": {\"<shift_id>:<index>\": true|false}}")
+    return Approvals(dict(decisions))
 
 
 def _tiered(policy) -> bool:
@@ -280,8 +333,14 @@ def measures(rows: list[dict[str, Any]], shift_ids: list[str],
 
 def run(paths: list[Path], flags: Path | None = None, policy_path: Path | None = None,
         key_file: Path | None = None, *, trusted_key: str | None = None,
-        approvers: int = 1) -> dict[str, Any]:
-    """Replay under the pilot's deployed policy, or under ``policy_path`` and its key."""
+        approvers: int = 1, approvals: Path | None = None) -> dict[str, Any]:
+    """Replay under the pilot's deployed policy, or under ``policy_path`` and its key.
+
+    ``approvals`` (plan v6) is a file of second-approver decisions, one per
+    write that was put to the approver. A write past a second tier has two
+    approvers when its decision is to approve, and one otherwise. A write
+    the file does not hold is not approved, and is counted.
+    """
     if (policy_path is None) != (key_file is None and trusted_key is None) or (
         key_file is not None and trusted_key is not None
     ):
@@ -304,14 +363,16 @@ def run(paths: list[Path], flags: Path | None = None, policy_path: Path | None =
         inputs.append({"path": path.name, "sha256": hashlib.sha256(data).hexdigest()})
         shifts.extend(validate(json.loads(data)))
     rows: list[dict[str, Any]] = []
+    approver = load_approvals(approvals) if approvals is not None else None
     with tempfile.TemporaryDirectory() as tmp:
         for shift in shifts:
             rows.extend(replay_shift(shift, policy, registry, pristine, Path(tmp),
-                                     approvers=approvers))
+                                     approvers=approvers, second_approver=approver))
     ids = [s["shift_id"] for s in shifts]
     out = {"procedure": "docs/assurance/ot_limits_holdout_plan_v1.md section 4",
            "limits_policy": {"path": shown, "sha256": digest, "signer_kid": kid},
-           **({"approvers_per_write": approvers} if dual else {}),
+           **({"approvers_per_write": approvers} if dual and approver is None else {}),
+           **({"second_approver": approver.summary(approvals)} if approver is not None else {}),
            "inputs": inputs, "measures": measures(rows, ids, dual=dual), "writes": rows}
     if flags is not None:
         flagged = json.loads(flags.read_text(encoding="utf-8"))
@@ -331,6 +392,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--policy", type=Path, help="a signed policy other than the pilot's")
     parser.add_argument("--trusted-key", help="the key or key file --policy is verified under")
     parser.add_argument("--approvers", type=int, default=1, choices=(1, 2))
+    parser.add_argument("--approvals", type=Path,
+                        help="plan v6: second-approver decisions per write, in place of --approvers")
     args = parser.parse_args(argv)
     if (args.policy is None) != (args.trusted_key is None):
         parser.error("--policy and --trusted-key go together")
@@ -339,7 +402,7 @@ def main(argv: list[str] | None = None) -> int:
                     and Path(args.trusted_key).is_file() else None)
         result = run(args.shifts, args.flags, policy_path=args.policy,
                      key_file=key_file, trusted_key=None if key_file else args.trusted_key,
-                     approvers=args.approvers)
+                     approvers=args.approvers, approvals=args.approvals)
     except ShiftError as exc:
         print(f"[REFUSED] {exc}", file=sys.stderr)
         return 2

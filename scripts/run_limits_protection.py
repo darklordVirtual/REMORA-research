@@ -376,12 +376,18 @@ def _paired(minutes: dict[str, dict[str, int | None]], ids: list[str], first: st
     return {k: {"count": len(v), "episodes": v} for k, v in out.items()}
 
 
-def compare_with_deployed(paths: list[Path], policy_path: Path, key_file: Path) -> dict[str, Any]:
+def compare_with_deployed(paths: list[Path], policy_path: Path, key_file: Path,
+                          approvals: Path | None = None) -> dict[str, Any]:
     """The measures of docs/assurance/ot_limits_holdout_plan_v5.md §5, protective side.
 
     Each episode is replayed with no limits, under v3, and under the deployed
     policy and the named candidate with one approver per write and with two.
     M3 pairs the candidate with the deployed policy at the same approver count.
+
+    With ``approvals`` (plan v6) two more runs are made, the deployed policy
+    and the candidate with the second approver's recorded decisions, and M3
+    pairs those two as well. Two approvers per write is then the worst case:
+    a second approver who approves everything.
     """
     registry = holdout._registry()
     pristine = copy.deepcopy(registry.PLANT)
@@ -398,10 +404,17 @@ def compare_with_deployed(paths: list[Path], policy_path: Path, key_file: Path) 
     deployed, deployed_digest, deployed_kid = holdout.load_policy(DEPLOYED)
     candidate, digest, kid = holdout.load_policy(
         policy_path, key_file.read_text(encoding="utf-8").split())
-    runs = {"v3": (v3, 1), "deployed_1": (deployed, 1), "deployed_2": (deployed, 2),
-            "candidate_1": (candidate, 1), "candidate_2": (candidate, 2)}
+    runs: dict[str, tuple[Any, int, Any]] = {
+        "v3": (v3, 1, None), "deployed_1": (deployed, 1, None), "deployed_2": (deployed, 2, None),
+        "candidate_1": (candidate, 1, None), "candidate_2": (candidate, 2, None)}
+    approvers_used: dict[str, Any] = {}
+    if approvals is not None:
+        for name, policy in (("deployed_approver", deployed), ("candidate_approver", candidate)):
+            approvers_used[name] = holdout.load_approvals(approvals)
+            runs[name] = (policy, 1, approvers_used[name])
     minutes: dict[str, dict[str, int | None]] = {name: {} for name in ["none", *runs]}
     refusals: dict[str, dict[str, list[str]]] = {name: {} for name in runs}
+    asked: dict[str, dict[str, int]] = {name: {} for name in runs}
     harm_of: dict[str, str] = {}
     with tempfile.TemporaryDirectory() as tmp:
         for ep in episodes:
@@ -410,14 +423,16 @@ def compare_with_deployed(paths: list[Path], policy_path: Path, key_file: Path) 
             shift = {"shift_id": eid, "writes": ep["writes"]}
             minutes["none"][eid] = harm_minute(ep["harm"], replay_unlimited(
                 shift, registry, pristine), pristine)
-            for name, (policy, approvers) in runs.items():
+            for name, (policy, approvers, approver) in runs.items():
                 with tempfile.TemporaryDirectory(dir=tmp) as d:
                     rows = holdout.replay_shift(shift, policy, registry, pristine, Path(d),
-                                                approvers=approvers)
+                                                approvers=approvers, second_approver=approver)
                 minutes[name][eid] = harm_minute(ep["harm"], rows, pristine)
                 refusals[name][eid] = sorted(
                     {lim for r in rows if r["outcome"] == "refused" for lim in r.get("limits", [])}
                     | {r["reason"] for r in rows if r["outcome"] == "refused" and not r.get("limits")})
+                # Writes that needed a second approver, and (with decisions) those approved.
+                asked[name][eid] = sum(1 for r in rows if r.get("dual_control"))
     valid = [e for e in minutes["none"] if minutes["none"][e] is not None]
     try:
         shown = str(policy_path.resolve().relative_to(ROOT))
@@ -438,14 +453,29 @@ def compare_with_deployed(paths: list[Path], policy_path: Path, key_file: Path) 
             for h in HARMS}
         block["M3"] = {"one_approver": _paired(minutes, ids, "candidate_1", "deployed_1"),
                        "two_approvers": _paired(minutes, ids, "candidate_2", "deployed_2")}
+        if approvals is not None:
+            block["M3"]["with_approver"] = _paired(minutes, ids, "candidate_approver",
+                                                   "deployed_approver")
         measures[scope] = block
     m3 = measures["all"]["M3"]
-    gives_up = sorted({e for side, first in (("one_approver", "candidate_1"),
-                                             ("two_approvers", "candidate_2"))
+    sides = [("one_approver", "candidate_1"), ("two_approvers", "candidate_2")]
+    if approvals is not None:
+        # Plan v6 reads the approver's run; two approvers is its stated worst case.
+        sides = [("one_approver", "candidate_1"), ("with_approver", "candidate_approver")]
+    gives_up = sorted({e for side, first in sides
                        for key in (f"only_{first}", f"earlier_under_{first}")
                        for e in m3[side][key]["episodes"]})
+    extra: dict[str, Any] = {}
+    if approvals is not None:
+        extra["second_approver"] = {name: a.summary(approvals) for name, a in approvers_used.items()}
+        extra["worst_case_only_with_a_second_approver_who_approves_everything"] = sorted(
+            m3["two_approvers"]["only_candidate_2"]["episodes"])
+        extra["second_approver_requests"] = {name: asked[name] for name in runs if name != "v3"}
     return {
-        "procedure": "docs/assurance/ot_limits_holdout_plan_v5.md sections 4 and 5",
+        **extra,
+        "procedure": ("docs/assurance/ot_limits_holdout_plan_v6.md sections 4 and 5"
+                      if approvals is not None else
+                      "docs/assurance/ot_limits_holdout_plan_v5.md sections 4 and 5"),
         "policies": {"v3": v3_meta,
                      "deployed": {"path": str(DEPLOYED.relative_to(ROOT)),
                                   "sha256": deployed_digest, "signer_kid": deployed_kid},
@@ -472,6 +502,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="plan v5: this signed candidate beside the deployed policy")
     parser.add_argument("--trusted-key", type=Path,
                         help="the key file --policy-readoff or --compare is verified under")
+    parser.add_argument("--approvals", type=Path,
+                        help="plan v6, with --compare: the second approver's decisions")
     args = parser.parse_args(argv)
     modes = [m for m in (args.policy_readoff, args.compare) if m is not None]
     if len(modes) > 1 or (args.compare and args.deployed_readoff):
@@ -480,7 +512,8 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--policy-readoff or --compare needs --trusted-key, and only they do")
     if args.compare:
         try:
-            result = compare_with_deployed(args.episodes, args.compare, args.trusted_key)
+            result = compare_with_deployed(args.episodes, args.compare, args.trusted_key,
+                                           approvals=args.approvals)
         except EpisodeError as exc:
             print(f"[REFUSED] {exc}", file=sys.stderr)
             return 2

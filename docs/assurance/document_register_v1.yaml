@@ -3550,7 +3550,19 @@ documents:
   - researchers
   - evaluators
   last_reviewed: '2026-11-10'
+- id: DOC-432
+  path: docs/assurance/ot_limits_holdout_plan_v6.md
+  status: proposal
+  topic: docs_assurance_ot_limits_holdout_plan_v6_md
+  code_synced: unreviewed
+  verdict: pending
+  owner: darklordVirtual
+  audience:
+  - researchers
+  - evaluators
+  last_reviewed: '2026-11-10'
 topics:
+- docs_assurance_ot_limits_holdout_plan_v6_md
 - docs_assurance_ot_limits_holdout_plan_v5_md
 - docs_design_aacp-audit-integrity-remediation-sdd-v1_md
 - docs_assurance_ot_limits_holdout_plan_v4_md
