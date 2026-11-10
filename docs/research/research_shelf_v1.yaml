@@ -223,8 +223,19 @@ components:
       lease, and can require an argument to equal a fact from trusted state,
       which covers some of the same attacks at tool and argument granularity.
       CaMeL's data-flow capabilities and its privileged/quarantined split are
-      still not implemented, so this stays UNEVALUATED.
-    adoption: UNEVALUATED
+      not implemented in REMORA. Since 2026-11-10 an experiment arm
+      (experiments/control_eval/plan_flow.py, E_PLAN_WS1) fixes a plan before
+      the first read and lets untrusted text fill planned text payloads only.
+      On a no-model replay with an oracle plan it completed 10 of 18
+      development tasks with no call blocked, against 6 for the flow-control
+      arm without a plan, and executed adversary-set text in 14 of 48 attacked
+      pairs (NEGATIVE_RESULTS §100 follow-up). No planner model is built and
+      no interpreter tracks per-value capabilities.
+    adoption: PROTOTYPE_ONLY
+    remaining: >-
+      Experiment arm only; it is outside the decision path and the study
+      runner's registry. A planner that never sees tool output, a quarantined
+      reader, and a confirmatory run on held-out tasks are not built.
 
   # ── Least privilege ────────────────────────────────────────────────────────
 
