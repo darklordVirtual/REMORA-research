@@ -5541,10 +5541,24 @@ answer, a lookup that raises, and an answer that is not PUBLIC or a list
 of principals. The check and the labeller both use it. With the public
 entry removed from the file, the public write does not run.
 
+A security review before merge found two more things, both fixed. One
+dispatch asked the registry three times, for the check, for the recipients
+it approves and for the result's label. A registry that changed after the
+check could put a recipient in the approved set that the check never
+judged. One dispatch now reads one memoised answer per resource. And a
+file that said "every record is public, except the secret one" answered
+PUBLIC for every other name the secret might have: another case, a child,
+a version suffix. The registry refuses such a file at load; public
+resources are named, or get their own subtree.
+
 Limits. The file has two entries over two records. No shipped deployment
 sets a registry, and flow control is off by default. The file is read once
-per process, so a change needs a restart, and nothing signs it. Source
-metadata from the tool is still not passed. The finding stays open on IFC-08, signed flow blocks
+per process, so a change needs a restart. Nothing signs it, and it can
+make a result PUBLIC without the per-field justification the flow SDD
+asks of a ToolSpec. A registry a deployment writes itself, backed by a
+live system, is its own to get right: the memoised answer holds for one
+dispatch, and assess asked before it. Source metadata from the tool is
+still not passed. The finding stays open on IFC-08, signed flow blocks
 and egress.
 
 **The advisory library, after the PRF-040 fix.** `assess_tool_call`

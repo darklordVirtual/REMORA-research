@@ -53,16 +53,72 @@ def test_a_module_without_the_lookup_fails_loudly(api, monkeypatch):
         api._flow_resource_acl("acme")
 
 
-def test_the_registry_reaches_assess_dispatch_recipients_and_the_labeller():
-    """Every flow call site on the route passes the lookup; one that did not
-    would decide on an unresolved recipient or label a result with no reader."""
+def test_one_dispatch_asks_the_registry_once_and_uses_that_answer_three_times():
+    """The check, the approved recipients and the result label of one dispatch
+    read one memoised lookup. Three separate lookups let a registry that
+    changed after the check put a recipient in the approved set that the check
+    never judged (review, 2026-11-10)."""
     import inspect
 
     import servers.execution_api as exec_api
 
+    dispatch = inspect.getsource(exec_api._flow_at_dispatch)
+    assert dispatch.count("_flow_resource_acl(tenant)") == 1
+    assert dispatch.count("memoised_acl(_flow_resource_acl(tenant))") == 1
+    assert dispatch.count("resource_acl=acl") == 3
+    assert "if unresolved:" in dispatch
     source = inspect.getsource(exec_api)
-    assert source.count("resource_acl=_flow_resource_acl(tenant)") == 4
     assert "FlowLabeler()" not in source
+    # Assess is the fourth reader, with its own lookup; dispatch re-checks its digest.
+    assert source.count("resource_acl=_flow_resource_acl(tenant)") == 1
+
+
+def test_a_memoised_lookup_gives_the_first_answer_to_every_asker():
+    from remora.flow.check import memoised_acl, recipients
+    from remora.flow.spec import parse_flow
+
+    answers = iter([["user://acme/alice"], ["user://acme/alice", "ext://evil.example"], []])
+    calls = []
+
+    def flapping(resource):
+        calls.append(resource)
+        return next(answers)
+
+    acl = memoised_acl(flapping)
+    write = parse_flow({"provider": "tcb", "arguments": {"path": {"kind": "resource"}},
+                        "sources": {}, "sink": {"recipients": {"resource_of": "path"}}})
+    first = recipients(write, {"path": "res://records/a"}, resource_acl=acl)
+    again = recipients(write, {"path": "res://records/a"}, resource_acl=acl)
+    assert first == again == (frozenset({"user://acme/alice"}), ())
+    assert calls == ["res://records/a"]
+    assert memoised_acl(None) is None
+
+
+def test_a_memoised_lookup_replays_a_failure_and_keeps_public_and_generators_stable():
+    from remora.flow.check import memoised_acl, resource_readers
+
+    count = {"n": 0}
+
+    def once_then_fine(resource):
+        count["n"] += 1
+        if count["n"] == 1:
+            raise RuntimeError("registry down")
+        return PUBLIC
+
+    acl = memoised_acl(once_then_fine)
+    for _ in range(3):
+        with pytest.raises(RuntimeError):
+            acl("res://records/a")
+    assert count["n"] == 1
+    public = memoised_acl(lambda r: PUBLIC)
+    assert public("res://records/a") is PUBLIC and public("res://records/a") is PUBLIC
+    # A generator is not a list of principals; it stays refused on every ask.
+    from remora.capabilities.resource import ResourceRefused
+
+    gen = memoised_acl(lambda r: (p for p in ["user://acme/alice"]))
+    for _ in range(2):
+        with pytest.raises(ResourceRefused):
+            resource_readers(gen, "res://records/a")
 
 
 def test_the_shipped_file_registry_binds_by_name_and_is_validated_when_bound(api, monkeypatch,

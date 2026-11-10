@@ -47,13 +47,18 @@ from remora.capabilities.resource import ResourceRefused, canonical_resource
 from remora.flow.label import PUBLIC, Integrity, Label, canonical_bytes, flows_to, join_all
 from remora.flow.spec import FlowSpec
 
-__all__ = ["PUBLIC_RECIPIENT", "FlowVerdict", "flow_check", "recipients", "resource_readers"]
+__all__ = ["PUBLIC_RECIPIENT", "FlowVerdict", "flow_check", "memoised_acl", "recipients",
+           "resource_readers"]
 
 #: The recipient of a call whose target a resource ACL resolver reports as
 #: world-readable (it answers :data:`remora.flow.label.PUBLIC`). It is not a
 #: canonical resource, so :func:`remora.flow.label.flows_to` admits only
-#: PUBLIC data to it: no reader set, however written, contains it.
-PUBLIC_RECIPIENT: Final = "public://*"
+#: PUBLIC data to it: no reader set, however written, contains it. It is
+#: not a subtree pattern either (it does not end in ``/*``), so a set that
+#: holds it never matches a resource by prefix. A caller that passes it in
+#: ``declassified`` lifts the violation, as for any recipient; the execution
+#: API passes no ``declassified`` set.
+PUBLIC_RECIPIENT: Final = "public:*"
 
 _IBAN: Final = re.compile(r"[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}")
 _DIGEST_DOMAIN: Final = b"REMORA/FLOW-VERDICT/v1\x00"
@@ -75,6 +80,39 @@ class FlowVerdict:
     @property
     def clean(self) -> bool:
         return not self.conf_viol and not self.int_viol and not self.ctrl_viol
+
+
+def memoised_acl(lookup: Callable[[str], Any] | None) -> Callable[[str], Any] | None:
+    """*lookup* answering each resource once, the same way every time.
+
+    One dispatch asks who may read a resource up to three times: for the
+    check, for the recipients it approves, and for the label of the result.
+    A registry backed by a live system can change between those questions,
+    and the approved recipients would then be a set the check never judged.
+    Wrapped, the first answer (or the first failure) is the answer for as
+    long as the wrapper lives. A caller makes one per dispatch.
+    """
+    if lookup is None:
+        return None
+    seen: dict[str, tuple[bool, Any]] = {}
+
+    def once(resource: str) -> Any:
+        if resource not in seen:
+            try:
+                answer = lookup(resource)
+                # A one-shot iterable would be empty on the second read.
+                if not isinstance(answer, (list, tuple, set, frozenset)) and answer is not PUBLIC:
+                    seen[resource] = (True, answer)
+                else:
+                    seen[resource] = (True, answer if answer is PUBLIC else tuple(answer))
+            except Exception as exc:  # noqa: BLE001 - replayed to every asker
+                seen[resource] = (False, exc)
+        ok, value = seen[resource]
+        if not ok:
+            raise value
+        return value
+
+    return once
 
 
 def resource_readers(resource_acl: Callable[[str], Any], value: Any) -> Any:
@@ -141,7 +179,7 @@ def _iban(value: Any) -> str:
 
 
 def recipients(flow: FlowSpec, resolved_args: Mapping[str, Any], *,
-               resource_acl: Callable[[str], Iterable[str]] | None = None,
+               resource_acl: Callable[[str], Any] | None = None,
                ) -> tuple[frozenset[str], tuple[str, ...]]:
     """``(recipients, unresolved arguments)`` for one resolved call."""
     rule = flow.sink.recipients
@@ -188,7 +226,7 @@ def recipients(flow: FlowSpec, resolved_args: Mapping[str, Any], *,
 
 def flow_check(flow: FlowSpec, *, context_label: Label, value_labels: Mapping[str, Label],
                resolved_args: Mapping[str, Any], epoch: int,
-               resource_acl: Callable[[str], Iterable[str]] | None = None,
+               resource_acl: Callable[[str], Any] | None = None,
                declassified: frozenset[str] = frozenset(),
                integrity_granted: frozenset[str] = frozenset(),
                control_granted: bool = False,

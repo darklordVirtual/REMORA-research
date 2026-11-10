@@ -23,15 +23,25 @@ Rules:
   a longer subtree before a shorter one.
 * ``readers`` is the word ``PUBLIC`` or a non-empty list of canonical
   principals. A subtree as a reader is refused: a reader is one principal.
+* No restricted entry may lie inside a PUBLIC subtree. "Everything here is
+  public, except this record" fails open as soon as the system that holds
+  the records knows the record by another name: another case, a child, a
+  version suffix. The lookup compares canonical resources and knows none of
+  those aliases, so it would answer PUBLIC for them. Such a file is refused
+  at load. Public resources get their own subtree or their own exact
+  entries, and everything else is restricted or unknown. The reverse, a
+  PUBLIC entry inside a restricted subtree, is allowed: an alias of it
+  falls back to the restricted answer.
 * A resource no entry matches has no answer. The lookup returns an empty
   list, which :func:`remora.flow.check.resource_readers` refuses, so an
   unknown resource is never treated as open or as read by nobody.
 * The file is read once per process and its SHA-256 is kept
   (:func:`registry_digest`). A changed file takes effect at restart. A file
   that is missing, unreadable or malformed raises :class:`AclRegistryError`
-  when the registry is first used; the execution API calls :func:`validate`
-  when it binds the module, so a bad file stops the first flow decision
-  loudly and does not turn into silent refusals.
+  whenever the registry is used; the execution API calls :func:`validate`
+  when it binds the module and binds nothing on failure. Every flow
+  decision then fails with an error until the file is fixed, and none
+  turns into a quiet refusal that looks like policy.
 
 What it is not: evidence about the resources. The file is the deployment's
 statement, and REMORA does not compare it with the system that holds the
@@ -43,6 +53,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import threading
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -76,17 +87,17 @@ class _Entry:
     def subtree(self) -> bool:
         return self.pattern.endswith("/*")
 
-    def matches(self, resource: str) -> bool:
-        if self.subtree:
-            return resource.startswith(self.pattern[:-1])
-        return resource == self.pattern
-
 
 class StaticResourceAcl:
-    """The parsed registry. ``lookup`` never raises for a canonical resource."""
+    """The parsed registry. ``lookup`` answers ``[]`` for anything it does not know."""
 
     def __init__(self, tenants: Mapping[str, tuple[_Entry, ...]], digest: str) -> None:
-        self._tenants = dict(tenants)
+        self._count = {tenant: len(entries) for tenant, entries in tenants.items()}
+        self._exact = {tenant: {e.pattern: e.readers for e in entries if not e.subtree}
+                       for tenant, entries in tenants.items()}
+        #: subtree root (without the trailing ``/*``) -> readers
+        self._subtree = {tenant: {e.pattern[:-2]: e.readers for e in entries if e.subtree}
+                         for tenant, entries in tenants.items()}
         self.digest = digest
 
     @classmethod
@@ -118,21 +129,34 @@ class StaticResourceAcl:
                     raise AclRegistryError(f"{where}.resource {pattern!r} is listed twice")
                 seen.add(pattern)
                 entries.append(_Entry(pattern, _readers(row["readers"], where)))
-            # Most specific first: exact entries, then subtrees by length.
-            entries.sort(key=lambda e: (e.subtree, -len(e.pattern), e.pattern))
+            public_roots = [e.pattern[:-1] for e in entries if e.subtree and e.readers is PUBLIC]
+            for entry in entries:
+                if entry.readers is PUBLIC:
+                    continue
+                inside = next((root for root in public_roots
+                               if entry.pattern.startswith(root)), None)
+                if inside is not None:
+                    raise AclRegistryError(
+                        f"tenants.{tenant}: restricted entry {entry.pattern!r} lies inside the "
+                        f"PUBLIC subtree {inside + '*'!r}; an alias of it would be answered "
+                        "PUBLIC. Give public resources their own subtree or exact entries")
             tenants[tenant] = tuple(entries)
         return cls(tenants, digest)
 
     @classmethod
     def from_file(cls, path: str | os.PathLike[str]) -> StaticResourceAcl:
         try:
-            raw = Path(path).read_bytes()
+            with Path(path).open("rb") as handle:
+                raw = handle.read(_MAX_BYTES + 1)   # never more, whatever the file is
         except OSError as exc:
             raise AclRegistryError(f"cannot read the registry file: {exc}") from exc
         if len(raw) > _MAX_BYTES:
             raise AclRegistryError("the registry file is larger than 8 MiB")
         try:
             document = json.loads(raw.decode("utf-8"), object_pairs_hook=_no_duplicates)
+        except RecursionError as exc:
+            raise AclRegistryError(
+                "the registry file is not strict JSON: nested too deeply") from exc
         except (UnicodeDecodeError, ValueError) as exc:
             raise AclRegistryError(f"the registry file is not strict JSON: {exc}") from exc
         return cls.from_document(document, "sha256:" + hashlib.sha256(raw).hexdigest())
@@ -141,15 +165,30 @@ class StaticResourceAcl:
         """PUBLIC, the readers of the most specific matching entry, or ``[]``."""
         try:
             canonical = canonical_resource(resource)
-        except ResourceRefused:
+            exact = self._exact.get(tenant)
+        except (ResourceRefused, TypeError):
             return []
-        for entry in self._tenants.get(tenant, ()):
-            if entry.matches(canonical):
-                return PUBLIC if entry.readers is PUBLIC else list(entry.readers)
-        return []
+        if exact is None:
+            return []
+        readers = exact.get(canonical)
+        if readers is None:
+            # The longest subtree that holds it: walk up one segment at a time.
+            subtrees = self._subtree[tenant]
+            head, _, rest = canonical.partition("://")
+            parts = rest.split("/")
+            for depth in range(len(parts) - 1, 0, -1):
+                readers = subtrees.get(f"{head}://" + "/".join(parts[:depth]))
+                if readers is not None:
+                    break
+        if readers is None:
+            return []
+        return PUBLIC if readers is PUBLIC else list(readers)
 
     def entries(self, tenant: str) -> int:
-        return len(self._tenants.get(tenant, ()))
+        try:
+            return self._count.get(tenant, 0)
+        except TypeError:
+            return 0
 
 
 def _no_duplicates(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -185,15 +224,18 @@ def _readers(value: Any, where: str) -> Any:
 # ── the module interface REMORA_FLOW_RESOURCE_ACL_MODULE expects ─────────
 
 _REGISTRY: StaticResourceAcl | None = None
+_LOCK = threading.Lock()
 
 
 def _registry() -> StaticResourceAcl:
     global _REGISTRY
     if _REGISTRY is None:
-        path = os.environ.get("REMORA_FLOW_RESOURCE_ACL_FILE", "").strip()
-        if not path:
-            raise AclRegistryError(f"{FILE_ENV} is not set")
-        _REGISTRY = StaticResourceAcl.from_file(path)
+        with _LOCK:   # one load, one digest, whoever asks first
+            if _REGISTRY is None:
+                path = os.environ.get("REMORA_FLOW_RESOURCE_ACL_FILE", "").strip()
+                if not path:
+                    raise AclRegistryError(f"{FILE_ENV} is not set")
+                _REGISTRY = StaticResourceAcl.from_file(path)
     return _REGISTRY
 
 
@@ -213,4 +255,5 @@ def resource_acl(tenant: str, resource: str) -> Any:
 def reset() -> None:
     """Forget the loaded registry (tests, and a process that re-reads its settings)."""
     global _REGISTRY
-    _REGISTRY = None
+    with _LOCK:
+        _REGISTRY = None

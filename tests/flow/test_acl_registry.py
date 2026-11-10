@@ -17,7 +17,8 @@ ALICE, BOB = "user://acme/alice", "email://corp.example/bob"
 DOC = {"schema": SCHEMA, "tenants": {"acme": [
     {"resource": "res://records/*", "readers": [ALICE, BOB]},
     {"resource": "res://records/public/*", "readers": "PUBLIC"},
-    {"resource": "res://records/public/draft", "readers": [ALICE]},
+    {"resource": "res://records/team/*", "readers": [ALICE, BOB]},
+    {"resource": "res://records/team/notice", "readers": "PUBLIC"},
     {"resource": "res://records/cust-secret", "readers": [ALICE]},
 ]}}
 
@@ -29,7 +30,10 @@ def _acl(doc=None):
 @pytest.mark.parametrize("resource, expected", [
     ("res://records/cust-secret", [ALICE]),                 # exact
     ("res://records/public/price-list", PUBLIC),            # the longer subtree
-    ("res://records/public/draft", [ALICE]),                # exact beats its subtree
+    ("res://records/team/notice", PUBLIC),                  # exact beats its subtree
+    ("res://records/team/Notice", [ALICE, BOB]),            # an alias of it falls back, closed
+    ("res://records/team/notice/v2", [ALICE, BOB]),
+    ("res://records/public/a/b/c", PUBLIC),                 # any depth below a subtree
     ("res://records/other", [ALICE, BOB]),                  # the shorter subtree
     ("res://records/public", [ALICE, BOB]),                 # a subtree does not hold its own root
     ("res://files/q3", []),                                 # no entry
@@ -51,7 +55,9 @@ def test_a_prefix_that_is_not_a_path_boundary_does_not_match():
 
 def test_another_tenant_sees_nothing():
     assert _acl().lookup("globex", "res://records/public/price-list") == []
-    assert _acl().entries("globex") == 0 and _acl().entries("acme") == 4
+    assert _acl().entries("globex") == 0 and _acl().entries("acme") == 5
+    for odd in ("ACME", "acme ", "", None, ["acme"]):
+        assert _acl().lookup(odd, "res://records/public/price-list") == [], odd
 
 
 @pytest.mark.parametrize("mutate, message", [
@@ -169,3 +175,87 @@ def test_resource_readers_refuses_what_the_registry_does_not_know():
         resource_readers(_lookup, "res://files/unknown")
     assert recipients(_WRITE, {"path": "res://files/unknown"}, resource_acl=_lookup) == (
         frozenset(), ("path",))
+
+
+# ── after the security review of 2026-11-10 ──────────────────────────────
+
+@pytest.mark.parametrize("restricted", [
+    "res://records/secret",            # the shape that fails open
+    "res://records/vault/*",           # a restricted subtree inside a public one
+    "res://records/a/b/c",
+])
+def test_a_restricted_entry_inside_a_public_subtree_is_refused_at_load(restricted):
+    """'Everything is public except this record' answers PUBLIC for every other
+    name the record has: Secret, secret/part1, secret.bak. The file is refused."""
+    doc = {"schema": SCHEMA, "tenants": {"acme": [
+        {"resource": "res://records/*", "readers": "PUBLIC"},
+        {"resource": restricted, "readers": [ALICE]}]}}
+    with pytest.raises(AclRegistryError, match="inside the PUBLIC subtree"):
+        StaticResourceAcl.from_document(doc)
+
+
+def test_public_entries_beside_or_inside_restricted_ones_are_allowed_and_fail_closed():
+    acl = _acl({"schema": SCHEMA, "tenants": {"acme": [
+        {"resource": "res://records/secret", "readers": [ALICE]},
+        {"resource": "res://records/pub-1", "readers": "PUBLIC"},
+        {"resource": "res://records/open/*", "readers": "PUBLIC"}]}})
+    assert acl.lookup("acme", "res://records/pub-1") is PUBLIC
+    # Every other name the secret might have is unknown, never public.
+    for alias in ("res://records/Secret", "res://records/secret/part1",
+                  "res://records/secret.bak", "res://records/secret;v=2"):
+        assert acl.lookup("acme", alias) == [], alias
+    # And another tenant's public subtree does not make this tenant's file invalid.
+    _acl({"schema": SCHEMA, "tenants": {
+        "acme": [{"resource": "res://records/secret", "readers": [ALICE]}],
+        "globex": [{"resource": "res://records/*", "readers": "PUBLIC"}]}})
+
+
+def test_a_file_too_large_or_too_deep_is_a_registry_error(tmp_path):
+    from remora.flow import acl_registry as module
+
+    deep = tmp_path / "deep.json"
+    deep.write_text("[" * 200_000, encoding="utf-8")
+    with pytest.raises(AclRegistryError, match="strict JSON"):
+        StaticResourceAcl.from_file(deep)
+    big = tmp_path / "big.json"
+    with big.open("wb") as handle:
+        handle.truncate(module._MAX_BYTES + 10)
+    with pytest.raises(AclRegistryError, match="larger than 8 MiB"):
+        StaticResourceAcl.from_file(big)
+
+
+def test_lookups_do_not_scan_the_file():
+    entries = [{"resource": f"res://records/r{i}", "readers": [ALICE]} for i in range(20_000)]
+    acl = _acl({"schema": SCHEMA, "tenants": {"acme": entries}})
+    import time
+
+    start = time.perf_counter()
+    for i in range(2_000):
+        assert acl.lookup("acme", f"res://files/missing/{i}/a/b") == []
+    assert time.perf_counter() - start < 1.0
+
+
+def test_concurrent_first_use_loads_one_registry(monkeypatch, tmp_path):
+    import threading
+
+    path = tmp_path / "acl.json"
+    path.write_text(json.dumps(DOC), encoding="utf-8")
+    monkeypatch.setenv("REMORA_FLOW_RESOURCE_ACL_FILE", str(path))
+    acl_registry.reset()
+    loads = []
+    real = StaticResourceAcl.from_file
+
+    def counting(p):
+        loads.append(p)
+        return real(p)
+
+    monkeypatch.setattr(StaticResourceAcl, "from_file", staticmethod(counting))
+    digests: list[str] = []
+    threads = [threading.Thread(target=lambda: digests.append(acl_registry.validate()))
+               for _ in range(16)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    assert len(loads) == 1 and len(set(digests)) == 1 and len(digests) == 16
+    acl_registry.reset()

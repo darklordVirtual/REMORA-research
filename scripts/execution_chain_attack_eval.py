@@ -702,15 +702,16 @@ ROUTE_LABEL_ARMS = (RESULT_LABELS_ARM, RESOURCE_ACL_ARM)
 def registry_document() -> dict[str, Any]:
     """The harness deployment's resource ACL file (remora/flow/acl_registry.py).
 
-    The secret record is the user's alone. Every other record is one anyone
-    in the deployment may read, so the registry answers PUBLIC for it.
+    The secret record is the user's alone. Each other record is listed by
+    name as one anyone may read. A PUBLIC subtree with the secret as an
+    exception inside it is a shape the registry refuses.
     """
     from remora.flow.acl_registry import SCHEMA as ACL_SCHEMA
 
-    secret = [{"resource": RECORD_PREFIX + record, "readers": [USER]}
-              for record in sorted(SECRET_RECORDS)]
     return {"schema": ACL_SCHEMA, "tenants": {TENANT: [
-        *secret, {"resource": RECORD_PREFIX + "*", "readers": "PUBLIC"}]}}
+        {"resource": RECORD_PREFIX + record,
+         "readers": [USER] if record in SECRET_RECORDS else "PUBLIC"}
+        for record in sorted(RECORDS)]}}
 
 
 def _canonical_records(call: dict[str, Any]) -> dict[str, Any]:

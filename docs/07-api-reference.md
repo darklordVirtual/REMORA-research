@@ -642,8 +642,11 @@ whose `resource_acl(tenant, resource)` returns the principals that may read
 a resource, or `remora.flow.label.PUBLIC`. `remora.flow.acl_registry` is
 one, read from the JSON file in `REMORA_FLOW_RESOURCE_ACL_FILE`; its module
 docstring gives the format. Without a registry, or for a resource the
-registry names no reader for, a tool whose recipients or readers come from
-a resource is refused in a flow context. The route needs
+registry names no reader for, a write whose recipients come from a
+resource is refused in a flow context. A read whose readers come from a
+resource still runs, and its result gets no reader from the registry.
+Only what the rule adds (the user, the processors) may then read it, and
+a later sink is refused. The route needs
 `assess`. With the switch off it is a 409 `flow_control_disabled`.
 
 With the switch on, `/v1/execution/assess` and the re-gates at execute and

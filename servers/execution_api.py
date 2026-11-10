@@ -1655,15 +1655,17 @@ def _flow_resource_acl(tenant: str) -> Any:
     """
     global _FLOW_RESOURCE_ACL
     if _FLOW_RESOURCE_ACL is None:
-        module = _deployment_module(
-            _os.environ.get("REMORA_FLOW_RESOURCE_ACL_MODULE", ""))
-        if module is None:
-            return None
-        lookup = module.resource_acl
-        check = getattr(module, "validate", None)
-        if callable(check):
-            check()
-        _FLOW_RESOURCE_ACL = lookup
+        with _LAZY_INIT_LOCK:
+            if _FLOW_RESOURCE_ACL is None:
+                module = _deployment_module(
+                    _os.environ.get("REMORA_FLOW_RESOURCE_ACL_MODULE", ""))
+                if module is None:
+                    return None
+                lookup = module.resource_acl
+                check = getattr(module, "validate", None)
+                if callable(check):
+                    check()
+                _FLOW_RESOURCE_ACL = lookup
     lookup = _FLOW_RESOURCE_ACL
     return lambda resource: lookup(tenant, resource)
 
@@ -3513,20 +3515,28 @@ def _flow_at_dispatch(tenant: str, tool_call: ToolCallRequest, expected: tuple[i
     if flow is None or not principal or not context_id:
         return "flow_state_unavailable", None, None, None, None
     contexts, handles = _flow_contexts(), _flow_handles()
+    # One registry answer per resource for this whole dispatch: the check, the
+    # recipients it approves and the label of the result must not be three
+    # different answers from a registry that changed in between.
+    from remora.flow.check import memoised_acl
+    from remora.flow.check import recipients as _recipients_of
+
+    acl = memoised_acl(_flow_resource_acl(tenant))
     ok, reason, resolved, checked_seq = verify_flow_at_dispatch(
         contexts=contexts, handles=handles, tenant_id=tenant, principal=principal,
         context_id=context_id, flow=flow, arguments=tool_call.arguments,
         expected_epoch=expected[0], expected_digest=expected[1],
-        resource_acl=_flow_resource_acl(tenant))
+        resource_acl=acl)
     if not ok:
         return reason, None, None, None, None
     # IFC-12: the recipients the clean verdict approved for this call, for
     # the lease (signed as a digest) and for the mediator, which admits a
     # network effect only on a host among them.
-    from remora.flow.check import recipients as _recipients_of
-
-    approved, _unresolved = _recipients_of(flow, resolved,
-                                           resource_acl=_flow_resource_acl(tenant))
+    approved, unresolved = _recipients_of(flow, resolved, resource_acl=acl)
+    if unresolved:
+        # The check above read the same answers and passed, so this cannot
+        # happen. If it does, no recipient set exists to approve.
+        return "flow_state_unavailable", None, None, None, None
     now = _time.time()
     try:
         dispatch_id = contexts.begin_dispatch(
@@ -3578,7 +3588,7 @@ def _flow_at_dispatch(tenant: str, tool_call: ToolCallRequest, expected: tuple[i
     def commit(raw: Any) -> tuple[Any, dict[str, Any]]:
         try:
             done = commit_labeled_result(
-                FlowLabeler(resource_acl=_flow_resource_acl(tenant)), flow,
+                FlowLabeler(resource_acl=acl), flow,
                 contexts=contexts, handles=handles, tenant_id=tenant,
                 principal=principal, context_id=context_id, proposal_id=proposal_id,
                 arguments=tool_call.arguments, raw_result=raw, expected_epoch=expected[0],

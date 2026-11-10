@@ -206,4 +206,8 @@ in the schema file and here:
     labeller. With it, a public write runs and the secret is still refused
     (§87, arm `remora_flow_resource_acl`). Unset, the behaviour is as above.
     No shipped deployment sets it, and the registry's answers are the
-    deployment's own statement.
+    deployment's own statement. One deviation from the SDD follows. The SDD
+    has PUBLIC declared per field in the signed ToolSpec, with a
+    justification. A `resource_acl` rule with a registry can now label a
+    result PUBLIC on the registry's word, and the shipped file registry is
+    not signed.

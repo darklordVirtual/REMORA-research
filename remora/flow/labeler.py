@@ -13,8 +13,10 @@ label from the ToolSpec ``flow.sources`` block:
 - Readers come from the rule's kind: ``PUBLIC``, ``static``,
   ``from_source_metadata`` (reported by the source system, looked up at the
   node's nearest path that the metadata names), ``resource_acl`` (the ACL of
-  the resource an argument names, from the deployment's resolver) or
-  ``inherit_args``. ``plus_user`` and ``plus_processors`` add the context's
+  the resource an argument names, from the deployment's resolver through
+  :func:`remora.flow.check.resource_readers`: ``PUBLIC`` when the resolver
+  says anyone may read it, and no reader when it fails, names nobody or
+  answers with anything but principals) or ``inherit_args``. ``plus_user`` and ``plus_processors`` add the context's
   user and processors. A reader the source reports that is not a canonical
   principal is dropped, which only narrows the label.
 - Every label is joined with the call's argument labels: data that went in
@@ -161,7 +163,7 @@ def _check_json(value: Any) -> None:
 
 
 class FlowLabeler:
-    def __init__(self, *, resource_acl: Callable[[str], Iterable[str]] | None = None,
+    def __init__(self, *, resource_acl: Callable[[str], Any] | None = None,
                  clock: Callable[[], float] = time.time, ttl_seconds: float = 3600.0) -> None:
         self._resource_acl = resource_acl
         self._clock = clock
@@ -222,9 +224,11 @@ class FlowLabeler:
                         readers |= metadata_readers(name, path)
                 elif r.kind == "resource_acl":
                     resource = resolved_args.get(r.values[0])
-                    # PUBLIC for a world-readable resource; no reader at all when
-                    # there is no registry, the argument names no canonical
-                    # resource, or the registry fails or names nobody.
+                    # PUBLIC for a world-readable resource. No reader from the
+                    # registry when there is none, the argument names no
+                    # canonical resource, or the registry fails or names nobody;
+                    # plus_user and plus_processors below still add theirs,
+                    # which is narrower than any answer the registry could give.
                     readers = set()
                     if self._resource_acl is not None:
                         try:
@@ -418,7 +422,7 @@ def verify_flow_at_dispatch(
     arguments: Mapping[str, Any],
     expected_epoch: int,
     expected_digest: str,
-    resource_acl: Callable[[str], Iterable[str]] | None = None,
+    resource_acl: Callable[[str], Any] | None = None,
 ) -> tuple[bool, str, dict[str, Any], int]:
     """Re-verify ``flow_epoch``, ``flow_digest`` and resolved arguments right
     before dispatch (SDD v2 WP-04 / AR-018, IFC-06).
