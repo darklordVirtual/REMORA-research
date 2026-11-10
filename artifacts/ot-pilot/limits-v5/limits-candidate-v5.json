@@ -1,0 +1,148 @@
+{
+  "schema": "remora-cumulative-limits-signed/v1",
+  "policy": {
+    "schema": "remora-cumulative-limits/v1",
+    "coverage": "all_writes",
+    "meters": {
+      "adjust_setpoint": [
+        {
+          "quantity": "setpoint_movement",
+          "kind": "change",
+          "argument": "value",
+          "scale": 100,
+          "unit": "engineering_units",
+          "resource_argument": "loop",
+          "observed": true,
+          "previous_field": "old_setpoint",
+          "safe_values": {
+            "FIC-220": 0
+          },
+          "exempt_while_safe": {
+            "PIC-101": "FIC-220"
+          }
+        }
+      ],
+      "set_valve_position": [
+        {
+          "quantity": "valve_travel",
+          "kind": "change",
+          "argument": "position_pct",
+          "unit": "pct",
+          "resource_argument": "valve",
+          "observed": true,
+          "previous_field": "old_pct"
+        }
+      ],
+      "acknowledge_alarm": [
+        {
+          "quantity": "alarm_acks",
+          "kind": "count",
+          "unit": "acks",
+          "resource_argument": "alarm_id"
+        }
+      ],
+      "create_work_order": [
+        {
+          "quantity": "work_orders_created",
+          "kind": "count",
+          "unit": "orders"
+        }
+      ],
+      "close_work_order": [
+        {
+          "quantity": "work_orders_closed",
+          "kind": "count",
+          "unit": "orders"
+        }
+      ]
+    },
+    "limits": [
+      {
+        "limit_id": "pic-101-movement",
+        "tenant": "ot-pilot",
+        "quantity": "setpoint_movement",
+        "unit": "engineering_units",
+        "resource": "PIC-101",
+        "principal": "*",
+        "max": 160,
+        "window_seconds": 3600,
+        "dual_control_above": 50
+      },
+      {
+        "limit_id": "fic-220-movement",
+        "tenant": "ot-pilot",
+        "quantity": "setpoint_movement",
+        "unit": "engineering_units",
+        "resource": "FIC-220",
+        "principal": "*",
+        "max": 18000,
+        "window_seconds": 3600
+      },
+      {
+        "limit_id": "valve-travel",
+        "tenant": "ot-pilot",
+        "quantity": "valve_travel",
+        "unit": "pct",
+        "resource": "*",
+        "principal": "*",
+        "max": 200,
+        "window_seconds": 3600
+      },
+      {
+        "limit_id": "drain-valve-travel",
+        "tenant": "ot-pilot",
+        "quantity": "valve_travel",
+        "unit": "pct",
+        "resource": "V-12",
+        "principal": "*",
+        "max": 70,
+        "window_seconds": 3600
+      },
+      {
+        "limit_id": "valve-travel-2h",
+        "tenant": "ot-pilot",
+        "quantity": "valve_travel",
+        "unit": "pct",
+        "resource": "*",
+        "principal": "*",
+        "max": 290,
+        "window_seconds": 7200
+      },
+      {
+        "limit_id": "alarm-acks",
+        "tenant": "ot-pilot",
+        "quantity": "alarm_acks",
+        "unit": "acks",
+        "resource": "*",
+        "principal": "*",
+        "max": 6,
+        "window_seconds": 3600
+      },
+      {
+        "limit_id": "work-orders-created",
+        "tenant": "ot-pilot",
+        "quantity": "work_orders_created",
+        "unit": "orders",
+        "principal": "*",
+        "max": 20,
+        "window_seconds": 86400
+      },
+      {
+        "limit_id": "work-orders-closed",
+        "tenant": "ot-pilot",
+        "quantity": "work_orders_closed",
+        "unit": "orders",
+        "principal": "*",
+        "max": 20,
+        "window_seconds": 86400
+      }
+    ]
+  },
+  "signed_at": "2026-11-10T20:36:00Z",
+  "signature": {
+    "algorithm": "Ed25519",
+    "domain": "REMORA/LIMIT-POLICY/v1",
+    "kid": "ed25519-fe5fd8bd70d3e8bdfc0efa92422eda95a2e79041ff8a58a3106322e30868588c",
+    "signature": "6UovTxk2T751MWTS/xPA7drOhu5gykr6P60XW5uDtQcjE8j2vyucGEp5lX9trb82OZLi4r/SkN0dMnTawgqeDA=="
+  }
+}
