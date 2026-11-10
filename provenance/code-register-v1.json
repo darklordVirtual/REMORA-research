@@ -8858,9 +8858,9 @@
     },
     "experiments/control_eval/plan_flow.py": {
       "concepts": [],
-      "git_blob": "a410e98298a523cad96e528302bb8bfc3dc911a6",
+      "git_blob": "5ef7922c3169ed814c85f7e3515f063abbdaf97a",
       "mode": "100644",
-      "sha256": "998eb67a61c179fd5f4f1fa8272dde512c2a2a4550d0c7e4d107a49335f20450"
+      "sha256": "9e1a4892291aadf229a9280e9a7744b4386e7fc363c9000b7d1d061d5e1bf83e"
     },
     "experiments/control_eval/policies.py": {
       "concepts": [],
@@ -17249,6 +17249,12 @@
       "mode": "100644",
       "sha256": "fd9e3445d0e9aa1b56706fa07c149cfcd1f5310d76e437f8c6c5d490333e3a98"
     },
+    "scripts/run_control_eval_plan2.py": {
+      "concepts": [],
+      "git_blob": "c4505dc6fdbb027e03ca355b459b36b2c659599c",
+      "mode": "100644",
+      "sha256": "5a7b99e6ed2e22718d93a14af88a7afcb04fbc59c9ad3bc40d69dcf2fc85ef41"
+    },
     "scripts/run_control_eval_reads_replay.py": {
       "concepts": [],
       "git_blob": "f9128ed2e11fc12cf68c951492afe0ca62289d56",
@@ -19485,9 +19491,9 @@
     },
     "tests/test_control_eval_plan_flow.py": {
       "concepts": [],
-      "git_blob": "7fdf827074d9ef67ac88da28c064d3de3f45f96d",
+      "git_blob": "42bb9952ec7377bdbc72699d3357ba4be4bb58bf",
       "mode": "100644",
-      "sha256": "cea6c961f49ee8f970ba8aae8ae925c68247befc1cddb3f47d60a201d8a8a09a"
+      "sha256": "dc02ae1bb38cb9a0cb5fad39baedad3da821023c8be8b52fe7a6f93c663cce86"
     },
     "tests/test_control_eval_reads_replay.py": {
       "concepts": [],
@@ -23803,7 +23809,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "106591ef71a55cebcfd5cee2b9da20de97f22ee5c4a4951a8cc901e49468471e",
+  "register_sha256": "3f31124845bd3e11eeba2f83a1ead4b818f65fb73670c6b69597207b48b14e4f",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

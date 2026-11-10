@@ -53,10 +53,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Any, Final
 
+from experiments.control_eval.ifc_resolvers import own_identifiers
 from experiments.control_eval.policies import ProposedCall, Verdict
 from experiments.control_eval.remora_ifc import (
     RemoraIfcGate,
@@ -72,7 +74,9 @@ __all__ = [
     "Plan",
     "PlanBoundGate",
     "PlanStep",
+    "embedded_addresses",
     "oracle_plan",
+    "plan2_gate",
     "relaxable_fields",
 ]
 
@@ -161,17 +165,56 @@ def relaxable_fields(decl: ToolDeclaration) -> frozenset[str]:
                      if f not in targets and decl.flow.argument_kind(f) == "text")
 
 
+_ADDRESS: Final = re.compile(
+    r"""(?P<email>[A-Za-z0-9._%+\-]+@[A-Za-z0-9\-]+(?:\.[A-Za-z0-9\-]+)+)"""
+    r"""|(?:https?://)(?P<url>[^\s<>"')\]]+)"""
+    r"""|(?P<www>www\.[A-Za-z0-9\-]+(?:\.[A-Za-z0-9\-]+)+(?:/[^\s<>"')\]]*)?)"""
+    r"""|(?P<iban>(?<![A-Za-z0-9])[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}(?![A-Za-z0-9]))"""
+    r"""|(?P<host>(?<![A-Za-z0-9@.\-])[A-Za-z0-9\-]+(?:\.[A-Za-z0-9\-]+)*"""
+    r"""\.(?:com|org|net|io|co|ai|app|dev|info|biz|ch|no|de|uk|eu|gov|edu)"""
+    r"""(?![A-Za-z0-9\-])(?:/[^\s<>"')\]]*)?)""")
+
+
+def embedded_addresses(value: Any) -> list[str]:
+    """Web addresses, email addresses and IBANs inside a value's text, sorted.
+
+    Found by pattern: a scheme or ``www.`` address, a host under a short list
+    of top-level domains, an email address, an IBAN. A web address is given
+    without its scheme and without trailing punctuation. Text that spells an
+    address another way is not found, so a rule built on this is a floor.
+    """
+    found: set[str] = set()
+    for leaf in _leaves(value):
+        if not isinstance(leaf, str):
+            continue
+        for match in _ADDRESS.finditer(leaf):
+            token = next(g for g in match.groups() if g)
+            found.add(token.rstrip(".,;:!?"))
+    return sorted(found)
+
+
 class PlanBoundGate(RemoraIfcGate):
     """Arm E_PLAN_WS1. One instance holds one cursor per trajectory, so a
-    trajectory that is run again needs a new gate."""
+    trajectory that is run again needs a new gate.
+
+    ``embedded_targets`` (SAP v8 §14, second plan-bound arm): an address
+    inside a relaxed text value is a target. Unless ``value_trusted`` finds
+    it in the task text or among the principal's own identifiers, the field
+    is an integrity violation as if it were not relaxed."""
 
     def __init__(self, suite: str, plans: Mapping[str, Plan], *, ws1: bool = True,
                  declarations: Mapping[str, ToolDeclaration] | None = None,
-                 halt_on_refusal: bool = False) -> None:
-        super().__init__(suite, ws1=ws1, declarations=declarations, name=(
-            ("E_PLAN_WS1" if ws1 else "E_PLAN") + ("_halt" if halt_on_refusal else "")))
+                 halt_on_refusal: bool = False, embedded_targets: bool = False,
+                 name: str | None = None) -> None:
+        super().__init__(suite, ws1=ws1, declarations=declarations, name=name or (
+            ("E_PLAN_WS1" if ws1 else "E_PLAN") + ("_halt" if halt_on_refusal else "")
+            + ("_embedded" if embedded_targets else "")))
         self._plans = dict(plans)
         self._halt_on_refusal = halt_on_refusal
+        self._embedded_targets = embedded_targets
+        self._embedded: dict[str, list[str]] = {}
+        self._task = ""
+        self._own: frozenset[str] = frozenset()
         self._halted: set[tuple[str, str, str | None]] = set()
         self._cursor: dict[tuple[str, str, str | None], int] = {}
         self._relaxable: frozenset[str] = frozenset()
@@ -185,6 +228,12 @@ class PlanBoundGate(RemoraIfcGate):
                endorsed: Any = None) -> FlowVerdict:
         def allowed(field: str, value: Any) -> bool:
             if field in self._relaxable:
+                if self._embedded_targets:
+                    unknown = [a for a in embedded_addresses(value)
+                               if not value_trusted(a, task=self._task, own=self._own)]
+                    if unknown:
+                        self._embedded[field] = unknown
+                        return False
                 if labels[field].integrity is Integrity.UNTRUSTED:
                     self._relaxed.add(field)
                 return True
@@ -211,9 +260,20 @@ class PlanBoundGate(RemoraIfcGate):
         decl = self._decl.get(call.name)
         self._relaxable = (relaxable_fields(decl) & step.data_fields()) if decl else frozenset()
         self._relaxed = set()
+        self._embedded = {}
+        self._task = call.user_task
+        self._own = own_identifiers(self.suite, call.env)
         verdict = super().decide(call)
         if self._halt_on_refusal and not verdict.execute:
             self._halted.add(key)
         return Verdict(verdict.execute, verdict.score, verdict.reason,
-                       {**verdict.detail, **base, "relaxed_fields": sorted(self._relaxed)})
+                       {**verdict.detail, **base, "relaxed_fields": sorted(self._relaxed),
+                        "embedded_untrusted": dict(sorted(self._embedded.items()))})
+
+
+def plan2_gate(suite: str, plans: Mapping[str, Plan], *,
+               declarations: Mapping[str, ToolDeclaration] | None = None) -> PlanBoundGate:
+    """Arm E_PLAN2_WS1: E_PLAN_WS1 that halts and treats embedded addresses as targets."""
+    return PlanBoundGate(suite, plans, declarations=declarations, halt_on_refusal=True,
+                         embedded_targets=True, name="E_PLAN2_WS1")
 
