@@ -4,6 +4,12 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Custody: rule 4 probed with real OS users; the OT pilot does not run the guard (2026-11-10)
+
+- `scripts/probe_custody_isolation.py` starts a credential holder and an agent in one Linux container and one PID namespace. With one uid the agent reads the credential from `/proc/<pid>/environ` and `/proc/<pid>/mem`. With the holder under another uid and the `controlled_pilot` profile, every read is denied. A holder that declares `os_user` and runs as the agent uid or as root is refused by the guard. Result: `artifacts/assurance/custody-isolation-probe-2026-11-10/`.
+- NEGATIVE_RESULTS §104 records that the OT pilot's compose file sets no runtime profile, role or isolation, so the custody guard checks nothing there, and that tests K22 to K25 set the uid by monkeypatching.
+- Tests: `tests/test_custody_isolation_probe.py`.
+
 ### AgentDojo study: a plan fixed before the first read recovers four tasks; gate G1′ passes and is found weak (2026-11-10)
 
 - G1 failed on 2026-11-03 because one agent both read untrusted output and chose its writes (NEGATIVE_RESULTS §100). SAP v8 §14 states a second development gate, G1′, committed before its code (`2af2bb99`).

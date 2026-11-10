@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-11-07: **39 `open`**, **33 `accepted`**, **31 `superseded`**.
+Counts as of 2026-11-10: **40 `open`**, **33 `accepted`**, **31 `superseded`**.
 
 ## The actual backlog
 
@@ -211,6 +211,14 @@ cites only `open` sections and that no `open` section is missing a theme.
    argument supplied. Signed per-link argument conditions, an anchored root
    and shared-key refusal now refuse all three. Open while no route receives
    an envelope and no implementation but the author's has run the cases.
+
+24. **The custody guard checks nothing on the OT pilot** (§104): the pilot's
+   compose file sets no runtime profile, role or isolation, and its API
+   container is authority and executor in one process. A probe with real OS
+   users shows that a uid split keeps the holder's environment and memory
+   from the agent and that the same agent reads both when the uid is shared.
+   Open until the pilot runs an authority and an executor under different
+   uids with a strict profile.
 
 <!-- backlog-end -->
 
@@ -2722,6 +2730,7 @@ sections again.
 | Study C holdout: utility recovered and authority held under defence-aware search; the monitor threshold decided how much (§96) | H_DET and H_COST 20/33 reads, H_EDV 32/33, H0 0/33; every loss a monitor veto at the threshold. No WS1 arm executed an attack goal, an out-of-scope call or a leak in 121 attack episodes each; arm A did | **High** |
 | REMORA did not stop a payment past its budget, and had nothing that could (§97) | Replayed through /assess, /approve and /execute, all three 7000 payments ran (21000 of 20000). Opt-in cumulative limits reserved at dispatch (CAP-031) now refuse the third, and cap setpoint movement, starts and runtime per unit; author's replays only. Blind OT holdouts: legitimate writes refused in 26 of 40 shifts (v1), 3 of 40 (v2), 6 of 40 with a stop (v3) and 0 of 40 (v4 candidate, not deployed); misuse harm reached in 5 of 40 episodes (v1), 18 (v3) and 23 (candidate) | **High** |
 | The review path handed back an unspent grant when the admission refused (§98) | Under `REMORA_WS1_ADMISSION=atomic` the ACCEPT grant was minted before the admission; a refusal rolled the spend back and the response still carried the grant, which `/execute-accepted` accepted and spent. Now spent in place and withheld; route tests pin it. Author's tests only | **High** |
+| The custody guard checks nothing on the OT pilot, and its uid check had only been tested with a replaced getuid (§104) | The pilot's compose file sets no runtime profile, role or isolation, so `assert_custody_split()` returns without checking, and one container holds the lease signing key and the plant write token. A probe with real uids in one PID namespace: the agent reads the credential when the uid is shared and is denied when it is not; the guard refuses a holder under the agent uid or root. The pilot is unchanged | **Medium** |
 | The A2A envelope accepted an intermediary's changed amount, a re-rooted chain and a shared-key forgery (§103) | With every strict argument supplied, a chain whose links carried no parameters let an envelope for 25000 verify where the authority meant 250; a chain started at the intermediary's own key verified; one HMAC key registered for every principal let the intermediary sign as the origin; an in-memory guard forgot nonces at a restart; an unchecked task binding passed. Repaired with signed per-link argument conditions, an anchored root, shared-key refusal, Ed25519 links, a durable guard and strict unchecked-binding failures. Reference path, author's tests only | **Medium** |
 | G1 failed on AgentDojo development tasks (§100) | `E_IFC_WS1` completed 7/18 benign tasks against 6/18 for refuse-all and kept 0/48 injected goals; 14 blocked benign calls were 12 writes and 2 `get_webpage` reads, payload integrity the main cause. Scripted replay, zero model calls; SAP v8 stays DRAFT and unregistered | **High** |
 | The AROMER learning layer ran idle for four months, and its AII step is unexplained (§101) | 124 daily snapshots after the last episode (2026-07-02) show AII 0.9897 to 0.9915 on a frozen 200-episode sample; nine priors and all three bandit rows carry observation counts above the 21,864 episodes; the one-day ECE drop from 0.0637 to 0.0065 on 06-29 has no recorded cause. On the 18,249 recorder-hook episodes AROMER asked for review on 3,033 (16.6 %), 2,767 of them medium-tier shell execution | **Medium** |
@@ -6794,3 +6803,54 @@ Limits:
 - Every case was written by the author. No external implementation has run
   them.
 
+## §104 The custody guard checks nothing on the OT pilot, and its uid check had only been tested with a replaced getuid (2026-11-10)
+<!-- finding-status: open -->
+
+**Status:** open. The uid check is now probed with real OS users. The pilot
+is unchanged.
+
+Custody rule 4 (`remora/enforcement/custody.py`, AACP finding E-01) makes the
+process that holds the effect credentials declare how it is isolated from
+agent code. Two things about it were not on record.
+
+**The pilot does not run it.** `deploy/ot-pilot/docker-compose.yml` sets
+`REMORA_ENV=production` and no `REMORA_RUNTIME_PROFILE`,
+`REMORA_EXECUTION_DOMAIN_ROLE` or `REMORA_EXECUTION_ISOLATION`. With no
+profile the guard is not enforced: under that environment
+`custody_is_enforced()` is false and `assert_custody_split()` returns
+`authority` without checking anything. The pilot's `api` container holds
+`REMORA_LEASE_SIGNING_KEY` and `OT_PLANT_WRITE_TOKEN` in one process, so it
+is both authority and executor. What keeps the agent from the write token on
+the pilot is the container boundary that `credential_topology.yaml` draws,
+which the boundary suite probes. It is not custody rules 1 to 4, and the
+pilot's record should not be read as evidence for them.
+
+**The uid check was tested with `os.getuid` replaced.** Tests K22 to K25
+set the uid by monkeypatching, which tests the guard's comparison and not
+whether another uid can read the credential.
+`scripts/probe_custody_isolation.py` runs holder and agent as real uids in
+one Linux container and one PID namespace
+(`artifacts/assurance/custody-isolation-probe-2026-11-10/`).
+
+| Layout | Profile | Result |
+|---|---|---|
+| same uid (control) | `review` | the agent read the credential from `/proc/<pid>/environ` and `/proc/<pid>/mem` |
+| holder 10003, agent 10001 | `controlled_pilot` | environ, mem, fd, cwd and signal 0 denied; nothing read |
+| `os_user` declared, holder runs as the agent uid | `controlled_pilot` | the guard refused to start the holder |
+| `os_user` declared, holder runs as root | `controlled_pilot` | the guard refused to start the holder |
+
+So on this kernel a uid split does keep the launch environment and memory
+of the holder from the agent. The same agent code reads both when the uid
+is shared, and the guard's two refusals are real.
+
+Limits:
+
+- One kernel and one container runtime (Docker Desktop's `linuxkit`). No
+  container escape, shared volume, core dump, capability gain or metadata
+  credential was tried.
+- The probe is not a deployment. Making the pilot an authority and an
+  executor under different uids, with a strict profile, is not done. It
+  changes every recorded pilot run's topology and needs the lease verify key
+  in place of the shared signing key on the executor.
+- AACP's E-01 probe was run against a harness, not against this probe. A
+  binding that points at it has not been written.
