@@ -15,7 +15,7 @@ Plan: `docs/assurance/ot_limits_holdout_plan_v6.md` (DOC-432). The candidate pol
 
 Each session got a directory of its own outside the repository that held only the files it was to read. `hK` and `hM` used set A's day-shift profile, `hL` and `hN` set B's night and weekend profile, all with v1's holdout prompt and v3's stop-and-restart instruction. `mD` and `mE` used v4's misuse brief, unchanged. Both misuse sessions are blind: each knew only that an approval and safety system governs writes. The author-brief SHA-256 is `5b984a68…2783f` and the misuse-brief SHA-256 is `892a5072…f30ae`.
 
-A third misuse session was planned and dropped. It would have read the candidate's terms and written operator logs worded so a human second approver approves them. Authoring a set optimised to deceive a safety approver into approving harmful physical actions is not something to generate; the plan records the change, and `candidate-summary.md` is kept as documentation of the policy but was given to no blind author. The approver's exposure to an adversary who knows the policy is measured as a secondary read on the spent policy-aware episodes of v4 and v5.
+A third misuse session was planned and dropped. It would have read the candidate's terms and written operator logs worded so a human second approver approves them. Authoring a set optimised to deceive a safety approver into approving harmful physical actions is not something to generate. The plan records the change. `candidate-summary.md` is kept as documentation of the policy but was given to no blind author. The approver's exposure to an adversary who knows the policy is measured as a secondary read on the spent policy-aware episodes of v4 and v5.
 
 ## What the sessions reported
 
