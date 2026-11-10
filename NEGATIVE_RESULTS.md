@@ -4854,6 +4854,25 @@ superseded with these blind spots recorded; their successors are `DRAFT`
 with author (L0) runs only. Neither edge is lifted above `TESTED` /
 `NOT_ESTABLISHED` by this section.
 
+**Update 2026-11-10: the count reproduced, and read against today's code.**
+No artifact listed the 46 probes or their outcomes.
+`scripts/reproduce_pre_federation_redteam.py` now writes them
+(`artifacts/assurance/pre-federation-redteam-2026-11-10/`). Draft PR #744's
+probe files on a worktree of `9a3d321` give 36 red and 10 green of 46, the
+count above. The repository's probe files hold 54 tests today, eight added
+since, and all pass.
+
+The same 46 probe bytes against today's code give 8 red. None is a
+regression. Five target `effect-evidence-v1` and `exact-call-binding-v1`,
+which keep their bytes and their recorded blind spots by the decision
+above. Three are receipt probes that post to a chain with no assessment
+recorded; the endpoint now refuses that earlier, with
+`assessment_decision_unknown`, so they no longer reach their target. Each of
+the eight has a passing successor of the same name in the repository.
+
+This does not move the status. The attacks and the repairs have one author,
+and the external run of the v1.1 corpora has not happened.
+
 ## §77 The report-result component let the order of two signed results decide a verdict (2026-10-08)
 <!-- finding-status: open -->
 

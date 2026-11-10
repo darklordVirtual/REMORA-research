@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "6ca3ffc08df86b64d9cdfa91346abe6aeaf31882",
+      "git_blob": "4d8f9b7fc4a333d708aa4ce4facf0da7cd552e0b",
       "mode": "100644",
-      "sha256": "7027660b167bf003f73b8b501bd529f3af4c9dab0dc8148df73262bc5dc28993"
+      "sha256": "fa6d9e1c422d36b0a7590eeb7d20c320c22ff0cfeab16623b846c0a7e55e02ca"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -369,9 +369,9 @@
     },
     "NEGATIVE_RESULTS.md": {
       "concepts": [],
-      "git_blob": "fa6f8c3b662b8928a8d83e6098429b8681469bc1",
+      "git_blob": "02dde36aad797e94afa1d7834dab708102ccea7b",
       "mode": "100644",
-      "sha256": "b026ef2fbdb0ecef3e52bf4bdc1172876ae2bab60bf07483532ecb086836c43c"
+      "sha256": "5d8cee6ddad50a53959da80d0ef893fe1784c4b0579e8de1260e5b136a10664f"
     },
     "NOTICE": {
       "concepts": [],
@@ -570,6 +570,18 @@
       "git_blob": "4e9c39c4a95c67f2ffc6e9954c9399c1386e70ee",
       "mode": "100644",
       "sha256": "d4a93c5c06136854fb4331a539e3d4494547db27efdf0cf1f61b1c9afc327062"
+    },
+    "artifacts/assurance/pre-federation-redteam-2026-11-10/README.md": {
+      "concepts": [],
+      "git_blob": "f77d4aa3756c9b51a595002bf5d181535c9479d6",
+      "mode": "100644",
+      "sha256": "819b52b24921fa8127ee265da705d1ab37e8af1ba176bbd0222786ea4f4d8d5e"
+    },
+    "artifacts/assurance/pre-federation-redteam-2026-11-10/result.json": {
+      "concepts": [],
+      "git_blob": "20273fa438de0aa1c062acc7e3de0d1914be5d05",
+      "mode": "100644",
+      "sha256": "dc92c48036fc22a2872fd158efdbb8dae13efec6c2fac9baf715b5e7dd09c29c"
     },
     "artifacts/audit_anchoring/sample_checkpoints.jsonl": {
       "concepts": [],
@@ -17189,6 +17201,12 @@
       "mode": "100644",
       "sha256": "b040a914f6a0f72cd1a33a6878a2a3ec2a3184b41e69583184b695567e4ddd94"
     },
+    "scripts/reproduce_pre_federation_redteam.py": {
+      "concepts": [],
+      "git_blob": "d88b0e164e4de67fe3473e0af86a54919d79c783",
+      "mode": "100644",
+      "sha256": "be9064d5b32d58237050023f3606a864d800923f9649bbd1a0823cc79232da38"
+    },
     "scripts/reproduce_results.py": {
       "concepts": [],
       "git_blob": "b884311867321c1ec60411f17b6ab90763240853",
@@ -21822,6 +21840,12 @@
       "mode": "100644",
       "sha256": "3ca07b2cc49936abc88672e13b1028f6dd5d6c6ddf37edf8f1d42087aa2bd69f"
     },
+    "tests/test_redteam_76_reproduction.py": {
+      "concepts": [],
+      "git_blob": "44cbc8fc0435f767e449a0080cb76e726703395f",
+      "mode": "100644",
+      "sha256": "ef198958550c5ac4a1d9cfc62e83671073e6663c1dc2698d0019cd852bea1d81"
+    },
     "tests/test_relations.py": {
       "concepts": [],
       "git_blob": "15b321ddf2787a2a4bf9a271ea6375e291e94277",
@@ -23833,7 +23857,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "0917099797d32405d866f4f0b6541c8a7bdfa8457b5a8cb08d4bb74a9e69f533",
+  "register_sha256": "eedc75481ace5542cdc29edb7758071b6b79ae21ae997d652e46aa21e296dfc7",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

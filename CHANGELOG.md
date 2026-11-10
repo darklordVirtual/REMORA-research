@@ -4,6 +4,11 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Pre-Federation red team: the 36-of-46 count reproduced and listed (2026-11-10)
+
+- NEGATIVE_RESULTS §76 had no artifact for its count. `scripts/reproduce_pre_federation_redteam.py` runs draft PR #744's probes on a worktree of `9a3d321` (36 red, 10 green of 46, as stated), the same probe bytes against today's code (8 red, none a regression) and the repository's probes (54, all pass). Result: `artifacts/assurance/pre-federation-redteam-2026-11-10/`.
+- §76 stays open: the attacks and repairs have one author and no external run exists. Test: `tests/test_redteam_76_reproduction.py`.
+
 ### OT pilot: the plant journal names the credential that wrote, and the verifier can require the executor's (2026-11-10)
 
 - Two cases with a second holder of a write credential were untested (NEGATIVE_RESULTS §85). A dropped REMORA write followed by another writer's write of the same value ends as EFFECT_MISMATCH and the other write is listed as unattributed. A write by another writer that carries REMORA's dispatch reference was returned as EFFECT_VERIFIED.
