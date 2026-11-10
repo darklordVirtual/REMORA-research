@@ -5282,6 +5282,34 @@ verdict (`artifacts/ot-pilot/aacp-a-g-2026-11-06/`). The library verdict still
 has no writer field, and a deployment without revisions keeps this limit as
 stated above.
 
+**Update 2026-11-10: on the OT pilot, a writer that is not the executor.**
+#1194 gave the pilot's plant a revision per object and a journal. The
+pilot's verifier reads each write back at the revision the journal says it
+left. Two cases with a second holder of a write credential were not tested
+(`tests/test_ot_pilot_effect_verification.py`).
+
+- REMORA's write is dropped by the plant, and another writer then writes
+  the same value without naming REMORA's dispatch. REMORA's dispatch ends
+  as EFFECT_MISMATCH, `postcondition_effect_absent`, and the reconciliation
+  lists the other write as unattributed. The revisions already separate the
+  two. This is the case §85 describes, and on the pilot it holds.
+- REMORA's write never reaches the plant, and another writer makes the same
+  write with REMORA's dispatch reference on it. The verifier matched the
+  journal entry by that reference alone and returned EFFECT_VERIFIED for a
+  write the executor did not make.
+
+The second case is narrowed, not closed. The plant journal now records
+which credential made each write, as a digest that does not reveal it
+(`credential_id`). A verifier told which one is the executor's
+(`OT_EXECUTOR_WRITER_ID`) records `plant_write_by_another_credential` as an
+anomaly and returns no verdict. The pilot does not set it, and its plant
+has one write token, so there the limit stands and a test pins it. Whoever
+holds the write token can have a write verified as a dispatch it names.
+Telling two processes with the same token apart needs something the token
+holder cannot choose, such as a per-dispatch value from the authority that
+the plant checks. That is not built. The library verdict
+(`verify_declared_delta`) is unchanged and still names no writer.
+
 ## §86 The Worker edge collapsed repeated JSON members before the API could refuse them (2026-10-18)
 <!-- finding-status: accepted -->
 

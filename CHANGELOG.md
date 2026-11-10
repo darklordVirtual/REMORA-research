@@ -4,6 +4,12 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### OT pilot: the plant journal names the credential that wrote, and the verifier can require the executor's (2026-11-10)
+
+- Two cases with a second holder of a write credential were untested (NEGATIVE_RESULTS §85). A dropped REMORA write followed by another writer's write of the same value ends as EFFECT_MISMATCH and the other write is listed as unattributed. A write by another writer that carries REMORA's dispatch reference was returned as EFFECT_VERIFIED.
+- `deploy/ot-pilot/plant_model.py` and `plant_service.py` journal `credential_id`, a digest of the credential presented. `effect_verifier.Verifier` takes `expected_writer_id` (`OT_EXECUTOR_WRITER_ID`); a plant write that names a dispatch and was made with another credential is the anomaly `plant_write_by_another_credential` and is never verified.
+- The pilot's compose file does not set it and the plant has one write token, so the limit stands there and is pinned by a test. Two holders of the same token are not told apart.
+
 ### Execution chain: exfiltration refused with labels the route derives; every control refused too (2026-11-10)
 
 - `scripts/execution_chain_attack_eval.py` gains the arm `remora_flow_result_labels`: flow control on `/v1/execution` with the harness's label raise removed, so the server's labeller raises the context from each read's result. All 10 exfiltration attacks are refused and no secret reaches a sink; a counterfactual test shows the derived label decides.

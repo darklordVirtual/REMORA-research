@@ -27,6 +27,7 @@ container holding the plant holds none of REMORA's keys or modules.
 """
 from __future__ import annotations
 
+import hashlib
 import hmac
 import json
 import os
@@ -55,6 +56,13 @@ def _credentials() -> dict[str, str]:
     return {write: "writer", read: "reader"}
 
 
+def credential_id(token: str) -> str:
+    """A name for one credential that does not reveal it: the journal records
+    which write credential made a write, and the verifier compares it."""
+    return "cred-" + hashlib.sha256(b"ot-plant-credential-id\x00"
+                                    + token.encode("utf-8")).hexdigest()[:16]
+
+
 def _faults() -> dict[str, Any]:
     raw = os.environ.get("OT_PLANT_FAULTS", "").strip()
     return json.loads(raw) if raw else {}
@@ -77,6 +85,7 @@ class PlantHandler(BaseHTTPRequestHandler):
         presented = header[len("Bearer "):].strip()
         for token, role in self.tokens.items():
             if hmac.compare_digest(presented, token):
+                self._credential_id = credential_id(token)
                 return role
         return "invalid"
 
@@ -171,7 +180,8 @@ class PlantHandler(BaseHTTPRequestHandler):
         try:
             result = self.plant.apply(parts[1], arguments, credential=role,
                                       dispatch_ref=str(body.get("dispatch_ref") or ""),
-                                      source=self.client_address[0])
+                                      source=self.client_address[0],
+                                      credential_id=getattr(self, "_credential_id", ""))
         except PlantRefused as exc:
             return self._send(exc.status, {"error": exc.reason})
         return self._send(200, result)

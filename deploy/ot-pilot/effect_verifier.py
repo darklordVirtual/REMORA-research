@@ -87,8 +87,14 @@ class Verifier:
     """
 
     def __init__(self, api: Http, plant: Http, signing_key: Any,
-                 clock: Any = None) -> None:
+                 clock: Any = None, expected_writer_id: str | None = None) -> None:
         self.api, self.plant, self.key = api, plant, signing_key
+        #: The plant's name for the executor's write credential
+        #: (plant_service.credential_id). When set, a plant write that names a
+        #: dispatch and was made with another credential is an anomaly and is
+        #: never verified. When None, any holder of a write credential can
+        #: have its write verified as a dispatch it names (NEGATIVE_RESULTS §85).
+        self.expected_writer_id = expected_writer_id
         self._clock = clock or (lambda: datetime.now(UTC))
         self._lock = threading.Lock()
         self.attempts: dict[str, int] = {}
@@ -184,6 +190,16 @@ class Verifier:
                                        "reason": "plant_write_is_another_tool",
                                        "plant_tool": applied[0].get("tool")}
             return
+        if (self.expected_writer_id is not None
+                and applied[0].get("credential_id") != self.expected_writer_id):
+            with self._lock:
+                self.attempts[pid] = MAX_ATTEMPTS
+                self.anomalies[pid] = {
+                    "proposal_id": pid, "tool_name": row["tool_name"],
+                    "reason": "plant_write_by_another_credential",
+                    "expected_writer_id": self.expected_writer_id,
+                    "plant_writer_id": applied[0].get("credential_id", "")}
+            return
         receipt, signature, arguments = self.receipt_for(row, applied[0])
         status, body = self.api.call(
             "POST", f"/v1/execution/proposals/{pid}/effect-receipt",
@@ -276,7 +292,7 @@ def main() -> None:
         Http(os.environ.get("OT_API_URL", "http://api:8000"), os.environ["OT_TOKEN_VERIFIER"]),
         Http(os.environ.get("OT_PLANT_URL", "http://plant:9100"),
              os.environ["OT_PLANT_READ_TOKEN"]),
-        key)
+        key, expected_writer_id=os.environ.get("OT_EXECUTOR_WRITER_ID", "").strip() or None)
     threading.Thread(target=_serve_report,
                      args=(verifier, int(os.environ.get("OT_VERIFIER_PORT", "9200"))),
                      daemon=True).start()
