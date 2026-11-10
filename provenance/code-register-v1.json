@@ -4169,9 +4169,9 @@
     },
     "artifacts/ot-pilot/limits-v5/README.md": {
       "concepts": [],
-      "git_blob": "b6020d09e3dedb6fc4820436f18841cd3f980dcc",
+      "git_blob": "3cfeb2008574f2348e5dbdff701294e8295e4d71",
       "mode": "100644",
-      "sha256": "3dcc79f99de02ce14bc6d25d39f2caa97b402f2468740098bfefef250a100963"
+      "sha256": "b6ca4d05ee763be8506ea89b81111b47c29145e76d560a4e346145b045c7692a"
     },
     "artifacts/ot-pilot/limits-v5/SHA256SUMS": {
       "concepts": [],
@@ -23923,7 +23923,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "cc6bd593c759a0a9fb8fab449e0416456c35aa9b794cb806f56f4538a60017dc",
+  "register_sha256": "14841d0b1828813a055e4ea2d9cf0c3bf2a7bb4436f1b568850f5991c9f09d78",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
