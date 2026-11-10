@@ -7355,9 +7355,9 @@
     },
     "docs/assurance/ot_limits_holdout_plan_v6.md": {
       "concepts": [],
-      "git_blob": "104da57df8097d7d4ad6a4760dbc7834f7f5f873",
+      "git_blob": "725bb0f896b397c255cd805a337e4ff54af509c6",
       "mode": "100644",
-      "sha256": "072fa863fe4a2fd87f1f52f8d8161c8e7fb02b0357098b3baa7a2abb76a99b1e"
+      "sha256": "0ac18777057830638748e7eabdaa9c022117a678306f4842a9776801d48d0479"
     },
     "docs/assurance/policy_engine_audit_v1.md": {
       "concepts": [],
@@ -17521,9 +17521,9 @@
     },
     "scripts/run_limits_v6.py": {
       "concepts": [],
-      "git_blob": "3a02cedf7f35b3add66f6c7675d2aa43af00dbf1",
+      "git_blob": "ed6caa7ff2dfbd2e96b4b3b7ff7f5c65662e3d7a",
       "mode": "100644",
-      "sha256": "5ab32f186c936fdc1fe506390cd0c66949ecdcbb6ed76950cbacb671c48d2388"
+      "sha256": "9377be6ed361409838efb22041bc5ae3df2732e9bc0f94ad0b6ebfa743185391"
     },
     "scripts/run_live_benchmark.py": {
       "concepts": [],
@@ -24007,7 +24007,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "34131b24b98b8156ee72a48d80421dbdceffb9d28805de6b41cb2842d5097bc1",
+  "register_sha256": "28764b286b62747399c4d54704f18df908821aeb93be12d05af416edb38e2e75",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

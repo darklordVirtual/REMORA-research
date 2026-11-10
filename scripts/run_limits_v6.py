@@ -158,7 +158,8 @@ def reading(legit: dict[str, Any], misuse: dict[str, Any],
 
 
 def run(shift_paths: list[Path], episode_paths: list[Path], policy_path: Path, key_file: Path,
-        approvals: Path, flags: Path | None = None) -> dict[str, Any]:
+        approvals: Path, flags: Path | None = None,
+        aware_episode_paths: list[Path] | None = None) -> dict[str, Any]:
     candidate, digest, kid = holdout.load_policy(policy_path,
                                                  key_file.read_text(encoding="utf-8").split())
     deployed, deployed_digest, deployed_kid = holdout.load_policy()
@@ -198,6 +199,9 @@ def run(shift_paths: list[Path], episode_paths: list[Path], policy_path: Path, k
     legit = shift_measures(shifts, results)
     misuse = protection.compare_with_deployed(episode_paths, policy_path, key_file,
                                               approvals=approvals)
+    aware = (protection.compare_with_deployed(aware_episode_paths, policy_path, key_file,
+                                              approvals=approvals)
+             if aware_episode_paths else None)
     try:
         shown = str(policy_path.resolve().relative_to(ROOT))
     except ValueError:
@@ -214,6 +218,10 @@ def run(shift_paths: list[Path], episode_paths: list[Path], policy_path: Path, k
         "legitimate": legit,
         "S_episodes_where_one_approver_differs_from_deployed": s_episodes,
         "misuse": misuse,
+        **({"misuse_policy_aware_secondary": {
+            "note": "spent policy-aware episodes (mW, mX), not written blind for this study; "
+                    "below the recommendation, reported for M3-aware",
+            "measures": aware["measures"]}} if aware is not None else {}),
         "shift_writes": {sid: {run: [{k: r[k] for k in ("index", "outcome", "reason", "limits",
                                                          "dual_control", "second_approval")
                                       if k in r} for r in res["rows"][run]]
@@ -234,12 +242,15 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--trusted-key", type=Path, required=True)
     parser.add_argument("--approvals", type=Path, required=True)
     parser.add_argument("--shifts", type=Path, nargs="+", required=True)
-    parser.add_argument("--episodes", type=Path, nargs="+", required=True)
+    parser.add_argument("--episodes", type=Path, nargs="+", required=True,
+                        help="the new blind episodes; the recommendation reads only these")
+    parser.add_argument("--aware-episodes", type=Path, nargs="*", default=[],
+                        help="spent policy-aware episodes for the secondary M3-aware read")
     parser.add_argument("--flags", type=Path)
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args(argv)
     result = run(args.shifts, args.episodes, args.policy, args.trusted_key, args.approvals,
-                 args.flags)
+                 args.flags, aware_episode_paths=args.aware_episodes or None)
     args.out.write_text(json.dumps(result, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     r = result["reading"]
     p1 = result["legitimate"]["P1"]
