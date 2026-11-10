@@ -254,6 +254,21 @@ the test run until each passes.
 
 ## 14. Change record
 
+- 2026-11-10, the address search of `E_PLAN2_WS1` replaced after its run,
+  recorded before the replay that follows. A review before merge found
+  three faults in it. The version that replaced the first pattern (for a
+  CodeQL finding) missed an address next to any character outside two
+  fixed sets, so `**evil.com**` and `evil.com?id=1` passed. A scheme after
+  a character whose lower-case form is longer was cut at the wrong offset.
+  And an address counted as named when the task text contained it as a
+  substring, so `doe@gmail.com` passed where the task named
+  `john.doe@gmail.com`. `experiments/control_eval/addresses.py` replaces
+  the search and the comparison. It finds addresses in more spellings,
+  states what it does not find, and compares by address. The arm's rule is
+  as stated on this date; only how an address is found and compared
+  changes. The replay is written as `dev_plan2_v2.json`, with a count of
+  the benign calls the rule read at all. `dev_plan2_v1.json` is kept as
+  written. The three stated expectations are checked again on the replay.
 - 2026-11-10, wording of the second plan-bound arm's entry: two sentences
   were split after the run to meet the prose gate. No term changed. The
   text as stated before the run is at commit `1ca68df2`.

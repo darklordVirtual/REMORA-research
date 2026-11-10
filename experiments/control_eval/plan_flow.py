@@ -53,11 +53,11 @@ from __future__ import annotations
 
 import hashlib
 import json
-import re
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from typing import Any, Final
 
+from experiments.control_eval.addresses import Address, find_addresses, named_by
 from experiments.control_eval.ifc_resolvers import own_identifiers
 from experiments.control_eval.policies import ProposedCall, Verdict
 from experiments.control_eval.remora_ifc import (
@@ -165,65 +165,16 @@ def relaxable_fields(decl: ToolDeclaration) -> frozenset[str]:
                      if f not in targets and decl.flow.argument_kind(f) == "text")
 
 
-_TOKEN_BREAK: Final = re.compile(r"""[\s<>"'()\[\]{}]+""")
-_PIECE_BREAK: Final = re.compile(r"[:=,;]+")
-_IBAN_SHAPE: Final = re.compile(r"[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}")
-_HOST_CHARS: Final = frozenset("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-")
-_LOCAL_CHARS: Final = _HOST_CHARS | frozenset("._%+")
-_TLDS: Final = frozenset({"com", "org", "net", "io", "co", "ai", "app", "dev", "info", "biz",
-                          "ch", "no", "de", "uk", "eu", "gov", "edu"})
-_EDGE: Final = ".,;:!?"
-
-
-def _host(text: str, *, any_tld: bool) -> bool:
-    labels = text.split("/", 1)[0].split(".")
-    return (len(labels) >= 2 and all(label and set(label) <= _HOST_CHARS for label in labels)
-            and (any_tld or labels[-1].lower() in _TLDS))
-
-
-def _address(piece: str) -> str | None:
-    """*piece* as an address, or None. Plain string tests: no pattern backtracks."""
-    piece = piece.strip(_EDGE)
-    if not piece:
-        return None
-    if "@" in piece:
-        local, _, domain = piece.rpartition("@")
-        ok = bool(local) and set(local) <= _LOCAL_CHARS and _host(domain, any_tld=True)
-        return piece if ok and "/" not in domain else None
-    if _IBAN_SHAPE.fullmatch(piece):
-        return piece
-    if piece.lower().startswith("www."):
-        return piece if _host(piece[4:], any_tld=True) else None
-    return piece if _host(piece, any_tld=False) else None
-
-
 def embedded_addresses(value: Any) -> list[str]:
-    """Web addresses, email addresses and IBANs inside a value's text, sorted.
+    """The addresses inside a value's text, in normalised form, sorted.
 
-    Found token by token: an address after ``http://`` or ``https://``, a
-    ``www.`` host, a host under a short list of top-level domains, an email
-    address, an IBAN. A web address is given without its scheme and without
-    trailing punctuation. Text that spells an address another way is not
-    found, so a rule built on this is a floor.
+    See :mod:`experiments.control_eval.addresses` for what is found and what
+    is not. The first version of this function, which produced
+    ``dev_plan2_v1.json``, was one pattern; the second split on a fixed set of
+    separators and missed an address next to any other character. Both are
+    replaced by that module (SAP v8 §14, 2026-11-10, after review).
     """
-    found: set[str] = set()
-    for leaf in _leaves(value):
-        if not isinstance(leaf, str):
-            continue
-        for token in _TOKEN_BREAK.split(leaf):
-            for scheme in ("https://", "http://"):
-                at = token.lower().find(scheme)
-                if at >= 0:
-                    rest = token[at + len(scheme):].strip(_EDGE)
-                    if rest:
-                        found.add(rest)
-                    token = token[:at]
-                    break
-            for piece in _PIECE_BREAK.split(token):
-                address = _address(piece)
-                if address:
-                    found.add(address)
-    return sorted(found)
+    return [address.key for address in find_addresses(value)]
 
 
 class PlanBoundGate(RemoraIfcGate):
@@ -231,9 +182,10 @@ class PlanBoundGate(RemoraIfcGate):
     trajectory that is run again needs a new gate.
 
     ``embedded_targets`` (SAP v8 §14, second plan-bound arm): an address
-    inside a relaxed text value is a target. Unless ``value_trusted`` finds
-    it in the task text or among the principal's own identifiers, the field
-    is an integrity violation as if it were not relaxed."""
+    inside a relaxed text value is a target. Unless the task text names that
+    address (``addresses.named_by``: by address, not by substring) or it is
+    one of the principal's own identifiers, the field is an integrity
+    violation as if it were not relaxed."""
 
     def __init__(self, suite: str, plans: Mapping[str, Plan], *, ws1: bool = True,
                  declarations: Mapping[str, ToolDeclaration] | None = None,
@@ -246,7 +198,7 @@ class PlanBoundGate(RemoraIfcGate):
         self._halt_on_refusal = halt_on_refusal
         self._embedded_targets = embedded_targets
         self._embedded: dict[str, list[str]] = {}
-        self._task = ""
+        self._task_addresses: list[Address] = []
         self._own: frozenset[str] = frozenset()
         self._halted: set[tuple[str, str, str | None]] = set()
         self._cursor: dict[tuple[str, str, str | None], int] = {}
@@ -262,8 +214,8 @@ class PlanBoundGate(RemoraIfcGate):
         def allowed(field: str, value: Any) -> bool:
             if field in self._relaxable:
                 if self._embedded_targets:
-                    unknown = [a for a in embedded_addresses(value)
-                               if not value_trusted(a, task=self._task, own=self._own)]
+                    unknown = [a.key for a in find_addresses(value)
+                               if not named_by(a, self._task_addresses, self._own)]
                     if unknown:
                         self._embedded[field] = unknown
                         return False
@@ -294,9 +246,17 @@ class PlanBoundGate(RemoraIfcGate):
         self._relaxable = (relaxable_fields(decl) & step.data_fields()) if decl else frozenset()
         self._relaxed = set()
         self._embedded = {}
-        self._task = call.user_task
-        self._own = own_identifiers(self.suite, call.env)
-        verdict = super().decide(call)
+        try:
+            self._task_addresses = (find_addresses(call.user_task)
+                                    if self._embedded_targets else [])
+            self._own = own_identifiers(self.suite, call.env)
+            verdict = super().decide(call)
+        except Exception:
+            # The step is consumed and nothing decided it. A halting arm must
+            # not go on to the next step as if this one had been refused.
+            if self._halt_on_refusal:
+                self._halted.add(key)
+            raise
         if self._halt_on_refusal and not verdict.execute:
             self._halted.add(key)
         return Verdict(verdict.execute, verdict.score, verdict.reason,

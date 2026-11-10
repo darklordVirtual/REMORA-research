@@ -37,7 +37,21 @@ EXPECTATION = (
 SETUP_COMMAND = ("python -m venv .venv-ce && .venv-ce/bin/pip install -r "
                  "experiments/control_eval/requirements.txt && .venv-ce/bin/pip install -e .")
 RUN_COMMAND = (".venv-ce/bin/python scripts/run_control_eval_plan2.py "
-               "--out artifacts/control_eval/dev_plan2_v1.json")
+               "--out artifacts/control_eval/dev_plan2_v2.json")
+HISTORY = [
+    "dev_plan2_v1.json was written at 6e836c84 with the first address search, one pattern. "
+    "CodeQL flagged it as polynomial, and its replacement (1b7b26b9) split on a fixed set of "
+    "separators and missed an address next to any other character. A review before merge "
+    "showed that, a wrong offset after a scheme, and that an address was accepted when the "
+    "task text merely contained it as a substring.",
+    "This file is the replay with experiments/control_eval/addresses.py: addresses found in "
+    "more spellings and compared as addresses. The change was recorded in SAP v8 §14 before "
+    "this replay. dev_plan2_v1.json is kept as written and no longer reproduces.",
+]
+RULE_REACH_NOTE = (
+    "How much of the benign replay the new rule saw at all: the calls in which a relaxable "
+    "field held untrusted text, and the addresses found in that text. 'No benign call "
+    "refused' says little when the rule read few calls and none held an address.")
 
 
 def _load(name: str) -> Any:
@@ -72,6 +86,7 @@ def expectation(report: dict[str, Any]) -> dict[str, Any]:
 def run() -> dict[str, Any]:
     from agentdojo.attacks.attack_registry import load_attack
 
+    from experiments.control_eval.addresses import find_addresses
     from experiments.control_eval.metrics import inspected_user_tasks, split_tasks
     from experiments.control_eval.plan_flow import PlanBoundGate, plan2_gate
     from experiments.control_eval.remora_ifc import load_declarations
@@ -98,6 +113,9 @@ def run() -> dict[str, Any]:
         "holdout_suite": {"suite": g1.holdout_suite(), "loaded": False},
         "attack_text": g1.ATTACK, "model_calls": 0,
         "commands": [SETUP_COMMAND, RUN_COMMAND],
+        "history": HISTORY,
+        "benign_reach_of_the_new_rule": {"note": RULE_REACH_NOTE, "calls": 0,
+                                         "addresses_found": 0, "where": []},
         "arms": {arm: dict(zero) for arm in ARMS},
         "benign_calls_refused_by_new_rule": [],
         "a2_adversary_text_executed": {arm: [] for arm in ARMS},
@@ -136,6 +154,19 @@ def run() -> dict[str, Any]:
                 row["blocked"] += blocked
                 benign_rows[arm] = [{**c, "embedded_untrusted": d.get("embedded_untrusted")}
                                     for c, d in zip(log, details, strict=True)]
+                if arm == NEW:
+                    reach = report["benign_reach_of_the_new_rule"]
+                    for c, d in zip(log, details, strict=True):
+                        fields = sorted({*(d.get("relaxed_fields") or ()),
+                                         *(d.get("embedded_untrusted") or {})})
+                        if not fields:
+                            continue
+                        found = find_addresses({f: c["args"].get(f) for f in fields})
+                        reach["calls"] += 1
+                        reach["addresses_found"] += len(found)
+                        reach["where"].append({"suite": suite_name, "user_task": tid,
+                                               "function": c["function"], "fields": fields,
+                                               "addresses": [a.key for a in found]})
             report["benign_calls_refused_by_new_rule"].extend(
                 {"suite": suite_name, "user_task": tid, **r}
                 for r in new_rule_refusals(benign_rows[BASELINE], benign_rows[NEW]))

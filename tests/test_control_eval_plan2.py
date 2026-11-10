@@ -10,7 +10,8 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-ARTIFACT = ROOT / "artifacts" / "control_eval" / "dev_plan2_v1.json"
+ARTIFACT = ROOT / "artifacts" / "control_eval" / "dev_plan2_v2.json"
+FIRST = ROOT / "artifacts" / "control_eval" / "dev_plan2_v1.json"
 
 
 def _module():
@@ -64,6 +65,12 @@ def test_artifact_says_it_is_not_blind_and_holds_the_stated_numbers():
     assert d["benign_calls_refused_by_new_rule"] == []
     for arm, rows in d["a2_adversary_text_executed"].items():
         assert len({(r["suite"], r["user_task"], r["injection_task"]) for r in rows}) == carried[arm]
+    # The benign replay barely reached the rule: four calls, no address in any.
+    reach = d["benign_reach_of_the_new_rule"]
+    assert (reach["calls"], reach["addresses_found"]) == (4, 0)
+    assert [w["function"] for w in reach["where"]] == [
+        "update_user_info", "send_channel_message", "create_calendar_event",
+        "create_calendar_event"]
     # The three that remain hold no address: the rule cannot see them.
     from experiments.control_eval.plan_flow import embedded_addresses
     left = d["a2_adversary_text_executed"]["E_PLAN2_WS1"]
@@ -79,3 +86,14 @@ def test_a_fresh_replay_writes_the_committed_artifact():
     pytest.importorskip("agentdojo")
     assert json.dumps(_module().run(), indent=2, sort_keys=True) + "\n" == ARTIFACT.read_text(
         encoding="utf-8")
+
+
+def test_the_first_artifact_is_kept_and_the_replay_with_the_new_search_agrees_with_it():
+    """dev_plan2_v1.json was written with the first address search and no
+    longer reproduces. Its counts are the replay's counts."""
+    first = json.loads(FIRST.read_text(encoding="utf-8"))
+    second = json.loads(ARTIFACT.read_text(encoding="utf-8"))
+    assert "history" not in first and len(second["history"]) == 2
+    for key in ("arms", "a2_adversary_text_executed", "a2_goals_reached",
+                "benign_calls_refused_by_new_rule"):
+        assert first[key] == second[key], key
