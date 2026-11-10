@@ -4275,6 +4275,18 @@
       "mode": "100644",
       "sha256": "33ef17ed9b3c81aab4697d4af44ce009256669c3101c3dd5cc8769735db994f5"
     },
+    "artifacts/ot-pilot/limits-v6/approval-key.json": {
+      "concepts": [],
+      "git_blob": "40d8104a673999a13f12be719471050521efc291",
+      "mode": "100644",
+      "sha256": "b10088df92a2e859ea69abe2ed203ccf241aea259138b12470e1620240c83993"
+    },
+    "artifacts/ot-pilot/limits-v6/approval-packets.json": {
+      "concepts": [],
+      "git_blob": "6f70d7c1165167971c964dc3294710e6327a4e32",
+      "mode": "100644",
+      "sha256": "24cb64b205b31f691a39f7af9915e782cfae320bd6f37d133cdd023a58dfbb08"
+    },
     "artifacts/ot-pilot/limits-v6/approver-brief.md": {
       "concepts": [],
       "git_blob": "aee776b569de43f4c2aedece2318d92b1d78696e",
@@ -24055,7 +24067,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "02f571877e313b946bdae16002df0aa14cd9d2a674ddcf4ff93e368624210124",
+  "register_sha256": "47a77e31ec4183df9bf376b5c4796a2b42661744e55df7e0cb9cff3de52fc689",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
