@@ -4,6 +4,12 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Execution chain: exfiltration refused with labels the route derives; every control refused too (2026-11-10)
+
+- `scripts/execution_chain_attack_eval.py` gains the arm `remora_flow_result_labels`: flow control on `/v1/execution` with the harness's label raise removed, so the server's labeller raises the context from each read's result. All 10 exfiltration attacks are refused and no secret reaches a sink; a counterfactual test shows the derived label decides.
+- All 4 benign controls are refused as well, against 2 under harness labels. The route has no resource ACL lookup and takes no source metadata, so a read's readers are static and a public record restricts the context like a secret one. NEGATIVE_RESULTS §87 records it and names what remains.
+- The 14 new rows are in `artifacts/posthoc/execution_chain_attack_eval_v1.json`; no existing row changed.
+
 ### WS1 enforce on the OT pilot: what blocks it, recorded (2026-11-10)
 
 - NEGATIVE_RESULTS §105: `Ws1Gate` refuses enforce mode for the pilot's deployment, because four of the five flow-control work packages it requires are not done and the pilot declares no flow blocks. The prerequisite check accepts any non-empty string as evidence. Per-order intent binding, the other prerequisite, was built in #1194.

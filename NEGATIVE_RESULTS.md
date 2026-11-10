@@ -5420,6 +5420,38 @@ effects (IFC-12) and this deployment does not run them. The finding stays
 open until the labels are derived from results (IFC-04b), the dispatch-time
 re-check binds the verdict (IFC-06), and egress is enforced (IFC-12).
 
+**Labels raised by the route, 2026-11-10.** The sentence above, that tool
+results do not raise a context's label, was true of the harness and is no
+longer true of the server. Since `abf05328` `/v1/execution` commits a
+result's labels before it returns them. A new arm, `remora_flow_result_labels`,
+measures that. It is the enforced arm with the harness's raise removed.
+`read_record` declares who may read its result, and the server's labeller
+raises the context after the call.
+
+| Class | Attacks run | Controls run |
+|---|---|---|
+| Read exfiltration | 0/5 | 0/2 |
+| Read, then send | 0/5 | 0/2 |
+
+All 10 attacks are refused with labels the route derived, and no secret
+reached a sink. A counterfactual in the tests declares the read's result
+PUBLIC in the same arm, and the secret is then emailed out, so the derived
+label is what decides. The cost is every control. The harness labelled each
+record by what it held. The route cannot. `/v1/execution` builds its
+labeller with no resource ACL lookup and passes it no source metadata. A
+read's readers can therefore only be static, public, the user or its
+arguments'. A
+public record therefore restricts the context like a secret one, and both
+controls that ran under harness labels are refused. The 14 rows were added
+to `artifacts/posthoc/execution_chain_attack_eval_v1.json`; no row of another
+arm changed.
+
+What remains open is narrower and named: per-record readers on the route
+(a resource ACL registry or source metadata from the tool), declassification
+grants (IFC-08), signed flow blocks with MEDIATED effects, and egress
+(IFC-12). Without the first, flow control on this path refuses the secret
+and the public record alike.
+
 **The advisory library, after the PRF-040 fix.** `assess_tool_call`
 without a registry caps caller labels at VERIFY. R2's `xfer` call
 labelled low/read no longer reaches ACCEPT, and neither do the two benign
