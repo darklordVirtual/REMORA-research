@@ -190,15 +190,18 @@ class Verifier:
                                        "reason": "plant_write_is_another_tool",
                                        "plant_tool": applied[0].get("tool")}
             return
-        if (self.expected_writer_id is not None
-                and applied[0].get("credential_id") != self.expected_writer_id):
+        writer_id = applied[0].get("credential_id")
+        if self.expected_writer_id is not None and writer_id != self.expected_writer_id:
             with self._lock:
                 self.attempts[pid] = MAX_ATTEMPTS
                 self.anomalies[pid] = {
                     "proposal_id": pid, "tool_name": row["tool_name"],
-                    "reason": "plant_write_by_another_credential",
+                    # A plant that does not report who wrote is a different
+                    # fault from a write by someone else. Neither is verified.
+                    "reason": ("plant_write_by_another_credential" if writer_id
+                               else "plant_write_without_credential_id"),
                     "expected_writer_id": self.expected_writer_id,
-                    "plant_writer_id": applied[0].get("credential_id", "")}
+                    "plant_writer_id": writer_id or ""}
             return
         receipt, signature, arguments = self.receipt_for(row, applied[0])
         status, body = self.api.call(

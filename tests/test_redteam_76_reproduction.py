@@ -76,10 +76,17 @@ def test_committed_result_reproduces_the_count_and_classifies_what_still_fails()
     assert {f: len(v) for f, v in by_file.items()} == {
         "tests/test_pre_federation_fixture_adequacy_adversarial.py": 5,
         "tests/test_pre_federation_receipt_adversarial.py": 3}
-    # The three receipt probes are refused earlier than they expect, not accepted.
-    assert all("assessment_decision_unknown" in r["failure"] or "409" in r["failure"]
-               or "poisoned" in r["failure"]
-               for r in by_file["tests/test_pre_federation_receipt_adversarial.py"])
+    # Two receipt probes are refused earlier than they expect. The third
+    # reaches its target: its unbound receipt is refused, and the follow-up is
+    # then refused because the probe's chain names no assessed ToolSpec.
+    receipt = {r["test"]: r["failure"]
+               for r in by_file["tests/test_pre_federation_receipt_adversarial.py"]}
+    for name in ("test_empty_trusted_verifier_set_is_fail_closed",
+                 "test_terminal_unsupported_requires_dispatch_binding"):
+        assert "assessment_decision_unknown" in receipt[name], name
+    third = receipt["test_terminal_unsupported_cannot_poison_the_dispatch_slot"]
+    assert "binding_incomplete" in third and "toolspec_hash_mismatch" in third
+    assert "assessment_decision_unknown" not in third
 
 
 def test_every_original_probe_that_still_fails_has_a_passing_successor_of_the_same_name():

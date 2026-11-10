@@ -1,17 +1,20 @@
 {
   "checks": {
     "control_leaks": true,
+    "every_technique_ran_against_a_live_holder": true,
     "root_holder_refused_by_guard": true,
     "shared_uid_refused_by_guard": true,
     "split_agent_ran_as_agent_uid": true,
     "split_reads_nothing": true,
-    "split_starts_under_strict_profile": true
+    "split_starts_under_strict_profile": true,
+    "split_uids_differ": true,
+    "what_leaked_in_the_control_is_denied_in_the_split": true
   },
   "container": {
     "image": "python:3.13-slim",
     "network": "none",
     "repository_mount": "read-only",
-    "seconds": 1.4
+    "seconds": 2.2
   },
   "finding": "AACP-E-01",
   "isolation_shown": true,
@@ -29,12 +32,42 @@
         {
           "error": null,
           "read_credential": true,
+          "technique": "proc_task_environ"
+        },
+        {
+          "error": null,
+          "read_credential": true,
           "technique": "proc_mem"
+        },
+        {
+          "error": null,
+          "read_credential": true,
+          "technique": "process_vm_readv"
+        },
+        {
+          "error": null,
+          "read_credential": false,
+          "technique": "proc_maps"
+        },
+        {
+          "error": null,
+          "read_credential": false,
+          "technique": "proc_auxv"
+        },
+        {
+          "error": null,
+          "read_credential": false,
+          "technique": "proc_io"
         },
         {
           "error": null,
           "read_credential": false,
           "technique": "proc_cmdline"
+        },
+        {
+          "error": null,
+          "read_credential": false,
+          "technique": "proc_status"
         },
         {
           "error": null,
@@ -49,12 +82,28 @@
         {
           "error": null,
           "read_credential": false,
+          "technique": "proc_exe"
+        },
+        {
+          "error": null,
+          "read_credential": false,
+          "technique": "proc_root"
+        },
+        {
+          "error": null,
+          "read_credential": false,
           "technique": "signal_0"
+        },
+        {
+          "error": null,
+          "read_credential": true,
+          "technique": "ptrace_attach"
         }
       ],
       "credential_read": true,
       "declared_isolation": "same_user",
       "guard": "READY executor",
+      "holder_alive_after": true,
       "holder_started": true,
       "holder_uid": 10001,
       "layout": "same_user",
@@ -72,12 +121,42 @@
         {
           "error": "PermissionError",
           "read_credential": false,
+          "technique": "proc_task_environ"
+        },
+        {
+          "error": "PermissionError",
+          "read_credential": false,
           "technique": "proc_mem"
+        },
+        {
+          "error": "PermissionError",
+          "read_credential": false,
+          "technique": "process_vm_readv"
+        },
+        {
+          "error": "PermissionError",
+          "read_credential": false,
+          "technique": "proc_maps"
+        },
+        {
+          "error": "PermissionError",
+          "read_credential": false,
+          "technique": "proc_auxv"
+        },
+        {
+          "error": "PermissionError",
+          "read_credential": false,
+          "technique": "proc_io"
         },
         {
           "error": null,
           "read_credential": false,
           "technique": "proc_cmdline"
+        },
+        {
+          "error": null,
+          "read_credential": false,
+          "technique": "proc_status"
         },
         {
           "error": "PermissionError",
@@ -92,12 +171,28 @@
         {
           "error": "PermissionError",
           "read_credential": false,
+          "technique": "proc_exe"
+        },
+        {
+          "error": "PermissionError",
+          "read_credential": false,
+          "technique": "proc_root"
+        },
+        {
+          "error": "PermissionError",
+          "read_credential": false,
           "technique": "signal_0"
+        },
+        {
+          "error": "PermissionError",
+          "read_credential": false,
+          "technique": "ptrace_attach"
         }
       ],
       "credential_read": false,
       "declared_isolation": "os_user",
       "guard": "READY executor",
+      "holder_alive_after": true,
       "holder_started": true,
       "holder_uid": 10003,
       "layout": "os_user",
@@ -131,10 +226,19 @@
   "schema": "remora-custody-isolation-probe/v1",
   "techniques": [
     "proc_environ",
+    "proc_task_environ",
     "proc_mem",
+    "process_vm_readv",
+    "proc_maps",
+    "proc_auxv",
+    "proc_io",
     "proc_cmdline",
+    "proc_status",
     "proc_fd",
     "proc_cwd",
-    "signal_0"
+    "proc_exe",
+    "proc_root",
+    "signal_0",
+    "ptrace_attach"
   ]
 }

@@ -79,6 +79,9 @@ class PlantHandler(BaseHTTPRequestHandler):
     # ── helpers ───────────────────────────────────────────────────────────
 
     def _role(self) -> str:
+        # Per request: a connection that serves several requests must not
+        # carry one request's credential id into the next.
+        self._credential_id = ""
         header = self.headers.get("Authorization", "")
         if not header.startswith("Bearer "):
             return "none"
@@ -200,6 +203,11 @@ def build_server(host: str, port: int, plant: Plant,
 
 def main() -> None:
     tokens = _credentials()
+    if "--writer-id" in sys.argv[1:]:
+        # What a verifier is given as OT_EXECUTOR_WRITER_ID: the journal's
+        # name for the write credential, which does not reveal it.
+        print(credential_id(os.environ["OT_PLANT_WRITE_TOKEN"]))
+        return
     plant = Plant(faults=_faults())
     port = int(os.environ.get("OT_PLANT_PORT", "9100"))
     server = build_server("0.0.0.0", port, plant, tokens)  # noqa: S104 - container network

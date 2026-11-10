@@ -79,7 +79,7 @@ def parse_junit(path: Path, strip_prefix: str = "") -> list[dict[str, Any]]:
                                            else "skipped" if skipped else "passed")}
         if problem is not None:
             message = " ".join((problem.get("message") or "").split())
-            row["failure"] = message[:300]
+            row["failure"] = message[:2000]
         rows.append(row)
     return sorted(rows, key=lambda r: (r["file"], r["test"]))
 
@@ -87,8 +87,14 @@ def parse_junit(path: Path, strip_prefix: str = "") -> list[dict[str, Any]]:
 def _pytest(cwd: Path, files: list[str], strip_prefix: str = "") -> list[dict[str, Any]]:
     with tempfile.TemporaryDirectory() as tmp:
         report = Path(tmp) / "junit.xml"
-        subprocess.run([sys.executable, "-m", "pytest", *files, "-q", "-p", "no:cacheprovider",
-                        f"--junitxml={report}"], cwd=cwd, capture_output=True, text=True)
+        done = subprocess.run([sys.executable, "-m", "pytest", *files, "-q", "-p",
+                               "no:cacheprovider", f"--junitxml={report}"],
+                              cwd=cwd, capture_output=True, text=True)
+        # 0: all passed. 1: some test failed. Anything else (a collection
+        # error, a usage error, an interrupt) is not a result about the probes.
+        if done.returncode not in (0, 1):
+            raise RuntimeError(f"pytest exited {done.returncode} in {cwd}: "
+                               f"{done.stdout[-400:]}{done.stderr[-400:]}")
         return parse_junit(report, strip_prefix)
 
 
@@ -119,6 +125,10 @@ def summary(result: dict[str, Any]) -> dict[str, Any]:
 
 
 def run() -> dict[str, Any]:
+    # A run that was killed leaves a worktree registration and copied probes behind.
+    _git("worktree", "prune")
+    for stale in (ROOT / "tests").glob("zz_original_" + PATTERN + "*.py"):
+        stale.unlink()
     files = probe_files()
     with tempfile.TemporaryDirectory(prefix="remora-redteam-") as tmp:
         tree = Path(tmp) / "baseline"
@@ -147,6 +157,7 @@ def run() -> dict[str, Any]:
         "baseline_commit": BASELINE, "probes_commit": PROBES_COMMIT,
         "probes_source": "draft PR #744, closed; its head is fetched as " + PROBES_REF,
         "working_tree_commit": _git("rev-parse", "HEAD").strip(),
+        "working_tree_dirty": bool(_git("status", "--porcelain", "--untracked-files=no").strip()),
         "python": sys.version.split()[0],
         "at_baseline": at_baseline, "original_probes_today": original_today,
         "repository_probes_today": _pytest(ROOT, current),

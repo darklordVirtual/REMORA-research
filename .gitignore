@@ -119,3 +119,6 @@ AGENTS.md
 
 # Horizon #55 row: the souba-db dataset is fetched here by prepare.py and never committed
 integrations/horizon55/.cache/
+
+# Copies scripts/reproduce_pre_federation_redteam.py makes while it runs.
+tests/zz_original_test_pre_federation_*.py

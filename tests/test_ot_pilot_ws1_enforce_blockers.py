@@ -50,26 +50,45 @@ def test_the_pilot_compose_file_runs_ws1_in_shadow_without_flow_control():
 
 
 def _status_of(work_package: str) -> set[str]:
-    rows = [line for line in STATUS.read_text(encoding="utf-8").splitlines()
-            if line.startswith("|") and re.search(rf"\b{re.escape(work_package)}\b", line)]
-    assert rows, work_package
-    return {cell.strip() for row in rows for cell in row.split("|")
-            if cell.strip().split(" ")[0] in ("DONE", "IN_PROGRESS", "NOT_STARTED")}
+    """The status cells of the rows whose work-package column names it.
+
+    Columns are phase, work package, priority, status. A row that cites the
+    package in its evidence text is another package's row and is not read.
+    """
+    found = set()
+    for line in STATUS.read_text(encoding="utf-8").splitlines():
+        cells = [cell.strip() for cell in line.split("|")]
+        if len(cells) > 5 and re.search(rf"\b{re.escape(work_package)}\b", cells[2]):
+            found.add(cells[4].split(" ")[0])
+    assert found and found <= {"DONE", "IN_PROGRESS", "NOT_STARTED"}, (work_package, found)
+    return found
 
 
 def test_four_of_the_five_prerequisites_are_not_done_in_the_status_record():
     """IFC-04b is the result-labelling half of IFC-04. Only IFC-11 is done."""
     assert _status_of("IFC-04") == {"IN_PROGRESS"}
     assert _status_of("IFC-06") == {"IN_PROGRESS"}
-    assert any(s.startswith("DONE") for s in _status_of("IFC-11"))
+    assert _status_of("IFC-11") == {"DONE"}
     assert _status_of("IFC-12") == {"IN_PROGRESS"}
     assert "NOT_STARTED" in _status_of("IFC-13")
 
 
+def test_the_pilots_toolspec_bundle_declares_no_flow_block():
+    import sys
+
+    sys.path.insert(0, str(PILOT))
+    try:
+        import build_toolspec
+        bundle = build_toolspec.unsigned_bundle()
+    finally:
+        sys.path.remove(str(PILOT))
+    assert '"flow"' not in __import__("json").dumps(bundle)
+
+
 def test_limit_the_enforce_check_accepts_any_non_empty_string_as_evidence():
     """The gate cannot tell evidence from a placeholder: a deployment that
-    writes one word per work package gets an enforce gate. Nothing in the
-    repository does so outside the test fixture, which says it is test-only."""
+    writes one word per work package gets an enforce gate. The Study C harness
+    and two test fixtures do, each labelled as not evidence (§105)."""
     placeholder = dataclasses.replace(
         _pilot_deployment(), enforce_dependencies=dict.fromkeys(ENFORCE_DEPENDENCIES, "x"))
     assert Ws1Gate("enforce", placeholder, flow_control=True).mode == "enforce"
