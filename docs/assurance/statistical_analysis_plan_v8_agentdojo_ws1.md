@@ -254,6 +254,24 @@ the test run until each passes.
 
 ## 14. Change record
 
+- 2026-11-10, label change stated before it is made: `value_trusted`
+  (`experiments/control_eval/remora_ifc.py`) labels a numeric argument
+  TRUSTED when the task text holds the number anywhere. The G1′ review
+  showed that a numeral inside a file name counts (NEGATIVE_RESULTS §100
+  follow-up, banking `user_task_0`). The change: a numeral in the task text
+  counts only when it stands alone. On the left it must not touch a letter, digit,
+  underscore, hyphen, slash or quote character. On the right it must not
+  touch a letter, digit, underscore or hyphen, or a full stop followed by a
+  letter or digit. String arguments are labelled as before. Stated
+  before the code: the change may only move labels from TRUSTED to
+  UNTRUSTED, so no arm may execute a call it refused before. After the
+  change G1 and G1′ are replayed. If every count equals the committed
+  artifacts, they stay as they are. If any count differs, the replays are
+  written as `dev_g1_v2.json` and `dev_g1prime_v2.json`, the v1 files are
+  kept, and the differences are listed in §100. The resolver
+  `bank.outgoing_counterparty` is not changed: that it proves any earlier
+  counterparty is its stated design, and what an adversary can still steer
+  with it is recorded, not fixed.
 - 2026-11-10, wording of the G1′ entry below: two sentences (the second
   change to the gate, and the A2 replay) were split after the run to meet
   the prose gate. No term, number or condition changed. The text as stated
