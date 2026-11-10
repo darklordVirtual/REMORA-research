@@ -18,12 +18,21 @@ two changes.
    same argument names, and every literal argument equal to the plan's value
    (compared as canonical JSON, so ``1`` is not ``True``). Anything else is
    refused and leaves the cursor where it was. A matching call consumes its
-   step whether or not the flow check then lets it run.
+   step whether or not the flow check then lets it run, so a later step can
+   run after an earlier one was refused. SAP v8 §14 did not state this
+   choice. ``halt_on_refusal`` is the other one, added after the first G1′
+   run and outside the gate: once the flow check refuses a planned step,
+   every later call of the trajectory is refused.
 2. Data flow. An UNTRUSTED value in a ``DATA`` argument is not an integrity
    violation when :func:`relaxable_fields` lists the argument: it is declared
    payload, the recipients rule does not read it, its declared kind is
-   ``text``, and the tool is not critical tier. Targets, amounts, credentials
-   and every argument of a critical-tier tool are checked as in E_IFC_WS1.
+   ``text``, and the tool is not critical tier. Every other
+   ``integrity_required`` argument is checked as in E_IFC_WS1: the arguments
+   the recipients rule reads, non-text arguments, and every argument of a
+   critical-tier tool. The relaxable set is wider than message bodies. On the
+   frozen declaration it also holds ``update_user_info``'s four fields,
+   ``invite_user_to_slack.user``, a calendar event's title, description and
+   location, and ``send_email.attachments``.
 
 Labels never come from the plan. A literal that is not in the task text is
 labelled like any other value, so a plan cannot make a value trusted; it can
@@ -31,7 +40,10 @@ only pin it.
 
 What the arm leaves open: the content of a relaxed payload is whatever the
 run-time reader produced, so an injection can still change what a planned
-message says to the recipient the user named. The plan here is supplied to
+write says to the recipient the user named. The arm inherits E_IFC_WS1's
+labels with their faults: a number counts as trusted when the task text
+holds it anywhere, a file name included, and a resolver proves any earlier
+counterparty (NEGATIVE_RESULTS §100, follow-up). The plan here is supplied to
 the gate; :func:`oracle_plan` builds it from ground-truth calls for the
 no-model replay, and nothing in this module shows that a model can write it
 without seeing tool output. For that reason the arm is not in the study
@@ -154,10 +166,13 @@ class PlanBoundGate(RemoraIfcGate):
     trajectory that is run again needs a new gate."""
 
     def __init__(self, suite: str, plans: Mapping[str, Plan], *, ws1: bool = True,
-                 declarations: Mapping[str, ToolDeclaration] | None = None) -> None:
+                 declarations: Mapping[str, ToolDeclaration] | None = None,
+                 halt_on_refusal: bool = False) -> None:
         super().__init__(suite, ws1=ws1, declarations=declarations)
-        self.name = "E_PLAN_WS1" if ws1 else "E_PLAN"
+        self.name = ("E_PLAN_WS1" if ws1 else "E_PLAN") + ("_halt" if halt_on_refusal else "")
         self._plans = dict(plans)
+        self._halt_on_refusal = halt_on_refusal
+        self._halted: set[tuple[str, str, str | None]] = set()
         self._cursor: dict[tuple[str, str, str | None], int] = {}
         self._relaxable: frozenset[str] = frozenset()
         self._relaxed: set[str] = set()
@@ -184,6 +199,8 @@ class PlanBoundGate(RemoraIfcGate):
         key = (call.suite, call.user_task_id, call.injection_task_id)
         index = self._cursor.get(key, 0)
         base = {"plan_digest": plan.digest, "plan_step": index}
+        if key in self._halted:
+            return Verdict(False, 100.0, "plan_halted", {**base, "action": "refuse"})
         if index >= len(plan.steps):
             return Verdict(False, 100.0, "plan_exhausted", {**base, "action": "refuse"})
         step = plan.steps[index]
@@ -195,6 +212,8 @@ class PlanBoundGate(RemoraIfcGate):
         self._relaxable = (relaxable_fields(decl) & step.data_fields()) if decl else frozenset()
         self._relaxed = set()
         verdict = super().decide(call)
+        if self._halt_on_refusal and not verdict.execute:
+            self._halted.add(key)
         return Verdict(verdict.execute, verdict.score, verdict.reason,
                        {**verdict.detail, **base, "relaxed_fields": sorted(self._relaxed)})
 
