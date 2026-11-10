@@ -4017,6 +4017,24 @@
       "mode": "100644",
       "sha256": "6bcb99f8c8baf8dc7efa1b4e281926ff7bd5d316ff2a8de276b168fe9a22753f"
     },
+    "artifacts/ot-pilot/limits-v4-tier/README.md": {
+      "concepts": [],
+      "git_blob": "68f994b2e33c628588cfa1a23c5877f388ce7961",
+      "mode": "100644",
+      "sha256": "180386ff3e9cc85b9cc966f387b7e73c09adfe0a81e4efa3a5d4d0231d8a4f08"
+    },
+    "artifacts/ot-pilot/limits-v4-tier/limits-candidate-v4-tier.json": {
+      "concepts": [],
+      "git_blob": "7aa3e5da6f7a93cc9082cfca25cbb3cf64b32a30",
+      "mode": "100644",
+      "sha256": "a179a74c44ccab28525c8ba16e8c55919720f4a0e06859d77ce33c7ebb5a8b49"
+    },
+    "artifacts/ot-pilot/limits-v4-tier/limits-candidate-v4-tier.trusted-key": {
+      "concepts": [],
+      "git_blob": "540aeaab8bb4be7094b887ee34200a9959fdf52d",
+      "mode": "100644",
+      "sha256": "cbe8238d175a9fd559d46b457230330ee7959e5189caf5c149a7c2c4e76e3b4a"
+    },
     "artifacts/ot-pilot/limits-v4/README.md": {
       "concepts": [],
       "git_blob": "39250bfb87d35ab8339faf94ff47c1e2c21ac138",
@@ -23803,7 +23821,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "1b50d0da899944400ee66aba41f2d5b0f9bdbcb0e4862ca984720fbbfcd2951b",
+  "register_sha256": "6acda33b0e11fc27f593f64627af57e72f4dfdf1a2dac2765f08b2f7c6c688dc",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
