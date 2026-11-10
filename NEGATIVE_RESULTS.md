@@ -24,7 +24,7 @@ backlog below disagrees with those markers.
 | `accepted` | Measured, published, and **not to be "fixed"** — a falsified hypothesis or a dataset that cannot answer the question asked of it | No. Tuning against these would be retrofitting |
 | `superseded` | The finding caused a change; a later section documents the result | No. Read it for the causal chain |
 
-Counts as of 2026-11-10: **40 `open`**, **33 `accepted`**, **31 `superseded`**.
+Counts as of 2026-11-10: **41 `open`**, **33 `accepted`**, **31 `superseded`**.
 
 ## The actual backlog
 
@@ -219,6 +219,12 @@ cites only `open` sections and that no `open` section is missing a theme.
    from the agent and that the same agent reads both when the uid is shared.
    Open until the pilot runs an authority and an executor under different
    uids with a strict profile.
+
+25. **WS1 cannot run in enforce mode on the OT pilot** (§105): four of the
+   five flow-control work packages that enforce requires are not done, the
+   pilot's tools declare no flow blocks, and the prerequisite check accepts
+   any non-empty string as evidence. Open until the work packages are done
+   and the check verifies what it is given.
 
 <!-- backlog-end -->
 
@@ -2731,6 +2737,7 @@ sections again.
 | REMORA did not stop a payment past its budget, and had nothing that could (§97) | Replayed through /assess, /approve and /execute, all three 7000 payments ran (21000 of 20000). Opt-in cumulative limits reserved at dispatch (CAP-031) now refuse the third, and cap setpoint movement, starts and runtime per unit; author's replays only. Blind OT holdouts: legitimate writes refused in 26 of 40 shifts (v1), 3 of 40 (v2), 6 of 40 with a stop (v3) and 0 of 40 (v4 candidate, not deployed); misuse harm reached in 5 of 40 episodes (v1), 18 (v3) and 23 (candidate) | **High** |
 | The review path handed back an unspent grant when the admission refused (§98) | Under `REMORA_WS1_ADMISSION=atomic` the ACCEPT grant was minted before the admission; a refusal rolled the spend back and the response still carried the grant, which `/execute-accepted` accepted and spent. Now spent in place and withheld; route tests pin it. Author's tests only | **High** |
 | The custody guard checks nothing on the OT pilot, and its uid check had only been tested with a replaced getuid (§104) | The pilot's compose file sets no runtime profile, role or isolation, so `assert_custody_split()` returns without checking, and one container holds the lease signing key and the plant write token. A probe with real uids in one PID namespace: the agent reads the credential when the uid is shared and is denied when it is not; the guard refuses a holder under the agent uid or root. The pilot is unchanged | **Medium** |
+| WS1 cannot run in enforce mode on the OT pilot, and the prerequisite check accepts any non-empty string (§105) | Enforce needs flow control and evidence for IFC-04b, 06, 11, 12 and 13. Only IFC-11 is done; the pilot deployment declares no evidence and its tools no flow blocks, so the gate refuses to build. The check itself passes on any non-empty string per work package. Per-order intent binding, the other prerequisite, was built in #1194 and refuses S06, S09, S17 and S22 before review | **Medium** |
 | The A2A envelope accepted an intermediary's changed amount, a re-rooted chain and a shared-key forgery (§103) | With every strict argument supplied, a chain whose links carried no parameters let an envelope for 25000 verify where the authority meant 250; a chain started at the intermediary's own key verified; one HMAC key registered for every principal let the intermediary sign as the origin; an in-memory guard forgot nonces at a restart; an unchecked task binding passed. Repaired with signed per-link argument conditions, an anchored root, shared-key refusal, Ed25519 links, a durable guard and strict unchecked-binding failures. Reference path, author's tests only | **Medium** |
 | G1 failed on AgentDojo development tasks (§100) | `E_IFC_WS1` completed 7/18 benign tasks against 6/18 for refuse-all and kept 0/48 injected goals; 14 blocked benign calls were 12 writes and 2 `get_webpage` reads, payload integrity the main cause. Scripted replay, zero model calls; SAP v8 stays DRAFT and unregistered | **High** |
 | The AROMER learning layer ran idle for four months, and its AII step is unexplained (§101) | 124 daily snapshots after the last episode (2026-07-02) show AII 0.9897 to 0.9915 on a frozen 200-episode sample; nine priors and all three bandit rows carry observation counts above the 21,864 episodes; the one-day ECE drop from 0.0637 to 0.0065 on 06-29 has no recorded cause. On the 18,249 recorder-hook episodes AROMER asked for review on 3,033 (16.6 %), 2,767 of them medium-tier shell execution | **Medium** |
@@ -6854,3 +6861,54 @@ Limits:
   in place of the shared signing key on the executor.
 - AACP's E-01 probe was run against a harness, not against this probe. A
   binding that points at it has not been written.
+
+## §105 WS1 cannot run in enforce mode on the OT pilot, and the prerequisite check accepts any non-empty string (2026-11-10)
+<!-- finding-status: open -->
+
+**Status:** open. Nothing is changed in the pilot or the gate. This records
+why the enforce run that `docs/assurance/ws1_utility_test_plan_v1.md` names
+as the next step cannot be made yet.
+
+WS1 runs in shadow on the OT pilot: it records what it would decide and
+changes no decision. The plan's enforce threshold named two prerequisites,
+per-order intent binding and the flow-control work packages.
+
+**The first is built.** #1194 added the work-order scope guard
+(`deploy/ot-pilot/ot_bundle.py`, `validate_intent_scope`). It checks each
+call against the scope of its own work order, and review cannot lift its
+refusals. The four independent scenarios that went wrong on 2026-11-04
+(S06 and S09 executed after an approval, S17 and S22 were routed to a
+person) are since refused at assess. The same 24 scenarios pass 24 of 24 on
+the rebuilt pilot (`artifacts/ot-pilot/dual-control-2026-11-06/`). Those
+scenarios exposed the defect, so they are not a holdout for its repair. The
+plan still said "not started" for this step; it is corrected with this
+entry.
+
+**The second is not.** `Ws1Gate` refuses to build in enforce mode without
+`REMORA_FLOW_CONTROL=1` and named evidence for IFC-04b, IFC-06, IFC-11,
+IFC-12 and IFC-13 (`remora/verification/execution_gate.py`). In
+`docs/design/derived-information-flow-control-v1-status.md` only IFC-11 is
+done. IFC-04, IFC-06 and IFC-12 are in progress, and IFC-13 is not started.
+The pilot's deployment (`deploy/ot-pilot/ot_ws1.py`) declares no evidence,
+its ToolSpec bundle has no flow blocks, and the compose file does not set
+flow control. Building an enforce gate from the pilot's deployment raises,
+naming all five.
+
+**The check is weaker than its text.** It asks for a non-empty string per
+work package and nothing more. A deployment that wrote one word for each
+would get an enforce gate. Nothing in the repository does this outside the
+test fixture, which labels itself test-only. The check stops an oversight,
+not a decision to switch enforce on without the work.
+
+So the pilot's enforce run is blocked by unfinished flow-control work, not
+by wiring, and switching it on today would mean writing five strings that
+no evidence stands behind. `tests/test_ot_pilot_ws1_enforce_blockers.py`
+pins each of these facts, so a change in any of them has to update this
+entry.
+
+Limits:
+
+- The status record is read as written. Whether a work package marked in
+  progress is close to done was not assessed.
+- What evidence the check should demand is not designed here. A digest of
+  a committed artifact per work package is one candidate.

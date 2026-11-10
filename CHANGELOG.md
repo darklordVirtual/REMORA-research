@@ -4,6 +4,12 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### WS1 enforce on the OT pilot: what blocks it, recorded (2026-11-10)
+
+- NEGATIVE_RESULTS §105: `Ws1Gate` refuses enforce mode for the pilot's deployment, because four of the five flow-control work packages it requires are not done and the pilot declares no flow blocks. The prerequisite check accepts any non-empty string as evidence. Per-order intent binding, the other prerequisite, was built in #1194.
+- `docs/assurance/ws1_utility_test_plan_v1.md` said per-order intent binding was not started; corrected.
+- Tests: `tests/test_ot_pilot_ws1_enforce_blockers.py` pins each fact.
+
 ### Custody: rule 4 probed with real OS users; the OT pilot does not run the guard (2026-11-10)
 
 - `scripts/probe_custody_isolation.py` starts a credential holder and an agent in one Linux container and one PID namespace. With one uid the agent reads the credential from `/proc/<pid>/environ` and `/proc/<pid>/mem`. With the holder under another uid and the `controlled_pilot` profile, every read is denied. A holder that declares `os_user` and runs as the agent uid or as root is refused by the guard. Result: `artifacts/assurance/custody-isolation-probe-2026-11-10/`.
