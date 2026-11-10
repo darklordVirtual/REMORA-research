@@ -287,3 +287,54 @@ def test_the_tier_candidate_shift_read_off_matches_what_was_stated():
     assert len(extra) == 36 and one["measures"]["P1"]["shifts_with_a_limit_refusal"] == 38
     assert all(w.get("reason") == "limit_dual_control_unmet" and w["limits"] == ["pic-101-movement"]
                for w in one["writes"] if w["outcome"] == "refused" and w["shift_id"] in extra)
+
+
+# ── plan v5: a candidate beside the deployed policy ────────────────────────
+
+def test_paired_counts_only_and_earlier_in_both_directions():
+    minutes = {"a": {"e1": 5, "e2": None, "e3": 10, "e4": 40, "e5": 20, "e6": None},
+               "b": {"e1": None, "e2": 7, "e3": 30, "e4": 20, "e5": 30, "e6": None}}
+    out = prot._paired(minutes, ["e1", "e2", "e3", "e4", "e5", "e6"], "a", "b")
+    assert out["only_a"]["episodes"] == ["e1"] and out["only_b"]["episodes"] == ["e2"]
+    assert out["earlier_under_a"]["episodes"] == ["e3"]      # 20 minutes earlier
+    assert out["earlier_under_b"]["episodes"] == ["e4"]
+    # e5 is 10 minutes apart, below the 15-minute mark; e6 is reached under neither.
+    assert sum(v["count"] for v in out.values()) == 4
+
+
+def test_the_v5_candidate_beside_the_deployed_policy_on_the_spent_episodes():
+    """The fit the plan says the candidate was chosen on (plan v5 section 1):
+    on the 40 episodes already spent it reaches the harms the deployed policy
+    reaches, at each approver count, and no other. Not evidence about new data."""
+    art = Path(__file__).resolve().parents[1] / "artifacts" / "ot-pilot"
+    v5 = art / "limits-v5"
+    out = prot.compare_with_deployed(
+        [art / "limits-v4" / "misuse" / "episodes-B.json",
+         art / "limits-v4" / "misuse" / "episodes-W.json"],
+        v5 / "limits-candidate-v5.json", v5 / "limits-candidate-v5.trusted-key")
+    reached = {k: v["harm_reached"] for k, v in out["measures"]["all"]["M1"].items()}
+    assert reached == {"none": 40, "v3": 18, "deployed_1": 17, "deployed_2": 18,
+                       "candidate_1": 17, "candidate_2": 18}
+    assert out["candidate_gives_up_protection_in"] == []
+    m3 = out["measures"]["all"]["M3"]
+    assert all(cell["count"] == 0 for side in m3.values() for cell in side.values())
+    assert out["measures"]["V"] == {"episodes": 40, "valid": 40, "invalid": []}
+
+
+def test_the_v5_candidate_differs_from_the_deployed_policy_in_valve_travel_only():
+    art = Path(__file__).resolve().parents[1]
+    cand = json.loads((art / "artifacts" / "ot-pilot" / "limits-v5"
+                       / "limits-candidate-v5.json").read_text())["policy"]
+    dep = json.loads((art / "deploy" / "ot-pilot" / "limits.json").read_text())["policy"]
+    assert cand["meters"] == dep["meters"] and cand["coverage"] == dep["coverage"]
+    other = lambda p: [lim for lim in p["limits"] if lim["quantity"] != "valve_travel"]  # noqa: E731
+    assert other(cand) == other(dep)
+    valve = {lim["limit_id"]: (lim["resource"], lim["max"], lim["window_seconds"])
+             for lim in cand["limits"] if lim["quantity"] == "valve_travel"}
+    assert valve == {"valve-travel": ("*", 200, 3600), "drain-valve-travel": ("V-12", 70, 3600),
+                     "valve-travel-2h": ("*", 290, 7200)}
+    from remora.enforcement.cumulative_limits import LimitPolicyError
+
+    with pytest.raises(LimitPolicyError, match="unknown_kid"):
+        prot.holdout.load_policy(art / "artifacts" / "ot-pilot" / "limits-v5"
+                                 / "limits-candidate-v5.json")

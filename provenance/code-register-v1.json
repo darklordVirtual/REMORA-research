@@ -17401,9 +17401,9 @@
     },
     "scripts/run_limits_protection.py": {
       "concepts": [],
-      "git_blob": "a10b8a659e5db2302f01340f49cb185d6ea68f30",
+      "git_blob": "d58a742053f2e8d1013139076806399eb0282e1f",
       "mode": "100755",
-      "sha256": "260f0f7a3efc06d6e48ebcb806d4dc3f7b3c19667c19447b6a8ac3edb26b0789"
+      "sha256": "a3de110972446b293e7410be4a20fa9116e3dca4d783fc8afeab18743f17c3a5"
     },
     "scripts/run_live_benchmark.py": {
       "concepts": [],
@@ -21260,9 +21260,9 @@
     },
     "tests/test_limits_protection.py": {
       "concepts": [],
-      "git_blob": "f8430e20541f5ae17ad6df8e1e2e935d36379783",
+      "git_blob": "c5630a4af79bdc147b2559d48bf935fd4a69fa76",
       "mode": "100644",
-      "sha256": "c152b9b7919fceaa8640065e3fb739d4b3d99df1a0a8fc81005c5b358fe04525"
+      "sha256": "4ee0e50135b324c4bac760c4118b13136664010601a4fe06be3d5348259781e9"
     },
     "tests/test_llm_judge.py": {
       "concepts": [],
@@ -23887,7 +23887,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "940a417ee353381c3ed8bb217b9e74f8538cc6de5b5c794e6dc226bbe129e929",
+  "register_sha256": "d43d8875f4358d19512ea1966a4ed514c908c8a6cdbc2131c584bb0be0b3f292",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
