@@ -44,6 +44,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from remora.capabilities.resource import ResourceRefused, canonical_resource
+from remora.flow.check import resource_readers
 from remora.flow.context import FlowDispatchFenceLost
 from remora.flow.handles import HandleRecord, handle_token, new_handle_id
 from remora.flow.label import (
@@ -221,11 +222,15 @@ class FlowLabeler:
                         readers |= metadata_readers(name, path)
                 elif r.kind == "resource_acl":
                     resource = resolved_args.get(r.values[0])
-                    listed = (self._resource_acl(resource)
-                              if self._resource_acl is not None and isinstance(resource, str)
-                              else ())
-                    # A resolver may answer PUBLIC for a world-readable resource.
-                    readers = PUBLIC if listed is PUBLIC else canonical(listed)
+                    # PUBLIC for a world-readable resource; no reader at all when
+                    # there is no registry, the argument names no canonical
+                    # resource, or the registry fails or names nobody.
+                    readers = set()
+                    if self._resource_acl is not None:
+                        try:
+                            readers = resource_readers(self._resource_acl, resource)
+                        except ResourceRefused:
+                            readers = set()
                 elif r.kind == "inherit_args":
                     readers = (args_label.readers if arg_labels else {ctx.user_principal})
                 if readers is not PUBLIC:

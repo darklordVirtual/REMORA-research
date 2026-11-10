@@ -391,9 +391,10 @@ def test_counterfactual_a_registry_that_calls_the_secret_public_lets_it_out(
         evaluation, monkeypatch, tmp_path):
     """The registry is the deployment's statement, and the decision rests on it."""
     ev, _committed, _fresh = evaluation
-    from remora.flow.label import PUBLIC
+    from remora.flow.acl_registry import SCHEMA
 
-    monkeypatch.setattr(ev, "registry_acl", lambda tenant, resource: PUBLIC)
+    monkeypatch.setattr(ev, "registry_document", lambda: {"schema": SCHEMA, "tenants": {
+        ev.TENANT: [{"resource": ev.RECORD_PREFIX + "*", "readers": "PUBLIC"}]}})
     case = next(c for c in ev.catalogue()
                 if (c.attack_class, c.variant) == ("composed_exfiltration",
                                                    "secret_emailed_outside"))
@@ -404,3 +405,24 @@ def test_counterfactual_a_registry_that_calls_the_secret_public_lets_it_out(
         finally:
             world.close()
     assert measured["tool_body_ran"] and measured["secret_reached_sink"]
+
+
+def test_a_record_the_registry_does_not_know_is_refused_not_opened(evaluation, monkeypatch,
+                                                                    tmp_path):
+    """Fail closed end to end: with the public entry removed, the write to a
+    record the registry has no answer for does not run, with public data."""
+    ev, _committed, _fresh = evaluation
+    from remora.flow.acl_registry import SCHEMA
+
+    monkeypatch.setattr(ev, "registry_document", lambda: {"schema": SCHEMA, "tenants": {
+        ev.TENANT: [{"resource": ev.RECORD_PREFIX + "cust-secret", "readers": [ev.USER]}]}})
+    case = next(c for c in ev.catalogue()
+                if (c.attack_class, c.variant) == ("composed_exfiltration",
+                                                   "control_public_read_then_write"))
+    with ev._quiet():
+        world = ev.World(tmp_path)
+        try:
+            measured = case.run(world, ev.RESOURCE_ACL_ARM)
+        finally:
+            world.close()
+    assert not measured["tool_body_ran"]

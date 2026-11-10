@@ -397,10 +397,45 @@ def test_the_public_recipient_is_within_no_reader_set_however_it_is_written():
         assert not flows_to(Label(readers, Integrity.TRUSTED), PUBLIC_RECIPIENT), readers
 
 
-def test_an_acl_with_no_reader_still_names_no_one_and_is_not_public():
+def test_a_resource_the_acl_names_no_reader_for_is_unresolved_not_open():
+    """Fail closed. A registry that answers with no reader for a resource
+    (an unknown one, typically) has not said nobody receives the write, and
+    the check must not read it as 'no recipient the data may not reach'."""
     write = parse_flow(_WRITE)
-    verdict = flow_check(write, context_label=BOTTOM, value_labels={},
-                         resolved_args={"path": "res://records/unknown", "body": "x"},
-                         epoch=0, resource_acl=lambda r: [])
-    assert verdict.conf_viol == frozenset() and recipients(
-        write, {"path": "res://records/unknown"}, resource_acl=lambda r: [])[0] == frozenset()
+    args = {"path": "res://records/unknown", "body": "x"}
+    assert recipients(write, args, resource_acl=lambda r: []) == (frozenset(), ("path",))
+    for label in (BOTTOM, SECRET):
+        verdict = flow_check(write, context_label=label, value_labels={}, resolved_args=args,
+                             epoch=0, resource_acl=lambda r: [])
+        assert verdict.conf_viol == frozenset({"unresolved:path"})
+
+
+@pytest.mark.parametrize("answer", [None, 7, "user://acme/alice", [7], ["not a principal"],
+                                    {"user://acme/alice": True}])
+def test_a_registry_answer_that_is_not_a_list_of_principals_is_unresolved(answer):
+    write = parse_flow(_WRITE)
+    args = {"path": "res://records/pub-1", "body": "x"}
+    found, unresolved = recipients(write, args, resource_acl=lambda r: answer)
+    assert found == frozenset() and unresolved == ("path",), answer
+
+
+def test_a_registry_that_raises_is_unresolved_not_a_crash():
+    write = parse_flow(_WRITE)
+
+    def broken(resource):
+        raise RuntimeError("registry down")
+
+    assert recipients(write, {"path": "res://records/pub-1"}, resource_acl=broken) == (
+        frozenset(), ("path",))
+
+
+def test_the_registry_is_asked_about_the_canonical_resource():
+    write = parse_flow(_WRITE)
+    asked = []
+
+    def acl(resource):
+        asked.append(resource)
+        return [USER]
+
+    recipients(write, {"path": "RES://Records/pub-1/"}, resource_acl=acl)
+    assert asked == ["res://records/pub-1"]

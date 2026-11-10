@@ -1641,11 +1641,17 @@ def _flow_resource_acl(tenant: str) -> Any:
     ``REMORA_FLOW_RESOURCE_ACL_MODULE`` names a module exposing
     ``resource_acl(tenant, resource)``. It returns the canonical principals
     that may read the canonical resource, or ``remora.flow.label.PUBLIC`` for
-    one anyone may read. Unset means no registry: a recipients rule of kind
-    ``resource_of`` is then unresolved and a readers rule of kind
-    ``resource_acl`` gives no readers, which is the behaviour before this
-    setting. The lookup is the deployment's statement about its own
-    resources; REMORA does not check it against the system that holds them.
+    one anyone may read. ``remora.flow.acl_registry`` is such a module, read
+    from the file in ``REMORA_FLOW_RESOURCE_ACL_FILE``. Unset means no
+    registry: a recipients rule of kind ``resource_of`` is then unresolved
+    and a readers rule of kind ``resource_acl`` gives no readers, which is
+    the behaviour before this setting. A module that also exposes
+    ``validate()`` is validated when it is bound, so a registry that cannot
+    load fails the first flow decision with an error, and is not mistaken
+    for one that refuses everything. A lookup that fails later, or names no
+    reader, is refused by ``remora.flow.check.resource_readers``. The lookup
+    is the deployment's statement about its own resources; REMORA does not
+    check it against the system that holds them.
     """
     global _FLOW_RESOURCE_ACL
     if _FLOW_RESOURCE_ACL is None:
@@ -1653,7 +1659,11 @@ def _flow_resource_acl(tenant: str) -> Any:
             _os.environ.get("REMORA_FLOW_RESOURCE_ACL_MODULE", ""))
         if module is None:
             return None
-        _FLOW_RESOURCE_ACL = module.resource_acl
+        lookup = module.resource_acl
+        check = getattr(module, "validate", None)
+        if callable(check):
+            check()
+        _FLOW_RESOURCE_ACL = lookup
     lookup = _FLOW_RESOURCE_ACL
     return lambda resource: lookup(tenant, resource)
 

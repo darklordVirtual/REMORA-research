@@ -47,7 +47,7 @@ from remora.capabilities.resource import ResourceRefused, canonical_resource
 from remora.flow.label import PUBLIC, Integrity, Label, canonical_bytes, flows_to, join_all
 from remora.flow.spec import FlowSpec
 
-__all__ = ["PUBLIC_RECIPIENT", "FlowVerdict", "flow_check", "recipients"]
+__all__ = ["PUBLIC_RECIPIENT", "FlowVerdict", "flow_check", "recipients", "resource_readers"]
 
 #: The recipient of a call whose target a resource ACL resolver reports as
 #: world-readable (it answers :data:`remora.flow.label.PUBLIC`). It is not a
@@ -75,6 +75,33 @@ class FlowVerdict:
     @property
     def clean(self) -> bool:
         return not self.conf_viol and not self.int_viol and not self.ctrl_viol
+
+
+def resource_readers(resource_acl: Callable[[str], Any], value: Any) -> Any:
+    """Who may read the resource *value* names, from a deployment's ACL lookup.
+
+    Returns :data:`~remora.flow.label.PUBLIC` or a non-empty frozenset of
+    canonical principals. Everything else is :class:`ResourceRefused`, so
+    both callers fail closed: a value that is not a canonical resource, a
+    lookup that raises, an answer that is not PUBLIC or a list, tuple or set
+    of principals, an entry that is not a canonical principal, and an answer
+    that names no reader. The last one matters most. A registry asked about a
+    resource it does not know answers with nothing, and "no reader" must not
+    be read as "nobody receives this".
+    """
+    resource = canonical_resource(value)
+    try:
+        answer = resource_acl(resource)
+    except Exception as exc:  # noqa: BLE001 - any registry fault is a refusal
+        raise ResourceRefused(f"resource ACL lookup failed: {type(exc).__name__}") from exc
+    if answer is PUBLIC:
+        return PUBLIC
+    if not isinstance(answer, (list, tuple, set, frozenset)):
+        raise ResourceRefused("a resource ACL answers PUBLIC or a list of principals")
+    readers = frozenset(canonical_resource(p) for p in answer)
+    if not readers:
+        raise ResourceRefused("the resource ACL names no reader for this resource")
+    return readers
 
 
 def _values(value: Any) -> list[Any]:
@@ -143,10 +170,8 @@ def recipients(flow: FlowSpec, resolved_args: Mapping[str, Any], *,
         def acl(value: Any) -> list[str]:
             if resource_acl is None:
                 raise ResourceRefused("no resource ACL resolver")
-            readers = resource_acl(canonical_resource(value))
-            if readers is PUBLIC:
-                return [PUBLIC_RECIPIENT]
-            return [canonical_resource(p) for p in readers]
+            readers = resource_readers(resource_acl, value)
+            return [PUBLIC_RECIPIENT] if readers is PUBLIC else sorted(readers)
         add(str(rule.argument), acl)
     elif rule.kind == "static":
         found.update(rule.static)

@@ -44,8 +44,9 @@ Every case is run against the real code, not a model of it:
   each read. The route has no resource ACL registry and takes no source
   metadata, so the readers cannot depend on the record.
 * ``remora_flow_resource_acl`` (added 2026-11-10): the same without static
-  readers. The server looks each record up in a resource ACL registry
-  (``_flow_resource_acl``; ``registry_acl`` here is the deployment's), so a
+  readers. The server looks each record up in the shipped file registry
+  (``remora/flow/acl_registry.py``, bound by ``REMORA_FLOW_RESOURCE_ACL_MODULE``
+  and fed ``registry_document()`` as the deployment's file), so a
   read is labelled with its record's readers and a write's recipients are
   its record's readers. Records are named as canonical resources in this arm.
 * ``library_advisory``: ``remora.assess.assess_tool_call``, the advisory
@@ -698,17 +699,18 @@ RESOURCE_ACL_ARM = "remora_flow_resource_acl"
 ROUTE_LABEL_ARMS = (RESULT_LABELS_ARM, RESOURCE_ACL_ARM)
 
 
-def registry_acl(tenant: str, resource: str) -> Any:
-    """The harness deployment's resource ACL: who may read each record.
+def registry_document() -> dict[str, Any]:
+    """The harness deployment's resource ACL file (remora/flow/acl_registry.py).
 
     The secret record is the user's alone. Every other record is one anyone
     in the deployment may read, so the registry answers PUBLIC for it.
     """
-    from remora.flow.label import PUBLIC
+    from remora.flow.acl_registry import SCHEMA as ACL_SCHEMA
 
-    if tenant != TENANT:
-        return []
-    return [USER] if _record_key(resource) in SECRET_RECORDS else PUBLIC
+    secret = [{"resource": RECORD_PREFIX + record, "readers": [USER]}
+              for record in sorted(SECRET_RECORDS)]
+    return {"schema": ACL_SCHEMA, "tenants": {TENANT: [
+        *secret, {"resource": RECORD_PREFIX + "*", "readers": "PUBLIC"}]}}
 
 
 def _canonical_records(call: dict[str, Any]) -> dict[str, Any]:
@@ -731,7 +733,19 @@ def enable_flow_control(world: World, *, result_labels: bool = False,
     world.mp.setattr(world.exec, "_FLOW_HANDLES", None)
     specs = _flow_specs(result_labels, resource_acl)
     world.mp.setattr(world.exec, "_flow_spec", lambda tool: specs.get(tool))
-    world.mp.setattr(world.exec, "_FLOW_RESOURCE_ACL", registry_acl if resource_acl else None)
+    # The registry is the shipped one, bound the way a deployment binds it:
+    # by module name, from a file. Nothing is injected into the server.
+    from remora.flow import acl_registry
+
+    world.mp.setattr(world.exec, "_FLOW_RESOURCE_ACL", None)
+    acl_registry.reset()
+    if resource_acl:
+        registry = world.workdir / "resource-acl.json"
+        registry.write_text(json.dumps(registry_document()), encoding="utf-8")
+        world.mp.setenv("REMORA_FLOW_RESOURCE_ACL_FILE", str(registry))
+        world.mp.setenv("REMORA_FLOW_RESOURCE_ACL_MODULE", "remora.flow.acl_registry")
+    else:
+        world.mp.delenv("REMORA_FLOW_RESOURCE_ACL_MODULE", raising=False)
     minted = world.post("/v1/contexts", {"user_principal": USER, "model_principal": MODEL})
     if minted.status != 200:
         raise RuntimeError(f"context mint refused: {minted.reason}")
