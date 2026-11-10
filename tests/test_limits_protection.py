@@ -234,7 +234,8 @@ def test_the_tier_candidate_differs_from_the_v4_candidate_in_one_term_and_is_not
     tier = json.loads((art / "limits-v4-tier" / "limits-candidate-v4-tier.json").read_text())
     base = json.loads((art / "limits-v4" / "limits-candidate-v4.json").read_text())
     pic = next(lim for lim in tier["policy"]["limits"] if lim["limit_id"] == "pic-101-movement")
-    assert pic.pop("dual_control_above") == 50
+    tier_above = pic.pop("dual_control_above")
+    assert tier_above == 50
     assert tier["policy"] == base["policy"]
     # Signed with a key the pilot does not trust: deploying these terms needs
     # one of the pilot's limit authorities.
