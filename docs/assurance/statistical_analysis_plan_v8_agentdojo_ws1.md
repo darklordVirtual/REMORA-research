@@ -254,6 +254,10 @@ the test run until each passes.
 
 ## 14. Change record
 
+- 2026-11-10, label change made as stated in the entry below. G1 and G1′
+  were replayed after it and both write their committed artifacts byte for
+  byte, so the v1 files stay and no v2 file exists. The `user_task_0`
+  transfer of 2023 is now refused on its amount in both arms.
 - 2026-11-10, label change stated before it is made: `value_trusted`
   (`experiments/control_eval/remora_ifc.py`) labels a numeric argument
   TRUSTED when the task text holds the number anywhere. The G1′ review
