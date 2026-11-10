@@ -273,9 +273,9 @@
     },
     ".gitignore": {
       "concepts": [],
-      "git_blob": "8602d2e5e986915855ec797300641d9578bae06c",
+      "git_blob": "cad6f62a1622845f1b91b6225815b4d2da3fb500",
       "mode": "100644",
-      "sha256": "8e8b0a593cc45dc2069889928458b75a014a73db5b7453ba22d0650cfa4914fc"
+      "sha256": "8e8514333e0a2593cbac76db2878c0a762d4f168e5105f0d8bc4a4762cd470e3"
     },
     ".gitleaks.toml": {
       "concepts": [],
@@ -369,9 +369,9 @@
     },
     "NEGATIVE_RESULTS.md": {
       "concepts": [],
-      "git_blob": "7553f5012d1350391010c6fc553190807d0f95e2",
+      "git_blob": "92a414745e6ea676f3439bada2ca94e5c001f0fe",
       "mode": "100644",
-      "sha256": "22155accb28c1e89b636e956c3eb614ffb07573755656f6cae2db37f0b89ddf8"
+      "sha256": "b55bff48e12912a0f94a277dfb6f230373f488df2e4e2e0c1036dbba93e81584"
     },
     "NOTICE": {
       "concepts": [],
@@ -543,15 +543,15 @@
     },
     "artifacts/assurance/custody-isolation-probe-2026-11-10/README.md": {
       "concepts": [],
-      "git_blob": "2be9b406ceb06d2c944c4382bdad63dedec3cab4",
+      "git_blob": "bdcf44f111c107b243a37d1996f3d9c64b9cf055",
       "mode": "100644",
-      "sha256": "61bdf870c6fefcee79bd66b47bbb682dcee44e4aca2b10ac9d9eec8df4d1366a"
+      "sha256": "e5582e95acd7a9413b5beed6be7c2e7dd4407c53efb135da3b2efff32c5e57fc"
     },
     "artifacts/assurance/custody-isolation-probe-2026-11-10/result.json": {
       "concepts": [],
-      "git_blob": "31ef7c75ffc35ccef9d147bc0b7cf74f43e0196a",
+      "git_blob": "7a4bd64c99585ba5b9c13b3293415b7f5be991f6",
       "mode": "100644",
-      "sha256": "91efe05572bbb34e1e055a9d53392a13596fb1952a65b432b25cd0a087fa5f8f"
+      "sha256": "7f0d5dde820e3471dda2543371ba58f2a9bd23f042627c9124ff8e75d249dd8a"
     },
     "artifacts/assurance/delegated-authority-2026-11-07/README.md": {
       "concepts": [],
@@ -573,15 +573,15 @@
     },
     "artifacts/assurance/pre-federation-redteam-2026-11-10/README.md": {
       "concepts": [],
-      "git_blob": "f77d4aa3756c9b51a595002bf5d181535c9479d6",
+      "git_blob": "60abe2cbc2e220b4e5968f998ec0f0752331e67b",
       "mode": "100644",
-      "sha256": "819b52b24921fa8127ee265da705d1ab37e8af1ba176bbd0222786ea4f4d8d5e"
+      "sha256": "7cf5c6dfbd7014c9ccecaad2563952555f154659b1fe357596820e61a73868ee"
     },
     "artifacts/assurance/pre-federation-redteam-2026-11-10/result.json": {
       "concepts": [],
-      "git_blob": "20273fa438de0aa1c062acc7e3de0d1914be5d05",
+      "git_blob": "ba390e38e43c3004fadd32f94f620775bba4f6a6",
       "mode": "100644",
-      "sha256": "dc92c48036fc22a2872fd158efdbb8dae13efec6c2fac9baf715b5e7dd09c29c"
+      "sha256": "dcfa97e918c33702cb49567dbb23214c49328cc97402d4770cef8e09921e3161"
     },
     "artifacts/audit_anchoring/sample_checkpoints.jsonl": {
       "concepts": [],
@@ -6109,9 +6109,9 @@
     },
     "deploy/ot-pilot/effect_verifier.py": {
       "concepts": [],
-      "git_blob": "4b2a14c6ec71e5d35bcca7448d9c3f24aa992ff7",
+      "git_blob": "ca442a2832565050f395293c56e8fa18aa40748c",
       "mode": "100644",
-      "sha256": "d5f588a89d3c858c4146e70e53c49ccdfd88a757985fa24f462a1a3b6bc24f82"
+      "sha256": "937b250105017c29b08fa1fc81985112009a017e89c7d7f8839871093fd2d826"
     },
     "deploy/ot-pilot/init_tokens.py": {
       "concepts": [],
@@ -6173,15 +6173,15 @@
     },
     "deploy/ot-pilot/plant_model.py": {
       "concepts": [],
-      "git_blob": "d9e52b78a74ef1d8b0928771d8ff0e24b767423c",
+      "git_blob": "35d5bbaa3479fe24f3443ce0faf8e6e1ef7566d4",
       "mode": "100644",
-      "sha256": "e57711df3c684e4df939db1eb503ded6f695901f222d09118ed0145b9e463838"
+      "sha256": "5f1bcf0277811aea9a78d323e67073081844bf4b725b7b10f15bf7877d1a166f"
     },
     "deploy/ot-pilot/plant_service.py": {
       "concepts": [],
-      "git_blob": "73eabc55fba6ae5762b869f600e14879f627e4b7",
+      "git_blob": "666b1944e0916764afcb779d488a771d766d6240",
       "mode": "100644",
-      "sha256": "57ccc8473c2c045ff7bc96c0dd6a5eb4eeea649a604575989de4a21de1477d7f"
+      "sha256": "dff633889dfae35507952fa71c6765f941b5b571af1c443ad9ee133d6ff27c30"
     },
     "deploy/ot-pilot/reconcile.py": {
       "concepts": [],
@@ -17137,9 +17137,9 @@
     },
     "scripts/probe_custody_isolation.py": {
       "concepts": [],
-      "git_blob": "5117f2d5b71cb21cfb2a9b5f341a90a1e908b8d3",
+      "git_blob": "9411064ba5aaff815388838b47d327cff89c48bd",
       "mode": "100644",
-      "sha256": "d0e4d3ceb7c321f768de7f28c7cd14386571209e049e21d5e5e95f99b681bfd8"
+      "sha256": "63915e0e6f312ef4240885294d2211edca3f14fef58d7336d660c1a6c55e01d1"
     },
     "scripts/probe_reimplementations_evidence_sufficiency.py": {
       "concepts": [],
@@ -17203,9 +17203,9 @@
     },
     "scripts/reproduce_pre_federation_redteam.py": {
       "concepts": [],
-      "git_blob": "d88b0e164e4de67fe3473e0af86a54919d79c783",
+      "git_blob": "a5d3fead65f2e5c52dacfa8ba66b2b7a6ca51607",
       "mode": "100644",
-      "sha256": "be9064d5b32d58237050023f3606a864d800923f9649bbd1a0823cc79232da38"
+      "sha256": "e072015254ff02543752351b49d5db67a2c36f5e982c409828417a7f86c265d1"
     },
     "scripts/reproduce_results.py": {
       "concepts": [],
@@ -19641,9 +19641,9 @@
     },
     "tests/test_custody_isolation_probe.py": {
       "concepts": [],
-      "git_blob": "df0f7a4ab81f58ee8b3e77a46abc5c7591e57286",
+      "git_blob": "089f36f00385c10e2840b2871c7ffadfba190f00",
       "mode": "100644",
-      "sha256": "34d3f15c461e6f4c7af796ebf4c30664696a79df314ac7c719e39ecdffbb0449"
+      "sha256": "17885c0754e8b13fe2b6c40a625d00f95e166791b7dcdb1af43e69eae92802af"
     },
     "tests/test_custody_reproduction.py": {
       "concepts": [],
@@ -21472,9 +21472,9 @@
     },
     "tests/test_ot_pilot_effect_verification.py": {
       "concepts": [],
-      "git_blob": "150a870f059d3b12cdbbb30ae5ffdec31eb827ab",
+      "git_blob": "6ae1dacaf8908b339f5fa45e60d58babd36560cf",
       "mode": "100644",
-      "sha256": "1778bc01177452100793b7fbf7508f66cc6c9a4c0e1aeb86a4692eeaf6e9414c"
+      "sha256": "db6e32c86a087b4b793aff3c44dab8a85fd042aef243d8ca94fefdfcefd6c02e"
     },
     "tests/test_ot_pilot_intent_scope.py": {
       "concepts": [],
@@ -21504,9 +21504,9 @@
     },
     "tests/test_ot_pilot_ws1_enforce_blockers.py": {
       "concepts": [],
-      "git_blob": "c30dd7e434073cf000520303344daa185f1fa7a8",
+      "git_blob": "06b51f8231cf9089ee608ec2f1ca0adedc7bbf20",
       "mode": "100644",
-      "sha256": "62dcc9db481f8e08513a6ab0e3e0adf77b8ce83755092a5472ed9097bc63556a"
+      "sha256": "9ed90e0f6aeabd0c1dc548cc23b5fab98698960c3e339ed9fb7255724fa8f2b5"
     },
     "tests/test_otel.py": {
       "concepts": [],
@@ -21842,9 +21842,9 @@
     },
     "tests/test_redteam_76_reproduction.py": {
       "concepts": [],
-      "git_blob": "44cbc8fc0435f767e449a0080cb76e726703395f",
+      "git_blob": "4bbf45b48230145314735619258c1c3b32e58df3",
       "mode": "100644",
-      "sha256": "ef198958550c5ac4a1d9cfc62e83671073e6663c1dc2698d0019cd852bea1d81"
+      "sha256": "098974725f196be63f1f37ec75601604271cd044e66078d3bbb44ebf36a30690"
     },
     "tests/test_relations.py": {
       "concepts": [],
@@ -23857,7 +23857,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "6bfa7b7b061ba605d736eb85c3a5a64c438967d3870924ee40ef04bd9bdd442d",
+  "register_sha256": "5cca74be25346e449267a5d1c2574243311e2f97167b9020e5db81a9d2c72a0e",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

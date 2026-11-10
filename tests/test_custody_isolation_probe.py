@@ -37,13 +37,17 @@ def test_committed_result_shows_the_split_and_the_leaking_control():
     assert d["container"]["network"] == "none"
     control, split = _row(d["layouts"], "same_user"), _row(d["layouts"], "os_user")
     leaked = {a["technique"] for a in control["attempts"] if a["read_credential"]}
-    assert leaked == {"proc_environ", "proc_mem"}
+    assert leaked == {"proc_environ", "proc_task_environ", "proc_mem", "process_vm_readv",
+                      "ptrace_attach"}
     assert split["profile"] == "controlled_pilot" and split["holder_uid"] != split["agent_uid"]
-    assert {a["technique"]: a["error"] for a in split["attempts"]} == {
-        "proc_environ": "PermissionError", "proc_mem": "PermissionError",
-        "proc_cmdline": None, "proc_fd": "PermissionError", "proc_cwd": "PermissionError",
-        "signal_0": "PermissionError"}
+    errors = {a["technique"]: a["error"] for a in split["attempts"]}
+    # Everything but the two files Linux lets any uid read is refused by the kernel.
+    assert {t for t, e in errors.items() if e is None} == set(m.WORLD_READABLE)
+    assert {e for t, e in errors.items() if t not in m.WORLD_READABLE} == {"PermissionError"}
+    assert not any(a["read_credential"] for a in split["attempts"])
     assert [a["technique"] for a in split["attempts"]] == list(m.TECHNIQUES)
+    assert [a["technique"] for a in control["attempts"]] == list(m.TECHNIQUES)
+    assert control["holder_alive_after"] is True and split["holder_alive_after"] is True
     # No run's credential is stored.
     assert "probe-" not in RESULT.read_text(encoding="utf-8")
 
@@ -96,3 +100,42 @@ def test_the_pilot_compose_file_still_declares_no_profile_role_or_isolation():
     for name in ("REMORA_RUNTIME_PROFILE", "REMORA_EXECUTION_DOMAIN_ROLE",
                  "REMORA_EXECUTION_ISOLATION"):
         assert name not in compose
+
+
+# ── after review: ways the verdict could have said yes when it should not ──
+
+
+def test_a_split_whose_holder_was_gone_is_not_isolation():
+    """Denials from a dead holder are FileNotFoundError, not the kernel refusing."""
+    m = _module()
+    layouts = _layouts()
+    for attempt in _row(layouts, "os_user")["attempts"]:
+        if attempt["error"]:
+            attempt["error"] = "FileNotFoundError"
+    out = m.verdict(layouts)
+    assert out["checks"]["what_leaked_in_the_control_is_denied_in_the_split"] is False
+    gone = _layouts()
+    _row(gone, "os_user")["holder_alive_after"] = False
+    assert m.verdict(gone)["checks"]["every_technique_ran_against_a_live_holder"] is False
+
+
+def test_a_split_that_ran_no_technique_or_fewer_is_not_isolation():
+    m = _module()
+    empty = _layouts()
+    _row(empty, "os_user")["attempts"] = []
+    assert m.verdict(empty)["isolation_shown"] is False
+    fewer = _layouts()
+    _row(fewer, "os_user")["attempts"].pop()
+    assert m.verdict(fewer)["checks"]["every_technique_ran_against_a_live_holder"] is False
+
+
+def test_a_split_row_with_one_uid_is_not_a_split():
+    m = _module()
+    layouts = _layouts()
+    _row(layouts, "os_user")["holder_uid"] = _row(layouts, "os_user")["agent_uid"]
+    assert m.verdict(layouts)["checks"]["split_uids_differ"] is False
+
+
+def test_the_credential_is_not_passed_on_a_command_line():
+    source = (ROOT / "scripts" / "probe_custody_isolation.py").read_text(encoding="utf-8")
+    assert "str(holder.pid), secret]" not in source and "input=secret" in source

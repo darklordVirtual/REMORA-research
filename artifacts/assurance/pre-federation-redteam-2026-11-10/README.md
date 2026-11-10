@@ -16,7 +16,7 @@ They are not regressions, and each is listed in `result.json` with the first lin
 
 Five target the v1 Federation packages `effect-evidence-v1` and `exact-call-binding-v1`. §76 says those packages keep their bytes and are marked superseded with their blind spots recorded, so the probes fail there by decision. The repository's probes of the same names read the v1.1 successors.
 
-Three are receipt probes whose setup no longer reaches their target. They post a receipt to a chain that records no assessment, and the endpoint now refuses that earlier, with `assessment_decision_unknown`. The refusal is still a refusal. The repository's probes of the same names build the chain a real dispatch records and pass.
+Three are receipt probes that post a receipt to a chain that records no assessment. Two are refused earlier than they expect, with `assessment_decision_unknown`, so they no longer reach their target; the refusal is still a refusal. The third reaches it: its unbound receipt is refused with `binding_incomplete`, as the probe wants, and its follow-up receipt is then refused with `toolspec_hash_mismatch`, because the probe's chain names no assessed ToolSpec. The repository's probes of the same names build the chain a real dispatch records and pass.
 
 ## What it does not show
 

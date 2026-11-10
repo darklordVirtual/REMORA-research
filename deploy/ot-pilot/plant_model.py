@@ -180,7 +180,9 @@ class Plant:
         recorded for attribution and never trusted for authority.
         ``credential_id`` says which credential of that role it was, as the
         transport names it (a digest, never the credential): two holders of a
-        write credential are told apart by it, and a caller cannot choose it.
+        write credential are told apart by it. Over HTTP the plant service
+        derives it from the token presented and the caller cannot choose it.
+        An in-process caller passes its own, as it passes ``credential``.
         """
         with self._lock:
             entry: dict[str, Any] = {

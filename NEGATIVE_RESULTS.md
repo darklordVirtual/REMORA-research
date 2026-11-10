@@ -4866,9 +4866,13 @@ The same 46 probe bytes against today's code give 8 red. None is a
 regression. Five target `effect-evidence-v1` and `exact-call-binding-v1`,
 which keep their bytes and their recorded blind spots by the decision
 above. Three are receipt probes that post to a chain with no assessment
-recorded; the endpoint now refuses that earlier, with
-`assessment_decision_unknown`, so they no longer reach their target. Each of
-the eight has a passing successor of the same name in the repository.
+recorded. Two are refused earlier than they expect, with
+`assessment_decision_unknown`, and no longer reach their target. The third
+reaches it: its unbound receipt is refused as the probe wants, and its
+follow-up receipt is then refused with `toolspec_hash_mismatch`, because
+the probe's chain names no assessed ToolSpec. Each of the eight has a
+passing successor of the same name in the repository, with the setup a
+real dispatch records.
 
 This does not move the status. The attacks and the repairs have one author,
 and the external run of the v1.1 corpora has not happened.
@@ -5321,9 +5325,13 @@ The second case is narrowed, not closed. The plant journal now records
 which credential made each write, as a digest that does not reveal it
 (`credential_id`). A verifier told which one is the executor's
 (`OT_EXECUTOR_WRITER_ID`) records `plant_write_by_another_credential` as an
-anomaly and returns no verdict. The pilot does not set it, and its plant
-has one write token, so there the limit stands and a test pins it. Whoever
+anomaly and returns no verdict. The pilot's compose file does not set it,
+and its plant has one write token, so there the limit stands. Tests pin
+both: that the compose file does not name the variable, and that a
+verifier without it verifies the forged reference. Whoever
 holds the write token can have a write verified as a dispatch it names.
+The value is `plant_service.credential_id` of the executor's write token,
+which `python deploy/ot-pilot/plant_service.py --writer-id` prints.
 Telling two processes with the same token apart needs something the token
 holder cannot choose, such as a per-dispatch value from the authority that
 the plant checks. That is not built. The library verdict
@@ -5486,10 +5494,9 @@ PUBLIC in the same arm, and the secret is then emailed out, so the derived
 label is what decides. The cost is every control. The harness labelled each
 record by what it held. The route cannot. `/v1/execution` builds its
 labeller with no resource ACL lookup and passes it no source metadata. A
-read's readers can therefore only be static, public, the user or its
-arguments'. A
-public record therefore restricts the context like a secret one, and both
-controls that ran under harness labels are refused. The 14 rows were added
+read's readers can then only be static, public, the user or those of its
+arguments. A public record therefore restricts the context like a secret
+one, and both controls that ran under harness labels are refused. The 14 rows were added
 to `artifacts/posthoc/execution_chain_attack_eval_v1.json`; no row of another
 arm changed.
 
@@ -6932,8 +6939,8 @@ one Linux container and one PID namespace
 
 | Layout | Profile | Result |
 |---|---|---|
-| same uid (control) | `review` | the agent read the credential from `/proc/<pid>/environ` and `/proc/<pid>/mem` |
-| holder 10003, agent 10001 | `controlled_pilot` | environ, mem, fd, cwd and signal 0 denied; nothing read |
+| same uid (control) | `review` | the agent read the credential five ways: `environ`, the task's `environ`, `mem`, `process_vm_readv` and after `ptrace` attach |
+| holder 10003, agent 10001 | `controlled_pilot` | those five and eight more refused by the kernel; nothing read |
 | `os_user` declared, holder runs as the agent uid | `controlled_pilot` | the guard refused to start the holder |
 | `os_user` declared, holder runs as root | `controlled_pilot` | the guard refused to start the holder |
 
@@ -6987,8 +6994,12 @@ naming all five.
 
 **The check is weaker than its text.** It asks for a non-empty string per
 work package and nothing more. A deployment that wrote one word for each
-would get an enforce gate. Nothing in the repository does this outside the
-test fixture, which labels itself test-only. The check stops an oversight,
+would get an enforce gate. Three places in the repository do, each
+labelled as not evidence: the Study C harness
+(`experiments/ws1_composition/study_c/gate_defence.py`,
+"study-c-synthetic-world-only") and two test fixtures
+(`tests/test_ws1_execution_binding.py`,
+`tests/verification/ws1_deployment_fixture.py`). The check stops an oversight,
 not a decision to switch enforce on without the work.
 
 So the pilot's enforce run is blocked by unfinished flow-control work, not
