@@ -41,9 +41,9 @@ only pin it.
 What the arm leaves open: the content of a relaxed payload is whatever the
 run-time reader produced, so an injection can still change what a planned
 write says to the recipient the user named. The arm inherits E_IFC_WS1's
-labels with their faults: a number counts as trusted when the task text
-holds it anywhere, a file name included, and a resolver proves any earlier
-counterparty (NEGATIVE_RESULTS §100, follow-up). The plan here is supplied to
+labels and resolvers with their limits: a resolver proves any earlier
+counterparty and any of the user's own objects, not the one the task means
+(NEGATIVE_RESULTS §100, follow-up). The plan here is supplied to
 the gate; :func:`oracle_plan` builds it from ground-truth calls for the
 no-model replay, and nothing in this module shows that a model can write it
 without seeing tool output. For that reason the arm is not in the study

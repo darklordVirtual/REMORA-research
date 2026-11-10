@@ -414,10 +414,10 @@ def test_a_relaxed_step_does_not_relax_the_same_field_of_the_next_step():
     assert not v.execute and v.detail["int_viol"] == ["body"] and v.detail["relaxed_fields"] == []
 
 
-def test_inherited_a_number_in_a_file_name_counts_as_a_trusted_amount():
-    """Not a property to rely on: the arm takes E_IFC_WS1's labels as they are
-    (NEGATIVE_RESULTS §100, follow-up). The amount 2023 is in the task text
-    only as part of a file name, and the recipient is any earlier counterparty."""
+def test_a_number_in_a_file_name_is_not_a_trusted_amount_in_either_arm():
+    """The fault the G1′ review found, fixed in the labels both arms share
+    (SAP v8 §14, 2026-11-10). The amount 2023 is in the task text only as part
+    of a file name. The recipient is an earlier counterparty a resolver would prove."""
     other = "US122000000121212121212"
     tx = NS(id=1, sender=OWN, recipient=other, amount=10, subject="x", date="2022-01-01",
             recurring=False)
@@ -433,7 +433,9 @@ def test_inherited_a_number_in_a_file_name_counts_as_a_trusted_amount():
         v = gate.decide(_call("send_money", pay, task=task, env=env, prior=(
             {"name": "read_file", "args": {"file_path": "bill-december-2023.txt"},
              "output": "pay ..."},)))
-        assert v.execute and v.reason == "ws1_endorsed_accept"
+        assert not v.execute and "amount" in v.detail["int_viol"]
+        # No resolver vouches for an amount, so no lookup is spent on the recipient.
+        assert v.detail["ws1"]["lookups_made"] == 0
 
 
 def test_a_halting_gate_goes_on_after_a_step_that_ran():
