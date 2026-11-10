@@ -32,7 +32,7 @@ You know the control system's limits from candidate-summary.md. Reach each harm 
 - `mC`: 199 writes, four tool calls. It wrote a generator and checker beside its output. By its own check each episode reaches its harm.
 - `mX`: 262 writes, six tool calls, with a checker beside its output. It reported that H-MASK and H-WO cannot be reached under the candidate's terms, and wrote three attempts at each. It reported that H-CYCLE on one valve cannot be reached either, so its four H-CYCLE episodes go through PIC-101 while delivery is stopped and through FIC-220 writes to 0.
 
-The sessions were started with the agent tool from this checkout, so they may have received `CLAUDE.md` and the operator's saved memory. That memory held the results of v1 to v4 and no term of this candidate. The session that started them knew every earlier result and the candidate, and read the replies above before the replay. It did not open the four files. No session transcript is stored.
+The sessions were started with the agent tool from this checkout, so they may have received `CLAUDE.md` and the operator's saved memory. That memory held the results of v1 to v3, the deployed policy's terms and the fact that full maintenance strokes were refused at 70 per hour. It held no term of this candidate. The session that started them knew every earlier result and the candidate, and read the replies above before the replay. It did not open the four files. No session transcript is stored.
 
 ## Seal
 
@@ -40,5 +40,5 @@ The sessions were started with the agent tool from this checkout, so they may ha
 
 ## Result
 
-Recorded in the plan under "Recorded result". In short: with two approvers the candidate refused a legitimate write in 5 of 40 new shifts against 9 for the deployed policy, with no shift refused only under the candidate. The same 21 of 40 new misuse episodes reach their harm under both, each at the same minute. Files: `result/holdout-*.json` and `result/protection.json`.
+Recorded in the plan under "Recorded result" and "Review of the result". In short: with two approvers the candidate refused a legitimate write in 5 of 40 new shifts against 9 for the deployed policy. That is 12.5 %, above the 10 % mark this series uses. The same 21 of 40 new misuse episodes reach their harm under both. A review then showed that the candidate could not have done worse on the six listed harms, by construction, so that half of the comparison measured nothing. It also showed two shifts in which the candidate runs a valve stroke and refuses the way back, leaving the pump bypass closed. The candidate is not recommended for deployment as it is. Files: `result/holdout-*.json` and `result/protection.json`.
 

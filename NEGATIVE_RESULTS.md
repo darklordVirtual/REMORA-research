@@ -6218,14 +6218,14 @@ holdout and a misuse population not written against them.
 This finding stays open.
 
 Update 2026-11-10, later: a candidate that changes only valve travel,
-measured beside the deployed policy on new blind data
+measured beside the deployed policy on new data
 (`docs/assurance/ot_limits_holdout_plan_v5.md`, DOC-431). Variants were
 replayed on the spent shifts and episodes until one gave up nothing
 measured. It has valve travel at 200 points per hour, V-12 kept at 70, and
 a new bound of 290 points per two hours. Every other term is the deployed
-policy's. That is a fit, so the plan fixed its measures first. Four blind author
-sessions then wrote 40 new shifts and 40 new misuse episodes, one of them
-knowing the candidate's terms.
+policy's. That is a fit, so the plan fixed its measures first. Four author
+sessions then wrote 40 new shifts and 40 new misuse episodes. Three were
+blind, and one knew the candidate's terms.
 
 | Measure, two approvers | Candidate | Deployed |
 |---|---|---|
@@ -6233,19 +6233,35 @@ knowing the candidate's terms.
 | Shifts refused only under this policy | 0 | 4 |
 | New misuse episodes that reach their harm, of 40 | 21 | 21 |
 
-Every episode reaches its harm at the same minute under both, or under
-neither, with one approver as with two. By the plan's fixed reading the
-candidate is better than the deployed policy on this data: fewer
-legitimate refusals and no protection given up. It is the first policy in
-this series for which both hold on data it was not fitted to.
+By the plan's fixed reading the candidate is better than the deployed
+policy on this data. A review after the run showed that reading could
+hardly have come out otherwise, and the plan records it. The candidate
+loosens only V-18 travel, and the one listed harm V-18 enters needs 300
+points in an hour where the two-hour bound admits 290. So no episode
+anyone could write reaches a listed harm under the candidate and not under
+the deployed policy, and no shift can be refused only under the looser
+bounds. The plan's comparison had no outcome "not better". The fault is in
+the plan and was not seen before the data. What the run measured is one
+number: 4 of 40 new shifts hold V-18 travel between the two bounds. The
+misuse episodes barely touched the change: one of 40 attempts more than 70
+points of V-18 travel in an hour.
 
-Three things stay negative. The candidate still refused a legitimate
-write in 12.5 % of shifts, above the 10 % mark, and nine of its eleven
-refused writes are valve travel again. Neither policy does much against
-an adversary who knows it: 14 of 20 policy-aware episodes reach their
-harm under both, and H-FLOW and H-DRAIN are reached in 11 of 13 episodes.
-And the candidate is signed with a key the pilot does not trust, so
-nothing is deployed until the owner signs it.
+The review also found what the comparison did not weigh. In two shifts,
+maintenance stroke tests of the pump bypass, the candidate runs the full
+stroke and then refuses every move back. The bypass ends the shift closed,
+below its band and through the pump restart. The deployed policy refuses
+the stroke instead and the valve ends inside its band. P1 counts both
+shifts as ties. A limit that refuses the way back is worse than one that
+refuses the way out, and none of this series' measures sees it.
+
+What stays negative. The candidate refused a legitimate write in 12.5 %
+of shifts, above the 10 % mark. It admits 290 points of V-18 travel in an
+hour against 140, and no listed harm prices that. Neither policy does
+much against an adversary who knows it: 14 of 20 policy-aware episodes
+reach their harm under both, and H-FLOW and H-DRAIN are reached in 11 of
+13 episodes. The candidate is not recommended for deployment as it is, and
+it is signed with a key the pilot does not trust. A next candidate has to
+say what happens to the return move of a procedure it has let begin.
 
 This finding stays open.
 

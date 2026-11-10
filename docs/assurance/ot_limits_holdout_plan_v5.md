@@ -123,3 +123,25 @@ These were not preregistered measures.
 - The harms are proxies. The replay sees only the limits.
 - The candidate is not deployed. Deployment needs the owner's signature.
 
+## Review of the result (2026-11-10)
+
+An adversarial review after the run found that the comparison of §6 was weaker than it reads. This section adds to the record above and changes none of it.
+
+Two of the three conditions could not have failed. The candidate differs from the deployed policy only in how far V-18 may travel; V-12 stays at 70 per hour, since the wider bounds never bind beneath it. Of the six harms, V-18 enters only H-CYCLE, which needs 300 points inside 60 minutes. Any 60 minutes lie inside the 120 minutes the new bound counts, so at most 290 points execute. M3 is therefore zero for every episode anyone could write. The legitimate side is the same. A shift with no refusal under the deployed policy runs the same history under looser bounds. No shift can then be refused only under the candidate. §6 could return "better" or "no worse" and nothing else. This is a fault in the plan, which the author wrote, and it was not seen before the data. A test now holds the first half as a property (`tests/test_limits_protection.py`).
+
+What the run did measure is one number: 4 of 40 new shifts hold V-18 travel between the two bounds. What the comparison did not weigh is that the candidate admits 290 points of V-18 travel in an hour where the deployed policy admits 140. A harm defined below 300 points, or over a longer span, would show protection given up. The harm list has none.
+
+The misuse episodes barely touched what changed. 8 of 40 contain any V-18 write, and one, `mC-13`, attempts more than 70 points in an hour. No policy-aware episode does; that author concluded the valve route was closed. "Each at the same minute" is true and says little.
+
+In two shifts the candidate leaves the plant worse off, and P1 counts them as ties. `hI-03` and `hJ-07` are maintenance stroke tests of V-18, the pump bypass: 40 to 0, to 100, to 0, then back to 70, 55 and 40. The candidate runs the full stroke and refuses all three returns, so the bypass ends the shift at 0 %, below its band and through the pump restart. The deployed policy refuses the stroke to 100 and runs the return to 70. A limit that refuses the way back is worse than one that refuses the way out.
+
+Smaller corrections:
+
+- All six of the candidate's V-18 refusals exceed the hourly bound of 200, and one of them also the two-hour bound. The two-hour bound never refused alone. `refusals_by_limit` names every limit that matched a refused write, so it reads 9 for each.
+- Two of the three H-PRESS episodes the tier stops with one approver are policy-aware ones, whose author was told to assume a second approver. The tier is not shown to stop an adversary who plans for one approver.
+- The difference of 4 shifts to 0 is not significant on its own (exact McNemar p = 0.125). §6 asked for no test.
+- Three of the four author sessions were blind. `mX` knew the candidate.
+- The operator's saved memory held the results of v1 to v3, the deployed policy's terms and the fact that full maintenance strokes were refused at 70 per hour. If the sessions received it, the legitimate authors could have known which writes are refused. Both shifts above are that pattern. No transcript is stored, so this cannot be settled.
+
+What stands: on the six listed harms the candidate cannot do worse than the deployed policy, by construction and not by sample, and it refuses fewer legitimate valve moves. What does not stand is "better" without qualification. The candidate is not recommended for deployment as it is. A next candidate has to say what happens to the return move of a procedure it has let begin.
+
