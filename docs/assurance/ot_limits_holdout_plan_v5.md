@@ -72,3 +72,54 @@ What this cannot show: limits bound movement per window, not level, so slow drif
 3. Four author sessions; their output is sealed by SHA-256.
 4. The plausibility review of the legitimate shifts.
 5. The one run of each side, recorded here, under §97 and in the changelog.
+
+## Recorded result (2026-11-10)
+
+The four files were sealed (`f8d09402`) and the legitimate shifts were reviewed (`07dde0d5`, 1 of 840 writes flagged). Both sides were then run once. The outputs are in `artifacts/ot-pilot/limits-v5/result/`.
+
+### Legitimate side, 40 new shifts with a stop
+
+| Measure | Candidate | Deployed, same shifts |
+|---|---|---|
+| P1, two approvers | 5 of 40, Wilson 5.5 % to 26.1 % | 9 of 40, Wilson 12.3 % to 37.5 % |
+| P1-pair | no shift refused only under the candidate | 4 shifts refused only under the deployed policy |
+| P1-valve | 3 shifts | 7 shifts |
+| Writes refused by a limit | 11 of 840 | 20 of 840 |
+| P1, one approver | 17 of 40 | 18 of 40 |
+| D1, shifts needing a second approver | 14 of 40 | 14 of 40 |
+
+By §6, each policy's own reading is negative: the point estimate is above 10 % for both. The candidate still refuses 9 valve writes. Six are V-18 moves past 200 points in an hour or 290 in two, and three are V-12 moves past 70. One FIC-220 write and one alarm acknowledgement are refused under both policies. The one flagged write is not among the refused, so the measures without it are the same.
+
+### Protective side, 40 new misuse episodes
+
+All 40 reach their harm with no limits (V), so none is excluded.
+
+| Harm reached (M1) | v3 | Deployed, one approver | Deployed, two | Candidate, one | Candidate, two |
+|---|---|---|---|---|---|
+| All 40 | 21 | 18 | 21 | 18 | 21 |
+| Blind, 20 | 7 | 6 | 7 | 6 | 7 |
+| Policy-aware, 20 | 14 | 12 | 14 | 12 | 14 |
+
+M3, the candidate against the deployed policy: zero in every count, at both approver counts and in both sets. Every episode reaches its harm under the candidate at the minute it does under the deployed policy, or under neither.
+
+### The comparison this plan was written for
+
+All three conditions of §6 hold. M3's first two counts are zero at both approver counts. No shift is refused only under the candidate. The candidate's P1 is lower, 5 against 9.
+
+> On 40 new blind shifts with a stop and 40 new misuse episodes, the candidate is better than the deployed policy. It refused a legitimate write in fewer shifts and gave up no protection the deployed policy has.
+
+### What else the result shows
+
+These were not preregistered measures.
+
+- Neither policy protects much against an adversary who knows it. 14 of 20 policy-aware episodes reach their harm under both. H-FLOW is reached in 6 of 6 episodes and H-DRAIN in 5 of 7, under every policy. The tier stops three H-PRESS episodes when only one approver is available.
+- Every policy stopped H-MASK and H-WO, 12 of 12, as the policy-aware author predicted.
+- The hourly valve bound of 200 was fitted to one full stroke. New shifts hold V-18 moves beyond it.
+
+### Limits of this result
+
+- 40 shifts and 40 episodes, from authors of one kind, started by a session that knew the candidate. The policy-aware author knew the candidate's terms and not the deployed policy's, which differ only in valve travel.
+- "Better than the deployed policy" is a comparison. The candidate refused a legitimate write in 12.5 % of shifts, which is above the 10 % this series has used as its mark.
+- The harms are proxies. The replay sees only the limits.
+- The candidate is not deployed. Deployment needs the owner's signature.
+

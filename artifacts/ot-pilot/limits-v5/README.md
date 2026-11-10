@@ -37,3 +37,8 @@ The sessions were started with the agent tool from this checkout, so they may ha
 ## Seal
 
 `SHA256SUMS` is committed before any replay reads the four files.
+
+## Result
+
+Recorded in the plan under "Recorded result". In short: with two approvers the candidate refused a legitimate write in 5 of 40 new shifts against 9 for the deployed policy, with no shift refused only under the candidate. The same 21 of 40 new misuse episodes reach their harm under both, each at the same minute. Files: `result/holdout-*.json` and `result/protection.json`.
+

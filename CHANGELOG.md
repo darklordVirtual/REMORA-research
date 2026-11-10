@@ -4,6 +4,13 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### OT limits: a valve-travel candidate is better than the deployed policy on new blind data (2026-11-10)
+
+- Plan v5 (`docs/assurance/ot_limits_holdout_plan_v5.md`) fixed its measures before four blind author sessions wrote 40 new shifts and 40 new misuse episodes. The candidate changes only valve travel: 200 points per hour, V-12 kept at 70, and a new bound of 290 per two hours.
+- With two approvers it refused a legitimate write in 5 of 40 shifts against 9 for the deployed policy, with no shift refused only under the candidate. The same 21 of 40 misuse episodes reach their harm under both, each at the same minute, with one approver as with two.
+- Still negative: 12.5 % of shifts refused is above the 10 % mark, and 14 of 20 policy-aware episodes reach their harm under either policy. The candidate is signed with a key the pilot does not trust; deployment needs the owner's signature. NEGATIVE_RESULTS §97.
+- `scripts/run_limits_protection.py --compare` measures a signed candidate beside the deployed policy. Tests: `tests/test_limits_protection.py`.
+
 ### OT limits: the v4 terms and the PIC-101 tier in one policy, read off on spent data (2026-11-10)
 
 - No policy on file had both the v4 changes (valve travel 200 % per hour, moves of FIC-220 towards its safe value free) and the second tier of #1196. `artifacts/ot-pilot/limits-v4-tier/` holds that policy, signed with a key the pilot does not trust, so it is not deployable as it is.

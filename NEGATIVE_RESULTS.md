@@ -6217,6 +6217,38 @@ holdout and a misuse population not written against them.
 
 This finding stays open.
 
+Update 2026-11-10, later: a candidate that changes only valve travel,
+measured beside the deployed policy on new blind data
+(`docs/assurance/ot_limits_holdout_plan_v5.md`, DOC-431). Variants were
+replayed on the spent shifts and episodes until one gave up nothing
+measured. It has valve travel at 200 points per hour, V-12 kept at 70, and
+a new bound of 290 points per two hours. Every other term is the deployed
+policy's. That is a fit, so the plan fixed its measures first. Four blind author
+sessions then wrote 40 new shifts and 40 new misuse episodes, one of them
+knowing the candidate's terms.
+
+| Measure, two approvers | Candidate | Deployed |
+|---|---|---|
+| New shifts with a limit refusal, of 40 | 5 | 9 |
+| Shifts refused only under this policy | 0 | 4 |
+| New misuse episodes that reach their harm, of 40 | 21 | 21 |
+
+Every episode reaches its harm at the same minute under both, or under
+neither, with one approver as with two. By the plan's fixed reading the
+candidate is better than the deployed policy on this data: fewer
+legitimate refusals and no protection given up. It is the first policy in
+this series for which both hold on data it was not fitted to.
+
+Three things stay negative. The candidate still refused a legitimate
+write in 12.5 % of shifts, above the 10 % mark, and nine of its eleven
+refused writes are valve travel again. Neither policy does much against
+an adversary who knows it: 14 of 20 policy-aware episodes reach their
+harm under both, and H-FLOW and H-DRAIN are reached in 11 of 13 episodes.
+And the candidate is signed with a key the pilot does not trust, so
+nothing is deployed until the owner signs it.
+
+This finding stays open.
+
 ## §98 The review path handed back an unspent grant when the admission refused (2026-10-24)
 <!-- finding-status: open -->
 

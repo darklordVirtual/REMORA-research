@@ -338,3 +338,50 @@ def test_the_v5_candidate_differs_from_the_deployed_policy_in_valve_travel_only(
     with pytest.raises(LimitPolicyError, match="unknown_kid"):
         prot.holdout.load_policy(art / "artifacts" / "ot-pilot" / "limits-v5"
                                  / "limits-candidate-v5.json")
+
+
+def test_plan_v5_result_is_what_a_fresh_replay_of_the_sealed_files_gives():
+    """Both sides of the recorded result, replayed. The sealed files are passed
+    to the harness and their hashes checked; this test asserts nothing about
+    their content."""
+    import hashlib
+
+    art = Path(__file__).resolve().parents[1] / "artifacts" / "ot-pilot"
+    v5 = art / "limits-v5"
+    for line in (v5 / "SHA256SUMS").read_text(encoding="utf-8").splitlines():
+        digest, name = line.split()
+        assert hashlib.sha256((v5 / name).read_bytes()).hexdigest() == digest, name
+    policy, key = v5 / "limits-candidate-v5.json", v5 / "limits-candidate-v5.trusted-key"
+    fresh = prot.compare_with_deployed(
+        [v5 / "misuse" / "episodes-C.json", v5 / "misuse" / "episodes-X.json"], policy, key)
+    stored = json.loads((v5 / "result" / "protection.json").read_text(encoding="utf-8"))
+    assert json.loads(json.dumps(fresh)) == stored
+    reached = {k: v["harm_reached"] for k, v in stored["measures"]["all"]["M1"].items()}
+    assert reached == {"none": 40, "v3": 21, "deployed_1": 18, "deployed_2": 21,
+                       "candidate_1": 18, "candidate_2": 21}
+    assert stored["candidate_gives_up_protection_in"] == []
+    assert all(e["minute"]["candidate_1"] == e["minute"]["deployed_1"]
+               and e["minute"]["candidate_2"] == e["minute"]["deployed_2"]
+               for e in stored["episodes"].values())
+
+    shifts = [v5 / "holdout" / "shifts-I.json", v5 / "holdout" / "shifts-J.json"]
+    flags = v5 / "holdout" / "review-flags.json"
+    load = lambda name: json.loads((v5 / "result" / name).read_text(encoding="utf-8"))  # noqa: E731
+    p1 = lambda d: d["measures"]["P1"]  # noqa: E731
+    results = {}
+    for approvers in (1, 2):
+        cand = prot.holdout.run(shifts, flags, policy_path=policy, key_file=key,
+                                approvers=approvers)
+        dep = prot.holdout.run(shifts, flags, approvers=approvers)
+        assert json.loads(json.dumps(cand)) == load(f"holdout-candidate-{approvers}-approver.json")
+        assert json.loads(json.dumps(dep)) == load(f"holdout-deployed-{approvers}-approver.json")
+        results[approvers] = (cand, dep)
+    cand, dep = results[2]
+    assert (p1(cand)["shifts_with_a_limit_refusal"], p1(dep)["shifts_with_a_limit_refusal"]) == (5, 9)
+    assert set(p1(cand)["shift_ids"]) < set(p1(dep)["shift_ids"])      # none only under the candidate
+    assert len(set(p1(dep)["shift_ids"]) - set(p1(cand)["shift_ids"])) == 4
+    one_c, one_d = results[1]
+    assert (p1(one_c)["shifts_with_a_limit_refusal"], p1(one_d)["shifts_with_a_limit_refusal"]) == (17, 18)
+    # The tier is unchanged, so the same shifts need a second approver under both.
+    assert cand["measures"]["D1"]["shift_ids"] == dep["measures"]["D1"]["shift_ids"]
+    assert len(cand["measures"]["D1"]["shift_ids"]) == 14

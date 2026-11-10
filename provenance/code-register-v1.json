@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "91492b5dd2cc58c566f2c4cdc9c622d1e7977f92",
+      "git_blob": "db6ae66325b7274d8727f67e6ac6f11e761ea906",
       "mode": "100644",
-      "sha256": "3679d0ead40da3695d2aeec6ec941a684232a5aab965c81be318bc48c7000076"
+      "sha256": "6ee90f9b86d56e7ee31de7369d5e19edf4d6a32211e41c3792a4e1a98d090452"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -369,9 +369,9 @@
     },
     "NEGATIVE_RESULTS.md": {
       "concepts": [],
-      "git_blob": "f7f9a2612a9dc2d140b11a3f9664122132349c31",
+      "git_blob": "b581efd9b848aea049b481c6f6b4e319854ce913",
       "mode": "100644",
-      "sha256": "1fa0b74b72b3268cad048530033d199b6c10cfee0851eb09014f6986f79b8a15"
+      "sha256": "a1122f4f502a36d8c2e193cd39cc3c970c00b7498ba8de36330ea79d21ac09d4"
     },
     "NOTICE": {
       "concepts": [],
@@ -4169,9 +4169,9 @@
     },
     "artifacts/ot-pilot/limits-v5/README.md": {
       "concepts": [],
-      "git_blob": "3cfeb2008574f2348e5dbdff701294e8295e4d71",
+      "git_blob": "b3adc2e2bff0fd947c5436254e1f5c4da77b6ed9",
       "mode": "100644",
-      "sha256": "b6ca4d05ee763be8506ea89b81111b47c29145e76d560a4e346145b045c7692a"
+      "sha256": "cf84fc742447e023ea87e858e181f2fee4cee951e1117e392becb22bb84eb42e"
     },
     "artifacts/ot-pilot/limits-v5/SHA256SUMS": {
       "concepts": [],
@@ -4232,6 +4232,36 @@
       "git_blob": "6dc5c4e6114402debaae0c72cb57901fa6482298",
       "mode": "100644",
       "sha256": "bd7307353564d7b623e0b9fee4191d9e03c04e83f011eba1d78f6e14922d035c"
+    },
+    "artifacts/ot-pilot/limits-v5/result/holdout-candidate-1-approver.json": {
+      "concepts": [],
+      "git_blob": "3cfa336dd5b3386934713c0d74f4d74774a2ab3f",
+      "mode": "100644",
+      "sha256": "aca1781bfd08be40256e16db5b1fc2071bace16adb4290c174754088832a4a32"
+    },
+    "artifacts/ot-pilot/limits-v5/result/holdout-candidate-2-approver.json": {
+      "concepts": [],
+      "git_blob": "dbdca6b86dcf209038f2452c81fb692517ec6fa9",
+      "mode": "100644",
+      "sha256": "b6a99b68640b851c964976b78abb06465b0ceed4f3d3feee46ab8c956b71786a"
+    },
+    "artifacts/ot-pilot/limits-v5/result/holdout-deployed-1-approver.json": {
+      "concepts": [],
+      "git_blob": "105b7343e92716f8d1c492396e9dc0c2033b66d8",
+      "mode": "100644",
+      "sha256": "465e2dc150d05193c84c243e97592269c69346e9a0fb845888e68c480421db19"
+    },
+    "artifacts/ot-pilot/limits-v5/result/holdout-deployed-2-approver.json": {
+      "concepts": [],
+      "git_blob": "b2d34c9f9973b3ef5280a8674cb18e7bfd871a0d",
+      "mode": "100644",
+      "sha256": "30c425169ce868fc173fa811adf4e4ee862f6ef26a0bae2b8676e56bd9e42bdd"
+    },
+    "artifacts/ot-pilot/limits-v5/result/protection.json": {
+      "concepts": [],
+      "git_blob": "f04cb8dab33fc5add1c13b4f85109295c2fca600",
+      "mode": "100644",
+      "sha256": "a9d29b9c9da1c19a5e0307d7dac2bfa28412bc917e55d9de4035fe13c33e28c1"
     },
     "artifacts/pilot-pack/README.md": {
       "concepts": [],
@@ -7289,9 +7319,9 @@
     },
     "docs/assurance/ot_limits_holdout_plan_v5.md": {
       "concepts": [],
-      "git_blob": "6a7b6ea66fd3fb7c1e3d2afa5b10a05f9196aaeb",
+      "git_blob": "37001458e2cad8dfc462be9d1eca8e136f6e99f4",
       "mode": "100644",
-      "sha256": "35d7dcf5983fd5b941be91399c4a61351b6d80961790168f58a6da172d5ba6c2"
+      "sha256": "d238c5e7eb961d0364d288e7a8172e683d58f22dc2fd887197e8dfcddba937a8"
     },
     "docs/assurance/policy_engine_audit_v1.md": {
       "concepts": [],
@@ -21302,9 +21332,9 @@
     },
     "tests/test_limits_protection.py": {
       "concepts": [],
-      "git_blob": "c5630a4af79bdc147b2559d48bf935fd4a69fa76",
+      "git_blob": "3e8889a3c6b48b8469dc6f82a64f3d0d19fa7f58",
       "mode": "100644",
-      "sha256": "4ee0e50135b324c4bac760c4118b13136664010601a4fe06be3d5348259781e9"
+      "sha256": "89ae85b9a4a6f861b88a0fb20501a1d3764461260d69cca0d2fdb39553ff5e90"
     },
     "tests/test_llm_judge.py": {
       "concepts": [],
@@ -23929,7 +23959,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "9aab1e9c04f7e10e0a3485a8f33df6e13c2224948c42cda072c83f88bf126269",
+  "register_sha256": "2516d3390d922a6ae2f7fe0446c4f827c8cf490ecd69434259640299b96cf305",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
