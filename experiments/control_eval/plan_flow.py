@@ -165,31 +165,64 @@ def relaxable_fields(decl: ToolDeclaration) -> frozenset[str]:
                      if f not in targets and decl.flow.argument_kind(f) == "text")
 
 
-_ADDRESS: Final = re.compile(
-    r"""(?P<email>[A-Za-z0-9._%+\-]+@[A-Za-z0-9\-]+(?:\.[A-Za-z0-9\-]+)+)"""
-    r"""|(?:https?://)(?P<url>[^\s<>"')\]]+)"""
-    r"""|(?P<www>www\.[A-Za-z0-9\-]+(?:\.[A-Za-z0-9\-]+)+(?:/[^\s<>"')\]]*)?)"""
-    r"""|(?P<iban>(?<![A-Za-z0-9])[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}(?![A-Za-z0-9]))"""
-    r"""|(?P<host>(?<![A-Za-z0-9@.\-])[A-Za-z0-9\-]+(?:\.[A-Za-z0-9\-]+)*"""
-    r"""\.(?:com|org|net|io|co|ai|app|dev|info|biz|ch|no|de|uk|eu|gov|edu)"""
-    r"""(?![A-Za-z0-9\-])(?:/[^\s<>"')\]]*)?)""")
+_TOKEN_BREAK: Final = re.compile(r"""[\s<>"'()\[\]{}]+""")
+_PIECE_BREAK: Final = re.compile(r"[:=,;]+")
+_IBAN_SHAPE: Final = re.compile(r"[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}")
+_HOST_CHARS: Final = frozenset("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-")
+_LOCAL_CHARS: Final = _HOST_CHARS | frozenset("._%+")
+_TLDS: Final = frozenset({"com", "org", "net", "io", "co", "ai", "app", "dev", "info", "biz",
+                          "ch", "no", "de", "uk", "eu", "gov", "edu"})
+_EDGE: Final = ".,;:!?"
+
+
+def _host(text: str, *, any_tld: bool) -> bool:
+    labels = text.split("/", 1)[0].split(".")
+    return (len(labels) >= 2 and all(label and set(label) <= _HOST_CHARS for label in labels)
+            and (any_tld or labels[-1].lower() in _TLDS))
+
+
+def _address(piece: str) -> str | None:
+    """*piece* as an address, or None. Plain string tests: no pattern backtracks."""
+    piece = piece.strip(_EDGE)
+    if not piece:
+        return None
+    if "@" in piece:
+        local, _, domain = piece.rpartition("@")
+        ok = bool(local) and set(local) <= _LOCAL_CHARS and _host(domain, any_tld=True)
+        return piece if ok and "/" not in domain else None
+    if _IBAN_SHAPE.fullmatch(piece):
+        return piece
+    if piece.lower().startswith("www."):
+        return piece if _host(piece[4:], any_tld=True) else None
+    return piece if _host(piece, any_tld=False) else None
 
 
 def embedded_addresses(value: Any) -> list[str]:
     """Web addresses, email addresses and IBANs inside a value's text, sorted.
 
-    Found by pattern: a scheme or ``www.`` address, a host under a short list
-    of top-level domains, an email address, an IBAN. A web address is given
-    without its scheme and without trailing punctuation. Text that spells an
-    address another way is not found, so a rule built on this is a floor.
+    Found token by token: an address after ``http://`` or ``https://``, a
+    ``www.`` host, a host under a short list of top-level domains, an email
+    address, an IBAN. A web address is given without its scheme and without
+    trailing punctuation. Text that spells an address another way is not
+    found, so a rule built on this is a floor.
     """
     found: set[str] = set()
     for leaf in _leaves(value):
         if not isinstance(leaf, str):
             continue
-        for match in _ADDRESS.finditer(leaf):
-            token = next(g for g in match.groups() if g)
-            found.add(token.rstrip(".,;:!?"))
+        for token in _TOKEN_BREAK.split(leaf):
+            for scheme in ("https://", "http://"):
+                at = token.lower().find(scheme)
+                if at >= 0:
+                    rest = token[at + len(scheme):].strip(_EDGE)
+                    if rest:
+                        found.add(rest)
+                    token = token[:at]
+                    break
+            for piece in _PIECE_BREAK.split(token):
+                address = _address(piece)
+                if address:
+                    found.add(address)
     return sorted(found)
 
 

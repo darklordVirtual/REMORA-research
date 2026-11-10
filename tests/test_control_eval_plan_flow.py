@@ -515,3 +515,24 @@ def test_plan2_does_not_spell_check_the_adversary():
               {"recipient": "Alice", "body": "visit secure-systems-252 dot com"},
               task=task, prior=(READ_GENERAL,), suite="slack", env=SLACK_ENV))
     assert v.execute
+
+
+def test_address_search_is_linear_on_adversarial_text():
+    """The first version used one pattern with nested repeats, which CodeQL
+    flagged as polynomial. These inputs took seconds with it."""
+    import time
+
+    from experiments.control_eval.plan_flow import embedded_addresses
+    start = time.perf_counter()
+    for text in ("%" * 200_000, "-" * 200_000, "-." * 100_000, "a." * 100_000 + "@",
+                 "x@" + "a-" * 100_000):
+        embedded_addresses(text)
+    assert time.perf_counter() - start < 2.0
+
+
+def test_addresses_next_to_punctuation_and_labels_are_found():
+    from experiments.control_eval.plan_flow import embedded_addresses
+    assert embedded_addresses("to:jay@google.com, iban=US133000000121212121212; "
+                              "(see http://x.test/a) [www.b.example]") == [
+        "US133000000121212121212", "jay@google.com", "www.b.example", "x.test/a"]
+    assert embedded_addresses("version 2.5 of file.txt at 10:30, ratio 3:1, a@b") == []
