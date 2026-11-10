@@ -261,7 +261,7 @@ def test_a_fresh_replay_writes_the_committed_artifact():
     """Ties the artifact to the code. Runs only where AgentDojo is installed
     (experiments/control_eval/requirements.txt); about half a minute, no model call."""
     import pytest
-    pytest.importorskip("agentdojo", reason="needs experiments/control_eval/requirements.txt")
+    pytest.importorskip("agentdojo")
     m = _module()
     assert json.dumps(m.run(), indent=2, sort_keys=True) + "\n" == ARTIFACT.read_text(
         encoding="utf-8")

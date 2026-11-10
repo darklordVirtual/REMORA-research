@@ -168,8 +168,8 @@ class PlanBoundGate(RemoraIfcGate):
     def __init__(self, suite: str, plans: Mapping[str, Plan], *, ws1: bool = True,
                  declarations: Mapping[str, ToolDeclaration] | None = None,
                  halt_on_refusal: bool = False) -> None:
-        super().__init__(suite, ws1=ws1, declarations=declarations)
-        self.name = ("E_PLAN_WS1" if ws1 else "E_PLAN") + ("_halt" if halt_on_refusal else "")
+        super().__init__(suite, ws1=ws1, declarations=declarations, name=(
+            ("E_PLAN_WS1" if ws1 else "E_PLAN") + ("_halt" if halt_on_refusal else "")))
         self._plans = dict(plans)
         self._halt_on_refusal = halt_on_refusal
         self._halted: set[tuple[str, str, str | None]] = set()

@@ -173,11 +173,7 @@ def run() -> dict[str, Any]:
         "dev_user_tasks": dev_users, "dev_injection_tasks": dev_inj,
         "attack_text": g1.ATTACK,
         "model_calls": 0,
-        "commands": [
-            "python -m venv .venv-ce && .venv-ce/bin/pip install -r "
-            "experiments/control_eval/requirements.txt && .venv-ce/bin/pip install -e .",
-            ".venv-ce/bin/python scripts/run_control_eval_g1prime.py "
-            "--out artifacts/control_eval/dev_g1prime_v1.json"],
+        "commands": [SETUP_COMMAND, RUN_COMMAND],
         "exploratory_arms": {"E_PLAN_WS1_halt": HALT_NOTE},
         "plans": {}, "plan_stability": [],
         "benign": {"arms": {}, "per_suite": {}, "blocked_calls": [], "tasks": []},
@@ -201,9 +197,9 @@ def run() -> dict[str, Any]:
             for tid, p in plans.items()}
         shared = g1._arms(suite_name, suite, dev_users[suite_name], tools)
         factories: list[Callable[[], Any]] = [(lambda d=d: d) for d in shared]
-        factories.append(lambda: PlanBoundGate(suite_name, plans))
+        factories.append(lambda s=suite_name, p=plans: PlanBoundGate(s, p))
         # Exploratory, added after the first G1′ run; not part of the gate.
-        factories.append(lambda: PlanBoundGate(suite_name, plans, halt_on_refusal=True))
+        factories.append(lambda s=suite_name, p=plans: PlanBoundGate(s, p, halt_on_refusal=True))
 
         def kind_of(tool: str, field: str, decl=decl) -> str | None:
             return decl[tool].flow.argument_kind(field) if tool in decl else None
@@ -325,6 +321,10 @@ def run() -> dict[str, Any]:
     return report
 
 
+SETUP_COMMAND = ("python -m venv .venv-ce && .venv-ce/bin/pip install -r "
+                 "experiments/control_eval/requirements.txt && .venv-ce/bin/pip install -e .")
+RUN_COMMAND = (".venv-ce/bin/python scripts/run_control_eval_g1prime.py "
+               "--out artifacts/control_eval/dev_g1prime_v1.json")
 HALT_NOTE = (
     "Added after the first G1′ run and outside the gate. SAP v8 §14 did not say what "
     "happens to the rest of a plan once the flow check refuses one of its steps. "

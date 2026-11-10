@@ -184,10 +184,11 @@ class RemoraIfcGate:
     def __init__(self, suite: str, *, ws1: bool = False,
                  declarations: Mapping[str, ToolDeclaration] | None = None,
                  max_lookups: int = MAX_LOOKUPS_PER_CALL,
-                 targets_only: bool = False) -> None:
+                 targets_only: bool = False, name: str | None = None) -> None:
         self.suite = suite
         self.ws1 = ws1
-        self.name = ("E_IFC_WS1" if ws1 else "E_IFC") + ("_targets_only" if targets_only else "")
+        self.name = name or (
+            ("E_IFC_WS1" if ws1 else "E_IFC") + ("_targets_only" if targets_only else ""))
         decl = dict(declarations if declarations is not None else load_declarations(suite))
         #: Exploratory sensitivity variant, not a G1 arm: payload arguments are
         #: dropped from integrity_required, so only target-defining ones count.

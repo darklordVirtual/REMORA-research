@@ -8858,9 +8858,9 @@
     },
     "experiments/control_eval/plan_flow.py": {
       "concepts": [],
-      "git_blob": "98680b69b1ebf9af7c58dab29f13dc31f1f51d97",
+      "git_blob": "42a65998b9e71abfe4f0f73954a3c2f037391c79",
       "mode": "100644",
-      "sha256": "3ae5a7104590b57d8742792ddacbabf55925f2458e84d9d57750c4e7c850d6d0"
+      "sha256": "67094a2233fe3ec094a0d037de7b95772b6dd96d870e6cebc07d8897ed76435c"
     },
     "experiments/control_eval/policies.py": {
       "concepts": [],
@@ -8888,9 +8888,9 @@
     },
     "experiments/control_eval/remora_ifc.py": {
       "concepts": [],
-      "git_blob": "3b4a59ff5ba793a9c18474b4a33df82b15e2454f",
+      "git_blob": "2551538823395fd258cf3e59a63d04d40eb4f99f",
       "mode": "100644",
-      "sha256": "1e8185453663a16fc899a7d9af3ab55b176d5760fd29cc3031ed2261628d2354"
+      "sha256": "a451dc69d77bbffeef5361c6121e93f903b8df7074f198301962fda296aef836"
     },
     "experiments/control_eval/requirements.txt": {
       "concepts": [],
@@ -17245,9 +17245,9 @@
     },
     "scripts/run_control_eval_g1prime.py": {
       "concepts": [],
-      "git_blob": "075ff7786bc65734e7426df35081ea25d6f4770b",
+      "git_blob": "cb2863b2663dfa58956ef962e8c35b888928b85f",
       "mode": "100644",
-      "sha256": "54b5438190a583081716a82f3bac1c180e1a595083f04b480b12cd52aea5ab3d"
+      "sha256": "fd9e3445d0e9aa1b56706fa07c149cfcd1f5310d76e437f8c6c5d490333e3a98"
     },
     "scripts/run_control_eval_reads_replay.py": {
       "concepts": [],
@@ -19461,9 +19461,9 @@
     },
     "tests/test_control_eval_g1prime.py": {
       "concepts": [],
-      "git_blob": "798d30b6725fabb3f1afbc58f557dcf4a62ca581",
+      "git_blob": "c183e3cab40522cd1e73f83ba71501a69a1bd278",
       "mode": "100644",
-      "sha256": "bb73d6da12c7b3e33636b797ae5b6aeb592172525cc75638ae3a9f69c2b83c74"
+      "sha256": "37eb97602b0b0cbbcdcfab41894ec4e50fe47555d8fbce4575d83b13ddc1cf55"
     },
     "tests/test_control_eval_g2.py": {
       "concepts": [],
@@ -23803,7 +23803,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "eb7ea9909767508b6d11a83c684b2b99e14e1bc217f7e10d73c3a73b9d06f2fb",
+  "register_sha256": "1b50d0da899944400ee66aba41f2d5b0f9bdbcb0e4862ca984720fbbfcd2951b",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
