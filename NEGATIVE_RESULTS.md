@@ -6599,6 +6599,18 @@ here, because the fix changes labels under G1's committed numbers and
 needs its own stated change. Pinned in
 `tests/test_control_eval_plan_flow.py`.
 
+**Fixed for the amount, 2026-11-10.** SAP v8 §14 stated the change before
+it was made. A numeral in the task text counts for a numeric argument only
+when it stands alone. One inside a file name, an identifier, a date or a
+quoted token does not. After it both arms refuse the `user_task_0`
+transfer on its amount. G1 and G1′ were
+replayed and both write their committed artifacts byte for byte, so no
+count above changes. The resolver is unchanged. In `user_task_15` an
+adversary can still re-point the user's other standing order. Where the
+user states an amount, it can still choose among earlier counterparties. A
+resolver proves that an object or a counterparty is the user's own, not
+that it is the one the task means.
+
 The arm lives under `experiments/` and is not in the study runner's arm
 registry or in REMORA's decision path. Tests:
 `tests/test_control_eval_plan_flow.py` and `tests/test_control_eval_g1prime.py`.
