@@ -32,6 +32,11 @@ This file lists externally relevant changes by release. Fine-grained development
 - `scripts/probe_custody_isolation.py` starts a credential holder and an agent in one Linux container and one PID namespace. With one uid the agent reads the credential from `/proc/<pid>/environ` and `/proc/<pid>/mem`. With the holder under another uid and the `controlled_pilot` profile, every read is denied. A holder that declares `os_user` and runs as the agent uid or as root is refused by the guard. Result: `artifacts/assurance/custody-isolation-probe-2026-11-10/`.
 - NEGATIVE_RESULTS §104 records that the OT pilot's compose file sets no runtime profile, role or isolation, so the custody guard checks nothing there, and that tests K22 to K25 set the uid by monkeypatching.
 - Tests: `tests/test_custody_isolation_probe.py`.
+### OT limits: the v4 terms and the PIC-101 tier in one policy, read off on spent data (2026-11-10)
+
+- No policy on file had both the v4 changes (valve travel 200 % per hour, moves of FIC-220 towards its safe value free) and the second tier of #1196. `artifacts/ot-pilot/limits-v4-tier/` holds that policy, signed with a key the pilot does not trust, so it is not deployable as it is.
+- Read off on the 170 shifts and 40 misuse episodes already replayed: with two approvers it refuses a write in 2 of 170 shifts against 13 for the deployed policy, and 23 of 40 misuse episodes reach their harm against 18. With one approver it is 38 of 170 shifts against 46, and 22 of 40 episodes against 17; the tier stops one episode and 37 shifts need a second approver. Half of the misuse episodes were written against the v4 candidate's terms. NEGATIVE_RESULTS §97 has the table. The choice between the two policies is the owner's.
+- `scripts/run_limits_protection.py --policy-readoff` replays the misuse episodes under any signed policy. Tests: `tests/test_limits_protection.py`.
 
 ### AgentDojo study: a plan fixed before the first read recovers four tasks; gate G1′ passes and is found weak (2026-11-10)
 
