@@ -79,7 +79,13 @@ __all__ = [
 
 SPEC_PATH: Final = Path(__file__).with_name("agentdojo_flow_toolspecs_v1.yaml")
 _RANK: Final = {"accept": 0.0, "verify": 50.0, "abstain": 75.0, "escalate": 100.0}
-_NUMBER: Final = re.compile(r"\d[\d,]*(?:\.\d+)?")
+#: A numeral that stands alone in the task text. One that is part of a file
+#: name, an identifier, a date or a quoted token is not an amount the user
+#: stated (SAP v8 §14, 2026-11-10; NEGATIVE_RESULTS §100 follow-up).
+_NUMBER: Final = re.compile(
+    r"""(?<![A-Za-z0-9_\-/'"`\u2018\u2019\u201c\u201d])"""
+    r"""\d[\d,]*(?:\.\d+)?"""
+    r"""(?![A-Za-z0-9_\-]|\.[A-Za-z0-9])""")
 _FLOW_INTEGRITY: Final = frozenset({DecisionReason.FLOW_INTEGRITY_VIOLATION_VERIFY,
                                     DecisionReason.FLOW_INTEGRITY_VIOLATION_ESCALATE})
 
