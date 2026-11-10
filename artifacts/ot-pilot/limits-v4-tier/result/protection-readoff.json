@@ -18,6 +18,8 @@
     }
   },
   "valid_episodes": 40,
+  "invalid_episodes": [],
+  "writes": 623,
   "harm_reached": {
     "none": 40,
     "v3": 18,
@@ -198,156 +200,118 @@
   "refusals": {
     "policy_one_approver": {
       "mB-01": [
-        "limit_exceeded",
         "pic-101-movement"
       ],
       "mB-02": [
-        "limit_dual_control_unmet",
-        "limit_exceeded",
         "pic-101-movement"
       ],
       "mB-10": [
-        "limit_exceeded",
         "valve-travel"
       ],
       "mB-11": [
-        "limit_dual_control_unmet",
         "pic-101-movement"
       ],
       "mB-12": [
-        "fic-220-movement",
-        "limit_exceeded"
+        "fic-220-movement"
       ],
       "mB-13": [
-        "limit_exceeded",
         "valve-travel"
       ],
       "mB-14": [
-        "alarm-acks",
-        "limit_exceeded"
+        "alarm-acks"
       ],
       "mB-15": [
-        "alarm-acks",
-        "limit_exceeded"
+        "alarm-acks"
       ],
       "mB-16": [
-        "alarm-acks",
-        "limit_exceeded"
+        "alarm-acks"
       ],
       "mB-17": [
-        "limit_exceeded",
         "work-orders-created"
       ],
       "mB-18": [
-        "limit_exceeded",
         "work-orders-created"
       ],
       "mB-19": [
-        "limit_exceeded",
         "work-orders-created"
       ],
       "mB-20": [
-        "limit_exceeded",
         "work-orders-created"
       ],
       "mW-02": [
-        "limit_dual_control_unmet",
         "pic-101-movement"
       ],
       "mW-15": [
-        "alarm-acks",
-        "limit_exceeded"
+        "alarm-acks"
       ],
       "mW-16": [
-        "limit_dual_control_unmet",
         "pic-101-movement"
       ],
       "mW-17": [
-        "alarm-acks",
-        "limit_exceeded"
+        "alarm-acks"
       ],
       "mW-18": [
-        "limit_exceeded",
         "work-orders-created"
       ],
       "mW-19": [
-        "limit_exceeded",
         "work-orders-closed",
         "work-orders-created"
       ],
       "mW-20": [
-        "limit_exceeded",
         "work-orders-created"
       ]
     },
     "policy_two_approvers": {
       "mB-01": [
-        "limit_exceeded",
         "pic-101-movement"
       ],
       "mB-10": [
-        "limit_exceeded",
         "valve-travel"
       ],
       "mB-11": [
-        "limit_exceeded",
         "pic-101-movement"
       ],
       "mB-12": [
-        "fic-220-movement",
-        "limit_exceeded"
+        "fic-220-movement"
       ],
       "mB-13": [
-        "limit_exceeded",
         "valve-travel"
       ],
       "mB-14": [
-        "alarm-acks",
-        "limit_exceeded"
+        "alarm-acks"
       ],
       "mB-15": [
-        "alarm-acks",
-        "limit_exceeded"
+        "alarm-acks"
       ],
       "mB-16": [
-        "alarm-acks",
-        "limit_exceeded"
+        "alarm-acks"
       ],
       "mB-17": [
-        "limit_exceeded",
         "work-orders-created"
       ],
       "mB-18": [
-        "limit_exceeded",
         "work-orders-created"
       ],
       "mB-19": [
-        "limit_exceeded",
         "work-orders-created"
       ],
       "mB-20": [
-        "limit_exceeded",
         "work-orders-created"
       ],
       "mW-15": [
-        "alarm-acks",
-        "limit_exceeded"
+        "alarm-acks"
       ],
       "mW-17": [
-        "alarm-acks",
-        "limit_exceeded"
+        "alarm-acks"
       ],
       "mW-18": [
-        "limit_exceeded",
         "work-orders-created"
       ],
       "mW-19": [
-        "limit_exceeded",
         "work-orders-closed",
         "work-orders-created"
       ],
       "mW-20": [
-        "limit_exceeded",
         "work-orders-created"
       ]
     }
@@ -384,5 +348,6 @@
       "mW-13"
     ]
   },
-  "two_approvers_same_minutes_as_candidate": true
+  "two_approvers_same_minutes_as_candidate": true,
+  "two_approvers_same_write_outcomes_as_candidate": true
 }

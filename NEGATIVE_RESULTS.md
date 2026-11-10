@@ -6184,7 +6184,8 @@ stops, and the v4 candidate drops the tier. A third policy is the v4
 candidate with `dual_control_above` 50 on PIC-101 and nothing else changed
 (`artifacts/ot-pilot/limits-v4-tier/`). It is signed with a key the pilot
 does not trust, so it cannot be deployed as it is. What would be read off
-was stated before any replay. All 170 shifts and 40 misuse episodes had been
+was committed before the results (`840e6662` before `9f32e001`), and the
+expectations follow from how the tier works. All 170 shifts and 40 misuse episodes had been
 replayed before, so this describes data already seen.
 
 | Policy | Approvers per write | Shifts with a limit refusal, of 170 | Misuse episodes that reach their harm, of 40 |
@@ -6196,11 +6197,17 @@ replayed before, so this describes data already seen.
 | v4 candidate plus tier | 1 | 38 | 22 |
 
 With two approvers the tiered candidate is the v4 candidate: all 1934
-writes have the same outcome, and each episode reaches its harm at the same
-minute. With one approver, every refusal it adds is the tier's, in 36
-shifts, and the tier stops one episode, mB-02. Against the deployed policy
+shift writes and all 623 misuse writes have the same outcome, and each
+episode reaches its harm at the same minute. With one approver, every
+refusal it adds is the tier's, in 36 further shifts and two more writes of
+hD-03, and the tier stops one episode, mB-02. Against the deployed policy
 with two approvers it removes 11 of 13 shift refusals and gives up five
-misuse episodes: mB-07, mW-07, mW-09, mW-12 and mW-13. So the terms exist
+misuse episodes that v3 stops: mB-07, mW-07, mW-09, mW-12 and mW-13. With
+one approver per write, the replay tool's default, the same comparison is
+38 against 46 refused shifts and 22 against 17 harms. The deployed
+policy's misuse figures are from the earlier read-off, and the
+policy-aware half of the episodes was written against the v4 candidate's
+terms. So the terms exist
 that keep S20's tier and remove the stop refusals, and their price is the
 one plan v4 measured for the candidate. Whether five more harms in forty are
 worth eleven fewer refused shifts in 170 is the owner's decision. Four slow

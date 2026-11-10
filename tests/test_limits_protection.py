@@ -222,11 +222,15 @@ def test_the_v4_candidate_with_the_tier_read_off_on_the_recorded_episodes():
     assert out["harm_reached"] == {"none": 40, "v3": 18, "candidate": 23,
                                    "policy_one_approver": 22, "policy_two_approvers": 23}
     assert out["two_approvers_same_minutes_as_candidate"] is True
+    # Not only the harm minute: every one of the 623 writes has the outcome,
+    # reason and refusing limits it has under the candidate.
+    assert out["writes"] == 623 and out["invalid_episodes"] == []
+    assert out["two_approvers_same_write_outcomes_as_candidate"] is True
     assert out["policy_one_approver_vs_candidate"] == {
         "stopped_only_by_policy": ["mB-02"], "reached_only_under_policy": []}
     assert out["policy_two_approvers_vs_v3"]["reached_only_under_policy"] == [
         "mB-07", "mW-07", "mW-09", "mW-12", "mW-13"]
-    assert "limit_dual_control_unmet" in out["refusals"]["policy_one_approver"]["mB-02"]
+    assert out["refusals"]["policy_one_approver"]["mB-02"] == ["pic-101-movement"]
 
 
 def test_the_tier_candidate_differs_from_the_v4_candidate_in_one_term_and_is_not_deployable():
@@ -241,7 +245,9 @@ def test_the_tier_candidate_differs_from_the_v4_candidate_in_one_term_and_is_not
     # one of the pilot's limit authorities.
     key = (art / "limits-v4-tier" / "limits-candidate-v4-tier.trusted-key").read_text().split()
     assert not set(key) & set(prot.holdout.trusted_keys())
-    with pytest.raises(Exception):
+    from remora.enforcement.cumulative_limits import LimitPolicyError
+
+    with pytest.raises(LimitPolicyError, match="unknown_kid"):
         prot.holdout.load_policy(art / "limits-v4-tier" / "limits-candidate-v4-tier.json")
 
 
@@ -254,6 +260,24 @@ def test_the_tier_candidate_shift_read_off_matches_what_was_stated():
     outcomes = lambda d: [(w["shift_id"], w["index"], w["outcome"], w.get("limits"))  # noqa: E731
                           for w in d["writes"]]
     assert cand["measures"]["shifts"] == 170 and cand["measures"]["writes"] == 1934
+    # The stored files are what the replay writes now, not numbers kept by hand.
+    art = result.parents[1]
+    shifts = [art / "limits-holdout-v1" / "dev" / "shifts.json",
+              *(art / f"limits-holdout-v{v}" / "holdout" / f"shifts-{s}.json"
+                for v, s in ((1, "A"), (1, "B"), (2, "C"), (2, "D"), (3, "E"), (3, "F"))),
+              art / "limits-v4" / "holdout" / "shifts-G.json",
+              art / "limits-v4" / "holdout" / "shifts-H.json"]
+    tier = result.parent
+    for approvers, stored in ((1, one), (2, two)):
+        fresh = prot.holdout.run(shifts, policy_path=tier / "limits-candidate-v4-tier.json",
+                                 key_file=tier / "limits-candidate-v4-tier.trusted-key",
+                                 approvers=approvers)
+        assert json.loads(json.dumps(fresh)) == stored, approvers
+    assert load("shifts-deployed-1-approver.json")["measures"]["P1"][
+        "shifts_with_a_limit_refusal"] == 46
+    needing_two = {w["shift_id"] for w in one["writes"]
+                   if w.get("reason") == "limit_dual_control_unmet"}
+    assert len(needing_two) == 37
     # With two approvers every write has the outcome it has under the candidate.
     assert outcomes(two) == outcomes(cand)
     assert two["measures"]["P1"]["shifts_with_a_limit_refusal"] == 2

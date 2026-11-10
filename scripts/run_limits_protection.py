@@ -305,10 +305,13 @@ def policy_readoff(paths: list[Path], policy_path: Path, key_file: Path) -> dict
             "policy_one_approver": (policy, 1), "policy_two_approvers": (policy, 2)}
     minutes: dict[str, dict[str, int | None]] = {name: {} for name in ["none", *runs]}
     refusals: dict[str, dict[str, list[str]]] = {name: {} for name in runs}
+    outcomes: dict[str, dict[str, list[tuple[Any, ...]]]] = {name: {} for name in runs}
+    writes = 0
     with tempfile.TemporaryDirectory() as tmp:
         for ep in episodes:
             eid = ep["episode_id"]
             shift = {"shift_id": eid, "writes": ep["writes"]}
+            writes += len(ep["writes"])
             minutes["none"][eid] = harm_minute(ep["harm"], replay_unlimited(
                 shift, registry, pristine), pristine)
             for name, (pol, approvers) in runs.items():
@@ -316,10 +319,15 @@ def policy_readoff(paths: list[Path], policy_path: Path, key_file: Path) -> dict
                     rows = holdout.replay_shift(shift, pol, registry, pristine, Path(d),
                                                 approvers=approvers)
                 minutes[name][eid] = harm_minute(ep["harm"], rows, pristine)
+                # The same shape as run(): the limits that refused, or the
+                # reason when a refusal names no limit.
                 refusals[name][eid] = sorted(
                     {lim for r in rows if r["outcome"] == "refused" for lim in r.get("limits", [])}
-                    | {r["reason"] for r in rows if r["outcome"] == "refused"})
+                    | {r["reason"] for r in rows if r["outcome"] == "refused" and not r.get("limits")})
+                outcomes[name][eid] = [(r["outcome"], r.get("reason"), tuple(r.get("limits") or ()))
+                                       for r in rows]
     valid = [e for e in minutes["none"] if minutes["none"][e] is not None]
+    invalid = sorted(set(minutes["none"]) - set(valid))
     reached = {name: sorted(e for e in valid if minutes[name][e] is not None) for name in minutes}
     try:
         shown = str(policy_path.resolve().relative_to(ROOT))
@@ -330,7 +338,7 @@ def policy_readoff(paths: list[Path], policy_path: Path, key_file: Path) -> dict
                      "not preregistered; every episode was replayed before",
         "policies": {"v3": v3_meta, "candidate": candidate_meta,
                      "policy": {"path": shown, "sha256": digest, "signer_kid": kid}},
-        "valid_episodes": len(valid),
+        "valid_episodes": len(valid), "invalid_episodes": invalid, "writes": writes,
         "harm_reached": {name: len(ids) for name, ids in reached.items()},
         "harm_minute": {name: {e: minutes[name][e] for e in valid} for name in runs},
         "refusals": {name: {e: refusals[name][e] for e in valid if refusals[name][e]}
@@ -342,6 +350,9 @@ def policy_readoff(paths: list[Path], policy_path: Path, key_file: Path) -> dict
                 "reached_only_under_policy": sorted(set(reached[name]) - set(reached[other]))}
     out["two_approvers_same_minutes_as_candidate"] = (
         minutes["policy_two_approvers"] == minutes["candidate"])
+    # Every write of every episode: outcome, reason and refusing limits.
+    out["two_approvers_same_write_outcomes_as_candidate"] = (
+        outcomes["policy_two_approvers"] == outcomes["candidate"])
     return out
 
 
@@ -358,14 +369,24 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if (args.policy_readoff is None) != (args.trusted_key is None):
         parser.error("--policy-readoff and --trusted-key go together")
+    if args.policy_readoff and args.deployed_readoff:
+        parser.error("--policy-readoff and --deployed-readoff are two different read-offs")
     if args.policy_readoff:
-        result = policy_readoff(args.episodes, args.policy_readoff, args.trusted_key)
+        try:
+            result = policy_readoff(args.episodes, args.policy_readoff, args.trusted_key)
+        except EpisodeError as exc:
+            print(f"[REFUSED] {exc}", file=sys.stderr)
+            return 2
         args.out.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
         print("harm reached: " + ", ".join(f"{k} {v}/{result['valid_episodes']}"
                                            for k, v in result["harm_reached"].items()))
         return 0
     if args.deployed_readoff:
-        result = deployed_readoff(args.episodes)
+        try:
+            result = deployed_readoff(args.episodes)
+        except EpisodeError as exc:
+            print(f"[REFUSED] {exc}", file=sys.stderr)
+            return 2
         args.out.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
         print("harm reached: " + ", ".join(f"{k} {v}/{result['valid_episodes']}"
                                            for k, v in result["harm_reached"].items()))
