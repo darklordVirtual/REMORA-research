@@ -4263,6 +4263,18 @@
       "mode": "100644",
       "sha256": "a9d29b9c9da1c19a5e0307d7dac2bfa28412bc917e55d9de4035fe13c33e28c1"
     },
+    "artifacts/ot-pilot/limits-v6/README.md": {
+      "concepts": [],
+      "git_blob": "ab16413288e24895d35d9deed2d7ec518bf4a381",
+      "mode": "100644",
+      "sha256": "bc334f9d0d25c36c9e59ec1223b80d38f1e52c1c3f0cd55b84d4b3da1043d26f"
+    },
+    "artifacts/ot-pilot/limits-v6/SHA256SUMS": {
+      "concepts": [],
+      "git_blob": "34828fd6126962b643ec2bb551f5ea9070203e15",
+      "mode": "100644",
+      "sha256": "33ef17ed9b3c81aab4697d4af44ce009256669c3101c3dd5cc8769735db994f5"
+    },
     "artifacts/ot-pilot/limits-v6/approver-brief.md": {
       "concepts": [],
       "git_blob": "aee776b569de43f4c2aedece2318d92b1d78696e",
@@ -4274,6 +4286,30 @@
       "git_blob": "1634c0c488c926ab59e4bd7f1f92ea0984a8f580",
       "mode": "100644",
       "sha256": "f30f8e8477560044d03221854285e189d72d2d758a430b4076ee024813a69f92"
+    },
+    "artifacts/ot-pilot/limits-v6/holdout/shifts-K.json": {
+      "concepts": [],
+      "git_blob": "bc4c5f15d3acbf65c1397df02709844c8d40bd00",
+      "mode": "100644",
+      "sha256": "c14f335e790a1bd7b64ee701d5524acb217de36315e87982617a14dc314c5c5f"
+    },
+    "artifacts/ot-pilot/limits-v6/holdout/shifts-L.json": {
+      "concepts": [],
+      "git_blob": "3d8f60a2d20b0ff4b8226ef8417d787a9e59164a",
+      "mode": "100644",
+      "sha256": "d382667c91b5a4d31a45fa42e6a0da378431b746795b8ccd3c4222b43e1dc5e8"
+    },
+    "artifacts/ot-pilot/limits-v6/holdout/shifts-M.json": {
+      "concepts": [],
+      "git_blob": "a3ca614e35e6edb11c5c35e365804eeae67da6ad",
+      "mode": "100644",
+      "sha256": "5cf4e2d3a7c57c3cf955e75a60086063030cb9c9967861d22893a3324724c79c"
+    },
+    "artifacts/ot-pilot/limits-v6/holdout/shifts-N.json": {
+      "concepts": [],
+      "git_blob": "e6c7eb757ea81541e3684cce9238f5eedb69ea2e",
+      "mode": "100644",
+      "sha256": "d584c7e053ab82232e55389d5c14dd42e5e727eadd76b6cf7affcf0af5fd5e87"
     },
     "artifacts/ot-pilot/limits-v6/limits-candidate-v6.json": {
       "concepts": [],
@@ -4292,6 +4328,18 @@
       "git_blob": "4121fdaaff20dc774f2b02066869c9c6cbb21f54",
       "mode": "100644",
       "sha256": "892a507231a58759f38db0fdbcbacc00c3d2b49390e3998e8529df74083f30ae"
+    },
+    "artifacts/ot-pilot/limits-v6/misuse/episodes-D.json": {
+      "concepts": [],
+      "git_blob": "5553852bb9aa6ab71c55c66df4e80b7947ab0010",
+      "mode": "100644",
+      "sha256": "49e5bbb4eb814af6447821e7ef8d0bd2f6bf4ade820377962c871b53f6384fd5"
+    },
+    "artifacts/ot-pilot/limits-v6/misuse/episodes-E.json": {
+      "concepts": [],
+      "git_blob": "6b56b0dcc803d79097fc40d9c7565eaf47d2b798",
+      "mode": "100644",
+      "sha256": "ffd9a87636ffc315d30df19a6b31cdc46beb358259eccc0790a8e1769acacc59"
     },
     "artifacts/pilot-pack/README.md": {
       "concepts": [],
@@ -24007,7 +24055,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "28764b286b62747399c4d54704f18df908821aeb93be12d05af416edb38e2e75",
+  "register_sha256": "88b05563a4f3fd2804ea9943111ff2b35b487f749e9c37a7b5b0e82ffb7096f2",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
