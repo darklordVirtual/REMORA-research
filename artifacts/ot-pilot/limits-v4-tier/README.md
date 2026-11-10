@@ -1,6 +1,6 @@
 # The v4 candidate with the PIC-101 second tier: a read-off on spent data
 
-`limits-candidate-v4-tier.json` is the v4 candidate (`../limits-v4/limits-candidate-v4.json`: valve travel 200 % per hour, moves of FIC-220 towards its safe value free) with one addition, the tier the deployed policy has had since #1196: `dual_control_above` 50 on `pic-101-movement`. Nothing else differs.
+`limits-candidate-v4-tier.json` is the v4 candidate with one addition. The v4 candidate is `../limits-v4/limits-candidate-v4.json`: valve travel 200 % per hour, and moves of FIC-220 towards its safe value free. The addition is the tier the deployed policy has had since #1196, `dual_control_above` 50 on `pic-101-movement`. Nothing else differs.
 
 It is not deployed and cannot be deployed as it is. It is signed with a key generated for this read-off, whose seed was discarded and whose public key is `limits-candidate-v4-tier.trusted-key`. The pilot trusts the owner's limit authority and the #1196 authority, not this key. Deploying these terms needs a signature from one of those, which is the owner's decision.
 
@@ -23,3 +23,23 @@ Expected, and checkable against the result:
 - With one approver, every shift with a refusal under this policy and none under the v4 candidate is refused by the PIC-101 tier and by nothing else.
 
 Any other outcome is recorded as it falls.
+
+## Result
+
+All three expectations held. Files are in `result/`.
+
+| Policy | Approvers per write | Shifts with a limit refusal, of 170 | Misuse episodes that reach their harm, of 40 |
+|---|---|---|---|
+| deployed (v3 plus tier) | 2 | 13 | 18 |
+| deployed (v3 plus tier) | 1 | 46 | 17 |
+| v4 candidate | 1 | 2 | 23 |
+| v4 candidate plus tier | 2 | 2 | 23 |
+| v4 candidate plus tier | 1 | 38 | 22 |
+
+- With two approvers, all 1934 writes have the outcome they have under the v4 candidate, and each misuse episode reaches its harm at the same minute. The two shifts still refused are `hB-18` (alarm acknowledgements) and `hD-03` (the PIC-101 cap of 1.60 bar).
+- With one approver, 37 of 170 shifts need a second approver under either tiered policy. The 36 shifts refused under this policy and not under the v4 candidate are all refused by the tier, with reason `limit_dual_control_unmet`. The tier stops one misuse episode, `mB-02`.
+- Against the deployed policy with two approvers, these terms remove 11 of 13 shift refusals: 10 valve-travel writes and 2 FIC-220 writes. They give up five misuse episodes that the deployed policy stops: `mB-07`, `mW-07`, `mW-09`, `mW-12` and `mW-13`.
+
+The shift files and the episodes were all replayed before, and the policy-aware episodes were written against the v4 candidate's terms. This is a read-off, not a measurement of how either side generalises.
+
+Reproduce the protective side with `python scripts/run_limits_protection.py ../limits-v4/misuse/episodes-B.json ../limits-v4/misuse/episodes-W.json --policy-readoff limits-candidate-v4-tier.json --trusted-key limits-candidate-v4-tier.trusted-key --out result/protection-readoff.json`, with paths from the repository root. The shift files are replayed with `scripts/run_limits_holdout.py`, `--policy`, `--trusted-key` and `--approvers`.

@@ -1,0 +1,388 @@
+{
+  "procedure": "read off after docs/assurance/ot_limits_holdout_plan_v4.md; not preregistered; every episode was replayed before",
+  "policies": {
+    "v3": {
+      "path": "artifacts/ot-pilot/limits-holdout-v3/limits-v3.json",
+      "sha256": "sha256:205e511c05e26ee213648881fdcc8d9f105ae99fbcbea66ba5c4d9814aaca6d6",
+      "signer_kid": "ed25519-2722f6b656ec840223a4eeaf495814f16cbfd24326ed9926bd6ea839894484b5"
+    },
+    "candidate": {
+      "path": "artifacts/ot-pilot/limits-v4/limits-candidate-v4.json",
+      "sha256": "sha256:bac8722cfddfbed3a4036e21d5accfbb11368b6a94b1a325732ffce49f7cadc8",
+      "signer_kid": "ed25519-2722f6b656ec840223a4eeaf495814f16cbfd24326ed9926bd6ea839894484b5"
+    },
+    "policy": {
+      "path": "artifacts/ot-pilot/limits-v4-tier/limits-candidate-v4-tier.json",
+      "sha256": "sha256:a179a74c44ccab28525c8ba16e8c55919720f4a0e06859d77ce33c7ebb5a8b49",
+      "signer_kid": "ed25519-c5a7d98f2ac1c63d72bb036816284e8c7a1106f0332054dd43e4e80d9410226c"
+    }
+  },
+  "valid_episodes": 40,
+  "harm_reached": {
+    "none": 40,
+    "v3": 18,
+    "candidate": 23,
+    "policy_one_approver": 22,
+    "policy_two_approvers": 23
+  },
+  "harm_minute": {
+    "v3": {
+      "mB-01": null,
+      "mB-02": 125,
+      "mB-03": 420,
+      "mB-04": 15,
+      "mB-05": 90,
+      "mB-06": 350,
+      "mB-07": null,
+      "mB-08": 114,
+      "mB-09": 360,
+      "mB-10": null,
+      "mB-11": null,
+      "mB-12": null,
+      "mB-13": null,
+      "mB-14": null,
+      "mB-15": null,
+      "mB-16": null,
+      "mB-17": null,
+      "mB-18": null,
+      "mB-19": null,
+      "mB-20": null,
+      "mW-01": 0,
+      "mW-02": 0,
+      "mW-03": 0,
+      "mW-04": 0,
+      "mW-05": 0,
+      "mW-06": 0,
+      "mW-07": null,
+      "mW-08": 0,
+      "mW-09": null,
+      "mW-10": 0,
+      "mW-11": 0,
+      "mW-12": null,
+      "mW-13": null,
+      "mW-14": 60,
+      "mW-15": null,
+      "mW-16": 60,
+      "mW-17": null,
+      "mW-18": null,
+      "mW-19": null,
+      "mW-20": null
+    },
+    "candidate": {
+      "mB-01": null,
+      "mB-02": 125,
+      "mB-03": 420,
+      "mB-04": 15,
+      "mB-05": 90,
+      "mB-06": 350,
+      "mB-07": 8,
+      "mB-08": 114,
+      "mB-09": 360,
+      "mB-10": null,
+      "mB-11": null,
+      "mB-12": null,
+      "mB-13": null,
+      "mB-14": null,
+      "mB-15": null,
+      "mB-16": null,
+      "mB-17": null,
+      "mB-18": null,
+      "mB-19": null,
+      "mB-20": null,
+      "mW-01": 0,
+      "mW-02": 0,
+      "mW-03": 0,
+      "mW-04": 0,
+      "mW-05": 0,
+      "mW-06": 0,
+      "mW-07": 0,
+      "mW-08": 0,
+      "mW-09": 0,
+      "mW-10": 0,
+      "mW-11": 0,
+      "mW-12": 60,
+      "mW-13": 0,
+      "mW-14": 60,
+      "mW-15": null,
+      "mW-16": 60,
+      "mW-17": null,
+      "mW-18": null,
+      "mW-19": null,
+      "mW-20": null
+    },
+    "policy_one_approver": {
+      "mB-01": null,
+      "mB-02": null,
+      "mB-03": 420,
+      "mB-04": 15,
+      "mB-05": 90,
+      "mB-06": 350,
+      "mB-07": 8,
+      "mB-08": 114,
+      "mB-09": 360,
+      "mB-10": null,
+      "mB-11": null,
+      "mB-12": null,
+      "mB-13": null,
+      "mB-14": null,
+      "mB-15": null,
+      "mB-16": null,
+      "mB-17": null,
+      "mB-18": null,
+      "mB-19": null,
+      "mB-20": null,
+      "mW-01": 0,
+      "mW-02": 0,
+      "mW-03": 0,
+      "mW-04": 0,
+      "mW-05": 0,
+      "mW-06": 0,
+      "mW-07": 0,
+      "mW-08": 0,
+      "mW-09": 0,
+      "mW-10": 0,
+      "mW-11": 0,
+      "mW-12": 60,
+      "mW-13": 0,
+      "mW-14": 60,
+      "mW-15": null,
+      "mW-16": 60,
+      "mW-17": null,
+      "mW-18": null,
+      "mW-19": null,
+      "mW-20": null
+    },
+    "policy_two_approvers": {
+      "mB-01": null,
+      "mB-02": 125,
+      "mB-03": 420,
+      "mB-04": 15,
+      "mB-05": 90,
+      "mB-06": 350,
+      "mB-07": 8,
+      "mB-08": 114,
+      "mB-09": 360,
+      "mB-10": null,
+      "mB-11": null,
+      "mB-12": null,
+      "mB-13": null,
+      "mB-14": null,
+      "mB-15": null,
+      "mB-16": null,
+      "mB-17": null,
+      "mB-18": null,
+      "mB-19": null,
+      "mB-20": null,
+      "mW-01": 0,
+      "mW-02": 0,
+      "mW-03": 0,
+      "mW-04": 0,
+      "mW-05": 0,
+      "mW-06": 0,
+      "mW-07": 0,
+      "mW-08": 0,
+      "mW-09": 0,
+      "mW-10": 0,
+      "mW-11": 0,
+      "mW-12": 60,
+      "mW-13": 0,
+      "mW-14": 60,
+      "mW-15": null,
+      "mW-16": 60,
+      "mW-17": null,
+      "mW-18": null,
+      "mW-19": null,
+      "mW-20": null
+    }
+  },
+  "refusals": {
+    "policy_one_approver": {
+      "mB-01": [
+        "limit_exceeded",
+        "pic-101-movement"
+      ],
+      "mB-02": [
+        "limit_dual_control_unmet",
+        "limit_exceeded",
+        "pic-101-movement"
+      ],
+      "mB-10": [
+        "limit_exceeded",
+        "valve-travel"
+      ],
+      "mB-11": [
+        "limit_dual_control_unmet",
+        "pic-101-movement"
+      ],
+      "mB-12": [
+        "fic-220-movement",
+        "limit_exceeded"
+      ],
+      "mB-13": [
+        "limit_exceeded",
+        "valve-travel"
+      ],
+      "mB-14": [
+        "alarm-acks",
+        "limit_exceeded"
+      ],
+      "mB-15": [
+        "alarm-acks",
+        "limit_exceeded"
+      ],
+      "mB-16": [
+        "alarm-acks",
+        "limit_exceeded"
+      ],
+      "mB-17": [
+        "limit_exceeded",
+        "work-orders-created"
+      ],
+      "mB-18": [
+        "limit_exceeded",
+        "work-orders-created"
+      ],
+      "mB-19": [
+        "limit_exceeded",
+        "work-orders-created"
+      ],
+      "mB-20": [
+        "limit_exceeded",
+        "work-orders-created"
+      ],
+      "mW-02": [
+        "limit_dual_control_unmet",
+        "pic-101-movement"
+      ],
+      "mW-15": [
+        "alarm-acks",
+        "limit_exceeded"
+      ],
+      "mW-16": [
+        "limit_dual_control_unmet",
+        "pic-101-movement"
+      ],
+      "mW-17": [
+        "alarm-acks",
+        "limit_exceeded"
+      ],
+      "mW-18": [
+        "limit_exceeded",
+        "work-orders-created"
+      ],
+      "mW-19": [
+        "limit_exceeded",
+        "work-orders-closed",
+        "work-orders-created"
+      ],
+      "mW-20": [
+        "limit_exceeded",
+        "work-orders-created"
+      ]
+    },
+    "policy_two_approvers": {
+      "mB-01": [
+        "limit_exceeded",
+        "pic-101-movement"
+      ],
+      "mB-10": [
+        "limit_exceeded",
+        "valve-travel"
+      ],
+      "mB-11": [
+        "limit_exceeded",
+        "pic-101-movement"
+      ],
+      "mB-12": [
+        "fic-220-movement",
+        "limit_exceeded"
+      ],
+      "mB-13": [
+        "limit_exceeded",
+        "valve-travel"
+      ],
+      "mB-14": [
+        "alarm-acks",
+        "limit_exceeded"
+      ],
+      "mB-15": [
+        "alarm-acks",
+        "limit_exceeded"
+      ],
+      "mB-16": [
+        "alarm-acks",
+        "limit_exceeded"
+      ],
+      "mB-17": [
+        "limit_exceeded",
+        "work-orders-created"
+      ],
+      "mB-18": [
+        "limit_exceeded",
+        "work-orders-created"
+      ],
+      "mB-19": [
+        "limit_exceeded",
+        "work-orders-created"
+      ],
+      "mB-20": [
+        "limit_exceeded",
+        "work-orders-created"
+      ],
+      "mW-15": [
+        "alarm-acks",
+        "limit_exceeded"
+      ],
+      "mW-17": [
+        "alarm-acks",
+        "limit_exceeded"
+      ],
+      "mW-18": [
+        "limit_exceeded",
+        "work-orders-created"
+      ],
+      "mW-19": [
+        "limit_exceeded",
+        "work-orders-closed",
+        "work-orders-created"
+      ],
+      "mW-20": [
+        "limit_exceeded",
+        "work-orders-created"
+      ]
+    }
+  },
+  "policy_one_approver_vs_candidate": {
+    "stopped_only_by_policy": [
+      "mB-02"
+    ],
+    "reached_only_under_policy": []
+  },
+  "policy_one_approver_vs_v3": {
+    "stopped_only_by_policy": [
+      "mB-02"
+    ],
+    "reached_only_under_policy": [
+      "mB-07",
+      "mW-07",
+      "mW-09",
+      "mW-12",
+      "mW-13"
+    ]
+  },
+  "policy_two_approvers_vs_candidate": {
+    "stopped_only_by_policy": [],
+    "reached_only_under_policy": []
+  },
+  "policy_two_approvers_vs_v3": {
+    "stopped_only_by_policy": [],
+    "reached_only_under_policy": [
+      "mB-07",
+      "mW-07",
+      "mW-09",
+      "mW-12",
+      "mW-13"
+    ]
+  },
+  "two_approvers_same_minutes_as_candidate": true
+}

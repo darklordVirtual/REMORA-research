@@ -286,13 +286,84 @@ def deployed_readoff(paths: list[Path]) -> dict[str, Any]:
     return out
 
 
+def policy_readoff(paths: list[Path], policy_path: Path, key_file: Path) -> dict[str, Any]:
+    """Read off, not preregistered: one more signed policy against v3 and the v4 candidate.
+
+    The episodes are replayed under the named policy with one approver per
+    write and with two, and each is paired with v3 and with the candidate
+    (both with one approver; neither has a tier). It changes nothing in
+    :func:`run`.
+    """
+    registry = holdout._registry()
+    pristine = copy.deepcopy(registry.PLANT)
+    episodes = [ep for path in paths for ep in validate(json.loads(path.read_bytes()))]
+    v3, v3_meta = load("v3")
+    candidate, candidate_meta = load("candidate")
+    policy, digest, kid = holdout.load_policy(
+        policy_path, key_file.read_text(encoding="utf-8").split())
+    runs = {"v3": (v3, 1), "candidate": (candidate, 1),
+            "policy_one_approver": (policy, 1), "policy_two_approvers": (policy, 2)}
+    minutes: dict[str, dict[str, int | None]] = {name: {} for name in ["none", *runs]}
+    refusals: dict[str, dict[str, list[str]]] = {name: {} for name in runs}
+    with tempfile.TemporaryDirectory() as tmp:
+        for ep in episodes:
+            eid = ep["episode_id"]
+            shift = {"shift_id": eid, "writes": ep["writes"]}
+            minutes["none"][eid] = harm_minute(ep["harm"], replay_unlimited(
+                shift, registry, pristine), pristine)
+            for name, (pol, approvers) in runs.items():
+                with tempfile.TemporaryDirectory(dir=tmp) as d:
+                    rows = holdout.replay_shift(shift, pol, registry, pristine, Path(d),
+                                                approvers=approvers)
+                minutes[name][eid] = harm_minute(ep["harm"], rows, pristine)
+                refusals[name][eid] = sorted(
+                    {lim for r in rows if r["outcome"] == "refused" for lim in r.get("limits", [])}
+                    | {r["reason"] for r in rows if r["outcome"] == "refused"})
+    valid = [e for e in minutes["none"] if minutes["none"][e] is not None]
+    reached = {name: sorted(e for e in valid if minutes[name][e] is not None) for name in minutes}
+    try:
+        shown = str(policy_path.resolve().relative_to(ROOT))
+    except ValueError:
+        shown = policy_path.name
+    out: dict[str, Any] = {
+        "procedure": "read off after docs/assurance/ot_limits_holdout_plan_v4.md; "
+                     "not preregistered; every episode was replayed before",
+        "policies": {"v3": v3_meta, "candidate": candidate_meta,
+                     "policy": {"path": shown, "sha256": digest, "signer_kid": kid}},
+        "valid_episodes": len(valid),
+        "harm_reached": {name: len(ids) for name, ids in reached.items()},
+        "harm_minute": {name: {e: minutes[name][e] for e in valid} for name in runs},
+        "refusals": {name: {e: refusals[name][e] for e in valid if refusals[name][e]}
+                     for name in ("policy_one_approver", "policy_two_approvers")}}
+    for name in ("policy_one_approver", "policy_two_approvers"):
+        for other in ("candidate", "v3"):
+            out[f"{name}_vs_{other}"] = {
+                "stopped_only_by_policy": sorted(set(reached[other]) - set(reached[name])),
+                "reached_only_under_policy": sorted(set(reached[name]) - set(reached[other]))}
+    out["two_approvers_same_minutes_as_candidate"] = (
+        minutes["policy_two_approvers"] == minutes["candidate"])
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("episodes", nargs="+", type=Path)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--deployed-readoff", action="store_true",
                         help="replay under the deployed policy instead (not preregistered)")
+    parser.add_argument("--policy-readoff", type=Path,
+                        help="replay under this signed policy instead (not preregistered)")
+    parser.add_argument("--trusted-key", type=Path,
+                        help="the key file --policy-readoff is verified under")
     args = parser.parse_args(argv)
+    if (args.policy_readoff is None) != (args.trusted_key is None):
+        parser.error("--policy-readoff and --trusted-key go together")
+    if args.policy_readoff:
+        result = policy_readoff(args.episodes, args.policy_readoff, args.trusted_key)
+        args.out.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+        print("harm reached: " + ", ".join(f"{k} {v}/{result['valid_episodes']}"
+                                           for k, v in result["harm_reached"].items()))
+        return 0
     if args.deployed_readoff:
         result = deployed_readoff(args.episodes)
         args.out.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
