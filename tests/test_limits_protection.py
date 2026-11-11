@@ -194,6 +194,7 @@ def test_main_writes_the_result(tmp_path):
     assert prot.main([str(bad), "--out", str(tmp_path / "r2.json")]) == 2
 
 
+@pytest.mark.slow_replay
 def test_the_deployed_policy_read_off_on_the_recorded_episodes():
     """Not preregistered: the policy deployed since #1196 (v3 plus the PIC-101
     second tier) against v3, on the sealed v4 misuse episodes. With two
@@ -209,6 +210,7 @@ def test_the_deployed_policy_read_off_on_the_recorded_episodes():
                                                    "reached_only_under_deployed": []}
 
 
+@pytest.mark.slow_replay
 def test_the_v4_candidate_with_the_tier_read_off_on_the_recorded_episodes():
     """Not preregistered: the v4 candidate plus the PIC-101 second tier, on the
     spent v4 misuse episodes. With two approvers it is the candidate, minute for
@@ -253,6 +255,7 @@ def test_the_tier_candidate_differs_from_the_v4_candidate_in_one_term_and_is_not
         prot.holdout.load_policy(art / "limits-v4-tier" / "limits-candidate-v4-tier.json")
 
 
+@pytest.mark.slow_replay
 def test_the_tier_candidate_shift_read_off_matches_what_was_stated():
     result = Path(__file__).resolve().parents[1] / "artifacts" / "ot-pilot" / "limits-v4-tier" / "result"
     load = lambda name: json.loads((result / name).read_text(encoding="utf-8"))  # noqa: E731
@@ -304,6 +307,7 @@ def test_paired_counts_only_and_earlier_in_both_directions():
     assert sum(v["count"] for v in out.values()) == 4
 
 
+@pytest.mark.slow_replay
 def test_the_v5_candidate_beside_the_deployed_policy_on_the_spent_episodes():
     """The fit the plan says the candidate was chosen on (plan v5 section 1):
     on the 40 episodes already spent it reaches the harms the deployed policy
@@ -342,6 +346,7 @@ def test_the_v5_candidate_differs_from_the_deployed_policy_in_valve_travel_only(
                                  / "limits-candidate-v5.json")
 
 
+@pytest.mark.slow_replay
 def test_plan_v5_result_is_what_a_fresh_replay_of_the_sealed_files_gives():
     """Both sides of the recorded result, replayed. The sealed files are passed
     to the harness and their hashes checked; this test asserts nothing about

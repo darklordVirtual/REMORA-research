@@ -231,9 +231,9 @@
     },
     ".github/workflows/quality-gates.yml": {
       "concepts": [],
-      "git_blob": "fa365ec0c779fd9c8a1c65354273e77408cbf841",
+      "git_blob": "1dc6081b002eb9610d82ca4d9b84b58099d42eb4",
       "mode": "100644",
-      "sha256": "f6c9ca3f93ce5dc5f85f9fbf6372c76b31e1673dad82717ac737efedc4a974f6"
+      "sha256": "935708a03b6d207a4f772a1be88e39fb482ab82955a8ca5fa24a2eace2092c81"
     },
     ".github/workflows/release.yml": {
       "concepts": [],
@@ -11912,9 +11912,9 @@
     },
     "pyproject.toml": {
       "concepts": [],
-      "git_blob": "f1fd200585f94de79ac9ba2f3ff43a4963fd200b",
+      "git_blob": "501afbeaa7029ca05b13bef82f877d5293e343f6",
       "mode": "100644",
-      "sha256": "bf962079f5e71f43adb5da28da574a35ef16ca0584170257e233afb487814d74"
+      "sha256": "48e1dcc0630947b09315e88954f98ba849b51529a3904323591960e059e07a32"
     },
     "remora/README.md": {
       "concepts": [],
@@ -21572,9 +21572,9 @@
     },
     "tests/test_limits_protection.py": {
       "concepts": [],
-      "git_blob": "d08381e1141cc576f010d7323d041e2b3268998b",
+      "git_blob": "33193739f80dfe7b0121ce265c4172e612766901",
       "mode": "100644",
-      "sha256": "176ce6a1b1a0d1d4df4b324366c98ffb306475623843e009bbdae9e5f3d13843"
+      "sha256": "6aff22a6cbb62682cadb19f22f512182531ca2f56f08ab713173b496949467d4"
     },
     "tests/test_llm_judge.py": {
       "concepts": [],
@@ -24211,7 +24211,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "452466c898f7bd378e6f53acba432f1e27c91c82494a5f64eae18a4aef119248",
+  "register_sha256": "ab884c6b34c3c00fff623a4923616fad17819ff6d103da85334804f3c4b9f764",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

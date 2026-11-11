@@ -277,7 +277,7 @@ exclude_also = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-v --tb=short -m 'not live and not live_replay_heavy'"
+addopts = "-v --tb=short -m 'not live and not live_replay_heavy and not slow_replay'"
 # Starlette 1.9 warns on every TestClient import and tells the reader to
 # install `httpx2`. A CI message naming that package once led to an
 # unreviewed install (docs/assurance/development_review_log_v1.md). Filtered
@@ -291,6 +291,7 @@ markers = [
     "live_replay_heavy: long-running deterministic replay/sandbox tests (run in dedicated job)",
     "docgate: asserts on repository documents and registers rather than runtime behaviour; run as its own CI job so documentation drift and a governance regression do not fail the same way",
     "slow: tests that take more than 10 seconds (deselect with -m 'not slow')",
+    "slow_replay: deterministic but minutes-long local replay tests (no network); excluded from the deterministic suite and run in the replay-heavy job",
     "rem014_gate: REM-014 structural verification of the imported AgentHarm artifact",
     "opa_gate: OPA/Rego conformance tests (skip automatically when the opa binary is absent)",
 ]
