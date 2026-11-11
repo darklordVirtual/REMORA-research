@@ -42,7 +42,7 @@ SCHEMA = 1
 # Same marker expression as `addopts` in pyproject.toml (a test pins this).
 # addopts is cleared for the collection because its -v changes the output
 # shape that parse_collect_output reads.
-MARKER_EXPRESSION = "not live and not live_replay_heavy"
+MARKER_EXPRESSION = "not live and not live_replay_heavy and not slow_replay"
 
 LOCK_FILES = (
     "requirements-lock.txt",
