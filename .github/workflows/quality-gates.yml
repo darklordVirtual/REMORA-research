@@ -430,6 +430,11 @@ jobs:
             tests/test_toolcall_live_exec_results.py \
             tests/test_toolcall_live_cache_replay.py
 
+      - name: Run deterministic slow replay tests
+        # Local, no network; excluded from the deterministic suite for its
+        # 25-minute cap and run here under the 30-minute budget.
+        run: pytest -q -m slow_replay tests/test_limits_protection.py
+
   federation-port-adapter:
     # REMORA's federation-port/v0 components (docs/interop/FEDERATION_BRIDGE.md),
     # reproduced exactly as integrations/federation-port/remora-adapter/
