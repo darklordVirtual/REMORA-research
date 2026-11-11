@@ -764,6 +764,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/execution/proposals/{proposal_id}/review-packet": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Review Packet
+         * @description The decision basis a human needs to resolve a proposal, as REMORA holds it.
+         *
+         *     REMORA governs by labels and hashes. The observation, the audit chain and
+         *     the review item carry the call's ``tool_call_hash``, never its raw
+         *     arguments, so this packet cannot and does not invent the request body. It
+         *     returns what REMORA computed: the tool, the decision and its reasons, how
+         *     the intent resolved and whether it stayed in scope, and, when the write
+         *     passes a cumulative limit's ``dual_control_above`` second tier, the
+         *     ``dual_control`` block naming the limits and how many distinct approvers
+         *     are required.
+         *
+         *     ``arguments_available`` is always false. The human-readable request and
+         *     the work order's prior accepted writes are joined by the approver console
+         *     from the deployment, keyed by ``tool_call_hash``; this keeps REMORA's
+         *     argument-minimisation invariant intact while still giving the approver a
+         *     single place to read why the call stopped. Tenant-scoped like
+         *     :func:`get_proposal`: a proposal for another tenant is a 404.
+         */
+        get: operations["get_review_packet_v1_execution_proposals__proposal_id__review_packet_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/execution/proposals/{proposal_id}/semantic-assessment": {
         parameters: {
             query?: never;
@@ -3679,6 +3715,66 @@ export interface operations {
         requestBody?: never;
         responses: {
             /** @description The ordered event trail for one proposal. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            /** @description Missing or invalid bearer token. */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Role lacks the required capability for this tenant. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description No such proposal for this tenant. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_review_packet_v1_execution_proposals__proposal_id__review_packet_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The basis a human approver reads before resolving a proposal. */
             200: {
                 headers: {
                     [name: string]: unknown;
