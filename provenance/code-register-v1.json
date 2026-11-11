@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "6fcb33ae1f4872af1d434ab5940fea59b9ab2937",
+      "git_blob": "9a7ac6b0145df46ab12b0672cf5f5854c3405864",
       "mode": "100644",
-      "sha256": "ec60057586bd310789e74c06c5a288546088d30653a590c9c11e60c88025338b"
+      "sha256": "3be178af04058360b4416c36636bf420f4042d8c96d33a16b913122461d6423a"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -369,9 +369,9 @@
     },
     "NEGATIVE_RESULTS.md": {
       "concepts": [],
-      "git_blob": "7f438a062e79e02129e41c171255d47fd7f91e3e",
+      "git_blob": "67424ae9eb211a82ec60717e4818c4bf6457db12",
       "mode": "100644",
-      "sha256": "c3c240f11da37c088044ec5297c8b88e76dac5a616ab98fc7c63e459e190e9d5"
+      "sha256": "3f27f09006ec9ba4606c0e569765da73c179f9d77fe77e0ed997ab20ae00db4e"
     },
     "NOTICE": {
       "concepts": [],
@@ -4287,6 +4287,24 @@
       "mode": "100644",
       "sha256": "24cb64b205b31f691a39f7af9915e782cfae320bd6f37d133cdd023a58dfbb08"
     },
+    "artifacts/ot-pilot/limits-v6/approvals/ap1-decisions.json": {
+      "concepts": [],
+      "git_blob": "6d84ec68bbf1c140a39aef4a605e483e71aea48e",
+      "mode": "100644",
+      "sha256": "19622ce19fb5754374977896d28f26834f900920fa91b585f80f2c19847d6730"
+    },
+    "artifacts/ot-pilot/limits-v6/approvals/ap1.json": {
+      "concepts": [],
+      "git_blob": "7ca31798818fe3b56cfbeca4c3abf0370b362ffd",
+      "mode": "100644",
+      "sha256": "cb2f311c31a55d686fa2ccbb5fe334198a5ec3a27184a9abfc487318b6870060"
+    },
+    "artifacts/ot-pilot/limits-v6/approvals/ap2-decisions.json": {
+      "concepts": [],
+      "git_blob": "1cbfe78b457b8de64ffcb61aa0192bb1ea7313bb",
+      "mode": "100644",
+      "sha256": "d48b4baf4821b1f76f5bc7d581a2d0bbde8bbbfe4cf481533559dce3d3aa85d9"
+    },
     "artifacts/ot-pilot/limits-v6/approver-brief.md": {
       "concepts": [],
       "git_blob": "aee776b569de43f4c2aedece2318d92b1d78696e",
@@ -4358,6 +4376,12 @@
       "git_blob": "6b56b0dcc803d79097fc40d9c7565eaf47d2b798",
       "mode": "100644",
       "sha256": "ffd9a87636ffc315d30df19a6b31cdc46beb358259eccc0790a8e1769acacc59"
+    },
+    "artifacts/ot-pilot/limits-v6/result.json": {
+      "concepts": [],
+      "git_blob": "3e1275ed2df5ba37397ddeff68343dbf3c4ee554",
+      "mode": "100644",
+      "sha256": "fce8512803a27178ead72a5d40cd47c2fbbff12695111d9e12174571eec4e727"
     },
     "artifacts/pilot-pack/README.md": {
       "concepts": [],
@@ -7421,9 +7445,9 @@
     },
     "docs/assurance/ot_limits_holdout_plan_v6.md": {
       "concepts": [],
-      "git_blob": "725bb0f896b397c255cd805a337e4ff54af509c6",
+      "git_blob": "d0c0a636075d8cebf7377f9fe53e8333509ecd91",
       "mode": "100644",
-      "sha256": "0ac18777057830638748e7eabdaa9c022117a678306f4842a9776801d48d0479"
+      "sha256": "d4e5cd2829a99b0d96dca7a2a2ebec5eb16d042281269ac5361a5bf240d12592"
     },
     "docs/assurance/policy_engine_audit_v1.md": {
       "concepts": [],
@@ -21446,9 +21470,9 @@
     },
     "tests/test_limits_protection.py": {
       "concepts": [],
-      "git_blob": "09ff5370fa6aec356691b53335ccf6a68e2353f2",
+      "git_blob": "875d73a7b78eb4ed0daeb76cd1427d1a80897a51",
       "mode": "100644",
-      "sha256": "41471967027a99ac697c6f25defc37e5b7d88f496d013281d66acce85d49608d"
+      "sha256": "3bed7197b8fbe86e330fb0ff9ebacf57722758104399ed57659bb92c866087f7"
     },
     "tests/test_llm_judge.py": {
       "concepts": [],
@@ -24073,7 +24097,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "335f8d479aefac307f3d56f22859b6f3934348edb45bc8c166c292930354ae05",
+  "register_sha256": "d7f7eaab5065bcb403aacbbf8ce3d0695ba7ced89c383f6971aa5ccce2e6c774",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

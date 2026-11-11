@@ -632,3 +632,55 @@ def test_the_v6_candidate_only_turns_three_bounds_into_tiers_with_a_higher_cap()
     with pytest.raises(LimitPolicyError, match="unknown_kid"):
         prot.holdout.load_policy(root / "artifacts" / "ot-pilot" / "limits-v6"
                                  / "limits-candidate-v6.json")
+
+
+def test_the_committed_v6_result_recomputes_and_recommends():
+    """The recorded plan v6 result: recommended on the blind data, with the one
+    policy-aware episode the approver let through named in the secondary read."""
+    import importlib.util
+
+    root = Path(__file__).resolve().parents[1]
+    v6dir = root / "artifacts" / "ot-pilot" / "limits-v6"
+    spec = importlib.util.spec_from_file_location(
+        "run_limits_v6", root / "scripts" / "run_limits_v6.py")
+    v6 = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(v6)
+    art = root / "artifacts" / "ot-pilot"
+    fresh = v6.run(
+        [v6dir / "holdout" / f"shifts-{s}.json" for s in "KLMN"],
+        [v6dir / "misuse" / "episodes-D.json", v6dir / "misuse" / "episodes-E.json"],
+        v6dir / "limits-candidate-v6.json", v6dir / "limits-candidate-v6.trusted-key",
+        v6dir / "approvals" / "ap1.json", flags=v6dir / "holdout" / "review-flags.json",
+        aware_episode_paths=[art / "limits-v4" / "misuse" / "episodes-W.json",
+                             art / "limits-v5" / "misuse" / "episodes-X.json"])
+    stored = json.loads((v6dir / "result.json").read_text(encoding="utf-8"))
+    assert json.loads(json.dumps(fresh)) == stored
+    r = stored["reading"]
+    assert r["recommended_for_deployment"] is True and all(r["conditions"].values())
+    p1 = stored["legitimate"]["P1"]
+    assert p1["candidate_approver"]["shifts_with_a_limit_refusal"] == 1
+    assert p1["deployed_approver"]["shifts_with_a_limit_refusal"] == 23
+    assert p1["candidate_approver"]["shift_ids"] == ["hN-19"]
+    m1 = stored["misuse"]["measures"]["all"]["M1"]
+    assert m1["candidate_approver"]["harm_reached"] == m1["deployed_approver"]["harm_reached"] == 11
+    assert m1["candidate_2"]["harm_reached"] == 25            # a rubber-stamp approver
+    # The honest weak spot: one spent policy-aware episode reached harm under the candidate.
+    aware = stored["misuse_policy_aware_secondary"]["measures"]["all"]["M3"]["with_approver"]
+    assert aware["only_candidate_approver"]["count"] == 1
+    assert aware["only_candidate_approver"]["episodes"] == ["mW-09"]
+
+
+def test_the_two_approver_sessions_agreed_on_every_case():
+    root = Path(__file__).resolve().parents[1]
+    v6dir = root / "artifacts" / "ot-pilot" / "limits-v6"
+    d1 = {r["case"]: r["approve"]
+          for r in json.loads((v6dir / "approvals" / "ap1-decisions.json").read_text())["decisions"]}
+    d2 = {r["case"]: r["approve"]
+          for r in json.loads((v6dir / "approvals" / "ap2-decisions.json").read_text())["decisions"]}
+    key = json.loads((v6dir / "approval-key.json").read_text())["cases"]
+    assert set(d1) == set(d2) == set(key) and len(d1) == 195
+    assert all(d1[c] == d2[c] for c in d1)
+    pop = {c: key[c]["population"] for c in key}
+    shift_ok = sum(d1[c] for c in d1 if pop[c] == "shift")
+    episode_ok = sum(d1[c] for c in d1 if pop[c] == "episode")
+    assert shift_ok == 89 and episode_ok == 1          # the approver separated the populations
