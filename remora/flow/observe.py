@@ -27,7 +27,7 @@ recipient sets stay here.
 """
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable, Mapping
+from collections.abc import Callable, Mapping
 from typing import Any, Final
 
 from remora.flow.check import flow_check
@@ -72,7 +72,7 @@ def flow_observation(
     flow: FlowSpec | None,
     arguments: Mapping[str, Any],
     strict: bool,
-    resource_acl: Callable[[str], Iterable[str]] | None = None,
+    resource_acl: Callable[[str], Any] | None = None,
 ) -> dict[str, Any]:
     """The ``flow_*`` observation fields for one proposed call, with flow control on."""
     if not context_id or not principal:

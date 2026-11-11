@@ -362,3 +362,80 @@ def test_the_digest_format():
                                   + canonical_bytes(verdict.payload_label)).hexdigest()
         assert verdict.digest == expected
     assert _check(flow=DELETE_ALL, ctx=TAINTED_CTX, args={"scope": "all"}).ctrl_viol
+
+
+# ── a world-readable resource (resource ACL registry, 2026-11-10) ──────────
+
+_WRITE = {"provider": "tcb", "arguments": {"path": {"kind": "resource"},
+                                           "body": {"kind": "text"}},
+          "sources": {}, "sink": {"recipients": {"resource_of": "path"}}}
+
+
+def test_a_write_to_a_world_readable_resource_takes_only_public_data():
+    """An ACL that answers PUBLIC names everyone. Restricted data may not go
+    there, and public data may: the check no longer needs a list of everyone."""
+    from remora.flow.check import PUBLIC_RECIPIENT
+
+    write = parse_flow(_WRITE)
+    args = {"path": "res://records/pub-1", "body": "x"}
+    assert recipients(write, args, resource_acl=lambda r: PUBLIC) == (
+        frozenset({PUBLIC_RECIPIENT}), ())
+    secret = flow_check(write, context_label=SECRET, value_labels={}, resolved_args=args,
+                        epoch=0, resource_acl=lambda r: PUBLIC)
+    assert secret.conf_viol == frozenset({PUBLIC_RECIPIENT})
+    public = flow_check(write, context_label=BOTTOM, value_labels={}, resolved_args=args,
+                        epoch=0, resource_acl=lambda r: PUBLIC)
+    assert public.clean
+
+
+def test_the_public_recipient_is_within_no_reader_set_however_it_is_written():
+    from remora.flow.check import PUBLIC_RECIPIENT
+    from remora.flow.label import flows_to
+
+    assert flows_to(BOTTOM, PUBLIC_RECIPIENT)
+    for readers in ({USER}, {"public://anyone"}, {"public://anyone/*"}, {USER, BOB, MODEL}):
+        assert not flows_to(Label(readers, Integrity.TRUSTED), PUBLIC_RECIPIENT), readers
+
+
+def test_a_resource_the_acl_names_no_reader_for_is_unresolved_not_open():
+    """Fail closed. A registry that answers with no reader for a resource
+    (an unknown one, typically) has not said nobody receives the write, and
+    the check must not read it as 'no recipient the data may not reach'."""
+    write = parse_flow(_WRITE)
+    args = {"path": "res://records/unknown", "body": "x"}
+    assert recipients(write, args, resource_acl=lambda r: []) == (frozenset(), ("path",))
+    for label in (BOTTOM, SECRET):
+        verdict = flow_check(write, context_label=label, value_labels={}, resolved_args=args,
+                             epoch=0, resource_acl=lambda r: [])
+        assert verdict.conf_viol == frozenset({"unresolved:path"})
+
+
+@pytest.mark.parametrize("answer", [None, 7, "user://acme/alice", [7], ["not a principal"],
+                                    {"user://acme/alice": True}])
+def test_a_registry_answer_that_is_not_a_list_of_principals_is_unresolved(answer):
+    write = parse_flow(_WRITE)
+    args = {"path": "res://records/pub-1", "body": "x"}
+    found, unresolved = recipients(write, args, resource_acl=lambda r: answer)
+    assert found == frozenset() and unresolved == ("path",), answer
+
+
+def test_a_registry_that_raises_is_unresolved_not_a_crash():
+    write = parse_flow(_WRITE)
+
+    def broken(resource):
+        raise RuntimeError("registry down")
+
+    assert recipients(write, {"path": "res://records/pub-1"}, resource_acl=broken) == (
+        frozenset(), ("path",))
+
+
+def test_the_registry_is_asked_about_the_canonical_resource():
+    write = parse_flow(_WRITE)
+    asked = []
+
+    def acl(resource):
+        asked.append(resource)
+        return [USER]
+
+    recipients(write, {"path": "RES://Records/pub-1/"}, resource_acl=acl)
+    assert asked == ["res://records/pub-1"]
