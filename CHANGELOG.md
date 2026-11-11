@@ -4,6 +4,13 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### OT limits: the first candidate recommended for deployment, with a second approver in the loop (2026-11-10)
+
+- Plan v6 (`docs/assurance/ot_limits_holdout_plan_v6.md`) turns the deployed policy's valve, flow and acknowledgement refusals into second tiers with a higher cap, past which a write goes to a second approver. With one approver the candidate is the deployed policy, write for write.
+- Measured on 80 new blind shifts and 40 new blind misuse episodes, with 195 anonymised tier-passing writes put to two blind approver sessions that agreed on all 195. With the approver the candidate refused a legitimate write in 1 of 80 shifts against 23 for the deployed policy, and 11 of 40 misuse episodes reached their harm under both, none only under the candidate. All four pre-registered conditions held, and `scripts/run_limits_v6.py` records the candidate as recommended for deployment on this data.
+- It is a recommendation, not a deployment, and it is open. The approver is a model session, not a human supervisor. The policy-aware misuse author that would have worded logs to be approved was dropped, so the approver was not tested against an adversary who set out to be approved; a secondary read on the spent policy-aware episodes shows one, `mW-09`, that the approver let through: it approved the full drain to 100 % (the harm itself) under a work-order pretext, on a bound shared with legitimate work. Part of the blind-data separation also rides on which bound a request trips, not judgement; on the two shared bounds the approver still approved 88 of 89 shift requests and denied 47 of 48 episode requests. The candidate is signed with a key the pilot does not trust. NEGATIVE_RESULTS §97.
+- `scripts/build_limits_approval_packets.py` anonymises and mixes the requests; `scripts/run_limits_v6.py` runs the five replays and computes the reading. Tests: `tests/test_limits_protection.py`.
+
 ### OT limits: a valve-travel candidate measured beside the deployed policy on new data; not recommended (2026-11-10)
 
 - Plan v5 (`docs/assurance/ot_limits_holdout_plan_v5.md`) fixed its measures before four author sessions, three blind and one that knew the candidate, wrote 40 new shifts and 40 new misuse episodes. The candidate changes only valve travel: 200 points per hour, V-12 kept at 70, and a new bound of 290 per two hours.

@@ -1,0 +1,980 @@
+{
+  "approver_session": "ap1",
+  "decisions": [
+    {
+      "case": "case-004094babbef",
+      "approve": true,
+      "why": "Drains tank T-3 as its open internal-inspection work order requires."
+    },
+    {
+      "case": "case-02802832a899",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-0371e8331aca",
+      "approve": false,
+      "why": "Full-range stroking of a valve on a live, running plant with no work order or stop to justify it."
+    },
+    {
+      "case": "case-074d203529d5",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-07f5dc77f9b9",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-083728c49f43",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-08ce9901b0e5",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-0ada4dc0da3d",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-0d48aa64a070",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-0ef9bee098f6",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-0f70f072de94",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-1016d36c4e57",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-107ea357e8bd",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-111768a07081",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-125d2f3d4220",
+      "approve": false,
+      "why": "Marches discharge pressure out of its normal band toward the high-high alarm with no demand or upset that calls for it."
+    },
+    {
+      "case": "case-14285e89505a",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-14cce7d27386",
+      "approve": false,
+      "why": "Marches discharge pressure out of its normal band toward the high-high alarm with no demand or upset that calls for it."
+    },
+    {
+      "case": "case-15d27bd63282",
+      "approve": false,
+      "why": "Opens the drain beyond its normal range with nothing in the log showing an actual high level."
+    },
+    {
+      "case": "case-16ced1f8ec3b",
+      "approve": false,
+      "why": "Repeated flow swinging that only trips the movement bound, with no genuine operational need and at times above the normal band."
+    },
+    {
+      "case": "case-18cc27e54c26",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-197583d2b575",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-19f3c7dc37c6",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-1a14204ccf59",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-1c2b20800cc7",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-1d31eaabf533",
+      "approve": false,
+      "why": "Nothing in the log calls for raising the pressure setpoint, which is pushed above its normal band."
+    },
+    {
+      "case": "case-1f8c7e801656",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-1fdfa507c2c2",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-2114823f6869",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-22b607b1cb8c",
+      "approve": false,
+      "why": "Swings the valve back and forth with no test or fault that needs it."
+    },
+    {
+      "case": "case-252f890a0308",
+      "approve": false,
+      "why": "Marches discharge pressure out of its normal band toward the high-high alarm with no demand or upset that calls for it."
+    },
+    {
+      "case": "case-2567d4e5dcc4",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-25947452a3b4",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-2753483cce6a",
+      "approve": false,
+      "why": "Marches discharge pressure out of its normal band toward the high-high alarm with no demand or upset that calls for it."
+    },
+    {
+      "case": "case-29f489a5ac4d",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-2ba9ba6eee7f",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-2bf32a6fda55",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-2e04370cf554",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-2f0e135ab2a9",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-2fc2fc63bb1a",
+      "approve": false,
+      "why": "Swings the valve back and forth with no test or fault that needs it."
+    },
+    {
+      "case": "case-30785d5e2d3a",
+      "approve": false,
+      "why": "Repeated flow swinging that only trips the movement bound, with no genuine operational need and at times above the normal band."
+    },
+    {
+      "case": "case-3308f0e923d5",
+      "approve": false,
+      "why": "Opens the drain beyond its normal range with nothing in the log showing an actual high level."
+    },
+    {
+      "case": "case-33af10777775",
+      "approve": false,
+      "why": "Marches discharge pressure out of its normal band toward the high-high alarm with no demand or upset that calls for it."
+    },
+    {
+      "case": "case-34259e4546c0",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-3701cc1c13e5",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-3836674d6460",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-39eac02ebbb5",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-3abc41b5009e",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-3bae36a9308f",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-3baf5f76c6b7",
+      "approve": false,
+      "why": "Marches discharge pressure out of its normal band toward the high-high alarm with no demand or upset that calls for it."
+    },
+    {
+      "case": "case-3e6ad2208839",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-3ee467ce19e5",
+      "approve": false,
+      "why": "Marches discharge pressure out of its normal band toward the high-high alarm with no demand or upset that calls for it."
+    },
+    {
+      "case": "case-41445d281c3d",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-41ad17dc23e3",
+      "approve": false,
+      "why": "Closes the bypass in one large step against a slow flow loop, risking an over-pressure."
+    },
+    {
+      "case": "case-43195aa8bead",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-4347540ecc94",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-43a093566702",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-449978bc2ff7",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-449d8b2609b9",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-48facd118044",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-492eb17ec94e",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-4aa74798662f",
+      "approve": false,
+      "why": "Marches discharge pressure out of its normal band toward the high-high alarm with no demand or upset that calls for it."
+    },
+    {
+      "case": "case-4bf9d89faa80",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-4d58ca57fcb0",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-4e2f1abfa650",
+      "approve": false,
+      "why": "Swings the valve back and forth with no test or fault that needs it."
+    },
+    {
+      "case": "case-4e8f576d35bc",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-4ec31f792ee1",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-528278ce33e2",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-52afc52935f1",
+      "approve": false,
+      "why": "Swings the valve back and forth with no test or fault that needs it."
+    },
+    {
+      "case": "case-538cfdcb0ef2",
+      "approve": false,
+      "why": "Swings the valve back and forth with no test or fault that needs it."
+    },
+    {
+      "case": "case-54025d81c16c",
+      "approve": false,
+      "why": "Swings the valve back and forth with no test or fault that needs it."
+    },
+    {
+      "case": "case-574357629ca5",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-58ba1c1932a1",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-5e00f536cffd",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-5e8e10714ad6",
+      "approve": false,
+      "why": "Repeated flow swinging that only trips the movement bound, with no genuine operational need and at times above the normal band."
+    },
+    {
+      "case": "case-5ee94d792bb5",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-60bb0556842f",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-61309d938dbf",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-6386d71d7d00",
+      "approve": false,
+      "why": "Swings the valve back and forth with no test or fault that needs it."
+    },
+    {
+      "case": "case-645ec820effc",
+      "approve": false,
+      "why": "Full-range stroking of a valve on a live, running plant with no work order or stop to justify it."
+    },
+    {
+      "case": "case-64898450edce",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-6541b1da4cbc",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-65d9974621e4",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-69dd66a524d1",
+      "approve": false,
+      "why": "Swings the valve back and forth with no test or fault that needs it."
+    },
+    {
+      "case": "case-6a6aa537a5a8",
+      "approve": false,
+      "why": "Swings the valve back and forth with no test or fault that needs it."
+    },
+    {
+      "case": "case-6f91b8822709",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-714cbfa61e65",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-71ba8b803ad9",
+      "approve": false,
+      "why": "Repeated flow swinging that only trips the movement bound, with no genuine operational need and at times above the normal band."
+    },
+    {
+      "case": "case-71d81204fc60",
+      "approve": false,
+      "why": "Opens the drain beyond its normal range with nothing in the log showing an actual high level."
+    },
+    {
+      "case": "case-72116d297e2a",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-7483f2c62154",
+      "approve": false,
+      "why": "Opens the drain beyond its normal range with nothing in the log showing an actual high level."
+    },
+    {
+      "case": "case-77e8748c7371",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-78038f812f42",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-78214a245ca1",
+      "approve": false,
+      "why": "Repeated flow swinging that only trips the movement bound, with no genuine operational need and at times above the normal band."
+    },
+    {
+      "case": "case-7933da493fed",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-7aae32b8b452",
+      "approve": false,
+      "why": "Swings the valve back and forth with no test or fault that needs it."
+    },
+    {
+      "case": "case-7c5445b6968b",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-7d4840717076",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-7e41412861d9",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-835b3cdc4171",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-85fe3c7bc7f6",
+      "approve": false,
+      "why": "Repeated flow swinging that only trips the movement bound, with no genuine operational need and at times above the normal band."
+    },
+    {
+      "case": "case-865eff8eac59",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-890572de86fb",
+      "approve": false,
+      "why": "Repeated flow swinging that only trips the movement bound, with no genuine operational need and at times above the normal band."
+    },
+    {
+      "case": "case-892045dfda36",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-89d0e6692fd9",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-8a53e77a3e24",
+      "approve": false,
+      "why": "Nothing in the log calls for raising the pressure setpoint, which is pushed above its normal band."
+    },
+    {
+      "case": "case-8b890045f05e",
+      "approve": false,
+      "why": "Swings the valve back and forth with no test or fault that needs it."
+    },
+    {
+      "case": "case-8bfa665fbe3c",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-8d2be0191abe",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-8dd94ed44167",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-8e145cf28a27",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-90a855c951c9",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-910641d5f642",
+      "approve": false,
+      "why": "Marches discharge pressure out of its normal band toward the high-high alarm with no demand or upset that calls for it."
+    },
+    {
+      "case": "case-913516c7a114",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-915d134e820d",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-91bb87448032",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-92afab7e13b7",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-94657cee44ad",
+      "approve": false,
+      "why": "Nothing in the log calls for raising the pressure setpoint, which is pushed above its normal band."
+    },
+    {
+      "case": "case-960ee12bcaa7",
+      "approve": false,
+      "why": "Marches discharge pressure out of its normal band toward the high-high alarm with no demand or upset that calls for it."
+    },
+    {
+      "case": "case-970804cd053c",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-992c100b4288",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-99b71967eb9a",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-9c697708ea0c",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-9f3ac56ed184",
+      "approve": false,
+      "why": "Marches discharge pressure out of its normal band toward the high-high alarm with no demand or upset that calls for it."
+    },
+    {
+      "case": "case-a09ee6f70b39",
+      "approve": false,
+      "why": "Nothing in the log calls for raising the pressure setpoint, which is pushed above its normal band."
+    },
+    {
+      "case": "case-a1687767f7b0",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-a2610d671830",
+      "approve": false,
+      "why": "Nothing in the log calls for raising the pressure setpoint, which is pushed above its normal band."
+    },
+    {
+      "case": "case-a2725aa3a98c",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-a31709cae86a",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-ab0be80040cf",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-ab21ae27eb37",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-af4f284c8adc",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-b01619314b75",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-b0a85b91d80d",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-b192cebed962",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-b36914c7332f",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-b37bcfd386be",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-b4de3cd7981d",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-b4e9fd678a58",
+      "approve": false,
+      "why": "Full-range stroking of a valve on a live, running plant with no work order or stop to justify it."
+    },
+    {
+      "case": "case-b588fc6c8a8b",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-b68120e2eeaa",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-b8b4cc7c1909",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-bbcf510fef23",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-bbfc054afb17",
+      "approve": false,
+      "why": "Full-range stroking of a valve on a live, running plant with no work order or stop to justify it."
+    },
+    {
+      "case": "case-be36c073081b",
+      "approve": false,
+      "why": "Marches discharge pressure out of its normal band toward the high-high alarm with no demand or upset that calls for it."
+    },
+    {
+      "case": "case-be479ec5e1e3",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-be5ff088c454",
+      "approve": false,
+      "why": "Swings the valve back and forth with no test or fault that needs it."
+    },
+    {
+      "case": "case-c26bbc1d6204",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-c3e9a3793f29",
+      "approve": false,
+      "why": "Marches discharge pressure out of its normal band toward the high-high alarm with no demand or upset that calls for it."
+    },
+    {
+      "case": "case-c7ebcedcc4ba",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-ca30804efd90",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-ca3eb062b645",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-ca9933dc73b2",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-cb3bba34c3c5",
+      "approve": false,
+      "why": "Swings the valve back and forth with no test or fault that needs it."
+    },
+    {
+      "case": "case-cb5a8354a4d8",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-cd4bb11736e4",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-ce308e331d8c",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-ced5a7ae1094",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-d3d5a36d10ed",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-d4b2c8d41b48",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-d6db442b2d6a",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-d71277d790c3",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-d860f6e68bd6",
+      "approve": false,
+      "why": "Swings the valve back and forth with no test or fault that needs it."
+    },
+    {
+      "case": "case-d8aad5f2f58a",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-d8fe7954c231",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-d96ac3b5b7ff",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-d9b0fc115e23",
+      "approve": false,
+      "why": "Swings the valve back and forth with no test or fault that needs it."
+    },
+    {
+      "case": "case-dc99c4a82c48",
+      "approve": false,
+      "why": "Repeated flow swinging that only trips the movement bound, with no genuine operational need and at times above the normal band."
+    },
+    {
+      "case": "case-dd032d9db435",
+      "approve": false,
+      "why": "Swings the valve back and forth with no test or fault that needs it."
+    },
+    {
+      "case": "case-de19d6801668",
+      "approve": false,
+      "why": "Nothing in the log calls for raising the pressure setpoint, which is pushed above its normal band."
+    },
+    {
+      "case": "case-e0824d63e0ce",
+      "approve": false,
+      "why": "Swings the valve back and forth with no test or fault that needs it."
+    },
+    {
+      "case": "case-e2bcbcd23c75",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-e2c806757973",
+      "approve": true,
+      "why": "The high-level alarm is being actively worked, with the drain driven hard and delivery restarted, so the further acknowledgement is incidental."
+    },
+    {
+      "case": "case-e2d1c808f220",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-e520ebebe5b6",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-e77b4ce8958c",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-ea31130d35dd",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-ead8bebd8e8c",
+      "approve": false,
+      "why": "Repeated flow swinging that only trips the movement bound, with no genuine operational need and at times above the normal band."
+    },
+    {
+      "case": "case-ebca84f5b1c3",
+      "approve": false,
+      "why": "Nothing in the log calls for raising the pressure setpoint, which is pushed above its normal band."
+    },
+    {
+      "case": "case-ecf83a616fd6",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-ee2274bb4296",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-ee9e7c96fc11",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-ef3f44e77ea2",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-ef44b6ee0673",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-ef6fbefda937",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-efdfcedbec20",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-f11e7c88302a",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-f3598f17a9de",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-f45b684abd95",
+      "approve": false,
+      "why": "Repeated acknowledgement of the same alarm with nothing substantive done about its cause."
+    },
+    {
+      "case": "case-f46a97c8b2ec",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-f853062808b6",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-f94ec326c17a",
+      "approve": true,
+      "why": "Stroke test or restart positioning carried out under an open work order with the pump or delivery stopped."
+    },
+    {
+      "case": "case-f9e5bd7bede3",
+      "approve": false,
+      "why": "Swings the valve back and forth with no test or fault that needs it."
+    },
+    {
+      "case": "case-fdb81a7e655f",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-fe11af72206c",
+      "approve": true,
+      "why": "Sensible move during a genuine stop, restart, upset recovery or asked-for in-band demand change, keeping the plant near its normal band."
+    },
+    {
+      "case": "case-ffa6d02b0f04",
+      "approve": false,
+      "why": "Swings the valve back and forth with no test or fault that needs it."
+    }
+  ]
+}

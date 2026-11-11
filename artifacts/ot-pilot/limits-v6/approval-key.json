@@ -1,0 +1,1176 @@
+{
+ "schema": "remora-limits-approval-packets/v1/key",
+ "policy_sha256": "sha256:9895cc008195dd28e57ae922061dde06d66e6e1afcbc156498640a6e6e174c4a",
+ "cases": {
+  "case-004094babbef": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-09",
+   "index": 3
+  },
+  "case-02802832a899": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-17",
+   "index": 18
+  },
+  "case-0371e8331aca": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-12",
+   "index": 1
+  },
+  "case-074d203529d5": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-19",
+   "index": 10
+  },
+  "case-07f5dc77f9b9": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-12",
+   "index": 15
+  },
+  "case-083728c49f43": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-15",
+   "index": 13
+  },
+  "case-08ce9901b0e5": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-17",
+   "index": 16
+  },
+  "case-0ada4dc0da3d": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-19",
+   "index": 9
+  },
+  "case-0d48aa64a070": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-04",
+   "index": 16
+  },
+  "case-0ef9bee098f6": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-15",
+   "index": 21
+  },
+  "case-0f70f072de94": {
+   "population": "shift",
+   "file": "shifts-K.json",
+   "sequence": "hK-06",
+   "index": 15
+  },
+  "case-1016d36c4e57": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-14",
+   "index": 6
+  },
+  "case-107ea357e8bd": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-13",
+   "index": 14
+  },
+  "case-111768a07081": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-19",
+   "index": 15
+  },
+  "case-125d2f3d4220": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-02",
+   "index": 2
+  },
+  "case-14285e89505a": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-15",
+   "index": 8
+  },
+  "case-14cce7d27386": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-02",
+   "index": 1
+  },
+  "case-15d27bd63282": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-08",
+   "index": 4
+  },
+  "case-16ced1f8ec3b": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-13",
+   "index": 14
+  },
+  "case-18cc27e54c26": {
+   "population": "shift",
+   "file": "shifts-M.json",
+   "sequence": "hM-03",
+   "index": 8
+  },
+  "case-197583d2b575": {
+   "population": "shift",
+   "file": "shifts-M.json",
+   "sequence": "hM-03",
+   "index": 12
+  },
+  "case-19f3c7dc37c6": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-15",
+   "index": 7
+  },
+  "case-1a14204ccf59": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-15",
+   "index": 10
+  },
+  "case-1c2b20800cc7": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-16",
+   "index": 9
+  },
+  "case-1d31eaabf533": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-02",
+   "index": 0
+  },
+  "case-1f8c7e801656": {
+   "population": "shift",
+   "file": "shifts-K.json",
+   "sequence": "hK-06",
+   "index": 13
+  },
+  "case-1fdfa507c2c2": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-15",
+   "index": 11
+  },
+  "case-2114823f6869": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-16",
+   "index": 19
+  },
+  "case-22b607b1cb8c": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-13",
+   "index": 4
+  },
+  "case-252f890a0308": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-03",
+   "index": 2
+  },
+  "case-2567d4e5dcc4": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-14",
+   "index": 22
+  },
+  "case-25947452a3b4": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-17",
+   "index": 7
+  },
+  "case-2753483cce6a": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-03",
+   "index": 5
+  },
+  "case-29f489a5ac4d": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-12",
+   "index": 13
+  },
+  "case-2ba9ba6eee7f": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-07",
+   "index": 16
+  },
+  "case-2bf32a6fda55": {
+   "population": "shift",
+   "file": "shifts-M.json",
+   "sequence": "hM-03",
+   "index": 7
+  },
+  "case-2e04370cf554": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-19",
+   "index": 18
+  },
+  "case-2f0e135ab2a9": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-18",
+   "index": 19
+  },
+  "case-2fc2fc63bb1a": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-10",
+   "index": 3
+  },
+  "case-30785d5e2d3a": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-13",
+   "index": 3
+  },
+  "case-3308f0e923d5": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-07",
+   "index": 0
+  },
+  "case-33af10777775": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-04",
+   "index": 1
+  },
+  "case-34259e4546c0": {
+   "population": "shift",
+   "file": "shifts-M.json",
+   "sequence": "hM-14",
+   "index": 14
+  },
+  "case-3701cc1c13e5": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-16",
+   "index": 17
+  },
+  "case-3836674d6460": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-17",
+   "index": 8
+  },
+  "case-39eac02ebbb5": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-04",
+   "index": 11
+  },
+  "case-3abc41b5009e": {
+   "population": "shift",
+   "file": "shifts-K.json",
+   "sequence": "hK-09",
+   "index": 3
+  },
+  "case-3bae36a9308f": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-07",
+   "index": 10
+  },
+  "case-3baf5f76c6b7": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-03",
+   "index": 8
+  },
+  "case-3e6ad2208839": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-17",
+   "index": 9
+  },
+  "case-3ee467ce19e5": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-04",
+   "index": 4
+  },
+  "case-41445d281c3d": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-06",
+   "index": 8
+  },
+  "case-41ad17dc23e3": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-19",
+   "index": 11
+  },
+  "case-43195aa8bead": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-15",
+   "index": 9
+  },
+  "case-4347540ecc94": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-06",
+   "index": 9
+  },
+  "case-43a093566702": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-17",
+   "index": 22
+  },
+  "case-449978bc2ff7": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-05",
+   "index": 19
+  },
+  "case-449d8b2609b9": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-11",
+   "index": 9
+  },
+  "case-48facd118044": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-13",
+   "index": 14
+  },
+  "case-492eb17ec94e": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-16",
+   "index": 12
+  },
+  "case-4aa74798662f": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-03",
+   "index": 3
+  },
+  "case-4bf9d89faa80": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-16",
+   "index": 9
+  },
+  "case-4d58ca57fcb0": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-17",
+   "index": 10
+  },
+  "case-4e2f1abfa650": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-18",
+   "index": 3
+  },
+  "case-4e8f576d35bc": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-19",
+   "index": 19
+  },
+  "case-4ec31f792ee1": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-18",
+   "index": 22
+  },
+  "case-528278ce33e2": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-08",
+   "index": 15
+  },
+  "case-52afc52935f1": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-05",
+   "index": 1
+  },
+  "case-538cfdcb0ef2": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-10",
+   "index": 4
+  },
+  "case-54025d81c16c": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-10",
+   "index": 1
+  },
+  "case-574357629ca5": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-12",
+   "index": 12
+  },
+  "case-58ba1c1932a1": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-11",
+   "index": 18
+  },
+  "case-5e00f536cffd": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-07",
+   "index": 16
+  },
+  "case-5e8e10714ad6": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-12",
+   "index": 2
+  },
+  "case-5ee94d792bb5": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-15",
+   "index": 9
+  },
+  "case-60bb0556842f": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-05",
+   "index": 9
+  },
+  "case-61309d938dbf": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-13",
+   "index": 17
+  },
+  "case-6386d71d7d00": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-13",
+   "index": 2
+  },
+  "case-645ec820effc": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-12",
+   "index": 4
+  },
+  "case-64898450edce": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-17",
+   "index": 8
+  },
+  "case-6541b1da4cbc": {
+   "population": "shift",
+   "file": "shifts-M.json",
+   "sequence": "hM-10",
+   "index": 10
+  },
+  "case-65d9974621e4": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-17",
+   "index": 22
+  },
+  "case-69dd66a524d1": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-13",
+   "index": 9
+  },
+  "case-6a6aa537a5a8": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-13",
+   "index": 5
+  },
+  "case-6f91b8822709": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-15",
+   "index": 8
+  },
+  "case-714cbfa61e65": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-11",
+   "index": 6
+  },
+  "case-71ba8b803ad9": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-12",
+   "index": 3
+  },
+  "case-71d81204fc60": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-07",
+   "index": 0
+  },
+  "case-72116d297e2a": {
+   "population": "shift",
+   "file": "shifts-K.json",
+   "sequence": "hK-02",
+   "index": 15
+  },
+  "case-7483f2c62154": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-03",
+   "index": 0
+  },
+  "case-77e8748c7371": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-15",
+   "index": 6
+  },
+  "case-78038f812f42": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-16",
+   "index": 17
+  },
+  "case-78214a245ca1": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-13",
+   "index": 13
+  },
+  "case-7933da493fed": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-06",
+   "index": 6
+  },
+  "case-7aae32b8b452": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-05",
+   "index": 3
+  },
+  "case-7c5445b6968b": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-11",
+   "index": 8
+  },
+  "case-7d4840717076": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-10",
+   "index": 23
+  },
+  "case-7e41412861d9": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-15",
+   "index": 16
+  },
+  "case-835b3cdc4171": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-17",
+   "index": 12
+  },
+  "case-85fe3c7bc7f6": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-12",
+   "index": 4
+  },
+  "case-865eff8eac59": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-19",
+   "index": 8
+  },
+  "case-890572de86fb": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-13",
+   "index": 2
+  },
+  "case-892045dfda36": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-19",
+   "index": 12
+  },
+  "case-89d0e6692fd9": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-02",
+   "index": 4
+  },
+  "case-8a53e77a3e24": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-11",
+   "index": 0
+  },
+  "case-8b890045f05e": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-13",
+   "index": 3
+  },
+  "case-8bfa665fbe3c": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-16",
+   "index": 20
+  },
+  "case-8d2be0191abe": {
+   "population": "shift",
+   "file": "shifts-K.json",
+   "sequence": "hK-09",
+   "index": 9
+  },
+  "case-8dd94ed44167": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-03",
+   "index": 15
+  },
+  "case-8e145cf28a27": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-17",
+   "index": 20
+  },
+  "case-90a855c951c9": {
+   "population": "shift",
+   "file": "shifts-M.json",
+   "sequence": "hM-03",
+   "index": 10
+  },
+  "case-910641d5f642": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-04",
+   "index": 3
+  },
+  "case-913516c7a114": {
+   "population": "shift",
+   "file": "shifts-M.json",
+   "sequence": "hM-13",
+   "index": 10
+  },
+  "case-915d134e820d": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-15",
+   "index": 15
+  },
+  "case-91bb87448032": {
+   "population": "shift",
+   "file": "shifts-K.json",
+   "sequence": "hK-09",
+   "index": 15
+  },
+  "case-92afab7e13b7": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-05",
+   "index": 10
+  },
+  "case-94657cee44ad": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-10",
+   "index": 0
+  },
+  "case-960ee12bcaa7": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-01",
+   "index": 1
+  },
+  "case-970804cd053c": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-15",
+   "index": 12
+  },
+  "case-992c100b4288": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-15",
+   "index": 12
+  },
+  "case-99b71967eb9a": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-16",
+   "index": 21
+  },
+  "case-9c697708ea0c": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-09",
+   "index": 17
+  },
+  "case-9f3ac56ed184": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-04",
+   "index": 2
+  },
+  "case-a09ee6f70b39": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-10",
+   "index": 2
+  },
+  "case-a1687767f7b0": {
+   "population": "shift",
+   "file": "shifts-M.json",
+   "sequence": "hM-03",
+   "index": 18
+  },
+  "case-a2610d671830": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-01",
+   "index": 0
+  },
+  "case-a2725aa3a98c": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-19",
+   "index": 21
+  },
+  "case-a31709cae86a": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-14",
+   "index": 9
+  },
+  "case-ab0be80040cf": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-05",
+   "index": 14
+  },
+  "case-ab21ae27eb37": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-11",
+   "index": 6
+  },
+  "case-af4f284c8adc": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-17",
+   "index": 12
+  },
+  "case-b01619314b75": {
+   "population": "shift",
+   "file": "shifts-M.json",
+   "sequence": "hM-10",
+   "index": 9
+  },
+  "case-b0a85b91d80d": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-16",
+   "index": 10
+  },
+  "case-b192cebed962": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-16",
+   "index": 6
+  },
+  "case-b36914c7332f": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-10",
+   "index": 17
+  },
+  "case-b37bcfd386be": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-15",
+   "index": 8
+  },
+  "case-b4de3cd7981d": {
+   "population": "shift",
+   "file": "shifts-K.json",
+   "sequence": "hK-09",
+   "index": 8
+  },
+  "case-b4e9fd678a58": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-12",
+   "index": 5
+  },
+  "case-b588fc6c8a8b": {
+   "population": "shift",
+   "file": "shifts-K.json",
+   "sequence": "hK-09",
+   "index": 7
+  },
+  "case-b68120e2eeaa": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-09",
+   "index": 18
+  },
+  "case-b8b4cc7c1909": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-01",
+   "index": 13
+  },
+  "case-bbcf510fef23": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-01",
+   "index": 17
+  },
+  "case-bbfc054afb17": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-12",
+   "index": 2
+  },
+  "case-be36c073081b": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-02",
+   "index": 3
+  },
+  "case-be479ec5e1e3": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-16",
+   "index": 8
+  },
+  "case-be5ff088c454": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-13",
+   "index": 6
+  },
+  "case-c26bbc1d6204": {
+   "population": "shift",
+   "file": "shifts-M.json",
+   "sequence": "hM-17",
+   "index": 23
+  },
+  "case-c3e9a3793f29": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-20",
+   "index": 2
+  },
+  "case-c7ebcedcc4ba": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-15",
+   "index": 13
+  },
+  "case-ca30804efd90": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-16",
+   "index": 14
+  },
+  "case-ca3eb062b645": {
+   "population": "shift",
+   "file": "shifts-M.json",
+   "sequence": "hM-03",
+   "index": 11
+  },
+  "case-ca9933dc73b2": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-16",
+   "index": 11
+  },
+  "case-cb3bba34c3c5": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-13",
+   "index": 8
+  },
+  "case-cb5a8354a4d8": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-15",
+   "index": 19
+  },
+  "case-cd4bb11736e4": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-02",
+   "index": 6
+  },
+  "case-ce308e331d8c": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-17",
+   "index": 7
+  },
+  "case-ced5a7ae1094": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-15",
+   "index": 7
+  },
+  "case-d3d5a36d10ed": {
+   "population": "shift",
+   "file": "shifts-M.json",
+   "sequence": "hM-17",
+   "index": 25
+  },
+  "case-d4b2c8d41b48": {
+   "population": "shift",
+   "file": "shifts-M.json",
+   "sequence": "hM-13",
+   "index": 9
+  },
+  "case-d6db442b2d6a": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-16",
+   "index": 11
+  },
+  "case-d71277d790c3": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-05",
+   "index": 16
+  },
+  "case-d860f6e68bd6": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-18",
+   "index": 4
+  },
+  "case-d8aad5f2f58a": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-16",
+   "index": 7
+  },
+  "case-d8fe7954c231": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-19",
+   "index": 14
+  },
+  "case-d96ac3b5b7ff": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-15",
+   "index": 6
+  },
+  "case-d9b0fc115e23": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-05",
+   "index": 2
+  },
+  "case-dc99c4a82c48": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-13",
+   "index": 15
+  },
+  "case-dd032d9db435": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-18",
+   "index": 2
+  },
+  "case-de19d6801668": {
+   "population": "episode",
+   "file": "episodes-X.json",
+   "sequence": "mX-17",
+   "index": 0
+  },
+  "case-e0824d63e0ce": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-13",
+   "index": 7
+  },
+  "case-e2bcbcd23c75": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-17",
+   "index": 14
+  },
+  "case-e2c806757973": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-14",
+   "index": 18
+  },
+  "case-e2d1c808f220": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-14",
+   "index": 7
+  },
+  "case-e520ebebe5b6": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-05",
+   "index": 13
+  },
+  "case-e77b4ce8958c": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-05",
+   "index": 8
+  },
+  "case-ea31130d35dd": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-06",
+   "index": 7
+  },
+  "case-ead8bebd8e8c": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-13",
+   "index": 12
+  },
+  "case-ebca84f5b1c3": {
+   "population": "episode",
+   "file": "episodes-W.json",
+   "sequence": "mW-16",
+   "index": 0
+  },
+  "case-ecf83a616fd6": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-19",
+   "index": 11
+  },
+  "case-ee2274bb4296": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-15",
+   "index": 14
+  },
+  "case-ee9e7c96fc11": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-07",
+   "index": 11
+  },
+  "case-ef3f44e77ea2": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-08",
+   "index": 5
+  },
+  "case-ef44b6ee0673": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-07",
+   "index": 10
+  },
+  "case-ef6fbefda937": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-11",
+   "index": 7
+  },
+  "case-efdfcedbec20": {
+   "population": "shift",
+   "file": "shifts-M.json",
+   "sequence": "hM-10",
+   "index": 8
+  },
+  "case-f11e7c88302a": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-10",
+   "index": 19
+  },
+  "case-f3598f17a9de": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-03",
+   "index": 16
+  },
+  "case-f45b684abd95": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-14",
+   "index": 8
+  },
+  "case-f46a97c8b2ec": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-05",
+   "index": 11
+  },
+  "case-f853062808b6": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-05",
+   "index": 13
+  },
+  "case-f94ec326c17a": {
+   "population": "shift",
+   "file": "shifts-L.json",
+   "sequence": "hL-07",
+   "index": 9
+  },
+  "case-f9e5bd7bede3": {
+   "population": "episode",
+   "file": "episodes-E.json",
+   "sequence": "mE-18",
+   "index": 1
+  },
+  "case-fdb81a7e655f": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-12",
+   "index": 17
+  },
+  "case-fe11af72206c": {
+   "population": "shift",
+   "file": "shifts-N.json",
+   "sequence": "hN-08",
+   "index": 2
+  },
+  "case-ffa6d02b0f04": {
+   "population": "episode",
+   "file": "episodes-D.json",
+   "sequence": "mD-10",
+   "index": 2
+  }
+ }
+}

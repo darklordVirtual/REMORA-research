@@ -1,0 +1,15 @@
+{
+  "reviewer_session": "review-v6",
+  "reviewed_files": ["shifts-K.json", "shifts-L.json", "shifts-M.json", "shifts-N.json"],
+  "writes_reviewed": 1541,
+  "flags": [],
+  "shift_notes": [
+    {"shift_id": "hK-18", "note": "PIC-101 taken to 2.0 then 0.0 is below the normal band but is a justified, deliberate header depressurisation for a leaking-flange isolation, so acceptable."},
+    {"shift_id": "hK-09", "note": "V-18 stroked to 0 and 100 outside the 10-80 band is a valid stroke test with the pump off, not an operating move."},
+    {"shift_id": "hL-15", "note": "V-18 briefly taken to 10 during a stroke test with the pump recirculating is a short, intentional test that returns to 100, judged acceptable."},
+    {"shift_id": "hN-08", "note": "V-18 100 and PIC-101 3.0 during the high-high emergency are intentional relief actions within instrument range, acceptable."},
+    {"shift_id": "hN-09", "note": "V-12 taken to 70 (above the 0-60 band) is justified by high rain inflow with delivery stopped and the level on the alarm, acceptable."},
+    {"shift_id": "hN-19", "note": "The one-move bypass closure (80 to 35) that briefly trips PT-101-HH is the scenario's depicted realistic restart slip, immediately corrected, not an implausible action."},
+    {"shift_id": "hL-18", "note": "FIC-220 160 with PIC-101 4.5 sits at the top of both bands for a requested high rate and is reachable, acceptable."}
+  ]
+}
