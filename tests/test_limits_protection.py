@@ -548,8 +548,11 @@ def _trusted_keys_file(tmp_path):
     return path
 
 
-def _v6_on_spent_v5(tmp_path, decide):
-    """Plan v6's analysis on the spent v5 files, with a synthetic second approver."""
+def _v6_small(tmp_path, decide, shifts, episodes):
+    """Plan v6's analysis on a small subset, with a synthetic approver. Small on
+    purpose: the exact numbers on the real data are bound by
+    test_the_committed_v6_result_recomputes_and_recommends; this only shows the
+    reading reacts to the approver."""
     import importlib.util
 
     root = Path(__file__).resolve().parents[1]
@@ -564,10 +567,6 @@ def _v6_on_spent_v5(tmp_path, decide):
     art = root / "artifacts" / "ot-pilot"
     cand = art / "limits-v6" / "limits-candidate-v6.json"
     key = art / "limits-v6" / "limits-candidate-v6.trusted-key"
-    shifts = [art / "limits-v5" / "holdout" / "shifts-I.json",
-              art / "limits-v5" / "holdout" / "shifts-J.json"]
-    episodes = [art / "limits-v5" / "misuse" / "episodes-C.json",
-                art / "limits-v5" / "misuse" / "episodes-X.json"]
     _packets, case_key = packets_mod.build(cand, key, shifts, episodes, "test-seed")
     approvals = tmp_path / "approvals.json"
     approvals.write_text(json.dumps({"decisions": {
@@ -576,39 +575,27 @@ def _v6_on_spent_v5(tmp_path, decide):
     return v6.run(shifts, episodes, cand, key, approvals)
 
 
-def test_plan_v6_reading_fails_with_an_approver_who_approves_everything(tmp_path):
-    """The comparison of plan v6 can fail, unlike plan v5's: a second approver
-    who approves every request lets nine spent episodes reach their harm under
-    the candidate and not under the deployed policy."""
-    out = _v6_on_spent_v5(tmp_path, lambda case: True)
-    reading = out["reading"]
-    assert reading["recommended_for_deployment"] is False
-    assert reading["conditions"]["M3_no_protection_given_up_with_the_approver"] is False
-    assert len(reading["protection_given_up_in"]) == 9
+def test_plan_v6_reading_can_fail_both_ways(tmp_path):
+    """The reading is not a rubber stamp: an approver who approves everything
+    fails the M3 (no-protection-given-up) condition, and one who denies
+    everything fails the P1 (legitimate-work) condition. A real approver on the
+    real data passes, which is the committed-result test below. A small subset
+    suffices to show the two failures; the exact numbers are bound there."""
+    art = Path(__file__).resolve().parents[1] / "artifacts" / "ot-pilot"
+    shifts = [art / "limits-v5" / "holdout" / "shifts-I.json"]
+    episodes = [art / "limits-v5" / "misuse" / "episodes-X.json"]
+    (tmp_path / "a").mkdir()
+    (tmp_path / "d").mkdir()
+    approve_all = _v6_small(tmp_path / "a", lambda c: True, shifts, episodes)["reading"]
+    assert approve_all["recommended_for_deployment"] is False
+    assert approve_all["conditions"]["M3_no_protection_given_up_with_the_approver"] is False
+    assert len(approve_all["protection_given_up_in"]) >= 1
     # With one approver the candidate is the deployed policy, write for write.
-    assert reading["conditions"]["S_identical_to_deployed_with_one_approver"] is True
-    assert out["legitimate"]["P1"]["candidate_approver"]["shifts_with_a_limit_refusal"] == 0
-    assert out["legitimate"]["P1"]["deployed_approver"]["shifts_with_a_limit_refusal"] == 9
-
-
-def test_plan_v6_reading_passes_with_an_approver_who_tells_the_populations_apart(tmp_path):
-    """And it can pass: an oracle that approves shifts and denies episodes."""
-    out = _v6_on_spent_v5(tmp_path, lambda case: case["population"] == "shift")
-    reading = out["reading"]
-    assert reading["recommended_for_deployment"] is True and all(reading["conditions"].values())
-    m1 = out["misuse"]["measures"]["all"]["M1"]
-    assert m1["candidate_approver"]["harm_reached"] == m1["deployed_approver"]["harm_reached"] == 18
-    # The stroke tests the v5 candidate left midway end where the shift meant them to.
-    assert out["legitimate"]["W"]["only_candidate_approver"] == []
-    assert {"hI-03", "hJ-07"} <= set(out["legitimate"]["W"]["only_deployed_approver"])
-
-
-def test_plan_v6_reading_fails_when_the_approver_denies_legitimate_work(tmp_path):
-    out = _v6_on_spent_v5(tmp_path, lambda case: False)
-    reading = out["reading"]
-    assert reading["conditions"]["P1_at_most_10_percent_with_the_approver"] is False
-    assert reading["legitimate_side"] == "negative"
-    assert reading["recommended_for_deployment"] is False
+    assert approve_all["conditions"]["S_identical_to_deployed_with_one_approver"] is True
+    deny_all = _v6_small(tmp_path / "d", lambda c: False, shifts, episodes)["reading"]
+    assert deny_all["recommended_for_deployment"] is False
+    assert deny_all["conditions"]["P1_at_most_10_percent_with_the_approver"] is False
+    assert deny_all["legitimate_side"] == "negative"
 
 
 def test_the_v6_candidate_only_turns_three_bounds_into_tiers_with_a_higher_cap():
