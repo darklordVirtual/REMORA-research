@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "b0279926619889e6e1a5eed779037deedd13bf48",
+      "git_blob": "5ea734afe990fb00352b63bd38cf373c491f9b6f",
       "mode": "100644",
-      "sha256": "941e8acef72a479feedb4e79ea5475f5573bef45e32b648d3daa0a740aed7b5a"
+      "sha256": "c2ed562885934f6d396a7365e73a7e71cd414447eb81a8e6d8c5c09a953a1db9"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -369,9 +369,9 @@
     },
     "NEGATIVE_RESULTS.md": {
       "concepts": [],
-      "git_blob": "b3f2acbfbb1109e901e80a87acf52d00a5b94bde",
+      "git_blob": "34c111901c94a4e07d201df950e03bbb46e991d5",
       "mode": "100644",
-      "sha256": "dc7b39451dbafe2806f8d8aeb09f22ae8fba61d9177afaf978e93f2be8766efe"
+      "sha256": "977ef17f6f818560fde13296ed8825758798527f4416e507fcf4ffdf4064e23b"
     },
     "NOTICE": {
       "concepts": [],
@@ -7481,9 +7481,9 @@
     },
     "docs/assurance/ot_limits_holdout_plan_v6.md": {
       "concepts": [],
-      "git_blob": "d0c0a636075d8cebf7377f9fe53e8333509ecd91",
+      "git_blob": "8500d0369937f127ff6f129b43510f5afcde4a6a",
       "mode": "100644",
-      "sha256": "d4e5cd2829a99b0d96dca7a2a2ebec5eb16d042281269ac5361a5bf240d12592"
+      "sha256": "2e17943d146b867a8e420824c84763c0312588f3600823ce6a88d7411f34fae4"
     },
     "docs/assurance/policy_engine_audit_v1.md": {
       "concepts": [],
@@ -24187,7 +24187,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "50cfdd065918b02f279b222bb17d327b2d365b46bb4e1b67c669d2fd3f51e4d7",
+  "register_sha256": "9e961f49d8893e56457f5ef3853a243de406a076b03f9f536193fbe5fceab8f8",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
