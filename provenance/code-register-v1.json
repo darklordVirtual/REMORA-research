@@ -231,9 +231,9 @@
     },
     ".github/workflows/quality-gates.yml": {
       "concepts": [],
-      "git_blob": "fa365ec0c779fd9c8a1c65354273e77408cbf841",
+      "git_blob": "1dc6081b002eb9610d82ca4d9b84b58099d42eb4",
       "mode": "100644",
-      "sha256": "f6c9ca3f93ce5dc5f85f9fbf6372c76b31e1673dad82717ac737efedc4a974f6"
+      "sha256": "935708a03b6d207a4f772a1be88e39fb482ab82955a8ca5fa24a2eace2092c81"
     },
     ".github/workflows/release.yml": {
       "concepts": [],
@@ -313,9 +313,9 @@
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "366533a2d9ef62f8a2e8b51ed73e97ec7024f0a4",
+      "git_blob": "75658d0416e4ca33dd3077e50fb88476d25f2003",
       "mode": "100644",
-      "sha256": "e99a1967a13ce3688e5d9dd8903ca55487155e17961a8141f59e95664418cc92"
+      "sha256": "5664a19928953d0873d70497556a6a7fa0936bc2005d653651cb3e0feb23d14b"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -369,9 +369,9 @@
     },
     "NEGATIVE_RESULTS.md": {
       "concepts": [],
-      "git_blob": "670f6770e982b827a77d5a12d08379441509f481",
+      "git_blob": "21dc13f2bc386ff7f882db7c89a6bd040d9174b2",
       "mode": "100644",
-      "sha256": "bae13e74c473a594c923e0b327263a9aa65454b99cf9a858899e607cf685e0b7"
+      "sha256": "fbbb1cff6a543092ce42f575d347e1134d82014a36eee030a551fb014498fc8b"
     },
     "NOTICE": {
       "concepts": [],
@@ -4203,6 +4203,102 @@
       "mode": "100644",
       "sha256": "c8a2f6ded4617dbda3b08880f7ba7fa2271645da29f01702beb3ee6480b4b103"
     },
+    "artifacts/ot-pilot/limits-v5/README.md": {
+      "concepts": [],
+      "git_blob": "331bce55c2e7c71a4ef61f26f7578798b8d0fb94",
+      "mode": "100644",
+      "sha256": "1f3cd49105b6b5b8d5ca234e628cb966df24f34cefdc73e39b7d47d790311c6f"
+    },
+    "artifacts/ot-pilot/limits-v5/SHA256SUMS": {
+      "concepts": [],
+      "git_blob": "d58bb9f475bcf22527a25e2a2d797172991bc8a5",
+      "mode": "100644",
+      "sha256": "4fe270e3705348ca8eb4c79ed44120758d5c31606002fe52b13d477501ceff2d"
+    },
+    "artifacts/ot-pilot/limits-v5/candidate-summary.md": {
+      "concepts": [],
+      "git_blob": "fc311b62d0caf0b43ea7ae29201ec103ff3ccf87",
+      "mode": "100644",
+      "sha256": "d8c4e8ac42890acd71be6e8916320b5f953d956c13f3e2c2d17a86c61d5f895c"
+    },
+    "artifacts/ot-pilot/limits-v5/holdout/review-flags.json": {
+      "concepts": [],
+      "git_blob": "bd2d01ba1f8a0e1cdcc4ddcf71303551cf69640a",
+      "mode": "100644",
+      "sha256": "9972772f04d0468a923c0c840490bc0b14f0708af6f3a512aaf81d2ae8712043"
+    },
+    "artifacts/ot-pilot/limits-v5/holdout/shifts-I.json": {
+      "concepts": [],
+      "git_blob": "e81177381b2e793c18bc6a01419d860734739b83",
+      "mode": "100644",
+      "sha256": "aa8d89c20e338f09da91ac64cff1ce2d6e0d959e210161aca8b8a83c4dbdd386"
+    },
+    "artifacts/ot-pilot/limits-v5/holdout/shifts-J.json": {
+      "concepts": [],
+      "git_blob": "3f2408e2a649d9d30b494082e589c46c3d6ebb0e",
+      "mode": "100644",
+      "sha256": "3baf0b6bc559e8db4ad869e136fb4a22908df9f63fae1666d136d9499d3c5b5e"
+    },
+    "artifacts/ot-pilot/limits-v5/limits-candidate-v5.json": {
+      "concepts": [],
+      "git_blob": "1807120c4a5aee22d4fc9d79f5f7999dd7e6e96c",
+      "mode": "100644",
+      "sha256": "0d40bffa7318cc7dfa36cfd38d55335a580f770fae4f0c11193dbf3de328a7fa"
+    },
+    "artifacts/ot-pilot/limits-v5/limits-candidate-v5.trusted-key": {
+      "concepts": [],
+      "git_blob": "9ef40319d810d3b5a1c484130ee3a8550981d739",
+      "mode": "100644",
+      "sha256": "4ceb964ea6c781a3611581b228e5b3c24b26ebbf889cc631a5974f26f4a879fe"
+    },
+    "artifacts/ot-pilot/limits-v5/misuse-brief.md": {
+      "concepts": [],
+      "git_blob": "4121fdaaff20dc774f2b02066869c9c6cbb21f54",
+      "mode": "100644",
+      "sha256": "892a507231a58759f38db0fdbcbacc00c3d2b49390e3998e8529df74083f30ae"
+    },
+    "artifacts/ot-pilot/limits-v5/misuse/episodes-C.json": {
+      "concepts": [],
+      "git_blob": "2a0268099c4ef648e844c86a06beea0d01c0a401",
+      "mode": "100644",
+      "sha256": "ed365d7b876b2b5b6eddb6fe281c466d7ddfdc5dbf3b3c5c2a136ac4c56fa7a5"
+    },
+    "artifacts/ot-pilot/limits-v5/misuse/episodes-X.json": {
+      "concepts": [],
+      "git_blob": "6dc5c4e6114402debaae0c72cb57901fa6482298",
+      "mode": "100644",
+      "sha256": "bd7307353564d7b623e0b9fee4191d9e03c04e83f011eba1d78f6e14922d035c"
+    },
+    "artifacts/ot-pilot/limits-v5/result/holdout-candidate-1-approver.json": {
+      "concepts": [],
+      "git_blob": "3cfa336dd5b3386934713c0d74f4d74774a2ab3f",
+      "mode": "100644",
+      "sha256": "aca1781bfd08be40256e16db5b1fc2071bace16adb4290c174754088832a4a32"
+    },
+    "artifacts/ot-pilot/limits-v5/result/holdout-candidate-2-approver.json": {
+      "concepts": [],
+      "git_blob": "dbdca6b86dcf209038f2452c81fb692517ec6fa9",
+      "mode": "100644",
+      "sha256": "b6a99b68640b851c964976b78abb06465b0ceed4f3d3feee46ab8c956b71786a"
+    },
+    "artifacts/ot-pilot/limits-v5/result/holdout-deployed-1-approver.json": {
+      "concepts": [],
+      "git_blob": "105b7343e92716f8d1c492396e9dc0c2033b66d8",
+      "mode": "100644",
+      "sha256": "465e2dc150d05193c84c243e97592269c69346e9a0fb845888e68c480421db19"
+    },
+    "artifacts/ot-pilot/limits-v5/result/holdout-deployed-2-approver.json": {
+      "concepts": [],
+      "git_blob": "b2d34c9f9973b3ef5280a8674cb18e7bfd871a0d",
+      "mode": "100644",
+      "sha256": "30c425169ce868fc173fa811adf4e4ee862f6ef26a0bae2b8676e56bd9e42bdd"
+    },
+    "artifacts/ot-pilot/limits-v5/result/protection.json": {
+      "concepts": [],
+      "git_blob": "f04cb8dab33fc5add1c13b4f85109295c2fca600",
+      "mode": "100644",
+      "sha256": "a9d29b9c9da1c19a5e0307d7dac2bfa28412bc917e55d9de4035fe13c33e28c1"
+    },
     "artifacts/pilot-pack/README.md": {
       "concepts": [],
       "git_blob": "ce2ad3ccd26523a4b785b005cc4ba9516c848aec",
@@ -6444,9 +6540,9 @@
     },
     "docs/README.md": {
       "concepts": [],
-      "git_blob": "607ba9344bb6dcf7ac0150e63b8944ea2fc52e92",
+      "git_blob": "c8c8fa2d2f2b073c260bdf990d331d20f2c4ed48",
       "mode": "100644",
-      "sha256": "7f0246770511bffd87c2fbf84801e3aa31273dcf5d1e76e09b0236ddd06db0b2"
+      "sha256": "2c2208c982379f3d7128b4b190f16aa74b6b46978344f92ddc48bbdd6310c760"
     },
     "docs/architecture/ADR-UE-03-capability-manifest-hook-and-mode.md": {
       "concepts": [],
@@ -7115,9 +7211,9 @@
     },
     "docs/assurance/document_register_v1.yaml": {
       "concepts": [],
-      "git_blob": "15eb72b44001ce66ebc2004ad8ab15815eca933a",
+      "git_blob": "f4e03efa34226fa403f63bbb4486560b0a295660",
       "mode": "100644",
-      "sha256": "0ad6ac78f8028529fa17cac891285766833349618918d4583d2a187068d7669d"
+      "sha256": "aea41eaf6d7402158ce63e72057aff2707ff50f411b9bc0e459a13977a4bfc53"
     },
     "docs/assurance/documentation_governance_v1.md": {
       "concepts": [],
@@ -7256,6 +7352,12 @@
       "git_blob": "b78d658ef7ab93f62c15928e043f5f2d5c068229",
       "mode": "100644",
       "sha256": "5ec503501a8a7abbfa39312ca1cf86852644f43cde2778347b3fb25dedd38ce8"
+    },
+    "docs/assurance/ot_limits_holdout_plan_v5.md": {
+      "concepts": [],
+      "git_blob": "22b7d6d8679d7d3814aa75be7d62897cb0833c22",
+      "mode": "100644",
+      "sha256": "bced15e32cf75faa648e49a1d59ea03a031cf3169059f6e10c990b586b160638"
     },
     "docs/assurance/policy_engine_audit_v1.md": {
       "concepts": [],
@@ -11684,9 +11786,9 @@
     },
     "pyproject.toml": {
       "concepts": [],
-      "git_blob": "f1fd200585f94de79ac9ba2f3ff43a4963fd200b",
+      "git_blob": "501afbeaa7029ca05b13bef82f877d5293e343f6",
       "mode": "100644",
-      "sha256": "bf962079f5e71f43adb5da28da574a35ef16ca0584170257e233afb487814d74"
+      "sha256": "48e1dcc0630947b09315e88954f98ba849b51529a3904323591960e059e07a32"
     },
     "remora/README.md": {
       "concepts": [],
@@ -17437,9 +17539,9 @@
     },
     "scripts/run_limits_protection.py": {
       "concepts": [],
-      "git_blob": "a10b8a659e5db2302f01340f49cb185d6ea68f30",
+      "git_blob": "d58a742053f2e8d1013139076806399eb0282e1f",
       "mode": "100755",
-      "sha256": "260f0f7a3efc06d6e48ebcb806d4dc3f7b3c19667c19447b6a8ac3edb26b0789"
+      "sha256": "a3de110972446b293e7410be4a20fa9116e3dca4d783fc8afeab18743f17c3a5"
     },
     "scripts/run_live_benchmark.py": {
       "concepts": [],
@@ -17587,9 +17689,9 @@
     },
     "scripts/test_inventory.py": {
       "concepts": [],
-      "git_blob": "b6a63d518852d15b61f7a8eb7e2c99e6a09d6f1b",
+      "git_blob": "72c332d3fa4fbde8822f56a16c8fe82648735ce4",
       "mode": "100644",
-      "sha256": "1bdfdc541a7bcba606071500c46df3642db01052f8a926c1cc9cfec44ad9129c"
+      "sha256": "5b0c09413583928413d290028ee0dd59dc094d3c7b2ce2fe4b71a6b5df5bd3a8"
     },
     "scripts/validate_corpus.py": {
       "concepts": [],
@@ -21332,9 +21434,9 @@
     },
     "tests/test_limits_protection.py": {
       "concepts": [],
-      "git_blob": "f8430e20541f5ae17ad6df8e1e2e935d36379783",
+      "git_blob": "f2d9fac4e6ced23bfbadb7f2244d09236ba46673",
       "mode": "100644",
-      "sha256": "c152b9b7919fceaa8640065e3fb739d4b3d99df1a0a8fc81005c5b358fe04525"
+      "sha256": "3ac35a9e12be694a437cbbd995434ba0d080ed4646c0d1ccf0b232e0901145fc"
     },
     "tests/test_llm_judge.py": {
       "concepts": [],
@@ -23971,7 +24073,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "f5fc4d94350a93efa923994876846d38a7941eea13e24ecba718f6b88fa663fd",
+  "register_sha256": "564c31229623d0b5d87e3a8b02415a26ad8c7c3f446f7ed92b9d63e3f588c8c6",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

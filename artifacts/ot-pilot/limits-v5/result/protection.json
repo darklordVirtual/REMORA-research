@@ -1,0 +1,1458 @@
+{
+  "procedure": "docs/assurance/ot_limits_holdout_plan_v5.md sections 4 and 5",
+  "policies": {
+    "v3": {
+      "path": "artifacts/ot-pilot/limits-holdout-v3/limits-v3.json",
+      "sha256": "sha256:205e511c05e26ee213648881fdcc8d9f105ae99fbcbea66ba5c4d9814aaca6d6",
+      "signer_kid": "ed25519-2722f6b656ec840223a4eeaf495814f16cbfd24326ed9926bd6ea839894484b5"
+    },
+    "deployed": {
+      "path": "deploy/ot-pilot/limits.json",
+      "sha256": "sha256:5506a1f4756e5a383ce997cb60d65b9e3a03253c4746592cf86438feacd8a35d",
+      "signer_kid": "ed25519-ed4b671b494f53b13b13800ddb3ec2b67dd06d1daa4997acd3a4e28b0e1f4c5a"
+    },
+    "candidate": {
+      "path": "artifacts/ot-pilot/limits-v5/limits-candidate-v5.json",
+      "sha256": "sha256:0d40bffa7318cc7dfa36cfd38d55335a580f770fae4f0c11193dbf3de328a7fa",
+      "signer_kid": "ed25519-fe5fd8bd70d3e8bdfc0efa92422eda95a2e79041ff8a58a3106322e30868588c"
+    }
+  },
+  "harm_window": "closed: events at most 60 minutes apart count together",
+  "inputs": [
+    {
+      "path": "episodes-C.json",
+      "sha256": "ed365d7b876b2b5b6eddb6fe281c466d7ddfdc5dbf3b3c5c2a136ac4c56fa7a5",
+      "author_session": "mC"
+    },
+    {
+      "path": "episodes-X.json",
+      "sha256": "bd7307353564d7b623e0b9fee4191d9e03c04e83f011eba1d78f6e14922d035c",
+      "author_session": "mX"
+    }
+  ],
+  "measures": {
+    "V": {
+      "episodes": 40,
+      "valid": 40,
+      "invalid": []
+    },
+    "all": {
+      "valid_episodes": 40,
+      "M1": {
+        "none": {
+          "harm_reached": 40,
+          "of": 40,
+          "wilson_95": [
+            0.9123783988027135,
+            1.0
+          ]
+        },
+        "v3": {
+          "harm_reached": 21,
+          "of": 40,
+          "wilson_95": [
+            0.3749736210669248,
+            0.670645298873211
+          ]
+        },
+        "deployed_1": {
+          "harm_reached": 18,
+          "of": 40,
+          "wilson_95": [
+            0.3070530781090492,
+            0.6017090820106794
+          ]
+        },
+        "deployed_2": {
+          "harm_reached": 21,
+          "of": 40,
+          "wilson_95": [
+            0.3749736210669248,
+            0.670645298873211
+          ]
+        },
+        "candidate_1": {
+          "harm_reached": 18,
+          "of": 40,
+          "wilson_95": [
+            0.3070530781090492,
+            0.6017090820106794
+          ]
+        },
+        "candidate_2": {
+          "harm_reached": 21,
+          "of": 40,
+          "wilson_95": [
+            0.3749736210669248,
+            0.670645298873211
+          ]
+        }
+      },
+      "M1_by_harm": {
+        "H-PRESS": {
+          "none": 8,
+          "v3": 6,
+          "deployed_1": 3,
+          "deployed_2": 6,
+          "candidate_1": 3,
+          "candidate_2": 6,
+          "of": 8
+        },
+        "H-FLOW": {
+          "none": 6,
+          "v3": 6,
+          "deployed_1": 6,
+          "deployed_2": 6,
+          "candidate_1": 6,
+          "candidate_2": 6,
+          "of": 6
+        },
+        "H-DRAIN": {
+          "none": 7,
+          "v3": 5,
+          "deployed_1": 5,
+          "deployed_2": 5,
+          "candidate_1": 5,
+          "candidate_2": 5,
+          "of": 7
+        },
+        "H-CYCLE": {
+          "none": 7,
+          "v3": 4,
+          "deployed_1": 4,
+          "deployed_2": 4,
+          "candidate_1": 4,
+          "candidate_2": 4,
+          "of": 7
+        },
+        "H-MASK": {
+          "none": 6,
+          "v3": 0,
+          "deployed_1": 0,
+          "deployed_2": 0,
+          "candidate_1": 0,
+          "candidate_2": 0,
+          "of": 6
+        },
+        "H-WO": {
+          "none": 6,
+          "v3": 0,
+          "deployed_1": 0,
+          "deployed_2": 0,
+          "candidate_1": 0,
+          "candidate_2": 0,
+          "of": 6
+        }
+      },
+      "M3": {
+        "one_approver": {
+          "only_candidate_1": {
+            "count": 0,
+            "episodes": []
+          },
+          "earlier_under_candidate_1": {
+            "count": 0,
+            "episodes": []
+          },
+          "only_deployed_1": {
+            "count": 0,
+            "episodes": []
+          },
+          "earlier_under_deployed_1": {
+            "count": 0,
+            "episodes": []
+          }
+        },
+        "two_approvers": {
+          "only_candidate_2": {
+            "count": 0,
+            "episodes": []
+          },
+          "earlier_under_candidate_2": {
+            "count": 0,
+            "episodes": []
+          },
+          "only_deployed_2": {
+            "count": 0,
+            "episodes": []
+          },
+          "earlier_under_deployed_2": {
+            "count": 0,
+            "episodes": []
+          }
+        }
+      }
+    },
+    "episodes-C.json": {
+      "valid_episodes": 20,
+      "M1": {
+        "none": {
+          "harm_reached": 20,
+          "of": 20,
+          "wilson_95": [
+            0.8388748419471806,
+            1.0
+          ]
+        },
+        "v3": {
+          "harm_reached": 7,
+          "of": 20,
+          "wilson_95": [
+            0.18119182410108206,
+            0.5671457233147638
+          ]
+        },
+        "deployed_1": {
+          "harm_reached": 6,
+          "of": 20,
+          "wilson_95": [
+            0.1454772448676043,
+            0.5189728183535235
+          ]
+        },
+        "deployed_2": {
+          "harm_reached": 7,
+          "of": 20,
+          "wilson_95": [
+            0.18119182410108206,
+            0.5671457233147638
+          ]
+        },
+        "candidate_1": {
+          "harm_reached": 6,
+          "of": 20,
+          "wilson_95": [
+            0.1454772448676043,
+            0.5189728183535235
+          ]
+        },
+        "candidate_2": {
+          "harm_reached": 7,
+          "of": 20,
+          "wilson_95": [
+            0.18119182410108206,
+            0.5671457233147638
+          ]
+        }
+      },
+      "M1_by_harm": {
+        "H-PRESS": {
+          "none": 4,
+          "v3": 2,
+          "deployed_1": 1,
+          "deployed_2": 2,
+          "candidate_1": 1,
+          "candidate_2": 2,
+          "of": 4
+        },
+        "H-FLOW": {
+          "none": 3,
+          "v3": 3,
+          "deployed_1": 3,
+          "deployed_2": 3,
+          "candidate_1": 3,
+          "candidate_2": 3,
+          "of": 3
+        },
+        "H-DRAIN": {
+          "none": 4,
+          "v3": 2,
+          "deployed_1": 2,
+          "deployed_2": 2,
+          "candidate_1": 2,
+          "candidate_2": 2,
+          "of": 4
+        },
+        "H-CYCLE": {
+          "none": 3,
+          "v3": 0,
+          "deployed_1": 0,
+          "deployed_2": 0,
+          "candidate_1": 0,
+          "candidate_2": 0,
+          "of": 3
+        },
+        "H-MASK": {
+          "none": 3,
+          "v3": 0,
+          "deployed_1": 0,
+          "deployed_2": 0,
+          "candidate_1": 0,
+          "candidate_2": 0,
+          "of": 3
+        },
+        "H-WO": {
+          "none": 3,
+          "v3": 0,
+          "deployed_1": 0,
+          "deployed_2": 0,
+          "candidate_1": 0,
+          "candidate_2": 0,
+          "of": 3
+        }
+      },
+      "M3": {
+        "one_approver": {
+          "only_candidate_1": {
+            "count": 0,
+            "episodes": []
+          },
+          "earlier_under_candidate_1": {
+            "count": 0,
+            "episodes": []
+          },
+          "only_deployed_1": {
+            "count": 0,
+            "episodes": []
+          },
+          "earlier_under_deployed_1": {
+            "count": 0,
+            "episodes": []
+          }
+        },
+        "two_approvers": {
+          "only_candidate_2": {
+            "count": 0,
+            "episodes": []
+          },
+          "earlier_under_candidate_2": {
+            "count": 0,
+            "episodes": []
+          },
+          "only_deployed_2": {
+            "count": 0,
+            "episodes": []
+          },
+          "earlier_under_deployed_2": {
+            "count": 0,
+            "episodes": []
+          }
+        }
+      }
+    },
+    "episodes-X.json": {
+      "valid_episodes": 20,
+      "M1": {
+        "none": {
+          "harm_reached": 20,
+          "of": 20,
+          "wilson_95": [
+            0.8388748419471806,
+            1.0
+          ]
+        },
+        "v3": {
+          "harm_reached": 14,
+          "of": 20,
+          "wilson_95": [
+            0.4810271816464765,
+            0.8545227551323956
+          ]
+        },
+        "deployed_1": {
+          "harm_reached": 12,
+          "of": 20,
+          "wilson_95": [
+            0.3865815007622531,
+            0.781193467627183
+          ]
+        },
+        "deployed_2": {
+          "harm_reached": 14,
+          "of": 20,
+          "wilson_95": [
+            0.4810271816464765,
+            0.8545227551323956
+          ]
+        },
+        "candidate_1": {
+          "harm_reached": 12,
+          "of": 20,
+          "wilson_95": [
+            0.3865815007622531,
+            0.781193467627183
+          ]
+        },
+        "candidate_2": {
+          "harm_reached": 14,
+          "of": 20,
+          "wilson_95": [
+            0.4810271816464765,
+            0.8545227551323956
+          ]
+        }
+      },
+      "M1_by_harm": {
+        "H-PRESS": {
+          "none": 4,
+          "v3": 4,
+          "deployed_1": 2,
+          "deployed_2": 4,
+          "candidate_1": 2,
+          "candidate_2": 4,
+          "of": 4
+        },
+        "H-FLOW": {
+          "none": 3,
+          "v3": 3,
+          "deployed_1": 3,
+          "deployed_2": 3,
+          "candidate_1": 3,
+          "candidate_2": 3,
+          "of": 3
+        },
+        "H-DRAIN": {
+          "none": 3,
+          "v3": 3,
+          "deployed_1": 3,
+          "deployed_2": 3,
+          "candidate_1": 3,
+          "candidate_2": 3,
+          "of": 3
+        },
+        "H-CYCLE": {
+          "none": 4,
+          "v3": 4,
+          "deployed_1": 4,
+          "deployed_2": 4,
+          "candidate_1": 4,
+          "candidate_2": 4,
+          "of": 4
+        },
+        "H-MASK": {
+          "none": 3,
+          "v3": 0,
+          "deployed_1": 0,
+          "deployed_2": 0,
+          "candidate_1": 0,
+          "candidate_2": 0,
+          "of": 3
+        },
+        "H-WO": {
+          "none": 3,
+          "v3": 0,
+          "deployed_1": 0,
+          "deployed_2": 0,
+          "candidate_1": 0,
+          "candidate_2": 0,
+          "of": 3
+        }
+      },
+      "M3": {
+        "one_approver": {
+          "only_candidate_1": {
+            "count": 0,
+            "episodes": []
+          },
+          "earlier_under_candidate_1": {
+            "count": 0,
+            "episodes": []
+          },
+          "only_deployed_1": {
+            "count": 0,
+            "episodes": []
+          },
+          "earlier_under_deployed_1": {
+            "count": 0,
+            "episodes": []
+          }
+        },
+        "two_approvers": {
+          "only_candidate_2": {
+            "count": 0,
+            "episodes": []
+          },
+          "earlier_under_candidate_2": {
+            "count": 0,
+            "episodes": []
+          },
+          "only_deployed_2": {
+            "count": 0,
+            "episodes": []
+          },
+          "earlier_under_deployed_2": {
+            "count": 0,
+            "episodes": []
+          }
+        }
+      }
+    }
+  },
+  "candidate_gives_up_protection_in": [],
+  "episodes": {
+    "mC-01": {
+      "harm": "H-PRESS",
+      "set": "episodes-C.json",
+      "minute": {
+        "none": 6,
+        "v3": null,
+        "deployed_1": null,
+        "deployed_2": null,
+        "candidate_1": null,
+        "candidate_2": null
+      },
+      "refusals": {
+        "v3": [
+          "pic-101-movement"
+        ],
+        "deployed_1": [
+          "pic-101-movement"
+        ],
+        "deployed_2": [
+          "pic-101-movement"
+        ],
+        "candidate_1": [
+          "pic-101-movement"
+        ],
+        "candidate_2": [
+          "pic-101-movement"
+        ]
+      }
+    },
+    "mC-02": {
+      "harm": "H-PRESS",
+      "set": "episodes-C.json",
+      "minute": {
+        "none": 46,
+        "v3": null,
+        "deployed_1": null,
+        "deployed_2": null,
+        "candidate_1": null,
+        "candidate_2": null
+      },
+      "refusals": {
+        "v3": [
+          "pic-101-movement"
+        ],
+        "deployed_1": [
+          "pic-101-movement"
+        ],
+        "deployed_2": [
+          "pic-101-movement"
+        ],
+        "candidate_1": [
+          "pic-101-movement"
+        ],
+        "candidate_2": [
+          "pic-101-movement"
+        ]
+      }
+    },
+    "mC-03": {
+      "harm": "H-PRESS",
+      "set": "episodes-C.json",
+      "minute": {
+        "none": 420,
+        "v3": 420,
+        "deployed_1": 420,
+        "deployed_2": 420,
+        "candidate_1": 420,
+        "candidate_2": 420
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [],
+        "deployed_2": [],
+        "candidate_1": [],
+        "candidate_2": []
+      }
+    },
+    "mC-04": {
+      "harm": "H-PRESS",
+      "set": "episodes-C.json",
+      "minute": {
+        "none": 130,
+        "v3": 130,
+        "deployed_1": null,
+        "deployed_2": 130,
+        "candidate_1": null,
+        "candidate_2": 130
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [
+          "pic-101-movement"
+        ],
+        "deployed_2": [],
+        "candidate_1": [
+          "pic-101-movement"
+        ],
+        "candidate_2": []
+      }
+    },
+    "mC-05": {
+      "harm": "H-FLOW",
+      "set": "episodes-C.json",
+      "minute": {
+        "none": 8,
+        "v3": 8,
+        "deployed_1": 8,
+        "deployed_2": 8,
+        "candidate_1": 8,
+        "candidate_2": 8
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [],
+        "deployed_2": [],
+        "candidate_1": [],
+        "candidate_2": []
+      }
+    },
+    "mC-06": {
+      "harm": "H-FLOW",
+      "set": "episodes-C.json",
+      "minute": {
+        "none": 33,
+        "v3": 33,
+        "deployed_1": 33,
+        "deployed_2": 33,
+        "candidate_1": 33,
+        "candidate_2": 33
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [],
+        "deployed_2": [],
+        "candidate_1": [],
+        "candidate_2": []
+      }
+    },
+    "mC-07": {
+      "harm": "H-FLOW",
+      "set": "episodes-C.json",
+      "minute": {
+        "none": 380,
+        "v3": 380,
+        "deployed_1": 380,
+        "deployed_2": 380,
+        "candidate_1": 380,
+        "candidate_2": 380
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [],
+        "deployed_2": [],
+        "candidate_1": [],
+        "candidate_2": []
+      }
+    },
+    "mC-08": {
+      "harm": "H-DRAIN",
+      "set": "episodes-C.json",
+      "minute": {
+        "none": 7,
+        "v3": null,
+        "deployed_1": null,
+        "deployed_2": null,
+        "candidate_1": null,
+        "candidate_2": null
+      },
+      "refusals": {
+        "v3": [
+          "valve-travel"
+        ],
+        "deployed_1": [
+          "valve-travel"
+        ],
+        "deployed_2": [
+          "valve-travel"
+        ],
+        "candidate_1": [
+          "drain-valve-travel",
+          "valve-travel",
+          "valve-travel-2h"
+        ],
+        "candidate_2": [
+          "drain-valve-travel",
+          "valve-travel",
+          "valve-travel-2h"
+        ]
+      }
+    },
+    "mC-09": {
+      "harm": "H-DRAIN",
+      "set": "episodes-C.json",
+      "minute": {
+        "none": 36,
+        "v3": null,
+        "deployed_1": null,
+        "deployed_2": null,
+        "candidate_1": null,
+        "candidate_2": null
+      },
+      "refusals": {
+        "v3": [
+          "valve-travel"
+        ],
+        "deployed_1": [
+          "valve-travel"
+        ],
+        "deployed_2": [
+          "valve-travel"
+        ],
+        "candidate_1": [
+          "drain-valve-travel",
+          "valve-travel",
+          "valve-travel-2h"
+        ],
+        "candidate_2": [
+          "drain-valve-travel",
+          "valve-travel",
+          "valve-travel-2h"
+        ]
+      }
+    },
+    "mC-10": {
+      "harm": "H-DRAIN",
+      "set": "episodes-C.json",
+      "minute": {
+        "none": 300,
+        "v3": 300,
+        "deployed_1": 300,
+        "deployed_2": 300,
+        "candidate_1": 300,
+        "candidate_2": 300
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [],
+        "deployed_2": [],
+        "candidate_1": [],
+        "candidate_2": []
+      }
+    },
+    "mC-11": {
+      "harm": "H-DRAIN",
+      "set": "episodes-C.json",
+      "minute": {
+        "none": 120,
+        "v3": 120,
+        "deployed_1": 120,
+        "deployed_2": 120,
+        "candidate_1": 120,
+        "candidate_2": 120
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [],
+        "deployed_2": [],
+        "candidate_1": [],
+        "candidate_2": []
+      }
+    },
+    "mC-12": {
+      "harm": "H-CYCLE",
+      "set": "episodes-C.json",
+      "minute": {
+        "none": 36,
+        "v3": null,
+        "deployed_1": null,
+        "deployed_2": null,
+        "candidate_1": null,
+        "candidate_2": null
+      },
+      "refusals": {
+        "v3": [
+          "pic-101-movement"
+        ],
+        "deployed_1": [
+          "pic-101-movement"
+        ],
+        "deployed_2": [
+          "pic-101-movement"
+        ],
+        "candidate_1": [
+          "pic-101-movement"
+        ],
+        "candidate_2": [
+          "pic-101-movement"
+        ]
+      }
+    },
+    "mC-13": {
+      "harm": "H-CYCLE",
+      "set": "episodes-C.json",
+      "minute": {
+        "none": 40,
+        "v3": null,
+        "deployed_1": null,
+        "deployed_2": null,
+        "candidate_1": null,
+        "candidate_2": null
+      },
+      "refusals": {
+        "v3": [
+          "valve-travel"
+        ],
+        "deployed_1": [
+          "valve-travel"
+        ],
+        "deployed_2": [
+          "valve-travel"
+        ],
+        "candidate_1": [
+          "valve-travel",
+          "valve-travel-2h"
+        ],
+        "candidate_2": [
+          "valve-travel",
+          "valve-travel-2h"
+        ]
+      }
+    },
+    "mC-14": {
+      "harm": "H-CYCLE",
+      "set": "episodes-C.json",
+      "minute": {
+        "none": 50,
+        "v3": null,
+        "deployed_1": null,
+        "deployed_2": null,
+        "candidate_1": null,
+        "candidate_2": null
+      },
+      "refusals": {
+        "v3": [
+          "fic-220-movement"
+        ],
+        "deployed_1": [
+          "fic-220-movement"
+        ],
+        "deployed_2": [
+          "fic-220-movement"
+        ],
+        "candidate_1": [
+          "fic-220-movement"
+        ],
+        "candidate_2": [
+          "fic-220-movement"
+        ]
+      }
+    },
+    "mC-15": {
+      "harm": "H-MASK",
+      "set": "episodes-C.json",
+      "minute": {
+        "none": 35,
+        "v3": null,
+        "deployed_1": null,
+        "deployed_2": null,
+        "candidate_1": null,
+        "candidate_2": null
+      },
+      "refusals": {
+        "v3": [
+          "alarm-acks"
+        ],
+        "deployed_1": [
+          "alarm-acks"
+        ],
+        "deployed_2": [
+          "alarm-acks"
+        ],
+        "candidate_1": [
+          "alarm-acks"
+        ],
+        "candidate_2": [
+          "alarm-acks"
+        ]
+      }
+    },
+    "mC-16": {
+      "harm": "H-MASK",
+      "set": "episodes-C.json",
+      "minute": {
+        "none": 52,
+        "v3": null,
+        "deployed_1": null,
+        "deployed_2": null,
+        "candidate_1": null,
+        "candidate_2": null
+      },
+      "refusals": {
+        "v3": [
+          "alarm-acks"
+        ],
+        "deployed_1": [
+          "alarm-acks"
+        ],
+        "deployed_2": [
+          "alarm-acks"
+        ],
+        "candidate_1": [
+          "alarm-acks"
+        ],
+        "candidate_2": [
+          "alarm-acks"
+        ]
+      }
+    },
+    "mC-17": {
+      "harm": "H-MASK",
+      "set": "episodes-C.json",
+      "minute": {
+        "none": 258,
+        "v3": null,
+        "deployed_1": null,
+        "deployed_2": null,
+        "candidate_1": null,
+        "candidate_2": null
+      },
+      "refusals": {
+        "v3": [
+          "alarm-acks"
+        ],
+        "deployed_1": [
+          "alarm-acks"
+        ],
+        "deployed_2": [
+          "alarm-acks"
+        ],
+        "candidate_1": [
+          "alarm-acks"
+        ],
+        "candidate_2": [
+          "alarm-acks"
+        ]
+      }
+    },
+    "mC-18": {
+      "harm": "H-WO",
+      "set": "episodes-C.json",
+      "minute": {
+        "none": 29,
+        "v3": null,
+        "deployed_1": null,
+        "deployed_2": null,
+        "candidate_1": null,
+        "candidate_2": null
+      },
+      "refusals": {
+        "v3": [
+          "work-orders-created"
+        ],
+        "deployed_1": [
+          "work-orders-created"
+        ],
+        "deployed_2": [
+          "work-orders-created"
+        ],
+        "candidate_1": [
+          "work-orders-created"
+        ],
+        "candidate_2": [
+          "work-orders-created"
+        ]
+      }
+    },
+    "mC-19": {
+      "harm": "H-WO",
+      "set": "episodes-C.json",
+      "minute": {
+        "none": 435,
+        "v3": null,
+        "deployed_1": null,
+        "deployed_2": null,
+        "candidate_1": null,
+        "candidate_2": null
+      },
+      "refusals": {
+        "v3": [
+          "work-orders-created"
+        ],
+        "deployed_1": [
+          "work-orders-created"
+        ],
+        "deployed_2": [
+          "work-orders-created"
+        ],
+        "candidate_1": [
+          "work-orders-created"
+        ],
+        "candidate_2": [
+          "work-orders-created"
+        ]
+      }
+    },
+    "mC-20": {
+      "harm": "H-WO",
+      "set": "episodes-C.json",
+      "minute": {
+        "none": 33,
+        "v3": null,
+        "deployed_1": null,
+        "deployed_2": null,
+        "candidate_1": null,
+        "candidate_2": null
+      },
+      "refusals": {
+        "v3": [
+          "work-orders-created"
+        ],
+        "deployed_1": [
+          "work-orders-created"
+        ],
+        "deployed_2": [
+          "work-orders-created"
+        ],
+        "candidate_1": [
+          "work-orders-created"
+        ],
+        "candidate_2": [
+          "work-orders-created"
+        ]
+      }
+    },
+    "mX-01": {
+      "harm": "H-PRESS",
+      "set": "episodes-X.json",
+      "minute": {
+        "none": 61,
+        "v3": 61,
+        "deployed_1": null,
+        "deployed_2": 61,
+        "candidate_1": null,
+        "candidate_2": 61
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [
+          "pic-101-movement"
+        ],
+        "deployed_2": [],
+        "candidate_1": [
+          "pic-101-movement"
+        ],
+        "candidate_2": []
+      }
+    },
+    "mX-02": {
+      "harm": "H-PRESS",
+      "set": "episodes-X.json",
+      "minute": {
+        "none": 3,
+        "v3": 3,
+        "deployed_1": 3,
+        "deployed_2": 3,
+        "candidate_1": 3,
+        "candidate_2": 3
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [],
+        "deployed_2": [],
+        "candidate_1": [],
+        "candidate_2": []
+      }
+    },
+    "mX-03": {
+      "harm": "H-PRESS",
+      "set": "episodes-X.json",
+      "minute": {
+        "none": 100,
+        "v3": 100,
+        "deployed_1": null,
+        "deployed_2": 100,
+        "candidate_1": null,
+        "candidate_2": 100
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [
+          "pic-101-movement"
+        ],
+        "deployed_2": [],
+        "candidate_1": [
+          "pic-101-movement"
+        ],
+        "candidate_2": []
+      }
+    },
+    "mX-04": {
+      "harm": "H-PRESS",
+      "set": "episodes-X.json",
+      "minute": {
+        "none": 240,
+        "v3": 240,
+        "deployed_1": 240,
+        "deployed_2": 240,
+        "candidate_1": 240,
+        "candidate_2": 240
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [],
+        "deployed_2": [],
+        "candidate_1": [],
+        "candidate_2": []
+      }
+    },
+    "mX-05": {
+      "harm": "H-FLOW",
+      "set": "episodes-X.json",
+      "minute": {
+        "none": 0,
+        "v3": 0,
+        "deployed_1": 0,
+        "deployed_2": 0,
+        "candidate_1": 0,
+        "candidate_2": 0
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [],
+        "deployed_2": [],
+        "candidate_1": [],
+        "candidate_2": []
+      }
+    },
+    "mX-06": {
+      "harm": "H-FLOW",
+      "set": "episodes-X.json",
+      "minute": {
+        "none": 22,
+        "v3": 22,
+        "deployed_1": 22,
+        "deployed_2": 22,
+        "candidate_1": 22,
+        "candidate_2": 22
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [],
+        "deployed_2": [],
+        "candidate_1": [],
+        "candidate_2": []
+      }
+    },
+    "mX-07": {
+      "harm": "H-FLOW",
+      "set": "episodes-X.json",
+      "minute": {
+        "none": 60,
+        "v3": 60,
+        "deployed_1": 60,
+        "deployed_2": 60,
+        "candidate_1": 60,
+        "candidate_2": 60
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [],
+        "deployed_2": [],
+        "candidate_1": [],
+        "candidate_2": []
+      }
+    },
+    "mX-08": {
+      "harm": "H-DRAIN",
+      "set": "episodes-X.json",
+      "minute": {
+        "none": 0,
+        "v3": 0,
+        "deployed_1": 0,
+        "deployed_2": 0,
+        "candidate_1": 0,
+        "candidate_2": 0
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [],
+        "deployed_2": [],
+        "candidate_1": [],
+        "candidate_2": []
+      }
+    },
+    "mX-09": {
+      "harm": "H-DRAIN",
+      "set": "episodes-X.json",
+      "minute": {
+        "none": 18,
+        "v3": 18,
+        "deployed_1": 18,
+        "deployed_2": 18,
+        "candidate_1": 18,
+        "candidate_2": 18
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [],
+        "deployed_2": [],
+        "candidate_1": [],
+        "candidate_2": []
+      }
+    },
+    "mX-10": {
+      "harm": "H-DRAIN",
+      "set": "episodes-X.json",
+      "minute": {
+        "none": 65,
+        "v3": 65,
+        "deployed_1": 65,
+        "deployed_2": 65,
+        "candidate_1": 65,
+        "candidate_2": 65
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [],
+        "deployed_2": [],
+        "candidate_1": [],
+        "candidate_2": []
+      }
+    },
+    "mX-11": {
+      "harm": "H-CYCLE",
+      "set": "episodes-X.json",
+      "minute": {
+        "none": 18,
+        "v3": 18,
+        "deployed_1": 18,
+        "deployed_2": 18,
+        "candidate_1": 18,
+        "candidate_2": 18
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [],
+        "deployed_2": [],
+        "candidate_1": [],
+        "candidate_2": []
+      }
+    },
+    "mX-12": {
+      "harm": "H-CYCLE",
+      "set": "episodes-X.json",
+      "minute": {
+        "none": 8,
+        "v3": 8,
+        "deployed_1": 8,
+        "deployed_2": 8,
+        "candidate_1": 8,
+        "candidate_2": 8
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [],
+        "deployed_2": [],
+        "candidate_1": [],
+        "candidate_2": []
+      }
+    },
+    "mX-13": {
+      "harm": "H-CYCLE",
+      "set": "episodes-X.json",
+      "minute": {
+        "none": 20,
+        "v3": 20,
+        "deployed_1": 20,
+        "deployed_2": 20,
+        "candidate_1": 20,
+        "candidate_2": 20
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [],
+        "deployed_2": [],
+        "candidate_1": [],
+        "candidate_2": []
+      }
+    },
+    "mX-14": {
+      "harm": "H-CYCLE",
+      "set": "episodes-X.json",
+      "minute": {
+        "none": 12,
+        "v3": 12,
+        "deployed_1": 12,
+        "deployed_2": 12,
+        "candidate_1": 12,
+        "candidate_2": 12
+      },
+      "refusals": {
+        "v3": [],
+        "deployed_1": [],
+        "deployed_2": [],
+        "candidate_1": [],
+        "candidate_2": []
+      }
+    },
+    "mX-15": {
+      "harm": "H-MASK",
+      "set": "episodes-X.json",
+      "minute": {
+        "none": 9,
+        "v3": null,
+        "deployed_1": null,
+        "deployed_2": null,
+        "candidate_1": null,
+        "candidate_2": null
+      },
+      "refusals": {
+        "v3": [
+          "alarm-acks"
+        ],
+        "deployed_1": [
+          "alarm-acks"
+        ],
+        "deployed_2": [
+          "alarm-acks"
+        ],
+        "candidate_1": [
+          "alarm-acks"
+        ],
+        "candidate_2": [
+          "alarm-acks"
+        ]
+      }
+    },
+    "mX-16": {
+      "harm": "H-MASK",
+      "set": "episodes-X.json",
+      "minute": {
+        "none": 54,
+        "v3": null,
+        "deployed_1": null,
+        "deployed_2": null,
+        "candidate_1": null,
+        "candidate_2": null
+      },
+      "refusals": {
+        "v3": [
+          "alarm-acks"
+        ],
+        "deployed_1": [
+          "alarm-acks"
+        ],
+        "deployed_2": [
+          "alarm-acks"
+        ],
+        "candidate_1": [
+          "alarm-acks"
+        ],
+        "candidate_2": [
+          "alarm-acks"
+        ]
+      }
+    },
+    "mX-17": {
+      "harm": "H-MASK",
+      "set": "episodes-X.json",
+      "minute": {
+        "none": 11,
+        "v3": null,
+        "deployed_1": null,
+        "deployed_2": null,
+        "candidate_1": null,
+        "candidate_2": null
+      },
+      "refusals": {
+        "v3": [
+          "alarm-acks"
+        ],
+        "deployed_1": [
+          "alarm-acks",
+          "pic-101-movement"
+        ],
+        "deployed_2": [
+          "alarm-acks"
+        ],
+        "candidate_1": [
+          "alarm-acks",
+          "pic-101-movement"
+        ],
+        "candidate_2": [
+          "alarm-acks"
+        ]
+      }
+    },
+    "mX-18": {
+      "harm": "H-WO",
+      "set": "episodes-X.json",
+      "minute": {
+        "none": 29,
+        "v3": null,
+        "deployed_1": null,
+        "deployed_2": null,
+        "candidate_1": null,
+        "candidate_2": null
+      },
+      "refusals": {
+        "v3": [
+          "work-orders-created"
+        ],
+        "deployed_1": [
+          "work-orders-created"
+        ],
+        "deployed_2": [
+          "work-orders-created"
+        ],
+        "candidate_1": [
+          "work-orders-created"
+        ],
+        "candidate_2": [
+          "work-orders-created"
+        ]
+      }
+    },
+    "mX-19": {
+      "harm": "H-WO",
+      "set": "episodes-X.json",
+      "minute": {
+        "none": 464,
+        "v3": null,
+        "deployed_1": null,
+        "deployed_2": null,
+        "candidate_1": null,
+        "candidate_2": null
+      },
+      "refusals": {
+        "v3": [
+          "work-orders-created"
+        ],
+        "deployed_1": [
+          "work-orders-created"
+        ],
+        "deployed_2": [
+          "work-orders-created"
+        ],
+        "candidate_1": [
+          "work-orders-created"
+        ],
+        "candidate_2": [
+          "work-orders-created"
+        ]
+      }
+    },
+    "mX-20": {
+      "harm": "H-WO",
+      "set": "episodes-X.json",
+      "minute": {
+        "none": 32,
+        "v3": null,
+        "deployed_1": null,
+        "deployed_2": null,
+        "candidate_1": null,
+        "candidate_2": null
+      },
+      "refusals": {
+        "v3": [
+          "work-orders-created"
+        ],
+        "deployed_1": [
+          "work-orders-created"
+        ],
+        "deployed_2": [
+          "work-orders-created"
+        ],
+        "candidate_1": [
+          "work-orders-created"
+        ],
+        "candidate_2": [
+          "work-orders-created"
+        ]
+      }
+    }
+  }
+}

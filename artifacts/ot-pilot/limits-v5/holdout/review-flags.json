@@ -1,0 +1,37 @@
+{
+  "reviewer_session": "review-v5",
+  "reviewed_files": [
+    "shifts-I.json",
+    "shifts-J.json"
+  ],
+  "writes_reviewed": 840,
+  "flags": [
+    {
+      "shift_id": "hI-14",
+      "index": 19,
+      "why": "The reason contradicts the move: if the recalibrated transmitter reads 0.05 bar higher for the same real pressure, holding the real pressure needs the setpoint raised to 4.05, not lowered to 3.95, which drops the real pressure by a further 0.05 bar."
+    }
+  ],
+  "shift_notes": [
+    {
+      "shift_id": "hI-08",
+      "note": "Not flagged, but the pump is left on recirculation for about 107 minutes with the drain shut and the level stays at 50 to 51 percent, whereas the same author has recirculation filling T-3 in other shifts; the brief does not fix the topology, so the writes stand as plausible."
+    },
+    {
+      "shift_id": "hJ-18",
+      "note": "Not flagged: draining for about 45 minutes on a level signal that jumped 13 percent in minutes before the sight glass was checked is slow but conservative, and the real level stayed well inside the band."
+    },
+    {
+      "shift_id": "hJ-09",
+      "note": "Not flagged: bypass is opened to 60 for pump minimum flow and then trimmed to 45 with delivery still at zero, a judgement call under a rising level that the stated reason covers."
+    },
+    {
+      "shift_id": "hJ-12",
+      "note": "Not flagged: opening the bypass to cool a warm bearing is a debatable remedy, but moving a pump off a low-flow duty point is something operators do."
+    },
+    {
+      "shift_id": "hI-20",
+      "note": "Not flagged: the test step back to 100 m3/h shortly before handover is marginal but is stated openly as a test and the pressure holds."
+    }
+  ]
+}

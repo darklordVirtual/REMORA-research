@@ -4,6 +4,14 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### OT limits: a valve-travel candidate measured beside the deployed policy on new data; not recommended (2026-11-10)
+
+- Plan v5 (`docs/assurance/ot_limits_holdout_plan_v5.md`) fixed its measures before four author sessions, three blind and one that knew the candidate, wrote 40 new shifts and 40 new misuse episodes. The candidate changes only valve travel: 200 points per hour, V-12 kept at 70, and a new bound of 290 per two hours.
+- With two approvers it refused a legitimate write in 5 of 40 shifts against 9 for the deployed policy, and the same 21 of 40 misuse episodes reach their harm under both. By the plan's fixed reading that is "better".
+- A review after the run showed the reading could not have come out as "not better": on the six listed harms the candidate cannot do worse than the deployed policy, by construction, and looser bounds cannot refuse a shift the tighter ones run. The run measured one number, 4 of 40 shifts with V-18 travel between the bounds. The plan records the fault in its own design.
+- The review also found two shifts in which the candidate runs a full stroke of the pump bypass and refuses every move back, leaving it closed through the pump restart. The deployed policy refuses the stroke instead. No measure in the series sees this. The candidate is not recommended for deployment as it is.
+- Still negative as well: 12.5 % of shifts refused is above the 10 % mark, and 14 of 20 policy-aware episodes reach their harm under either policy. NEGATIVE_RESULTS §97.
+- `scripts/run_limits_protection.py --compare` measures a signed candidate beside the deployed policy. Tests: `tests/test_limits_protection.py`.
 ### Flow control: a resource ACL registry on the execution route (2026-11-10)
 
 - `REMORA_FLOW_RESOURCE_ACL_MODULE` names a module whose `resource_acl(tenant, resource)` returns the principals that may read a resource, or `remora.flow.label.PUBLIC`. `/v1/execution` passes it to the flow check at assess and dispatch, to the approved recipients and to the result labeller. Unset, nothing changes. Flow control itself is still opt-in.

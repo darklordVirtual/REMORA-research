@@ -356,6 +356,110 @@ def policy_readoff(paths: list[Path], policy_path: Path, key_file: Path) -> dict
     return out
 
 
+def _paired(minutes: dict[str, dict[str, int | None]], ids: list[str], first: str,
+            second: str) -> dict[str, Any]:
+    """M3 for *first* against *second*: reached only under one, or at least
+    EARLIER_MIN minutes earlier under one."""
+    out: dict[str, list[str]] = {f"only_{first}": [], f"earlier_under_{first}": [],
+                                 f"only_{second}": [], f"earlier_under_{second}": []}
+    for e in ids:
+        a, b = minutes[first][e], minutes[second][e]
+        if a is not None and b is None:
+            out[f"only_{first}"].append(e)
+        elif a is None and b is not None:
+            out[f"only_{second}"].append(e)
+        elif a is not None and b is not None:
+            if a <= b - EARLIER_MIN:
+                out[f"earlier_under_{first}"].append(e)
+            elif b <= a - EARLIER_MIN:
+                out[f"earlier_under_{second}"].append(e)
+    return {k: {"count": len(v), "episodes": v} for k, v in out.items()}
+
+
+def compare_with_deployed(paths: list[Path], policy_path: Path, key_file: Path) -> dict[str, Any]:
+    """The measures of docs/assurance/ot_limits_holdout_plan_v5.md §5, protective side.
+
+    Each episode is replayed with no limits, under v3, and under the deployed
+    policy and the named candidate with one approver per write and with two.
+    M3 pairs the candidate with the deployed policy at the same approver count.
+    """
+    registry = holdout._registry()
+    pristine = copy.deepcopy(registry.PLANT)
+    episodes, inputs, set_of = [], [], {}
+    for path in paths:
+        data = path.read_bytes()
+        doc = json.loads(data)
+        inputs.append({"path": path.name, "sha256": hashlib.sha256(data).hexdigest(),
+                       "author_session": doc.get("author_session")})
+        for ep in validate(doc):
+            episodes.append(ep)
+            set_of[ep["episode_id"]] = path.name
+    v3, v3_meta = load("v3")
+    deployed, deployed_digest, deployed_kid = holdout.load_policy(DEPLOYED)
+    candidate, digest, kid = holdout.load_policy(
+        policy_path, key_file.read_text(encoding="utf-8").split())
+    runs = {"v3": (v3, 1), "deployed_1": (deployed, 1), "deployed_2": (deployed, 2),
+            "candidate_1": (candidate, 1), "candidate_2": (candidate, 2)}
+    minutes: dict[str, dict[str, int | None]] = {name: {} for name in ["none", *runs]}
+    refusals: dict[str, dict[str, list[str]]] = {name: {} for name in runs}
+    harm_of: dict[str, str] = {}
+    with tempfile.TemporaryDirectory() as tmp:
+        for ep in episodes:
+            eid = ep["episode_id"]
+            harm_of[eid] = ep["harm"]
+            shift = {"shift_id": eid, "writes": ep["writes"]}
+            minutes["none"][eid] = harm_minute(ep["harm"], replay_unlimited(
+                shift, registry, pristine), pristine)
+            for name, (policy, approvers) in runs.items():
+                with tempfile.TemporaryDirectory(dir=tmp) as d:
+                    rows = holdout.replay_shift(shift, policy, registry, pristine, Path(d),
+                                                approvers=approvers)
+                minutes[name][eid] = harm_minute(ep["harm"], rows, pristine)
+                refusals[name][eid] = sorted(
+                    {lim for r in rows if r["outcome"] == "refused" for lim in r.get("limits", [])}
+                    | {r["reason"] for r in rows if r["outcome"] == "refused" and not r.get("limits")})
+    valid = [e for e in minutes["none"] if minutes["none"][e] is not None]
+    try:
+        shown = str(policy_path.resolve().relative_to(ROOT))
+    except ValueError:
+        shown = policy_path.name
+    measures: dict[str, Any] = {"V": {"episodes": len(minutes["none"]), "valid": len(valid),
+                                      "invalid": sorted(set(minutes["none"]) - set(valid))}}
+    for scope in ["all", *sorted(set(set_of.values()))]:
+        ids = [e for e in valid if scope == "all" or set_of[e] == scope]
+        block: dict[str, Any] = {"valid_episodes": len(ids), "M1": {}}
+        for name in minutes:
+            k = sum(minutes[name][e] is not None for e in ids)
+            lo, hi = holdout.wilson(k, len(ids)) if ids else (0.0, 0.0)
+            block["M1"][name] = {"harm_reached": k, "of": len(ids), "wilson_95": [lo, hi]}
+        block["M1_by_harm"] = {
+            h: {name: sum(minutes[name][e] is not None for e in ids if harm_of[e] == h)
+                for name in minutes} | {"of": sum(harm_of[e] == h for e in ids)}
+            for h in HARMS}
+        block["M3"] = {"one_approver": _paired(minutes, ids, "candidate_1", "deployed_1"),
+                       "two_approvers": _paired(minutes, ids, "candidate_2", "deployed_2")}
+        measures[scope] = block
+    m3 = measures["all"]["M3"]
+    gives_up = sorted({e for side, first in (("one_approver", "candidate_1"),
+                                             ("two_approvers", "candidate_2"))
+                       for key in (f"only_{first}", f"earlier_under_{first}")
+                       for e in m3[side][key]["episodes"]})
+    return {
+        "procedure": "docs/assurance/ot_limits_holdout_plan_v5.md sections 4 and 5",
+        "policies": {"v3": v3_meta,
+                     "deployed": {"path": str(DEPLOYED.relative_to(ROOT)),
+                                  "sha256": deployed_digest, "signer_kid": deployed_kid},
+                     "candidate": {"path": shown, "sha256": digest, "signer_kid": kid}},
+        "harm_window": "closed: events at most 60 minutes apart count together",
+        "inputs": inputs, "measures": measures,
+        "candidate_gives_up_protection_in": gives_up,
+        "episodes": {e: {"harm": harm_of[e], "set": set_of[e],
+                         "minute": {name: minutes[name][e] for name in minutes},
+                         "refusals": {name: refusals[name][e] for name in runs}}
+                     for e in minutes["none"]},
+    }
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("episodes", nargs="+", type=Path)
@@ -364,11 +468,30 @@ def main(argv: list[str] | None = None) -> int:
                         help="replay under the deployed policy instead (not preregistered)")
     parser.add_argument("--policy-readoff", type=Path,
                         help="replay under this signed policy instead (not preregistered)")
+    parser.add_argument("--compare", type=Path,
+                        help="plan v5: this signed candidate beside the deployed policy")
     parser.add_argument("--trusted-key", type=Path,
-                        help="the key file --policy-readoff is verified under")
+                        help="the key file --policy-readoff or --compare is verified under")
     args = parser.parse_args(argv)
-    if (args.policy_readoff is None) != (args.trusted_key is None):
-        parser.error("--policy-readoff and --trusted-key go together")
+    modes = [m for m in (args.policy_readoff, args.compare) if m is not None]
+    if len(modes) > 1 or (args.compare and args.deployed_readoff):
+        parser.error("--compare, --policy-readoff and --deployed-readoff are different runs")
+    if bool(modes) != (args.trusted_key is not None):
+        parser.error("--policy-readoff or --compare needs --trusted-key, and only they do")
+    if args.compare:
+        try:
+            result = compare_with_deployed(args.episodes, args.compare, args.trusted_key)
+        except EpisodeError as exc:
+            print(f"[REFUSED] {exc}", file=sys.stderr)
+            return 2
+        args.out.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n",
+                            encoding="utf-8")
+        m1 = result["measures"]["all"]["M1"]
+        print("harm reached: " + ", ".join(f"{k} {v['harm_reached']}/{v['of']}"
+                                           for k, v in m1.items()))
+        print("candidate gives up protection in: "
+              + (", ".join(result["candidate_gives_up_protection_in"]) or "no episode"))
+        return 0
     if args.policy_readoff and args.deployed_readoff:
         parser.error("--policy-readoff and --deployed-readoff are two different read-offs")
     if args.policy_readoff:

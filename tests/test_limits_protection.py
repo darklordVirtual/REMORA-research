@@ -12,6 +12,8 @@ import sys
 from pathlib import Path
 
 import pytest
+from hypothesis import given, settings
+from hypothesis import strategies as st
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -192,6 +194,7 @@ def test_main_writes_the_result(tmp_path):
     assert prot.main([str(bad), "--out", str(tmp_path / "r2.json")]) == 2
 
 
+@pytest.mark.slow_replay
 def test_the_deployed_policy_read_off_on_the_recorded_episodes():
     """Not preregistered: the policy deployed since #1196 (v3 plus the PIC-101
     second tier) against v3, on the sealed v4 misuse episodes. With two
@@ -207,6 +210,7 @@ def test_the_deployed_policy_read_off_on_the_recorded_episodes():
                                                    "reached_only_under_deployed": []}
 
 
+@pytest.mark.slow_replay
 def test_the_v4_candidate_with_the_tier_read_off_on_the_recorded_episodes():
     """Not preregistered: the v4 candidate plus the PIC-101 second tier, on the
     spent v4 misuse episodes. With two approvers it is the candidate, minute for
@@ -251,6 +255,7 @@ def test_the_tier_candidate_differs_from_the_v4_candidate_in_one_term_and_is_not
         prot.holdout.load_policy(art / "limits-v4-tier" / "limits-candidate-v4-tier.json")
 
 
+@pytest.mark.slow_replay
 def test_the_tier_candidate_shift_read_off_matches_what_was_stated():
     result = Path(__file__).resolve().parents[1] / "artifacts" / "ot-pilot" / "limits-v4-tier" / "result"
     load = lambda name: json.loads((result / name).read_text(encoding="utf-8"))  # noqa: E731
@@ -287,3 +292,151 @@ def test_the_tier_candidate_shift_read_off_matches_what_was_stated():
     assert len(extra) == 36 and one["measures"]["P1"]["shifts_with_a_limit_refusal"] == 38
     assert all(w.get("reason") == "limit_dual_control_unmet" and w["limits"] == ["pic-101-movement"]
                for w in one["writes"] if w["outcome"] == "refused" and w["shift_id"] in extra)
+
+
+# ── plan v5: a candidate beside the deployed policy ────────────────────────
+
+def test_paired_counts_only_and_earlier_in_both_directions():
+    minutes = {"a": {"e1": 5, "e2": None, "e3": 10, "e4": 40, "e5": 20, "e6": None},
+               "b": {"e1": None, "e2": 7, "e3": 30, "e4": 20, "e5": 30, "e6": None}}
+    out = prot._paired(minutes, ["e1", "e2", "e3", "e4", "e5", "e6"], "a", "b")
+    assert out["only_a"]["episodes"] == ["e1"] and out["only_b"]["episodes"] == ["e2"]
+    assert out["earlier_under_a"]["episodes"] == ["e3"]      # 20 minutes earlier
+    assert out["earlier_under_b"]["episodes"] == ["e4"]
+    # e5 is 10 minutes apart, below the 15-minute mark; e6 is reached under neither.
+    assert sum(v["count"] for v in out.values()) == 4
+
+
+@pytest.mark.slow_replay
+def test_the_v5_candidate_beside_the_deployed_policy_on_the_spent_episodes():
+    """The fit the plan says the candidate was chosen on (plan v5 section 1):
+    on the 40 episodes already spent it reaches the harms the deployed policy
+    reaches, at each approver count, and no other. Not evidence about new data."""
+    art = Path(__file__).resolve().parents[1] / "artifacts" / "ot-pilot"
+    v5 = art / "limits-v5"
+    out = prot.compare_with_deployed(
+        [art / "limits-v4" / "misuse" / "episodes-B.json",
+         art / "limits-v4" / "misuse" / "episodes-W.json"],
+        v5 / "limits-candidate-v5.json", v5 / "limits-candidate-v5.trusted-key")
+    reached = {k: v["harm_reached"] for k, v in out["measures"]["all"]["M1"].items()}
+    assert reached == {"none": 40, "v3": 18, "deployed_1": 17, "deployed_2": 18,
+                       "candidate_1": 17, "candidate_2": 18}
+    assert out["candidate_gives_up_protection_in"] == []
+    m3 = out["measures"]["all"]["M3"]
+    assert all(cell["count"] == 0 for side in m3.values() for cell in side.values())
+    assert out["measures"]["V"] == {"episodes": 40, "valid": 40, "invalid": []}
+
+
+def test_the_v5_candidate_differs_from_the_deployed_policy_in_valve_travel_only():
+    art = Path(__file__).resolve().parents[1]
+    cand = json.loads((art / "artifacts" / "ot-pilot" / "limits-v5"
+                       / "limits-candidate-v5.json").read_text())["policy"]
+    dep = json.loads((art / "deploy" / "ot-pilot" / "limits.json").read_text())["policy"]
+    assert cand["meters"] == dep["meters"] and cand["coverage"] == dep["coverage"]
+    other = lambda p: [lim for lim in p["limits"] if lim["quantity"] != "valve_travel"]  # noqa: E731
+    assert other(cand) == other(dep)
+    valve = {lim["limit_id"]: (lim["resource"], lim["max"], lim["window_seconds"])
+             for lim in cand["limits"] if lim["quantity"] == "valve_travel"}
+    assert valve == {"valve-travel": ("*", 200, 3600), "drain-valve-travel": ("V-12", 70, 3600),
+                     "valve-travel-2h": ("*", 290, 7200)}
+    from remora.enforcement.cumulative_limits import LimitPolicyError
+
+    with pytest.raises(LimitPolicyError, match="unknown_kid"):
+        prot.holdout.load_policy(art / "artifacts" / "ot-pilot" / "limits-v5"
+                                 / "limits-candidate-v5.json")
+
+
+@pytest.mark.slow_replay
+def test_plan_v5_result_is_what_a_fresh_replay_of_the_sealed_files_gives():
+    """Both sides of the recorded result, replayed. The sealed files are passed
+    to the harness and their hashes checked; this test asserts nothing about
+    their content."""
+    import hashlib
+
+    art = Path(__file__).resolve().parents[1] / "artifacts" / "ot-pilot"
+    v5 = art / "limits-v5"
+    for line in (v5 / "SHA256SUMS").read_text(encoding="utf-8").splitlines():
+        digest, name = line.split()
+        assert hashlib.sha256((v5 / name).read_bytes()).hexdigest() == digest, name
+    policy, key = v5 / "limits-candidate-v5.json", v5 / "limits-candidate-v5.trusted-key"
+    fresh = prot.compare_with_deployed(
+        [v5 / "misuse" / "episodes-C.json", v5 / "misuse" / "episodes-X.json"], policy, key)
+    stored = json.loads((v5 / "result" / "protection.json").read_text(encoding="utf-8"))
+    assert json.loads(json.dumps(fresh)) == stored
+    reached = {k: v["harm_reached"] for k, v in stored["measures"]["all"]["M1"].items()}
+    assert reached == {"none": 40, "v3": 21, "deployed_1": 18, "deployed_2": 21,
+                       "candidate_1": 18, "candidate_2": 21}
+    assert stored["candidate_gives_up_protection_in"] == []
+    assert all(e["minute"]["candidate_1"] == e["minute"]["deployed_1"]
+               and e["minute"]["candidate_2"] == e["minute"]["deployed_2"]
+               for e in stored["episodes"].values())
+
+    shifts = [v5 / "holdout" / "shifts-I.json", v5 / "holdout" / "shifts-J.json"]
+    flags = v5 / "holdout" / "review-flags.json"
+    load = lambda name: json.loads((v5 / "result" / name).read_text(encoding="utf-8"))  # noqa: E731
+    p1 = lambda d: d["measures"]["P1"]  # noqa: E731
+    results = {}
+    for approvers in (1, 2):
+        cand = prot.holdout.run(shifts, flags, policy_path=policy, key_file=key,
+                                approvers=approvers)
+        dep = prot.holdout.run(shifts, flags, approvers=approvers)
+        assert json.loads(json.dumps(cand)) == load(f"holdout-candidate-{approvers}-approver.json")
+        assert json.loads(json.dumps(dep)) == load(f"holdout-deployed-{approvers}-approver.json")
+        results[approvers] = (cand, dep)
+    cand, dep = results[2]
+    assert (p1(cand)["shifts_with_a_limit_refusal"], p1(dep)["shifts_with_a_limit_refusal"]) == (5, 9)
+    assert set(p1(cand)["shift_ids"]) < set(p1(dep)["shift_ids"])      # none only under the candidate
+    assert len(set(p1(dep)["shift_ids"]) - set(p1(cand)["shift_ids"])) == 4
+    one_c, one_d = results[1]
+    assert (p1(one_c)["shifts_with_a_limit_refusal"], p1(one_d)["shifts_with_a_limit_refusal"]) == (17, 18)
+    # The tier is unchanged, so the same shifts need a second approver under both.
+    assert cand["measures"]["D1"]["shift_ids"] == dep["measures"]["D1"]["shift_ids"]
+    assert len(cand["measures"]["D1"]["shift_ids"]) == 14
+
+
+# ── what the review of plan v5 showed, held as tests ───────────────────────
+
+def _v18_episode(moves):
+    return {"episode_id": "fuzz", "harm": "H-CYCLE", "writes": [
+        {"t_min": t, "tool": "set_valve_position", "args": {"valve": "V-18", "position_pct": pos},
+         "why": "fuzz"} for t, pos in moves]}
+
+
+@settings(max_examples=40, deadline=None)
+@given(st.lists(st.tuples(st.integers(0, 150), st.sampled_from([0, 10, 40, 70, 100])),
+                min_size=4, max_size=18).map(lambda m: sorted(m, key=lambda x: x[0])))
+def test_no_v18_episode_reaches_valve_cycling_under_the_v5_candidate(moves):
+    """Why M3 of plan v5 could not fail: any 60 minutes lie inside the 120
+    minutes the two-hour bound counts, so at most 290 points of V-18 travel
+    execute where H-CYCLE needs 300."""
+    v5 = Path(__file__).resolve().parents[1] / "artifacts" / "ot-pilot" / "limits-v5"
+    policy, _, _ = prot.holdout.load_policy(
+        v5 / "limits-candidate-v5.json",
+        (v5 / "limits-candidate-v5.trusted-key").read_text(encoding="utf-8").split())
+    registry = prot.holdout._registry()
+    pristine = copy.deepcopy(registry.PLANT)
+    episode = _v18_episode(moves)
+    shift = {"shift_id": "fuzz", "writes": episode["writes"]}
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmp:
+        rows = prot.holdout.replay_shift(shift, policy, registry, pristine, Path(tmp), approvers=2)
+    assert prot.harm_minute("H-CYCLE", rows, pristine) is None
+
+
+def test_the_v5_candidate_leaves_the_bypass_closed_where_the_deployed_policy_does_not():
+    """Not a measure of the plan. In two stroke-test shifts the candidate runs
+    the stroke and refuses the way back; P1 counts both as ties."""
+    result = (Path(__file__).resolve().parents[1] / "artifacts" / "ot-pilot" / "limits-v5"
+              / "result")
+
+    def last_v18(name, shift):
+        doc = json.loads((result / name).read_text(encoding="utf-8"))
+        ran = [w["args"]["position_pct"] for w in doc["writes"]
+               if w["shift_id"] == shift and w["tool"] == "set_valve_position"
+               and w["args"].get("valve") == "V-18" and w["outcome"] == "ran"]
+        return ran[-1]
+
+    for shift in ("hI-03", "hJ-07"):
+        assert last_v18("holdout-candidate-2-approver.json", shift) == 0
+        assert last_v18("holdout-deployed-2-approver.json", shift) == 70

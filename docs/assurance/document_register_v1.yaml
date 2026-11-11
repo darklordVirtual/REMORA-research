@@ -3539,7 +3539,19 @@ documents:
   last_reviewed: null
   validates_against: []
   claims: []
+- id: DOC-431
+  path: docs/assurance/ot_limits_holdout_plan_v5.md
+  status: proposal
+  topic: docs_assurance_ot_limits_holdout_plan_v5_md
+  code_synced: unreviewed
+  verdict: pending
+  owner: darklordVirtual
+  audience:
+  - researchers
+  - evaluators
+  last_reviewed: '2026-11-10'
 topics:
+- docs_assurance_ot_limits_holdout_plan_v5_md
 - docs_design_aacp-audit-integrity-remediation-sdd-v1_md
 - docs_assurance_ot_limits_holdout_plan_v4_md
 - docs_assurance_ot_limits_holdout_plan_v3_md
