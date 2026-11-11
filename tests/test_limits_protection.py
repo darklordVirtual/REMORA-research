@@ -626,6 +626,7 @@ def test_the_v6_candidate_only_turns_three_bounds_into_tiers_with_a_higher_cap()
                                  / "limits-candidate-v6.json")
 
 
+@pytest.mark.slow_replay
 def test_the_committed_v6_result_recomputes_and_recommends():
     """The recorded plan v6 result: recommended on the blind data, with the one
     policy-aware episode the approver let through named in the secondary read."""
