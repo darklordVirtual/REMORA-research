@@ -1,0 +1,950 @@
+{
+  "at_baseline": [
+    {
+      "failure": "AssertionError: worker ignored a fresh hard-guard signal and minted/consumed ACCEPT without re-running the execution policy decision assert True is False",
+      "file": "tests/test_pre_federation_async_authority_adversarial.py",
+      "outcome": "failed",
+      "test": "test_async_worker_rechecks_fresh_hard_guards_before_dispatch"
+    },
+    {
+      "failure": "AssertionError: worker executed under a ToolSpec different from the one checked before durable authorization assert True is False",
+      "file": "tests/test_pre_federation_async_authority_adversarial.py",
+      "outcome": "failed",
+      "test": "test_async_worker_refuses_toolspec_drift_after_durable_authorization"
+    },
+    {
+      "failure": "AssertionError: reauthorizing stores have durable adapters but no machine-checked selection wiring: ['AST-004'] assert not {'AST-004'}",
+      "file": "tests/test_pre_federation_durability_topology_adversarial.py",
+      "outcome": "failed",
+      "test": "test_every_reauthorizing_runtime_store_has_a_wiring_assertion"
+    },
+    {
+      "file": "tests/test_pre_federation_durability_topology_adversarial.py",
+      "outcome": "passed",
+      "test": "test_production_prerequisite_text_does_not_claim_d1_tenant_chain_durability"
+    },
+    {
+      "failure": "AssertionError: D1-only deployment selected the process-local dispatch outbox assert <class 'remora.enforcement.outbox.ExecutionOutbox'> is not <class 'remora.enforcement.outbox.ExecutionOutbox'> + where <class 'remora.enforcement.outbox.ExecutionOutbox'> = type(<remora.enforcement.outbox.ExecutionOutbox object at 0x1050cc510>)",
+      "file": "tests/test_pre_federation_durability_topology_adversarial.py",
+      "outcome": "failed",
+      "test": "test_state_endpoint_does_not_silently_leave_dispatch_outbox_in_process"
+    },
+    {
+      "failure": "AssertionError: production may admit REMORA_STATE_ENDPOINT while metrics tell the operator execution state is in-process assert 'in_process' != 'in_process' + where 'in_process' = <function _execution_state_backend at 0x104aa0400>() + where <function _execution_state_backend at 0x104aa0400> = <module 'servers.api' from '/private/var/folders/rm/xgp1l65n0kz7gcf8ny14vv280000gn/T/remora-redteam-qgl2rs6j/baseline/servers/api.py'>._execution_state_backend",
+      "file": "tests/test_pre_federation_durability_topology_adversarial.py",
+      "outcome": "failed",
+      "test": "test_state_endpoint_is_not_reported_as_in_process_execution_state"
+    },
+    {
+      "failure": "AssertionError: assert <EffectStatus.VERIFIED: 'EFFECT_VERIFIED'> is <EffectStatus.MISMATCH: 'EFFECT_MISMATCH'> + where <EffectStatus.VERIFIED: 'EFFECT_VERIFIED'> = EffectVerification(proposal_id='p-1', execution_id='e-1', tool_id='update', toolspec_hash='ddddddddddddddddddddddddddd...='', evidence_refs=(), dispatch_id='', tool_call_hash='', observed_state_hash='', verifier_version='', submitted_by='').status + and <EffectStatus.MISMATCH: 'EFFECT_MISMATCH'> = EffectStatus.MISMATCH",
+      "file": "tests/test_pre_federation_effect_adversarial.py",
+      "outcome": "failed",
+      "test": "test_exact_null_requires_field_presence_in_core_verifier"
+    },
+    {
+      "failure": "AssertionError: assert 'EFFECT_VERIFIED' == 'EFFECT_MISMATCH' - EFFECT_MISMATCH + EFFECT_VERIFIED",
+      "file": "tests/test_pre_federation_effect_adversarial.py",
+      "outcome": "failed",
+      "test": "test_exact_null_requires_field_presence_through_public_sdk"
+    },
+    {
+      "failure": "Failed: DID NOT RAISE ValueError",
+      "file": "tests/test_pre_federation_effect_adversarial.py",
+      "outcome": "failed",
+      "test": "test_public_sdk_rejects_unknown_comparison_rule"
+    },
+    {
+      "failure": "Failed: DID NOT RAISE ValueError",
+      "file": "tests/test_pre_federation_effect_adversarial.py",
+      "outcome": "failed",
+      "test": "test_rule_for_undeclared_field_is_not_silently_ignored"
+    },
+    {
+      "failure": "Failed: DID NOT RAISE ValueError",
+      "file": "tests/test_pre_federation_effect_adversarial.py",
+      "outcome": "failed",
+      "test": "test_unknown_comparison_rule_cannot_silently_become_exact"
+    },
+    {
+      "failure": "AssertionError: manifest content changed after its accepted digest was computed, but the old digest still authorized visibility in the new scope assert not True + where True = is_established('producer_visibility_established') + where is_established = EvidenceAdmission(processing=<ProcessingStatus.COMPLETED: 'completed'>, reason_codes=('effect_observation_not_supplied...08663d810ceffe581e24a4f7064058ff17a06f4c8507d085b33e0a1e6ea25', scope=mappingproxy({'resource': {'tenant': 'globex'}})).is_established",
+      "file": "tests/test_pre_federation_evidence_admission_mutability.py",
+      "outcome": "failed",
+      "test": "test_accepted_manifest_digest_cannot_be_reused_after_nested_scope_mutation"
+    },
+    {
+      "failure": "AssertionError: an already-produced admission report changed scope after evaluation assert 'globex' == 'acme' - acme + globex",
+      "file": "tests/test_pre_federation_evidence_admission_mutability.py",
+      "outcome": "failed",
+      "test": "test_admission_report_scope_cannot_drift_through_expected_invocation_alias"
+    },
+    {
+      "failure": "AssertionError: the live manifest scope no longer corresponds to the digest carried by the supposedly immutable record assert '90d4a820961a...2b04890b46573' == '6ce5e69acb5d...43db32c36e290' - 6ce5e69acb5d213435f40c6b7603035cc79f579d3b7b1485bfd43db32c36e290 + 90d4a820961a14fd2a4a0e9fcec9cd174508dcfbe097536125c2b04890b46573",
+      "file": "tests/test_pre_federation_evidence_admission_mutability.py",
+      "outcome": "failed",
+      "test": "test_manifest_scope_still_hashes_to_the_digest_trust_accepted"
+    },
+    {
+      "failure": "AssertionError: nested caller-owned data changed after the verification digest was computed; the record is no longer self-consistent assert 'e20728b6e490...291c08b58a315' == '7e23d016d872...0398f4ecb4b45' - 7e23d016d872486e2ff604d4360a228d9ee93743b53e2afc2840398f4ecb4b45 + e20728b6e490b03d56b8705fa2faacac4b4dc1e2cba82c2e7fb291c08b58a315",
+      "file": "tests/test_pre_federation_evidence_immutability_adversarial.py",
+      "outcome": "failed",
+      "test": "test_effect_verification_content_cannot_drift_after_hashing"
+    },
+    {
+      "failure": "AssertionError: the postcondition changed after declaration through a nested alias assert <EffectStatus.VERIFIED: 'EFFECT_VERIFIED'> is <EffectStatus.MISMATCH: 'EFFECT_MISMATCH'> + where <EffectStatus.VERIFIED: 'EFFECT_VERIFIED'> = EffectVerification(proposal_id='p-1', execution_id='e-1', tool_id='update', toolspec_hash='ddddddddddddddddddddddddddd...='', evidence_refs=(), dispatch_id='', tool_call_hash='', observed_state_hash='', verifier_version='', submitted_by='').status + and <EffectStatus.MISMATCH: 'EFFECT_MISMATCH'> = EffectStatus.MISMATCH",
+      "file": "tests/test_pre_federation_evidence_immutability_adversarial.py",
+      "outcome": "failed",
+      "test": "test_postcondition_contract_cannot_be_rewritten_through_nested_alias"
+    },
+    {
+      "failure": "AssertionError: assert 'unsafe' == 'safe' - safe + unsafe ? ++",
+      "file": "tests/test_pre_federation_evidence_immutability_adversarial.py",
+      "outcome": "failed",
+      "test": "test_sdk_postcondition_is_deeply_detached_from_caller_input"
+    },
+    {
+      "failure": "AssertionError: assert 'fa574936cc2e...1870bfed6f270' == '624c83825c78...4f244a8b22905' - 624c83825c78e55dd9410bcdc2e3699b2d0f0ad2d8b2df574984f244a8b22905 + fa574936cc2e26e9e2feaa4f38f78b2574703a0c73cc68f4f5b1870bfed6f270",
+      "file": "tests/test_pre_federation_evidence_immutability_adversarial.py",
+      "outcome": "failed",
+      "test": "test_to_dict_remains_recheckable_after_nested_mutation_attempt"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before0-after0]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before1-after1]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before2-after2]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before3-after3]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before4-after4]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before5-after5]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before6-after6]"
+    },
+    {
+      "failure": "Failed: DID NOT RAISE any of (TypeError, ValueError)",
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "failed",
+      "test": "test_non_finite_numbers_are_rejected_from_exact_call_binding[-inf]"
+    },
+    {
+      "failure": "Failed: DID NOT RAISE any of (TypeError, ValueError)",
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "failed",
+      "test": "test_non_finite_numbers_are_rejected_from_exact_call_binding[inf]"
+    },
+    {
+      "failure": "Failed: DID NOT RAISE any of (TypeError, ValueError)",
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "failed",
+      "test": "test_non_finite_numbers_are_rejected_from_exact_call_binding[nan]"
+    },
+    {
+      "failure": "AssertionError: assert '8342118c577330972ca66321f67569f81329835bab7f8d8e706301fb5e5b18b7' != '8342118c577330972ca66321f67569f81329835bab7f8d8e706301fb5e5b18b7' + where '8342118c577330972ca66321f67569f81329835bab7f8d8e706301fb5e5b18b7' = _h({'value': 'approved'})",
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "failed",
+      "test": "test_non_json_object_must_not_collapse_to_its_string_representation"
+    },
+    {
+      "failure": "AssertionError: assert '2b32fad8c1d956814833ad59a31bb11bff79e168a21a7eb1718f79133c799aff' != '2b32fad8c1d956814833ad59a31bb11bff79e168a21a7eb1718f79133c799aff' + where '2b32fad8c1d956814833ad59a31bb11bff79e168a21a7eb1718f79133c799aff' = _h({'1': 'x'})",
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "failed",
+      "test": "test_non_string_mapping_key_must_not_collapse_to_string_key"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_object_member_order_is_not_a_call_change"
+    },
+    {
+      "failure": "AssertionError: assert 'ca15fcc4a3298d0aa3dd3ecc9692d8f5bbb3d909e7db203c884171de0d59c6d5' != 'ca15fcc4a3298d0aa3dd3ecc9692d8f5bbb3d909e7db203c884171de0d59c6d5' + where 'ca15fcc4a3298d0aa3dd3ecc9692d8f5bbb3d909e7db203c884171de0d59c6d5' = _h({'value': [1, 2]})",
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "failed",
+      "test": "test_tuple_must_not_silently_collapse_to_json_array"
+    },
+    {
+      "failure": "AssertionError: effect-evidence-v1 has no case separating an absent property from an explicitly present JSON null assert False",
+      "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+      "outcome": "failed",
+      "test": "test_effect_fixture_corpus_contains_missing_vs_null_discriminator"
+    },
+    {
+      "failure": "AssertionError: assert 'EFFECT_VERIFIED' == 'EFFECT_MISMATCH' - EFFECT_MISMATCH + EFFECT_VERIFIED",
+      "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+      "outcome": "failed",
+      "test": "test_effect_reference_verifier_distinguishes_missing_from_exact_null"
+    },
+    {
+      "failure": "AssertionError: invalid comparison-rule vocabulary silently became exact assert 'EFFECT_VERIFIED' != 'EFFECT_VERIFIED'",
+      "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+      "outcome": "failed",
+      "test": "test_effect_reference_verifier_rejects_unknown_rule_instead_of_exact_fallback"
+    },
+    {
+      "failure": "AssertionError: exact-call-binding-v1 can be externally green while a live dispatcher executes a call mutated after its binding check; the temporal boundary is neither tested nor named in the package ceiling assert False + where False = any(<generator object test_exact_call_federation_contract_names_temporal_mutation_boundary.<locals>.<genexpr> at 0x1050eae90>)",
+      "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+      "outcome": "failed",
+      "test": "test_exact_call_federation_contract_names_temporal_mutation_boundary"
+    },
+    {
+      "failure": "AssertionError: exact-call-binding-v1 says scalar types are significant but has no integer-vs-integral-float discriminator assert False",
+      "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+      "outcome": "failed",
+      "test": "test_exact_call_fixture_corpus_contains_integral_float_type_change"
+    },
+    {
+      "failure": "Failed: DID NOT RAISE ReceiptRefused",
+      "file": "tests/test_pre_federation_receipt_adversarial.py",
+      "outcome": "failed",
+      "test": "test_empty_trusted_verifier_set_is_fail_closed"
+    },
+    {
+      "failure": "AssertionError: {\"proposal_id\":\"635bbd37-ef89-4c12-8098-6737824defd6\",\"status\":\"EFFECT_VERIFIED\",\"claimed_status\":\"EFFECT_VERIFIED\",\"dispatch_id\":\"5075ab33-5b6d-4fa1-93c8-13fa09ab3677\",\"reason_code\":\"postcondition_verified\",\"verifier_identity\":\"acme.reader/v1\",\"audit\":{\"sequence_no\":4,\"entry_hash\":\"fc266290efcc075d9a44f1afb766f306bdd32a3b8c459746fc3cf607c41f626b\"}} assert 200 == 409 + where 200 = <Response [200 OK]>.status_code",
+      "file": "tests/test_pre_federation_receipt_adversarial.py",
+      "outcome": "failed",
+      "test": "test_receipt_cannot_store_forged_dispatch_metadata[tool_id-different_tool]"
+    },
+    {
+      "failure": "AssertionError: {\"proposal_id\":\"51234688-2047-49fe-afa8-26693fd05fd2\",\"status\":\"EFFECT_VERIFIED\",\"claimed_status\":\"EFFECT_VERIFIED\",\"dispatch_id\":\"839c73d5-d00d-4333-a892-d919be41589f\",\"reason_code\":\"postcondition_verified\",\"verifier_identity\":\"acme.reader/v1\",\"audit\":{\"sequence_no\":4,\"entry_hash\":\"7d3f733928d97abfcfcfa3cc462ca6f58f965feec915a2439ecdccb1196ef7f7\"}} assert 200 == 409 + where 200 = <Response [200 OK]>.status_code",
+      "file": "tests/test_pre_federation_receipt_adversarial.py",
+      "outcome": "failed",
+      "test": "test_receipt_cannot_store_forged_dispatch_metadata[toolspec_hash-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]"
+    },
+    {
+      "failure": "AssertionError: an unbound EFFECT_UNSUPPORTED occupied the terminal dispatch slot and poisoned later verification: first={\"proposal_id\":\"c05ad4b1-b340-49e3-8ed2-cc2d4a3b76ac\",\"status\":\"EFFECT_UNSUPPORTED\",\"claimed_status\":\"EFFECT_UNSUPPORTED\",\"dispatch_id\":\"d3844dd7-02c7-488c-8b33-3e8981562dc3\",\"reason_code\":\"postcondition_not_declared\",\"verifier_identity\":\"acme.reader/v1\",\"audit\":{\"sequence_no\":4,\"entry_hash\":\"ef89cd78e3f944bdcbd53edb693895a73556920bf5ca87548cd20a83a634c7bd\"}}; later={\"detail\":\"effect receipt refused (receipt_replayed): this dispatch already has a settled verdict (EFFECT_UNSUPPORTED); a second would overwrite evidence\"} assert 409 == 200 + where 409 = <Response [409 Conflict]>.status_code",
+      "file": "tests/test_pre_federation_receipt_adversarial.py",
+      "outcome": "failed",
+      "test": "test_terminal_unsupported_cannot_poison_the_dispatch_slot"
+    },
+    {
+      "failure": "Failed: DID NOT RAISE ReceiptRefused",
+      "file": "tests/test_pre_federation_receipt_adversarial.py",
+      "outcome": "failed",
+      "test": "test_terminal_unsupported_requires_dispatch_binding"
+    },
+    {
+      "failure": "AssertionError: {\"proposal_id\":\"dd000638-49b9-45be-9844-03e57cfd361a\",\"status\":\"EFFECT_VERIFIED\",\"claimed_status\":\"EFFECT_VERIFIED\",\"dispatch_id\":\"0b97df65-79fc-4c1f-a0b5-1c95a7865169\",\"reason_code\":\"postcondition_field_mismatch\",\"verifier_identity\":\"acme.reader/v1\",\"audit\":{\"sequence_no\":4,\"entry_hash\":\"d430b866b8b9a488eb4638870771296fcb9b9882e8bd7a0c862f8e141fb90029\"}} assert 200 in {409, 422} + where 200 = <Response [200 OK]>.status_code",
+      "file": "tests/test_pre_federation_receipt_adversarial.py",
+      "outcome": "failed",
+      "test": "test_verified_reason_code_must_agree_with_status"
+    },
+    {
+      "failure": "AssertionError: dispatch verified the new spec but executed the stale callable captured before spec resolution assert (not True or 'old' == 'new' + where True = DispatchResult(executed=True, refusal_reason=None, result='old', dispatch_began=True, proposal_id='p-1', recorder_seq=None, nested_effects={'mediated': False, 'count': 0, 'settled': True}, effect_graph=None).executed - new + old)",
+      "file": "tests/test_pre_federation_toctou_adversarial.py",
+      "outcome": "failed",
+      "test": "test_callable_replacement_during_spec_resolution_cannot_run_stale_callable"
+    },
+    {
+      "failure": "AssertionError: the tool received arguments different from the exact call whose hash the lease verified assert (not True or [{'amount': 999}] == [{'amount': 1}] + where True = DispatchResult(executed=True, refusal_reason=None, result='ok', dispatch_began=True, proposal_id='p-1', recorder_seq=None, nested_effects={'mediated': False, 'count': 0, 'settled': True}, effect_graph=None).executed At index 0 diff: {'amount': 999} != {'amount': 1} Use -v to get more diff)",
+      "file": "tests/test_pre_federation_toctou_adversarial.py",
+      "outcome": "failed",
+      "test": "test_post_verify_argument_mutation_cannot_change_executed_call"
+    },
+    {
+      "file": "tests/test_pre_federation_toctou_adversarial.py",
+      "outcome": "passed",
+      "test": "test_refusal_paths_do_not_spend_nonce_before_final_call_binding"
+    }
+  ],
+  "baseline_commit": "9a3d321",
+  "original_probes_today": [
+    {
+      "file": "tests/test_pre_federation_async_authority_adversarial.py",
+      "outcome": "passed",
+      "test": "test_async_worker_rechecks_fresh_hard_guards_before_dispatch"
+    },
+    {
+      "file": "tests/test_pre_federation_async_authority_adversarial.py",
+      "outcome": "passed",
+      "test": "test_async_worker_refuses_toolspec_drift_after_durable_authorization"
+    },
+    {
+      "file": "tests/test_pre_federation_durability_topology_adversarial.py",
+      "outcome": "passed",
+      "test": "test_every_reauthorizing_runtime_store_has_a_wiring_assertion"
+    },
+    {
+      "file": "tests/test_pre_federation_durability_topology_adversarial.py",
+      "outcome": "passed",
+      "test": "test_production_prerequisite_text_does_not_claim_d1_tenant_chain_durability"
+    },
+    {
+      "file": "tests/test_pre_federation_durability_topology_adversarial.py",
+      "outcome": "passed",
+      "test": "test_state_endpoint_does_not_silently_leave_dispatch_outbox_in_process"
+    },
+    {
+      "file": "tests/test_pre_federation_durability_topology_adversarial.py",
+      "outcome": "passed",
+      "test": "test_state_endpoint_is_not_reported_as_in_process_execution_state"
+    },
+    {
+      "file": "tests/test_pre_federation_effect_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_null_requires_field_presence_in_core_verifier"
+    },
+    {
+      "file": "tests/test_pre_federation_effect_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_null_requires_field_presence_through_public_sdk"
+    },
+    {
+      "file": "tests/test_pre_federation_effect_adversarial.py",
+      "outcome": "passed",
+      "test": "test_public_sdk_rejects_unknown_comparison_rule"
+    },
+    {
+      "file": "tests/test_pre_federation_effect_adversarial.py",
+      "outcome": "passed",
+      "test": "test_rule_for_undeclared_field_is_not_silently_ignored"
+    },
+    {
+      "file": "tests/test_pre_federation_effect_adversarial.py",
+      "outcome": "passed",
+      "test": "test_unknown_comparison_rule_cannot_silently_become_exact"
+    },
+    {
+      "file": "tests/test_pre_federation_evidence_admission_mutability.py",
+      "outcome": "passed",
+      "test": "test_accepted_manifest_digest_cannot_be_reused_after_nested_scope_mutation"
+    },
+    {
+      "file": "tests/test_pre_federation_evidence_admission_mutability.py",
+      "outcome": "passed",
+      "test": "test_admission_report_scope_cannot_drift_through_expected_invocation_alias"
+    },
+    {
+      "file": "tests/test_pre_federation_evidence_admission_mutability.py",
+      "outcome": "passed",
+      "test": "test_manifest_scope_still_hashes_to_the_digest_trust_accepted"
+    },
+    {
+      "file": "tests/test_pre_federation_evidence_immutability_adversarial.py",
+      "outcome": "passed",
+      "test": "test_effect_verification_content_cannot_drift_after_hashing"
+    },
+    {
+      "file": "tests/test_pre_federation_evidence_immutability_adversarial.py",
+      "outcome": "passed",
+      "test": "test_postcondition_contract_cannot_be_rewritten_through_nested_alias"
+    },
+    {
+      "file": "tests/test_pre_federation_evidence_immutability_adversarial.py",
+      "outcome": "passed",
+      "test": "test_sdk_postcondition_is_deeply_detached_from_caller_input"
+    },
+    {
+      "file": "tests/test_pre_federation_evidence_immutability_adversarial.py",
+      "outcome": "passed",
+      "test": "test_to_dict_remains_recheckable_after_nested_mutation_attempt"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before0-after0]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before1-after1]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before2-after2]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before3-after3]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before4-after4]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before5-after5]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before6-after6]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_non_finite_numbers_are_rejected_from_exact_call_binding[-inf]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_non_finite_numbers_are_rejected_from_exact_call_binding[inf]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_non_finite_numbers_are_rejected_from_exact_call_binding[nan]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_non_json_object_must_not_collapse_to_its_string_representation"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_non_string_mapping_key_must_not_collapse_to_string_key"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_object_member_order_is_not_a_call_change"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_tuple_must_not_silently_collapse_to_json_array"
+    },
+    {
+      "failure": "AssertionError: effect-evidence-v1 has no case separating an absent property from an explicitly present JSON null assert False",
+      "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+      "outcome": "failed",
+      "test": "test_effect_fixture_corpus_contains_missing_vs_null_discriminator"
+    },
+    {
+      "failure": "AssertionError: assert 'EFFECT_VERIFIED' == 'EFFECT_MISMATCH' - EFFECT_MISMATCH + EFFECT_VERIFIED",
+      "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+      "outcome": "failed",
+      "test": "test_effect_reference_verifier_distinguishes_missing_from_exact_null"
+    },
+    {
+      "failure": "AssertionError: invalid comparison-rule vocabulary silently became exact assert 'EFFECT_VERIFIED' != 'EFFECT_VERIFIED'",
+      "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+      "outcome": "failed",
+      "test": "test_effect_reference_verifier_rejects_unknown_rule_instead_of_exact_fallback"
+    },
+    {
+      "failure": "AssertionError: exact-call-binding-v1 can be externally green while a live dispatcher executes a call mutated after its binding check; the temporal boundary is neither tested nor named in the package ceiling assert False + where False = any(<generator object test_exact_call_federation_contract_names_temporal_mutation_boundary.<locals>.<genexpr> at 0x1062d7e00>)",
+      "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+      "outcome": "failed",
+      "test": "test_exact_call_federation_contract_names_temporal_mutation_boundary"
+    },
+    {
+      "failure": "AssertionError: exact-call-binding-v1 says scalar types are significant but has no integer-vs-integral-float discriminator assert False",
+      "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+      "outcome": "failed",
+      "test": "test_exact_call_fixture_corpus_contains_integral_float_type_change"
+    },
+    {
+      "failure": "AssertionError: assert 'assessment_decision_unknown' == 'untrusted_verifier' - untrusted_verifier + assessment_decision_unknown",
+      "file": "tests/test_pre_federation_receipt_adversarial.py",
+      "outcome": "failed",
+      "test": "test_empty_trusted_verifier_set_is_fail_closed"
+    },
+    {
+      "file": "tests/test_pre_federation_receipt_adversarial.py",
+      "outcome": "passed",
+      "test": "test_receipt_cannot_store_forged_dispatch_metadata[tool_id-different_tool]"
+    },
+    {
+      "file": "tests/test_pre_federation_receipt_adversarial.py",
+      "outcome": "passed",
+      "test": "test_receipt_cannot_store_forged_dispatch_metadata[toolspec_hash-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]"
+    },
+    {
+      "failure": "AssertionError: an unbound EFFECT_UNSUPPORTED occupied the terminal dispatch slot and poisoned later verification: first={\"detail\":\"effect receipt refused (binding_incomplete): EFFECT_UNSUPPORTED requires tool_call_hash: a verdict that names nothing to be compared against is not bound to anything\"}; later={\"detail\":\"effect receipt refused (toolspec_hash_mismatch): the dispatch was assessed under toolspec_hash='<none>'\"} assert 409 == 200 + where 409 = <Response [409 Conflict]>.status_code",
+      "file": "tests/test_pre_federation_receipt_adversarial.py",
+      "outcome": "failed",
+      "test": "test_terminal_unsupported_cannot_poison_the_dispatch_slot"
+    },
+    {
+      "failure": "AssertionError: assert 'assessment_decision_unknown' == 'binding_incomplete' - binding_incomplete + assessment_decision_unknown",
+      "file": "tests/test_pre_federation_receipt_adversarial.py",
+      "outcome": "failed",
+      "test": "test_terminal_unsupported_requires_dispatch_binding"
+    },
+    {
+      "file": "tests/test_pre_federation_receipt_adversarial.py",
+      "outcome": "passed",
+      "test": "test_verified_reason_code_must_agree_with_status"
+    },
+    {
+      "file": "tests/test_pre_federation_toctou_adversarial.py",
+      "outcome": "passed",
+      "test": "test_callable_replacement_during_spec_resolution_cannot_run_stale_callable"
+    },
+    {
+      "file": "tests/test_pre_federation_toctou_adversarial.py",
+      "outcome": "passed",
+      "test": "test_post_verify_argument_mutation_cannot_change_executed_call"
+    },
+    {
+      "file": "tests/test_pre_federation_toctou_adversarial.py",
+      "outcome": "passed",
+      "test": "test_refusal_paths_do_not_spend_nonce_before_final_call_binding"
+    }
+  ],
+  "probes_commit": "ab573075cbd26467defd150386616a03b99ed576",
+  "probes_source": "draft PR #744, closed; its head is fetched as pull/744/head",
+  "python": "3.13.7",
+  "repository_probes_today": [
+    {
+      "file": "tests/test_pre_federation_async_authority_adversarial.py",
+      "outcome": "passed",
+      "test": "test_async_worker_rechecks_fresh_hard_guards_before_dispatch"
+    },
+    {
+      "file": "tests/test_pre_federation_async_authority_adversarial.py",
+      "outcome": "passed",
+      "test": "test_async_worker_refuses_toolspec_drift_after_durable_authorization"
+    },
+    {
+      "file": "tests/test_pre_federation_durability_topology_adversarial.py",
+      "outcome": "passed",
+      "test": "test_assessed_tool_identity_reads_the_latest_assessment"
+    },
+    {
+      "file": "tests/test_pre_federation_durability_topology_adversarial.py",
+      "outcome": "passed",
+      "test": "test_endpoint_only_outbox_is_named_and_refused_in_production"
+    },
+    {
+      "file": "tests/test_pre_federation_durability_topology_adversarial.py",
+      "outcome": "passed",
+      "test": "test_every_reauthorizing_runtime_store_has_a_wiring_assertion"
+    },
+    {
+      "file": "tests/test_pre_federation_durability_topology_adversarial.py",
+      "outcome": "passed",
+      "test": "test_no_switch_still_selects_the_reference_outbox"
+    },
+    {
+      "file": "tests/test_pre_federation_durability_topology_adversarial.py",
+      "outcome": "passed",
+      "test": "test_production_prerequisite_text_does_not_claim_d1_tenant_chain_durability"
+    },
+    {
+      "file": "tests/test_pre_federation_durability_topology_adversarial.py",
+      "outcome": "passed",
+      "test": "test_state_endpoint_does_not_silently_leave_dispatch_outbox_in_process"
+    },
+    {
+      "file": "tests/test_pre_federation_durability_topology_adversarial.py",
+      "outcome": "passed",
+      "test": "test_state_endpoint_is_not_reported_as_in_process_execution_state"
+    },
+    {
+      "file": "tests/test_pre_federation_durability_topology_adversarial.py",
+      "outcome": "passed",
+      "test": "test_unbacked_outbox_records_an_intent_inside_a_d1_transaction"
+    },
+    {
+      "file": "tests/test_pre_federation_effect_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_null_requires_field_presence_in_core_verifier"
+    },
+    {
+      "file": "tests/test_pre_federation_effect_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_null_requires_field_presence_through_public_sdk"
+    },
+    {
+      "file": "tests/test_pre_federation_effect_adversarial.py",
+      "outcome": "passed",
+      "test": "test_public_sdk_rejects_unknown_comparison_rule"
+    },
+    {
+      "file": "tests/test_pre_federation_effect_adversarial.py",
+      "outcome": "passed",
+      "test": "test_rule_for_undeclared_field_is_not_silently_ignored"
+    },
+    {
+      "file": "tests/test_pre_federation_effect_adversarial.py",
+      "outcome": "passed",
+      "test": "test_unknown_comparison_rule_cannot_silently_become_exact"
+    },
+    {
+      "file": "tests/test_pre_federation_evidence_admission_mutability.py",
+      "outcome": "passed",
+      "test": "test_accepted_manifest_digest_cannot_be_reused_after_nested_scope_mutation"
+    },
+    {
+      "file": "tests/test_pre_federation_evidence_admission_mutability.py",
+      "outcome": "passed",
+      "test": "test_admission_report_scope_cannot_drift_through_expected_invocation_alias"
+    },
+    {
+      "file": "tests/test_pre_federation_evidence_admission_mutability.py",
+      "outcome": "passed",
+      "test": "test_manifest_scope_still_hashes_to_the_digest_trust_accepted"
+    },
+    {
+      "file": "tests/test_pre_federation_evidence_immutability_adversarial.py",
+      "outcome": "passed",
+      "test": "test_effect_verification_content_cannot_drift_after_hashing"
+    },
+    {
+      "file": "tests/test_pre_federation_evidence_immutability_adversarial.py",
+      "outcome": "passed",
+      "test": "test_postcondition_contract_cannot_be_rewritten_through_nested_alias"
+    },
+    {
+      "file": "tests/test_pre_federation_evidence_immutability_adversarial.py",
+      "outcome": "passed",
+      "test": "test_sdk_postcondition_is_deeply_detached_from_caller_input"
+    },
+    {
+      "file": "tests/test_pre_federation_evidence_immutability_adversarial.py",
+      "outcome": "passed",
+      "test": "test_to_dict_remains_recheckable_after_nested_mutation_attempt"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before0-after0]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before1-after1]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before2-after2]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before3-after3]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before4-after4]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before5-after5]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_binding_distinguishes_json_domain_mutations[before6-after6]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_non_finite_numbers_are_rejected_from_exact_call_binding[-inf]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_non_finite_numbers_are_rejected_from_exact_call_binding[inf]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_non_finite_numbers_are_rejected_from_exact_call_binding[nan]"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_non_json_object_must_not_collapse_to_its_string_representation"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_non_string_mapping_key_must_not_collapse_to_string_key"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_object_member_order_is_not_a_call_change"
+    },
+    {
+      "file": "tests/test_pre_federation_exact_call_adversarial.py",
+      "outcome": "passed",
+      "test": "test_tuple_must_not_silently_collapse_to_json_array"
+    },
+    {
+      "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+      "outcome": "passed",
+      "test": "test_effect_fixture_corpus_contains_missing_vs_null_discriminator"
+    },
+    {
+      "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+      "outcome": "passed",
+      "test": "test_effect_reference_verifier_distinguishes_missing_from_exact_null"
+    },
+    {
+      "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+      "outcome": "passed",
+      "test": "test_effect_reference_verifier_rejects_unknown_rule_instead_of_exact_fallback"
+    },
+    {
+      "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_federation_contract_names_temporal_mutation_boundary"
+    },
+    {
+      "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+      "outcome": "passed",
+      "test": "test_exact_call_fixture_corpus_contains_integral_float_type_change"
+    },
+    {
+      "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+      "outcome": "passed",
+      "test": "test_v1_corpora_still_lack_the_discriminators"
+    },
+    {
+      "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+      "outcome": "passed",
+      "test": "test_v1_effect_reference_verifier_fails_exactly_the_v1_1_repair_cases"
+    },
+    {
+      "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+      "outcome": "passed",
+      "test": "test_v1_effect_reference_verifier_still_falls_back_to_exact_for_unknown_rule"
+    },
+    {
+      "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+      "outcome": "passed",
+      "test": "test_v1_effect_reference_verifier_still_reads_missing_as_null"
+    },
+    {
+      "file": "tests/test_pre_federation_receipt_adversarial.py",
+      "outcome": "passed",
+      "test": "test_empty_trusted_verifier_set_is_fail_closed"
+    },
+    {
+      "file": "tests/test_pre_federation_receipt_adversarial.py",
+      "outcome": "passed",
+      "test": "test_receipt_cannot_store_forged_dispatch_metadata[tool_id-different_tool]"
+    },
+    {
+      "file": "tests/test_pre_federation_receipt_adversarial.py",
+      "outcome": "passed",
+      "test": "test_receipt_cannot_store_forged_dispatch_metadata[toolspec_hash-ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff]"
+    },
+    {
+      "file": "tests/test_pre_federation_receipt_adversarial.py",
+      "outcome": "passed",
+      "test": "test_terminal_unsupported_cannot_poison_the_dispatch_slot"
+    },
+    {
+      "file": "tests/test_pre_federation_receipt_adversarial.py",
+      "outcome": "passed",
+      "test": "test_terminal_unsupported_requires_dispatch_binding"
+    },
+    {
+      "file": "tests/test_pre_federation_receipt_adversarial.py",
+      "outcome": "passed",
+      "test": "test_verified_reason_code_must_agree_with_status"
+    },
+    {
+      "file": "tests/test_pre_federation_toctou_adversarial.py",
+      "outcome": "passed",
+      "test": "test_callable_replacement_during_spec_resolution_cannot_run_stale_callable"
+    },
+    {
+      "file": "tests/test_pre_federation_toctou_adversarial.py",
+      "outcome": "passed",
+      "test": "test_post_verify_argument_mutation_cannot_change_executed_call"
+    },
+    {
+      "file": "tests/test_pre_federation_toctou_adversarial.py",
+      "outcome": "passed",
+      "test": "test_refusal_paths_do_not_spend_nonce_before_final_call_binding"
+    }
+  ],
+  "schema": "remora-pre-federation-redteam-reproduction/v1",
+  "section": "NEGATIVE_RESULTS \u00a776",
+  "stated": {
+    "green": 10,
+    "probes": 46,
+    "red": 36
+  },
+  "summary": {
+    "at_baseline": {
+      "failed": 36,
+      "passed": 10,
+      "per_file": {
+        "tests/test_pre_federation_async_authority_adversarial.py": {
+          "failed": 2
+        },
+        "tests/test_pre_federation_durability_topology_adversarial.py": {
+          "failed": 3,
+          "passed": 1
+        },
+        "tests/test_pre_federation_effect_adversarial.py": {
+          "failed": 5
+        },
+        "tests/test_pre_federation_evidence_admission_mutability.py": {
+          "failed": 3
+        },
+        "tests/test_pre_federation_evidence_immutability_adversarial.py": {
+          "failed": 4
+        },
+        "tests/test_pre_federation_exact_call_adversarial.py": {
+          "failed": 6,
+          "passed": 8
+        },
+        "tests/test_pre_federation_fixture_adequacy_adversarial.py": {
+          "failed": 5
+        },
+        "tests/test_pre_federation_receipt_adversarial.py": {
+          "failed": 6
+        },
+        "tests/test_pre_federation_toctou_adversarial.py": {
+          "failed": 2,
+          "passed": 1
+        }
+      },
+      "probes": 46,
+      "skipped": 0
+    },
+    "original_probes_still_failing": [
+      {
+        "failure": "AssertionError: effect-evidence-v1 has no case separating an absent property from an explicitly present JSON null assert False",
+        "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+        "test": "test_effect_fixture_corpus_contains_missing_vs_null_discriminator"
+      },
+      {
+        "failure": "AssertionError: assert 'EFFECT_VERIFIED' == 'EFFECT_MISMATCH' - EFFECT_MISMATCH + EFFECT_VERIFIED",
+        "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+        "test": "test_effect_reference_verifier_distinguishes_missing_from_exact_null"
+      },
+      {
+        "failure": "AssertionError: invalid comparison-rule vocabulary silently became exact assert 'EFFECT_VERIFIED' != 'EFFECT_VERIFIED'",
+        "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+        "test": "test_effect_reference_verifier_rejects_unknown_rule_instead_of_exact_fallback"
+      },
+      {
+        "failure": "AssertionError: exact-call-binding-v1 can be externally green while a live dispatcher executes a call mutated after its binding check; the temporal boundary is neither tested nor named in the package ceiling assert False + where False = any(<generator object test_exact_call_federation_contract_names_temporal_mutation_boundary.<locals>.<genexpr> at 0x1062d7e00>)",
+        "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+        "test": "test_exact_call_federation_contract_names_temporal_mutation_boundary"
+      },
+      {
+        "failure": "AssertionError: exact-call-binding-v1 says scalar types are significant but has no integer-vs-integral-float discriminator assert False",
+        "file": "tests/test_pre_federation_fixture_adequacy_adversarial.py",
+        "test": "test_exact_call_fixture_corpus_contains_integral_float_type_change"
+      },
+      {
+        "failure": "AssertionError: assert 'assessment_decision_unknown' == 'untrusted_verifier' - untrusted_verifier + assessment_decision_unknown",
+        "file": "tests/test_pre_federation_receipt_adversarial.py",
+        "test": "test_empty_trusted_verifier_set_is_fail_closed"
+      },
+      {
+        "failure": "AssertionError: an unbound EFFECT_UNSUPPORTED occupied the terminal dispatch slot and poisoned later verification: first={\"detail\":\"effect receipt refused (binding_incomplete): EFFECT_UNSUPPORTED requires tool_call_hash: a verdict that names nothing to be compared against is not bound to anything\"}; later={\"detail\":\"effect receipt refused (toolspec_hash_mismatch): the dispatch was assessed under toolspec_hash='<none>'\"} assert 409 == 200 + where 409 = <Response [409 Conflict]>.status_code",
+        "file": "tests/test_pre_federation_receipt_adversarial.py",
+        "test": "test_terminal_unsupported_cannot_poison_the_dispatch_slot"
+      },
+      {
+        "failure": "AssertionError: assert 'assessment_decision_unknown' == 'binding_incomplete' - binding_incomplete + assessment_decision_unknown",
+        "file": "tests/test_pre_federation_receipt_adversarial.py",
+        "test": "test_terminal_unsupported_requires_dispatch_binding"
+      }
+    ],
+    "original_probes_today": {
+      "failed": 8,
+      "passed": 38,
+      "per_file": {
+        "tests/test_pre_federation_async_authority_adversarial.py": {
+          "passed": 2
+        },
+        "tests/test_pre_federation_durability_topology_adversarial.py": {
+          "passed": 4
+        },
+        "tests/test_pre_federation_effect_adversarial.py": {
+          "passed": 5
+        },
+        "tests/test_pre_federation_evidence_admission_mutability.py": {
+          "passed": 3
+        },
+        "tests/test_pre_federation_evidence_immutability_adversarial.py": {
+          "passed": 4
+        },
+        "tests/test_pre_federation_exact_call_adversarial.py": {
+          "passed": 14
+        },
+        "tests/test_pre_federation_fixture_adequacy_adversarial.py": {
+          "failed": 5
+        },
+        "tests/test_pre_federation_receipt_adversarial.py": {
+          "failed": 3,
+          "passed": 3
+        },
+        "tests/test_pre_federation_toctou_adversarial.py": {
+          "passed": 3
+        }
+      },
+      "probes": 46,
+      "skipped": 0
+    },
+    "probes_added_since": 8,
+    "repository_probes_today": {
+      "failed": 0,
+      "passed": 54,
+      "per_file": {
+        "tests/test_pre_federation_async_authority_adversarial.py": {
+          "passed": 2
+        },
+        "tests/test_pre_federation_durability_topology_adversarial.py": {
+          "passed": 8
+        },
+        "tests/test_pre_federation_effect_adversarial.py": {
+          "passed": 5
+        },
+        "tests/test_pre_federation_evidence_admission_mutability.py": {
+          "passed": 3
+        },
+        "tests/test_pre_federation_evidence_immutability_adversarial.py": {
+          "passed": 4
+        },
+        "tests/test_pre_federation_exact_call_adversarial.py": {
+          "passed": 14
+        },
+        "tests/test_pre_federation_fixture_adequacy_adversarial.py": {
+          "passed": 9
+        },
+        "tests/test_pre_federation_receipt_adversarial.py": {
+          "passed": 6
+        },
+        "tests/test_pre_federation_toctou_adversarial.py": {
+          "passed": 3
+        }
+      },
+      "probes": 54,
+      "skipped": 0
+    },
+    "reproduces_the_stated_count": true
+  },
+  "working_tree_commit": "66addbbbeceb1ead54783ce0fb4347a43dee7f85",
+  "working_tree_dirty": true
+}

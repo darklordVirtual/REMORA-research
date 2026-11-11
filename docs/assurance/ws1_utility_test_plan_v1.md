@@ -57,7 +57,7 @@ The AgentDojo replay already runs no-gate and refuse-all beside the REMORA arms 
 
 ## 7. Realism
 
-Hardware-in-the-loop with a real PLC in an isolated lab, then shadow to enforce in steps with per-order intent binding first (§94). Not started.
+Hardware-in-the-loop with a real PLC in an isolated lab, then shadow to enforce in steps with per-order intent binding first (§94). Per-order intent binding was built in #1194 (the work-order scope guard). The enforce step is blocked: four of the five flow-control work packages it requires are not done (NEGATIVE_RESULTS §105, 2026-11-10). Hardware-in-the-loop is not started.
 
 ## 8. External reproduction
 
@@ -70,7 +70,7 @@ The positioning table for OT/ICS and building automation names four things a cre
 | Threshold | Status after 2026-11-04 | What closes it |
 |---|---|---|
 | Independent testbed | Partial. The scenarios were written without sight of the implementation; the plant, the driver and the judge are the author's | A second party runs the scenarios from a clean checkout (item 8) and a second plant model (item 5) |
-| Enforce mode | Not met. WS1 ran in shadow; the two should-block executions happened because the engine routed to a human and shadow did not cap | Per-order intent binding, then `REMORA_WS1_MODE=enforce` on the pilot with the flow-block prerequisites, then the same 24 scenarios again |
+| Enforce mode | Not met. WS1 ran in shadow; the two should-block executions happened because the engine routed to a human and shadow did not cap. Since #1194 the work-order scope guard refuses those calls before review, with WS1 still in shadow | IFC-04b, IFC-06, IFC-12 and IFC-13 done with evidence, flow blocks in the pilot's ToolSpec, then `REMORA_WS1_MODE=enforce` on the pilot and a new scenario set, since the 24 are spent (NEGATIVE_RESULTS §105) |
 | False blocks | Measured: 0 of 3 should-allow scenarios blocked, 5 of 5 round reads completed, and WS1 shadow would not have over-blocked S07 or S24 | More legitimate scenarios; three is a small denominator |
 | IEC 62443 mapping | Not started | A document mapping the pilot's zones and conduits, roles and security levels to the governance layer; a positioning artefact, not a claim |
 
