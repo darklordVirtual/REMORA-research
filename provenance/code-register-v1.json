@@ -13236,9 +13236,9 @@
     },
     "remora/flow/check.py": {
       "concepts": [],
-      "git_blob": "cd69f42b6cadb7b34f728dcb7104bb6961e312ed",
+      "git_blob": "7a2597486e46bcbfeedd585008d7e0999ac89ef5",
       "mode": "100644",
-      "sha256": "06a271b7bcbff4c5c22fa6ed31b93ac97a49b40e387291358a56cb275fc00679"
+      "sha256": "06088bdaff4f55f2d73ba902a4e7ce8e3582ee4dc99977e5ce8683d1c333c663"
     },
     "remora/flow/context.py": {
       "concepts": [],
@@ -23971,7 +23971,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "22a3546b1f40fb568eefd09a53a157a5832bffbd01b398a08388a0ebd17e531a",
+  "register_sha256": "f5fc4d94350a93efa923994876846d38a7941eea13e24ecba718f6b88fa663fd",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

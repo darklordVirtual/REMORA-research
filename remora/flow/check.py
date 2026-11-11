@@ -100,11 +100,13 @@ def memoised_acl(lookup: Callable[[str], Any] | None) -> Callable[[str], Any] | 
         if resource not in seen:
             try:
                 answer = lookup(resource)
-                # A one-shot iterable would be empty on the second read.
-                if not isinstance(answer, (list, tuple, set, frozenset)) and answer is not PUBLIC:
-                    seen[resource] = (True, answer)
+                if answer is PUBLIC:
+                    seen[resource] = (True, PUBLIC)
+                elif isinstance(answer, (list, tuple, set, frozenset)):
+                    # Materialise, so a one-shot iterable is not empty on reread.
+                    seen[resource] = (True, tuple(answer))
                 else:
-                    seen[resource] = (True, answer if answer is PUBLIC else tuple(answer))
+                    seen[resource] = (True, answer)
             except Exception as exc:  # noqa: BLE001 - replayed to every asker
                 seen[resource] = (False, exc)
         ok, value = seen[resource]
