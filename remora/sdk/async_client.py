@@ -41,6 +41,7 @@ from remora.sdk.models import (
     PendingExecution,
     ProposalView,
     RejectionResult,
+    ReviewPacketView,
     ToolCall,
     UnresolvedOperation,
 )
@@ -191,6 +192,13 @@ class AsyncRemoraClient:
             "GET", f"/v1/execution/proposals/{proposal_id}/lifecycle",
         )
         return LifecycleTrail.from_payload(payload)
+
+    async def get_review_packet(self, proposal_id: str) -> ReviewPacketView:
+        """Async :meth:`RemoraClient.get_review_packet`."""
+        payload = await self._request(
+            "GET", f"/v1/execution/proposals/{proposal_id}/review-packet",
+        )
+        return ReviewPacketView.from_payload(payload)
 
     async def export_evidence(self, proposal_id: str) -> "dict[str, Any]":
         """Async :meth:`RemoraClient.export_evidence`; raw by design."""

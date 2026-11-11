@@ -81,6 +81,30 @@ def test_async_assess_sends_contract_request_and_parses_response() -> None:
     assert result.action.value == "accept"
 
 
+def test_async_get_review_packet() -> None:
+    seen: dict = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["method"] = request.method
+        seen["path"] = request.url.path
+        return httpx.Response(200, json={
+            "proposal_id": "p-7", "current_state": "REVIEW_PENDING",
+            "pending_human_decision": True, "decision": "escalate",
+            "reasons": ["intent_scope_refused"], "arguments_available": False,
+            "arguments_note": "joined by tool_call_hash",
+        })
+
+    async def run():
+        async with _client_for(handler) as client:
+            return await client.get_review_packet("p-7")
+
+    packet = asyncio.run(run())
+    assert seen["method"] == "GET"
+    assert seen["path"] == "/v1/execution/proposals/p-7/review-packet"
+    assert packet.pending_human_decision is True
+    assert packet.decision == "escalate"
+
+
 def test_async_error_mapping_matches_sync() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(403, json={"detail": "role may not approve"})

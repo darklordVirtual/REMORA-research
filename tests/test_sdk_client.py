@@ -202,6 +202,38 @@ def test_verify_audit_chain() -> None:
     assert verification.records_checked == 6
 
 
+def test_get_review_packet_parses_the_decision_basis() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/v1/execution/proposals/p-9/review-packet"
+        assert request.method == "GET"
+        return httpx.Response(200, json={
+            "proposal_id": "p-9",
+            "review_item_id": "r-9",
+            "tool_name": "adjust_setpoint",
+            "tool_call_hash": "abc123",
+            "decision": "verify",
+            "reasons": ["limit_dual_control_required"],
+            "pending_human_decision": True,
+            "current_state": "REVIEW_PENDING",
+            "intent": {"resolution_status": "resolved"},
+            "dual_control": {"reason": "limit_dual_control_required",
+                             "limits": ["pic-101-movement"], "approvals_required": 2},
+            "delegated_executor": None,
+            "arguments_available": False,
+            "arguments_note": "joined by tool_call_hash",
+        })
+
+    with _client_for(handler) as client:
+        packet = client.get_review_packet("p-9")
+
+    assert packet.proposal_id == "p-9"
+    assert packet.pending_human_decision is True
+    assert packet.reasons == ("limit_dual_control_required",)
+    assert packet.dual_control is not None
+    assert packet.dual_control["approvals_required"] == 2
+    assert packet.arguments_available is False
+
+
 @pytest.mark.parametrize("status,detail,exc_type", [
     (401, "missing bearer token", AuthenticationError),
     (403, "capability not permitted", AuthorizationError),
