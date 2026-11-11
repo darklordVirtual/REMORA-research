@@ -4,6 +4,34 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Pre-Federation red team: the 36-of-46 count reproduced and listed (2026-11-10)
+
+- NEGATIVE_RESULTS §76 had no artifact for its count. `scripts/reproduce_pre_federation_redteam.py` runs draft PR #744's probes on a worktree of `9a3d321` (36 red, 10 green of 46, as stated), the same probe bytes against today's code (8 red, none a regression) and the repository's probes (54, all pass). Result: `artifacts/assurance/pre-federation-redteam-2026-11-10/`.
+- §76 stays open: the attacks and repairs have one author and no external run exists. Test: `tests/test_redteam_76_reproduction.py`.
+
+### OT pilot: the plant journal names the credential that wrote, and the verifier can require the executor's (2026-11-10)
+
+- Two cases with a second holder of a write credential were untested (NEGATIVE_RESULTS §85). A dropped REMORA write followed by another writer's write of the same value ends as EFFECT_MISMATCH and the other write is listed as unattributed. A write by another writer that carries REMORA's dispatch reference was returned as EFFECT_VERIFIED.
+- `deploy/ot-pilot/plant_model.py` and `plant_service.py` journal `credential_id`, a digest of the credential presented. `effect_verifier.Verifier` takes `expected_writer_id` (`OT_EXECUTOR_WRITER_ID`); a plant write that names a dispatch and was made with another credential is the anomaly `plant_write_by_another_credential` and is never verified.
+- The pilot's compose file does not set it and the plant has one write token, so the limit stands there and is pinned by a test. Two holders of the same token are not told apart.
+
+### Execution chain: exfiltration refused with labels the route derives; every control refused too (2026-11-10)
+
+- `scripts/execution_chain_attack_eval.py` gains the arm `remora_flow_result_labels`: flow control on `/v1/execution` with the harness's label raise removed, so the server's labeller raises the context from each read's result. All 10 exfiltration attacks are refused and no secret reaches a sink; a counterfactual test shows the derived label decides.
+- All 4 benign controls are refused as well, against 2 under harness labels. The route has no resource ACL lookup and takes no source metadata, so a read's readers are static and a public record restricts the context like a secret one. NEGATIVE_RESULTS §87 records it and names what remains.
+- The 14 new rows are in `artifacts/posthoc/execution_chain_attack_eval_v1.json`; no existing row changed.
+
+### WS1 enforce on the OT pilot: what blocks it, recorded (2026-11-10)
+
+- NEGATIVE_RESULTS §105: `Ws1Gate` refuses enforce mode for the pilot's deployment, because four of the five flow-control work packages it requires are not done and the pilot declares no flow blocks. The prerequisite check accepts any non-empty string as evidence. Per-order intent binding, the other prerequisite, was built in #1194.
+- `docs/assurance/ws1_utility_test_plan_v1.md` said per-order intent binding was not started; corrected.
+- Tests: `tests/test_ot_pilot_ws1_enforce_blockers.py` pins each fact.
+
+### Custody: rule 4 probed with real OS users; the OT pilot does not run the guard (2026-11-10)
+
+- `scripts/probe_custody_isolation.py` starts a credential holder and an agent in one Linux container and one PID namespace. With one uid the agent reads the credential from `/proc/<pid>/environ` and `/proc/<pid>/mem`. With the holder under another uid and the `controlled_pilot` profile, every read is denied. A holder that declares `os_user` and runs as the agent uid or as root is refused by the guard. Result: `artifacts/assurance/custody-isolation-probe-2026-11-10/`.
+- NEGATIVE_RESULTS §104 records that the OT pilot's compose file sets no runtime profile, role or isolation, so the custody guard checks nothing there, and that tests K22 to K25 set the uid by monkeypatching.
+- Tests: `tests/test_custody_isolation_probe.py`.
 ### OT limits: the v4 terms and the PIC-101 tier in one policy, read off on spent data (2026-11-10)
 
 - No policy on file had both the v4 changes (valve travel 200 % per hour, moves of FIC-220 towards its safe value free) and the second tier of #1196. `artifacts/ot-pilot/limits-v4-tier/` holds that policy, signed with a key the pilot does not trust, so it is not deployable as it is.

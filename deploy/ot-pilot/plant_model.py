@@ -170,20 +170,26 @@ class Plant:
     # ── writes ────────────────────────────────────────────────────────────
 
     def apply(self, tool: str, args: Mapping[str, Any], *, credential: str,
-              dispatch_ref: str = "", source: str = "") -> dict[str, Any]:
+              dispatch_ref: str = "", source: str = "",
+              credential_id: str = "") -> dict[str, Any]:
         """Apply one tool call and journal it. Raises ``PlantRefused``.
 
         ``credential`` is who the transport authenticated (``none`` and
         ``invalid`` are journaled too); only an authorised writer reaches the
         state. ``dispatch_ref`` is the executor's reference to the dispatch,
         recorded for attribution and never trusted for authority.
+        ``credential_id`` says which credential of that role it was, as the
+        transport names it (a digest, never the credential): two holders of a
+        write credential are told apart by it. Over HTTP the plant service
+        derives it from the token presented and the caller cannot choose it.
+        An in-process caller passes its own, as it passes ``credential``.
         """
         with self._lock:
             entry: dict[str, Any] = {
                 "seq": len(self.journal) + 1, "at": self._clock(), "tool": tool,
                 "arguments": json.loads(json.dumps(dict(args), default=str)),
                 "credential": credential, "dispatch_ref": str(dispatch_ref or ""),
-                "source": source,
+                "source": source, "credential_id": str(credential_id or ""),
             }
             changed = False
             try:

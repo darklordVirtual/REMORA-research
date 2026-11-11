@@ -42,7 +42,7 @@ __all__ = ["WRITE_TOOLS", "reconcile"]
 WRITE_TOOLS = frozenset({"adjust_setpoint", "set_valve_position", "acknowledge_alarm",
                          "create_work_order", "close_work_order"})
 
-_FIELDS = ("seq", "tool", "arguments", "credential", "dispatch_ref", "source")
+_FIELDS = ("seq", "tool", "arguments", "credential", "credential_id", "dispatch_ref", "source")
 
 
 def reconcile(journal: Iterable[Mapping[str, Any]],
