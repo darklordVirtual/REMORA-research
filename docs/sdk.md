@@ -92,6 +92,13 @@ if plan and plan.type == "human_approval":
     print(plan.required_role, plan.requirements, plan.expires_at)
 ```
 
+`get_review_packet(proposal_id)` returns the basis a human approver
+reads before `approve` or `reject`: the decision and its reasons, the
+intent resolution and scope, and the `dual_control` block when a
+cumulative limit's second tier was passed. REMORA does not retain the raw
+tool arguments, so the packet carries `tool_call_hash` and the deployment
+joins the request body from it; `arguments_available` is always False.
+
 `reject(review_item_id, reason=...)` records a reviewer's refusal
 terminally; the reason is mandatory, because an unexplained refusal
 cannot be reviewed afterwards, and a rejected item can never be approved

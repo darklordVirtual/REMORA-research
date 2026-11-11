@@ -49,6 +49,7 @@ __all__ = [
     "ProposalView",
     "RejectionResult",
     "ResolutionPlan",
+    "ReviewPacketView",
     "SemanticAssessment",
     "ToolCall",
     "ToolSpecIdentity",
@@ -554,6 +555,58 @@ class LifecycleTrail:
             dispatch=_frozen(payload.get("dispatch")),
             raw=_frozen(payload) or MappingProxyType({}),
         )
+
+
+@dataclass(frozen=True)
+class ReviewPacketView:
+    """The basis a human approver reads before resolving a proposal.
+
+    REMORA governs by labels and hashes and does not retain the raw tool
+    arguments: this packet carries ``tool_call_hash``, never the arguments,
+    and :attr:`arguments_available` is always False. The human-readable
+    request body is joined by the deployment from ``tool_call_hash`` (see the
+    OT pilot's approver console). ``dual_control`` is present only when the
+    write passed a cumulative limit's second tier, and then names the limits
+    and how many distinct approvers are required. ``pending_human_decision``
+    is True only while a human decision is still outstanding.
+    """
+
+    proposal_id: str
+    current_state: str
+    pending_human_decision: bool
+    decision: str | None = None
+    reasons: tuple[str, ...] = ()
+    tool_name: str | None = None
+    tool_call_hash: str | None = None
+    review_item_id: str | None = None
+    #: intent resolution and scope as REMORA recorded them, passed through.
+    intent: Mapping[str, Any] = field(default_factory=dict)
+    #: ``{"reason", "limits", "approvals_required"}`` or None.
+    dual_control: Mapping[str, Any] | None = None
+    delegated_executor: str | None = None
+    arguments_available: bool = False
+    arguments_note: str = ""
+    raw: Mapping[str, Any] = field(default_factory=dict, repr=False)
+
+    @classmethod
+    def from_payload(cls, payload: Mapping[str, Any]) -> "ReviewPacketView":
+        return cls(
+            proposal_id=str(payload["proposal_id"]),
+            current_state=str(payload.get("current_state", "")),
+            pending_human_decision=bool(payload.get("pending_human_decision", False)),
+            decision=payload.get("decision"),
+            reasons=tuple(str(r) for r in payload.get("reasons", ())),
+            tool_name=payload.get("tool_name"),
+            tool_call_hash=payload.get("tool_call_hash"),
+            review_item_id=payload.get("review_item_id"),
+            intent=_frozen(payload.get("intent")) or MappingProxyType({}),
+            dual_control=_frozen(payload.get("dual_control")),
+            delegated_executor=payload.get("delegated_executor"),
+            arguments_available=bool(payload.get("arguments_available", False)),
+            arguments_note=str(payload.get("arguments_note", "")),
+            raw=_frozen(payload) or MappingProxyType({}),
+        )
+
 
 @dataclass(frozen=True)
 class AuditVerification:

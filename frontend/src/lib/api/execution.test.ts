@@ -10,7 +10,12 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { apiConfig, getGovernanceMetrics, getProposalLifecycle } from "./execution";
+import {
+  apiConfig,
+  getGovernanceMetrics,
+  getProposalLifecycle,
+  getReviewPacket,
+} from "./execution";
 
 const CONFIG = { baseUrl: "https://api.example", token: "tok" };
 
@@ -83,6 +88,29 @@ describe("explicit data-source states", () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("https://api.example/v1/execution/proposals/p%201/lifecycle");
     expect(init.headers.Authorization).toBe("Bearer tok");
+  });
+
+  it("review-packet reads carry the bearer and encode the id", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      Response.json({
+        proposal_id: "p 2",
+        review_item_id: "r1",
+        decision: "verify",
+        reasons: ["limit_dual_control_required"],
+        pending_human_decision: true,
+        current_state: "REVIEW_PENDING",
+        arguments_available: false,
+        arguments_note: "joined by tool_call_hash",
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const result = await getReviewPacket(CONFIG, "p 2");
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("https://api.example/v1/execution/proposals/p%202/review-packet");
+    expect(init.headers.Authorization).toBe("Bearer tok");
+    expect(result.state).toBe("LIVE");
+    expect(result.data?.arguments_available).toBe(false);
+    expect(result.data?.pending_human_decision).toBe(true);
   });
 
   it("the client never imports simulated data", () => {

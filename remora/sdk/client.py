@@ -50,6 +50,7 @@ from remora.sdk.models import (
     PendingExecution,
     ProposalView,
     RejectionResult,
+    ReviewPacketView,
     ToolCall,
     UnresolvedOperation,
 )
@@ -267,6 +268,20 @@ class RemoraClient:
             "GET", f"/v1/execution/proposals/{proposal_id}/lifecycle",
         )
         return LifecycleTrail.from_payload(payload)
+
+    def get_review_packet(self, proposal_id: str) -> ReviewPacketView:
+        """The basis a human approver reads before resolving a proposal.
+
+        The decision, its reasons, the intent resolution and scope, and the
+        ``dual_control`` block when a limit's second tier was passed. REMORA
+        does not retain the raw arguments, so the packet carries
+        ``tool_call_hash`` and the deployment joins the request body from it.
+        Needs the ``read`` capability.
+        """
+        payload = self._request(
+            "GET", f"/v1/execution/proposals/{proposal_id}/review-packet",
+        )
+        return ReviewPacketView.from_payload(payload)
 
     def export_evidence(self, proposal_id: str) -> "dict[str, Any]":
         """The evidence bundle: every recorded section plus a hashed manifest.

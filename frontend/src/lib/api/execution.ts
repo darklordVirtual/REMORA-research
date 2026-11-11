@@ -60,6 +60,34 @@ export interface ProposalLifecycle {
   effect: Record<string, unknown>;
 }
 
+/**
+ * The decision basis a human approver reads before resolving a proposal.
+ * REMORA governs by labels and hashes and does not retain the raw tool
+ * arguments, so `arguments_available` is always false and the request body is
+ * joined from the deployment by `tool_call_hash` (see the approver console).
+ */
+export interface ReviewPacket {
+  proposal_id: string;
+  review_item_id: string | null;
+  tool_name: string | null;
+  tool_call_hash: string | null;
+  decision: string | null;
+  reasons: string[];
+  pending_human_decision: boolean;
+  current_state: string;
+  intent: {
+    resolution_status: string | null;
+    scope_status: string | null;
+    scope_violations: string[];
+    authority_hash: string | null;
+    request_ref: Record<string, unknown> | null;
+  };
+  dual_control: { reason: string; limits: string[]; approvals_required: number } | null;
+  delegated_executor: string | null;
+  arguments_available: boolean;
+  arguments_note: string;
+}
+
 export interface GovernanceMetrics {
   execution_assess_total?: number;
   execution_decision_counts?: Record<string, number>;
@@ -137,5 +165,15 @@ export function getProposalLifecycle(
   return sourcedGet<ProposalLifecycle>(
     config,
     `/v1/execution/proposals/${encodeURIComponent(proposalId)}/lifecycle`,
+  );
+}
+
+export function getReviewPacket(
+  config: ApiConfig | null,
+  proposalId: string,
+): Promise<SourcedResult<ReviewPacket>> {
+  return sourcedGet<ReviewPacket>(
+    config,
+    `/v1/execution/proposals/${encodeURIComponent(proposalId)}/review-packet`,
   );
 }
