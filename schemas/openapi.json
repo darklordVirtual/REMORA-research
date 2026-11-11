@@ -4175,6 +4175,81 @@
         ]
       }
     },
+    "/v1/execution/proposals/{proposal_id}/review-packet": {
+      "get": {
+        "description": "The decision basis a human needs to resolve a proposal, as REMORA holds it.\n\nREMORA governs by labels and hashes. The observation, the audit chain and\nthe review item carry the call's ``tool_call_hash``, never its raw\narguments, so this packet cannot and does not invent the request body. It\nreturns what REMORA computed: the tool, the decision and its reasons, how\nthe intent resolved and whether it stayed in scope, and, when the write\npasses a cumulative limit's ``dual_control_above`` second tier, the\n``dual_control`` block naming the limits and how many distinct approvers\nare required.\n\n``arguments_available`` is always false. The human-readable request and\nthe work order's prior accepted writes are joined by the approver console\nfrom the deployment, keyed by ``tool_call_hash``; this keeps REMORA's\nargument-minimisation invariant intact while still giving the approver a\nsingle place to read why the call stopped. Tenant-scoped like\n:func:`get_proposal`: a proposal for another tenant is a 404.",
+        "operationId": "get_review_packet_v1_execution_proposals__proposal_id__review_packet_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "proposal_id",
+            "required": true,
+            "schema": {
+              "title": "Proposal Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Review Packet V1 Execution Proposals  Proposal Id  Review Packet Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "The basis a human approver reads before resolving a proposal."
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Missing or invalid bearer token."
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "Role lacks the required capability for this tenant."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            },
+            "description": "No such proposal for this tenant."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Review Packet",
+        "tags": [
+          "execution"
+        ]
+      }
+    },
     "/v1/execution/proposals/{proposal_id}/semantic-assessment": {
       "get": {
         "description": "The semantic shadow's reading of one proposal, for whoever resolves it.\n\nAt VERIFY that is a bounded machine lookup, which the reading tells what\nto check; at ESCALATE it is the human approver. Advisory only: nothing on\nthe approval, resolution or execution path reads it, and the response\nsays so. ``status`` is ``available`` with the reading, ``failed`` when\nthe provider could not answer, or the reason there is none:\n``not_enabled``, ``pending``, ``tenant_not_opted_in``,\n``request_not_resolved``, ``dropped`` or ``unknown``. Tenant-scoped like\nevery proposal read: another tenant's proposal is a 404.",

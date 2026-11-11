@@ -198,6 +198,7 @@ MEDIATION_NO_TOOL_RESULT = frozenset({
     # identities and hashes of executed dispatches, for the effect verifier
     ("GET", "/v1/execution/dispatches"),
     ("GET", "/v1/execution/proposals/{proposal_id}"),
+    ("GET", "/v1/execution/proposals/{proposal_id}/review-packet"),
     ("GET", "/v1/execution/proposals/{proposal_id}/semantic-assessment"),
     ("POST", "/v1/execution/proposals/{proposal_id}/effect"),
     ("POST", "/v1/execution/proposals/{proposal_id}/effect-receipt"),
@@ -4549,6 +4550,76 @@ def get_proposal(proposal_id: str, request: Request) -> dict[str, Any]:
         "event_count": len(events),
         "dispatch": dispatch,
         "effect": _effect_projection(events),
+    }
+
+
+@router.get("/proposals/{proposal_id}/review-packet", responses={
+    200: {"description": "The basis a human approver reads before resolving a proposal."},
+    **_AUTH_RESPONSES,
+    404: {"model": ErrorDetail, "description": "No such proposal for this tenant."},
+})
+def get_review_packet(proposal_id: str, request: Request) -> dict[str, Any]:
+    """The decision basis a human needs to resolve a proposal, as REMORA holds it.
+
+    REMORA governs by labels and hashes. The observation, the audit chain and
+    the review item carry the call's ``tool_call_hash``, never its raw
+    arguments, so this packet cannot and does not invent the request body. It
+    returns what REMORA computed: the tool, the decision and its reasons, how
+    the intent resolved and whether it stayed in scope, and, when the write
+    passes a cumulative limit's ``dual_control_above`` second tier, the
+    ``dual_control`` block naming the limits and how many distinct approvers
+    are required.
+
+    ``arguments_available`` is always false. The human-readable request and
+    the work order's prior accepted writes are joined by the approver console
+    from the deployment, keyed by ``tool_call_hash``; this keeps REMORA's
+    argument-minimisation invariant intact while still giving the approver a
+    single place to read why the call stopped. Tenant-scoped like
+    :func:`get_proposal`: a proposal for another tenant is a 404.
+    """
+    _note_proposal_id(proposal_id)
+    tenant, role, _principal = _auth(request)
+    from servers import api as api_mod
+
+    api_mod._require_tenant_capability(role, tenant, "read")
+    events = _proposal_events(tenant, proposal_id)
+    if not events:
+        raise HTTPException(status_code=404, detail="proposal not found")
+
+    assessed: dict[str, Any] = next(
+        (e["payload"] for e in events if e["event"] == "assessed"), {}
+    )
+    dispatch = _dispatch_projection(tenant, proposal_id)
+    state = _current_state(events, dispatch)
+    return {
+        "proposal_id": proposal_id,
+        "review_item_id": assessed.get("review_item_id"),
+        "tool_name": assessed.get("tool_name"),
+        "tool_call_hash": assessed.get("tool_call_hash"),
+        "decision": assessed.get("decision"),
+        "reasons": assessed.get("reasons", []),
+        # REVIEW_PENDING is the only lifecycle state in which a human decision
+        # is still outstanding; every other state has already resolved it.
+        "pending_human_decision": state == "REVIEW_PENDING",
+        "current_state": state,
+        "intent": {
+            "resolution_status": assessed.get("intent_resolution_status"),
+            "scope_status": assessed.get("intent_scope_status"),
+            "scope_violations": assessed.get("intent_scope_violations", []),
+            "authority_hash": assessed.get("intent_authority_hash"),
+            # The work-order reference descriptor REMORA resolved against, when
+            # the deployment declares one; None otherwise.
+            "request_ref": assessed.get("request_ref"),
+        },
+        # Present only when the write passed a limit's second tier; None means
+        # the item escalated for another reason and single approval resolves it.
+        "dual_control": assessed.get("dual_control"),
+        "delegated_executor": assessed.get("delegated_executor"),
+        "arguments_available": False,
+        "arguments_note": (
+            "REMORA does not retain raw tool arguments; the approver console "
+            "joins the request body from the deployment by tool_call_hash."
+        ),
     }
 
 
