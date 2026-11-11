@@ -1,7 +1,7 @@
 schema_version: remora-boundaries/v1
 
 provenance:
-  audited_revision: 49756e79f98387007405055604ee2031345573e8
+  audited_revision: dca4944eade108cd84c38f3b461e91e6ff1779fd
   implementation_sources:
     - remora/policy/decision_engine.py
     - remora/enforcement/lease.py
@@ -16,7 +16,7 @@ provenance:
       sha256: a0e42e0a2a50f0121007925294b4a5c3c3022ca3569573c2a2d32150635826a2
       role: workflow capability declarations
     - path: docs/assurance/capability_register_v1.yaml
-      sha256: 0b5ca5d775f7de871816a2c3c354c47a0a0f272d4125adcbed91c57753fcad75
+      sha256: f5cb108a4637b2dd5db182f41899cd1ba0565b63ca2014b23c9a17624551ad01
       role: implementation maturity and freshness source
     - path: artifacts/interop/index.json
       sha256: 17d821785c132bef88d2439ccc1d00682e309dbcc03fdea2815abe6865a6597d
