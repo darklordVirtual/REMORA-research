@@ -17827,9 +17827,9 @@
     },
     "scripts/test_inventory.py": {
       "concepts": [],
-      "git_blob": "b6a63d518852d15b61f7a8eb7e2c99e6a09d6f1b",
+      "git_blob": "72c332d3fa4fbde8822f56a16c8fe82648735ce4",
       "mode": "100644",
-      "sha256": "1bdfdc541a7bcba606071500c46df3642db01052f8a926c1cc9cfec44ad9129c"
+      "sha256": "5b0c09413583928413d290028ee0dd59dc094d3c7b2ce2fe4b71a6b5df5bd3a8"
     },
     "scripts/validate_corpus.py": {
       "concepts": [],
@@ -24211,7 +24211,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "50104fdce87a48138dfde57419d24ee9f1be165e830c4f7515d125782b37b77a",
+  "register_sha256": "3bcc06469d33c9e6232e1b60e655589ec9bbb5fd42aa909ea289742d8b59c0b6",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
