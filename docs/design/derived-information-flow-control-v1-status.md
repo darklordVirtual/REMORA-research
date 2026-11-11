@@ -129,7 +129,9 @@ in the schema file and here:
   store is per process (F2), so a handle does not cross the custody
   split. The commit and the dispatch-time check pass no resource ACL or
   source metadata: a `resource_acl` reader rule yields no readers and a
-  `resource_of` sink is unresolved, and both refuse.
+  `resource_of` sink is unresolved, and both refuse. (2026-11-10: both now
+  pass the resource ACL of `REMORA_FLOW_RESOURCE_ACL_MODULE` when a
+  deployment sets it. Source metadata is still not passed.)
 - IFC-03a (`52cbcd35`, #913): `schemas/tool_spec_v4.yaml` adds three fields
   beyond the SDD's §5.1 excerpt (`provider`, argument kinds and
   `disclosure`), because lint rules the SDD assigns to the linter cannot be
@@ -198,4 +200,14 @@ in the schema file and here:
   - **No resource ACL registry.** The server passes no resource ACL to the
     check, so every `resource_of` recipient is unresolved and every write
     in a flow context is F4. The attack evaluation measures that cost
-    (NEGATIVE_RESULTS.md §87).
+    (NEGATIVE_RESULTS.md §87). Since 2026-11-10 a deployment can name one in
+    `REMORA_FLOW_RESOURCE_ACL_MODULE`. The server passes it to the check at
+    assess and dispatch, to the approved recipients and to the result
+    labeller. With it, a public write runs and the secret is still refused
+    (§87, arm `remora_flow_resource_acl`). Unset, the behaviour is as above.
+    No shipped deployment sets it, and the registry's answers are the
+    deployment's own statement. One deviation from the SDD follows. The SDD
+    has PUBLIC declared per field in the signed ToolSpec, with a
+    justification. A `resource_acl` rule with a registry can now label a
+    result PUBLIC on the registry's word, and the shipped file registry is
+    not signed.

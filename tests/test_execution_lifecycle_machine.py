@@ -1296,8 +1296,8 @@ def test_r3_surface_ast_mutation_sweep() -> None:
                     unexpected_survivors.append(mid)
 
     assert compile_errors == [], f"compile/import errors in AST mutants: {compile_errors}"
-    assert total_mutants == 131, f"expected 131 scoped AST mutants across 9 functions, got {total_mutants}"
-    assert len(semantic_kills) == 131
+    assert total_mutants == 132, f"expected 132 scoped AST mutants across 9 functions, got {total_mutants}"
+    assert len(semantic_kills) == 132
     assert unexpected_survivors == [], (
         f"unkilled non-equivalent R3 AST mutants ({len(unexpected_survivors)}/{total_mutants}): "
         f"{unexpected_survivors}"

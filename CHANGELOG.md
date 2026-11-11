@@ -4,6 +4,14 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Flow control: a resource ACL registry on the execution route (2026-11-10)
+
+- `REMORA_FLOW_RESOURCE_ACL_MODULE` names a module whose `resource_acl(tenant, resource)` returns the principals that may read a resource, or `remora.flow.label.PUBLIC`. `/v1/execution` passes it to the flow check at assess and dispatch, to the approved recipients and to the result labeller. Unset, nothing changes. Flow control itself is still opt-in.
+- `remora/flow/acl_registry.py` is such a module, read from the JSON file in `REMORA_FLOW_RESOURCE_ACL_FILE`: exact resources and subtrees, the most specific entry decides, strict parsing, a digest of the file. A restricted entry inside a PUBLIC subtree is refused at load, because an alias of it would be answered PUBLIC. The execution API validates a registry module when it binds it, so a file that cannot load is an error and not a registry that refuses everything.
+- `remora/flow/check.py`: `resource_readers` is the one lookup the flow check and the labeller use, and it fails closed. A resource the registry names no reader for, a lookup that raises and an answer that is not PUBLIC or a list of principals are refused. **Behaviour change for callers of the library with their own `resource_acl`:** an empty answer was read as "no recipient" and let any data through; it is now an unresolved recipient. An answer must be PUBLIC or a list, tuple or set of canonical principals: a generator, a mapping or a list with one entry that is not a principal is refused where the labeller used to drop the bad entry. A lookup that raises is caught and refused where it used to propagate. `memoised_acl` gives one dispatch one answer per resource. A resource whose ACL is PUBLIC has the recipient `PUBLIC_RECIPIENT`, which only PUBLIC data flows to, and a read of it is labelled PUBLIC.
+- Measured in `scripts/execution_chain_attack_eval.py`, arm `remora_flow_resource_acl`, with the shipped registry bound by name: 10 of 10 exfiltration attacks refused and 3 of 4 benign controls run, against 0 of 4 with static readers and 2 of 4 with harness labels (NEGATIVE_RESULTS §87). No shipped deployment sets a registry.
+- Tests: `tests/flow/test_acl_registry.py`, `tests/flow/test_flow_resource_acl_route.py`, `tests/flow/test_flow_check.py`, `tests/flow/test_labeler_handles.py`, `tests/test_execution_chain_attack_eval.py`.
+
 ### Pre-Federation red team: the 36-of-46 count reproduced and listed (2026-11-10)
 
 - NEGATIVE_RESULTS §76 had no artifact for its count. `scripts/reproduce_pre_federation_redteam.py` runs draft PR #744's probes on a worktree of `9a3d321` (36 red, 10 green of 46, as stated), the same probe bytes against today's code (8 red, none a regression) and the repository's probes (54, all pass). Result: `artifacts/assurance/pre-federation-redteam-2026-11-10/`.
