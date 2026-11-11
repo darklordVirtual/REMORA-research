@@ -748,3 +748,60 @@ def test_a_container_handle_carries_its_own_label_too():
         (h,) = _label(raw=raw, flow=_flow({"path": "$", **narrow},
                                           {"path": child, **public})).handles
         assert h.label == Label({USER}, Integrity.UNTRUSTED)
+
+
+def test_a_read_of_a_world_readable_resource_is_labelled_public():
+    """resource ACL registry, 2026-11-10: the ACL may answer PUBLIC, and the
+    result is then PUBLIC; an ACL with no reader still gives no readers."""
+    from remora.flow.label import PUBLIC
+
+    flow = parse_flow({"provider": "tcb", "arguments": {"path": {"kind": "resource"}},
+                       "sources": {"fields": [{"path": "$", "readers": {"resource_acl": "path"},
+                                               "return_mode": "BY_HANDLE"}]},
+                       "sink": {"recipients": "none"}})
+    labeler = FlowLabeler(resource_acl=lambda r: PUBLIC if r == "res://records/pub-1" else [])
+    (public,) = labeler.label_result(flow, CTX, resolved_args={"path": "res://records/pub-1"},
+                                     arg_labels={"path": BOTTOM}, raw_result="v").handles
+    assert public.label.readers is PUBLIC
+    (closed,) = labeler.label_result(flow, CTX, resolved_args={"path": "res://records/x"},
+                                     arg_labels={"path": BOTTOM}, raw_result="v").handles
+    assert closed.label.readers == frozenset()
+
+
+@pytest.mark.parametrize("answer", ["raise", None, 7, "user://acme/alice", ["not a principal"]])
+def test_a_registry_fault_labels_the_result_with_no_reader(answer):
+    """Fail closed: a registry that raises or answers with something that is
+    not a list of principals gives a label nobody is a reader of, never PUBLIC."""
+    flow = parse_flow({"provider": "tcb", "arguments": {"path": {"kind": "resource"}},
+                       "sources": {"fields": [{"path": "$", "readers": {"resource_acl": "path"},
+                                               "return_mode": "BY_HANDLE"}]},
+                       "sink": {"recipients": "none"}})
+
+    def acl(resource):
+        if answer == "raise":
+            raise RuntimeError("registry down")
+        return answer
+
+    (h,) = FlowLabeler(resource_acl=acl).label_result(
+        flow, CTX, resolved_args={"path": "res://records/pub-1"},
+        arg_labels={"path": BOTTOM}, raw_result="v").handles
+    assert h.label.readers == frozenset()
+
+
+def test_the_labeller_asks_the_registry_about_the_canonical_resource():
+    flow = parse_flow({"provider": "tcb", "arguments": {"path": {"kind": "resource"}},
+                       "sources": {"fields": [{"path": "$", "readers": {"resource_acl": "path"},
+                                               "return_mode": "BY_HANDLE"}]},
+                       "sink": {"recipients": "none"}})
+    asked = []
+
+    def acl(resource):
+        asked.append(resource)
+        return ["user://acme/alice"]
+
+    labeler = FlowLabeler(resource_acl=acl)
+    labeler.label_result(flow, CTX, resolved_args={"path": "RES://Records/pub-1/"},
+                         arg_labels={"path": BOTTOM}, raw_result="v")
+    (h,) = labeler.label_result(flow, CTX, resolved_args={"path": "not a resource"},
+                                arg_labels={"path": BOTTOM}, raw_result="v").handles
+    assert set(asked) == {"res://records/pub-1"} and h.label.readers == frozenset()

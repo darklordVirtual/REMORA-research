@@ -44,10 +44,21 @@ from typing import Any, Final
 from urllib.parse import urlsplit
 
 from remora.capabilities.resource import ResourceRefused, canonical_resource
-from remora.flow.label import Integrity, Label, canonical_bytes, flows_to, join_all
+from remora.flow.label import PUBLIC, Integrity, Label, canonical_bytes, flows_to, join_all
 from remora.flow.spec import FlowSpec
 
-__all__ = ["FlowVerdict", "flow_check", "recipients"]
+__all__ = ["PUBLIC_RECIPIENT", "FlowVerdict", "flow_check", "memoised_acl", "recipients",
+           "resource_readers"]
+
+#: The recipient of a call whose target a resource ACL resolver reports as
+#: world-readable (it answers :data:`remora.flow.label.PUBLIC`). It is not a
+#: canonical resource, so :func:`remora.flow.label.flows_to` admits only
+#: PUBLIC data to it: no reader set, however written, contains it. It is
+#: not a subtree pattern either (it does not end in ``/*``), so a set that
+#: holds it never matches a resource by prefix. A caller that passes it in
+#: ``declassified`` lifts the violation, as for any recipient; the execution
+#: API passes no ``declassified`` set.
+PUBLIC_RECIPIENT: Final = "public:*"
 
 _IBAN: Final = re.compile(r"[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}")
 _DIGEST_DOMAIN: Final = b"REMORA/FLOW-VERDICT/v1\x00"
@@ -69,6 +80,68 @@ class FlowVerdict:
     @property
     def clean(self) -> bool:
         return not self.conf_viol and not self.int_viol and not self.ctrl_viol
+
+
+def memoised_acl(lookup: Callable[[str], Any] | None) -> Callable[[str], Any] | None:
+    """*lookup* answering each resource once, the same way every time.
+
+    One dispatch asks who may read a resource up to three times: for the
+    check, for the recipients it approves, and for the label of the result.
+    A registry backed by a live system can change between those questions,
+    and the approved recipients would then be a set the check never judged.
+    Wrapped, the first answer (or the first failure) is the answer for as
+    long as the wrapper lives. A caller makes one per dispatch.
+    """
+    if lookup is None:
+        return None
+    seen: dict[str, tuple[bool, Any]] = {}
+
+    def once(resource: str) -> Any:
+        if resource not in seen:
+            try:
+                answer = lookup(resource)
+                if answer is PUBLIC:
+                    seen[resource] = (True, PUBLIC)
+                elif isinstance(answer, (list, tuple, set, frozenset)):
+                    # Materialise, so a one-shot iterable is not empty on reread.
+                    seen[resource] = (True, tuple(answer))
+                else:
+                    seen[resource] = (True, answer)
+            except Exception as exc:  # noqa: BLE001 - replayed to every asker
+                seen[resource] = (False, exc)
+        ok, value = seen[resource]
+        if not ok:
+            raise value
+        return value
+
+    return once
+
+
+def resource_readers(resource_acl: Callable[[str], Any], value: Any) -> Any:
+    """Who may read the resource *value* names, from a deployment's ACL lookup.
+
+    Returns :data:`~remora.flow.label.PUBLIC` or a non-empty frozenset of
+    canonical principals. Everything else is :class:`ResourceRefused`, so
+    both callers fail closed: a value that is not a canonical resource, a
+    lookup that raises, an answer that is not PUBLIC or a list, tuple or set
+    of principals, an entry that is not a canonical principal, and an answer
+    that names no reader. The last one matters most. A registry asked about a
+    resource it does not know answers with nothing, and "no reader" must not
+    be read as "nobody receives this".
+    """
+    resource = canonical_resource(value)
+    try:
+        answer = resource_acl(resource)
+    except Exception as exc:  # noqa: BLE001 - any registry fault is a refusal
+        raise ResourceRefused(f"resource ACL lookup failed: {type(exc).__name__}") from exc
+    if answer is PUBLIC:
+        return PUBLIC
+    if not isinstance(answer, (list, tuple, set, frozenset)):
+        raise ResourceRefused("a resource ACL answers PUBLIC or a list of principals")
+    readers = frozenset(canonical_resource(p) for p in answer)
+    if not readers:
+        raise ResourceRefused("the resource ACL names no reader for this resource")
+    return readers
 
 
 def _values(value: Any) -> list[Any]:
@@ -108,7 +181,7 @@ def _iban(value: Any) -> str:
 
 
 def recipients(flow: FlowSpec, resolved_args: Mapping[str, Any], *,
-               resource_acl: Callable[[str], Iterable[str]] | None = None,
+               resource_acl: Callable[[str], Any] | None = None,
                ) -> tuple[frozenset[str], tuple[str, ...]]:
     """``(recipients, unresolved arguments)`` for one resolved call."""
     rule = flow.sink.recipients
@@ -137,7 +210,8 @@ def recipients(flow: FlowSpec, resolved_args: Mapping[str, Any], *,
         def acl(value: Any) -> list[str]:
             if resource_acl is None:
                 raise ResourceRefused("no resource ACL resolver")
-            return [canonical_resource(p) for p in resource_acl(canonical_resource(value))]
+            readers = resource_readers(resource_acl, value)
+            return [PUBLIC_RECIPIENT] if readers is PUBLIC else sorted(readers)
         add(str(rule.argument), acl)
     elif rule.kind == "static":
         found.update(rule.static)
@@ -154,7 +228,7 @@ def recipients(flow: FlowSpec, resolved_args: Mapping[str, Any], *,
 
 def flow_check(flow: FlowSpec, *, context_label: Label, value_labels: Mapping[str, Label],
                resolved_args: Mapping[str, Any], epoch: int,
-               resource_acl: Callable[[str], Iterable[str]] | None = None,
+               resource_acl: Callable[[str], Any] | None = None,
                declassified: frozenset[str] = frozenset(),
                integrity_granted: frozenset[str] = frozenset(),
                control_granted: bool = False,
