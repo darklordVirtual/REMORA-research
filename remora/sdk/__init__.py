@@ -51,6 +51,13 @@ from remora.sdk.effects import (
     content_digest,
     verify_effect,
 )
+from remora.sdk.gate import (
+    GateDecision,
+    GateVerdict,
+    evaluate_policy,
+    verdict_for_action,
+)
+from remora.policy.observation import PolicyObservation
 from remora.sdk.models import (
     ApprovalResult,
     AssessmentResult,
@@ -90,12 +97,15 @@ __all__ = [
     "EffectStatus",
     "EffectVerificationView",
     "ExecutionResult",
+    "GateDecision",
+    "GateVerdict",
     "InvalidRequestError",
     "LifecycleTrail",
     "LimitCharge",
     "LimitResolution",
     "NotFoundError",
     "PendingExecution",
+    "PolicyObservation",
     "PostconditionSpec",
     "ProposalLineageView",
     "ProposalView",
@@ -115,6 +125,8 @@ __all__ = [
     "UnresolvedOperation",
     "build_postcondition",
     "content_digest",
+    "evaluate_policy",
+    "verdict_for_action",
     "verify_effect",
 ]
 

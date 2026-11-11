@@ -138,6 +138,36 @@ not impossible: a party who rewrites bundle *and* manifest produces a
 self-consistent forgery, which is why the audit chain's own verification
 travels inside the bundle rather than being replaced by it.
 
+## Deciding in-process (embedding REMORA)
+
+A host that drives REMORA in one process (a simulator, a benchmark, a
+shadow comparison) can read the gate's verdict without a server:
+
+```python
+from remora.sdk import PolicyObservation, evaluate_policy, GateVerdict
+
+decision = evaluate_policy(PolicyObservation.minimal(
+    "Raise chilled water supply setpoint by 0.5 C",
+    risk_tier="medium", domain="ot"))
+if decision.verdict is GateVerdict.ALLOW:
+    ...
+```
+
+`evaluate_policy` is the policy decision point as a **pure function** of the
+observation: the engine reads no wall clock and no random source, so the same
+observation always yields the same `GateDecision`. That is what lets an
+embedding host be reproducible. The four-way `GateVerdict` is
+ALLOW / VERIFY / ABSTAIN from the decision, plus DENY, which a host maps from a
+governed refusal with no approvable path (`GateDecision.deny(...)`).
+
+This is the decision **only**, not an authorization grant. A real write still
+goes through the governed path above (assess, a signed single-use token,
+execute, effect verification), where one-time consumption, cumulative limits,
+the custody split and the audit chain apply. Embedding the decision does not
+move authority out of that path. Build the observation from premises you have
+verified yourself; a field the agent merely asserts is not evidence, and an
+ungrounded critical action is held for a human or abstained, never allowed.
+
 ## Verifying that it actually happened
 
 Everything above governs *authorization*: what may run, bound to an exact
