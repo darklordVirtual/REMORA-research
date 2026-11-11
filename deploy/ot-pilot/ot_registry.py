@@ -97,7 +97,8 @@ def _request(method: str, path: str, body: dict[str, Any] | None = None) -> Any:
 def _write(tool: str, a: dict[str, Any]) -> dict[str, Any]:
     if _LOCAL is not None:
         result = _LOCAL.apply(tool, dict(a), credential="writer",
-                              dispatch_ref=_dispatch_ref(), source="in-process")
+                              dispatch_ref=_dispatch_ref(), source="in-process",
+                              credential_id="in-process")
     else:
         result = _request("POST", f"/tools/{tool}",
                           {"arguments": dict(a), "dispatch_ref": _dispatch_ref()})

@@ -37,6 +37,12 @@ Every case is run against the real code, not a model of it:
   server's spec lookup without being signed into the bundle, because FL-09
   requires MEDIATED effects (IFC-12) that this deployment does not run. The
   server has no resource ACL registry, so a write's recipients are unresolved.
+* ``remora_flow_result_labels`` (added 2026-11-10): ``remora_flow_enforced``
+  without the harness raising labels. ``read_record`` gets a ``flow`` block
+  whose result has static readers, and the server's own labeller
+  (``commit_labeled_result`` on ``/v1/execution``) raises the context after
+  each read. The route has no resource ACL registry and takes no source
+  metadata, so the readers cannot depend on the record.
 * ``library_advisory``: ``remora.assess.assess_tool_call``, the advisory
   library path, with the consumer running the tool when ``should_execute``
   is true. Measured at master before the PRF-040 fix; re-run with
@@ -600,7 +606,25 @@ MODEL = "ext://api.provider.example"
 BOB = "email://corp.example/bob"
 
 
-def _flow_specs() -> dict[str, Any]:
+def _flow_specs(result_labels: bool = False) -> dict[str, Any]:
+    from remora.flow.spec import parse_flow
+
+    specs = _sink_flow_specs()
+    if result_labels:
+        # The read declares who may read what it returns, so the server's own
+        # labeller (commit_labeled_result) raises the context after the call.
+        # The readers are static: the route has no resource ACL registry and
+        # takes no source metadata, so it cannot tell one record from another.
+        specs["read_record"] = parse_flow({
+            "provider": "tcb", "arguments": {"record_id": {"kind": "text"}},
+            "sources": {"default_integrity": "TRUSTED",
+                        "fields": [{"path": "$", "readers": {"static": [USER, MODEL]},
+                                    "return_mode": "BY_VALUE"}]},
+            "sink": {"recipients": "none"}})
+    return specs
+
+
+def _sink_flow_specs() -> dict[str, Any]:
     from remora.flow.spec import parse_flow
 
     return {
@@ -642,9 +666,11 @@ def _record_acl(resource: str) -> list[str]:
 
 
 FLOW_TASK = "task-flow"
+#: The enforced arm with labels derived by the route from each read's result.
+RESULT_LABELS_ARM = "remora_flow_result_labels"
 
 
-def enable_flow_control(world: World) -> str:
+def enable_flow_control(world: World, *, result_labels: bool = False) -> str:
     """Turn on REMORA_FLOW_CONTROL in ``world`` and mint the agent's context."""
     policy = world.workdir / "processing.json"
     policy.write_text(json.dumps({TENANT: {"default": [MODEL]}}), encoding="utf-8")
@@ -652,7 +678,7 @@ def enable_flow_control(world: World) -> str:
     world.mp.setenv("REMORA_FLOW_PROCESSING_POLICY", str(policy))
     world.mp.setattr(world.exec, "_FLOW_CONTEXTS", None)
     world.mp.setattr(world.exec, "_FLOW_HANDLES", None)
-    specs = _flow_specs()
+    specs = _flow_specs(result_labels)
     world.mp.setattr(world.exec, "_flow_spec", lambda tool: specs.get(tool))
     minted = world.post("/v1/contexts", {"user_principal": USER, "model_principal": MODEL})
     if minted.status != 200:
@@ -1248,7 +1274,8 @@ def session(steps: list[tuple[dict[str, Any], str]], *, untrusted_context: str |
         context = BOTTOM
         gateway = PolicyOnlyGateway(world)
         *setup, (sink, route) = steps
-        flow_context = enable_flow_control(world) if arm == "remora_flow_enforced" else None
+        flow_context = (enable_flow_control(world, result_labels=arm == RESULT_LABELS_ARM)
+                        if arm in ("remora_flow_enforced", RESULT_LABELS_ARM) else None)
         if flow_context is not None:
             task = {"context_id": flow_context, "task_id": FLOW_TASK}
             setup = [({**call, **task}, step_route) for call, step_route in setup]
@@ -1266,7 +1293,7 @@ def session(steps: list[tuple[dict[str, Any], str]], *, untrusted_context: str |
                     present_remora(world, grant, call)
             if call["tool_name"] == "read_record":
                 context = join(context, _record_label(call["arguments"]["record_id"]))
-                if flow_context is not None:
+                if flow_context is not None and arm != RESULT_LABELS_ARM:
                     raise_after_read(world, flow_context, call["arguments"]["record_id"])
         if arm == "library_advisory":
             return _library_consumer(sink["tool_name"], sink["arguments"],
@@ -1290,7 +1317,7 @@ def session(steps: list[tuple[dict[str, Any], str]], *, untrusted_context: str |
 
 
 EXFIL_ARMS = ("remora", "policy_only", "remora_flow", "remora_flow_enforced",
-              "library_advisory")
+              RESULT_LABELS_ARM, "library_advisory")
 LIB_READ_LABELS = {"risk_tier": "low", "action_type": "read", "trust_score": 0.95,
                    "phase": "ordered", "target_environment": "staging"}
 B64 = base64.urlsafe_b64encode(SECRET.encode()).decode()
@@ -1336,7 +1363,7 @@ def _read_exfil() -> list[Case]:
 
 def _composed() -> list[Case]:
     cls = "composed_exfiltration"
-    arms = ("remora", "policy_only", "remora_flow", "remora_flow_enforced")
+    arms = ("remora", "policy_only", "remora_flow", "remora_flow_enforced", RESULT_LABELS_ARM)
 
     def case(variant: str, control: bool, description: str, sink: dict[str, Any],
              route: str, first: dict[str, Any] = READ_SECRET) -> Case:
@@ -1386,6 +1413,9 @@ ARM_LABELS = {
     "remora_flow_enforced": ("REMORA with REMORA_FLOW_CONTROL=1: the decision reads the flow "
                              "verdict (IFC-05b); labels raised and flow blocks supplied by "
                              "the harness"),
+    RESULT_LABELS_ARM: ("remora_flow_enforced without the harness raising labels: read_record "
+                        "declares static readers and the server's labeller raises the context "
+                        "from the result; added 2026-11-10"),
     "library_advisory": LIBRARY_LABEL,
 }
 

@@ -232,3 +232,173 @@ def test_a_negative_cursor_is_read_as_zero(stack):
     client, _, _ = stack
     body = client.get("/v1/execution/dispatches?after_sequence=-5").json()
     assert body["next_after_sequence"] >= 0
+
+
+# ── a writer that is not REMORA's executor (NEGATIVE_RESULTS §85, 2026-11-10) ──
+
+OTHER_WRITER = "o" * 40
+
+
+def _post_to_plant(verifier, token, tool, arguments, dispatch_ref=""):
+    """A write straight to the plant service with *token*, as another system would make it."""
+    import effect_verifier
+
+    return effect_verifier.Http(verifier.plant.base, token).call(
+        "POST", f"/tools/{tool}", {"arguments": arguments, "dispatch_ref": dispatch_ref})
+
+
+@pytest.fixture()
+def two_writers(stack):
+    """The stack, with a second writer credential at the plant and a verifier
+    that knows which credential is the executor's."""
+    import plant_service
+
+    client, registry, verifier = stack
+    server = plant_service.build_server(
+        "127.0.0.1", 0, registry._LOCAL,
+        {"w" * 40: "writer", OTHER_WRITER: "writer", READ: "reader"})
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    verifier.plant.base = f"http://127.0.0.1:{server.server_address[1]}"
+    yield client, registry, verifier
+    server.shutdown()
+
+
+def test_a_dropped_write_is_not_verified_by_another_writers_write_of_the_same_value(two_writers):
+    """The other writer does not name REMORA's dispatch. Revisions already
+    separate the two: REMORA's write changed nothing, and the report lists
+    the plant write no dispatch accounts for."""
+    client, registry, verifier = two_writers
+    registry._LOCAL.faults["valve:V-12"] = ("drop", None)
+    dropped = _write(client, "set_valve_position", "WO-1204", valve="V-12", position_pct=30)
+    registry._LOCAL.faults.pop("valve:V-12")
+    status, _ = _post_to_plant(verifier, OTHER_WRITER, "set_valve_position",
+                               {"valve": "V-12", "position_pct": 30})
+    assert status == 200
+    rec = verifier.run_once()
+    effect = _effect(client, dropped)
+    assert (effect["status"], effect["reason_code"]) == (
+        "EFFECT_MISMATCH", "postcondition_effect_absent")
+    (unattributed,) = rec["unattributed_writes"]
+    assert unattributed["tool"] == "set_valve_position"
+
+
+def test_the_journal_records_which_credential_wrote_without_recording_the_credential(two_writers):
+    import plant_service
+
+    client, registry, verifier = two_writers
+    _write(client, "set_valve_position", "WO-1204", valve="V-12", position_pct=30)
+    _post_to_plant(verifier, OTHER_WRITER, "set_valve_position",
+                   {"valve": "V-12", "position_pct": 35})
+    mine, theirs = registry._LOCAL.journal[-2:]
+    assert mine["credential_id"] == "in-process"
+    assert theirs["credential_id"] == plant_service.credential_id(OTHER_WRITER)
+    assert theirs["credential"] == "writer" and OTHER_WRITER not in json.dumps(theirs)
+    assert plant_service.credential_id(OTHER_WRITER) != plant_service.credential_id("w" * 40)
+
+
+def test_another_writer_that_names_remoras_dispatch_is_an_anomaly_when_the_executor_is_known(
+        two_writers):
+    """REMORA's own write never reached the plant. Another holder of a write
+    credential makes the same write and puts REMORA's dispatch reference on
+    it. A verifier told which credential is the executor's does not verify it."""
+    client, registry, verifier = two_writers
+    verifier.expected_writer_id = "in-process"
+    pid = _write(client, "set_valve_position", "WO-1204", valve="V-12", position_pct=30)
+    registry._LOCAL.journal.pop()  # the executor's write is not in the plant's record
+    status, _ = _post_to_plant(verifier, OTHER_WRITER, "set_valve_position",
+                               {"valve": "V-12", "position_pct": 30}, dispatch_ref=pid)
+    assert status == 200
+    verifier.run_once()
+    assert _effect(client, pid)["status"] is None
+    (anomaly,) = verifier.report()["anomalies"]
+    assert anomaly["reason"] == "plant_write_by_another_credential"
+    assert anomaly["proposal_id"] == pid and anomaly["expected_writer_id"] == "in-process"
+    # It stays an anomaly: later passes do not turn it into a verdict.
+    for _ in range(6):
+        verifier.run_once()
+    assert _effect(client, pid)["status"] is None
+
+
+def test_limit_without_a_known_executor_credential_the_forged_reference_is_verified(two_writers):
+    """The open half of §85: the pilot's verifier is not told which credential
+    is the executor's, and the plant has one write token. Whoever holds a
+    write credential can then have its write verified as REMORA's dispatch."""
+    client, registry, verifier = two_writers
+    assert verifier.expected_writer_id is None
+    pid = _write(client, "set_valve_position", "WO-1204", valve="V-12", position_pct=30)
+    registry._LOCAL.journal.pop()
+    _post_to_plant(verifier, OTHER_WRITER, "set_valve_position",
+                   {"valve": "V-12", "position_pct": 30}, dispatch_ref=pid)
+    verifier.run_once()
+    assert _effect(client, pid)["status"] == "EFFECT_VERIFIED"
+
+
+def test_the_executors_own_write_still_verifies_when_the_executor_is_known(two_writers):
+    client, _, verifier = two_writers
+    verifier.expected_writer_id = "in-process"
+    pid = _write(client, "set_valve_position", "WO-1204", valve="V-12", position_pct=30)
+    verifier.run_once()
+    assert _effect(client, pid)["status"] == "EFFECT_VERIFIED"
+    assert verifier.report()["anomalies"] == []
+
+
+# ── after review ───────────────────────────────────────────────────────────
+
+def test_a_journal_entry_without_a_credential_id_is_its_own_anomaly(two_writers):
+    """An older plant, or one that does not report who wrote: not verified,
+    and not blamed on another writer."""
+    client, registry, verifier = two_writers
+    verifier.expected_writer_id = "in-process"
+    pid = _write(client, "set_valve_position", "WO-1204", valve="V-12", position_pct=30)
+    registry._LOCAL.journal[-1].pop("credential_id")
+    verifier.run_once()
+    (anomaly,) = verifier.report()["anomalies"]
+    assert anomaly["reason"] == "plant_write_without_credential_id"
+    assert _effect(client, pid)["status"] is None
+
+
+def test_a_kept_connection_does_not_carry_a_credential_id_into_the_next_request(two_writers):
+    """With keep-alive, one handler serves several requests. A refused request
+    after a good one must be journaled without the good one's credential id."""
+    import http.client
+    import urllib.parse
+
+    import plant_service
+
+    _client, registry, verifier = two_writers
+    host = urllib.parse.urlsplit(verifier.plant.base)
+    plant_service.PlantHandler.protocol_version = "HTTP/1.1"
+    try:
+        conn = http.client.HTTPConnection(host.hostname, host.port, timeout=5)
+        body = json.dumps({"arguments": {"valve": "V-12", "position_pct": 31}})
+        for token in (OTHER_WRITER, "x" * 40, None):
+            headers = {"Content-Type": "application/json", "Content-Length": str(len(body))}
+            if token:
+                headers["Authorization"] = f"Bearer {token}"
+            conn.request("POST", "/tools/set_valve_position", body=body, headers=headers)
+            conn.getresponse().read()
+        conn.close()
+    finally:
+        plant_service.PlantHandler.protocol_version = "HTTP/1.0"
+    good, invalid, none = registry._LOCAL.journal[-3:]
+    assert good["credential_id"] == plant_service.credential_id(OTHER_WRITER)
+    assert (invalid["credential"], none["credential"]) == ("invalid", "none")
+    assert invalid.get("credential_id", "") == "" and none.get("credential_id", "") == ""
+
+
+def test_the_pilot_compose_file_does_not_tell_the_verifier_which_credential_is_the_executors():
+    """What NEGATIVE_RESULTS §85 (2026-11-10) records as the open half. When the
+    pilot sets it, this fails and §85 is updated."""
+    compose = (PILOT / "docker-compose.yml").read_text(encoding="utf-8")
+    assert "OT_EXECUTOR_WRITER_ID" not in compose
+
+
+def test_the_writer_id_a_verifier_needs_can_be_printed_without_the_token(monkeypatch, capsys):
+    import plant_service
+
+    monkeypatch.setenv("OT_PLANT_WRITE_TOKEN", "w" * 40)
+    monkeypatch.setenv("OT_PLANT_READ_TOKEN", "r" * 40)
+    monkeypatch.setattr("sys.argv", ["plant_service.py", "--writer-id"])
+    plant_service.main()
+    out = capsys.readouterr().out.strip()
+    assert out == plant_service.credential_id("w" * 40) and "w" * 40 not in out
