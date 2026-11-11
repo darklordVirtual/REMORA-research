@@ -68,7 +68,7 @@ def _escalating_move(client):
     return _assess(client, _move(4.6))
 
 
-def test_a_maintenance_move_is_assembled_approved_by_two_and_executes(dual):
+def test_a_maintenance_move_is_assembled_approved_by_two_and_executes(dual):  # noqa: F811  (pytest injects the imported fixture)
     assessed = _escalating_move(dual)
     proposal_id, item = assessed["proposal_id"], assessed["review_item_id"]
     console = _console(dual)
@@ -90,7 +90,7 @@ def test_a_maintenance_move_is_assembled_approved_by_two_and_executes(dual):
     assert _executed(_execute(dual, item, _move(4.6))) is True
 
 
-def test_an_unsafe_excursion_is_assembled_declined_and_never_runs(dual):
+def test_an_unsafe_excursion_is_assembled_declined_and_never_runs(dual):  # noqa: F811  (pytest injects the imported fixture)
     assessed = _escalating_move(dual)
     proposal_id, item = assessed["proposal_id"], assessed["review_item_id"]
     console = _console(dual)
@@ -109,7 +109,7 @@ def test_an_unsafe_excursion_is_assembled_declined_and_never_runs(dual):
     assert _executed(_execute(dual, item, _move(4.6))) is not True
 
 
-def test_console_refuses_a_packet_whose_call_does_not_bind(dual):
+def test_console_refuses_a_packet_whose_call_does_not_bind(dual):  # noqa: F811  (pytest injects the imported fixture)
     assessed = _escalating_move(dual)
     proposal_id = assessed["proposal_id"]
     console = _console(dual)

@@ -36,7 +36,7 @@ def _packet(client, proposal_id, who="reviewer-1"):
     )
 
 
-def test_a_tiered_write_awaiting_a_human_exposes_its_decision_basis(dual):
+def test_a_tiered_write_awaiting_a_human_exposes_its_decision_basis(dual):  # noqa: F811  (pytest injects the imported fixture)
     # Two +0.30 bar moves: the second passes the 0.50 bar second tier, so it
     # escalates to a dual-control review item.
     _assess(dual, _move(4.3))
@@ -73,12 +73,12 @@ def test_a_tiered_write_awaiting_a_human_exposes_its_decision_basis(dual):
     assert "arguments" not in packet
 
 
-def test_unknown_proposal_is_a_tenant_scoped_404(dual):
+def test_unknown_proposal_is_a_tenant_scoped_404(dual):  # noqa: F811  (pytest injects the imported fixture)
     r = _packet(dual, "proposal-does-not-exist")
     assert r.status_code == 404
 
 
-def test_pending_flag_clears_once_the_item_is_approved_and_executed(dual):
+def test_pending_flag_clears_once_the_item_is_approved_and_executed(dual):  # noqa: F811  (pytest injects the imported fixture)
     _assess(dual, _move(4.3))
     second = _assess(dual, _move(4.6))
     proposal_id = second["proposal_id"]
