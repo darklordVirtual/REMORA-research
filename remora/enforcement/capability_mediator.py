@@ -29,10 +29,11 @@ import json
 import threading
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 from enum import Enum
 from typing import Any
 
+from remora.timebase import utc_now
 from remora.capabilities.model import CapabilityRefusal, EffectiveCapabilitySet
 from remora.capabilities.resource import ResourceRefused, canonical_resource
 from remora.enforcement.execution_context import ExecutionContext
@@ -109,7 +110,7 @@ class CapabilityMediator:
     def __init__(self, context: ExecutionContext, authority: EffectiveCapabilitySet, *,
                  executors: Mapping[str, EffectExecutor], epochs: Any = None,
                  state_reader: Any = None, max_effects: int = MAX_NESTED_EFFECTS,
-                 clock: Callable[[], datetime] = lambda: datetime.now(UTC)) -> None:
+                 clock: Callable[[], datetime] = utc_now) -> None:
         self._context = context
         self._authority = authority
         self._executors = dict(executors)

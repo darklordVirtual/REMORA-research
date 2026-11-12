@@ -4,6 +4,14 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Embedding: one reading of the current time on the governed path, which a host can supply (2026-11-12)
+
+- `remora/timebase.py`: `utc_now()` and `unix_now()` are now the one place the governed path reads the time. Token and approval expiry, lease expiry, limit windows, the review queue, the tenant chain and effect records read it; 37 direct reads of the system clock in `remora/execution`, `remora/enforcement`, `remora/governance` and `servers/execution_api.py` were replaced. With nothing configured the answer is the system clock and no behaviour changes.
+- `REMORA_TIME_SOURCE_MODULE` names a module exposing `utc_now()`. A host that owns time, such as a simulator running faster than real time or a replay, can then have expiry and freshness judged on its own clock. Without it a token issued at the host's "now" is expired or not yet valid on the system clock. Requested for DCSIM (`SHADOW` and `GOVERNED` profiles, scenario AD-09).
+- The setting is refused in production, and it fails closed: a module that cannot be imported, has no `utc_now`, raises, or returns anything but a timezone-aware datetime raises `TimeSourceError`. The system clock is never substituted for a source that was asked for.
+- Not covered: the flow fence's renewal timers in `servers/execution_api.py` wait in real time on a thread and stay on the system clock, as do uptime and latency figures in `servers/api.py` and the identifier salt in `remora/governance/multi_agent.py`. A host clock is not required to be monotonic. No capability status changes; the capability register has not been re-audited for this change.
+- Tests: `tests/test_timebase.py` (16), including a token that expires on host time and a token issued decades from the system clock that still verifies.
+
 ### OT limits: the first candidate recommended for deployment, with a second approver in the loop (2026-11-10)
 
 - Plan v6 (`docs/assurance/ot_limits_holdout_plan_v6.md`) turns the deployed policy's valve, flow and acknowledgement refusals into second tiers with a higher cap, past which a write goes to a second approver. With one approver the candidate is the deployed policy, write for write.

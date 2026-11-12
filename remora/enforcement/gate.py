@@ -30,6 +30,7 @@ from dataclasses import dataclass
 from datetime import UTC
 from typing import Any
 
+from remora.timebase import utc_now
 from remora.enforcement.token import (
     AuthorizationContext,
     PolicyDecisionToken,
@@ -415,7 +416,7 @@ class EnforcementGate:
             issued = datetime.fromisoformat(token.issued_at)
             current = (
                 datetime.fromisoformat(now)
-                if now is not None else datetime.now(UTC)
+                if now is not None else utc_now()
             )
             if issued.tzinfo is None:
                 issued = issued.replace(tzinfo=UTC)

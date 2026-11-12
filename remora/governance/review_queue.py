@@ -53,10 +53,11 @@ from __future__ import annotations
 import uuid
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, replace
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any
 
+from remora.timebase import utc_now
 from remora.execution.outcome import DispatchOutcome
 from remora.governance.degradation import ChainedEvent, ChainedEventLog
 from remora.governance.revocation_store import (
@@ -318,7 +319,7 @@ class ReviewQueue:
         revocation_store: RevocationStore | None = None,
     ) -> None:
         self._engine = engine or RemoraDecisionEngine()
-        self._now_fn = now_fn or (lambda: datetime.now(UTC))
+        self._now_fn = now_fn or utc_now
         self._default_queue_ttl = default_queue_ttl
         self._items: dict[str, PendingReview] = {}
         self._log = ChainedEventLog(sink=sink, now_fn=self._now_fn)

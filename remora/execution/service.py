@@ -16,11 +16,12 @@ import hmac
 import json
 import logging
 from collections.abc import Callable, Mapping, Sequence
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 from types import SimpleNamespace
 from typing import Any
 from uuid import uuid4
 
+from remora.timebase import utc_now
 from remora.enforcement.cumulative_limits import (
     DUAL_CONTROL_APPROVERS,
     DUAL_CONTROL_REQUIRED,
@@ -387,7 +388,7 @@ def assess_proposal(
     required_approvers = (DUAL_CONTROL_APPROVERS
                           if dual_control and report.action in (
                               DecisionAction.VERIFY, DecisionAction.ESCALATE) else 1)
-    now = datetime.now(UTC)
+    now = utc_now()
 
     # Derived from the chain, never from the request: a caller-declared
     # "this supersedes X" would be defeated by the one caller it exists to
@@ -403,7 +404,7 @@ def assess_proposal(
     lineage = derive_lineage(
         [{"timestamp": e.timestamp, "payload": e.payload}
          for e in chain.entries(tenant)],
-        lineage_key, now=datetime.now(UTC).isoformat(),
+        lineage_key, now=utc_now().isoformat(),
     )
 
     record: dict[str, Any] = {
@@ -1049,7 +1050,7 @@ def execute_approved_item(
                     # dispatch is capped at it — dispatch can never extend
                     # the original authorization's lifetime.
                     authorization_expires_at=(
-                        datetime.now(UTC)
+                        utc_now()
                         + timedelta(seconds=token_ttl_seconds)),
                     # Issue #420: the principal the authorization is FOR —
                     # the worker acts on their behalf and never substitutes
@@ -1120,7 +1121,7 @@ def execute_approved_item(
 
     # The re-gate only AUTHORIZED the call; EXECUTED is recorded separately
     # after the dispatcher reports what actually happened.
-    now = datetime.now(UTC)
+    now = utc_now()
     review_context = authorization_context(
         tenant=tenant, principal=principal, semantic=fresh_semantic,
         target_environment=tool_call.target_environment or "",
@@ -1273,7 +1274,7 @@ def execute_approved_item(
         principal=principal,
         tool_call=tool_call,
         semantic=fresh_semantic,
-        now=datetime.now(UTC) if permit is not None else now,
+        now=utc_now() if permit is not None else now,
         gate_allowed=gate_result.allowed,
         toolspec=toolspec_identity,
         proposal_id=str(proposal_id or item_id),
@@ -1632,7 +1633,7 @@ def dispatch_pending_intent(
     # must never gain a new lifetime by being picked up late.
     if row.authorization_expires_at is None:
         refusal = "authorization_expiry_missing"
-    elif datetime.now(UTC) > row.authorization_expires_at:
+    elif utc_now() > row.authorization_expires_at:
         refusal = "authorization_expired"
     elif not (row.requested_by or "").strip():
         # The worker process identity is not an authorization. A legacy or
@@ -1823,7 +1824,7 @@ def dispatch_pending_intent(
     if admission is None and outbox().claim(row.outbox_id, worker_id=worker_id) is None:
         return None
 
-    now = datetime.now(UTC)
+    now = utc_now()
     # Issue #418: the freshly minted token is CAPPED at the persisted
     # authorization expiry — honouring late never extends the original
     # authorization's lifetime.
@@ -1904,7 +1905,7 @@ def dispatch_pending_intent(
         principal=actor,
         tool_call=tool_call,
         semantic=fresh_semantic,
-        now=datetime.now(UTC) if permit is not None else now,
+        now=utc_now() if permit is not None else now,
         gate_allowed=gate_result.allowed,
         toolspec=toolspec_identity,
         proposal_id=str(proposal_id or row.item_id),
@@ -2559,7 +2560,7 @@ def redeem_accept_token(
 
     lifecycle_guard("ASSESSED", "direct_accept_token")
 
-    now = datetime.now(UTC)
+    now = utc_now()
     response: dict[str, Any] = {
         "proposal_id": proposal_id,
         "outcome": ExecutionDecision.EXECUTE.value,
@@ -2614,7 +2615,7 @@ def redeem_accept_token(
         principal=principal,
         tool_call=tool_call,
         semantic=semantic,
-        now=datetime.now(UTC) if permit is not None else now,
+        now=utc_now() if permit is not None else now,
         toolspec=toolspec_identity,
         proposal_id=str(proposal_id or token.jti),
         grant_jti=token.jti,

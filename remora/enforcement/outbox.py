@@ -51,10 +51,11 @@ import threading
 import uuid
 from collections.abc import Iterable
 from dataclasses import dataclass, replace
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any
 
+from remora.timebase import utc_now
 from remora.observability.events import governance_event
 
 __all__ = [
@@ -194,7 +195,7 @@ class OutboxRow:
 
 
 def _now(now: datetime | None) -> datetime:
-    return now or datetime.now(UTC)
+    return now or utc_now()
 
 
 def _in_window(

@@ -49,6 +49,7 @@ from collections.abc import Callable, Mapping
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from remora.timebase import utc_now
 from remora.capabilities.ceiling import DownstreamCeiling
 from remora.capabilities.delegation import DelegationDenied
 from remora.capabilities.model import CapabilityRefusal, EffectiveCapabilitySet, _parse
@@ -101,7 +102,7 @@ class EffectDomain:
                  execution_started: Callable[[ExecutionLease], bool],
                  epochs: Any = None, state_reader: Any = None, ledger: Any = None,
                  max_effects: int = MAX_NESTED_EFFECTS,
-                 clock: Callable[[], datetime] = lambda: datetime.now(UTC)) -> None:
+                 clock: Callable[[], datetime] = utc_now) -> None:
         self._ledger = ledger
         self._max_effects = max_effects
         self._next_slot: dict[str, int] = {}

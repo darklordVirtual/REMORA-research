@@ -434,6 +434,7 @@ pytest_add_cli_args_test_selection = [
     "tests/test_binding_policy_matrix.py",
     "tests/test_callable_closure_digest.py",
     "tests/test_cli_dcsim_contract.py",
+    "tests/test_timebase.py",
     "tests/test_credential_issuer_scope.py",
     "tests/test_crypto_v2_audit.py",
     "tests/test_crypto_v2_lease.py",

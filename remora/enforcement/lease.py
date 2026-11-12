@@ -55,6 +55,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
+from remora.timebase import utc_now
 from remora.enforcement import lease_signing as _signing
 from remora.enforcement.nonce_store import NonceStore, NonceStoreUnavailable
 from remora.errors import RemoraError
@@ -627,7 +628,7 @@ class ExecutionLease:
         try:
             issued = _parse_utc(self.issued_at)
             expiry = _parse_utc(self.expires_at)
-            current = _parse_utc(now) if now is not None else datetime.now(UTC)
+            current = _parse_utc(now) if now is not None else utc_now()
         except (ValueError, TypeError):
             return LeaseVerificationResult(False, "expiry_unparseable")
         # Not-before: a future-dated issued_at must not mint an immediately
@@ -1153,7 +1154,7 @@ class GovernedToolDispatcher:
             return "capability_set_required"
         if not hmac.compare_digest(capability_set.digest, lease.capability_digest):
             return "capability_digest_mismatch"
-        moment = _parse_utc(now) if now is not None else datetime.now(UTC)
+        moment = _parse_utc(now) if now is not None else utc_now()
         refusal = capability_set.check(
             tool_name, principal_id=lease.actor_identity, tenant_id=tenant_id,
             environment=target_environment, now=moment) or capability_set.check_arguments(
@@ -1605,7 +1606,7 @@ class GovernedToolDispatcher:
             if self._require_declaration:
                 return None, "downstream_declaration_required"
             ceiling = DownstreamCeiling(tool=tool_name, capabilities=())
-        moment = _parse_utc(now) if now is not None else datetime.now(UTC)
+        moment = _parse_utc(now) if now is not None else utc_now()
         try:
             authority = derive_effect_authority(capability_set, tool_name=tool_name,
                                                 ceiling=ceiling, now=moment)
@@ -1903,7 +1904,7 @@ class GovernedToolDispatcher:
             check = {
                 "expected_runtime_identity_hash": lease.runtime_identity_hash,
                 "observed_runtime_identity_hash": observed_runtime,
-                "checked_at": now or datetime.now(UTC).isoformat(),
+                "checked_at": now or utc_now().isoformat(),
                 "result": "refused",
             }
             try:

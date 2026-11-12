@@ -31,11 +31,12 @@ import json
 import threading
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
 
+from remora.timebase import utc_now
 from remora.policy.decision_engine import (
     _NON_ACTUATING_TYPES,
     _PROD_ENVS,
@@ -139,7 +140,7 @@ class ChainedEventLog:
     ) -> None:
         self._events: list[ChainedEvent] = []
         self._sink = sink
-        self._now_fn = now_fn or (lambda: datetime.now(UTC))
+        self._now_fn = now_fn or utc_now
         self._lock = threading.Lock()
 
     @property

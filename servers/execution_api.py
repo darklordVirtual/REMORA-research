@@ -32,13 +32,14 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from contextlib import AbstractContextManager
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from types import SimpleNamespace
 from typing import Any
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
+from remora.timebase import utc_now as _utc_now
 from remora.enforcement.gate import EnforcementGate
 from remora.enforcement.lease import (
     ExecutionLease,
@@ -1787,7 +1788,7 @@ def _resolve_capability(tool_call: Any, principal: str, tenant: str,
         # A call that names no task type gets one the policy never names, so
         # it resolves to no tools: default deny, not an error.
         task_type=getattr(tool_call, "task_type", None) or "unspecified",
-        now=now or _dt.datetime.now(_dt.UTC))
+        now=now or _utc_now())
 
 
 def _capability_epoch_source() -> Any:
@@ -1819,7 +1820,7 @@ def _capability_block(tool_call: Any, principal: str, tenant: str) -> dict[str, 
     refusal = capability_set.check(
         tool_call.tool_name, principal_id=principal, tenant_id=tenant,
         environment=tool_call.target_environment or "",
-        now=_dt.datetime.now(_dt.UTC)) or capability_set.check_arguments(
+        now=_utc_now()) or capability_set.check_arguments(
         tool_call.tool_name, tool_call.arguments, _capability_state_reader())
     return {
         "capability_set_id": capability_set.capability_set_id,
@@ -4059,7 +4060,7 @@ def dispatch_leased(req: DispatchLeasedRequest, request: Request) -> dict[str, A
                 "tool_execution": {"executed": False, "refusal_reason": "lease_unlinked",
                                    "proposal_id": lease.proposal_id}}
 
-    now = _dt.datetime.now(_dt.UTC)
+    now = _utc_now()
     semantic = {"tool_contract_bundle_hash": lease.tool_contract_bundle_hash,
                 "intent_authority_hash": lease.intent_authority_hash}
     if req.execution_context is not None:
@@ -5226,7 +5227,7 @@ def export_evidence(proposal_id: str, request: Request) -> dict[str, Any]:
         "tenant": tenant,
         "remora_version": api_mod.__dict__.get("__version__")
         or _remora_version(),
-        "exported_at": datetime.now(UTC).isoformat(),
+        "exported_at": _utc_now().isoformat(),
         "event_count": len(events),
         "section_sha256": {name: _digest(v) for name, v in sections.items()},
     }
