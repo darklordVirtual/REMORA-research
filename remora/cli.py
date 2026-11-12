@@ -1567,8 +1567,130 @@ examples:
 full reference: docs/cli.md
 """
 
+#: The canonical ``schemas/`` directory, resolved relative to the installed
+#: package root (``remora/`` and ``schemas/`` are siblings in the wheel, kept
+#: there by the force-include in pyproject.toml), so these commands work from
+#: an installed wheel, not only a source checkout.
+_SCHEMAS_DIR = Path(__file__).resolve().parents[1] / "schemas"
+
+
+def _cmd_sign_limits(args: argparse.Namespace) -> int:
+    """Validate and Ed25519-sign a cumulative-limit policy (packaged equivalent
+    of scripts/sign_limit_policy.py), so a host authors a signed limits.json
+    without importing remora.enforcement."""
+    from remora.crypto import SignatureDomain, SigningKey
+    from remora.enforcement.cumulative_limits import (
+        LimitPolicy,
+        LimitPolicyError,
+        sign_policy,
+    )
+
+    domains = {SignatureDomain.LIMIT_POLICY}
+    if args.new_key:
+        try:
+            key = SigningKey.generate(domains)
+            payload = {"seed": key.seed.hex(),
+                       "public_key": key.verification_key().public_bytes.hex()}
+        except ModuleNotFoundError:
+            print("remora sign-limits: needs the 'security' extra "
+                  "(pip install 'remora-assurance[security]')", file=sys.stderr)
+            return 2
+        print(json.dumps(payload))
+        return 0
+    if not args.policy or not args.out:
+        print("remora sign-limits: policy and --out are required", file=sys.stderr)
+        return 2
+    seed = os.environ.get("REMORA_LIMITS_SIGNING_SEED", "").strip()
+    if not seed:
+        print("remora sign-limits: REMORA_LIMITS_SIGNING_SEED is not set",
+              file=sys.stderr)
+        return 2
+    text = Path(args.policy).read_text(encoding="utf-8")
+    try:
+        body = json.loads(text)   # a JSON policy needs no YAML dependency
+    except json.JSONDecodeError:
+        try:
+            import yaml
+        except ImportError:
+            print("remora sign-limits: a YAML policy needs PyYAML; install it or "
+                  "pass JSON", file=sys.stderr)
+            return 2
+        body = yaml.safe_load(text)
+    try:
+        LimitPolicy.from_dict(body)  # refuse to sign one REMORA would refuse to load
+    except LimitPolicyError as exc:
+        print(f"remora sign-limits: invalid policy: {exc}", file=sys.stderr)
+        return 2
+    from datetime import UTC, datetime
+
+    try:
+        key = SigningKey.from_text(seed, domains)
+        signed_at = (
+            datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z"))
+        document = sign_policy(body, key, signed_at)
+        public_key = key.verification_key().public_bytes.hex()
+    except ModuleNotFoundError:
+        print("remora sign-limits: needs the 'security' extra "
+              "(pip install 'remora-assurance[security]')", file=sys.stderr)
+        return 2
+    Path(args.out).write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n",
+                              encoding="utf-8")
+    print(f"public key to trust: {public_key}", file=sys.stderr)
+    return 0
+
+
+def _cmd_export_contract_files(args: argparse.Namespace) -> int:
+    """Write the contract files a host pins to, from the installed package: the
+    SDK public-API snapshot (PIN-005), the OpenAPI document (compose mode) and
+    the ToolSpec schemas (GOV-006). The capability and boundary registers live
+    under docs/ and are read as data from the pinned source tree, not here."""
+    import inspect
+
+    out = Path(args.out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+
+    import remora.sdk as sdk
+
+    symbols: dict[str, str] = {}
+    for name in sorted(sdk.__all__):
+        try:
+            obj = getattr(sdk, name)
+        except ImportError:
+            # A lazily-imported client (RemoraClient/AsyncRemoraClient) needs the
+            # `sdk` extra (httpx). Those symbols are classes; classify them so this
+            # command works from a dependency-free install, matching the snapshot
+            # the dev environment produces with httpx present.
+            symbols[name] = "class"
+            continue
+        if inspect.isclass(obj) and issubclass(obj, Exception):
+            kind = "exception"
+        elif inspect.isclass(obj):
+            kind = "class"
+        elif inspect.isfunction(obj):
+            kind = "function"
+        else:
+            kind = "object"
+        symbols[name] = kind
+    snapshot = {"version": 1, "module": "remora.sdk", "symbols": symbols}
+    (out / "public_api_v1.json").write_text(
+        json.dumps(snapshot, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+    written = ["public_api_v1.json"]
+    wanted = ["openapi.json"]
+    wanted += [p.name for p in sorted(_SCHEMAS_DIR.glob("tool_spec_v*.yaml"))]
+    wanted += [p.name for p in sorted(_SCHEMAS_DIR.glob("toolspec_signing_*.yaml"))]
+    for name in wanted:
+        src = _SCHEMAS_DIR / name
+        if src.is_file():
+            (out / name).write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+            written.append(name)
+    print(f"wrote {len(written)} contract file(s) to {out}: {', '.join(written)}")
+    return 0
+
+
 _COMMANDS = ("try", "demo", "assess", "explain", "whatif", "replay", "serve",
-             "provenance", "verify", "maturity", "doctor", "effect-verify", "init-review")
+             "provenance", "verify", "maturity", "doctor", "effect-verify",
+             "init-review", "sign-limits", "export-contract-files")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -1772,6 +1894,20 @@ def main(argv: list[str] | None = None) -> int:
                       help="Request header for the read-back; used, never stored")
     ev_p.add_argument("--timeout", type=float, default=None)
 
+    sign_p = sub.add_parser(
+        "sign-limits",
+        help="Validate and Ed25519-sign a cumulative-limit policy (-> signed limits.json)")
+    sign_p.add_argument("policy", nargs="?",
+                        help="path to a remora-cumulative-limits/v1 policy (JSON or YAML)")
+    sign_p.add_argument("--out", help="write the signed envelope here")
+    sign_p.add_argument("--new-key", action="store_true",
+                        help="print a fresh signing seed and its public key, then exit")
+
+    export_p = sub.add_parser(
+        "export-contract-files",
+        help="Write the pinned contract files (SDK snapshot, OpenAPI, ToolSpec schemas)")
+    export_p.add_argument("out_dir", help="directory to write the contract files into")
+
     doctor_p = sub.add_parser(
         "doctor", help="Environment self-check: what works, what's missing, how to fix it")
     doctor_p.add_argument("--json", action="store_true", help="JSON output")
@@ -1805,6 +1941,10 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_effect_verify(args)
     if args.command == "doctor":
         return _cmd_doctor(args)
+    if args.command == "sign-limits":
+        return _cmd_sign_limits(args)
+    if args.command == "export-contract-files":
+        return _cmd_export_contract_files(args)
 
     parser.print_help()
     if getattr(sys.stdout, "isatty", lambda: False)():
