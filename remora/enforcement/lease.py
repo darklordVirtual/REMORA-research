@@ -55,12 +55,12 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 
-from remora.timebase import utc_now
 from remora.enforcement import lease_signing as _signing
 from remora.enforcement.nonce_store import NonceStore, NonceStoreUnavailable
 from remora.errors import RemoraError
 from remora.observability.events import governance_event
 from remora.policy.observation import canonical_tool_call_hash
+from remora.timebase import utc_now
 
 if TYPE_CHECKING:
     from remora.audit.recorder import RecorderClient

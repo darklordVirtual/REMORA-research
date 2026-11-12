@@ -51,8 +51,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from remora.timebase import utc_now
 from remora.governance.envelope import DecisionEnvelope
+from remora.timebase import utc_now
 
 # ---------------------------------------------------------------------------
 # Chain entry

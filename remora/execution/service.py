@@ -21,7 +21,6 @@ from types import SimpleNamespace
 from typing import Any
 from uuid import uuid4
 
-from remora.timebase import utc_now
 from remora.enforcement.cumulative_limits import (
     DUAL_CONTROL_APPROVERS,
     DUAL_CONTROL_REQUIRED,
@@ -64,6 +63,7 @@ from remora.governance.review_queue import (
 )
 from remora.governance.task_identity import TaskIdentity
 from remora.policy.report import DecisionAction, DecisionReason, DecisionReport
+from remora.timebase import utc_now
 from remora.toolcall.toolspec import ToolSpecRefused
 
 logger = logging.getLogger(__name__)

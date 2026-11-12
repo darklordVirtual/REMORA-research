@@ -57,7 +57,6 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any
 
-from remora.timebase import utc_now
 from remora.execution.outcome import DispatchOutcome
 from remora.governance.degradation import ChainedEvent, ChainedEventLog
 from remora.governance.revocation_store import (
@@ -68,6 +67,7 @@ from remora.policy.composition import GRANT_ONLY_REASONS, NON_APPROVABLE_REASONS
 from remora.policy.decision_engine import RemoraDecisionEngine
 from remora.policy.observation import PolicyObservation
 from remora.policy.report import DecisionAction
+from remora.timebase import utc_now
 
 # Approval TTL bounds (REM-033): no zero/negative, no beyond-a-day approvals.
 MAX_APPROVAL_TTL = timedelta(hours=24)

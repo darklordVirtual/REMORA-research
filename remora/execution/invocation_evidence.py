@@ -35,8 +35,8 @@ import json
 import os
 from typing import Any
 
-from remora.timebase import utc_now
 from remora.errors import RemoraError
+from remora.timebase import utc_now
 
 FORMAT = "remora-invocation-evidence-v1"
 ENVELOPE_FORMAT = "remora-invocation-evidence-envelope-v1"

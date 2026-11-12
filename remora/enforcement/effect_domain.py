@@ -49,7 +49,6 @@ from collections.abc import Callable, Mapping
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from remora.timebase import utc_now
 from remora.capabilities.ceiling import DownstreamCeiling
 from remora.capabilities.delegation import DelegationDenied
 from remora.capabilities.model import CapabilityRefusal, EffectiveCapabilitySet, _parse
@@ -63,6 +62,7 @@ from remora.enforcement.effect_capability import derive_effect_authority
 from remora.enforcement.execution_context import ExecutionContext
 from remora.enforcement.flow_recipients import recipients_digest
 from remora.enforcement.lease import ExecutionLease
+from remora.timebase import utc_now
 
 __all__ = ["EffectDomain", "effect_to_wire"]
 

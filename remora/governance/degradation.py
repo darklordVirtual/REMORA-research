@@ -36,12 +36,12 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from remora.timebase import utc_now
 from remora.policy.decision_engine import (
     _NON_ACTUATING_TYPES,
     _PROD_ENVS,
     _READ_ONLY_TYPES,
 )
+from remora.timebase import utc_now
 
 # G4 is an allowlist: only positively known read-only / non-actuating types
 # may proceed. Unknown or missing action types are not known to be safe.

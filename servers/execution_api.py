@@ -39,7 +39,6 @@ from typing import Any
 from fastapi import APIRouter, Body, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 
-from remora.timebase import utc_now as _utc_now
 from remora.enforcement.gate import EnforcementGate
 from remora.enforcement.lease import (
     ExecutionLease,
@@ -92,6 +91,7 @@ from remora.governance.tenant_chain import TenantAuditChain
 from remora.policy.decision_engine import RemoraDecisionEngine
 from remora.policy.observation import PolicyObservation, canonical_tool_call_hash
 from remora.policy.report import DecisionAction
+from remora.timebase import utc_now as _utc_now
 from remora.toolcall.deployment_registry import resolve_tool_metadata
 from remora.toolcall.intent_scope import (
     UNBOUND,

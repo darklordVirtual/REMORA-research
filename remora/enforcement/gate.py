@@ -30,13 +30,13 @@ from dataclasses import dataclass
 from datetime import UTC
 from typing import Any
 
-from remora.timebase import utc_now
 from remora.enforcement.token import (
     AuthorizationContext,
     PolicyDecisionToken,
     TokenVerificationResult,
 )
 from remora.observability.events import governance_event
+from remora.timebase import utc_now
 
 
 @dataclass(frozen=True)

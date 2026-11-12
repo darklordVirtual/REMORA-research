@@ -33,12 +33,12 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
-from remora.timebase import utc_now
 from remora.capabilities.model import CapabilityRefusal, EffectiveCapabilitySet
 from remora.capabilities.resource import ResourceRefused, canonical_resource
 from remora.enforcement.execution_context import ExecutionContext
 from remora.enforcement.flow_recipients import effect_recipient
 from remora.frozen_json import freeze, thaw
+from remora.timebase import utc_now
 
 __all__ = ["MAX_NESTED_EFFECTS", "CapabilityMediator", "EffectExecutor", "EffectRefused",
            "EffectState", "MediatedEffect"]

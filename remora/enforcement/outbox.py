@@ -55,8 +55,8 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any
 
-from remora.timebase import utc_now
 from remora.observability.events import governance_event
+from remora.timebase import utc_now
 
 __all__ = [
     "ExecutionOutbox",

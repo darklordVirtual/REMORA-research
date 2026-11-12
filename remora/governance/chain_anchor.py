@@ -38,6 +38,7 @@ import threading
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
+
 from remora.timebase import utc_now
 
 ENV_PATH = "REMORA_AUDIT_ANCHOR_PATH"

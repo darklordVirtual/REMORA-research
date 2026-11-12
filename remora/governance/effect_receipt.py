@@ -62,9 +62,9 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
 
-from remora.timebase import utc_now
 from remora.errors import RemoraError
 from remora.governance.effect_verification import EffectStatus
+from remora.timebase import utc_now
 
 __all__ = [
     "MAX_CLOCK_SKEW",

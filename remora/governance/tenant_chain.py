@@ -39,13 +39,13 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from typing import Any
 
-from remora.timebase import utc_now
 from remora.governance.audit_signing import (
     chain_signature_format,
     entry_signature,
     signature_problems,
     transition_payload,
 )
+from remora.timebase import utc_now
 
 _GENESIS = "0" * 64
 _ENV_KEY = "REMORA_AUDIT_SIGNING_KEY"
