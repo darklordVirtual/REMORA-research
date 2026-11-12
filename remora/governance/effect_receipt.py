@@ -59,11 +59,12 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 from remora.errors import RemoraError
 from remora.governance.effect_verification import EffectStatus
+from remora.timebase import utc_now
 
 __all__ = [
     "MAX_CLOCK_SKEW",
@@ -511,7 +512,7 @@ def verify_receipt(
             f"{lineage.attempted_at}")
 
     # ── and finally, what the numbers actually support ─────────────────────
-    if observed_at > datetime.now(UTC) + MAX_CLOCK_SKEW:
+    if observed_at > utc_now() + MAX_CLOCK_SKEW:
         raise ReceiptRefused(
             "observation_in_the_future",
             f"the observation is dated {verified_at}, more than "

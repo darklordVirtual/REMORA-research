@@ -62,6 +62,7 @@ from remora.enforcement.effect_capability import derive_effect_authority
 from remora.enforcement.execution_context import ExecutionContext
 from remora.enforcement.flow_recipients import recipients_digest
 from remora.enforcement.lease import ExecutionLease
+from remora.timebase import utc_now
 
 __all__ = ["EffectDomain", "effect_to_wire"]
 
@@ -101,7 +102,7 @@ class EffectDomain:
                  execution_started: Callable[[ExecutionLease], bool],
                  epochs: Any = None, state_reader: Any = None, ledger: Any = None,
                  max_effects: int = MAX_NESTED_EFFECTS,
-                 clock: Callable[[], datetime] = lambda: datetime.now(UTC)) -> None:
+                 clock: Callable[[], datetime] = utc_now) -> None:
         self._ledger = ledger
         self._max_effects = max_effects
         self._next_slot: dict[str, int] = {}

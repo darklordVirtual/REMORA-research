@@ -36,7 +36,7 @@ import sqlite3
 import threading
 from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
+from datetime import datetime
 from typing import Any
 
 from remora.governance.audit_signing import (
@@ -45,6 +45,7 @@ from remora.governance.audit_signing import (
     signature_problems,
     transition_payload,
 )
+from remora.timebase import utc_now
 
 _GENESIS = "0" * 64
 _ENV_KEY = "REMORA_AUDIT_SIGNING_KEY"
@@ -175,7 +176,7 @@ class TenantAuditChain:
         #: Tenants whose chain has entered signature format v2.
         self._v2: set[str] = set()
         self._lock = threading.Lock()
-        self._now_fn = now_fn or (lambda: datetime.now(UTC))
+        self._now_fn = now_fn or utc_now
 
     def append(self, tenant_id: str, payload: dict[str, Any]) -> ChainEntry:
         """Atomic read-predecessor + insert: fork-free by construction."""
@@ -580,7 +581,7 @@ class SQLiteTenantChain(_Anchored):
     def __init__(self, db_path: str, now_fn: Callable[[], datetime] | None = None, *,
                  anchor: Any = None, anchor_chain_id: str | None = None) -> None:
         self._db_path = db_path
-        self._now_fn = now_fn or (lambda: datetime.now(UTC))
+        self._now_fn = now_fn or utc_now
         self._local = threading.local()
         self._set_anchor(anchor, anchor_chain_id)
         conn = self._conn()
@@ -852,7 +853,7 @@ class PostgresTenantChain(_Anchored):
         self._set_anchor(anchor, anchor_chain_id)
         self._psycopg = psycopg
         self._dsn = dsn
-        self._now_fn = now_fn or (lambda: datetime.now(UTC))
+        self._now_fn = now_fn or utc_now
         with psycopg.connect(dsn) as conn:
             conn.execute(POSTGRES_DDL)
             conn.commit()

@@ -69,6 +69,8 @@ from dataclasses import dataclass
 from datetime import UTC
 from typing import TYPE_CHECKING, Any
 
+from remora.timebase import utc_now
+
 if TYPE_CHECKING:
     from remora.governance.task_identity import TaskIdentity
 
@@ -783,7 +785,7 @@ class PolicyDecisionToken:
                 current = (
                     datetime.fromisoformat(now)
                     if now is not None
-                    else datetime.now(UTC)
+                    else utc_now()
                 )
                 # Coerce naive timestamps to UTC so a naive expires_at / now
                 # cannot raise TypeError on comparison (fail-closed: an

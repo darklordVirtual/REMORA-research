@@ -31,7 +31,7 @@ import json
 import threading
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -41,6 +41,7 @@ from remora.policy.decision_engine import (
     _PROD_ENVS,
     _READ_ONLY_TYPES,
 )
+from remora.timebase import utc_now
 
 # G4 is an allowlist: only positively known read-only / non-actuating types
 # may proceed. Unknown or missing action types are not known to be safe.
@@ -139,7 +140,7 @@ class ChainedEventLog:
     ) -> None:
         self._events: list[ChainedEvent] = []
         self._sink = sink
-        self._now_fn = now_fn or (lambda: datetime.now(UTC))
+        self._now_fn = now_fn or utc_now
         self._lock = threading.Lock()
 
     @property

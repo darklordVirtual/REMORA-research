@@ -307,15 +307,15 @@
         "PROV-05",
         "PROV-17"
       ],
-      "git_blob": "0bf65179d4e5692a04966470684093a13353dbcb",
+      "git_blob": "85546ce79d10453301540e0855f9fef8cf76925a",
       "mode": "100644",
-      "sha256": "005af428f463316c023cc8ae8420c908fdd2dce3715b9e6181122a8e8e01810f"
+      "sha256": "65d83123036843244d7de85d52b20e872e98d5a3fa345a1ea5da79b7153b0df9"
     },
     "CHANGELOG.md": {
       "concepts": [],
-      "git_blob": "0e4b5b9910d3a5d231ebbf6c2f3a7eb6aafa7762",
+      "git_blob": "f307bbadc0f03d032aed8928ad82ff0993b7b38c",
       "mode": "100644",
-      "sha256": "81655757451f9440927c1df1d3becec9e023bfa049cb1d3d648adb90d54bfd92"
+      "sha256": "c869e90583346f068693236c716cedeedd4c26e78e5e1bc7bed34b532bf7af20"
     },
     "CITATION.cff": {
       "concepts": [],
@@ -2889,9 +2889,9 @@
     },
     "artifacts/interop/remora-boundary-summary-v1.json": {
       "concepts": [],
-      "git_blob": "c70fce6f3b5e099b49104c37666cf7ae817f725b",
+      "git_blob": "2800babd8a870c80d84fdf4efc71b50fd24527ea",
       "mode": "100644",
-      "sha256": "fed87965140413b006830355c0db5273db6e817edf6fc92d4423700d50569f8d"
+      "sha256": "8cc7546db2fafd174a6a36bad0f5b83c92881cd9ae8d87801bfa24dd8c3eb093"
     },
     "artifacts/interop/runs/README.md": {
       "concepts": [],
@@ -7295,9 +7295,9 @@
     },
     "docs/assurance/capability_register_v1.yaml": {
       "concepts": [],
-      "git_blob": "6b3609c8266d57c9c8d7a349fad0fd90e220ff6a",
+      "git_blob": "1f9769ac2094b0c9457812df78cec32a0becc8b4",
       "mode": "100644",
-      "sha256": "f5cb108a4637b2dd5db182f41899cd1ba0565b63ca2014b23c9a17624551ad01"
+      "sha256": "07824422225cd3bbfdc2220609157be176a6ef7c4c01a0e022c42f811e3fc4d8"
     },
     "docs/assurance/claim_metric_binding_baseline.json": {
       "concepts": [],
@@ -8412,9 +8412,9 @@
     },
     "docs/interop/remora-boundaries-v1.yaml": {
       "concepts": [],
-      "git_blob": "42f26e9a1ba3421e744c222b4b79ec15673905f2",
+      "git_blob": "25ed047e8eb24d8271eb005e2289c085608858b2",
       "mode": "100644",
-      "sha256": "e7442a6c2805749c93f6e979782538d09e9d10262287c3af03fd94051920d925"
+      "sha256": "4b9fb3430ec8b3e8cdc4b839b23824dc61c2661a0c329e052b5154b4ab379e68"
     },
     "docs/interop/remora-capabilities-v1.schema.json": {
       "concepts": [],
@@ -11918,9 +11918,9 @@
     },
     "pyproject.toml": {
       "concepts": [],
-      "git_blob": "d0c45ce7c06513175795dad9b26eb7fe65259fa1",
+      "git_blob": "eabd098271144bc1035c072bfdc2e7b0e78619e8",
       "mode": "100644",
-      "sha256": "570a756f266a853418799ae756df366f48f60bf9791e870a4904ca0b7a9c022a"
+      "sha256": "6f2a26778e5ffa9a88cb05ae6fdabe21b60f7984824e143627a584fca591b09c"
     },
     "remora/README.md": {
       "concepts": [],
@@ -13014,15 +13014,15 @@
     },
     "remora/enforcement/capability_mediator.py": {
       "concepts": [],
-      "git_blob": "a66c937c975cb154ee7b09282e12949bb2718214",
+      "git_blob": "5a6d721ef4aae3c64e6559f1bf8baf622804f691",
       "mode": "100644",
-      "sha256": "3d19d7c1a5a0a85d0b5d3033dbc6cd2306b612f542a3d6ecd5caf86da6784c4a"
+      "sha256": "d3eee4c90a994811023c9d09a8e9f9893c903694145c756ff97b70b2d12016bb"
     },
     "remora/enforcement/cumulative_limits.py": {
       "concepts": [],
-      "git_blob": "327fa93153bab3479b96dbeda1543820df4e0dad",
+      "git_blob": "40f0bdbb821e2fa0bc7bfe4d6e254b471e360bab",
       "mode": "100644",
-      "sha256": "2f5c09f1755ec4eb211fb4e53021878758cc34ae81b49d2e7aa6a480c0b80c88"
+      "sha256": "b6fd7a804a703bc00f59f6338a5b4842a70e1f6c9e2de9731b315e81c1e5e62e"
     },
     "remora/enforcement/custody.py": {
       "concepts": [
@@ -13051,9 +13051,9 @@
         "PROV-10",
         "PROV-12"
       ],
-      "git_blob": "840a6339b974432d542c9133042bb52b294d02f0",
+      "git_blob": "f20ed863d7e2ae79cabb48104df32fca8ae94484",
       "mode": "100644",
-      "sha256": "9838498cf9f56818c58d04fd87912cd5d74f86c4ba92ff4fa9648f14c814c1d6"
+      "sha256": "cfd1e0e24de84374f67ce2ebea0f26522af2552d2b7764141d6174908498ae58"
     },
     "remora/enforcement/effect_graph.py": {
       "concepts": [],
@@ -13078,9 +13078,9 @@
         "PROV-05",
         "PROV-17"
       ],
-      "git_blob": "0347f6f14fe07fad16d8deb6ca90de3530045e00",
+      "git_blob": "0a09f88ef39b44688e7b328622bbe7e09286534c",
       "mode": "100644",
-      "sha256": "d34a94ab376ffbfac0f2c0153805ee7e101533ddf588530e47126f61019d0eb7"
+      "sha256": "36253c536168f349ce89ec67e572de6756905281f0783020ecf94fc9c594deca"
     },
     "remora/enforcement/lease.py": {
       "concepts": [
@@ -13091,9 +13091,9 @@
         "PROV-16",
         "PROV-17"
       ],
-      "git_blob": "c9e5acbf5f40dc95e0f2ca8a433b58b80e734676",
+      "git_blob": "7273d18c3ace436831534c251afa4c55e3e03885",
       "mode": "100644",
-      "sha256": "e6b2a3d463036bbeef088362df9b244a845bf0d2ef4d25c50b77cbbdb76578ed"
+      "sha256": "1751e6945791aab9ead31e9b099804ec59c51d34ba7b5c4d5a2e3948d2bc6af9"
     },
     "remora/enforcement/lease_signing.py": {
       "concepts": [
@@ -13113,9 +13113,9 @@
     },
     "remora/enforcement/outbox.py": {
       "concepts": [],
-      "git_blob": "e4f3daa6c341ebfc269b04d540e632e2b58b896d",
+      "git_blob": "496a37e037054e845b088e9d2ad3ac7af975c311",
       "mode": "100644",
-      "sha256": "a82d9abf460a49a539909a612dc097f37140c7bca7e22cb11ff88ec4acdb52d4"
+      "sha256": "ba41ef138bdec9c35ed6fd8e503bc8c413af19c3d4ce9cae4a9f9f8c17e106ba"
     },
     "remora/enforcement/resolved_effect.py": {
       "concepts": [],
@@ -13142,9 +13142,9 @@
         "PROV-05",
         "PROV-17"
       ],
-      "git_blob": "38f0714ce0f27a8363f69dfc67771fb41c0fbdfb",
+      "git_blob": "75cab09653a8d19884861e67a4d3fd9a89c78bef",
       "mode": "100644",
-      "sha256": "18410713baf4a85ce92190006723579db3a080a63a3797f2b3ab4536e04fb056"
+      "sha256": "b5ffa3892767168cac79819fa546d071f74030a4c0fe2dd11f3d12bb14691106"
     },
     "remora/engine.py": {
       "concepts": [],
@@ -13330,9 +13330,9 @@
     },
     "remora/execution/invocation_evidence.py": {
       "concepts": [],
-      "git_blob": "45b7f9816b16dad71e3c9c8b056f8309fc297f19",
+      "git_blob": "d922a90360457a25e482160d9ba5a278c96729d3",
       "mode": "100644",
-      "sha256": "64ab949c00ebbf04d4536eb0e18e6a2b59dc7f405e224f9b73fd595a82ea8049"
+      "sha256": "b412df8870dd817aaae888563e526519b1b97143f7fb2974dd1279105c4ef39a"
     },
     "remora/execution/outcome.py": {
       "concepts": [],
@@ -13380,9 +13380,9 @@
       "concepts": [
         "PROV-08"
       ],
-      "git_blob": "18fda23367b8a7c7ff545b77925b2e959e1c83df",
+      "git_blob": "c97f1b282ecfa8bb48ac3e2ad51e93d76f51adc2",
       "mode": "100644",
-      "sha256": "3013a7562b332b272bd6712c2baf86389a8f00b0a67cefe95d6c83a472931d36"
+      "sha256": "531f5c942c05d6d8e730b34a32beac7c7946ee8e9a411f46d7df3e766dbd0da4"
     },
     "remora/federation/__init__.py": {
       "concepts": [],
@@ -13536,9 +13536,9 @@
     },
     "remora/governance/a2a_envelope.py": {
       "concepts": [],
-      "git_blob": "14045e05f5c1b846b22eb3f0695777e8b64a0f52",
+      "git_blob": "9f8082b9e0853640a0492dbe8c12ae7c1cdadbb8",
       "mode": "100644",
-      "sha256": "cba544c8744c99056e7f474e9df4036713f28dbd47d18045375f140ffceaf997"
+      "sha256": "cd9eb50fef56ccbfe41605a75fdeed2461a2f37e1fd206316a5661674551e9fa"
     },
     "remora/governance/activation_manifest.py": {
       "concepts": [],
@@ -13548,9 +13548,9 @@
     },
     "remora/governance/audit_chain.py": {
       "concepts": [],
-      "git_blob": "2d1bd5011fa63c0dff94543050e7eec07a69e641",
+      "git_blob": "85f8f5ae482b00bc8782a8393aa10779777a5774",
       "mode": "100644",
-      "sha256": "efbeb884c665047bae3e5836a5f867044b57ecb798a606bd7508cb8fb293a3a5"
+      "sha256": "97b02646af65392da8c604bb5b4d0597c07c5b62cb39a8654c323de90c9fd706"
     },
     "remora/governance/audit_outbox.py": {
       "concepts": [],
@@ -13584,9 +13584,9 @@
     },
     "remora/governance/chain_anchor.py": {
       "concepts": [],
-      "git_blob": "49c994831c9ff9eb4fc87992d36bb2477b7fecdd",
+      "git_blob": "7c1759e953b740996a00ea6800082acdac711dcf",
       "mode": "100644",
-      "sha256": "89f37e4bd06d84fee10c7993919f54c6f6e699e5c2f0fac4922c4b1870be33ea"
+      "sha256": "c73989edee611a5050267accdad430b8fbf2b1168ccd395b47ba991c5b9e1741"
     },
     "remora/governance/context_flow.py": {
       "concepts": [],
@@ -13608,9 +13608,9 @@
     },
     "remora/governance/degradation.py": {
       "concepts": [],
-      "git_blob": "5209dd67ee40153be5c615e06050fbaa8217fbd5",
+      "git_blob": "a4c8d475f43d1b2aa006cdf6cedf42015c6c29b2",
       "mode": "100644",
-      "sha256": "9220cf4250268feffbbb884c7951f99eb3d51fbd2854f77981978f8f530c23a4"
+      "sha256": "b1aa8e75a018e4ce93ed870c9d73d13e25be4cdf73ead18c3506f4c97e014876"
     },
     "remora/governance/delegation.py": {
       "concepts": [],
@@ -13626,9 +13626,9 @@
     },
     "remora/governance/effect_receipt.py": {
       "concepts": [],
-      "git_blob": "a0ff59f13c2980dafb91907583637cef9b4afa2f",
+      "git_blob": "a62a22da4c66e9960886bb65436f46d4632dfaa7",
       "mode": "100644",
-      "sha256": "c5d757d7e01646d94a21d11c942dc5eb0d84a8f671ee9ab0ef50d51f8ceb6c13"
+      "sha256": "a8b82556885705cf0443f9d2d68c9d4b9d72949e2d99958c829cb27bef56e29f"
     },
     "remora/governance/effect_receipt_signing.py": {
       "concepts": [],
@@ -13640,9 +13640,9 @@
       "concepts": [
         "PROV-17"
       ],
-      "git_blob": "9c1012f02d17702cdf557e3ccc183a1a21d33874",
+      "git_blob": "eee9acddbf338aae6ae171a88564b7e2ddefc0d1",
       "mode": "100644",
-      "sha256": "cad5935043cf5f2eb7b5d7e6f02c62d579bf141572bd699363c88b444228a5af"
+      "sha256": "0f7acd714ed3d18d831c3490ed215f3b38e63c480e12a561131e80d9574eb843"
     },
     "remora/governance/envelope.py": {
       "concepts": [
@@ -13752,9 +13752,9 @@
       "concepts": [
         "PROV-04"
       ],
-      "git_blob": "35a310cfb8523fc1d6bbd8e776ba6b2c9e24f0f0",
+      "git_blob": "053554411645471ef252d696f1535480c7aea4bd",
       "mode": "100644",
-      "sha256": "2c17c510d908e462d2d5a05a954c61ee0e1784e03693edf3ccfc7f5b93a16542"
+      "sha256": "a0321c08fd97f2d5113a27bf91e401677d2527edbfa94df1268c3b45901d627d"
     },
     "remora/governance/revocation_store.py": {
       "concepts": [],
@@ -13778,9 +13778,9 @@
     },
     "remora/governance/tenant_chain.py": {
       "concepts": [],
-      "git_blob": "7d8babc844f3ad92b496d4b0296c9f53ab1b63c0",
+      "git_blob": "cfd33b2fc8553c80d5649ed7c064f365f2b3b8fe",
       "mode": "100644",
-      "sha256": "dab990dbf816aadc3515d6c34e679d0962d86d82a6e8bc2a736f028aa7ec321f"
+      "sha256": "00badf3e852d7a590f712e5179a26f0eb1a6dd510fecda7d24fa4c87d96bdd89"
     },
     "remora/governance/work_context.py": {
       "concepts": [],
@@ -14662,6 +14662,12 @@
       "git_blob": "32f88af645bc6c5a764c865fd4903914eb7b2747",
       "mode": "100644",
       "sha256": "44651277e2b4bcbc7a91d76dbd5c1297efa94f50cc0c5ef61b36493b69395ab6"
+    },
+    "remora/timebase.py": {
+      "concepts": [],
+      "git_blob": "cb59af09b0c2499cfc1a740ad396e92cc01362f6",
+      "mode": "100644",
+      "sha256": "3ed624de34d3b803181abc17c273cdcb88d6988ee2924a63409c46f52345ed69"
     },
     "remora/toolcall/__init__.py": {
       "concepts": [],
@@ -17921,9 +17927,9 @@
       "concepts": [
         "PROV-18"
       ],
-      "git_blob": "12bd5899682aa9cddaa87c57d6f931cf3ed5fdda",
+      "git_blob": "73dabce78b1979b270ae041234da9e4dce6b5869",
       "mode": "100644",
-      "sha256": "07eba8e6ae685db01d50148bb8c639fe3a479552db54b8b849c568b2e2dcdbed"
+      "sha256": "a48d97389b086e4f14f3ebcaec159245aded4fb3b7e1b38250dab355e730f7f0"
     },
     "servers/execution_contracts.py": {
       "concepts": [],
@@ -23156,6 +23162,12 @@
       "mode": "100644",
       "sha256": "539007ef38f31a07ef895bd5af4d1218b96617b0d97f27de8f0b0497aaf1e1fe"
     },
+    "tests/test_timebase.py": {
+      "concepts": [],
+      "git_blob": "e6265288b5e8c690d51bbb56b97d85ef52b10878",
+      "mode": "100644",
+      "sha256": "81eea7b7afa073cfec23573d69abdad7c0968078603333acd48fdc4924d8baf9"
+    },
     "tests/test_tla_models.py": {
       "concepts": [],
       "git_blob": "1777c7ce2c7929a316d218a48160d95a4c58e62d",
@@ -24247,7 +24259,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "b22b3834bf82229abcd3a71b5b6a8e3a87c1d5c707fbdf4ddff6b60ca95ec0cb",
+  "register_sha256": "66d25076011d0d3bf671057e564d8fa369fd0e28e37232b1183a76e5606232de",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null

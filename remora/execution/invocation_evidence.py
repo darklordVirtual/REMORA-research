@@ -33,10 +33,10 @@ from __future__ import annotations
 import base64
 import json
 import os
-from datetime import UTC, datetime
 from typing import Any
 
 from remora.errors import RemoraError
+from remora.timebase import utc_now
 
 FORMAT = "remora-invocation-evidence-v1"
 ENVELOPE_FORMAT = "remora-invocation-evidence-envelope-v1"
@@ -169,7 +169,7 @@ def build_invocation_evidence(
         "format": FORMAT,
         "tenant": tenant,
         "proposal_id": proposal_id,
-        "exported_at": exported_at or datetime.now(UTC).isoformat(),
+        "exported_at": exported_at or utc_now().isoformat(),
         "request_ref": assessed.payload.get("request_ref"),
         "authorization_context": assessed.payload.get("authorization_context"),
         "grant": _grant_section(authorized.payload["grant"]),

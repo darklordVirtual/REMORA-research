@@ -45,12 +45,13 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass, field, replace
-from datetime import UTC, datetime
+from datetime import datetime
 from enum import Enum
 from types import MappingProxyType
 from typing import Any
 
 from remora import frozen_json
+from remora.timebase import utc_now
 
 __all__ = [
     "COMPARISON_RULES",
@@ -263,7 +264,7 @@ class EffectVerification:
             observed=observed_map,
             expected_sha256=_digest(expected_map),
             observed_sha256=_digest(observed_map),
-            verified_at=(now or datetime.now(UTC)).isoformat(),
+            verified_at=(now or utc_now()).isoformat(),
             detail=detail,
             evidence_refs=evidence_refs,
         )

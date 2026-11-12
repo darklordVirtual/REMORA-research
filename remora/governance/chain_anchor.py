@@ -36,9 +36,10 @@ import json
 import os
 import threading
 from collections.abc import Sequence
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+from remora.timebase import utc_now
 
 ENV_PATH = "REMORA_AUDIT_ANCHOR_PATH"
 ENV_KEY = "REMORA_AUDIT_ANCHOR_KEY"
@@ -103,7 +104,7 @@ class ChainAnchor:
                 "tenant_id": tenant_id,
                 "sequence_no": sequence_no,
                 "entry_hash": entry_hash,
-                "recorded_at": datetime.now(UTC).isoformat(),
+                "recorded_at": utc_now().isoformat(),
             }
             record["signature"] = self._sign(record)
             self._path.parent.mkdir(parents=True, exist_ok=True)

@@ -109,6 +109,8 @@ from dataclasses import replace as dataclass_replace
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
+from remora.timebase import utc_now
+
 if TYPE_CHECKING:
     from collections.abc import Collection, Mapping
     from typing import Any
@@ -126,7 +128,7 @@ def _get_signing_key() -> bytes | None:
 
 
 def _utcnow_iso() -> str:
-    return datetime.now(UTC).isoformat()
+    return utc_now().isoformat()
 
 
 @dataclass(frozen=True)
@@ -622,7 +624,7 @@ class A2AGovernanceEnvelope:
                 failures.append(f"scope_exceeds_delegation:{','.join(sorted(excess))}")
 
         # 10. Timestamps — malformed values are failures, never exceptions.
-        now_dt = now or datetime.now(UTC)
+        now_dt = now or utc_now()
         issued = _parse_iso_or_none(self.issued_at)
         if issued is None:
             failures.append("malformed_timestamp:issued_at")

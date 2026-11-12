@@ -36,6 +36,7 @@ from remora.enforcement.token import (
     TokenVerificationResult,
 )
 from remora.observability.events import governance_event
+from remora.timebase import utc_now
 
 
 @dataclass(frozen=True)
@@ -415,7 +416,7 @@ class EnforcementGate:
             issued = datetime.fromisoformat(token.issued_at)
             current = (
                 datetime.fromisoformat(now)
-                if now is not None else datetime.now(UTC)
+                if now is not None else utc_now()
             )
             if issued.tzinfo is None:
                 issued = issued.replace(tzinfo=UTC)

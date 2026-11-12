@@ -48,11 +48,11 @@ import hmac
 import json
 from collections.abc import Iterator
 from dataclasses import dataclass
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from remora.governance.envelope import DecisionEnvelope
+from remora.timebase import utc_now
 
 # ---------------------------------------------------------------------------
 # Chain entry
@@ -166,7 +166,7 @@ class RemoraAuditChain:
             self._prev_hash, request_id, gate_outcome, policy_version
         )
         signature = self._sign(entry_hash) if self._secret else None
-        ts = datetime.now(UTC).isoformat()
+        ts = utc_now().isoformat()
 
         entry = ChainEntry(
             index=len(self._entries) + 1,

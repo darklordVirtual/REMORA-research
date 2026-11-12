@@ -94,7 +94,6 @@ import json
 import math
 import re
 import sqlite3
-import time
 from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -103,6 +102,8 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
+
+from remora.timebase import unix_now
 
 SCHEMA = "remora-cumulative-limits/v1"
 MAX_UNITS = 10**12  # bound on any scaled amount, limit or baseline
@@ -914,7 +915,7 @@ _OPERATION_SELECT = ",".join(_OPERATION_FIELDS)
 
 def _epoch(now: str | float | None) -> float:
     if now is None:
-        return time.time()
+        return unix_now()
     if isinstance(now, int | float):
         return float(now)
     parsed = datetime.fromisoformat(now)
@@ -1447,7 +1448,7 @@ class LimitGuard:
                 conn.execute("UPDATE limit_operation SET resolved_by=?, resolution=?, "
                              "evidence_ref=?, reason=?, resolved_at=?, audit_recorded=0 "
                              "WHERE operation_id=?",
-                             (resolved_by, resolution, evidence_ref, reason, time.time(),
+                             (resolved_by, resolution, evidence_ref, reason, unix_now(),
                               operation_id))
         except Exception:
             return LEDGER_UNAVAILABLE
