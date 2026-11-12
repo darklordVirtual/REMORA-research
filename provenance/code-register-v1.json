@@ -11918,9 +11918,9 @@
     },
     "pyproject.toml": {
       "concepts": [],
-      "git_blob": "501afbeaa7029ca05b13bef82f877d5293e343f6",
+      "git_blob": "d0c45ce7c06513175795dad9b26eb7fe65259fa1",
       "mode": "100644",
-      "sha256": "48e1dcc0630947b09315e88954f98ba849b51529a3904323591960e059e07a32"
+      "sha256": "570a756f266a853418799ae756df366f48f60bf9791e870a4904ca0b7a9c022a"
     },
     "remora/README.md": {
       "concepts": [],
@@ -24247,7 +24247,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "d44845123a2811d4e4ea565ddd7c8c0d1aa33eb48ff3b80af4a77312b08b3fab",
+  "register_sha256": "b22b3834bf82229abcd3a71b5b6a8e3a87c1d5c707fbdf4ddff6b60ca95ec0cb",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
