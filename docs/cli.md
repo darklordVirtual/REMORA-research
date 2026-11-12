@@ -39,6 +39,8 @@ python -m remora assess drop_database        # zero flags: risk/type inferred fr
 | `init-review` | Generate a complete strict-profile configuration under `.remora/`: generated keys, a signed ToolSpec bundle for a demo tool, a registry module, an intent source, durable-state path, and one env file per custody half. Automates the ceremony; removes no invariant. |
 | `effect-verify` | Read back an external object over HTTP and verify a declared delta (property G). Exit 0 only for `EFFECT_VERIFIED`; mismatch 40, unobservable 41, verifier failed 42. |
 | `doctor` | Environment self-check: what works, what's missing, how to fix it (`--json` for CI). |
+| `sign-limits POLICY --out FILE` | Validate a `remora-cumulative-limits/v1` policy against the loader and Ed25519-sign it to a `limits.json` envelope. `--new-key` prints a fresh signing seed and its public key. The seed comes from `REMORA_LIMITS_SIGNING_SEED`; run it where the key is kept, never on the REMORA host. |
+| `export-contract-files DIR` | Write the contract files an external host pins to, from the installed package: the SDK public-API snapshot (`public_api_v1.json`), the OpenAPI document (`openapi.json`) and the ToolSpec schemas. |
 
 Mistyped a command? The CLI suggests the closest one (`remora asses` →
 `did you mean 'assess'?`).
