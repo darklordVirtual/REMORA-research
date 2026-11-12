@@ -2889,9 +2889,9 @@
     },
     "artifacts/interop/remora-boundary-summary-v1.json": {
       "concepts": [],
-      "git_blob": "c70fce6f3b5e099b49104c37666cf7ae817f725b",
+      "git_blob": "ef89740b55f25263a0c6fa9ac2329e09eed56541",
       "mode": "100644",
-      "sha256": "fed87965140413b006830355c0db5273db6e817edf6fc92d4423700d50569f8d"
+      "sha256": "39025018f275bea3ade48b0bcb67da3650b5fdb22248c17a690aecc4f694970d"
     },
     "artifacts/interop/runs/README.md": {
       "concepts": [],
@@ -7295,9 +7295,9 @@
     },
     "docs/assurance/capability_register_v1.yaml": {
       "concepts": [],
-      "git_blob": "6b3609c8266d57c9c8d7a349fad0fd90e220ff6a",
+      "git_blob": "70e2af191a102f839cd6dd76fc9116c450b89929",
       "mode": "100644",
-      "sha256": "f5cb108a4637b2dd5db182f41899cd1ba0565b63ca2014b23c9a17624551ad01"
+      "sha256": "684e8909cc1a9cfb55f57fac39de6e4ceb3cd3cc9f2e76facd470222002a2055"
     },
     "docs/assurance/claim_metric_binding_baseline.json": {
       "concepts": [],
@@ -8412,9 +8412,9 @@
     },
     "docs/interop/remora-boundaries-v1.yaml": {
       "concepts": [],
-      "git_blob": "42f26e9a1ba3421e744c222b4b79ec15673905f2",
+      "git_blob": "76d6ff7d5e6e1f804348a4ca67cb38bd86425952",
       "mode": "100644",
-      "sha256": "e7442a6c2805749c93f6e979782538d09e9d10262287c3af03fd94051920d925"
+      "sha256": "e1def7eada911cf4b8428efebf965468b9cfd05bb59f0548835dd415ada32f9a"
     },
     "docs/interop/remora-capabilities-v1.schema.json": {
       "concepts": [],
@@ -24259,7 +24259,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "15610d6f70fcb3712c504e8389cef0a6e2a2dcd2c8f095878bb3eaa9667a074e",
+  "register_sha256": "d76cd88e859a403cc1290bc0332652ebefa5026a0090930ac1fce856a3f2692a",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
