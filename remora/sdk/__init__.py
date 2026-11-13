@@ -58,6 +58,7 @@ from remora.sdk.gate import (
     verdict_for_action,
 )
 from remora.policy.observation import PolicyObservation
+from remora.sdk.whatif import EngineOptions, WhatIfReport, what_if
 from remora.sdk.models import (
     ApprovalResult,
     AssessmentResult,
@@ -96,6 +97,7 @@ __all__ = [
     "DerivationProposal",
     "EffectStatus",
     "EffectVerificationView",
+    "EngineOptions",
     "ExecutionResult",
     "GateDecision",
     "GateVerdict",
@@ -123,11 +125,13 @@ __all__ = [
     "ToolSpecIdentity",
     "UnknownExecutionStateError",
     "UnresolvedOperation",
+    "WhatIfReport",
     "build_postcondition",
     "content_digest",
     "evaluate_policy",
     "verdict_for_action",
     "verify_effect",
+    "what_if",
 ]
 
 

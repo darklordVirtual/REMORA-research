@@ -4,6 +4,12 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### SDK: the policy what-if through `remora.sdk` (2026-11-13)
+
+- `remora.sdk.what_if(observation, *, target, max_depth, max_evaluations, engine_options)` runs the decision-boundary analysis of `remora.policy.whatif.what_if` on a `PolicyObservation` and returns its `WhatIfReport` (re-exported; `to_dict()` is JSON-ready). A host that may import only `remora.sdk`, such as DCSIM's binding, could reach it only through top-level `remora` until now. Same answer as the internal function for the same engine, pure like `evaluate_policy`, and an analysis, not a grant: no token, grant or lease.
+- `remora.sdk.EngineOptions` names the engine flags to analyse under; `EngineOptions.execution_surface(...)` is the flag set `/v1/execution` uses (execution profile and strict monotonicity on) with the operator's opt-in ACCEPT paths as arguments. Nothing is read from the environment.
+- No engine, lever or decision changes. The SDK snapshot gains `EngineOptions`, `WhatIfReport` and `what_if`. Documented in `docs/sdk.md`. Tests: `tests/test_sdk_what_if.py` (10).
+
 ### Execution: an opt-in ACCEPT path for bounded, reversible writes, and the tool metadata checked against the signed ToolSpec (2026-11-13)
 
 - `remora/policy/decision_engine.py`: new opt-in `bounded_write_accept` (`REMORA_BOUNDED_WRITE_ACCEPT` on the execution surface, off by default; issue #1233). It accepts only `action_type` exactly `write`, at or below a tier ceiling (`REMORA_BOUNDED_WRITE_MAX_TIER`, `low` by default, `medium` allowed, anything else refuses to start), with `rollback_available` and `schema_valid` true, every negative check of the low-consequence path (now shared, not copied), no uncertain transition or environment mismatch, a named non-production target, and two facts only the server sets: the signed ToolSpec is enforced for the tool and agrees with its classification, and the cumulative-limit policy in force meters it. A server-resolved intent authority is required unless `REMORA_BOUNDED_WRITE_REQUIRE_INTENT=0`. Placed after every guard and gate, so it only converts a fall-through; decisions carry reason `bounded_write_accept`. Downstream is unchanged: past a limit's `dual_control_above` the ACCEPT becomes ESCALATE, and the reservation at dispatch still charges and refuses `limit_exceeded`. The three engine flags join the policy identity only when on, so every identity already reported stands.
