@@ -216,6 +216,12 @@ class OPAContext:
     # express the rule the engine enforces. Tri-state, and None is never
     # "authorized".
     intent_authority_present: bool | None
+    # The two server-only facts the bounded-write ACCEPT path reads (issue
+    # #1233): a signed ToolSpec enforced for the tool, and a cumulative-limit
+    # meter governing it. Exported so a Rego author can express the same rule;
+    # None outside /v1/execution with REMORA_BOUNDED_WRITE_ACCEPT on.
+    toolspec_enforced: bool | None
+    cumulative_limit_metered: bool | None
 
     # Misspecification context
     environment_confidence: float | None

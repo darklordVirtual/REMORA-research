@@ -432,6 +432,7 @@ pytest_add_cli_args_test_selection = [
     "tests/test_authorization_context_golden_vectors.py",
     "tests/test_binding_policy.py",
     "tests/test_binding_policy_matrix.py",
+    "tests/test_bounded_write_accept_api.py",
     "tests/test_callable_closure_digest.py",
     "tests/test_cli_dcsim_contract.py",
     "tests/test_timebase.py",
