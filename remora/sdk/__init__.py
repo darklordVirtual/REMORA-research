@@ -120,7 +120,6 @@ __all__ = [
     "SemanticAssessment",
     "ServerError",
     "ToolCall",
-    "ToolDidNotExecute",
     "ToolSpecIdentity",
     "UnknownExecutionStateError",
     "UnresolvedOperation",
@@ -143,11 +142,4 @@ def __getattr__(name: str) -> object:
         from remora.sdk.async_client import AsyncRemoraClient
 
         return AsyncRemoraClient
-    if name == "ToolDidNotExecute":
-        # What a host's tool adapter raises when it knows its effect did not
-        # happen. Defined beside the dispatcher that catches it; re-exported so
-        # a host need not import the enforcement package to say so.
-        from remora.enforcement.lease import ToolDidNotExecute
-
-        return ToolDidNotExecute
     raise AttributeError(f"module 'remora.sdk' has no attribute {name!r}")

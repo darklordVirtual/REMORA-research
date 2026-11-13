@@ -9,9 +9,7 @@ only:
   as ``EFFECT_VERIFIED`` with a computed verdict through the SDK, although the
   route accepts ``observed`` and ``arguments``;
 * ``resolve_unknown`` sent its default empty ``reason``, which the route always
-  refuses;
-* a tool adapter that knows its effect did not happen had to import
-  ``remora.enforcement.lease`` to say so.
+  refuses.
 """
 from __future__ import annotations
 
@@ -114,13 +112,3 @@ def test_resolve_unknown_sends_a_given_reason():
     _sync(seen).resolve_unknown("op-1", executed=True, evidence_ref="journal:1",
                                 reason="read back from the controller")
     assert seen[-1]["body"]["reason"] == "read back from the controller"
-
-
-def test_the_non_execution_statement_is_reachable_from_the_sdk():
-    import remora.sdk as sdk
-    from remora.enforcement.lease import ToolDidNotExecute
-
-    assert sdk.ToolDidNotExecute is ToolDidNotExecute
-    assert "ToolDidNotExecute" in sdk.__all__
-    raised = sdk.ToolDidNotExecute("command-service", "write refused: RATE_LIMITED")
-    assert raised.source == "command-service"

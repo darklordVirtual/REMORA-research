@@ -10,7 +10,6 @@ This file lists externally relevant changes by release. Fine-grained development
 - `--signed-at` on `build-toolspec` and `sign-limits` fixes the recorded signing time, so one seed and one input give the same bytes.
 - SDK: `record_effect(..., observed=, arguments=)` on both clients hands the verifier's observation and the approved arguments to the route, which already accepted them; without them a write could not be settled as `EFFECT_VERIFIED` with a computed verdict through the SDK. Omitted, the request is what it was.
 - SDK: `resolve_unknown` refuses an empty `reason` with `ValueError` before any request. Its default was the empty string, which the route always refuses with 422.
-- SDK: `ToolDidNotExecute` is re-exported from `remora.sdk`, so a host's tool adapter can state that its effect did not happen without importing `remora.enforcement`. The public API snapshot has 47 symbols.
 
 ### Embedding: one reading of the current time on the governed path, which a host can supply (2026-11-12)
 

@@ -39,7 +39,6 @@
     "SemanticAssessment": "class",
     "ServerError": "exception",
     "ToolCall": "class",
-    "ToolDidNotExecute": "exception",
     "ToolSpecIdentity": "class",
     "UnknownExecutionStateError": "exception",
     "UnresolvedOperation": "class",
