@@ -1087,6 +1087,12 @@ def _validate_deployment_tool_metadata() -> None:
     if not os.getenv(_TOOL_METADATA_ENV, "").strip():
         return
     declared = load_deployment_tool_metadata()  # raises on anything untrusted
+    # Issue #1233: with a signed ToolSpec bundle configured too, the two must
+    # agree on action_type and risk_tier for every tool both name.
+    from remora.execution.authorization import load_toolspec_bundle
+    from remora.toolcall.deployment_registry import cross_check_toolspec
+
+    cross_check_toolspec(declared, load_toolspec_bundle(os.environ))
     logging.getLogger("remora.api").info(
         "deployment tool metadata loaded: %d tool(s) classified from %s",
         len(declared), os.getenv(_TOOL_METADATA_ENV, ""),
@@ -1328,10 +1334,17 @@ ENGINE_IDENTITY_FLAGS: tuple[str, ...] = (
     # Stricter only, but it changes which decisions are reachable: a
     # deployment that turns it on must report another policy identity.
     "strict_monotone",
+    # Issue #1233: the bounded-write path, its tier ceiling and whether it
+    # needs a resolved intent each widen or narrow the reachable ACCEPT set.
+    "bounded_write_accept",
+    "bounded_write_medium_tier",
+    "bounded_write_intent_optional",
 )
 #: Flags added after identities were published. Hashed only when on, so a
 #: deployment that leaves them off keeps the identity it already reported.
-_IDENTITY_FLAGS_HASHED_WHEN_ON: frozenset[str] = frozenset({"strict_monotone"})
+_IDENTITY_FLAGS_HASHED_WHEN_ON: frozenset[str] = frozenset({
+    "strict_monotone", "bounded_write_accept", "bounded_write_medium_tier",
+    "bounded_write_intent_optional"})
 
 
 def engine_mode_identity(engine: Any) -> dict[str, bool]:

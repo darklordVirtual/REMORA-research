@@ -502,6 +502,10 @@ UNLEVERED_ENGINE_FIELDS: Mapping[str, str] = {
     "argument_resolver_tools": "the lever completes the arguments instead of adding a resolver",
     "assurance_root": "audit anchor only; not read by any gate",
     "weighted_support": "credal input folded into trust; high_trust covers the accept paths",
+    "toolspec_enforced": "server-only bounded-write fact; the execution API derives it "
+                         "from the signed ToolSpec in force, no declaration can set it",
+    "cumulative_limit_metered": "server-only bounded-write fact; the execution API derives "
+                                "it from the limit policy in force, no declaration can set it",
 }
 
 #: For each hard-guard reason, the observation fields its predicate reads. For

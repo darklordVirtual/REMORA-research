@@ -250,7 +250,7 @@ connection per request.
 ## PolicyObservation, input contract
 
 `PolicyObservation` (`remora/policy/observation.py`) is a frozen dataclass
-with 84 fields; on the research `/v1/assess` path **all fields except
+with 86 fields; on the research `/v1/assess` path **all fields except
 `question` are optional and caller-populated**, REMORA is stateless and
 performs no detection itself (the engine treats `None` as "unknown, not
 safe"); see the assess-time authorities subsection below for the two
@@ -272,6 +272,7 @@ Selected fields by group:
 | Session & fleet | `session_action_count`, `session_cumulative_risk`, `similar_action_seen_count`, `policy_generalization_risk`, `fleet_level_effect` |
 | Binding | `tool_call_hash`, SHA-256 of the full canonical tool call (name, exact args, tenant, target); recompute before execution and refuse on mismatch |
 | Flow control | `flow_status`, `flow_confidentiality_violation`, `flow_integrity_violation`, `flow_epoch`, `flow_digest`. Set only by `/v1/execution/*` with `REMORA_FLOW_CONTROL=1`, from the flow context and the signed ToolSpec; no request field sets them. Rungs F1 to F6 read the first three (IFC-05b) |
+| Bounded-write facts | `toolspec_enforced`, `cumulative_limit_metered`. Set only by `/v1/execution/*` while `REMORA_BOUNDED_WRITE_ACCEPT=1`, from the signed ToolSpec bundle and the cumulative-limit policy in force; no request field sets them. Both must be `True` for `BOUNDED_WRITE_ACCEPT`. On the research path a caller may populate them, but no engine there has the bounded-write path on |
 | Execution identity | `execution_context_hash`, optional digest of deployment-owned context captured before assessment and bound through authorization, dispatch and effect evidence; see [execution quickstart](deployment/execution-quickstart.md#optional-authoritative-execution-context) |
 
 Construct from a dict with `PolicyObservation.from_json_record(record)`
