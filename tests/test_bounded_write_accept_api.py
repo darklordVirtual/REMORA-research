@@ -23,6 +23,7 @@ import json
 import os
 import subprocess
 import sys
+import uuid
 from pathlib import Path
 
 import pytest
@@ -135,9 +136,11 @@ def _call(tool: str = "run_fan_minutes", target: str = "staging", **arguments) -
     if not arguments:
         arguments = ({"unit": "AHU-1", "minutes": 10} if tool == "run_fan_minutes"
                      else {"unit": "AHU-1"})
+    # A context of its own per call: repeating one call in one context is
+    # what loop safety escalates, and that is not what these tests are about.
     return {"tool_name": tool, "arguments": arguments, "target_environment": target,
             "schema_valid": True, "rollback_available": True,
-            "context_id": "ctx-1", "task_id": "task-1"}
+            "context_id": f"ctx-{uuid.uuid4().hex[:8]}", "task_id": "task-1"}
 
 
 def _assess(client, call: dict) -> dict:

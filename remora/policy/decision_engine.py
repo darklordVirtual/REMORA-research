@@ -386,7 +386,16 @@ def _is_low_consequence(obs: PolicyObservation, *, allow_production: bool = Fals
     """
     if (obs.action_type or "").strip().lower() not in _READ_ONLY_ACTION_TYPES:
         return False
+    return _carries_no_negative_signal(obs, allow_production=allow_production)
 
+
+def _carries_no_negative_signal(obs: PolicyObservation, *,
+                                allow_production: bool = False) -> bool:
+    """Every negative check of ``_is_low_consequence`` except the action type.
+
+    Shared with ``_is_bounded_write`` so the two paths cannot drift apart on
+    what counts as a recorded concern.
+    """
     if obs.argument_tainted or obs.tool_forbidden:
         return False
     if obs.adversarial_detected or obs.coercion_detected:
@@ -486,6 +495,66 @@ def _is_grounded_read(obs: PolicyObservation, *, allow_production: bool = False)
 
 #: The risk tiers in order; a call is decided no more approvably than at a lower tier.
 _TIER_ORDER: tuple[str, ...] = ("low", "medium", "high", "critical")
+
+#: The one action type the bounded-write path may accept. Exact match: a
+#: destructive, production, financial or security write is never "bounded",
+#: whatever its tier.
+_BOUNDED_WRITE_ACTION_TYPE = "write"
+
+
+def _is_bounded_write(obs: PolicyObservation, *, max_tier: str = "low",
+                      require_intent: bool = True) -> bool:
+    """True when a write is bounded by the operator's own contract (issue #1233).
+
+    All of these must hold, and ``None`` never satisfies any of them:
+
+    - ``action_type`` is exactly ``write``;
+    - ``risk_tier`` is at or below ``max_tier`` (``low`` or ``medium``);
+    - ``rollback_available`` and ``schema_valid`` are both ``True``;
+    - every negative check of ``_is_low_consequence`` (taint, forbidden,
+      adversarial, coercion, blackmail, distribution shift, invalid schema,
+      failed counterfactual, contradicted evidence, unsatisfiable arguments,
+      unsupported argument values) is clear;
+    - the target environment is named and is not production;
+    - ``toolspec_enforced`` and ``cumulative_limit_metered`` are both ``True``,
+      facts only the execution API sets: the signed ToolSpec bounds what the
+      call may be, and the limit bounds how much of it may happen;
+    - no uncertain state transition and no environment mismatch;
+    - nothing required is missing or unvalidated, and neither the goal match
+      nor the declared effect is contradicted;
+    - with ``require_intent``, an intent authority resolved server-side; a
+      presented intent that did not resolve refuses either way.
+
+    What it asserts is consequence, not correctness: a wrong bounded write is
+    reversible and cannot exceed the budget the operator signed.
+    """
+    if (obs.action_type or "").strip().lower() != _BOUNDED_WRITE_ACTION_TYPE:
+        return False
+    if not _carries_no_negative_signal(obs):
+        return False
+    tier = _normalize_risk_tier(obs.risk_tier)
+    if tier not in _TIER_ORDER or _TIER_ORDER.index(tier) > _TIER_ORDER.index(max_tier):
+        return False
+    if obs.rollback_available is not True or obs.schema_valid is not True:
+        return False
+    environment = (obs.target_environment or "").strip().lower()
+    if not environment or environment in _PROD_ENVS:
+        return False
+    if obs.toolspec_enforced is not True or obs.cumulative_limit_metered is not True:
+        return False
+    # A write whose post-state is uncertain, or whose environment does not
+    # match its declaration, is not one a rollback is known to undo.
+    if obs.state_transition_uncertain or obs.environment_mismatch_detected:
+        return False
+    if obs.missing_required_arguments or obs.unvalidated_required_arguments:
+        return False
+    if obs.tool_matches_goal is False or obs.expected_effect_matches is False:
+        return False
+    if obs.intent_authority_present is False:
+        return False
+    if require_intent and obs.intent_authority_present is not True:
+        return False
+    return True
 #: Approvability on the execution path: an ABSTAIN has no route, an ESCALATE
 #: one a higher authority can use, a VERIFY one an ordinary reviewer can use.
 _APPROVABILITY: dict[DecisionAction, int] = {
@@ -926,6 +995,9 @@ class RemoraDecisionEngine:
         low_consequence_accept: bool = False,
         grounded_read_accept: bool = False,
         grounded_read_in_production: bool = False,
+        bounded_write_accept: bool = False,
+        bounded_write_medium_tier: bool = False,
+        bounded_write_intent_optional: bool = False,
         execution_profile: bool = False,
         semantic_authority_floor: bool = False,
         verify_invariants: bool = True,
@@ -957,6 +1029,19 @@ class RemoraDecisionEngine:
         # the grounded-read path may also fire for a production target. It does
         # nothing without grounded_read_accept.
         self.grounded_read_in_production = grounded_read_in_production
+        # Opt-in (issue #1233): the deterministic ACCEPT for a write bounded by
+        # the operator's own contract — see _is_bounded_write. Off by default;
+        # it accepts nothing unless the execution API also establishes that a
+        # signed ToolSpec is enforced and a cumulative limit meters the tool.
+        self.bounded_write_accept = bounded_write_accept
+        # The path's tier ceiling is ``low`` unless this raises it to
+        # ``medium``; nothing raises it further. Inert without the path.
+        self.bounded_write_medium_tier = bounded_write_medium_tier
+        # The path requires a server-resolved intent authority unless this
+        # drops that one clause (a host without a semantic bundle has no
+        # intent source). A presented intent that did not resolve still
+        # refuses. Inert without the path.
+        self.bounded_write_intent_optional = bounded_write_intent_optional
         # Issue #35: the execution profile makes it STRUCTURALLY impossible
         # for a probabilistic signal (conformal/temperature/evidence/
         # ordered-trust) to directly produce ACCEPT — those paths route to
@@ -1612,6 +1697,21 @@ class RemoraDecisionEngine:
             reasons.append(DecisionReason.LOW_CONSEQUENCE_ACCEPT)
             return self._build(DecisionAction.ACCEPT, reasons, obs, credal=_credal, raw_obs=_raw_obs)
 
+        # ── BOUNDED WRITE ACCEPT (opt-in, issue #1233) ──────────────────────
+        # Same placement guarantee as the two paths above: after every hard
+        # guard and blocking gate, so it only converts a fall-through. It runs
+        # before AUTHORITY_RESOLVED_REVIEW because that is a fall-through too,
+        # and a resolved authority is one of this path's own conditions.
+        # Downstream nothing changes: an ACCEPT past a limit's
+        # dual_control_above is lowered to ESCALATE, and the reservation at
+        # dispatch still charges and can refuse.
+        if self.bounded_write_accept and _is_bounded_write(
+                obs, max_tier="medium" if self.bounded_write_medium_tier else "low",
+                require_intent=not self.bounded_write_intent_optional):
+            reasons.append(DecisionReason.BOUNDED_WRITE_ACCEPT)
+            return self._build(DecisionAction.ACCEPT, reasons, obs,
+                               credal=_credal, raw_obs=_raw_obs)
+
         # A server-resolved authority means the deployment recognised the work
         # order this call claims to act under. Falling through to ABSTAIN here
         # left an accurately-declared low/medium-risk call with NO route to a
@@ -1892,6 +1992,17 @@ class RemoraDecisionEngine:
           f"risk_tier={obs.risk_tier!r}, action_type={obs.action_type!r}",
           "ACCEPT")
 
+        r("bounded_write_accept",
+          DecisionReason.BOUNDED_WRITE_ACCEPT in report.reasons,
+          f"action_type={obs.action_type!r}, risk_tier={obs.risk_tier!r}, "
+          f"rollback_available={obs.rollback_available}, "
+          f"schema_valid={obs.schema_valid}, "
+          f"target_environment={obs.target_environment!r}, "
+          f"toolspec_enforced={obs.toolspec_enforced}, "
+          f"cumulative_limit_metered={obs.cumulative_limit_metered}, "
+          f"intent_authority_present={obs.intent_authority_present}",
+          "ACCEPT")
+
         r("default_safe_abstain",
           DecisionReason.DEFAULT_SAFE_ABSTAIN in report.reasons,
           "no prior rule matched",
@@ -2049,6 +2160,13 @@ class RemoraDecisionEngine:
                      "contracts, system of record and a resolved intent "
                      "authority; no evidence/trust signal used"
                 if DecisionReason.GROUNDED_READ_ACCEPT in reasons
+                # Bounded by the signed contract and the metered limit, not by
+                # evidence or trust; the generic wording would name signals
+                # this path does not consult.
+                else "bounded write — reversible write under an enforced signed "
+                     "ToolSpec and a cumulative-limit meter; no evidence/trust "
+                     "signal used"
+                if DecisionReason.BOUNDED_WRITE_ACCEPT in reasons
                 else {
                     DecisionAction.ACCEPT: "selective — accepted based on evidence/trust state",
                     DecisionAction.VERIFY: "held for verification",

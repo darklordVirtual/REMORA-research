@@ -55,6 +55,12 @@ class DecisionReason(str, Enum):
     # read-only call that is the wrong call for the task, because
     # tool_matches_goal and expected_effect_matches must both be True.
     GROUNDED_READ_ACCEPT = "grounded_read_accept"
+    # A write the operator's own contract bounds (issue #1233, opt-in): exactly
+    # action_type "write", at or below the configured tier, reversible and
+    # schema-valid, outside production, under an enforced signed ToolSpec and a
+    # cumulative-limit meter. Asserts bounded consequence, like
+    # LOW_CONSEQUENCE_ACCEPT; the bound is the limit, not read-only semantics.
+    BOUNDED_WRITE_ACCEPT = "bounded_write_accept"
     #: A call made under a server-resolved intent authority fell through every
     #: gate without an ACCEPT. Routed to a person instead of ABSTAIN: the
     #: deployment recognised the work order, so there is something for a

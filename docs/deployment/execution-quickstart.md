@@ -314,6 +314,48 @@ exclusion, and the same reads go to review again. Writes are unaffected either
 way. `REMORA_PILOT_TARGET_ENVIRONMENT` lets the battery name another
 environment than `prod`; the report says which one ran.
 
+### Bounded writes without a person (opt-in, issue #1233)
+
+By default every write on `/v1/execution` needs a person: the two
+deterministic ACCEPT paths above accept reads only. A deployment whose own
+contract allows a small, reversible write without approval can turn on a third
+path. It is off unless set, and with it off every decision is unchanged.
+
+| Variable | Default | Effect |
+|---|---|---|
+| `REMORA_BOUNDED_WRITE_ACCEPT` | off | `1` turns on `bounded_write_accept`. |
+| `REMORA_BOUNDED_WRITE_MAX_TIER` | `low` | The highest risk tier the path accepts: `low` or `medium`. Any other value refuses to start. |
+| `REMORA_BOUNDED_WRITE_REQUIRE_INTENT` | on | The path needs a server-resolved intent authority (`intent_ref` resolved by the semantic bundle's `resolve_intent`). `0` drops this one clause for a host that declares no intent source; an `intent_ref` that was presented and did not resolve still refuses. |
+
+The path accepts only when all of these hold; anything else decides exactly
+as it would without the flag. The decision carries reason
+`bounded_write_accept`.
+
+- `action_type` is exactly `write` (not `destructive_write`,
+  `production_write`, `delete` or any other kind);
+- the risk tier is at or below the ceiling;
+- `rollback_available` and `schema_valid` are both declared `true` in
+  `REMORA_TOOL_METADATA_FILE` (a request can lower them, never raise them);
+- no negative signal the low-consequence path checks (taint, forbidden tool,
+  adversarial, coercion, blackmail, distribution shift, failed counterfactual,
+  contradicted evidence, unsatisfiable or unsupported arguments), no uncertain
+  state transition, no environment mismatch, nothing missing or unvalidated;
+- the target environment is named and is not `prod`, `production` or `live`;
+- a signed ToolSpec bundle (`REMORA_TOOLSPEC_BUNDLE`) is enforced for the tool
+  and its spec declares the same `action_type` and `risk_tier`;
+- the cumulative-limit policy in force (`REMORA_LIMITS_FILE`) has a meter for
+  the tool.
+
+The last two are set by the server from its configuration; a request field
+cannot set them. Downstream nothing changes: an ACCEPT whose total would pass
+a limit's `dual_control_above` becomes ESCALATE for two approvers, and the
+reservation at dispatch still charges the limit and refuses
+`limit_exceeded`. The three settings are part of the policy identity when on.
+
+When both `REMORA_TOOL_METADATA_FILE` and `REMORA_TOOLSPEC_BUNDLE` are set,
+the server refuses to start if the two disagree on `action_type` or
+`risk_tier` for any tool both name. The error names the tool and the field.
+
 The pilot runs with a signed ToolSpec bundle
 (`deploy/ot-pilot/build_toolspec.py`, RMR-CR-001). The six specs are authored
 from the deployment's own sources: the callable in `ot_registry.py`, the

@@ -400,6 +400,17 @@ class PolicyObservation:
     flow_epoch: int | None = None
     flow_digest: str | None = None
 
+    # Bounded-write facts (issue #1233). Server-only: set by the execution API
+    # from its own configuration, and only while REMORA_BOUNDED_WRITE_ACCEPT
+    # is on; no request field can set either. ``toolspec_enforced`` is True
+    # when a signed ToolSpec bundle is enforced for this tool and the spec's
+    # action type and risk tier are the ones this observation carries.
+    # ``cumulative_limit_metered`` is True when the cumulative-limit policy in
+    # force meters this tool, so the reservation at dispatch charges it.
+    # None → not established; only True can carry BOUNDED_WRITE_ACCEPT.
+    toolspec_enforced: bool | None = None
+    cumulative_limit_metered: bool | None = None
+
     # Policy generalization / fleet-level risk (v0.9)
     # All fields are caller-populated — REMORA is stateless.
     similar_action_seen_count: int | None = None

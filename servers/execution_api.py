@@ -301,6 +301,15 @@ def _engine_from_env() -> RemoraDecisionEngine:
         # without a line-pinned exception that moves with every edit.
         return value.strip().lower() in {"1", "true", "yes", "on"}
 
+    # Issue #1233: the bounded-write path's tier ceiling. Only low (the
+    # default) or medium; anything else refuses to start rather than quietly
+    # running under a ceiling the operator did not write.
+    max_tier = _env.environ.get("REMORA_BOUNDED_WRITE_MAX_TIER", "").strip().lower() or "low"
+    if max_tier not in {"low", "medium"}:
+        raise ValueError(
+            f"REMORA_BOUNDED_WRITE_MAX_TIER={max_tier!r}: the bounded-write ACCEPT "
+            "path accepts at most 'low' or 'medium'")
+
     return RemoraDecisionEngine(
         low_consequence_accept=_on(_env.environ.get("REMORA_LOW_CONSEQUENCE_ACCEPT", "")),
         grounded_read_accept=_on(_env.environ.get("REMORA_GROUNDED_READ_ACCEPT", "")),
@@ -309,6 +318,15 @@ def _engine_from_env() -> RemoraDecisionEngine:
         # without REMORA_GROUNDED_READ_ACCEPT it changes nothing.
         grounded_read_in_production=_on(
             _env.environ.get("REMORA_GROUNDED_READ_IN_PRODUCTION", "")),
+        # Opt-in (issue #1233): a write bounded by a signed ToolSpec and a
+        # cumulative-limit meter may ACCEPT; see _is_bounded_write. A resolved
+        # intent authority is required unless REMORA_BOUNDED_WRITE_REQUIRE_INTENT
+        # is explicitly off, for a host that declares no intent source.
+        bounded_write_accept=_on(_env.environ.get("REMORA_BOUNDED_WRITE_ACCEPT", "")),
+        bounded_write_medium_tier=max_tier == "medium",
+        bounded_write_intent_optional=_env.environ.get(
+            "REMORA_BOUNDED_WRITE_REQUIRE_INTENT", "1").strip().lower()
+        in {"0", "false", "no", "off"},
         # ON by default on the enforcing surface, stricter only: no risk
         # signal and no higher production-write tier makes a call more
         # approvable (RMR-AUD-001/003; NEGATIVE_RESULTS §90). The library
@@ -1618,6 +1636,35 @@ def _with_flow(obs: PolicyObservation, req: ToolCallRequest, tenant: str) -> Pol
     return dataclasses.replace(obs, **fields)
 
 
+def _with_bounded_write_facts(obs: PolicyObservation, req: ToolCallRequest) -> PolicyObservation:
+    """Add the two facts the bounded-write path needs (issue #1233).
+
+    The only writer of ``toolspec_enforced`` and ``cumulative_limit_metered``;
+    no request field can set either. With the path off the observation is
+    returned unchanged, so nothing else sees a difference.
+
+    ``toolspec_enforced`` is True only when a signed bundle is configured, it
+    signs this tool, and its action type and risk tier are the ones the
+    observation carries: a metadata file that relabels a signed write cannot
+    make it bounded (the startup cross-check refuses that file too).
+    ``cumulative_limit_metered`` is True only when the limit policy in force
+    names a meter for this tool, so the reservation at dispatch charges it.
+    """
+    if not getattr(_ENGINE, "bounded_write_accept", False):
+        return obs
+    enforced = False
+    bundle = _toolspec_bundle()
+    if bundle is not None and req.tool_name in bundle:
+        spec = bundle.get(req.tool_name)
+        enforced = (
+            spec.action_type.strip().lower() == (obs.action_type or "").strip().lower()
+            and spec.risk_tier.strip().lower() == (obs.risk_tier or "").strip().lower())
+    guard = _limit_guard()
+    metered = guard is not None and req.tool_name in guard.policy.meters
+    return dataclasses.replace(obs, toolspec_enforced=enforced,
+                               cumulative_limit_metered=metered)
+
+
 def _flow_spec(tool_name: str) -> Any:
     """The signed ToolSpec's ``flow`` block, or None (no bundle, no spec, no block).
 
@@ -2418,7 +2465,8 @@ def _observation_with_context(
         ),
     )
     if full is None:
-        return _with_flow(_registry_only_observation(req, tenant, registry_entry),
+        return _with_flow(_with_bounded_write_facts(
+            _registry_only_observation(req, tenant, registry_entry), req),
                           req, tenant), context
 
     target_environment = _effective_target_environment(
@@ -2455,7 +2503,7 @@ def _observation_with_context(
             target=target_environment,
         ),
     )
-    return _with_flow(obs, req, tenant), context
+    return _with_flow(_with_bounded_write_facts(obs, req), req, tenant), context
 
 
 def semantic_call_context(

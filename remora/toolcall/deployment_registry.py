@@ -56,6 +56,7 @@ from remora.toolcall.runtime_profile import validate_runtime_profile_prerequisit
 __all__ = [
     "DeploymentRegistryError",
     "KNOWN_ACTION_TYPES",
+    "cross_check_toolspec",
     "KNOWN_RISK_TIERS",
     "deployment_registry_digest",
     "load_deployment_tool_metadata",
@@ -248,6 +249,39 @@ def load_deployment_tool_metadata(
             )
         resolved[name] = _validate_entry(name, entry)
     return resolved
+
+
+#: The fields a signed ToolSpec also declares. Where the two disagree, the
+#: policy engine would decide on the metadata while the spec bound the lease.
+_CROSS_CHECKED_FIELDS: tuple[str, ...] = ("action_type", "risk_tier")
+
+
+def cross_check_toolspec(declared: Mapping[str, Mapping[str, Any]], bundle: Any) -> None:
+    """Refuse a declaration that contradicts the signed ToolSpec (issue #1233).
+
+    The engine decides on this file's ``action_type`` and ``risk_tier``; the
+    signed spec is what the lease and the dispatcher enforce. A file that
+    calls a signed ``write`` a ``read`` made the write reachable through the
+    read-only ACCEPT path, and the audit record called it a read. Only tools
+    both sides name are compared: a tool the bundle does not sign is refused
+    at assessment on its own.
+    """
+    if bundle is None:
+        return
+    for tool in sorted(declared):
+        if tool not in bundle:
+            continue
+        spec = bundle.get(tool)
+        for field_name in _CROSS_CHECKED_FIELDS:
+            mine = str(declared[tool].get(field_name, "")).strip().lower()
+            signed = str(getattr(spec, field_name, "")).strip().lower()
+            if mine != signed:
+                raise DeploymentRegistryError(
+                    f"{ENV_VAR}: tool {tool!r} declares {field_name} {mine!r}, but "
+                    f"its signed ToolSpec declares {field_name} {signed!r}. The "
+                    f"metadata file and the signed ToolSpec must agree; fix the "
+                    f"file or re-sign the spec."
+                )
 
 
 _CACHE: dict[str, dict[str, Any]] | None = None
