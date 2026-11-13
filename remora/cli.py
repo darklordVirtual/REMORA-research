@@ -1624,8 +1624,13 @@ def _cmd_sign_limits(args: argparse.Namespace) -> int:
     from datetime import UTC, datetime
 
     try:
+        given = _signing_time(args.signed_at, "sign-limits")
+    except ValueError as exc:
+        print(exc, file=sys.stderr)
+        return 2
+    try:
         key = SigningKey.from_text(seed, domains)
-        signed_at = (
+        signed_at = given or (
             datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z"))
         document = sign_policy(body, key, signed_at)
         public_key = key.verification_key().public_bytes.hex()
@@ -1636,6 +1641,153 @@ def _cmd_sign_limits(args: argparse.Namespace) -> int:
     Path(args.out).write_text(json.dumps(document, indent=2, ensure_ascii=False) + "\n",
                               encoding="utf-8")
     print(f"public key to trust: {public_key}", file=sys.stderr)
+    return 0
+
+
+def _signing_time(raw: str | None, command: str) -> str | None:
+    """A caller-given signing time, checked; None when the option is unset.
+
+    A host that derives its artifacts from a seed needs the same bytes for the
+    same inputs, and the stamp is the only part of a signed file that otherwise
+    changes from run to run.
+    """
+    if raw is None:
+        return None
+    from datetime import datetime
+
+    try:
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        parsed = None
+    if parsed is None or parsed.tzinfo is None:
+        raise ValueError(
+            f"remora {command}: --signed-at needs an ISO 8601 time with an offset, "
+            f"not {raw!r}")
+    return raw
+
+
+def _measured_spec(raw: dict, index: int) -> dict:
+    """One spec with its callable measured and its description digest computed."""
+    import hashlib
+    import importlib
+
+    from remora.toolcall.callable_digest import (
+        CallableSourceMismatch,
+        closure_digest,
+        source_digest,
+    )
+
+    name = raw.get("tool_id", f"#{index}")
+    spec = {k: v for k, v in raw.items() if k not in ("callable", "callable_digest_kind")}
+    target = raw.get("callable")
+    if target is not None and "callable_digest" in raw:
+        raise ValueError(
+            f"tool spec {name!r} gives both callable and callable_digest; "
+            "give the callable to have it measured, or the digest to declare it")
+    if target is None and "callable_digest" not in raw:
+        raise ValueError(
+            f"tool spec {name!r} needs callable ('module:function') or callable_digest")
+    if target is not None:
+        module_name, _, attribute = str(target).partition(":")
+        if not module_name or not attribute:
+            raise ValueError(
+                f"tool spec {name!r}: callable {target!r} is not 'module:function'")
+        try:
+            fn = getattr(importlib.import_module(module_name), attribute)
+        except (ImportError, AttributeError) as exc:
+            raise ValueError(
+                f"tool spec {name!r}: cannot load callable {target!r}: {exc}") from exc
+        kind = raw.get("callable_digest_kind", "source")
+        if kind not in ("source", "closure"):
+            raise ValueError(
+                f"tool spec {name!r}: callable_digest_kind is 'source' or 'closure'")
+        try:
+            spec["callable_digest"] = (
+                closure_digest(fn) if kind == "closure" else source_digest(fn))
+        except (CallableSourceMismatch, OSError, TypeError) as exc:
+            raise ValueError(
+                f"tool spec {name!r}: cannot measure callable {target!r}: {exc}") from exc
+    if "description" in spec:
+        spec["description_sha256"] = hashlib.sha256(
+            str(spec["description"]).encode("utf-8")).hexdigest()
+    spec.setdefault("signing_identity", "unsigned")
+    return spec
+
+
+def _cmd_build_toolspec(args: argparse.Namespace) -> int:
+    """Measure, validate and Ed25519-sign a ToolSpec bundle, so a host authors
+    one from the installed package without importing remora.toolcall."""
+    try:
+        from remora.crypto import SignatureDomain, SigningKey
+        from remora.toolcall.toolspec import ToolSpecBundle, ToolSpecRefused
+        from remora.toolcall.toolspec_sign import sign_with_seed
+
+        domains = [SignatureDomain.TOOLSPEC_BUNDLE]
+        if args.new_key:
+            key = SigningKey.generate(domains)
+            print(json.dumps({"seed": key.seed.hex(),
+                              "public_key": key.verification_key().public_bytes.hex()}))
+            return 0
+    except ModuleNotFoundError:
+        print("remora build-toolspec: needs the 'security' extra "
+              "(pip install 'remora-assurance[security]')", file=sys.stderr)
+        return 2
+    if not args.bundle or not args.out:
+        print("remora build-toolspec: bundle and --out are required", file=sys.stderr)
+        return 2
+    seed = os.environ.get("REMORA_TOOLSPEC_SIGNING_SEED", "").strip()
+    if not seed:
+        print("remora build-toolspec: REMORA_TOOLSPEC_SIGNING_SEED is not set",
+              file=sys.stderr)
+        return 2
+    text = Path(args.bundle).read_text(encoding="utf-8")
+    try:
+        body = json.loads(text)
+    except json.JSONDecodeError:
+        try:
+            import yaml
+        except ImportError:
+            print("remora build-toolspec: a YAML bundle needs PyYAML; install it or "
+                  "pass JSON", file=sys.stderr)
+            return 2
+        body = yaml.safe_load(text)
+    for entry in reversed(args.module_path or []):
+        if entry not in sys.path:
+            sys.path.insert(0, entry)
+    try:
+        signed_at = _signing_time(args.signed_at, "build-toolspec")
+        specs = body.get("tool_specs") if isinstance(body, dict) else None
+        if not isinstance(specs, list) or not specs:
+            raise ValueError("the bundle has no tool_specs")
+        if not all(isinstance(spec, dict) for spec in specs):
+            raise ValueError("every entry of tool_specs is a mapping")
+        names = [spec.get("tool_id") for spec in specs]
+        repeated = sorted({str(n) for n in names if names.count(n) > 1})
+        if repeated:
+            raise ValueError(f"tool specs are defined twice: {', '.join(repeated)}")
+        unsigned = {**body, "tool_specs": [
+            _measured_spec(spec, index) for index, spec in enumerate(specs)]}
+        key = SigningKey.from_text(seed, domains)
+        signed, public_key, digest = sign_with_seed(unsigned, seed, signed_at=signed_at)
+        # Refuse to write a bundle the runtime would refuse to load: same
+        # loader, same strictness, the key and the pin this run prints.
+        ToolSpecBundle.load(
+            signed, verification_keys=[key.verification_key()], accept_hmac=False,
+            pinned_bundle_digest=digest, require_pinned_digest=True)
+    except ModuleNotFoundError:
+        print("remora build-toolspec: needs the 'security' extra "
+              "(pip install 'remora-assurance[security]')", file=sys.stderr)
+        return 2
+    except ToolSpecRefused as exc:
+        print(f"remora build-toolspec: refused ({exc.reason_code}): {exc}", file=sys.stderr)
+        return 2
+    except (ValueError, KeyError, TypeError) as exc:
+        print(f"remora build-toolspec: invalid bundle: {exc}", file=sys.stderr)
+        return 2
+    Path(args.out).write_text(json.dumps(signed, indent=2, sort_keys=True) + "\n",
+                              encoding="utf-8")
+    print(json.dumps({"public_key": public_key, "pinned_digest": digest,
+                      "signing_identity": key.kid, "tools": len(signed["tool_specs"])}))
     return 0
 
 
@@ -1690,7 +1842,7 @@ def _cmd_export_contract_files(args: argparse.Namespace) -> int:
 
 _COMMANDS = ("try", "demo", "assess", "explain", "whatif", "replay", "serve",
              "provenance", "verify", "maturity", "doctor", "effect-verify",
-             "init-review", "sign-limits", "export-contract-files")
+             "init-review", "sign-limits", "build-toolspec", "export-contract-files")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -1902,6 +2054,24 @@ def main(argv: list[str] | None = None) -> int:
     sign_p.add_argument("--out", help="write the signed envelope here")
     sign_p.add_argument("--new-key", action="store_true",
                         help="print a fresh signing seed and its public key, then exit")
+    sign_p.add_argument("--signed-at", default=None,
+                        help="ISO 8601 signing time to record (default: now); "
+                             "fix it for a reproducible file")
+
+    toolspec_p = sub.add_parser(
+        "build-toolspec",
+        help="Measure, validate and Ed25519-sign a ToolSpec bundle (-> signed bundle)")
+    toolspec_p.add_argument("bundle", nargs="?",
+                            help="path to an unsigned bundle (JSON or YAML); each spec names "
+                                 "its callable as 'module:function' or declares callable_digest")
+    toolspec_p.add_argument("--out", help="write the signed bundle here")
+    toolspec_p.add_argument("--module-path", action="append", default=[],
+                            help="directory to import the callables from; repeatable")
+    toolspec_p.add_argument("--signed-at", default=None,
+                            help="ISO 8601 signing time to record (default: now); "
+                                 "fix it for a reproducible bundle")
+    toolspec_p.add_argument("--new-key", action="store_true",
+                            help="print a fresh signing seed and its public key, then exit")
 
     export_p = sub.add_parser(
         "export-contract-files",
@@ -1943,6 +2113,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_doctor(args)
     if args.command == "sign-limits":
         return _cmd_sign_limits(args)
+    if args.command == "build-toolspec":
+        return _cmd_build_toolspec(args)
     if args.command == "export-contract-files":
         return _cmd_export_contract_files(args)
 
