@@ -15,6 +15,7 @@
     "DerivationProposal": "class",
     "EffectStatus": "class",
     "EffectVerificationView": "class",
+    "EngineOptions": "class",
     "ExecutionResult": "class",
     "GateDecision": "class",
     "GateVerdict": "class",
@@ -42,11 +43,13 @@
     "ToolSpecIdentity": "class",
     "UnknownExecutionStateError": "exception",
     "UnresolvedOperation": "class",
+    "WhatIfReport": "class",
     "build_postcondition": "function",
     "content_digest": "function",
     "evaluate_policy": "function",
     "verdict_for_action": "function",
-    "verify_effect": "function"
+    "verify_effect": "function",
+    "what_if": "function"
   },
   "version": 1
 }

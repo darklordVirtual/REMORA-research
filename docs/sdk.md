@@ -168,6 +168,33 @@ move authority out of that path. Build the observation from premises you have
 verified yourself; a field the agent merely asserts is not evidence, and an
 ungrounded critical action is held for a human or abstained, never allowed.
 
+### What would it take? (the policy what-if)
+
+The same host can ask which declared facts would move an observation to a
+target verdict, under the engine flags its governed path runs with:
+
+```python
+from remora.sdk import EngineOptions, what_if
+
+report = what_if(
+    observation, target="accept", max_depth=4, max_evaluations=20_000,
+    engine_options=EngineOptions.execution_surface(
+        bounded_write_accept=True, bounded_write_intent_optional=True),
+)
+report.to_dict()   # verdict now, hard guard, minimal change sets, search bounds
+```
+
+It is `remora.policy.whatif.what_if` behind the stable surface (see
+[cli.md](cli.md), `remora whatif`), and as pure as `evaluate_policy`.
+`EngineOptions.execution_surface()` is the flag set `/v1/execution` builds its
+engine with (execution profile and strict monotonicity on); pass the opt-in
+paths your deployment enables, since nothing is read from the environment.
+The observation is yours to build: to analyse what the execution API would
+decide, give it the fields that API derives server-side. The report is an
+analysis, not a grant. It names facts, each tagged with who can bring it
+about (`deployment_fact`, `proposal`, `model_signal`); only establishing them
+and being assessed again yields the verdict.
+
 ## Verifying that it actually happened
 
 Everything above governs *authorization*: what may run, bound to an exact
