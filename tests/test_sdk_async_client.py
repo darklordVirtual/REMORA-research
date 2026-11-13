@@ -228,7 +228,7 @@ def test_async_limits_methods_mirror_the_sync_client() -> None:
                  "charges": [{"counter": "hs51-set2", "amount": 7000}]}]})
         assert json.loads(request.content) == {
             "operation_id": "lease:n7", "executed": True,
-            "evidence_ref": "rail:stmt-77", "reason": ""}
+            "evidence_ref": "rail:stmt-77", "reason": "the rail reports the transfer"}
         return httpx.Response(200, json={"operation_id": "lease:n7", "executed": True,
                                          "resolved_by": "treasury-reviewer",
                                          "status": "resolved"})
@@ -237,7 +237,8 @@ def test_async_limits_methods_mirror_the_sync_client() -> None:
         async with _client_for(handler) as client:
             held = await client.list_unresolved()
             resolution = await client.resolve_unknown(
-                held[0].operation_id, executed=True, evidence_ref="rail:stmt-77")
+                held[0].operation_id, executed=True, evidence_ref="rail:stmt-77",
+                reason="the rail reports the transfer")
             return held, resolution
 
     held, resolution = asyncio.run(run())

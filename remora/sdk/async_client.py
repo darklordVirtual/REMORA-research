@@ -153,7 +153,10 @@ class AsyncRemoraClient:
         return ExecutionResult.from_payload(payload)
 
     async def record_effect(self, proposal_id: str,
-                      verification: "EffectVerificationView") -> "EffectVerificationView":
+                            verification: "EffectVerificationView", *,
+                            observed: "Mapping[str, Any] | None" = None,
+                            arguments: "Mapping[str, Any] | None" = None,
+                            ) -> "EffectVerificationView":
         """Hand a verification you performed back to REMORA for recording.
 
         Verification runs in YOUR process because the reader holds the
@@ -171,6 +174,13 @@ class AsyncRemoraClient:
             trail = await self._request(
                 "GET", f"/v1/execution/proposals/{proposal_id}/lifecycle")
             body = bind_verification(body, dispatch_binding(trail))
+        # What the verifier read and the approved arguments. With both, the
+        # server instantiates the signed postcondition and computes the verdict
+        # itself; without them the record stays the verifier's claim.
+        if observed is not None:
+            body["observed"] = dict(observed)
+        if arguments is not None:
+            body["arguments"] = dict(arguments)
         payload = await self._request(
             "POST", f"/v1/execution/proposals/{proposal_id}/effect",
             json=body,
@@ -220,6 +230,8 @@ class AsyncRemoraClient:
     async def resolve_unknown(self, operation_id: str, *, executed: bool,
                               evidence_ref: str, reason: str = "") -> LimitResolution:
         """Async :meth:`RemoraClient.resolve_unknown`."""
+        if not reason.strip():
+            raise ValueError("resolve_unknown needs a reason: the route refuses an empty one")
         payload = await self._request("POST", "/v1/execution/limits/resolve", json={
             "operation_id": operation_id, "executed": executed,
             "evidence_ref": evidence_ref, "reason": reason,

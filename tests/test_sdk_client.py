@@ -446,7 +446,8 @@ def test_a_refused_resolution_is_a_conflict_naming_the_reason(detail) -> None:
         return httpx.Response(409, json={"detail": detail})
 
     with _client_for(handler) as client, pytest.raises(ConflictError) as exc:
-        client.resolve_unknown("lease:n7", executed=False, evidence_ref="rail:stmt-77")
+        client.resolve_unknown("lease:n7", executed=False, evidence_ref="rail:stmt-77",
+                               reason="no transfer")
     assert detail in str(exc.value)
 
 

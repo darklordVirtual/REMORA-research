@@ -4,6 +4,13 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Embedding: what a host needs to author artifacts and close the loop through the packaged surface (2026-11-13)
+
+- `remora build-toolspec BUNDLE --out FILE`: authors a signed ToolSpec bundle from the installed package. It measures each named callable with the digest registration computes, computes the description digest, signs with the Ed25519 seed in `REMORA_TOOLSPEC_SIGNING_SEED`, and loads the result with the strict runtime loader before writing, so a bundle the runtime would refuse is never produced. Until now the only flow was the pilot script under `deploy/ot-pilot`, which is not in the wheel.
+- `--signed-at` on `build-toolspec` and `sign-limits` fixes the recorded signing time, so one seed and one input give the same bytes.
+- SDK: `record_effect(..., observed=, arguments=)` on both clients hands the verifier's observation and the approved arguments to the route, which already accepted them; without them a write could not be settled as `EFFECT_VERIFIED` with a computed verdict through the SDK. Omitted, the request is what it was.
+- SDK: `resolve_unknown` refuses an empty `reason` with `ValueError` before any request. Its default was the empty string, which the route always refuses with 422.
+
 ### Embedding: one reading of the current time on the governed path, which a host can supply (2026-11-12)
 
 - `remora/timebase.py`: `utc_now()` and `unix_now()` are now the one place the governed path reads the time. Token and approval expiry, lease expiry, limit windows, the review queue, the tenant chain and effect records read it; 37 direct reads of the system clock in `remora/execution`, `remora/enforcement`, `remora/governance` and `servers/execution_api.py` were replaced. With nothing configured the answer is the system clock and no behaviour changes.
