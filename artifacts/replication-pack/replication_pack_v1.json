@@ -21,9 +21,15 @@
     "measured_with_python": "3.13.7 (macOS arm64, venv with the dev extras)",
     "requirements_lock": {
       "path": "requirements-lock.txt",
-      "sha256_lf": "0663a9c9665a579c3d1c8f2cf5a7160bed465b9425a5e28157ebfd839699efee"
+      "sha256_lf": "8a1349ebf36649d61e5faf9b051a8b7e5cc85e6e9f45ffd2263d7fb8359f561e"
     },
     "requirements_lock_history": [
+      {
+        "path": "requirements-lock.txt",
+        "git_revision": "2137f7f218a7eff5902c32fd1f572356c052dba6",
+        "sha256_lf": "0663a9c9665a579c3d1c8f2cf5a7160bed465b9425a5e28157ebfd839699efee",
+        "reason": "opentelemetry 1.45.2 / 0.66b2 for CVE-2026-126360 (GHSA-mf5v-w3w3-f6cg) in opentelemetry-api 1.45.1"
+      },
       {
         "path": "requirements-lock.txt",
         "git_revision": "c1ccaf69f3fec2c73e6a98500c9c00a64020d944",
