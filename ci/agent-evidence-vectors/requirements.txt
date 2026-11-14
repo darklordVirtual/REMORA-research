@@ -1,6 +1,6 @@
 # Probity's invocation_axes reader, pinned by version and hash for
 # .github/workflows/probity-invocation-axes-reproduction.yml. Dependabot opens
 # a pull request for each new release, and that pull request runs the job.
-agent-evidence-vectors==0.31.2 \
-    --hash=sha256:36d4f0a1885a8f03c65cd257ae5642b7510b03505713eb6484d79173e7716d30 \
-    --hash=sha256:896ac929811a1660938a6650aa1e534390cb58598a9a4f9c60ce8664f151e6c5
+agent-evidence-vectors==0.36.3 \
+    --hash=sha256:210e42172511495bca47a20c88903800cf405126d7f956bb4be839f354052764 \
+    --hash=sha256:c2a8c01e6e5f777405b6102511b2ce147a6fdae7a2a13ca80fbe9c6bdbac2a34

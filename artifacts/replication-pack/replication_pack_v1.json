@@ -21,9 +21,15 @@
     "measured_with_python": "3.13.7 (macOS arm64, venv with the dev extras)",
     "requirements_lock": {
       "path": "requirements-lock.txt",
-      "sha256_lf": "8a1349ebf36649d61e5faf9b051a8b7e5cc85e6e9f45ffd2263d7fb8359f561e"
+      "sha256_lf": "0ca8f6eef8a9c5c37cd22d99817324605b0b546189b1230cdeec19e7db711285"
     },
     "requirements_lock_history": [
+      {
+        "path": "requirements-lock.txt",
+        "git_revision": "f311ac589da4f4f4e4ef12bb77bb5d33bd79ab66",
+        "sha256_lf": "8a1349ebf36649d61e5faf9b051a8b7e5cc85e6e9f45ffd2263d7fb8359f561e",
+        "reason": "Dependabot updates of 2026-11-12 integrated on dev (#1225, #1227, #1230, #1235): fastapi 0.162.2, pydantic 2.14.3 with pydantic_core 2.50.4, transformers 5.22.2, openai 3.48.0, langchain 1.4.9, langchain-core 1.7.6, langchain-protocol 0.0.21, soupsieve 4.0"
+      },
       {
         "path": "requirements-lock.txt",
         "git_revision": "2137f7f218a7eff5902c32fd1f572356c052dba6",
