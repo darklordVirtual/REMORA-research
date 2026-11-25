@@ -135,6 +135,22 @@ def test_unlocked_datasets_extra_excludes_the_vulnerable_release() -> None:
     assert Version("5.0.1") in requirement.specifier
 
 
+@pytest.mark.parametrize("package", [
+    "opentelemetry-api",
+    "opentelemetry-sdk",
+    "opentelemetry-exporter-otlp-proto-http",
+])
+def test_unlocked_otel_extra_requires_the_patched_family(package: str) -> None:
+    """CVE-2026-126360 requires the patched API even without a repository lock."""
+    with (REPO_ROOT / "pyproject.toml").open("rb") as handle:
+        extras = tomllib.load(handle)["project"]["optional-dependencies"]
+    requirements = {req.name: req for req in map(Requirement, extras["otel"])}
+    specifier = requirements[package].specifier
+    assert Version("1.45.0") not in specifier
+    assert Version("1.45.1") not in specifier
+    assert Version(_lock_pins()[package]) in specifier
+
+
 @pytest.mark.parametrize("manifest", [
     "frontend/package-lock.json", "workers/mcp-gateway/package-lock.json",
 ])
