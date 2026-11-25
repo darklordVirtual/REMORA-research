@@ -58,6 +58,7 @@ from remora.sdk.gate import (
     verdict_for_action,
 )
 from remora.policy.observation import PolicyObservation
+from remora.sdk import evidence
 from remora.sdk.whatif import EngineOptions, WhatIfReport, what_if
 from remora.sdk.models import (
     ApprovalResult,
@@ -129,6 +130,7 @@ __all__ = [
     "build_postcondition",
     "content_digest",
     "evaluate_policy",
+    "evidence",
     "verdict_for_action",
     "verify_effect",
     "what_if",
