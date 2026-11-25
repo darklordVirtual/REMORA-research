@@ -11918,9 +11918,9 @@
     },
     "pyproject.toml": {
       "concepts": [],
-      "git_blob": "eb784e8dcf1515d7f47d79b694bf5c9d6aada98b",
+      "git_blob": "49f8d0fd31b0813e5f0112a636c6715aadfb193c",
       "mode": "100644",
-      "sha256": "2bd5276fc237debd17ec9cf91796d6f5b2c0ec99b7e10403e66a8256fe8516ca"
+      "sha256": "8efefff9e9a2d64ba6b01196a7ec3b0af07f8757a99127183ec7a71d3eab2d50"
     },
     "remora/README.md": {
       "concepts": [],
@@ -19729,9 +19729,9 @@
     },
     "tests/test_ci_dependency_pinning.py": {
       "concepts": [],
-      "git_blob": "7a0aaa34447398f43d5eccc73fe1e9f7cfd9e5a1",
+      "git_blob": "aa22ce58403d62c31640e2c4ec92aa98e99cdc27",
       "mode": "100644",
-      "sha256": "3f4397293928d13209810817bf70da86ef660ac4a2923cf61837e55d193a440a"
+      "sha256": "032ccf077d3b03bebdf7e1356b3e2f9a90ecb2b7bab60b57f5b197a2710713a3"
     },
     "tests/test_citation_existence.py": {
       "concepts": [],
@@ -24295,7 +24295,7 @@
     }
   },
   "git_object_format": "sha1",
-  "register_sha256": "13d3e1049c4cc8c0d75c612992f77235e82831c0abc9282a7b0e08b3ae378599",
+  "register_sha256": "a1fb22130b50f6befb2e4ac322042c53c8e15cae77f8201c145a8cb932b0d4b7",
   "schema_version": "remora-code-provenance-v1",
   "scope": "all Git-tracked files except the live register itself",
   "snapshot": null
