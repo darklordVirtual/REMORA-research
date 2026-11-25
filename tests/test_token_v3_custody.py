@@ -231,6 +231,7 @@ def test_a_revoked_derived_kid_refuses_live_and_stays_readable_as_history(
     assert grant.verify_historical().reason == "ok"
 
 
+
 def test_a_v3_grant_needs_verification_material(_clean: pytest.MonkeyPatch) -> None:
     _as_pdp(_clean)
     grant = _issue()
@@ -330,6 +331,12 @@ def test_the_v3_vector_verifies_with_the_production_code(_clean: pytest.MonkeyPa
         SignatureDomain.POLICY_GRANT_ASYMMETRIC, payload)
     _clean.setenv("REMORA_PDP_VERIFY_KEYS_ED25519", vector["keys"]["ed25519_public_hex"])
     assert grant.verify_historical().reason == "ok"
+    from remora.sdk import evidence
+
+    public = vector["keys"]["ed25519_public_hex"]
+    assert evidence.verify_grant_signature(grant.to_dict(), public_key=public)
+    assert not evidence.verify_grant_signature({**grant.to_dict(), "action": "altered"}, public_key=public)
+    assert not evidence.verify_grant_signature(grant.to_dict(), public_key="00" * 32)
 
 
 # ── the split on the API ───────────────────────────────────────────────────
@@ -359,6 +366,17 @@ def _api_client(mp: pytest.MonkeyPatch, tmp_path: Path):
     return TestClient(api_mod.app)
 
 
+def _issue_in_separate_process(send, root):
+    from tests.test_execute_accepted import _mint_token
+
+    with pytest.MonkeyPatch.context() as patch:
+        key = SigningKey.generate({SignatureDomain.POLICY_GRANT_ASYMMETRIC})
+        _as_pdp(patch, key)
+        client = _api_client(patch, root)
+        send.send((_public(key), _mint_token(client)))
+    send.close()
+
+
 def test_a_redeemer_replica_executes_a_grant_the_pdp_replica_minted(
         _clean: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Two custody domains on the real routes: the PDP mints, the redeemer
@@ -366,13 +384,27 @@ def test_a_redeemer_replica_executes_a_grant_the_pdp_replica_minted(
     pytest.importorskip("fastapi")
     import tests.test_execute_accepted as accepted
 
-    _as_pdp(_clean)
-    _clean.setenv("REMORA_LEASE_SIGNING_KEY", "lease-key-held-by-the-redeemer")
-    client = _api_client(_clean, tmp_path)
-    token = accepted._mint_token(client)
-    assert token["format"] == FORMAT_V3
+    import multiprocessing
 
-    _as_redeemer(_clean)
+    ctx = multiprocessing.get_context("spawn")
+    recv, send = ctx.Pipe(duplex=False)
+    issuer = ctx.Process(target=_issue_in_separate_process, args=(send, tmp_path / "issuer"))
+    issuer.start()
+    send.close()
+    try:
+        assert recv.poll(30), "issuer did not return a grant"
+        public, token = recv.recv()
+    finally:
+        recv.close()
+        issuer.join(10)
+        if issuer.is_alive():
+            issuer.kill()
+            issuer.join()
+    assert issuer.exitcode == 0
+    assert token["format"] == FORMAT_V3
+    _clean.setenv("REMORA_PDP_VERIFY_KEYS_ED25519", public)
+    _clean.setenv("REMORA_LEASE_SIGNING_KEY", "lease-key-held-by-the-redeemer")
+    client = _api_client(_clean, tmp_path / "redeemer")
     assert verify_only() is True
     first = client.post("/v1/execution/execute-accepted",
                         json={"execution_token": token, "tool_call": accepted.READ_CALL})
