@@ -11,7 +11,7 @@ summary is generated at
 The boundary summary keeps internal trust boundaries, external interfaces,
 Federation edges, role mappings and claim ceilings distinct. Its statuses do
 not imply production evidence, owner confirmation, independent observation or
-Federation adoption. E7 has two externally operated Probity reproductions recorded in
+Federation adoption. E7 has three externally operated Probity reproductions recorded in
 `artifacts/interop/index.json` under REMORA's narrower independence rule;
 these are not blind studies or independent under the Federation boundary
 map's stricter rule. `runtime_capability_surface_completeness` remains
@@ -248,7 +248,8 @@ Recorded since that snapshot, as of 2026-10-26: the successor contracts
 (which adds `effect_call_binding`, `effect_decision_correspondence` and
 `effect_observer_independence`) have L0 author records only and stay `DRAFT`.
 `runtime-surface-e7-v0.1` reached the package lifecycle `EXTERNALLY_VERIFIED`
-on two external Probity runs; that covers its fixture premises, not REMORA's
+on two external Probity runs, and a third from a later reader release was
+recorded on 2026-11-27; that covers its fixture premises, not REMORA's
 runtime. No `interop-result-v1` record above L0 exists for any claim, and the
 levels above are not raised by this note.
 

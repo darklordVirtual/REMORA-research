@@ -192,7 +192,7 @@ tool catalogue REMORA was not developed on. In a development dry run there,
 a scripted agent replayed 91 legitimate calls and REMORA blocked 90 of them.
 It completed 11 of 29 tasks against 10 for refuse-all, and the run is not
 confirmatory (\S\ref{sec:negative}). One
-frozen interoperability contract has two external fixture-level runs that
+frozen interoperability contract has three external fixture-level runs that
 meet the repository's independence rule; production enforcement
 remains unestablished. The declared release profile is
 \texttt{CONTROLLED\_PILOT} (owner decision of 2026-10-25): the repository
@@ -374,7 +374,7 @@ numbers.
   headline safety number to no component
   (\S\ref{sec:boundary-declarations}, \S\ref{sec:ablation});
 \item frozen interoperability contracts with external run records, one of
-  them with two external fixture-level runs that meet the repository's
+  them with three external fixture-level runs that meet the repository's
   independence rule, together with contract probes and a
   formal model contributed to an external federation transport
   (\S\ref{sec:federation}).
@@ -1081,8 +1081,8 @@ fresh-authority and effect-evidence contracts (E-ECB, E-FA, E-EE). They were
 run by an external second implementation (Probity) against frozen fixture
 packages and are recorded as \texttt{NOT\_INDEPENDENT}, with each
 boundary-level claim result \texttt{NOT\_ESTABLISHED}. The E7
-runtime-surface contract has two external Probity run records (2026-10-08
-and 2026-10-09) that meet the repository's recorded independence rule, so
+runtime-surface contract has three external Probity run records (2026-10-08,
+2026-10-09 and 2026-10-23) that meet the repository's recorded independence rule, so
 its lifecycle is \texttt{EXTERNALLY\_VERIFIED} with independence
 \texttt{INDEPENDENT}. That rule means a second implementation importing no
 producer code, run outside the producer's control; it is not a blind study.
@@ -2676,7 +2676,7 @@ verifier can run without turning foreign results into execution authority.
 The former is not yet wired into effect verification. External run
 records now exist for the exact-call-binding, fresh-authority and
 effect-evidence contracts (E-ECB, E-FA, E-EE), recorded as not independent.
-The E7 runtime-surface contract has two external fixture-level runs that
+The E7 runtime-surface contract has three external fixture-level runs that
 meet the repository's independence rule, with every boundary-level claim
 result still \texttt{NOT\_ESTABLISHED}. Contract
 probes and a formal model from this repository found four findings in an

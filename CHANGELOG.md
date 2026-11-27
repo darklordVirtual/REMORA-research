@@ -4,6 +4,14 @@ This file lists externally relevant changes by release. Fine-grained development
 
 ## Unreleased
 
+### Interop: E7's third external run recorded, and two claim ceilings that denied the recorded runs (2026-11-27)
+
+- `docs/interop/remora-boundaries-v1.yaml`: `cc-edge-e7` said no external run is recorded, and `cc-role-agv-179` said E7 has no external run record. The same register records the runs under E7's `status_dimensions`. Both non-claims now say what the records do not cover: frozen fixtures only, not blind studies, no observed runtime. No status changes, and every boundary-level claim result stays `NOT_ESTABLISHED`.
+- `artifacts/interop/index.json`: `runtime-surface-e7-v0.1` gains Probity's run of 2026-10-23 from `agent-evidence-vectors==0.25.0` (record SHA-256 `9a04f0a6…063d`, pinned at `probityai/probityai.github.io@090d58c8`). Consumed revision, package digest, input digests and the five case results are identical to the 0.17.6 record. It is a rerun by the same verifier project, so lifecycle and independence are unchanged. REMORA compared the published records and did not rerun the reader at 0.25.0.
+- `docs/interop/E7_FIELD_CROSSWALK_CANDIDATE.md` records that `probityai/agent-evidence-atlas` is archived. The two earlier links pin commits there and are the bytes the index holds; the copies in the new location differ in `command` only.
+- The run count is carried through `FEDERATION.md`, `CAPABILITY_DISCOVERY.md`, `FEDERATION.yaml`, the paper sources, the generated boundary summary and the interop matrix.
+- `tests/test_federation_interop_contract.py`: the reproduction-workflow test required exactly one recorded pip reader release. It now requires the workflow's `READER_PIN` to be one of the recorded releases. The workflow still installs 0.17.6.
+
 ### SDK: the policy what-if through `remora.sdk` (2026-11-13)
 
 - `remora.sdk.what_if(observation, *, target, max_depth, max_evaluations, engine_options)` runs the decision-boundary analysis of `remora.policy.whatif.what_if` on a `PolicyObservation` and returns its `WhatIfReport` (re-exported; `to_dict()` is JSON-ready). A host that may import only `remora.sdk`, such as DCSIM's binding, could reach it only through top-level `remora` until now. Same answer as the internal function for the same engine, pure like `evaluate_policy`, and an analysis, not a grant: no token, grant or lease.

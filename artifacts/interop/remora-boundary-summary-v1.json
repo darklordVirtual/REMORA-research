@@ -4,7 +4,7 @@
     "project": "REMORA",
     "repository": "darklordVirtual/REMORA-research",
     "register": "docs/interop/remora-boundaries-v1.yaml",
-    "register_sha256": "00d3042ad6b517474ea87a7b02536a08017bd05e7cfd341bdbcc17a7e8e70241",
+    "register_sha256": "ed47a10957312660c5de18270a6a1d9d9952983a258f2c98ffb4133476d5ddd9",
     "audited_revision": "af40a81f7953431261d12d997588a5bb1bbbb3fc",
     "freshness": "CURRENT"
   },
@@ -136,7 +136,7 @@
       "contract_id": "runtime-surface-e7-v0.1",
       "package_digest": "sha256:01dfdb7885bdbb18c025bc013edc28b482b0631ae282aca877bd0953b865e4bf",
       "producer_role": "REMORA publishes the pinned E7 fixture package.",
-      "consumer_role": "Probity independently verified the pinned E7 fixtures in self-service and pip reruns, with expected answers read before implementation (not a blind study); runtime completeness is not established.",
+      "consumer_role": "Probity independently verified the pinned E7 fixtures in one self-service and two pip reruns, with expected answers read before implementation (not a blind study); runtime completeness is not established.",
       "maturity": "DECLARED",
       "claim_ceiling_ref": "cc-edge-e7",
       "negative_case_ids": [
@@ -318,7 +318,8 @@
       "non_claims": [
         "Host credential absence is not established.",
         "Unobserved alternative paths are not ruled out.",
-        "No external run, independent observation, production evidence or Federation adoption is recorded."
+        "The external run records cover the frozen fixtures only and are not blind studies.",
+        "No independent observation of a runtime, production evidence or Federation adoption is recorded."
       ]
     },
     {
@@ -347,7 +348,7 @@
       "target_id": "agv-179-runtime-observation",
       "statement": "The runtime observation role mapping is partial.",
       "non_claims": [
-        "E7 has no external run record.",
+        "The E7 external run records cover frozen fixtures, not an observed runtime.",
         "Independent observation or runtime surface completeness is not established."
       ]
     },

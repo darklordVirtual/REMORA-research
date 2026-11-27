@@ -659,8 +659,9 @@ def test_authority_path_does_not_import_a_federation_module() -> None:
 def test_e7_reproduction_pins_the_recorded_pip_reader_and_claims_no_independence(e7: dict[str, Any]) -> None:
     workflow = (ROOT / ".github" / "workflows" / "probity-e7-reproduction.yml").read_text(encoding="utf-8")
     pins = {r["verifier"]["implementation_revision"] for r in e7["external_runs"]}
-    (pin,) = [p for p in pins if p.startswith("agent-evidence-vectors==")]
-    assert f"READER_PIN: {pin}" in workflow
+    pip_pins = {p for p in pins if p.startswith("agent-evidence-vectors==")}
+    reader_pin = re.search(r"READER_PIN: (\S+)\n", workflow).group(1)  # type: ignore[union-attr]
+    assert reader_pin in pip_pins, "the workflow must install a reader release Probity recorded a run with"
     assert re.search(r"READER_WHEEL_SHA256: [0-9a-f]{64}\n", workflow)
     assert "--require-hashes" in workflow and "--no-deps" in workflow
     assert "--operator AUTHOR" in workflow and "--operator EXTERNAL" not in workflow

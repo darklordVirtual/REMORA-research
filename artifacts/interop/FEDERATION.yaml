@@ -42,8 +42,9 @@ claim_ceiling:
   note: >-
     One external adequacy round has been run on a conformance corpus (#629).
     One interop contract, runtime-surface-e7-v0.1, has the package lifecycle
-    EXTERNALLY_VERIFIED: two external Probity run records (2026-10-08 and
-    2026-10-09) meet the independence contract for its frozen fixtures. That
+    EXTERNALLY_VERIFIED: three external Probity run records (2026-10-08,
+    2026-10-09 and 2026-10-23) meet the independence contract for its frozen
+    fixtures. That
     lifecycle covers the fixture premises, not runtime verification of
     REMORA, and runtime_capability_surface_completeness stays NOT_ESTABLISHED.
     No other contract has reached it. A result under any contract

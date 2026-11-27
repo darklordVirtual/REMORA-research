@@ -19,10 +19,10 @@ provenance:
       sha256: b721173eff30c331f1607203a1a3fec091b01c895fa734af2e4dba163e53590d
       role: implementation maturity and freshness source
     - path: artifacts/interop/index.json
-      sha256: 17d821785c132bef88d2439ccc1d00682e309dbcc03fdea2815abe6865a6597d
+      sha256: 1ab95a94dac93ad343078c8ecb432d69e05717b4e13dccbb923a009f5f9ba7ce
       role: Federation contract and run-record index
     - path: artifacts/interop/FEDERATION.yaml
-      sha256: c7658214b9e98d912a0cc8009e6fae6c538af9ce091963c68d0940f48f0ff545
+      sha256: cb0d4980c28f0320f5ca0b41575aca36fe287e850f6f95c73abd9f010839f12f
       role: Federation edge declarations
     - path: artifacts/interop/runtime-surface-e7-v0.1/manifest.json
       sha256: f67b6a88ec79219a567b5d47b528f9c47437d6ae6a42bec94d6d5d6c85379ddf
@@ -217,7 +217,7 @@ federation_edges:
       - governed_tool_dispatch
     maturity: DECLARED
     producer_role: REMORA publishes the pinned E7 fixture package.
-    consumer_role: Probity independently verified the pinned E7 fixtures in self-service and pip reruns, with expected answers read before implementation (not a blind study); runtime completeness is not established.
+    consumer_role: Probity independently verified the pinned E7 fixtures in one self-service and two pip reruns, with expected answers read before implementation (not a blind study); runtime completeness is not established.
     claim: bounded_observed_surface_matches_governed_set
     claim_ceiling_ref: cc-edge-e7
     negative_case_ids:
@@ -263,16 +263,19 @@ federation_edges:
         evidence:
           - https://github.com/probityai/agent-evidence-atlas/blob/0e0a986f24dd2994446051db42a3e40692d7fa41/experiments/remora-e7-selfservice-2026-10-08/external-run-record-v1.json
           - https://github.com/probityai/agent-evidence-atlas/blob/80f2679f56d4509d4e3b76f8997d633f6d537fe7/experiments/remora-e7-pip-2026-10-09/external-run-record-v1.json
+          - https://github.com/probityai/probityai.github.io/blob/090d58c8f7ab2bbcb555d9ee8d5ccc8abaa2d7a7/atlas/experiments/remora-e7-pip-0.25.0-2026-10-23/external-run-record-v1.json
       independence:
         status: INDEPENDENT
         evidence:
           - https://github.com/probityai/agent-evidence-atlas/blob/0e0a986f24dd2994446051db42a3e40692d7fa41/experiments/remora-e7-selfservice-2026-10-08/external-run-record-v1.json
           - https://github.com/probityai/agent-evidence-atlas/blob/80f2679f56d4509d4e3b76f8997d633f6d537fe7/experiments/remora-e7-pip-2026-10-09/external-run-record-v1.json
+          - https://github.com/probityai/probityai.github.io/blob/090d58c8f7ab2bbcb555d9ee8d5ccc8abaa2d7a7/atlas/experiments/remora-e7-pip-0.25.0-2026-10-23/external-run-record-v1.json
       claim_result:
         status: NOT_ESTABLISHED
         evidence:
           - https://github.com/probityai/agent-evidence-atlas/blob/0e0a986f24dd2994446051db42a3e40692d7fa41/experiments/remora-e7-selfservice-2026-10-08/external-run-record-v1.json
           - https://github.com/probityai/agent-evidence-atlas/blob/80f2679f56d4509d4e3b76f8997d633f6d537fe7/experiments/remora-e7-pip-2026-10-09/external-run-record-v1.json
+          - https://github.com/probityai/probityai.github.io/blob/090d58c8f7ab2bbcb555d9ee8d5ccc8abaa2d7a7/atlas/experiments/remora-e7-pip-0.25.0-2026-10-23/external-run-record-v1.json
       production:
         status: NOT_ESTABLISHED
         evidence: []
@@ -412,7 +415,8 @@ claim_ceilings:
     non_claims:
       - Host credential absence is not established.
       - Unobserved alternative paths are not ruled out.
-      - No external run, independent observation, production evidence or Federation adoption is recorded.
+      - The external run records cover the frozen fixtures only and are not blind studies.
+      - No independent observation of a runtime, production evidence or Federation adoption is recorded.
   - id: cc-edge-e8
     applies_to: FEDERATION_EDGE
     target_id: E8
@@ -436,7 +440,7 @@ claim_ceilings:
     target_id: agv-179-runtime-observation
     statement: The runtime observation role mapping is partial.
     non_claims:
-      - E7 has no external run record.
+      - The E7 external run records cover frozen fixtures, not an observed runtime.
       - Independent observation or runtime surface completeness is not established.
   - id: cc-observation-effect-verifier
     applies_to: OBSERVATION_ROLE
